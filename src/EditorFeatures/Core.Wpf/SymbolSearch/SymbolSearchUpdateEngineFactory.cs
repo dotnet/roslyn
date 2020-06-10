@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -22,73 +27,80 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             ISymbolSearchProgressService progressService,
             CancellationToken cancellationToken)
         {
-            var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var callbackObject = new CallbackObject(logService, progressService);
-                var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
-                if (session != null)
-                {
-                    return new RemoteUpdateEngine(workspace, session);
-                }
+                var session = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
+                return new RemoteUpdateEngine(workspace, session);
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.
             return new SymbolSearchUpdateEngine(logService, progressService);
         }
 
-        private partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine
+        private sealed partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine
         {
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
             private readonly Workspace _workspace;
-            private readonly KeepAliveSession _session;
+            private readonly RemoteServiceConnection _session;
 
             public RemoteUpdateEngine(
                 Workspace workspace,
-                KeepAliveSession session)
+                RemoteServiceConnection session)
             {
                 _workspace = workspace;
                 _session = session;
             }
 
+            public void Dispose()
+            {
+                _session.Dispose();
+            }
+
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<IList<PackageWithTypeResult>>(
+                var results = await _session.RunRemoteAsync<IList<PackageWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
-                    new object[] { source, name, arity }, cancellationToken).ConfigureAwait(false);
+                    solution: null,
+                    new object[] { source, name, arity },
+                    cancellationToken).ConfigureAwait(false);
 
-                return results.ToImmutableArrayOrEmpty();
+                return results.ToImmutableArray();
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<IList<PackageWithAssemblyResult>>(
+                var results = await _session.RunRemoteAsync<IList<PackageWithAssemblyResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
-                    new object[] { source, assemblyName }, cancellationToken).ConfigureAwait(false);
+                    solution: null,
+                    new object[] { source, assemblyName },
+                    cancellationToken).ConfigureAwait(false);
 
-                return results.ToImmutableArrayOrEmpty();
+                return results.ToImmutableArray();
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
+                var results = await _session.RunRemoteAsync<IList<ReferenceAssemblyWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
-                    new object[] { name, arity }, cancellationToken).ConfigureAwait(false);
+                    solution: null,
+                    new object[] { name, arity },
+                    cancellationToken).ConfigureAwait(false);
 
-                return results.ToImmutableArrayOrEmpty();
+                return results.ToImmutableArray();
             }
 
-            public async Task UpdateContinuouslyAsync(
-                string sourceName, string localSettingsDirectory)
-            {
-                await _session.TryInvokeAsync(
+            public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
+                => _session.RunRemoteAsync(
                     nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
-                    new object[] { sourceName, localSettingsDirectory }, CancellationToken.None).ConfigureAwait(false);
-            }
+                    solution: null,
+                    new object[] { sourceName, localSettingsDirectory },
+                    CancellationToken.None);
         }
 
         private class CallbackObject : ISymbolSearchLogService, ISymbolSearchProgressService

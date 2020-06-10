@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -45,12 +47,21 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+            await VerifyAbsenceAsync(
+@"using Goo = d$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public async Task TestInUsingAliasTypeParameter()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(
+@"using Goo = T<$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInEmptyStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
@@ -194,15 +205,11 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAbstract()
-        {
-            await VerifyAbsenceAsync(@"abstract $$");
-        }
+            => await VerifyAbsenceAsync(@"abstract $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterInternal()
@@ -234,27 +241,25 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterSealed()
+            => await VerifyAbsenceAsync(@"sealed $$");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStatic()
         {
-            await VerifyAbsenceAsync(@"sealed $$");
+            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"static $$");
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"static $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStatic()
+        public async Task TestAfterStaticPublic()
         {
-            await VerifyAbsenceAsync(@"static $$");
+            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"static public $$");
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"static public $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStaticPublic()
-        {
-            await VerifyAbsenceAsync(@"static public $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterDelegate()
-        {
-            await VerifyAbsenceAsync(@"delegate $$");
-        }
+        public async Task TestAfterDelegate()
+            => await VerifyKeywordAsync(@"delegate $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestDelegateAsArgument()
@@ -307,25 +312,25 @@ $$");
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInTypeOf()
+        public async Task TestInTypeOf()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"typeof($$"));
         }
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInDefault()
+        public async Task TestInDefault()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"default($$"));
         }
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInSizeOf()
+        public async Task TestInSizeOf()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
@@ -355,15 +360,24 @@ class C
         Action a = async $$");
         }
 
-        [WorkItem(607197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607197")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAsyncInMemberDeclaration()
+        public async Task TestAfterAsyncInMemberDeclaration()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 using System;
 class C
 {
     async $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeList()
+        {
+            await VerifyKeywordAsync(@"
+using System;
+class C
+{
+    delegate*<$$");
         }
     }
 }

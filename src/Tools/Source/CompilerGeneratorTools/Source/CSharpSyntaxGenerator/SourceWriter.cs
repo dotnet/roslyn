@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using static System.String;
 
 namespace CSharpSyntaxGenerator
 {
@@ -30,6 +31,7 @@ namespace CSharpSyntaxGenerator
             WriteLine();
             WriteLine("using System;");
             WriteLine("using System.Collections.Generic;");
+            WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.Syntax.InternalSyntax;");
             WriteLine("using Roslyn.Utilities;");
             WriteLine();
@@ -65,6 +67,7 @@ namespace CSharpSyntaxGenerator
             WriteFileHeader();
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
             OpenBlock();
+            WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
@@ -93,7 +96,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
 
                 // ctor with diagnostics and annotations
-                WriteLine($"internal {node.Name}(SyntaxKind kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)");
+                WriteLine($"internal {node.Name}(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                 WriteLine("  : base(kind, diagnostics, annotations)");
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
@@ -182,7 +185,7 @@ namespace CSharpSyntaxGenerator
 
                 WriteGreenNodeConstructorArgs(nodeFields, valueFields);
 
-                WriteLine(", DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)");
+                WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                 WriteLine("  : base(kind, diagnostics, annotations)");
                 OpenBlock();
                 WriteCtorBody(valueFields, nodeFields);
@@ -410,7 +413,7 @@ namespace CSharpSyntaxGenerator
         private void WriteSetAnnotations(Node node)
         {
             WriteLine();
-            WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)");
+            WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)");
             Write($"    => new {node.Name}(");
             Write(CommaJoin(
                 "this.Kind",
@@ -423,7 +426,7 @@ namespace CSharpSyntaxGenerator
         private void WriteSetDiagnostics(Node node)
         {
             WriteLine();
-            WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)");
+            WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)");
             Write($"    => new {node.Name}(");
             Write(CommaJoin(
                 "this.Kind",
@@ -636,7 +639,7 @@ namespace CSharpSyntaxGenerator
             }
 
             // validate parameters
-            WriteLine("#if DEBUG");
+            WriteLineWithoutIndent("#if DEBUG");
             foreach (var field in nodeFields)
             {
                 var pname = CamelCase(field.Name);
@@ -684,7 +687,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            WriteLine("#endif");
+            WriteLineWithoutIndent("#endif");
 
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
@@ -955,7 +958,8 @@ namespace CSharpSyntaxGenerator
                             WriteLine("get");
                             OpenBlock();
                             WriteLine($"var slot = ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)};");
-                            WriteLine($"return slot != null ? new SyntaxToken(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;"); CloseBlock();
+                            WriteLine($"return slot != null ? new SyntaxToken(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
+                            CloseBlock();
                             CloseBlock();
                         }
                         else
@@ -1136,6 +1140,8 @@ namespace CSharpSyntaxGenerator
         private void WriteRedAcceptMethod(Node node, bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
+            if (genericResult)
+                WriteLine("[return: MaybeNull]");
             WriteLine($"public override {(genericResult ? "TResult" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
         }
 
@@ -1160,6 +1166,8 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 nWritten++;
                 WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
+                if (genericResult)
+                    WriteLine("[return: MaybeNull]");
                 WriteLine($"public virtual {(genericResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
@@ -1223,7 +1231,7 @@ namespace CSharpSyntaxGenerator
                     if (baseType != null)
                     {
                         Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
-                        if (IsOptional(baseField) && !IsOptional(field))
+                        if (baseField.Type != "SyntaxToken" && IsOptional(baseField) && !IsOptional(field))
                         {
                             Write($" ?? throw new ArgumentNullException(nameof({CamelCase(field.Name)}))");
                         }
@@ -1714,10 +1722,10 @@ namespace CSharpSyntaxGenerator
         private Field DetermineMinimalOptionalField(Node nd)
         {
             // first if there is a single list, then choose the list because it would not have been optional
-            int listCount = nd.Fields.Count(f => IsAnyNodeList(f.Type));
+            int listCount = nd.Fields.Count(f => IsAnyNodeList(f.Type) && !IsAttributeOrModifiersList(f));
             if (listCount == 1)
             {
-                return nd.Fields.First(f => IsAnyNodeList(f.Type));
+                return nd.Fields.First(f => IsAnyNodeList(f.Type) && !IsAttributeOrModifiersList(f));
             }
             else
             {
@@ -1732,6 +1740,11 @@ namespace CSharpSyntaxGenerator
                     return null;
                 }
             }
+        }
+
+        private static bool IsAttributeOrModifiersList(Field f)
+        {
+            return f.Name == "AttributeLists" || f.Name == "Modifiers";
         }
 
         private IEnumerable<Field> DetermineMinimalFactoryFields(Node nd)
@@ -1768,6 +1781,14 @@ namespace CSharpSyntaxGenerator
                 return; // no string-name overload necessary
 
             this.WriteLine();
+
+            var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
+            var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
+
+            if (hasOptional && hasAttributeOrModifiersList)
+            {
+                WriteLineWithoutIndent("#pragma warning disable RS0027");
+            }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
@@ -1822,6 +1843,11 @@ namespace CSharpSyntaxGenerator
                 })));
 
             WriteLine(");");
+
+            if (hasOptional && hasAttributeOrModifiersList)
+            {
+                WriteLineWithoutIndent("#pragma warning restore RS0027");
+            }
         }
 
         private bool CanAutoConvertFromString(Field field)

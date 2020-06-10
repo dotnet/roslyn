@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -811,7 +813,7 @@ This object has been disposed by IDisposable.Dispose().";
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (17,13): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // (17,13): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //             using S1 s1 = new S1();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using S1 s1 = new S1();").WithArguments("S1").WithLocation(17, 13)
                 );

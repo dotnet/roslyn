@@ -27,11 +27,6 @@
         <target state="translated">Aggiungi 'Shadows'</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">L'istruzione 'If' può essere semplificata</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">Inserisci '{0}'.</target>
@@ -90,11 +85,6 @@
       <trans-unit id="Multiple_Types">
         <source>&lt;Multiple Types&gt;</source>
         <target state="translated">&lt;Più tipi&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Rimuovi Import non necessari</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -1347,7 +1337,7 @@ Return -oppure- Return &lt;espressione&gt;</target>
       <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
         <source>When set to On, restricts implicit data type conversions to only widening conversions.
 Option Strict {On | Off}</source>
-        <target state="translated">Se impostata su On, limita le conversioni dei tipi di dati impliciti alle sole conversioni verso un tipo di dati più grande.
+        <target state="translated">Se impostata su On, limita le conversioni dei tipi di dati impliciti alle sole conversioni che supportano un maggior numero di dati.
 Option Strict {On | Off}</target>
         <note />
       </trans-unit>
@@ -1477,11 +1467,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <target state="translated">Trasformare {0} in una funzione asincrona.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Inserisci cast mancante</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">Converti {0} in iteratore</target>
@@ -1504,42 +1489,12 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Genera la conversione verso un tipo di dati più piccolo in '{0}'</target>
+        <target state="translated">Genera la conversione che supporta un minor numero di dati in '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">Genera la conversione verso un tipo di dati più grande in '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">Non modificare questo codice. Inserire sopra il codice di pulizia in Dispose(disposing As Boolean).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: liberare risorse non gestite (oggetti non gestiti) ed eseguire sotto l'override di Finalize().</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: eseguire l'override di Finalize() solo se Dispose(disposing As Boolean) include il codice per liberare risorse non gestite.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Questo codice viene aggiunto da Visual Basic per implementare in modo corretto il criterio Disposable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: rimuovere il commento dalla riga seguente se è stato eseguito l'override di Finalize().</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">L'istruzione Imports non è necessaria.</target>
+        <target state="translated">Genera la conversione che supporta un maggior numero di dati in '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1820,21 +1775,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Rendi asincrona la funzione sub</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Aggiungi 'Me.'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Usa controllo 'Is Nothing'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Usa controllo 'IsNot Nothing'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

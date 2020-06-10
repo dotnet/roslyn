@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -103,7 +105,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
             foreach (var changePair in _codeActionWorkspaceEdit.Changes)
             {
                 var documentName = await _lspClient.ProtocolConverter.FromProtocolUriAsync(new Uri(changePair.Key), true, cancellationToken).ConfigureAwait(false);
-                var doc = newSolution.GetDocumentFromURI(documentName);
+
+                // The document name here is a document URI that we're trying to apply an edit to. The edit was already computed on the
+                // server and we're trying to create an equivalent copy on the client; we're only fetching the text of the document
+                // rather than any syntax trees, and so it doesn't matter from which context we grab if there are linked files --
+                // all the files are the same and modifying any of them is fine.
+                var doc = newSolution.GetDocuments(documentName).First();
                 if (doc == null)
                 {
                     continue;

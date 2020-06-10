@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -136,12 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostDocument(
-            string text = "", string displayName = "",
+            string text = "",
+            string displayName = "",
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
-            DocumentId? id = null, string? filePath = null,
-            IReadOnlyList<string>? folders = null)
+            DocumentId? id = null,
+            string? filePath = null,
+            IReadOnlyList<string>? folders = null,
+            ExportProvider? exportProvider = null)
         {
-            _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            _exportProvider = exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             _id = id;
             _initialText = text;
             Name = displayName;
@@ -183,9 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create(), _hostDocument.FilePath));
-            }
+                => Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create(), _hostDocument.FilePath));
         }
 
         public IWpfTextView GetTextView()
@@ -243,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                             // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
                             workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
                         }
-                    };
+                    }
                 }
             }
 
@@ -251,9 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public SourceTextContainer GetOpenTextContainer()
-        {
-            return this.GetTextBuffer().AsTextContainer();
-        }
+            => this.GetTextBuffer().AsTextContainer();
 
         public IReadOnlyList<string> Folders
         {
@@ -309,8 +310,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public DocumentInfo ToDocumentInfo()
-        {
-            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated, _documentServiceProvider);
-        }
+            => DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated, _documentServiceProvider);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
+using System.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -5583,7 +5586,7 @@ class Program
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""(bool a, System.Guid b) (bool a, System.Guid b)?.GetValueOrDefault()""
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid> System.ValueTuple<bool, System.Guid>?.GetValueOrDefault()""
   IL_0007:  ret
 }");
             comp.VerifyIL("Program.CoalesceUserStruct", @"{
@@ -5627,7 +5630,7 @@ class Program
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""(bool a, System.Guid b, string c) (bool a, System.Guid b, string c)?.GetValueOrDefault()""
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid, string> System.ValueTuple<bool, System.Guid, string>?.GetValueOrDefault()""
   IL_0007:  ret
 }");
         }
@@ -5825,6 +5828,179 @@ class C
                 // (6,14): error CS8652: The feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         t1 = t1 ?? t2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
+        }
+
+        [Fact, WorkItem(41760, "https://github.com/dotnet/roslyn/issues/41760")]
+        public void NullableBoolOperatorSemantics_01()
+        {
+            // The C# specification has a section outlining the behavior of the bool operators `|` and `&`
+            // on operands of type `bool?`.  We check that these are the semantics obeyed by the compiler.
+            var sourceStart = @"
+using System;
+
+public class C
+{
+    bool T => true;
+    bool F => false;
+    static bool? True => true;
+    static bool? False => false;
+    static bool? Null => null;
+
+    static void Main()
+    {
+        C n = null;
+        C c = new C();
+        bool t = true;
+        bool f = false;
+        bool? nt = true;
+        bool? nf = false;
+        bool? nn = null;
+";
+            var sourceEnd =
+@"        Console.WriteLine(""Done."");
+    }
+
+    static bool? And(bool? x, bool? y)
+    {
+        if (x == false || y == false)
+            return false;
+        if (x == null || y == null)
+            return null;
+        return true;
+    }
+
+    static bool? Or(bool? x, bool? y)
+    {
+        if (x == true || y == true)
+            return true;
+        if (x == null || y == null)
+            return null;
+        return false;
+    }
+
+    static bool? Xor(bool? x, bool? y)
+    {
+        if (x == null || y == null)
+            return null;
+        return x.Value != y.Value;
+    }
+}
+
+static class Assert
+{
+    public static void Equal<T>(T expected, T actual, string message)
+    {
+        if (!object.Equals(expected, actual))
+            Console.WriteLine($""Wrong for {message,-15}  Expected: {expected?.ToString() ?? ""null"",-5}  Actual: {actual?.ToString() ?? ""null""}"");
+    }
+}
+";
+            var builder = new StringBuilder();
+            var forms = new string[]
+            {
+                "null",
+                "nn",
+                "true",
+                "t",
+                "nt",
+                "false",
+                "f",
+                "nf",
+                "c?.T",
+                "c?.F",
+                "n?.T",
+                "Null",
+                "True",
+                "False",
+            };
+            foreach (var left in forms)
+            {
+                foreach (var right in forms)
+                {
+                    if (left == "null" && right == "null")
+                        continue;
+                    builder.AppendLine(@$"        Assert.Equal<bool?>(Or({left}, {right}), {left} | {right}, ""{left} | {right}"");");
+                    builder.AppendLine(@$"        Assert.Equal<bool?>(And({left}, {right}), {left} & {right}, ""{left} & {right}"");");
+                    if (left != "null" && right != "null")
+                        builder.AppendLine(@$"        Assert.Equal<bool?>(Xor({left}, {right}), {left} ^ {right}, ""{left} ^ {right}"");");
+                }
+            }
+            var source = sourceStart + builder.ToString() + sourceEnd;
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                );
+            CompileAndVerify(comp, expectedOutput: @"Done.");
+        }
+
+        [Fact, WorkItem(41760, "https://github.com/dotnet/roslyn/issues/41760")]
+        public void NullableBoolOperatorSemantics_02()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public bool BoolValue;
+
+    static void Main()
+    {
+        C obj = null;
+        Console.Write(obj?.BoolValue | true);
+        Console.Write(obj?.BoolValue & false);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                );
+            var cv = CompileAndVerify(comp, expectedOutput: @"TrueFalse");
+            cv.VerifyIL("C.Main", @"
+    {
+      // Code size       99 (0x63)
+      .maxstack  3
+      .locals init (bool? V_0,
+                    bool? V_1)
+      IL_0000:  ldnull
+      IL_0001:  dup
+      IL_0002:  dup
+      IL_0003:  brtrue.s   IL_0011
+      IL_0005:  pop
+      IL_0006:  ldloca.s   V_1
+      IL_0008:  initobj    ""bool?""
+      IL_000e:  ldloc.1
+      IL_000f:  br.s       IL_001b
+      IL_0011:  ldfld      ""bool C.BoolValue""
+      IL_0016:  newobj     ""bool?..ctor(bool)""
+      IL_001b:  stloc.0
+      IL_001c:  ldc.i4.1
+      IL_001d:  brtrue.s   IL_0022
+      IL_001f:  ldloc.0
+      IL_0020:  br.s       IL_0028
+      IL_0022:  ldc.i4.1
+      IL_0023:  newobj     ""bool?..ctor(bool)""
+      IL_0028:  box        ""bool?""
+      IL_002d:  call       ""void System.Console.Write(object)""
+      IL_0032:  dup
+      IL_0033:  brtrue.s   IL_0041
+      IL_0035:  pop
+      IL_0036:  ldloca.s   V_1
+      IL_0038:  initobj    ""bool?""
+      IL_003e:  ldloc.1
+      IL_003f:  br.s       IL_004b
+      IL_0041:  ldfld      ""bool C.BoolValue""
+      IL_0046:  newobj     ""bool?..ctor(bool)""
+      IL_004b:  stloc.0
+      IL_004c:  ldc.i4.0
+      IL_004d:  brtrue.s   IL_0057
+      IL_004f:  ldc.i4.0
+      IL_0050:  newobj     ""bool?..ctor(bool)""
+      IL_0055:  br.s       IL_0058
+      IL_0057:  ldloc.0
+      IL_0058:  box        ""bool?""
+      IL_005d:  call       ""void System.Console.Write(object)""
+      IL_0062:  ret
+    }
+");
         }
     }
 }

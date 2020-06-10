@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return IsFinalSpanSemanticallyValidSpan(semanticModel.SyntaxTree.GetRoot(cancellationToken), textSpan, returnStatements, cancellationToken);
         }
 
-        protected Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainingSpan<T>(
+        protected static Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainingSpan<T>(
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
         {
             // use top-down approach to find smallest statement range that contains given span.
@@ -103,8 +105,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             var commonRoot = token1.GetCommonRoot(token2).GetAncestorOrThis<T>() ?? root;
 
-            var firstStatement = default(T);
-            var lastStatement = default(T);
+            var firstStatement = (T)null;
+            var lastStatement = (T)null;
 
             var spine = new List<T>();
 
@@ -150,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return new Tuple<SyntaxNode, SyntaxNode>(firstStatement, lastStatement);
         }
 
-        protected Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainedInSpan<T>(
+        protected static Tuple<SyntaxNode, SyntaxNode> GetStatementRangeContainedInSpan<T>(
             SyntaxNode root, TextSpan textSpan, CancellationToken cancellationToken) where T : SyntaxNode
         {
             // use top-down approach to find largest statement range contained in the given span

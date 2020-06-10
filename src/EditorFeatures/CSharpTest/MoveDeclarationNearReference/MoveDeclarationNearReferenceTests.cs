@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -42,6 +44,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMove1_TopLevelStatement()
+        {
+            await TestAsync(
+@"
+int [||]x;
+{
+    Console.WriteLine(x);
+}
+",
+@"
+
+{
+
+    int x;
+    Console.WriteLine(x);
+}
+",
+                Options.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove2()
         {
             await TestInRegularAndScriptAsync(
@@ -63,6 +86,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         Console.WriteLine(x);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMove2_TopLevelStatement()
+        {
+            await TestAsync(
+@"
+int [||]x;
+Console.WriteLine();
+Console.WriteLine(x);
+",
+@"
+
+Console.WriteLine();
+
+int x;
+Console.WriteLine(x);
+",
+                Options.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -100,6 +142,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMove3_TopLevelStatement()
+        {
+            await TestAsync(
+@"
+int [||]x;
+Console.WriteLine();
+{
+    Console.WriteLine(x);
+}
+
+{
+    Console.WriteLine(x);
+}
+",
+@"
+
+Console.WriteLine();
+
+int x;
+{
+Console.WriteLine(x);
+}
+
+{
+    Console.WriteLine(x);
+}
+",
+                Options.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove4()
         {
             await TestInRegularAndScriptAsync(
@@ -123,6 +196,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
             Console.WriteLine(x);
         }
     }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMove4_TopLevelStatement()
+        {
+            await TestAsync(
+@"
+int [||]x;
+Console.WriteLine();
+{
+    Console.WriteLine(x);
+}
+",
+@"
+
+Console.WriteLine();
+{
+
+    int x;
+    Console.WriteLine(x);
+}
+",
+                Options.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -221,6 +317,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissing1_TopLevelStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+int [||]x;
+Console.WriteLine(x);
+");
+        }
+
         [WorkItem(538424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538424")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMissingWhenReferencedInDeclaration()
@@ -251,6 +357,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         Console.WriteLine(i);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingWhenInDeclarationGroup_TopLevelStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+int [||]i = 5;
+int j = 10;
+Console.WriteLine(i);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -292,6 +409,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestFormatting_TopLevelStatement()
+        {
+            await TestAsync(
+@"
+int [||]i = 5; Console.WriteLine();
+Console.Write(i);
+",
+@"
+
+Console.WriteLine();
+
+int i = 5; Console.Write(i);
+",
+                Options.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMissingInHiddenBlock1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -326,6 +460,21 @@ class Program
         Bar(x);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingInHiddenBlock2_TopLevelStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#line default
+
+int [|x|] = 0;
+Goo();
+#line hidden
+Goo();
+#line default
+Bar(x);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -392,6 +541,35 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestAvailableInNonHiddenBlock2_TopLevelStatement()
+        {
+            await TestAsync(
+@"#line default
+
+int [||]x = 0;
+Goo();
+#line hidden
+Goo();
+#line default
+Goo();
+Bar(x);
+",
+@"#line default
+
+Goo();
+#line hidden
+Goo();
+#line default
+Goo();
+#line default
+
+int x = 0;
+Bar(x);
+",
+                Options.Regular);
+        }
+
         [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestWarnOnChangingScopes1()
@@ -430,6 +608,34 @@ class Program
 
         [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestWarnOnChangingScopes1_TopLevelStatement()
+        {
+            await TestAsync(
+@"using System.Linq;
+
+var [||]@lock = new object();
+new[] { 1 }.AsParallel().ForAll((i) => {
+    lock (@lock)
+    {
+    }
+});
+",
+@"using System.Linq;
+
+new[] { 1 }.AsParallel().ForAll((i) =>
+{
+
+    {|Warning:var @lock = new object();|}
+    lock (@lock)
+    {
+    }
+});
+",
+                Options.Regular);
+        }
+
+        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestWarnOnChangingScopes2()
         {
             await TestInRegularAndScriptAsync(
@@ -463,6 +669,101 @@ class Program
         }
     }
 }");
+        }
+
+        [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestWarnOnChangingScopes2_TopLevelStatement()
+        {
+            await TestAsync(
+@"using System;
+using System.Linq;
+
+var [||]i = 0;
+foreach (var v in new[] { 1 })
+{
+    Console.Write(i);
+    i++;
+}
+",
+@"using System;
+using System.Linq;
+
+foreach (var v in new[] { 1 })
+{
+
+    {|Warning:var i = 0;|}
+    Console.Write(i);
+    i++;
+}
+",
+                Options.Regular);
+        }
+
+        [WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestWarnOnChangingScopes3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var [||]i = 0;
+        void LocalFunction()
+        {
+            Console.Write(i);
+            i++;
+        }
+    }
+}",
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        void LocalFunction()
+        {
+            {|Warning:var i = 0;|}
+            Console.Write(i);
+            i++;
+        }
+    }
+}");
+        }
+
+        [WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestWarnOnChangingScopes3_TopLevelStatement()
+        {
+            await TestAsync(
+@"using System;
+using System.Linq;
+
+var [||]i = 0;
+void LocalFunction()
+{
+    Console.Write(i);
+    i++;
+}
+",
+@"using System;
+using System.Linq;
+
+void LocalFunction()
+{
+
+    {|Warning:var i = 0;|}
+    Console.Write(i);
+    i++;
+}
+",
+                Options.Regular);
         }
 
         [WorkItem(545840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
@@ -1162,6 +1463,38 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments07_TopLevelStatement()
+        {
+            await TestAsync(
+@"
+if (true)
+{
+}
+
+// leading trivia
+int [||]i = 5;
+Console.WriteLine();
+
+// Existing trivia
+i = 0;
+Console.Write(i);
+",
+@"
+if (true)
+{
+}
+
+Console.WriteLine();
+
+// leading trivia
+// Existing trivia
+int i = 0;
+Console.Write(i);
+",
+                Options.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMergeComments08()
         {
             await TestInRegularAndScriptAsync(
@@ -1202,6 +1535,42 @@ class Program
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMergeComments08_TopLevelStatement()
+        {
+            await TestAsync(
+@"
+if (true)
+{
+}
+
+// leading trivia
+int [||]i = 5;
+Console.WriteLine();
+
+{
+    // Existing trivia
+    i = 0;
+    Console.Write(i);
+}
+",
+@"
+if (true)
+{
+}
+
+Console.WriteLine();
+
+{
+    // leading trivia
+    // Existing trivia
+    int i = 0;
+    Console.Write(i);
+}
+",
+                Options.Regular);
         }
 
         [WorkItem(21907, "https://github.com/dotnet/roslyn/issues/21907")]
@@ -1399,6 +1768,30 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMoveIntoSwitchSection_TopLevelStatement()
+        {
+            await TestAsync(
+@"
+int [||]x;
+switch (true)
+{
+    case true:
+        x = 0;
+        break;
+}
+",
+@"
+switch (true)
+{
+    case true:
+        int x = 0;
+        break;
+}
+",
+                Options.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestUsedInMultipleSwitchSections_MoveToSwitchStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1439,6 +1832,41 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUsedInMultipleSwitchSections_TopLevelStatement_MoveToSwitchStatement()
+        {
+            await TestAsync(
+@"
+int [||]x;
+System.Console.WriteLine();
+switch (true)
+{
+    case true:
+        x = 0;
+        break;
+    case false:
+        x = 0;
+        break;
+}
+",
+@"
+
+System.Console.WriteLine();
+
+int x;
+switch (true)
+{
+    case true:
+        x = 0;
+        break;
+    case false:
+        x = 0;
+        break;
+}
+",
+                Options.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestUsedInMultipleSwitchSections_CannotMove()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1458,6 +1886,24 @@ class Program
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUsedInMultipleSwitchSections_TopLevelStatement_CannotMove()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+int [||]x;
+switch (true)
+{
+    case true:
+        x = 0;
+        break;
+    case false:
+        x = 0;
+        break;
+}
+");
         }
     }
 }

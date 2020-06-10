@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -925,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Special binder for binding ObjectInitializers. 
     ''' This binder stores a reference to the receiver of the initialization, because fields in an object initializer can be 
-    ''' referenced with an omitted left expression in an member access expression (e.g. .Fieldname = .OtherFieldname).
+    ''' referenced with an omitted left expression in a member access expression (e.g. .Fieldname = .OtherFieldname).
     ''' </summary>
     Friend Class ObjectInitializerBinder
         Inherits Binder

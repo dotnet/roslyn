@@ -1,21 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
 {
+    [UseExportProvider]
     public class TextBufferAssociatedViewServiceTests
     {
         [Fact]
@@ -33,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             var bufferCollection = new Collection<ITextBuffer>(SpecializedCollections.SingletonEnumerable(bufferMock.Object).ToList());
             var dummyReason = ConnectionReason.BufferGraphChange;
 
-            var service = new TextBufferAssociatedViewService();
+            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            var service = Assert.IsType<TextBufferAssociatedViewService>(exportProvider.GetExportedValue<ITextBufferAssociatedViewService>());
 
             ((ITextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);
             Assert.Equal(1, service.GetAssociatedTextViews(bufferMock.Object).Count());

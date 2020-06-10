@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 
@@ -307,6 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullableType:
                 case SyntaxKind.PredefinedType:
                 case SyntaxKind.TupleType:
+                case SyntaxKind.FunctionPointerType:
                     return true;
                 default:
                     return IsName(kind);
@@ -340,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return true;
 
                 default:
@@ -720,6 +726,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.GetAccessorDeclaration;
                 case SyntaxKind.SetKeyword:
                     return SyntaxKind.SetAccessorDeclaration;
+                case SyntaxKind.InitKeyword:
+                    return SyntaxKind.InitAccessorDeclaration;
                 case SyntaxKind.AddKeyword:
                     return SyntaxKind.AddAccessorDeclaration;
                 case SyntaxKind.RemoveKeyword:
@@ -735,6 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                     return true;
@@ -749,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetKeyword:
                 case SyntaxKind.SetKeyword:
+                case SyntaxKind.InitKeyword:
                 case SyntaxKind.AddKeyword:
                 case SyntaxKind.RemoveKeyword:
                     return true;
@@ -785,6 +795,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.StructDeclaration;
                 case SyntaxKind.InterfaceKeyword:
                     return SyntaxKind.InterfaceDeclaration;
+                case SyntaxKind.RecordKeyword:
+                    return SyntaxKind.RecordDeclaration;
                 default:
                     return SyntaxKind.None;
             }
@@ -1061,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.WhenKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.InitKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1106,6 +1118,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WhenKeyword:
                 case SyntaxKind.UnderscoreToken:
                 case SyntaxKind.VarKeyword:
+                case SyntaxKind.OrKeyword:
+                case SyntaxKind.AndKeyword:
+                case SyntaxKind.NotKeyword:
+                case SyntaxKind.DataKeyword:
+                case SyntaxKind.WithKeyword:
+                case SyntaxKind.InitKeyword:
+                case SyntaxKind.RecordKeyword:
                     return true;
                 default:
                     return false;
@@ -1209,6 +1228,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.UnderscoreToken;
                 case "var":
                     return SyntaxKind.VarKeyword;
+                case "and":
+                    return SyntaxKind.AndKeyword;
+                case "or":
+                    return SyntaxKind.OrKeyword;
+                case "not":
+                    return SyntaxKind.NotKeyword;
+                case "data":
+                    return SyntaxKind.DataKeyword;
+                case "with":
+                    return SyntaxKind.WithKeyword;
+                case "init":
+                    return SyntaxKind.InitKeyword;
+                case "record":
+                    return SyntaxKind.RecordKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1628,6 +1661,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "_";
                 case SyntaxKind.VarKeyword:
                     return "var";
+                case SyntaxKind.AndKeyword:
+                    return "and";
+                case SyntaxKind.OrKeyword:
+                    return "or";
+                case SyntaxKind.NotKeyword:
+                    return "not";
+                case SyntaxKind.DataKeyword:
+                    return "data";
+                case SyntaxKind.WithKeyword:
+                    return "with";
+                case SyntaxKind.InitKeyword:
+                    return "init";
+                case SyntaxKind.RecordKeyword:
+                    return "record";
                 default:
                     return string.Empty;
             }

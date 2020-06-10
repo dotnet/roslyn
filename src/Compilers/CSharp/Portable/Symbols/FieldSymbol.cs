@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -270,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if this field has a pointer type.
         /// </summary>
         /// <remarks>
-        /// By default we defer to this.Type.IsPointerType() 
+        /// By default we defer to this.Type.IsPointerOrFunctionPointer() 
         /// However in some cases this may cause circular dependency via binding a
         /// pointer that points to the type that contains the current field.
         /// Fortunately in those cases we do not need to force binding of the field's type 
@@ -280,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type.IsPointerType();
+                return this.Type.IsPointerOrFunctionPointer();
             }
         }
 
@@ -314,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract int? TypeLayoutOffset { get; }
 
-        internal FieldSymbol AsMember(NamedTypeSymbol newOwner)
+        internal virtual FieldSymbol AsMember(NamedTypeSymbol newOwner)
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
@@ -380,17 +382,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         /// <summary>
-        /// Is this a field of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleField
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Returns True when field symbol is not mapped directly to a field in the underlying tuple struct.
         /// </summary>
         public virtual bool IsVirtualTupleField
@@ -421,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return null;
+                return ContainingType.IsTupleType ? this : null;
             }
         }
 
@@ -463,6 +454,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override ISymbol CreateISymbol()
         {
             return new PublicModel.FieldSymbol(this);
+        }
+
+        public override bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            if (other is SubstitutedFieldSymbol sfs)
+            {
+                return sfs.Equals(this, compareKind);
+            }
+
+            return base.Equals(other, compareKind);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }

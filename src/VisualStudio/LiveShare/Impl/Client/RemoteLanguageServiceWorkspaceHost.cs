@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
@@ -48,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         /// <param name="remoteLanguageServiceWorkspace">The workspace</param>
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteLanguageServiceWorkspaceHost(RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace,
                                                   RemoteProjectInfoProvider remoteProjectInfoProvider,
                                                   SVsServiceProvider serviceProvider,
@@ -61,10 +65,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
         {
-            await _remoteLanguageServiceWorkspace.SetSession(collaborationSession).ConfigureAwait(false);
+            await LoadRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
 
-            await LoadRoslynPackage(cancellationToken).ConfigureAwait(false);
-            _remoteLanguageServiceWorkspace.Init();
+            await _remoteLanguageServiceWorkspace.SetSessionAsync(collaborationSession).ConfigureAwait(false);
 
             // Kick off loading the projects in the background.
             // Clients can call EnsureProjectsLoadedAsync to await completion.
@@ -96,10 +99,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
         }
 
-        private async Task LoadRoslynPackage(CancellationToken cancellationToken)
+        private async Task LoadRoslynPackageAsync(CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
 
             // Explicitly trigger the load of the Roslyn package. This ensures that UI-bound services are appropriately prefetched,
             // that FatalError is correctly wired up, etc. Ideally once the things happening in the package initialize are cleaned up with
@@ -125,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
                         // Adds the Roslyn project into the current solution;
                         // and raise WorkspaceChanged event (WorkspaceChangeKind.ProjectAdded)
-                        _remoteLanguageServiceWorkspace.OnManagedProjectAdded(projectInfo);
+                        _remoteLanguageServiceWorkspace.OnProjectAdded(projectInfo);
 
                         _loadedProjects = _loadedProjects.Add(projectName, projectId);
                         _loadedProjectInfo = _loadedProjectInfo.Add(projectName, projectInfo);
@@ -136,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     {
                         if (_loadedProjectInfo.TryGetValue(projectName, out ProjectInfo projInfo))
                         {
-                            _remoteLanguageServiceWorkspace.OnManagedProjectReloaded(projInfo);
+                            _remoteLanguageServiceWorkspace.OnProjectReloaded(projectInfo);
                         }
                     }
                 }
@@ -164,9 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             public event EventHandler Disposed;
 
             public void Dispose()
-            {
-                Disposed?.Invoke(this, null);
-            }
+                => Disposed?.Invoke(this, null);
         }
     }
 }

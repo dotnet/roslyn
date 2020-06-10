@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
-        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">无法嵌入类型“{0}”，因为它有非抽象成员。请考虑将“嵌入互操作类型”属性设置为 false。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -24,17 +24,17 @@
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">无法嵌入类型“{0}”，因为它有基本接口成员的重新抽象。请考虑将“嵌入互操作类型”属性设置为 false。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
-        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <target state="translated">目标运行时不支持默认接口实现。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
-        <target state="new">Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</target>
+        <target state="translated">目标运行时不支持对接口的成员使用 "Protected"、"Protected Friend" 或 "Private Protected" 辅助功能。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -211,7 +211,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic 编译器选项
+        <target state="translated">                  Visual Basic 编译器选项
 
                                   - 输出文件 -
 -out:&lt;file&gt;                       指定输出文件名称。
@@ -283,8 +283,11 @@
 -warnaserror[+|-]:&lt;number_list&gt;   将警告列表视为错误。
 -ruleset:&lt;file&gt;                   指定禁用特定诊断的
                                   规则集文件。
--errorlog:&lt;file&gt;                  指定用于记录所有编译器和分析器诊断的
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  指定用于以 SARIF 格式记录所有编译器和分析器诊断的
                                   文件。
+                                  sarif_version:{1|2|2.1} 默认为 1. 2 和 2.1
+                                  两者均表示 SARIF 版本 2.1.0。
 -reportanalyzer                   报告其他分析器信息，如
                                   执行时间。
                                   - 语言 -
@@ -371,6 +374,16 @@
 -vbruntime:&lt;file&gt;                 使用 &lt;file&gt; 中的备用 Visual Basic 运行时
                                   进行编译。
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="new">There are no function pointer types in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="new">There are no native integer types in VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -773,6 +786,11 @@
         <target state="translated">字符无效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="translated">已指定 stdin 参数 "-"，但尚未从标准输入流重定向输入。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
         <source>Option Strict On prohibits operands of type Object for operator '{0}'.</source>
         <target state="translated">Option Strict On 禁止将 Object 类型的操作数用于运算符“{0}”。</target>
@@ -785,7 +803,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodBodyNotAtLineStart">
         <source>First statement of a method body cannot be on the same line as the method declaration.</source>
-        <target state="translated">方法体的第一条语句和方法声明不能位于同一行。</target>
+        <target state="translated">方法主体的第一条语句和方法声明不能位于同一行。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MaximumNumberOfErrors">
@@ -1533,8 +1551,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">未能发出模块“{0}”。</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="translated">未能发出模块“{0}”: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -1559,7 +1577,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvInsideEndsProc">
         <source>Statement cannot appear within a method body. End of method assumed.</source>
-        <target state="translated">语句不能出现在方法体内。假定为方法末尾。</target>
+        <target state="translated">语句不能出现在方法主体内。假定为方法末尾。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameAsFunc">
@@ -2118,7 +2136,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing3">
         <source>Argument matching parameter '{0}' narrows from '{1}' to '{2}'.</source>
-        <target state="translated">与参数“{0}”匹配的参数从“{1}”收缩到“{2}”。</target>
+        <target state="translated">与形参“{0}”匹配的实参从“{1}”收缩到“{2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMostSpecificOverload2">
@@ -2672,7 +2690,7 @@
       </trans-unit>
       <trans-unit id="ERR_RedimNoSizes">
         <source>'ReDim' statements require a parenthesized list of the new bounds of each dimension of the array.</source>
-        <target state="translated">'"ReDim" 语句需要一个带括号的列表，该列表列出数组每个维度的新界限。</target>
+        <target state="translated">"ReDim" 语句需要一个带圆括号的列表，该列表列出数组每个维度的新界限。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitWithMultipleDeclarators">
@@ -2747,7 +2765,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExecutableAsDeclaration">
         <source>Statement cannot appear outside of a method body.</source>
-        <target state="translated">语句不能出现在方法体外。</target>
+        <target state="translated">语句不能出现在方法主体外。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructureNoDefault1">
@@ -4063,7 +4081,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedType1">
         <source>'{0}' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.</source>
-        <target state="translated">'“{0}”不能设置为可以为 null，而且不能用作数组元素、字段、匿名类型成员、类型参数、“ByRef”参数或返回语句的数据类型。</target>
+        <target state="translated">“{0}”不能设置为可以为 null，而且不能用作数组元素、字段、匿名类型成员、类型参数、"ByRef" 参数或 return 语句的数据类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoTypecharInAlias">
@@ -6686,12 +6704,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime.</source>
-        <target state="translated">变量“{0}”在赋值前按引用传递。可能会在运行时导致 null 引用异常。</target>
+        <target state="translated">变量“{0}”在赋值前通过引用传递。可能会在运行时导致 null 引用异常。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">在为变量赋值之前，变量已被引用传递</target>
+        <target state="translated">在为变量赋值之前，变量已通过引用传递</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateCatch">
@@ -6846,12 +6864,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr">
         <source>Variable '{0}' is passed by reference before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use</source>
-        <target state="translated">变量“{0}”在赋值前按引用传递。可能会在运行时导致 null 引用异常。请确保结构或所有引用成员在使用前已经初始化</target>
+        <target state="translated">变量“{0}”在赋值前通过引用传递。可能会在运行时导致 null 引用异常。请确保结构或所有引用成员在使用前已经初始化</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRefStr_Title">
         <source>Variable is passed by reference before it has been assigned a value</source>
-        <target state="translated">在为变量赋值之前，变量已被引用传递</target>
+        <target state="translated">在为变量赋值之前，变量已通过引用传递</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefStr">
@@ -8788,7 +8806,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
         <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
-        <target state="needs-review-translation">字符串常量的长度超出了当前内存限制。请尝试将字符串拆分成多个常量。</target>
+        <target state="translated">由串联所得的字符串常量长度超过了 System.Int32.MaxValue。请尝试将字符串拆分为多个常量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersion">
@@ -8823,7 +8841,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_CoContraVariance">
         <source>variance</source>
-        <target state="translated">方差</target>
+        <target state="translated">变型</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CollectionInitializers">
@@ -9128,12 +9146,22 @@
       </trans-unit>
       <trans-unit id="FEATURE_InterpolatedStrings">
         <source>interpolated strings</source>
-        <target state="translated">插补的字符串</target>
+        <target state="translated">内插字符串</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
         <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB">
+        <source>'{0}' is not supported in VB.</source>
+        <target state="translated">VB 中不支持“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
+        <source>Attribute is not supported in VB</source>
+        <target state="translated">VB 中不支持属性</target>
         <note />
       </trans-unit>
     </body>

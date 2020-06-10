@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -132,30 +136,31 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns></returns>
         public IEnumerable<DocumentId> GetChangedDocuments()
-        {
-            return GetChangedDocuments(false);
-        }
+            => GetChangedDocuments(onlyGetDocumentsWithTextChanges: false, ignoreUnchangeableDocuments: false);
 
         /// <summary>
         /// Get Changed Documents:
-        /// When onlyGetDocumentsWithTextChanges is true, only get documents with text changes;
+        /// When onlyGetDocumentsWithTextChanges is true, only get documents with text changes (we only check text source, not actual content);
         /// otherwise get documents with any changes i.e. DocumentState changes:
         /// <see cref="DocumentState.ParseOptions"/>, <see cref="DocumentState.SourceCodeKind"/>, <see cref="TextDocumentState.FilePath"/>
         /// </summary>
         /// <param name="onlyGetDocumentsWithTextChanges"></param>
         /// <returns></returns>
         public IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges)
+            => GetChangedDocuments(onlyGetDocumentsWithTextChanges, ignoreUnchangeableDocuments: false);
+
+        internal IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges, bool ignoreUnchangeableDocuments)
         {
             foreach (var id in _newProject.DocumentIds)
             {
-                var newState = _newProject.GetDocumentState(id);
+                var newState = _newProject.GetDocumentState(id)!;
                 var oldState = _oldProject.GetDocumentState(id);
 
                 if (oldState != null)
                 {
                     if (onlyGetDocumentsWithTextChanges)
                     {
-                        if (newState.HasTextChanged(oldState))
+                        if (newState.HasTextChanged(oldState, ignoreUnchangeableDocuments))
                             yield return id;
                     }
                     else

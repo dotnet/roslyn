@@ -1,15 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract partial class BoundTreeRewriter : BoundTreeVisitor
     {
-        public virtual TypeSymbol VisitType(TypeSymbol type)
+        [return: NotNullIfNotNull("type")]
+        public virtual TypeSymbol? VisitType(TypeSymbol? type)
         {
             return type;
         }
@@ -26,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<T> DoVisitList<T>(ImmutableArray<T> list) where T : BoundNode
         {
-            ArrayBuilder<T> newList = null;
+            ArrayBuilder<T>? newList = null;
             for (int i = 0; i < list.Length; i++)
             {
                 var item = list[i];
@@ -71,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected int RecursionDepth => _recursionDepth;
 
-        public override BoundNode Visit(BoundNode node)
+        public override BoundNode? Visit(BoundNode? node)
         {
             var expression = node as BoundExpression;
             if (expression != null)
@@ -102,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(recursionDepth)
         { }
 
-        public sealed override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
         {
             BoundExpression child = node.Left;
 
@@ -129,12 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = (BoundBinaryOperator)child;
             }
 
-            var left = (BoundExpression)this.Visit(child);
+            var left = (BoundExpression?)this.Visit(child);
+            Debug.Assert(left is { });
 
             do
             {
                 binary = stack.Pop();
-                var right = (BoundExpression)this.Visit(binary.Right);
+                var right = (BoundExpression?)this.Visit(binary.Right);
+                Debug.Assert(right is { });
                 var type = this.VisitType(binary.Type);
                 left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, left, right, type);
             }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 9.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -17,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                 {BinaryOperatorKind.GreaterThanOrEqual, (SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.GreaterThanEqualsToken)}
             }
 
-        Public Overrides Function CreateSwitchExpressionStatement(target As SyntaxNode, sections As ImmutableArray(Of AnalyzedSwitchSection)) As SyntaxNode
+        Public Overrides Function CreateSwitchExpressionStatement(target As SyntaxNode, sections As ImmutableArray(Of AnalyzedSwitchSection), feature As Feature) As SyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -30,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
             Return If(node.IsStatementContainerNode(), node.GetStatements(), SpecializedCollections.SingletonEnumerable(node))
         End Function
 
-        Public Overrides Function AsSwitchLabelSyntax(label As AnalyzedSwitchLabel) As SyntaxNode
+        Public Overrides Function AsSwitchLabelSyntax(label As AnalyzedSwitchLabel, feature As Feature) As SyntaxNode
             Debug.Assert(label.Guards.IsDefaultOrEmpty)
             Return AsCaseClauseSyntax(label.Pattern).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
         End Function

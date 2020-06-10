@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -8,6 +10,7 @@ using Xunit;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -805,36 +808,36 @@ class C
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
-                // (11,13): error CS0019: Operator '%' cannot be applied to operands of type 'method group' and 'dynamic'
+                // (10,13): error CS0019: Operator '%' cannot be applied to operands of type 'method group' and 'dynamic'
                 //             M % d1,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "M % d1").WithArguments("%", "method group", "dynamic"),
-                // (12,13): error CS0019: Operator '+' cannot be applied to operands of type 'dynamic' and 'method group'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "M % d1").WithArguments("%", "method group", "dynamic").WithLocation(10, 13),
+                // (11,13): error CS0019: Operator '+' cannot be applied to operands of type 'dynamic' and 'method group'
                 //             d1 + M,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 + M").WithArguments("+", "dynamic", "method group"),
-                // (13,13): error CS0019: Operator '-' cannot be applied to operands of type 'lambda expression' and 'dynamic'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 + M").WithArguments("+", "dynamic", "method group").WithLocation(11, 13),
+                // (12,13): error CS0019: Operator '-' cannot be applied to operands of type 'lambda expression' and 'dynamic'
                 //             ( ()=>{} ) - d1, 
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "( ()=>{} ) - d1").WithArguments("-", "lambda expression", "dynamic"),
-                // (14,13): error CS0019: Operator '>>' cannot be applied to operands of type 'dynamic' and 'lambda expression'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "( ()=>{} ) - d1").WithArguments("-", "lambda expression", "dynamic").WithLocation(12, 13),
+                // (13,13): error CS0019: Operator '>>' cannot be applied to operands of type 'dynamic' and 'lambda expression'
                 //             d1 >> ( ()=>{} ),
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 >> ( ()=>{} )").WithArguments(">>", "dynamic", "lambda expression"),
-                // (15,13): error CS0019: Operator '<<' cannot be applied to operands of type 'anonymous method' and 'dynamic'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 >> ( ()=>{} )").WithArguments(">>", "dynamic", "lambda expression").WithLocation(13, 13),
+                // (14,13): error CS0019: Operator '<<' cannot be applied to operands of type 'anonymous method' and 'dynamic'
                 //             delegate {} << d1,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "delegate {} << d1").WithArguments("<<", "anonymous method", "dynamic"),
-                // (16,13): error CS0019: Operator '<<' cannot be applied to operands of type 'dynamic' and 'anonymous method'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "delegate {} << d1").WithArguments("<<", "anonymous method", "dynamic").WithLocation(14, 13),
+                // (15,13): error CS0019: Operator '<<' cannot be applied to operands of type 'dynamic' and 'anonymous method'
                 //             d1 << delegate {},
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 << delegate {}").WithArguments("<<", "dynamic", "anonymous method"),
-                // (17,13): error CS0019: Operator '>' cannot be applied to operands of type 'int*' and 'dynamic'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 << delegate {}").WithArguments("<<", "dynamic", "anonymous method").WithLocation(15, 13),
+                // (16,13): error CS0019: Operator '>' cannot be applied to operands of type 'int*' and 'dynamic'
                 //             (int*)null > d1,    
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(int*)null > d1").WithArguments(">", "int*", "dynamic"),
-                // (18,13): error CS0019: Operator '<' cannot be applied to operands of type 'dynamic' and 'int*'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(int*)null > d1").WithArguments(">", "int*", "dynamic").WithLocation(16, 13),
+                // (17,13): error CS0019: Operator '<' cannot be applied to operands of type 'dynamic' and 'int*'
                 //             d1 < (int*)null,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 < (int*)null").WithArguments("<", "dynamic", "int*"),
-                // (19,13): error CS0019: Operator '>' cannot be applied to operands of type 'dynamic' and 'System.TypedReference'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 < (int*)null").WithArguments("<", "dynamic", "int*").WithLocation(17, 13),
+                // (18,13): error CS0019: Operator '>' cannot be applied to operands of type 'dynamic' and 'TypedReference'
                 //             d1 > tr,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 > tr").WithArguments(">", "dynamic", "System.TypedReference"),
-                // (20,13): error CS0019: Operator '>' cannot be applied to operands of type 'System.TypedReference' and 'dynamic'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 > tr").WithArguments(">", "dynamic", "System.TypedReference").WithLocation(18, 13),
+                // (19,13): error CS0019: Operator '>' cannot be applied to operands of type 'TypedReference' and 'dynamic'
                 //             tr > d1
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "tr > d1").WithArguments(">", "System.TypedReference", "dynamic"));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "tr > d1").WithArguments(">", "System.TypedReference", "dynamic").WithLocation(19, 13));
         }
 
         [Fact]

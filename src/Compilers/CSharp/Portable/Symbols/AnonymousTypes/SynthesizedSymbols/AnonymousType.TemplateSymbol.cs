@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -119,6 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new AnonymousTypeGetHashCodeMethodSymbol(this),
                     new AnonymousTypeToStringMethodSymbol(this));
             }
+
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
 
             internal AnonymousTypeKey GetAnonymousTypeKey()
             {
@@ -295,6 +300,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            public sealed override bool AreLocalsZeroed
+            {
+                get { return ContainingModule.AreLocalsZeroed; }
+            }
+
             public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
@@ -425,6 +435,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AttributeUsageInfo.Null;
             }
 
+            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+            internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -444,6 +458,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private SynthesizedAttributeData TrySynthesizeDebuggerDisplayAttribute()
             {
+                // Escape open '{' with '\' to avoid parsing it as an embedded expression.
+
                 string displayString;
                 if (this.Properties.Length == 0)
                 {

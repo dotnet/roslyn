@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -50,9 +53,12 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             string initialMarkup, string expectedMarkup,
             bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
         {
-            var options = OptionsSet(
-                SingleOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
-                SingleOption(GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups));
+            var options =
+                new OptionsCollection(GetLanguage())
+                {
+                    { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
+                    { GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups },
+                };
             return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
         }
 
@@ -184,13 +190,9 @@ namespace B
             await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
-        [WpfFact]
+        [WpfFact, WorkItem(42221, "https://github.com/dotnet/roslyn/pull/42221")]
         public async Task AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports()
         {
-            // The current fixes for AddImport diagnostics do not consider whether imports should be grouped.
-            // This test documents this behavior and is a reminder that when the behavior changes 
-            // AddMissingImports is also affected and should be considered.
-
             var code = @"
 using System;
 
@@ -214,6 +216,7 @@ namespace B
             var expected = @"
 using A;
 using B;
+
 using System;
 
 class C

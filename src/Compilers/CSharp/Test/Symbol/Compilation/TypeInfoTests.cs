@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -20,28 +22,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             EqualityTesting.AssertEqual(default(TypeInfo), default(TypeInfo));
 
-            EqualityTesting.AssertEqual(new TypeInfo(obj, int32, nullable, notNullable),
-                                        new TypeInfo(obj, int32, nullable, notNullable));
+            EqualityTesting.AssertEqual(new TypeInfo(obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), int32, nullable, notNullable),
+                                        new TypeInfo(obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), int32, nullable, notNullable));
 
-            EqualityTesting.AssertNotEqual(new TypeInfo(obj, obj, nullable, nullable),
-                                           new TypeInfo(obj, int32, nullable, nullable));
+            EqualityTesting.AssertNotEqual(new TypeInfo(obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), nullable, nullable),
+                                           new TypeInfo(obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), nullable, nullable));
 
-            EqualityTesting.AssertNotEqual(new TypeInfo(int32, obj, nullable, nullable),
-                                           new TypeInfo(obj, obj, nullable, nullable));
+            EqualityTesting.AssertNotEqual(new TypeInfo(int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), nullable, nullable),
+                                           new TypeInfo(obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), nullable, nullable));
 
-            EqualityTesting.AssertNotEqual(new TypeInfo(obj, int32, nullable, nullable),
-                                           new TypeInfo(obj, int32, notNullable, nullable));
+            EqualityTesting.AssertNotEqual(new TypeInfo(obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), nullable, nullable),
+                                           new TypeInfo(obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.NotAnnotated), int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), notNullable, nullable));
 
-            EqualityTesting.AssertNotEqual(new TypeInfo(obj, int32, nullable, nullable),
-                                           new TypeInfo(obj, int32, nullable, notNullable));
+            EqualityTesting.AssertNotEqual(new TypeInfo(obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), nullable, nullable),
+                                           new TypeInfo(obj.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated), int32, nullable, notNullable));
 
-            EqualityTesting.AssertEqual(new TypeInfo(int32, int32, default, default),
-                                        new TypeInfo(int32, int32, default, default));
+            EqualityTesting.AssertEqual(new TypeInfo(int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), default, default),
+                                        new TypeInfo(int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), default, default));
 
             var intEnum1 = c.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).GetPublicSymbol().Construct(int32);
             var intEnum2 = c.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).GetPublicSymbol().Construct(int32);
-            EqualityTesting.AssertEqual(new TypeInfo(intEnum1, int32, default, default),
-                new TypeInfo(intEnum2, int32, default, default));
+            EqualityTesting.AssertEqual(new TypeInfo(intEnum1.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), default, default),
+                new TypeInfo(intEnum2.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), int32.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None), default, default));
         }
     }
 }

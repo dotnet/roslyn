@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -69,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 }
             }
 
-            private string GetNewText<TSyntax>(SyntaxList<TSyntax> organizedList)
+            private static string GetNewText<TSyntax>(SyntaxList<TSyntax> organizedList)
                 where TSyntax : SyntaxNode
             {
                 return string.Join(string.Empty, organizedList.Select(t => t.ToFullString()));
             }
 
-            private TextSpan GetTextSpan<TSyntax>(SyntaxList<TSyntax> list)
+            private static TextSpan GetTextSpan<TSyntax>(SyntaxList<TSyntax> list)
                 where TSyntax : SyntaxNode
             {
                 return TextSpan.FromBounds(list.First().FullSpan.Start, list.Last().FullSpan.End);

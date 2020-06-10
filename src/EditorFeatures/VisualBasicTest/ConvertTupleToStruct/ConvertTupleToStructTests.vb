@@ -1,12 +1,21 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStruct
+    Public Enum TestHost
+        InProcess
+        OutOfProcess
+    End Enum
+
     Public Class ConvertTupleToStructTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -18,10 +27,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
             Return FlattenActions(actions)
         End Function
 
+        Private Function GetTestOptions(host As TestHost) As OptionsCollection
+            Return [Option](RemoteHostOptions.RemoteHostTest, host <> TestHost.InProcess)
+        End Function
+
 #Region "update containing member tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleType() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleType(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -56,10 +69,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -76,11 +86,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleTypeNoNames() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypeNoNames(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -115,10 +125,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1030903623
-        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Item2.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Item1, Item2).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef item1 As Integer, ByRef item2 As Integer)
@@ -135,11 +142,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleTypePartialNames() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypePartialNames(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -174,10 +181,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 174326978
-        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Item1, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef item1 As Integer, ByRef b As Integer)
@@ -194,11 +198,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertFromType() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertFromType(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -235,10 +239,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -255,11 +256,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertFromType2() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertFromType2(host As TestHost) As Task
             Dim text = "
 class Test
     function Method() as (a as integer, b as integer)
@@ -296,10 +297,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -316,11 +314,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertFromType3() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertFromType3(host As TestHost) As Task
             Dim text = "
 class Test
     function Method() as (a as integer, b as integer)
@@ -356,10 +354,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -376,11 +371,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertFromType4() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertFromType4(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -416,10 +411,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -436,11 +428,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleTypeInNamespace() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypeInNamespace(host As TestHost) As Task
             Dim text = "
 namespace N
     class Test
@@ -478,10 +470,7 @@ namespace N
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Dim hashCode As Long = 2118541809
-            hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-            hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-            Return hashCode
+            Return (a, b).GetHashCode()
         End Function
 
         Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -499,11 +488,11 @@ namespace N
     End Structure
 end namespace
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestNonLiteralNames() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestNonLiteralNames(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -537,10 +526,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + System.Collections.Generic.EqualityComparer(Of Object).Default.GetHashCode(a)).GetHashCode()
-        hashCode = (hashCode * -1521134295 + System.Collections.Generic.EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Object, ByRef b As Object)
@@ -557,11 +543,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleTypeWithInferredName() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypeWithInferredName(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method(b as integer)
@@ -595,10 +581,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -615,11 +598,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleInstancesInSameMethod() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleInstancesInSameMethod(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -655,10 +638,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -675,11 +655,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleInstancesInSameMethod_DifferingCase() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleInstancesInSameMethod_DifferingCase(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -715,10 +695,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -735,11 +712,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleInstancesAcrossMethods() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleInstancesAcrossMethods(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -785,10 +762,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -805,11 +779,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function OnlyConvertMatchingTypesInSameMethod() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function OnlyConvertMatchingTypesInSameMethod(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method(b as integer)
@@ -849,10 +823,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -869,15 +840,15 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
         Sub foo(a As Integer, b As Integer)
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestFixAllMatchesInSingleMethod() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestFixAllMatchesInSingleMethod(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method(b as integer)
@@ -917,10 +888,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -937,11 +905,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestFixNotAcrossMethods() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestFixNotAcrossMethods(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -987,10 +955,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1007,11 +972,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function NotIfReferencesAnonymousTypeInternally() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function NotIfReferencesAnonymousTypeInternally(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1022,8 +987,8 @@ end class"
             Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleNestedInstancesInSameMethod1() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleNestedInstancesInSameMethod1(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1059,10 +1024,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Object)
@@ -1079,11 +1041,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleNestedInstancesInSameMethod2() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleNestedInstancesInSameMethod2(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1119,10 +1081,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Object).Default.GetHashCode(b)).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Object)
@@ -1139,11 +1098,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function RenameAnnotationOnStartingPoint() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function RenameAnnotationOnStartingPoint(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1179,10 +1138,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1199,11 +1155,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function CapturedMethodTypeParameters() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function CapturedMethodTypeParameters(host As TestHost) As Task
             Dim text = "
 imports System.Collections.Generic
 
@@ -1241,10 +1197,7 @@ Friend Structure NewStruct(Of X As Structure, Y As {Class, New})
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of List(Of X)).Default.GetHashCode(a)).GetHashCode()
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of Y()).Default.GetHashCode(b)).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As List(Of X), ByRef b() As Y)
@@ -1265,11 +1218,11 @@ End Structure
             Await TestExactActionSetOfferedAsync(text, {
                 FeaturesResources.updating_usages_in_containing_member
             })
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function NewTypeNameCollision() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function NewTypeNameCollision(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1309,10 +1262,7 @@ Friend Structure NewStruct1
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1329,11 +1279,11 @@ Friend Structure NewStruct1
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function NewTypeNameCollision_CaseInsensitive() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function NewTypeNameCollision_CaseInsensitive(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1373,10 +1323,7 @@ Friend Structure NewStruct1
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1393,11 +1340,11 @@ Friend Structure NewStruct1
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestDuplicatedName() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestDuplicatedName(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1431,10 +1378,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2068208952
-        hashCode = (hashCode * -1521134295 + Me.a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Me.a.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Me.a, Me.a).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef a As Integer)
@@ -1451,11 +1395,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestInLambda1() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestInLambda1(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1499,10 +1443,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1519,11 +1460,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestInLambda2() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestInLambda2(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1567,10 +1508,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1587,11 +1525,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertWithDefaultNames1() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertWithDefaultNames1(host As TestHost) As Task
             Dim text As String = "
 class Test
     sub Method()
@@ -1634,10 +1572,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1030903623
-        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Item2.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Item1, Item2).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef item1 As Integer, ByRef item2 As Integer)
@@ -1659,11 +1594,11 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_type
             })
 
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertWithDefaultNames2() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertWithDefaultNames2(host As TestHost) As Task
             Dim text As String = "
 class Test
     sub Method()
@@ -1706,10 +1641,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = -1030903623
-        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Item2.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (Item1, Item2).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef item1 As Integer, ByRef item2 As Integer)
@@ -1731,7 +1663,82 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_type
             })
 
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypeWithInaccessibleSystemHashCode(host As TestHost) As Task
+            Dim text = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Namespace System
+    Friend Class HashCode
+    End Class
+End Namespace
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+class Test
+    sub Method()
+        dim t1 = [||](a:=1, b:=2)
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>"
+
+            Dim expected = "
+class Test
+    sub Method()
+        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+    end sub
+end class
+
+Friend Structure NewStruct
+    Public a As Integer
+    Public b As Integer
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.a = a
+        Me.b = b
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is NewStruct) Then
+            Return False
+        End If
+
+        Dim other = DirectCast(obj, NewStruct)
+        Return a = other.a AndAlso
+               b = other.b
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode = 2118541809
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
+        Return hashCode
+    End Function
+
+    Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
+        a = Me.a
+        b = Me.b
+    End Sub
+
+    Public Shared Widening Operator CType(value As NewStruct) As (a As Integer, b As Integer)
+        Return (value.a, value.b)
+    End Operator
+
+    Public Shared Widening Operator CType(value As (a As Integer, b As Integer)) As NewStruct
+        Return New NewStruct(value.a, value.b)
+    End Operator
+End Structure
+"
+
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
@@ -1742,8 +1749,8 @@ End Structure
 
 #Region "update containing type tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestCapturedTypeParameter_UpdateType() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestCapturedTypeParameter_UpdateType(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1800,10 +1807,7 @@ Friend Structure NewStruct(Of T)
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + EqualityComparer(Of T).Default.GetHashCode(a)).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As T, ByRef b As Integer)
@@ -1828,8 +1832,8 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateAllInType_SinglePart_SingleFile() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateAllInType_SinglePart_SingleFile(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1885,10 +1889,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1908,8 +1909,8 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateAllInType_MultiplePart_SingleFile() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateAllInType_MultiplePart_SingleFile(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1967,10 +1968,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1990,8 +1988,8 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateAllInType_MultiplePart_MultipleFile() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateAllInType_MultiplePart_MultipleFile(host As TestHost) As Task
             Dim text = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -2110,8 +2108,8 @@ end class
 
 #Region "update containing project tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace(host As TestHost) As Task
             Dim text = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -2234,8 +2232,8 @@ end class
 
 #Region "update dependent projects"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateDependentProjects_DirectDependency() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateDependentProjects_DirectDependency(host As TestHost) As Task
             Dim text = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -2343,8 +2341,8 @@ end class
             Await TestInRegularAndScriptAsync(text, expected, index:=3)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateDependentProjects_NoDependency() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateDependentProjects_NoDependency(host As TestHost) As Task
             Dim text = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">

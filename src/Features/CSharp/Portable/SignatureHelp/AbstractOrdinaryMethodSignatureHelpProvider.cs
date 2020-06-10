@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,29 +14,38 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
-        protected SignatureHelpItem ConvertMethodGroupMethod(
+        internal static SignatureHelpItem ConvertMethodGroupMethod(
+            Document document,
+            IMethodSymbol method,
+            int position,
+            SemanticModel semanticModel)
+        {
+            return ConvertMethodGroupMethod(document, method, position, semanticModel, descriptionParts: null);
+        }
+
+        internal static SignatureHelpItem ConvertMethodGroupMethod(
             Document document,
             IMethodSymbol method,
             int position,
             SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+            IList<SymbolDisplayPart> descriptionParts)
         {
             var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
             var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
 
-            return CreateItem(
+            return CreateItemImpl(
                 method, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 method.IsParams(),
-                c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c).Concat(GetAwaitableUsage(method, semanticModel, position)),
+                c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                 GetMethodGroupPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
-                GetMethodGroupPostambleParts(method),
-                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                GetMethodGroupPostambleParts(),
+                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList(),
+                descriptionParts: descriptionParts);
         }
 
-        private IList<SymbolDisplayPart> GetMethodGroupPreambleParts(
+        private static IList<SymbolDisplayPart> GetMethodGroupPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -75,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetMethodGroupPostambleParts(IMethodSymbol method)
+        private static IList<SymbolDisplayPart> GetMethodGroupPostambleParts()
             => SpecializedCollections.SingletonList(Punctuation(SyntaxKind.CloseParenToken));
     }
 }

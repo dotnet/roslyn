@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -90,6 +92,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
         /// <summary>
+        /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
+        /// listed in those attributes.
+        /// Otherwise, an empty array.
+        /// </summary>
+        internal virtual ImmutableArray<string> NotNullMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenTrueMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenFalseMembers => ImmutableArray<string>.Empty;
+
+        /// <summary>
         /// Returns true if this method is an extension method.
         /// </summary>
         public abstract bool IsExtensionMethod { get; }
@@ -109,10 +122,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasDeclarativeSecurity { get; }
 
+#nullable enable
         /// <summary>
         /// Platform invoke information, or null if the method isn't a P/Invoke.
         /// </summary>
-        public abstract DllImportData GetDllImportData();
+        public abstract DllImportData? GetDllImportData();
+#nullable restore
 
         /// <summary>
         /// Declaration security information associated with this type, or null if there is none.
@@ -320,6 +335,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// See also <see cref="IsEffectivelyReadOnly"/>
         /// </summary>
         internal abstract bool IsDeclaredReadOnly { get; }
+
+        /// <summary>
+        /// Indicates whether the accessor is marked with the 'init' modifier.
+        /// </summary>
+        internal abstract bool IsInitOnly { get; }
 
         /// <summary>
         /// Indicates whether the method is effectively readonly,
@@ -765,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
+        /// Apply type substitution to a generic method to create a method symbol with the given type parameters supplied.
         /// </summary>
         /// <param name="typeArguments"></param>
         /// <returns></returns>
@@ -776,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // https://github.com/dotnet/roslyn/issues/30071: Replace with Construct(ImmutableArray<TypeWithAnnotations>).
         /// <summary>
-        /// Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
+        /// Apply type substitution to a generic method to create a method symbol with the given type parameters supplied.
         /// </summary>
         /// <param name="typeArguments"></param>
         /// <returns></returns>
@@ -891,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the member is in an assembly with unified references,
             // we check if its definition depends on a type from a unified reference.
-            if (this.ContainingModule.HasUnifiedReferences)
+            if (this.ContainingModule?.HasUnifiedReferences == true)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
 
@@ -929,11 +949,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal bool IsIterator
+        internal virtual bool IsIterator
         {
             get
             {
-                return !IteratorElementTypeWithAnnotations.IsDefault;
+                return false;
             }
         }
 
@@ -1008,6 +1028,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
+            if (type.Type.ContainsNativeInteger())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
+            }
+
             if (type.Type.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type.Type));
@@ -1020,27 +1045,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Is this a method of a tuple type?
+        /// Returns true if locals are to be initialized
         /// </summary>
-        public virtual bool IsTupleMethod
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// If this is a method of a tuple type, return corresponding underlying method from the
-        /// tuple underlying type. Otherwise, null.
-        /// </summary>
-        public virtual MethodSymbol TupleUnderlyingMethod
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public abstract bool AreLocalsZeroed { get; }
 
         #region IMethodSymbolInternal
 
@@ -1058,6 +1065,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override ISymbol CreateISymbol()
         {
             return new PublicModel.MethodSymbol(this);
+        }
+
+        public override bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            if (other is SubstitutedMethodSymbol sms)
+            {
+                return sms.Equals(this, compareKind);
+            }
+
+            if (other is NativeIntegerMethodSymbol nms)
+            {
+                return nms.Equals(this, compareKind);
+            }
+
+            return base.Equals(other, compareKind);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }

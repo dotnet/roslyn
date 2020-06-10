@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #define dark_theme
 
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
@@ -24,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class PreprocessorTextFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public PreprocessorTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Preprocessor_Text;
@@ -41,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class PunctuationFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public PunctuationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Punctuation;
@@ -59,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class StringVerbatimFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public StringVerbatimFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Verbatim;
@@ -85,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class StringEscapeCharacterFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public StringEscapeCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Escape_Character;
@@ -105,10 +113,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class ControlKeywordFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public ControlKeywordFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.Keyword_Control;
-            }
+                => this.DisplayName = EditorFeaturesResources.Keyword_Control;
         }
         #endregion
         #region Operator - Overloaded
@@ -123,10 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class OperatorOverloadedFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public OperatorOverloadedFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
-            }
+                => this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
         }
         #endregion
 
@@ -140,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public SymbolStaticFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Symbol_Static;
@@ -179,6 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserTypeClassesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserTypeClassesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Classes;
@@ -198,6 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserTypeDelegatesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserTypeDelegatesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Delegates;
@@ -217,6 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserTypeEnumsFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserTypeEnumsFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Enums;
@@ -236,6 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserTypeInterfacesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserTypeInterfacesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Interfaces;
@@ -254,10 +265,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserTypeModulesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserTypeModulesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Modules;
-                this.ForegroundColor = Color.FromRgb(43, 145, 175);
+                this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
             }
         }
         #endregion
@@ -273,6 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserTypeStructuresFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserTypeStructuresFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Structures;
@@ -292,6 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserTypeTypeParametersFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserTypeTypeParametersFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Type_Parameters;
@@ -312,10 +326,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersFieldNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersFieldNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Fields;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Fields;
         }
         #endregion
         #region User Members - Enum Members 
@@ -330,10 +343,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersEnumMemberNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersEnumMemberNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Enum_Members;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Enum_Members;
         }
         #endregion
         #region User Members - Constants 
@@ -348,10 +360,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersConstantNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersConstantNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Constants;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Constants;
         }
         #endregion
         #region User Members - Locals 
@@ -366,10 +377,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersLocalNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersLocalNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Locals;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Locals;
         }
         #endregion
         #region User Members - Parameters 
@@ -384,10 +394,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersParameterNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersParameterNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
         }
         #endregion
         #region User Members - Methods 
@@ -402,10 +411,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersMethodNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersMethodNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Methods;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Methods;
         }
         #endregion
         #region User Members - Extension Methods
@@ -420,10 +428,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersExtensionMethodNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
         }
         #endregion
         #region User Members - Properties 
@@ -438,10 +445,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersPropertyNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersPropertyNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Properties;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Properties;
         }
         #endregion
         #region User Members - Events 
@@ -455,10 +461,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersEventNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersEventNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Events;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Events;
         }
         #endregion
         #region User Members - Namespaces 
@@ -472,10 +477,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersNamespaceNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Namespaces;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Namespaces;
         }
         #endregion
         #region User Members - Labels 
@@ -490,10 +494,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class UserMembersLabelNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersLabelNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Labels;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Labels;
         }
         #endregion
 
@@ -507,6 +510,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentAttributeNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentAttributeNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Name;
@@ -524,6 +528,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentAttributeQuotesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentAttributeQuotesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Quotes;
@@ -543,6 +548,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentAttributeValueFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentAttributeValueFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Value;
@@ -560,6 +566,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentCDataSectionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentCDataSectionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_CData_Section;
@@ -577,6 +584,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentCommentFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Comment;
@@ -594,6 +602,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentDelimiterFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentDelimiterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Delimiter;
@@ -611,6 +620,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentEntityReferenceFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentEntityReferenceFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Entity_Reference;
@@ -628,6 +638,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Name;
@@ -645,6 +656,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentProcessingInstructionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentProcessingInstructionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Processing_Instruction;
@@ -662,6 +674,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlDocCommentTextFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlDocCommentTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Text;
@@ -681,14 +694,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
         private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x8a, 0xff);
         private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xd7, 0x45, 0x8c);
-        private static readonly Color s_regexCommentColor = Color.FromRgb(87, 166, 74);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(0x61, 0xa6, 0x4a);
 #else
         private static readonly Color s_regexTextColor = Color.FromRgb(0x80, 0x00, 0x00);
         private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
         private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
         private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x73, 0xff);
         private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xff, 0x00, 0xc1);
-        private static readonly Color s_regexCommentColor = Color.FromRgb(0, 128, 0);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(0x00, 0x80, 0x00);
 #endif
 
         [Export(typeof(EditorFormatDefinition))]
@@ -701,6 +714,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class RegexCommentFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Comment;
@@ -718,6 +732,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class RegexCharacterClassFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexCharacterClassFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Character_Class;
@@ -735,6 +750,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class RegexAnchorFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexAnchorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
@@ -752,6 +768,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexQuantifierFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
@@ -769,6 +786,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class RegexGroupingFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexGroupingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
@@ -786,6 +804,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexAlternationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
@@ -803,6 +822,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class RegexTextFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
@@ -820,6 +840,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class RegexSelfEscapedCharacterFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexSelfEscapedCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_SelfEscapedCharacter;
@@ -841,6 +862,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class RegexOtherEscapeFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexOtherEscapeFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_OtherEscape;
@@ -858,10 +880,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralAttributeNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralAttributeNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Name;
-                this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
+                this.ForegroundColor = Color.FromRgb(0xB9, 0x64, 0x64); // HC_LIGHTRED
             }
         }
         #endregion
@@ -874,10 +897,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralAttributeQuotesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralAttributeQuotesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Quotes;
-                this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
+                this.ForegroundColor = Color.FromRgb(0x55, 0x55, 0x55); // HC_LIGHTBLACK
             }
         }
         #endregion
@@ -890,10 +914,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralAttributeValueFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralAttributeValueFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Value;
-                this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
+                this.ForegroundColor = Color.FromRgb(0x64, 0x64, 0xB9); // HC_LIGHTBLUE
             }
         }
         #endregion
@@ -906,10 +931,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralCDataSectionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralCDataSectionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_CData_Section;
-                this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
+                this.ForegroundColor = Color.FromRgb(0xC0, 0xC0, 0xC0); // HC_LIGHTGRAY
             }
         }
         #endregion
@@ -922,10 +948,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralCommentFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Comment;
-                this.ForegroundColor = Color.FromRgb(98, 151, 85); // HC_LIGHTGREEN
+                this.ForegroundColor = Color.FromRgb(0x62, 0x97, 0x55); // HC_LIGHTGREEN
             }
         }
         #endregion
@@ -938,10 +965,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralDelimiterFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralDelimiterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Delimiter;
-                this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
+                this.ForegroundColor = Color.FromRgb(0x64, 0x64, 0xB9); // HC_LIGHTBLUE
             }
         }
         #endregion
@@ -954,11 +982,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralEmbeddedExpressionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralEmbeddedExpressionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Embedded_Expression;
-                this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
-                this.BackgroundColor = Color.FromRgb(255, 254, 191); // HC_LIGHTYELLOW
+                this.ForegroundColor = Color.FromRgb(0x55, 0x55, 0x55); // HC_LIGHTBLACK
+                this.BackgroundColor = Color.FromRgb(0xFF, 0xFE, 0xBF); // HC_LIGHTYELLOW
             }
         }
         #endregion
@@ -971,10 +1000,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralEntityReferenceFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralEntityReferenceFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Entity_Reference;
-                this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
+                this.ForegroundColor = Color.FromRgb(0xB9, 0x64, 0x64); // HC_LIGHTRED
             }
         }
         #endregion
@@ -987,10 +1017,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Name;
-                this.ForegroundColor = Color.FromRgb(132, 70, 70); // HC_LIGHTMAROON
+                this.ForegroundColor = Color.FromRgb(0x84, 0x46, 0x46); // HC_LIGHTMAROON
             }
         }
         #endregion
@@ -1003,10 +1034,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralProcessingInstructionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralProcessingInstructionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Processing_Instruction;
-                this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
+                this.ForegroundColor = Color.FromRgb(0xC0, 0xC0, 0xC0); // HC_LIGHTGRAY
             }
         }
         #endregion
@@ -1019,10 +1051,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private class XmlLiteralTextFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public XmlLiteralTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Text;
-                this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
+                this.ForegroundColor = Color.FromRgb(0x55, 0x55, 0x55); // HC_LIGHTBLACK
             }
         }
         #endregion

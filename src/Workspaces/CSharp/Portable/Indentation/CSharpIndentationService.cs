@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
-using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -26,19 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         private static readonly AbstractFormattingRule s_instance = new FormattingRule();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public CSharpIndentationService()
         {
         }
 
-        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule()
-        {
-            return s_instance;
-        }
+        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle)
+            => s_instance;
 
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root,
             TextLine line,
+            IOptionService optionService,
             OptionSet optionSet,
             out SyntaxToken token)
         {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet);
+            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet.AsAnalyzerConfigOptions(optionService, LanguageNames.CSharp));
             if (lineOperation == null || lineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 // no indentation operation, nothing to do for smart token formatter
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class FormattingRule : AbstractFormattingRule
         {
-            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
+            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             {
                 // these nodes should be from syntax tree from ITextSnapshot.
                 Debug.Assert(node.SyntaxTree != null);
@@ -162,12 +163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
-            {
-                return node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
-            }
+            private static bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
+                => node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
 
-            private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
+            private static void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
                 if (!(node is SwitchSectionSyntax section) || section.Statements.Count == 0)
                 {
@@ -191,7 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             private static void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node)
             {
                 // only add indent block operation if the base token is the first token on line
-                var text = node.SyntaxTree.GetText();
                 var baseToken = node.Parent.GetFirstToken(includeZeroWidth: true);
 
                 list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(

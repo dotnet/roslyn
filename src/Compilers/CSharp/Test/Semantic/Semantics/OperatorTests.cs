@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,9 +9,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using static Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -5945,9 +5947,9 @@ namespace System
 }
 ";
             CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify(
-                // (6,41): error CS0553: 'ValueTuple<T1, T2>.explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
-                //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("System.ValueTuple<T1, T2>.explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
+                    // (6,41): error CS0553: '(T1, T2).explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                    //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
+                    Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("(T1, T2).explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
         }
 
         [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
@@ -6944,6 +6946,119 @@ public class RubyTime
 }
 ";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// Verify operators returned from BinaryOperatorEasyOut match
+        /// the operators found from overload resolution.
+        /// </summary>
+        [Fact]
+        public void BinaryOperators_EasyOut()
+        {
+            var source =
+@"class Program
+{
+    static T F<T>() => throw null;
+    static void Main()
+    {
+        F<object>();
+        F<string>();
+        F<bool>();
+        F<char>();
+        F<sbyte>();
+        F<short>();
+        F<int>();
+        F<long>();
+        F<byte>();
+        F<ushort>();
+        F<uint>();
+        F<ulong>();
+        F<nint>();
+        F<nuint>();
+        F<float>();
+        F<double>();
+        F<decimal>();
+        F<bool?>();
+        F<char?>();
+        F<sbyte?>();
+        F<short?>();
+        F<int?>();
+        F<long?>();
+        F<byte?>();
+        F<ushort?>();
+        F<uint?>();
+        F<ulong?>();
+        F<nint?>();
+        F<nuint?>();
+        F<float?>();
+        F<double?>();
+        F<decimal?>();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var syntax = tree.GetRoot();
+            var methodBody = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last().Body;
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(methodBody.SpanStart);
+            var diagnostics = DiagnosticBag.GetInstance();
+            var block = binder.BindEmbeddedBlock(methodBody, diagnostics);
+            diagnostics.Free();
+            var exprs = block.Statements.SelectAsArray(stmt => ((BoundExpressionStatement)stmt).Expression);
+            Assert.Equal(32, exprs.Length);
+
+            var operators = new[]
+            {
+                BinaryOperatorKind.Addition,
+                BinaryOperatorKind.Subtraction,
+                BinaryOperatorKind.Multiplication,
+                BinaryOperatorKind.Division,
+                BinaryOperatorKind.Remainder,
+                BinaryOperatorKind.LessThan,
+                BinaryOperatorKind.LessThanOrEqual,
+                BinaryOperatorKind.GreaterThan,
+                BinaryOperatorKind.GreaterThanOrEqual,
+                BinaryOperatorKind.LeftShift,
+                BinaryOperatorKind.RightShift,
+                BinaryOperatorKind.Equal,
+                BinaryOperatorKind.NotEqual,
+                BinaryOperatorKind.Or,
+                BinaryOperatorKind.And,
+                BinaryOperatorKind.Xor,
+            };
+
+            foreach (var op in operators)
+            {
+                foreach (var left in exprs)
+                {
+                    foreach (var right in exprs)
+                    {
+                        var signature1 = getBinaryOperator(binder, op, left, right, useEasyOut: true);
+                        var signature2 = getBinaryOperator(binder, op, left, right, useEasyOut: false);
+                        Assert.Equal(signature1, signature2);
+                    }
+                }
+            }
+
+            static BinaryOperatorKind getBinaryOperator(Binder binder, BinaryOperatorKind kind, BoundExpression left, BoundExpression right, bool useEasyOut)
+            {
+                var overloadResolution = new OverloadResolution(binder);
+                var result = BinaryOperatorOverloadResolutionResult.GetInstance();
+                if (useEasyOut)
+                {
+                    overloadResolution.BinaryOperatorOverloadResolution_EasyOut(kind, left, right, result);
+                }
+                else
+                {
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref useSiteDiagnostics);
+                }
+                var signature = result.Best.Signature.Kind;
+                result.Free();
+                return signature;
+            }
         }
 
         [Fact()]

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -605,13 +607,13 @@ class C
                 // (6,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
                 //         using (new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(6, 9),
-                // (6,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // (6,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(6, 16),
                 // (9,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
                 //         using (var x = new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(9, 9),
-                // (9,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // (9,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = new C()").WithArguments("C").WithLocation(9, 16)
                 );

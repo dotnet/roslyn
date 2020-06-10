@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Design;
@@ -9,10 +11,10 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
@@ -47,7 +49,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         private IntegrationTestServiceCommands(Package package)
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
-
 
             if (ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService menuCommandService)
             {
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             {
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainAssemblyResolve;
 
-                IntegrationTestTraceListener.Install();
+                WatsonTraceListener.Install();
 
                 _service = new IntegrationService();
 

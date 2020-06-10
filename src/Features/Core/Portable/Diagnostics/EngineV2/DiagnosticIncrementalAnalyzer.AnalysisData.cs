@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -54,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             public DocumentAnalysisData ToPersistData()
-            {
-                return new DocumentAnalysisData(Version, Items);
-            }
+                => new DocumentAnalysisData(Version, Items);
 
             public bool FromCache
             {
@@ -109,9 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
-            {
-                return GetResultOrEmpty(Result, analyzer, ProjectId, Version);
-            }
+                => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
 
             public static async Task<ProjectAnalysisData> CreateAsync(IPersistentStorageService persistentService, Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
             {

@@ -1,18 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -238,14 +241,11 @@ class C{i}
     </Project>
 </Workspace>";
 
-            // Ext(this F f, int i, string s) --> Ext(this F f, string s)
-            // If a reference does not bind correctly, it will believe Ext is not an extension
-            // method and remove the string argument instead of the int argument.
-
-            var updatedSignature = new[] { 0, 2 };
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(2) };
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
-            testState.TestChangeSignatureOptionsService.IsCancelled = false;
             testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
             var result = testState.ChangeSignature();
 
@@ -261,6 +261,88 @@ class C{i}
                 else
                 {
                     Assert.Contains(@"c.Ext(""two"");", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                }
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(1102830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
+        [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
+        public async Task AddRemoveParameters_ExtensionMethodInAnotherFile()
+        {
+            var workspaceXml = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferences=""true"">";
+
+            for (var i = 0; i <= 4; i++)
+            {
+                workspaceXml += $@"
+<Document FilePath = ""C{i}.cs"">
+class C{i}
+{{
+    void M()
+    {{
+        C5 c = new C5();
+        c.Ext(1, ""two"");
+    }}
+}}
+</Document>";
+            }
+
+            workspaceXml += @"
+<Document FilePath = ""C5.cs"">
+public class C5
+{
+}
+
+public static class C5Ext
+{
+    public void $$Ext(this C5 c, int i, string s)
+    {
+    }
+}
+</Document>";
+
+            for (var i = 6; i <= 9; i++)
+            {
+                workspaceXml += $@"
+<Document FilePath = ""C{i}.cs"">
+class C{i}
+{{
+    void M()
+    {{
+        C5 c = new C5();
+        c.Ext(1, ""two"");
+    }}
+}}
+</Document>";
+            }
+
+            workspaceXml += @"
+    </Project>
+</Workspace>";
+
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, callSiteValue:"123"), "int") };
+
+            using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
+            testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
+            var result = testState.ChangeSignature();
+
+            Assert.True(result.Succeeded);
+            Assert.Null(testState.ErrorMessage);
+
+            foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
+            {
+                if (updatedDocument.Name == "C5.cs")
+                {
+                    Assert.Contains("void Ext(this C5 c, string s, int newIntegerParameter)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                }
+                else
+                {
+                    Assert.Contains(@"c.Ext(""two"", 123);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                 }
             }
         }

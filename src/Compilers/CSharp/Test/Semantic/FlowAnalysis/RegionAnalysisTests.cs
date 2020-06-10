@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2048,6 +2051,40 @@ public class MemberInitializerTest
 
             Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("x, z, i", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact]
+        public void TestWithExpression()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+#nullable enable
+
+record B(string? X)
+{
+    static void M1(B b1)
+    {
+        var x = ""hello"";
+        _ = /*<bind>*/b1 with { X = x }/*</bind>*/;
+    }
+}
+");
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
         [Fact]
@@ -4128,6 +4165,328 @@ struct S
         #endregion
 
         #region "lambda"
+
+        [Fact]
+        [WorkItem(41600, "https://github.com/dotnet/roslyn/pull/41600")]
+        public void DataFlowAnalysisLocalFunctions10()
+        {
+            var dataFlow = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    public void M()
+    {
+        bool Dummy(params object[] x) {return true;}
+
+        try {}
+        catch when (/*<bind>*/TakeOutParam(out var x1)/*</bind>*/ && x1 > 0)
+        {
+            Dummy(x1);
+        }
+
+        var x4 = 11;
+        Dummy(x4);
+
+        try {}
+        catch when (TakeOutParam(out var x4) && x4 > 0)
+        {
+            Dummy(x4);
+        }
+
+        try {}
+        catch when (x6 && TakeOutParam(out var x6))
+        {
+            Dummy(x6);
+        }
+
+        try {}
+        catch when (TakeOutParam(out var x7) && x7 > 0)
+        {
+            var x7 = 12;
+            Dummy(x7);
+        }
+
+        try {}
+        catch when (TakeOutParam(out var x8) && x8 > 0)
+        {
+            Dummy(x8);
+        }
+
+        System.Console.WriteLine(x8);
+
+        try {}
+        catch when (TakeOutParam(out var x9) && x9 > 0)
+        {   
+            Dummy(x9);
+            try {}
+            catch when (TakeOutParam(out var x9) && x9 > 0) // 2
+            {
+                Dummy(x9);
+            }
+        }
+
+        try {}
+        catch when (TakeOutParam(y10, out var x10))
+        {   
+            var y10 = 12;
+            Dummy(y10);
+        }
+
+        //    try {}
+        //    catch when (TakeOutParam(y11, out var x11)
+        //    {   
+        //        let y11 = 12;
+        //        Dummy(y11);
+        //    }
+
+        try {}
+        catch when (Dummy(TakeOutParam(out var x14), 
+                            TakeOutParam(out var x14), // 2
+                            x14))
+        {
+            Dummy(x14);
+        }
+
+        try {}
+        catch (System.Exception x15)
+                when (Dummy(TakeOutParam(out var x15), x15))
+        {
+            Dummy(x15);
+        }
+
+        static bool TakeOutParam(out int x) 
+        {
+            x = 123;
+            return true;
+        }
+        static bool TakeOutParam(object y, out int x)
+        {
+            x = 123;
+            return true;
+        }
+
+    }
+}
+");
+            Assert.True(dataFlow.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(dataFlow.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.CapturedOutside));
+            Assert.Equal("x1", GetSymbolNamesJoined(dataFlow.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.DataFlowsIn));
+            Assert.Equal("x1", GetSymbolNamesJoined(dataFlow.DataFlowsOut));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlow.DefinitelyAssignedOnEntry));
+            Assert.Equal("this, x1", GetSymbolNamesJoined(dataFlow.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.ReadInside));
+            Assert.Equal("x1", GetSymbolNamesJoined(dataFlow.WrittenInside));
+            Assert.Equal("this, x1, x4, x4, x6, x7, x7, x8, x9, x9, y10, x14, x15, x, x",
+                GetSymbolNamesJoined(dataFlow.ReadOutside));
+            Assert.Equal("this, x, x4, x4, x6, x7, x7, x8, x9, x9, x10, " +
+                         "y10, x14, x14, x15, x15, x, y, x",
+                GetSymbolNamesJoined(dataFlow.WrittenOutside));
+        }
+
+        [Fact]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        public void DataFlowAnalysisLocalFunctions9()
+        {
+            var results = CompileAndAnalyzeControlAndDataFlowStatements(@"
+class C
+{
+    int Testing;
+
+    void M()
+    {
+        local();
+
+        /*<bind>*/
+        NewMethod();
+        /*</bind>*/
+        
+        Testing = 5;
+
+        void local()
+        { }
+    }
+
+    void NewMethod()
+    {
+    }
+}");
+            var dataFlow = results.dataFlowAnalysis;
+            Assert.True(dataFlow.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(dataFlow.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.VariablesDeclared));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlow.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.DataFlowsOut));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlow.DefinitelyAssignedOnEntry));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlow.DefinitelyAssignedOnExit));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlow.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.WrittenInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlow.ReadOutside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlow.WrittenOutside));
+
+            var controlFlow = results.controlFlowAnalysis;
+            Assert.True(controlFlow.Succeeded);
+            Assert.True(controlFlow.EndPointIsReachable);
+        }
+
+        [Fact]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        public void ControlFlowAnalysisLocalFunctions01()
+        {
+            var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+        local();
+
+        /*<bind>*/
+        System.Console.WriteLine(0);
+        /*</bind>*/
+
+        void local()
+        {
+            throw null;
+        }
+    }
+}");
+
+            Assert.True(controlFlow.Succeeded);
+            Assert.False(controlFlow.StartPointIsReachable);
+            Assert.False(controlFlow.EndPointIsReachable);
+        }
+
+        [Fact]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        public void ControlFlowAnalysisLocalFunctions02()
+        {
+            var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+        /*<bind>*/
+        local();
+        System.Console.WriteLine(0);
+        /*</bind>*/
+
+        void local()
+        {
+            throw null;
+        }
+    }
+}");
+
+            Assert.True(controlFlow.Succeeded);
+            Assert.True(controlFlow.StartPointIsReachable);
+            Assert.False(controlFlow.EndPointIsReachable);
+        }
+
+        [Fact]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        public void ControlFlowAnalysisLocalFunctions03()
+        {
+            var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+        /*<bind>*/
+        System.Console.WriteLine(0);
+        /*</bind>*/
+        local();
+
+        void local()
+        {
+            throw null;
+        }
+    }
+}");
+
+            Assert.True(controlFlow.Succeeded);
+            Assert.True(controlFlow.StartPointIsReachable);
+            Assert.True(controlFlow.EndPointIsReachable);
+        }
+
+        [Fact]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        public void ControlFlowAnalysisLocalFunctions04()
+        {
+            var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine(0);
+        local();
+
+        void local()
+        {
+            /*<bind>*/
+            throw null;
+            /*</bind>*/
+        }
+    }
+}");
+
+            Assert.True(controlFlow.Succeeded);
+            Assert.True(controlFlow.StartPointIsReachable);
+            Assert.False(controlFlow.EndPointIsReachable);
+        }
+
+        [Fact]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        public void ControlFlowAnalysisLocalFunctions05()
+        {
+            var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+        local();
+
+        void local()
+        {
+            /*<bind>*/
+            System.Console.WriteLine(0);
+            /*</bind>*/
+            throw null;
+        }
+    }
+}");
+
+            Assert.True(controlFlow.Succeeded);
+            Assert.True(controlFlow.StartPointIsReachable);
+            Assert.True(controlFlow.EndPointIsReachable);
+        }
+
+        [Fact]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        public void ControlFlowAnalysisLocalFunctions06()
+        {
+            var controlFlow = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+        void local()
+        {
+            throw null;
+        }
+
+        /*<bind>*/
+        System.Console.WriteLine(0);
+        /*</bind>*/
+    }
+}");
+
+            Assert.True(controlFlow.Succeeded);
+            Assert.True(controlFlow.StartPointIsReachable);
+            Assert.True(controlFlow.EndPointIsReachable);
+        }
 
         [Fact]
         public void TestReturnStatements03()

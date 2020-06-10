@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -16,11 +17,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             protected abstract bool IsNewLine(char c);
 
             public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-                    SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+                    in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (previousToken.RawKind == 0 || currentToken.RawKind == 0)
                 {
-                    nextOperation.Invoke();
+                    nextOperation.Invoke(in previousToken, in currentToken);
                 }
 
                 var betweenMembersAndUsingsOperation = GetAdjustNewLinesOperationBetweenMembersAndUsings(previousToken, currentToken);
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     return betweenMembersAndUsingsOperation;
                 }
 
-                return nextOperation.Invoke();
+                return nextOperation.Invoke(in previousToken, in currentToken);
             }
 
             protected int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)

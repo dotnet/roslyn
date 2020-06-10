@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -17,23 +21,23 @@ namespace Microsoft.CodeAnalysis
     {
         public static SourceFileResolver Default { get; } = new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
-        private readonly string _baseDirectory;
+        private readonly string? _baseDirectory;
         private readonly ImmutableArray<string> _searchPaths;
         private readonly ImmutableArray<KeyValuePair<string, string>> _pathMap;
 
-        public SourceFileResolver(IEnumerable<string> searchPaths, string baseDirectory)
+        public SourceFileResolver(IEnumerable<string> searchPaths, string? baseDirectory)
             : this(searchPaths.AsImmutableOrNull(), baseDirectory)
         {
         }
 
-        public SourceFileResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+        public SourceFileResolver(ImmutableArray<string> searchPaths, string? baseDirectory)
             : this(searchPaths, baseDirectory, ImmutableArray<KeyValuePair<string, string>>.Empty)
         {
         }
 
         public SourceFileResolver(
             ImmutableArray<string> searchPaths,
-            string baseDirectory,
+            string? baseDirectory,
             ImmutableArray<KeyValuePair<string, string>> pathMap)
         {
             if (searchPaths.IsDefault)
@@ -86,21 +90,21 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public string BaseDirectory => _baseDirectory;
+        public string? BaseDirectory => _baseDirectory;
 
         public ImmutableArray<string> SearchPaths => _searchPaths;
 
         public ImmutableArray<KeyValuePair<string, string>> PathMap => _pathMap;
 
-        public override string NormalizePath(string path, string baseFilePath)
+        public override string? NormalizePath(string path, string? baseFilePath)
         {
-            string normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
+            string? normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
             return (normalizedPath == null || _pathMap.IsDefaultOrEmpty) ? normalizedPath : PathUtilities.NormalizePathPrefix(normalizedPath, _pathMap);
         }
 
-        public override string ResolveReference(string path, string baseFilePath)
+        public override string? ResolveReference(string path, string? baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
+            string? resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
             if (resolvedPath == null)
             {
                 return null;
@@ -120,7 +124,7 @@ namespace Microsoft.CodeAnalysis
             return File.Exists(resolvedPath);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             // Explicitly check that we're not comparing against a derived type
             if (obj == null || GetType() != obj.GetType())
@@ -131,8 +135,13 @@ namespace Microsoft.CodeAnalysis
             return Equals((SourceFileResolver)obj);
         }
 
-        public bool Equals(SourceFileResolver other)
+        public bool Equals(SourceFileResolver? other)
         {
+            if (other is null)
+            {
+                return false;
+            }
+
             return
                 string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
                 _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal) &&

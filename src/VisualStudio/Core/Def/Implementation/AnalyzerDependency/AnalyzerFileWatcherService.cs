@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -9,6 +11,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -45,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             isEnabledByDefault: true);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerFileWatcherService(
             VisualStudioWorkspaceImpl workspace,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
@@ -55,9 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
         }
         internal void RemoveAnalyzerAlreadyLoadedDiagnostics(ProjectId projectId, string analyzerPath)
-        {
-            _updateSource.ClearDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath));
-        }
+            => _updateSource.ClearDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath));
 
         private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
         {
@@ -97,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     tracker = new FileChangeTracker(_fileChangeService, filePath);
                     tracker.UpdatedOnDisk += Tracker_UpdatedOnDisk;
-                    tracker.StartFileChangeListeningAsync();
+                    _ = tracker.StartFileChangeListeningAsync();
 
                     _fileChangeTrackers.Add(filePath, tracker);
                 }

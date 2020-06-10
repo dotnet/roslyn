@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -177,6 +179,23 @@ namespace Roslyn.Test.Utilities
         public static void Equal<T>(ImmutableArray<T> expected, ImmutableArray<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
         {
             Equal(expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
+        }
+
+        public static void Equal(string expected, string actual)
+        {
+            if (string.Equals(expected, actual, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var message = new StringBuilder();
+            message.AppendLine();
+            message.AppendLine("Expected:");
+            message.AppendLine(expected);
+            message.AppendLine("Actual:");
+            message.AppendLine(actual);
+
+            Assert.True(false, message.ToString());
         }
 
         public static void Equal<T>(
@@ -361,15 +380,18 @@ namespace Roslyn.Test.Utilities
                 // the length of the other, since that number of insertions
                 // would be required.
                 int n = first.Length, m = second.Length;
-                if (n == 0) return m;
-                if (m == 0) return n;
+                if (n == 0)
+                    return m;
+                if (m == 0)
+                    return n;
 
                 // Rather than maintain an entire matrix (which would require O(n*m) space),
                 // just store the current row and the next row, each of which has a length m+1,
                 // so just O(m) space. Initialize the current row.
                 int curRow = 0, nextRow = 1;
                 int[][] rows = new int[][] { new int[m + 1], new int[m + 1] };
-                for (int j = 0; j <= m; ++j) rows[curRow][j] = j;
+                for (int j = 0; j <= m; ++j)
+                    rows[curRow][j] = j;
 
                 // For each virtual row (since we only have physical storage for two)
                 for (int i = 1; i <= n; ++i)
@@ -419,14 +441,19 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public static void SetEqual<T>(T[] expected, T[] actual)
+            => SetEqual((IEnumerable<T>)actual, expected);
+
         public static void SetEqual<T>(IEnumerable<T> actual, params T[] expected)
         {
             var expectedSet = new HashSet<T>(expected);
             if (!expectedSet.SetEquals(actual))
             {
-                // If they're not set equals, then they're not "regular" equals either.
-                Assert.Equal(expected, actual);
+                var message = GetAssertMessage(ToString(expected, ",\r\n", itemInspector: withQuotes), ToString(actual, ",\r\n", itemInspector: withQuotes));
+                Assert.True(false, message);
             }
+
+            string withQuotes(T t) => $"\"{Convert.ToString(t)}\"";
         }
 
         public static void None<T>(IEnumerable<T> actual, Func<T, bool> predicate)
@@ -493,8 +520,8 @@ namespace Roslyn.Test.Utilities
             string expected,
             string actual,
             bool escapeQuotes = true,
-            [CallerFilePath]string expectedValueSourcePath = null,
-            [CallerLineNumber]int expectedValueSourceLine = 0)
+            [CallerFilePath] string expectedValueSourcePath = null,
+            [CallerLineNumber] int expectedValueSourceLine = 0)
         {
             var normalizedExpected = NormalizeWhitespace(expected);
             var normalizedActual = NormalizeWhitespace(actual);

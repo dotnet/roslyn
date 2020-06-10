@@ -27,11 +27,6 @@
         <target state="translated">'Shadows' の追加</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">'if' ステートメントは簡素化できます</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">{0} の挿入</target>
@@ -90,11 +85,6 @@
       <trans-unit id="Multiple_Types">
         <source>&lt;Multiple Types&gt;</source>
         <target state="translated">&lt;複数の種類&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">不要なインポートの削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -229,7 +219,7 @@
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="translated">返されないコードのパスがあります</target>
+        <target state="translated">返されないコード パスがあります</target>
         <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
@@ -279,7 +269,7 @@
       </trans-unit>
       <trans-unit id="next_statement_control_variable_doesn_t_have_matching_declaration_statement">
         <source>next statement control variable doesn't have matching declaration statement</source>
-        <target state="translated">次のステートメントのコントロール変数に一致する宣言ステートメントがありません</target>
+        <target state="translated">次のステートメントの制御変数に一致する宣言ステートメントがありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
@@ -1347,7 +1337,7 @@ Return -or- Return &lt;expression&gt;</target>
       <trans-unit id="When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off">
         <source>When set to On, restricts implicit data type conversions to only widening conversions.
 Option Strict {On | Off}</source>
-        <target state="translated">On に設定されている場合は、 暗黙的なデータ型の変換を上位変換のみに制限します。
+        <target state="translated">On に設定されている場合は、 暗黙的なデータ型の変換を拡大変換のみに制限します。
 Option Strict {On | Off}</target>
         <note />
       </trans-unit>
@@ -1477,11 +1467,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">{0} を Async Function にします。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">不足しているキャストを挿入</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">{0} を反復子に変換</target>
@@ -1510,36 +1495,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
         <target state="translated">{0}' で拡大変換を生成する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">このコードを変更しないでください。クリーンアップ コードを上の Dispose(disposing As Boolean) に記述します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: アンマネージ リソース (アンマネージ オブジェクト) を解放し、下の Finalize() をオーバーライドします。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: 上の Dispose(disposing As Boolean) にアンマネージド リソースを解放するコードが含まれる場合にのみ Finalize() をオーバーライドします。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">このコードは、破棄可能なパターンを正しく実装できるように Visual Basic によって追加されました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: 上の Finalize() がオーバーライドされている場合は、次の行のコメントを解除してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports ステートメントは不要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1820,21 +1775,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Async Sub にする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Me' を追加します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Is Nothing' チェックを使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">IsNot Nothing' チェックを使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

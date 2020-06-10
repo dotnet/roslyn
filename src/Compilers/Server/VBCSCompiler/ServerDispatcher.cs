@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal interface IClientConnectionHost
     {
-        Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken);
+        Task<IClientConnection> ListenAsync(CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -195,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Debug.Assert(_listenTask == null);
             Debug.Assert(_timeoutTask == null);
             _listenCancellationTokenSource = new CancellationTokenSource();
-            _listenTask = _clientConnectionHost.CreateListenTask(_listenCancellationTokenSource.Token);
+            _listenTask = _clientConnectionHost.ListenAsync(_listenCancellationTokenSource.Token);
             _diagnosticListener.ConnectionListening();
         }
 
@@ -212,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             _diagnosticListener.ConnectionReceived();
             var allowCompilationRequests = _state == State.Running;
-            var connectionTask = HandleClientConnection(_listenTask, allowCompilationRequests, cancellationToken);
+            var connectionTask = HandleClientConnectionAsync(_listenTask, allowCompilationRequests, cancellationToken);
             _connectionList.Add(connectionTask);
 
             // Timeout and GC are only done when there are no active connections.  Now that we have a new
@@ -333,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
         /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
         /// </summary>
-        internal static async Task<ConnectionData> HandleClientConnection(Task<IClientConnection> clientConnectionTask, bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
+        internal static async Task<ConnectionData> HandleClientConnectionAsync(Task<IClientConnection> clientConnectionTask, bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
         {
             IClientConnection clientConnection;
             try
@@ -350,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
-                return await clientConnection.HandleConnection(allowCompilationRequests, cancellationToken).ConfigureAwait(false);
+                return await clientConnection.HandleConnectionAsync(allowCompilationRequests, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

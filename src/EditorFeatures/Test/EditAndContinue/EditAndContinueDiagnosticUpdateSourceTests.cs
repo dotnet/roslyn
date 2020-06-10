@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             };
 
             updates.Clear();
-            source.ReportDiagnostics(workspace.CurrentSolution, projC.Id, diagnostics);
+            source.ReportDiagnostics(workspace, workspace.CurrentSolution, projC.Id, diagnostics);
             AssertEx.Equal(new[]
             {
                 $"DiagnosticsCreated p={projC.Id} d={docC1.Id}: TST0001,TST0002",
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, updates);
 
             updates.Clear();
-            source.ReportDiagnostics(workspace.CurrentSolution, projD.Id, diagnostics);
+            source.ReportDiagnostics(workspace, workspace.CurrentSolution, projD.Id, diagnostics);
             AssertEx.Equal(new[]
             {
                 $"DiagnosticsCreated p={projD.Id} d={docC1.Id}: TST0001,TST0002",
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, updates);
 
             updates.Clear();
-            source.ReportDiagnostics(workspace.CurrentSolution, null, diagnostics);
+            source.ReportDiagnostics(workspace, workspace.CurrentSolution, null, diagnostics);
             AssertEx.Equal(new[]
             {
                 $"DiagnosticsCreated p= d={docC1.Id}: TST0001,TST0002",

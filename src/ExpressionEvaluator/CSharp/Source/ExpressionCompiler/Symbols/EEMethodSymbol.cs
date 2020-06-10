@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -237,6 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { return true; }
+        }
+
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             throw ExceptionUtilities.Unreachable;
@@ -410,6 +417,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
@@ -602,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                         var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
 
-                        body = LambdaRewriter.Rewrite(
+                        body = ClosureConversion.Rewrite(
                             loweredBody: body,
                             thisType: this.SubstitutedSourceMethod.ContainingType,
                             thisParameter: _thisParameter,

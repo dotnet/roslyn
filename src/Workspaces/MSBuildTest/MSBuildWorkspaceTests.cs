@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +27,6 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/41456"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
         public async Task Test_OpenProjectReferencingPortableProject()
         {
@@ -704,7 +705,6 @@ class C1
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_Respect_ReferenceOutputassembly_Flag()
         {
-            var projFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"VisualBasicProject_Circular_Top.vbproj", Resources.ProjectFiles.VisualBasic.Circular_Top)
                 .WithFile(@"VisualBasicProject_Circular_Target.vbproj", Resources.ProjectFiles.VisualBasic.Circular_Target));
@@ -946,12 +946,6 @@ class C1
 
             using (var ws = CreateMSBuildWorkspace())
             {
-                var failed = false;
-                ws.WorkspaceFailed += (s, args) =>
-                {
-                    failed |= args.Diagnostic is DocumentDiagnostic;
-                };
-
                 // open source file so it cannot be read by workspace;
                 var sourceFile = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
                 var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
@@ -964,7 +958,7 @@ class C1
                     var getTextTask = doc.GetTextAsync();
 
                     // wait 1 unit of retry delay then close file
-                    var delay = TextDocumentState.RetryDelay;
+                    var delay = TextLoader.RetryDelay;
                     await Task.Delay(delay).ContinueWith(t => file.Close(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
                     // finish reading text
@@ -976,7 +970,7 @@ class C1
                     file.Close();
                 }
 
-                Assert.False(failed);
+                Assert.Empty(ws.Diagnostics);
             }
         }
 
@@ -990,12 +984,6 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var failed = false;
-                workspace.WorkspaceFailed += (s, args) =>
-                {
-                    failed |= args.Diagnostic is DocumentDiagnostic;
-                };
-
                 // open source file so it cannot be read by workspace;
                 var sourceFile = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
                 var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
@@ -1011,10 +999,9 @@ class C1
                     file.Close();
                 }
 
-                Assert.True(failed);
+                Assert.Equal(WorkspaceDiagnosticKind.Failure, workspace.Diagnostics.Single().Kind);
             }
         }
-
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_WithInvalidProjectPath_SkipTrue_SucceedsWithFailureEvent()
@@ -1028,15 +1015,8 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var diagnostics = new List<WorkspaceDiagnostic>();
-                workspace.WorkspaceFailed += (s, args) =>
-                {
-                    diagnostics.Add(args.Diagnostic);
-                };
-
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-
-                Assert.Single(diagnostics);
+                Assert.Single(workspace.Diagnostics);
             }
         }
 
@@ -1050,15 +1030,8 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var diagnostics = new List<WorkspaceDiagnostic>();
-                workspace.WorkspaceFailed += (s, args) =>
-                {
-                    diagnostics.Add(args.Diagnostic);
-                };
-
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-
-                Assert.Empty(diagnostics);
+                Assert.Empty(workspace.Diagnostics);
             }
         }
 
@@ -1093,15 +1066,9 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var diagnostics = new List<WorkspaceDiagnostic>();
-                workspace.WorkspaceFailed += (s, args) =>
-                {
-                    diagnostics.Add(args.Diagnostic);
-                };
-
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
-                Assert.Single(diagnostics);
+                Assert.Single(workspace.Diagnostics);
             }
         }
 
@@ -1168,15 +1135,9 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var diagnostics = new List<WorkspaceDiagnostic>();
-                workspace.WorkspaceFailed += (s, args) =>
-                {
-                    diagnostics.Add(args.Diagnostic);
-                };
-
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
-                Assert.Single(diagnostics);
+                Assert.Single(workspace.Diagnostics);
                 Assert.Empty(solution.ProjectIds);
             }
         }
@@ -1208,7 +1169,7 @@ class C1
             });
         }
 
-        private IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
+        private readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
@@ -1246,19 +1207,11 @@ class C1
             {
                 workspace.SkipUnrecognizedProjects = true;
 
-                var diagnostics = new List<WorkspaceDiagnostic>();
-                workspace.WorkspaceFailed += delegate (object sender, WorkspaceDiagnosticEventArgs e)
-                {
-                    diagnostics.Add(e.Diagnostic);
-                };
-
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-
-                Assert.Single(diagnostics);
 
                 var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
                 var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
-                Assert.Equal(expected, diagnostics[0].Message);
+                Assert.Equal(expected, workspace.Diagnostics.Single().Message);
             }
         }
 
@@ -1323,17 +1276,13 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var diagnostics = new List<WorkspaceDiagnostic>();
-                workspace.WorkspaceFailed += (s, args) =>
-                {
-                    diagnostics.Add(args.Diagnostic);
-                };
-
                 var project = await workspace.OpenProjectAsync(projectFilePath);
 
                 Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to invalid file path.
                 Assert.Empty(project.ProjectReferences); // no resolved project references
                 Assert.Single(project.AllProjectReferences); // dangling project reference
+
+                Assert.NotEmpty(workspace.Diagnostics);
             }
         }
 
@@ -1363,17 +1312,13 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var diagnostics = new List<WorkspaceDiagnostic>();
-                workspace.WorkspaceFailed += (s, args) =>
-                {
-                    diagnostics.Add(args.Diagnostic);
-                };
-
                 var project = await workspace.OpenProjectAsync(projectFilePath);
 
                 Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to invalid file path.
                 Assert.Empty(project.ProjectReferences); // no resolved project references
                 Assert.Single(project.AllProjectReferences); // dangling project reference
+
+                Assert.NotEmpty(workspace.Diagnostics);
             }
         }
 
@@ -1404,17 +1349,13 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var diagnostics = new List<WorkspaceDiagnostic>();
-                workspace.WorkspaceFailed += (s, args) =>
-                {
-                    diagnostics.Add(args.Diagnostic);
-                };
-
                 var project = await workspace.OpenProjectAsync(projectFilePath);
 
                 Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to unrecognized extension.
                 Assert.Empty(project.ProjectReferences); // no resolved project references
                 Assert.Single(project.AllProjectReferences); // dangling project reference
+
+                Assert.NotEmpty(workspace.Diagnostics);
             }
         }
 
@@ -2721,7 +2662,7 @@ class C1
             }
         }
 
-        private FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
+        private static FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
         {
             var result = new List<(string, object)>();
             foreach (var (fileName, fileContent) in files)
@@ -2738,7 +2679,7 @@ class C1
             return new FileSet(result.ToArray());
         }
 
-        private string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
+        private static string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
         {
             var document = XDocument.Parse(projectFileText);
             var projectReferenceItems = document.Descendants(XName.Get("ProjectReference", MSBuildNamespace));
@@ -3609,7 +3550,7 @@ class C { }";
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(31390, "https://github.com/dotnet/roslyn/issues/31390")]
-        public async Task TestDuplicateProjectReference()
+        public async Task TestDuplicateProjectAndMetadataReferences()
         {
             var files = GetDuplicateProjectReferenceSolutionFiles();
             CreateFiles(files);
@@ -3622,6 +3563,10 @@ class C { }";
                 var project = solution.Projects.Single(p => p.FilePath.EndsWith("CSharpProject_ProjectReference.csproj"));
 
                 Assert.Single(project.ProjectReferences);
+
+                AssertEx.Equal(
+                    new[] { "EmptyLibrary.dll", "System.Core.dll", "mscorlib.dll" },
+                    project.MetadataReferences.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)).OrderBy(StringComparer.Ordinal));
 
                 var compilation = await project.GetCompilationAsync();
 
@@ -3638,7 +3583,7 @@ class C { }";
 
             CreateFiles(files);
 
-            string expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
+            var expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
 
             using (var workspace = CreateMSBuildWorkspace())
             {

@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </typeparam>
     public abstract partial class CSharpSyntaxVisitor<TResult>
     {
-        public virtual TResult Visit(SyntaxNode node)
+        [return: MaybeNull]
+        public virtual TResult Visit(SyntaxNode? node)
         {
             if (node != null)
             {
@@ -25,12 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // should not come here too often so we will put this at the end of the method.
-            return default(TResult);
+            return default;
         }
 
+        [return: MaybeNull]
         public virtual TResult DefaultVisit(SyntaxNode node)
         {
-            return default(TResult);
+            return default;
         }
     }
 
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public abstract partial class CSharpSyntaxVisitor
     {
-        public virtual void Visit(SyntaxNode node)
+        public virtual void Visit(SyntaxNode? node)
         {
             if (node != null)
             {

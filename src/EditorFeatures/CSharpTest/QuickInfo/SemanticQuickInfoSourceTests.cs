@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -1254,9 +1256,7 @@ class D
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNullLiteralWithVar()
-        {
-            await TestInMethodAsync(@"var f = null$$");
-        }
+            => await TestInMethodAsync(@"var f = null$$");
 
         [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1279,7 +1279,7 @@ class C
         return 5;
     }
 }";
-            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} struct System.Int32"));
+            await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
         }
 
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
@@ -1295,7 +1295,7 @@ class C
         return 5;
     }
 }";
-            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} struct System.Int32"));
+            await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
         }
 
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
@@ -1310,7 +1310,7 @@ class C
         aw$$ait Task.Delay(100);
     }
 }";
-            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} {FeaturesResources.no_value}"));
+            await TestAsync(markup, MainDescription(FeaturesResources.Awaited_task_returns_no_value));
         }
 
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
@@ -1345,7 +1345,7 @@ class AsyncExample2
         result = await lambda();
     }
 }";
-            await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.awaitable}) {FeaturesResources.Awaited_task_returns} class System.Threading.Tasks.Task<TResult>"),
+            await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, $"({CSharpFeaturesResources.awaitable}) class System.Threading.Tasks.Task<TResult>")),
                          TypeParameterMap($"\r\nTResult {FeaturesResources.is_} int"));
         }
 
@@ -1381,7 +1381,7 @@ class AsyncExample2
         result = await lambda();
     }
 }";
-            await TestAsync(markup, MainDescription($"{FeaturesResources.Awaited_task_returns} struct System.Int32"));
+            await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
         }
 
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(756337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
@@ -2532,6 +2532,38 @@ class D : X$$
     }
 }",
                 MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Constructor_ImplicitObjectCreation()
+        {
+            await TestAsync(
+@"class C
+{
+    static void Main()
+    {
+        C c = ne$$w();
+    }
+}
+",
+                MainDescription("C.C()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task Constructor_ImplicitObjectCreation_WithParameters()
+        {
+            await TestAsync(
+@"class C
+{
+    C(int i) { }
+    C(string s) { }
+    static void Main()
+    {
+        C c = ne$$w(1);
+    }
+}
+",
+                MainDescription($"C.C(int i) (+ 1 {FeaturesResources.overload})"));
         }
 
         [WorkItem(539841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539841")]
@@ -4373,21 +4405,17 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAwaitableMethod()
         {
-            var markup = @"using System.Threading.Tasks;
-class C
-{
-    async Task Goo()
-    {
-        Go$$o();
-    }
+            var markup = @"using System.Threading.Tasks;	
+class C	
+{	
+    async Task Goo()	
+    {	
+        Go$$o();	
+    }	
 }";
             var description = $"({CSharpFeaturesResources.awaitable}) Task C.Goo()";
 
-            var documentation = $@"
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Goo();";
-
-            await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description), Usage(documentation) });
+            await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description) });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -5202,7 +5230,7 @@ class Program
         awa$$it M();
     }
 }";
-            await TestAsync(markup, MainDescription("int[]"));
+            await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "int[]")));
         }
 
         [WorkItem(1114300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
@@ -5219,7 +5247,7 @@ class Program
         awa$$it M();
     }
 }";
-            await TestAsync(markup, MainDescription("dynamic"));
+            await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "dynamic")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -5775,7 +5803,7 @@ public class C
         var y$$ = ValueTuple.Create();
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription($"({ FeaturesResources.local_variable }) ValueTuple y"));
         }
 
@@ -5793,7 +5821,7 @@ public class C
         var$$ y = ValueTuple.Create();
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription("struct System.ValueTuple"));
         }
 
@@ -5811,7 +5839,7 @@ public class C
         var y$$ = ValueTuple.Create(1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription($"({ FeaturesResources.local_variable }) ValueTuple<int> y"));
         }
 
@@ -5829,8 +5857,8 @@ public class C
         var$$ y = ValueTuple.Create(1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("ValueTuple<System.Int32>"));
+",
+                MainDescription("struct System.ValueTuple<System.Int32>"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -5847,7 +5875,7 @@ public class C
         var y$$ = ValueTuple.Create(1, 1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription($"({ FeaturesResources.local_variable }) (int, int) y"));
         }
 
@@ -5865,7 +5893,7 @@ public class C
         var$$ y = ValueTuple.Create(1, 1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription("(System.Int32, System.Int32)"));
         }
 
@@ -6388,7 +6416,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.parameter}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6406,7 +6434,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.parameter}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6425,7 +6453,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.field}) string? X.s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6445,7 +6473,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.field}) string? X.s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6464,7 +6492,7 @@ class X
     }
 }",
                 MainDescription("string? X.S { get; set; }"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "S")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "S")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6484,7 +6512,7 @@ class X
     }
 }",
                 MainDescription("string? X.S { get; set; }"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "S")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "S")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6508,7 +6536,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6531,8 +6559,8 @@ class X
         }
     }
 }",
-                MainDescription($"({FeaturesResources.local_variable}) string s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                MainDescription($"({FeaturesResources.local_variable}) string? s"),
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6552,7 +6580,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6572,7 +6600,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6630,7 +6658,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6797,6 +6825,216 @@ class Program
     }
 }",
                 MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithRemarksOnMethod()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <remarks>
+    /// Remarks text
+    /// </remarks>
+    int M()
+    {
+        return $$M();
+    }
+}",
+                MainDescription("int Program.M()"),
+                Documentation("Summary text"),
+                Remarks("\r\nRemarks text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithRemarksOnPropertyAccessor()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <remarks>
+    /// Remarks text
+    /// </remarks>
+    int M { $$get; }
+}",
+                MainDescription("int Program.M.get"),
+                Documentation("Summary text"),
+                Remarks("\r\nRemarks text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithReturnsOnMethod()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <returns>
+    /// Returns text
+    /// </returns>
+    int M()
+    {
+        return $$M();
+    }
+}",
+                MainDescription("int Program.M()"),
+                Documentation("Summary text"),
+                Returns($"\r\n{FeaturesResources.Returns_colon}\r\n  Returns text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithReturnsOnPropertyAccessor()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <returns>
+    /// Returns text
+    /// </returns>
+    int M { $$get; }
+}",
+                MainDescription("int Program.M.get"),
+                Documentation("Summary text"),
+                Returns($"\r\n{FeaturesResources.Returns_colon}\r\n  Returns text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithValueOnMethod()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <value>
+    /// Value text
+    /// </value>
+    int M()
+    {
+        return $$M();
+    }
+}",
+                MainDescription("int Program.M()"),
+                Documentation("Summary text"),
+                Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")]
+        public async Task QuickInfoWithValueOnPropertyAccessor()
+        {
+            await TestAsync(@"
+class Program
+{
+    /// <summary>
+    /// Summary text
+    /// </summary>
+    /// <value>
+    /// Value text
+    /// </value>
+    int M { $$get; }
+}",
+                MainDescription("int Program.M.get"),
+                Documentation("Summary text"),
+                Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoNotPattern1()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is not $$Person p)
+        {
+        }
+    }
+}",
+                MainDescription("class Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoNotPattern2()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is $$not Person p)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoOrPattern1()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is $$Person or int)
+        {
+        }
+    }
+}", MainDescription("class Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoOrPattern2()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is Person or $$int)
+        {
+        }
+    }
+}", MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoOrPattern3()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is Person $$or int)
+        {
+        }
+    }
+}");
         }
     }
 }

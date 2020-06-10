@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -167,14 +170,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public Task<GraphNode> AddNodeForSymbolAsync(ISymbol symbol, GraphNode relatedNode)
+        public Task<GraphNode> AddNodeAsync(ISymbol symbol, GraphNode relatedNode)
         {
             // The lack of a lock here is acceptable, since each of the functions lock, and GetContextProject/GetContextDocument
             // never change for the same input.
-            return AddNodeForSymbolAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
+            return AddNodeAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
         }
 
-        public async Task<GraphNode> AddNodeForSymbolAsync(ISymbol symbol, Project contextProject, Document contextDocument)
+        public async Task<GraphNode> AddNodeAsync(ISymbol symbol, Project contextProject, Document contextDocument)
         {
             // Figure out what the location for this node should be. We'll arbitrarily pick the
             // first one, unless we have a contextDocument to restrict it

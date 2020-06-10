@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly bool _isAutoPropertyAccessor;
         private readonly bool _isExpressionBodied;
+        private readonly bool _usesInit;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
             NamedTypeSymbol containingType,
@@ -34,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
+            Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration ||
+                syntax.Kind() == SyntaxKind.SetAccessorDeclaration ||
+                syntax.Kind() == SyntaxKind.InitAccessorDeclaration);
 
             bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration);
             string name;
@@ -99,12 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
-        }
+            => _isExpressionBodied;
+
+        internal sealed override ImmutableArray<string> NotNullMembers
+            => _property.NotNullMembers.Concat(base.NotNullMembers);
+
+        internal sealed override ImmutableArray<string> NotNullWhenTrueMembers
+            => _property.NotNullWhenTrueMembers.Concat(base.NotNullWhenTrueMembers);
+
+        internal sealed override ImmutableArray<string> NotNullWhenFalseMembers
+            => _property.NotNullWhenFalseMembers.Concat(base.NotNullWhenFalseMembers);
 
         private static void GetNameAndExplicitInterfaceImplementations(
             PropertySymbol explicitlyImplementedPropertyOpt,
@@ -148,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrowExpressionClauseSyntax syntax,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), location)
+            base(containingType, syntax.GetReference(), location, isIterator: false)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
@@ -203,7 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
-                   location)
+                   location,
+                   isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
@@ -213,6 +222,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var hasBody = syntax.Body != null;
             var hasExpressionBody = syntax.ExpressionBody != null;
             _isExpressionBodied = !hasBody && hasExpressionBody;
+            _usesInit = syntax.Keyword.IsKind(SyntaxKind.InitKeyword);
+            if (_usesInit)
+            {
+                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInitOnlySetters, diagnostics, syntax.Keyword.GetLocation());
+            }
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
@@ -408,7 +422,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var binder = GetBinder();
-                return TypeWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
+                var type = TypeWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
+
+                if (IsInitOnly)
+                {
+                    var isInitOnlyType = Binder.GetWellKnownType(this.DeclaringCompilation,
+                        WellKnownType.System_Runtime_CompilerServices_IsExternalInit, diagnostics, this.locations[0]);
+
+                    var modifiers = ImmutableArray.Create<CustomModifier>(
+                        CSharpCustomModifier.CreateRequired(isInitOnlyType));
+                    type = type.WithModifiers(modifiers);
+                }
+
+                return type;
             }
         }
 
@@ -497,6 +523,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsInitOnly => !IsStatic && _usesInit;
+
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
@@ -565,6 +593,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Auto-implemented accessor '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_AutoSetterCantBeReadOnly, location, this);
             }
+            else if (_usesInit && IsStatic)
+            {
+                // The 'init' accessor is not valid on static members
+                diagnostics.Add(ErrorCode.ERR_BadInitAccessor, location);
+            }
         }
 
         /// <summary>
@@ -608,6 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     return OneOrMany.Create(((AccessorDeclarationSyntax)syntax).AttributeLists);
             }
 
@@ -637,6 +671,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return true;
+            }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                return !_property.HasSkipLocalsInitAttribute && base.AreLocalsZeroed;
             }
         }
 
@@ -681,7 +723,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
-            var compilation = this.DeclaringCompilation;
             var annotations = ReturnTypeFlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
@@ -701,6 +742,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
+
+            if (!NotNullMembers.IsEmpty)
+            {
+                foreach (var attributeData in _property.MemberNotNullAttributeIfExists)
+                {
+                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(attributeData));
+                }
+            }
+
+            if (!NotNullWhenTrueMembers.IsEmpty || !NotNullWhenFalseMembers.IsEmpty)
+            {
+                foreach (var attributeData in _property.MemberNotNullWhenAttributeIfExists)
+                {
+                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(attributeData));
+                }
             }
         }
     }

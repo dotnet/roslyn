@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -200,11 +203,12 @@ public class Modifiers
             Assert.False(p1.HasExplicitDefaultValue, "Parameter has default value");
             Assert.Equal(0, p1.Ordinal);
 
-            //PointerTypeSymbol p1Type = (PointerTypeSymbol)p1.Type;
+            PointerTypeSymbol p1Type = (PointerTypeSymbol)p1.Type;
 
-            //Assert.Same(mscorlibAssembly, p1Type.ContainingAssembly);
-            //Assert.Equal(SpecialType.System_DateTime, p1Type.PointedAtType.SpecialType);
-            //Assert.Equal(0, p1Type.CustomModifiers.Count);
+            Assert.Null(p1Type.ContainingAssembly);
+            Assert.Same(mscorlibAssembly, p1Type.PointedAtType.ContainingAssembly);
+            Assert.Equal(SpecialType.System_DateTime, p1Type.PointedAtType.SpecialType);
+            Assert.Equal(0, p1.TypeWithAnnotations.CustomModifiers.Length);
         }
     }
 }

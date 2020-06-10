@@ -1,4 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 extern alias WORKSPACES;
 
 using System;
@@ -6,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -15,13 +19,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
-using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -42,25 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private class TestDocumentationProvider : DocumentationProvider
         {
             protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
-            {
-                return string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);
-            }
+                => string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);
 
             public override bool Equals(object obj)
-            {
-                return (object)this == obj;
-            }
+                => (object)this == obj;
 
             public override int GetHashCode()
-            {
-                return RuntimeHelpers.GetHashCode(this);
-            }
+                => RuntimeHelpers.GetHashCode(this);
         }
 
         public static TestWorkspace Create(string xmlDefinition, bool completed = true, bool openDocuments = false, ExportProvider exportProvider = null)
-        {
-            return Create(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
-        }
+            => Create(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
 
         public static TestWorkspace CreateWorkspace(
             XElement workspaceElement,
@@ -78,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool openDocuments = true,
             ExportProvider exportProvider = null,
             string workspaceKind = null,
-            IDocumentServiceProvider documentServiceProvider = null)
+            IDocumentServiceProvider documentServiceProvider = null,
+            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
         {
             if (workspaceElement.Name != WorkspaceElementName)
             {
@@ -87,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             exportProvider ??= TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
 
-            var workspace = new TestWorkspace(exportProvider, workspaceKind);
+            var workspace = new TestWorkspace(exportProvider, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
 
             var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
             var projectElementToProjectName = new Dictionary<XElement, string>();
@@ -518,9 +514,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var rootNamespace = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication).RootNamespace;
             var globalImports = new List<GlobalImport>();
             var reportDiagnostic = ReportDiagnostic.Default;
-            var cryptoKeyFile = default(string);
-            var strongNameProvider = default(StrongNameProvider);
-            var delaySign = default(bool?);
+            var cryptoKeyFile = (string)null;
+            var strongNameProvider = (StrongNameProvider)null;
+            var delaySign = (bool?)null;
             var checkOverflow = false;
             var allowUnsafe = false;
             var outputKind = OutputKind.DynamicallyLinkedLibrary;
@@ -740,8 +736,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeLanguageService.GetDefaultContentType();
 
-            MarkupTestFile.GetPositionAndSpans(markupCode,
-                out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionAndSpans(markupCode,
+                out var code, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
 
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
 
@@ -910,7 +906,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var references = CreateCommonReferences(workspace, element);
             foreach (var reference in element.Elements(MetadataReferenceElementName))
             {
-                references.Add(MetadataReference.CreateFromFile(reference.Value));
+                // Read the image to an ImmutableArray<byte>, since the GC does a better job of tracking these than
+                // Marshal.AllocHGlobal and thus knowing when it's necessary to run finalizers to clean up old Metadata
+                // objects that are no longer in use. There are no public APIs available to directly dispose of these
+                // images, so we are relying on GC running finalizers to avoid OutOfMemoryException during tests.
+                var content = File.ReadAllBytes(reference.Value);
+                var peImage = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref content);
+                references.Add(MetadataReference.CreateFromImage(peImage, filePath: reference.Value));
             }
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))
@@ -959,13 +961,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)commonReferencesAttribute).HasValue &&
                 ((bool?)commonReferencesAttribute).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46 };
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef };
                 if (GetLanguage(workspace, element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef_v4_0_30319_17929);
                     references.Add(TestBase.SystemXmlRef);
                     references.Add(TestBase.SystemXmlLinqRef);
                 }
+            }
+
+            var commonReferencesWithoutValueTupleAttribute = element.Attribute(CommonReferencesWithoutValueTupleAttributeName);
+            if (commonReferencesWithoutValueTupleAttribute != null &&
+                ((bool?)commonReferencesWithoutValueTupleAttribute).HasValue &&
+                ((bool?)commonReferencesWithoutValueTupleAttribute).Value)
+            {
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46 };
             }
 
             var winRT = element.Attribute(CommonReferencesWinRTAttributeName);
@@ -992,21 +1002,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 references.AddRange(TestBase.PortableRefsMinimal);
             }
 
-            var systemRuntimeFacade = element.Attribute(CommonReferenceFacadeSystemRuntimeAttributeName);
-            if (systemRuntimeFacade != null &&
-                ((bool?)systemRuntimeFacade).HasValue &&
-                ((bool?)systemRuntimeFacade).Value)
+            var netcore30 = element.Attribute(CommonReferencesNetCoreApp30Name);
+            if (netcore30 != null &&
+                ((bool?)netcore30).HasValue &&
+                ((bool?)netcore30).Value)
             {
-                references.Add(TestBase.SystemRuntimeFacadeRef);
+                references = TargetFrameworkUtil.NetCoreApp30References.ToList();
+            }
+
+            var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);
+            if (netstandard20 != null &&
+                ((bool?)netstandard20).HasValue &&
+                ((bool?)netstandard20).Value)
+            {
+                references = TargetFrameworkUtil.NetStandard20References.ToList();
             }
 
             return references;
         }
 
         public static bool IsWorkspaceElement(string text)
-        {
-            return text.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal);
-        }
+            => text.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal);
 
         private static void AssertNoChildText(XElement element)
         {

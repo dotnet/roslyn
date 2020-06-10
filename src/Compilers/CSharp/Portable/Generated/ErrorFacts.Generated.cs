@@ -194,7 +194,6 @@
                 case ErrorCode.WRN_NullReferenceReturn:
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_UnboxPossibleNull:
-                case ErrorCode.WRN_NullReferenceIterationVariable:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
@@ -227,6 +226,23 @@
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
+                case ErrorCode.WRN_ShouldNotReturn:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
+                case ErrorCode.WRN_DoesNotReturnMismatch:
+                case ErrorCode.WRN_MemberNotNull:
+                case ErrorCode.WRN_MemberNotNullWhen:
+                case ErrorCode.WRN_MemberNotNullBadMember:
+                case ErrorCode.WRN_ParameterDisallowsNull:
+                case ErrorCode.WRN_GeneratorFailedDuringInitialization:
+                case ErrorCode.WRN_GeneratorFailedDuringGeneration:
+                case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
+                case ErrorCode.WRN_IsPatternAlways:
                     return true;
                 default:
                     return false;

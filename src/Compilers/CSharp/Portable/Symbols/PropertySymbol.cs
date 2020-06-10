@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -49,6 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.OriginalDefinition;
             }
         }
+
+        /// <summary>
+        /// If a property is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
+        /// listed in those attributes.
+        /// Otherwise, an empty array.
+        /// </summary>
+        internal virtual ImmutableArray<string> NotNullMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenTrueMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenFalseMembers => ImmutableArray<string>.Empty;
 
         /// <summary>
         /// Indicates whether or not the property returns by reference
@@ -398,29 +410,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        /// <summary>
-        /// Is this a property of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleProperty
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// If this is a property of a tuple type, return corresponding underlying property from the
-        /// tuple underlying type. Otherwise, null. 
-        /// </summary>
-        public virtual PropertySymbol TupleUnderlyingProperty
-        {
-            get
-            {
-                return null;
-            }
-        }
-
         protected sealed override ISymbol CreateISymbol()
         {
             return new PublicModel.PropertySymbol(this);
@@ -440,6 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (ReferenceEquals(this, other))
             {
                 return true;
+            }
+
+            if (other is NativeIntegerPropertySymbol nps)
+            {
+                return nps.Equals(this, compareKind);
             }
 
             // This checks if the property have the same definition and the type parameters on the containing types have been

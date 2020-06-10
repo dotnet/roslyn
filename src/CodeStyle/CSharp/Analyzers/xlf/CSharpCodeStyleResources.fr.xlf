@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="translated">Préférences d'inclusion dans un wrapper</target>
+        <target state="translated">Préférences d'enveloppement</target>
         <note />
       </trans-unit>
     </body>

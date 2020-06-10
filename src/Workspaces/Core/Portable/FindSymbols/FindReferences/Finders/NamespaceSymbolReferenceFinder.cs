@@ -1,11 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -16,9 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static readonly SymbolDisplayFormat s_globalNamespaceFormat = new SymbolDisplayFormat(SymbolDisplayGlobalNamespaceStyle.Included);
 
         protected override bool CanFind(INamespaceSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamespaceSymbol symbol,
@@ -27,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol));
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, GetNamespaceIdentifierName(symbol));
         }
 
         private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)
@@ -47,15 +44,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var identifierName = GetNamespaceIdentifierName(symbol);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
+            var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
+                document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
             var nonAliasReferences = FindReferencesInTokens(symbol,
                 document,
                 semanticModel,
-                await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, identifierName, cancellationToken).ConfigureAwait(false),
-                (SyntaxToken t) => syntaxFactsService.TextMatch(t.ValueText, identifierName),
+                tokens,
+                t => syntaxFactsService.TextMatch(t.ValueText, identifierName),
                 cancellationToken);
 
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            return nonAliasReferences.Concat(aliasReferences);
+
+            var suppressionReferences = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId)
+                ? await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel,
+                    syntaxFactsService, docCommentId, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<FinderLocation>.Empty;
+
+            return nonAliasReferences.Concat(aliasReferences).Concat(suppressionReferences);
         }
     }
 }

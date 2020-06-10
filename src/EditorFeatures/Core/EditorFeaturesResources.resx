@@ -267,9 +267,6 @@
   <data name="Given_Workspace_doesn_t_support_Undo" xml:space="preserve">
     <value>Given Workspace doesn't support Undo</value>
   </data>
-  <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
-    <value>Document must be contained in the workspace that created this service</value>
-  </data>
   <data name="Searching" xml:space="preserve">
     <value>Searching...</value>
   </data>
@@ -366,9 +363,6 @@
   <data name="Preview_Warning" xml:space="preserve">
     <value>Preview Warning</value>
   </data>
-  <data name="from_metadata" xml:space="preserve">
-    <value>from metadata</value>
-  </data>
   <data name="Automatic_Line_Ender" xml:space="preserve">
     <value>Automatic Line Ender</value>
   </data>
@@ -392,6 +386,12 @@
   </data>
   <data name="You_cannot_rename_this_element" xml:space="preserve">
     <value>You cannot rename this element.</value>
+  </data>
+  <data name="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file" xml:space="preserve">
+    <value>You cannot rename this element because it is contained in a read-only file.</value>
+  </data>
+  <data name="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to" xml:space="preserve">
+    <value>You cannot rename this element because it is in a location that cannot be navigated to.</value>
   </data>
   <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
     <value>Please resolve errors in your code before renaming this element.</value>
@@ -581,9 +581,6 @@
   </data>
   <data name="Peek" xml:space="preserve">
     <value>Peek</value>
-  </data>
-  <data name="symbol_cannot_be_a_namespace" xml:space="preserve">
-    <value>'symbol' cannot be a namespace.</value>
   </data>
   <data name="Apply1" xml:space="preserve">
     <value>_Apply</value>
@@ -901,8 +898,9 @@ Do you want to proceed?</value>
   <data name="_0_bases" xml:space="preserve">
     <value>'{0}' bases</value>
   </data>
-  <data name="Rename_file" xml:space="preserve">
-    <value>Rename _file</value>
+  <data name="Rename_symbols_file" xml:space="preserve">
+    <value>Rename symbol's _file</value>
+    <comment>Indicates that the file a symbol is defined in will also be renamed</comment>
   </data>
   <data name="Rename_file_partial_type" xml:space="preserve">
     <value>Rename _file (not allowed on partial types)</value>
@@ -928,5 +926,14 @@ Do you want to proceed?</value>
   </data>
   <data name="Expander_image_element" xml:space="preserve">
     <value>Expander</value>
+  </data>
+  <data name="Removal_of_document_not_supported" xml:space="preserve">
+    <value>Removal of document not supported</value>
+  </data>
+  <data name="_0_implemented_members" xml:space="preserve">
+    <value>'{0}' implemented members</value>
+  </data>
+  <data name="external" xml:space="preserve">
+    <value>(external)</value>
   </data>
 </root>

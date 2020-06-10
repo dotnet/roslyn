@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -390,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
@@ -407,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
@@ -424,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
@@ -441,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
@@ -458,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(3, ((string)token.ValueText).Length);
         }
@@ -475,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(4, ((string)token.ValueText).Length);
         }
@@ -492,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }

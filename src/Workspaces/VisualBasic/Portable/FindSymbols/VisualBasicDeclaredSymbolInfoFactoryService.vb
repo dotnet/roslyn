@@ -1,14 +1,16 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Runtime.CompilerServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
@@ -20,10 +22,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         Private Const ExtensionAttributeName As String = "ExtensionAttribute"
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Private Function GetInheritanceNames(stringTable As StringTable, typeBlock As TypeBlockSyntax) As ImmutableArray(Of String)
+        Private Shared Function GetInheritanceNames(stringTable As StringTable, typeBlock As TypeBlockSyntax) As ImmutableArray(Of String)
             Dim builder = ArrayBuilder(Of String).GetInstance()
 
             Dim aliasMap = GetAliasMap(typeBlock)
@@ -43,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End Try
         End Function
 
-        Private Function GetAliasMap(typeBlock As TypeBlockSyntax) As Dictionary(Of String, String)
+        Private Shared Function GetAliasMap(typeBlock As TypeBlockSyntax) As Dictionary(Of String, String)
             Dim compilationUnit = typeBlock.SyntaxTree.GetCompilationUnitRoot()
 
             Dim aliasMap As Dictionary(Of String, String) = Nothing
@@ -65,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return aliasMap
         End Function
 
-        Private Sub AddInheritanceNames(
+        Private Shared Sub AddInheritanceNames(
                 builder As ArrayBuilder(Of String),
                 types As SeparatedSyntaxList(Of TypeSyntax),
                 aliasMap As Dictionary(Of String, String))
@@ -75,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Private Sub AddInheritanceName(
+        Private Shared Sub AddInheritanceName(
                 builder As ArrayBuilder(Of String),
                 typeSyntax As TypeSyntax,
                 aliasMap As Dictionary(Of String, String))
@@ -91,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End If
         End Sub
 
-        Private Function GetTypeName(typeSyntax As TypeSyntax) As String
+        Private Shared Function GetTypeName(typeSyntax As TypeSyntax) As String
             If TypeOf typeSyntax Is SimpleNameSyntax Then
                 Return GetSimpleName(DirectCast(typeSyntax, SimpleNameSyntax))
             ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
@@ -101,16 +104,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return Nothing
         End Function
 
-        Private Function GetSimpleName(simpleName As SimpleNameSyntax) As String
+        Private Shared Function GetSimpleName(simpleName As SimpleNameSyntax) As String
             Return simpleName.Identifier.ValueText
         End Function
 
-        Private Function GetContainerDisplayName(node As SyntaxNode) As String
-            Return VisualBasicSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters)
+        Private Shared Function GetContainerDisplayName(node As SyntaxNode) As String
+            Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters)
         End Function
 
-        Private Function GetFullyQualifiedContainerName(node As SyntaxNode, rootNamespace As String) As String
-            Return VisualBasicSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces, rootNamespace)
+        Private Shared Function GetFullyQualifiedContainerName(node As SyntaxNode, rootNamespace As String) As String
+            Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces, rootNamespace)
         End Function
 
         Public Overrides Function TryGetDeclaredSymbolInfo(stringTable As StringTable, node As SyntaxNode, rootNamespace As String, ByRef declaredSymbolInfo As DeclaredSymbolInfo) As Boolean
@@ -294,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return False
         End Function
 
-        Private Function IsExtensionMethod(node As MethodBlockSyntax) As Boolean
+        Private Shared Function IsExtensionMethod(node As MethodBlockSyntax) As Boolean
             Dim parameterCount = node.SubOrFunctionStatement.ParameterList?.Parameters.Count
 
             ' Extension method must have at least one parameter and declared inside a module
@@ -319,11 +322,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return False
         End Function
 
-        Private Function IsNestedType(node As DeclarationStatementSyntax) As Boolean
+        Private Shared Function IsNestedType(node As DeclarationStatementSyntax) As Boolean
             Return TypeOf node.Parent Is TypeBlockSyntax
         End Function
 
-        Private Function GetAccessibility(node As SyntaxNode, modifiers As SyntaxTokenList) As Accessibility
+        Private Shared Function GetAccessibility(node As SyntaxNode, modifiers As SyntaxTokenList) As Accessibility
             Dim sawFriend = False
 
             For Each modifier In modifiers
@@ -366,16 +369,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return Accessibility.Internal
         End Function
 
-        Private Function GetMethodSuffix(method As MethodBlockSyntax) As String
+        Private Shared Function GetMethodSuffix(method As MethodBlockSyntax) As String
             Return GetTypeParameterSuffix(method.SubOrFunctionStatement.TypeParameterList) &
                    GetSuffix(method.SubOrFunctionStatement.ParameterList)
         End Function
 
-        Private Function GetConstructorSuffix(method As ConstructorBlockSyntax) As String
+        Private Shared Function GetConstructorSuffix(method As ConstructorBlockSyntax) As String
             Return ".New" & GetSuffix(method.SubNewStatement.ParameterList)
         End Function
 
-        Private Function GetPropertySuffix([property] As PropertyStatementSyntax) As String
+        Private Shared Function GetPropertySuffix([property] As PropertyStatementSyntax) As String
             If [property].ParameterList Is Nothing Then
                 Return Nothing
             End If
@@ -383,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return GetSuffix([property].ParameterList)
         End Function
 
-        Private Function GetTypeParameterSuffix(typeParameterList As TypeParameterListSyntax) As String
+        Private Shared Function GetTypeParameterSuffix(typeParameterList As TypeParameterListSyntax) As String
             If typeParameterList Is Nothing Then
                 Return Nothing
             End If
@@ -421,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         ''' symbols/compilations, this Is well worth it, even if it does mean we have to
         ''' create our own 'symbol display' logic here.
         ''' </summary>
-        Private Function GetSuffix(parameterList As ParameterListSyntax) As String
+        Private Shared Function GetSuffix(parameterList As ParameterListSyntax) As String
             If parameterList Is Nothing OrElse parameterList.Parameters.Count = 0 Then
                 Return "()"
             End If
@@ -438,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Private Sub AppendParameters(parameters As SeparatedSyntaxList(Of ParameterSyntax), builder As StringBuilder)
+        Private Shared Sub AppendParameters(parameters As SeparatedSyntaxList(Of ParameterSyntax), builder As StringBuilder)
             Dim First = True
             For Each parameter In parameters
                 If Not First Then

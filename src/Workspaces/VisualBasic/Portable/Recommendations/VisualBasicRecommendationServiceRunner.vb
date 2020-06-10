@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
@@ -50,6 +53,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Return ImmutableArray(Of ISymbol).Empty
+        End Function
+
+        Public Overrides Function TryGetExplicitTypeOfLambdaParameter(lambdaSyntax As SyntaxNode, ordinalInLambda As Integer, <NotNullWhen(True)> ByRef explicitLambdaParameterType As ITypeSymbol) As Boolean
+            Dim lambdaExpressionSyntax = DirectCast(lambdaSyntax, LambdaExpressionSyntax)
+            Dim parameters = lambdaExpressionSyntax.SubOrFunctionHeader.ParameterList.Parameters
+            If parameters.Count > ordinalInLambda Then
+                Dim parameterSyntax = parameters(ordinalInLambda)
+                If parameterSyntax.AsClause IsNot Nothing Then
+                    explicitLambdaParameterType = _context.SemanticModel.GetTypeInfo(parameterSyntax.AsClause.Type, _cancellationToken).Type
+                    Return explicitLambdaParameterType IsNot Nothing
+                End If
+            End If
+
+            Return False
         End Function
 
         Private Function IsWritableFieldOrLocal(symbol As ISymbol) As Boolean
@@ -124,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Return symbols.WhereAsArray(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
         End Function
 
-        Private Function IsInEligibleDelegate(s As ISymbol) As Boolean
+        Private Shared Function IsInEligibleDelegate(s As ISymbol) As Boolean
             If s.IsDelegateType() Then
                 Dim typeSymbol = DirectCast(s, ITypeSymbol)
                 Return typeSymbol.SpecialType <> SpecialType.System_Delegate

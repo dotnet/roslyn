@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new InvocationExpressionSignatureHelpProvider();
-        }
+            => new InvocationExpressionSignatureHelpProvider();
 
         #region "Regular tests"
 
@@ -1653,12 +1653,8 @@ class C
     }
 }";
 
-            var description = $@"
-{WorkspacesResources.Usage_colon}
-  await Goo();";
-
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task C.Goo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task C.Goo()", methodDocumentation: string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, "C#");
         }
@@ -1676,12 +1672,8 @@ class C
     }
 }";
 
-            var description = $@"
-{WorkspacesResources.Usage_colon}
-  Task<int> x = await Goo();";
-
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<Task<int>> C.Goo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<Task<int>> C.Goo()", methodDocumentation: string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, "C#");
         }

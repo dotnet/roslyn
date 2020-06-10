@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -16,11 +18,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         }
 
         private static void AssertTrimmedEqual(string expected, string actual)
-        {
-            Assert.Equal(expected.Trim(), actual.Trim());
-        }
+            => Assert.Equal(expected.Trim(), actual.Trim());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44714"), Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public void TestPreserveDefaultPreferences()
         {
             AssertTrimmedEqual(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(NamingStylePreferences.DefaultNamingPreferencesString));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44714"), Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public void TestCannotUpgrade3To5()
         {
             var serializedPreferences = @"
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(serializedPreferences));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44714"), Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public void TestCannotDowngradeHigherThanLatestVersion5()
         {
             var serializedPreferences = @"

@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project Sdk="Microsoft.NET.Sdk">
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
 
@@ -28,16 +29,6 @@
     <ProjectReference Include="..\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="WindowsBase" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.CodingConventions" Version="$(MicrosoftVisualStudioCodingConventionsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
@@ -59,6 +50,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
@@ -70,22 +62,6 @@
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="EditorFeaturesWpfResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>EditorFeaturesWpfResources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="InlineRename\Dashboard\Dashboard.xaml.cs">
-      <DependentUpon>Dashboard.xaml</DependentUpon>
-    </Compile>
-    <Page Include="InlineRename\Dashboard\Colors.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="InlineRename\Dashboard\Dashboard.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Resource Include="InlineRename\Dashboard\Images\ErrorIcon.png" />
     <Resource Include="InlineRename\Dashboard\Images\InfoIcon.png" />
   </ItemGroup>
@@ -94,23 +70,9 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="InlineRename\Dashboard\Dashboard.xaml.cs">
-      <DependentUpon>Dashboard.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Interactive\InteractiveEditorFeaturesResources.Designer.cs">
-      <DependentUpon>InteractiveEditorFeaturesResources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="EditorFeaturesWpfResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>EditorFeaturesWpfResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Interactive\InteractiveEditorFeaturesResources.resx">
-      <LastGenOutput>InteractiveEditorFeaturesResources.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
+    <EmbeddedResource Update="EditorFeaturesWpfResources.resx" GenerateSource="true" />
+    <EmbeddedResource Update="Interactive\InteractiveEditorFeaturesResources.resx" GenerateSource="true" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -7,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -16,10 +18,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(ILanguageDebugInfoService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspDebugInfoServiceFactory : ILanguageServiceFactory
     {
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VBLspDebugInfoServiceFactory()
         {
-            return new VBRemoteDebugInfoService(languageServices);
         }
+
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            => new VBRemoteDebugInfoService(languageServices);
     }
 
     internal class VBRemoteDebugInfoService : ILanguageDebugInfoService
@@ -27,9 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
         private readonly HostLanguageServices languageServices;
 
         public VBRemoteDebugInfoService(HostLanguageServices languageServices)
-        {
-            this.languageServices = languageServices;
-        }
+            => this.languageServices = languageServices;
 
         public async Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -61,8 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
         }
 
         public Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            return this.languageServices.GetOriginalLanguageService<ILanguageDebugInfoService>().GetLocationInfoAsync(document, position, cancellationToken);
-        }
+            => this.languageServices.GetOriginalLanguageService<ILanguageDebugInfoService>().GetLocationInfoAsync(document, position, cancellationToken);
     }
 }

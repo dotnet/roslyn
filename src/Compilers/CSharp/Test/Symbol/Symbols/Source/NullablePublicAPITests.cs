@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1134,12 +1137,12 @@ class C
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics();
-            comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null, true,
+            comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null,
                 Diagnostic("CA9998_NullabilityPrinter", "o = null").WithArguments("o", "Annotated").WithLocation(6, 17),
                 Diagnostic("CA9998_NullabilityPrinter", "o1 = o").WithArguments("o1", "Annotated").WithLocation(7, 13),
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated", "MaybeNull").WithLocation(7, 18),
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated", "MaybeNull").WithLocation(8, 13),
-                Diagnostic("CA9998_NullabilityPrinter", "o2 = o").WithArguments("o2", "NotAnnotated").WithLocation(9, 13),
+                Diagnostic("CA9998_NullabilityPrinter", "o2 = o").WithArguments("o2", "Annotated").WithLocation(9, 13),
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "NotNull", "NotAnnotated", "NotNull").WithLocation(9, 18));
         }
 
@@ -1279,22 +1282,22 @@ class C : System.IDisposable
     void M(C? x, C x2)
     {
         var /*T:C?*/ y = x;
-        var /*T:C!*/ y2 = x2;
+        var /*T:C?*/ y2 = x2;
         
         using var /*T:C?*/ y3 = x;
-        using var /*T:C!*/ y4 = x2;
+        using var /*T:C?*/ y4 = x2;
         
         using (var /*T:C?*/ y5 = x) { }
-        using (var /*T:C!*/ y6 = x2) { }
+        using (var /*T:C?*/ y6 = x2) { }
         
         ref var/*T:C?*/ y7 = ref x;
-        ref var/*T:C!*/ y8 = ref x2;
+        ref var/*T:C?*/ y8 = ref x2;
         
         if (x == null) 
             return;
-        var /*T:C!*/ y9 = x;
-        using var /*T:C!*/ y10 = x;
-        ref var /*T:C!*/ y11 = ref x;
+        var /*T:C?*/ y9 = x;
+        using var /*T:C?*/ y10 = x;
+        ref var /*T:C?*/ y11 = ref x;
         
         x = null;
         var /*T:C?*/ y12 = x;
@@ -1310,7 +1313,7 @@ class C : System.IDisposable
     void M2(List<C?> l1, List<C> l2)
     {
         foreach (var /*T:C?*/ x in l1) { }
-        foreach (var /*T:C!*/ x in l2) { }
+        foreach (var /*T:C?*/ x in l2) { }
     }
 
     public void Dispose() { }
@@ -1670,16 +1673,22 @@ class C
 
             var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[0]);
+            assertAnnotation(declarations[1]);
+            assertAnnotation(declarations[2]);
+            assertAnnotation(declarations[3]);
 
-            void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
+            void assertAnnotation(VariableDeclaratorSyntax variable)
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
-                Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
-                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, symbol.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+
+                var typeInfo = model.GetTypeInfo(((VariableDeclarationSyntax)variable.Parent).Type);
+                Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+                Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.ConvertedNullability.FlowState);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
             }
         }
 
@@ -1772,10 +1781,10 @@ class C
 
                 var declarations = root.DescendantNodes().OfType<AssignmentExpressionSyntax>().ToList();
 
-                assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
-                assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
-                assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
-                assertAnnotation(declarations[4], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
+                assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
+                assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
+                assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
+                assertAnnotation(declarations[4], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
 
                 void assertAnnotation(AssignmentExpressionSyntax variable, PublicNullableAnnotation expectedAnnotation1, PublicNullableAnnotation expectedAnnotation2)
                 {
@@ -1815,10 +1824,10 @@ class C
 
             var declarations = root.DescendantNodes().OfType<AssignmentExpressionSyntax>().ToList();
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[4], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[4], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
 
             void assertAnnotation(AssignmentExpressionSyntax variable, PublicNullableAnnotation expectedAnnotation1, PublicNullableAnnotation expectedAnnotation2)
             {
@@ -1862,8 +1871,8 @@ class C
             var newDeclarator = newDeclaration.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
 
             Assert.True(model.TryGetSpeculativeSemanticModel(s2Assignment.SpanStart, newDeclaration, out var specModel));
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).Type.NullableAnnotation);
 
             Assert.True(model.TryGetSpeculativeSemanticModel(lastDeclaration.SpanStart, newDeclaration, out specModel));
             Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).NullableAnnotation);
@@ -1902,11 +1911,11 @@ class C : IDisposable, IAsyncDisposable
             var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
 
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[4], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[5], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[5], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
@@ -1943,8 +1952,8 @@ class C
 
             var declaration = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(declaration);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -1974,9 +1983,9 @@ class C
             var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
 
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
@@ -2008,14 +2017,19 @@ class C
 
             var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
-
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
                 Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
+
+                var typeInfo = model.GetTypeInfo(((DeclarationExpressionSyntax)variable.Parent).Type);
+                Assert.Equal("System.Object?", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.Object?", typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
+                Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
             }
         }
 
@@ -2046,10 +2060,10 @@ class C
             var model = comp.GetSemanticModel(syntaxTree);
 
             var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
-            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
@@ -2091,7 +2105,7 @@ class C
 
             assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
@@ -2135,7 +2149,7 @@ class C
             var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
 
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
@@ -2174,16 +2188,22 @@ class C
 
             var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[0]);
+            assertAnnotation(declarations[1]);
+            assertAnnotation(declarations[2]);
+            assertAnnotation(declarations[3]);
 
-            void assertAnnotation(ForEachStatementSyntax variable, PublicNullableAnnotation expectedAnnotation)
+            void assertAnnotation(ForEachStatementSyntax foreachStatement)
             {
-                var symbol = model.GetDeclaredSymbol(variable);
-                Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
-                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
+                var symbol = model.GetDeclaredSymbol(foreachStatement);
+                Assert.Equal(PublicNullableAnnotation.Annotated, symbol.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+
+                var typeInfo = model.GetTypeInfo(foreachStatement.Type);
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.ConvertedType.NullableAnnotation);
             }
         }
 
@@ -2208,13 +2228,7 @@ class C
 }";
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (10,25): warning CS8606: Possible null reference assignment to iteration variable
-                //         foreach (object o in GetList(o2)) {}
-                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "o").WithLocation(10, 25),
-                // (12,25): warning CS8606: Possible null reference assignment to iteration variable
-                //         foreach (object o in GetList(o1)) {}
-                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "o").WithLocation(12, 25));
+            comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -2266,13 +2280,13 @@ class C
 
             // Some annotations are incorrect because of https://github.com/dotnet/roslyn/issues/37491
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated); // Should be Annotated
+            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
-            assertAnnotation(declarations[4], PublicNullableAnnotation.NotAnnotated); // Should be Annotated
+            assertAnnotation(declarations[4], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[5], PublicNullableAnnotation.NotAnnotated);
-            assertAnnotation(declarations[6], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[6], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[7], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
@@ -2280,6 +2294,16 @@ class C
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
                 Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
+
+                var type = ((DeclarationExpressionSyntax)variable.Parent).Type;
+                if (type.IsVar)
+                {
+                    var typeInfo = model.GetTypeInfo(type);
+                    Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+                    Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.ConvertedNullability.FlowState);
+                    Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
+                    Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
+                }
             }
         }
 
@@ -3307,7 +3331,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_SpeculativeParamReference()
+        public void NestedLambdaReinference_SpeculativeParamReference()
         {
             var source = @"
 using System;
@@ -3350,7 +3374,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_GetDeclaredSymbolParameter()
+        public void NestedLambdaReinference_GetDeclaredSymbolParameter()
         {
             var source = @"
 using System;
@@ -3378,7 +3402,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_NestedLocalDeclaration()
+        public void NestedLambdaReinference_NestedLocalDeclaration()
         {
             var source = @"
 using System;
@@ -3451,7 +3475,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_InInitializers()
+        public void NestedLambdaReinference_InInitializers()
         {
             var source = @"
 using System;
@@ -3485,8 +3509,8 @@ class C
 
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, o1Symbol.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, o1Symbol.Type.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o2Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o2Symbol.Type.NullableAnnotation);
             Assert.Equal(fieldLambdaSymbol, o1Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
             Assert.Equal(fieldLambdaSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
 
@@ -3499,14 +3523,14 @@ class C
 
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, o3Symbol.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, o3Symbol.Type.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o4Symbol.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o4Symbol.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o4Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o4Symbol.Type.NullableAnnotation);
             Assert.Equal(propertyLambdaSymbol, o3Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
             Assert.Equal(propertyLambdaSymbol, o4Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_PartialExplicitTypes()
+        public void NestedLambdaReinference_PartialExplicitTypes()
         {
             var source = @"
 using System;
@@ -3566,7 +3590,7 @@ class C
         }
 
         [Fact]
-        public void NestedLambdaReinferrence_AttributeAndInitializers()
+        public void NestedLambdaReinference_AttributeAndInitializers()
         {
             var source = @"
 using System;
@@ -3594,14 +3618,11 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                     // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
                     //             void localFunc([A(o1)] object o3 = o2)
                     Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(18, 18),
-                    // (18,28): error CS8205: Attributes are not allowed on local function parameters or type parameters
-                    //             void localFunc([A(o1)] object o3 = o2)
-                    Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(o1)]").WithLocation(18, 28),
                     // (18,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                     //             void localFunc([A(o1)] object o3 = o2)
                     Diagnostic(ErrorCode.ERR_BadAttributeArgument, "o1").WithLocation(18, 31),
@@ -3820,6 +3841,365 @@ class B2 : A<int?>
                 Assert.Equal(expectedAnnotation, info.Annotation);
                 Assert.Equal(expectedState, info.FlowState);
             }
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_01()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_02()
+        {
+            var source =
+@"#nullable disable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_03()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"
+#nullable disable
+M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_04()
+        {
+            var source =
+@"#nullable disable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"
+#nullable restore
+M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_05()
+        {
+            var source =
+@"#nullable disable annotations
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"
+#nullable restore annotations
+M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_WholeBody_01()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var methodDeclaration = (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(@"
+void M2(out C c2)
+{
+    M(out C c);
+}");
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(type.SpanStart, methodDeclaration, out var speculativeModel));
+
+            var type2 = methodDeclaration.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_WholeBody_02()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var methodDeclaration = (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(@"
+void M2(out C c2)
+{
+#nullable disable
+    M(out C c);
+}");
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(type.SpanStart, methodDeclaration, out var speculativeModel));
+
+            var type2 = methodDeclaration.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_ArrowExpression_01()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var arrow = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression(" M(out C c)"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, arrow, out var speculativeModel));
+
+            var type2 = arrow.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_ArrowExpression_02()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var arrow = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression(@"
+#nullable disable
+M(out C c)"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, arrow, out var speculativeModel));
+
+            var type2 = arrow.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_ConstructorInitializer_01()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    C() : this("""") {}
+    C(string s) {}
+    string M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+        return """";
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+
+            var newInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, SyntaxFactory.ParseArgumentList(@"(M(out C c))"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(initializer.SpanStart, newInitializer, out var speculativeModel));
+
+            var type2 = newInitializer.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_ConstructorInitializer_02()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    C() : this("""") {}
+    C(string s) {}
+    string M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+        return """";
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+
+            var newInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, SyntaxFactory.ParseArgumentList(@"(
+#nullable disable
+M(out C c))"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(initializer.SpanStart, newInitializer, out var speculativeModel));
+
+            var type2 = newInitializer.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750"),
+         WorkItem(39993, "https://github.com/dotnet/roslyn/issues/39993")]
+        public void SpeculativeSymbolInfo_Expression()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+
+            var expression = SyntaxFactory.ParseExpression(@"M(out C c)");
+            var symbol2 = (IMethodSymbol)model.GetSpeculativeSymbolInfo(initializer.Position, expression, SpeculativeBindingOption.BindAsExpression).Symbol;
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol2.Parameters.Single().Type.NullableAnnotation);
         }
     }
 }

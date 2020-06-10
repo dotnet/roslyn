@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetService<IPickMembersService>();
+                var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IPickMembersService>();
                 return service.PickMembers(FeaturesResources.Pick_members_to_override, _viableMembers);
             }
 
@@ -49,10 +53,11 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled || result.Members.Length == 0)
                 {
-                    return ImmutableArray<CodeActionOperation>.Empty;
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
                 }
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                RoslynDebug.AssertNotNull(syntaxTree);
 
                 // If the user has selected just one member then we will insert it at the current
                 // location.  Otherwise, if it's many members, then we'll auto insert them as appropriate.

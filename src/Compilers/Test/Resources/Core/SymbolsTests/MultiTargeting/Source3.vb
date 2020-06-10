@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 ' vbc /t:module /out:Source3Module.netmodule /vbruntime- Source3.vb /r:c1.dll,c4.dll,c7.dll
 ' vbc /t:library /out:c3.dll /vbruntime- Source3.vb /r:c1.dll,c4.dll,c7.dll

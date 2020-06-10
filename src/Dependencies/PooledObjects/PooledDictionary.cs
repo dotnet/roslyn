@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,7 +10,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // Dictionary that can be recycled via an object pool
     // NOTE: these dictionaries always have the default comparer.
-    internal sealed class PooledDictionary<K, V> : Dictionary<K, V>
+    internal sealed partial class PooledDictionary<K, V> : Dictionary<K, V>
     {
         private readonly ObjectPool<PooledDictionary<K, V>> _pool;
 
@@ -20,10 +22,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public ImmutableDictionary<K, V> ToImmutableDictionaryAndFree()
         {
-            var result = this.ToImmutableDictionary();
+            var result = this.ToImmutableDictionary(this.Comparer);
             this.Free();
             return result;
         }
+
+        public ImmutableDictionary<K, V> ToImmutableDictionary() => this.ToImmutableDictionary(this.Comparer);
 
         public void Free()
         {

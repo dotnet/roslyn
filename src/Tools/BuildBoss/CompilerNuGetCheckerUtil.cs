@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -23,7 +27,7 @@ namespace BuildBoss
     ///     - There is no project which is guaranteed to have a superset of dependencies 
     ///     - There is no syntax for using the union of DLLs in a NuSpec file
     ///
-    /// The least crazy solution that could be decided on was to manage the list of dependencies 
+    /// The most straightforward solution that could be decided on was to manage the list of dependencies 
     /// by hand in the NuSpec file and then rigorously verify the solution here.
     /// </summary>
     internal sealed class PackageContentsChecker : ICheckerUtil
@@ -131,7 +135,7 @@ namespace BuildBoss
             {
                 var folder = asset.IsDesktop
                     ? @"net472"
-                    : @"netcoreapp2.1";
+                    : @"netcoreapp3.1";
                 var fileRelativeName = Path.Combine(folder, asset.FileRelativeName);
                 list.Add(fileRelativeName);
             }
@@ -238,9 +242,9 @@ namespace BuildBoss
                 textWriter,
                 isDesktop: false,
                 coreClrAssets,
-                $@"csc\{Configuration}\netcoreapp2.1\publish",
-                $@"vbc\{Configuration}\netcoreapp2.1\publish",
-                $@"VBCSCompiler\{Configuration}\netcoreapp2.1\publish");
+                $@"csc\{Configuration}\netcoreapp3.1\publish",
+                $@"vbc\{Configuration}\netcoreapp3.1\publish",
+                $@"VBCSCompiler\{Configuration}\netcoreapp3.1\publish");
 
             // The native DLLs ship inside the runtime specific directories but build deploys it at the 
             // root as well. That copy is unnecessary.
@@ -256,7 +260,7 @@ namespace BuildBoss
                 textWriter,
                 isDesktop: false,
                 coreClrAssets,
-                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\netcoreapp2.1\publish");
+                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\netcoreapp3.1\publish");
 
             packageAssets.AddRange(desktopAssets);
             packageAssets.AddRange(coreClrAssets);
