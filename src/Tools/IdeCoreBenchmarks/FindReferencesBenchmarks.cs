@@ -85,13 +85,13 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Pausing 5 seconds");
             Thread.Sleep(5000);
 
+            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.SyntaxFacts");
             await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
             await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.Lexer");
-            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.SyntaxFacts");
 
+            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.SyntaxFacts");
             await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
             await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.Lexer");
-            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.SyntaxFacts");
 
             Console.ReadLine();
         }
