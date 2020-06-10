@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryB
                 .TestCode = source,
                 .FixedCode = fixedSource,
                 ' This analyzer has special behavior in generated code that needs to be tested separately
-                .TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
+                .TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
             }.RunAsync()
         End Function
 
@@ -54,12 +54,12 @@ End Class
         Public Async Function TestRemoveByValMoreThanOneModifier() As Task
             Await VerifyCodeFixAsync(
 "Public Class Program
-    Public Sub MySub(Optional [|ByVal|] arg As String = "Default")
+    Public Sub MySub(Optional [|ByVal|] arg As String = ""Default"")
     End Sub
 End Class
 ",
 "Public Class Program
-    Public Sub MySub(Optional arg As String = "Default")
+    Public Sub MySub(Optional arg As String = ""Default"")
     End Sub
 End Class
 ")
