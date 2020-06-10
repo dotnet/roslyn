@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     /// <summary>
     /// A base class that can be used to implement a Source Generator 
     /// </summary>
-    public abstract class AbstractSourceGenerator : ISourceGenerator
+    public abstract class SourceGenerator : ISourceGenerator
     {
         public abstract void Execute(SourceGeneratorContext context);
 
