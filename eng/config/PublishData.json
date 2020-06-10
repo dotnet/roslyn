@@ -87,7 +87,7 @@
       "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dev16.7", "dev16.7p4" ],
-      "vsBranch": "master",
+      "vsBranch": null,
       "vsMajorVersion": 16
     },
     "release/dev16.8-preview1-vs-deps": {
