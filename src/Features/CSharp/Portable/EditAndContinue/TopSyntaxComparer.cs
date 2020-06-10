@@ -106,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             IndexerDeclaration,                // tied to parent
             EventDeclaration,                  // tied to parent
             EnumMemberDeclaration,             // tied to parent
-            GlobalStatement,                   // tied to parent
 
             AccessorList,                      // tied to parent
             AccessorDeclaration,               // tied to parent
@@ -146,7 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.IndexerDeclaration:
                 case Label.EventDeclaration:
                 case Label.EnumMemberDeclaration:
-                case Label.GlobalStatement:
                 case Label.AccessorDeclaration:
                 case Label.AccessorList:
                 case Label.TypeParameterList:
@@ -174,8 +172,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.CompilationUnit;
 
                 case SyntaxKind.GlobalStatement:
-                    isLeaf = false;
-                    return Label.GlobalStatement;
+                    // TODO:
+                    isLeaf = true;
+                    return Label.Ignored;
 
                 case SyntaxKind.ExternAliasDirective:
                     isLeaf = true;
@@ -340,7 +339,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.GlobalStatement:
                     // When comparing method bodies we need to NOT ignore VariableDeclaration and VariableDeclarator children,
                     // but when comparing field definitions we should ignore VariableDeclarations children.
 
@@ -377,7 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 case BaseMethodDeclarationSyntax baseMethodDeclarationSyntax: return baseMethodDeclarationSyntax.Body ?? (SyntaxNode)baseMethodDeclarationSyntax.ExpressionBody?.Expression;
                 case AccessorDeclarationSyntax accessorDeclarationSyntax: return accessorDeclarationSyntax.Body ?? (SyntaxNode)accessorDeclarationSyntax.ExpressionBody?.Expression;
-                case GlobalStatementSyntax globalStatement: return globalStatement.Statement;
                 default: throw ExceptionUtilities.UnexpectedValue(node);
             }
         }
