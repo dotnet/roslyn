@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
                             syntaxContext.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, modifier.GetLocation()))
                         End If
                     Next
-
                 End Sub, SyntaxKind.Parameter)
         End Sub
 
