@@ -6233,8 +6233,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
-        <source>Method or delegate cannot return type '{0}'</source>
-        <target state="translated">Il metodo o il delegato non può restituire il tipo '{0}'</target>
+        <source>The return type of a method, delegate, or function pointer cannot be '{0}'</source>
+        <target state="needs-review-translation">Il metodo o il delegato non può restituire il tipo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompileCancelled">

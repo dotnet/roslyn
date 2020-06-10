@@ -1544,6 +1544,9 @@ tryAgain:
                     closeBrace = null;
                 }
 
+                var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
+                var membersList = (SyntaxList<MemberDeclarationSyntax>)members;
+                var constraintsList = (SyntaxList<TypeParameterConstraintClauseSyntax>)constraints;
                 switch (keyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
@@ -1552,14 +1555,14 @@ tryAgain:
                         RoslynDebug.Assert(closeBrace != null);
                         return _syntaxFactory.ClassDeclaration(
                             attributes,
-                            modifiers.ToList(),
+                            modifiersList,
                             keyword,
                             name,
                             typeParameters,
                             baseList,
-                            constraints,
+                            constraintsList,
                             openBrace,
-                            members,
+                            membersList,
                             closeBrace,
                             semicolon);
 
@@ -1569,14 +1572,14 @@ tryAgain:
                         RoslynDebug.Assert(closeBrace != null);
                         return _syntaxFactory.StructDeclaration(
                             attributes,
-                            modifiers.ToList(),
+                            modifiersList,
                             keyword,
                             name,
                             typeParameters,
                             baseList,
-                            constraints,
+                            constraintsList,
                             openBrace,
-                            members,
+                            membersList,
                             closeBrace,
                             semicolon);
 
@@ -1586,14 +1589,14 @@ tryAgain:
                         RoslynDebug.Assert(closeBrace != null);
                         return _syntaxFactory.InterfaceDeclaration(
                             attributes,
-                            modifiers.ToList(),
+                            modifiersList,
                             keyword,
                             name,
                             typeParameters,
                             baseList,
-                            constraints,
+                            constraintsList,
                             openBrace,
-                            members,
+                            membersList,
                             closeBrace,
                             semicolon);
 

@@ -568,6 +568,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// information to report diagnostics, then store the symbols so that diagnostics
         /// can be reported at a later stage.
         /// </summary>
+        /// <remarks>
+        /// This method is introduced to move the implicit conversion operator call from the caller
+        /// so as to reduce the caller stack frame size
+        /// </remarks>
+        internal void ReportDiagnosticsIfObsolete(DiagnosticBag diagnostics, Symbol symbol, SyntaxNode node, bool hasBaseReceiver)
+        {
+            ReportDiagnosticsIfObsolete(diagnostics, symbol, (SyntaxNodeOrToken)node, hasBaseReceiver);
+        }
+
+        /// <summary>
+        /// Issue an error or warning for a symbol if it is Obsolete. If there is not enough
+        /// information to report diagnostics, then store the symbols so that diagnostics
+        /// can be reported at a later stage.
+        /// </summary>
         internal void ReportDiagnosticsIfObsolete(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, bool hasBaseReceiver)
         {
             switch (symbol.Kind)

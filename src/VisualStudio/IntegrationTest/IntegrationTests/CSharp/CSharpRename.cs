@@ -524,7 +524,7 @@ class RenameRocks
     }
 }");
 
-            VisualStudio.SolutionExplorer.OpenFile(project2, "Class2.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project2, "y.cs");
             VisualStudio.Editor.Verify.TextContains(@"
 public class y { static void Main(string [] args) { } }");
         }
