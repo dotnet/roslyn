@@ -3659,7 +3659,7 @@ class Program
 {
 }";
             var compA = CreateCompilation(sourceA);
-            var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+            var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
 
             verifierA.VerifyIL("B..ctor(B)", @"
 {
@@ -3700,7 +3700,7 @@ class Program
             var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             compB.VerifyDiagnostics();
 
-            var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+            var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
             // call base copy constructor B..ctor(B)
             verifierB.VerifyIL("C..ctor(C)", @"
 {
@@ -3744,7 +3744,7 @@ public record C(object P1, object P2) : B(3, 4)
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4) (10, 20, 30, 40)", verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4) (10, 20, 30, 40)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
             // call base copy constructor B..ctor(B)
             verifier.VerifyIL("C..ctor(C)", @"
 {
@@ -3795,7 +3795,7 @@ public record C(object P1, object P2) : B(3, 4) { }
 public record C(object P1, object P2) : B(3, 4) { }
 ";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics( );
+            comp.VerifyDiagnostics();
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().Where(m => m.Name == ".ctor").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -3819,7 +3819,7 @@ public record C(object P1, object P2) : B(3, 4) { }
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
             verifier.VerifyIL("C..ctor(C)", @"
 {
   // Code size       55 (0x37)
@@ -3966,6 +3966,7 @@ public record D(object P1, object P2) : B(0, 1)
 {
     private D(D d) : base(d) { } // 2
 }
+public record E(object P1, object P2) : B(0, 1);
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -4145,7 +4146,7 @@ public record C(object P1, object P2) : B(3, 4)
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4, 100, 200)", verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4, 100, 200)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
             verifier.VerifyIL("C..ctor(C)", @"
 {
   // Code size       44 (0x2c)
