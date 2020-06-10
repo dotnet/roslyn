@@ -531,8 +531,8 @@ dotnet_diagnostic.IDE0076.severity = %value%
 # IDE0077
 dotnet_diagnostic.IDE0077.severity = %value%
 
-# IDE0078
-dotnet_diagnostic.IDE0078.severity = %value%
+# IDE0079
+dotnet_diagnostic.IDE0079.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -1088,7 +1088,7 @@ No editorconfig based code style option
 # IDE0077
 No editorconfig based code style option
 
-# IDE0078
+# IDE0079
 No editorconfig based code style option
 
 # IDE1006
