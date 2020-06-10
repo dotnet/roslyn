@@ -10,16 +10,20 @@ Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryByVal
 
     Public Class RemoveUnnecessaryByValTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicRemoveUnnecessaryByValDiagnosticAnalyzer(),
-                    New VisualBasicRemoveUnnecessaryByValCodeFixProvider())
+        Private Shared Async Function VerifyCodeFixAsync(source As String, fixedSource As String) As Task
+            Await New VerifyVB.Test With
+            {
+                .TestCode = source,
+                .FixedCode = fixedSource,
+                ' This analyzer has special behavior in generated code that needs to be tested separately
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
+            }.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
         Public Async Function TestRemoveByVal() As Task
-            Await TestInRegularAndScript1Async(
+            Await VerifyCodeFixAsync(
 "Public Class Program
     Public Sub MySub([|ByVal|] arg As String)
     End Sub
@@ -34,7 +38,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
         Public Async Function TestRemoveByValLowerCase() As Task
-            Await TestInRegularAndScript1Async(
+            Await VerifyCodeFixAsync(
 "Public Class Program
     Public Sub MySub([|byval|] arg As String)
     End Sub
@@ -42,6 +46,37 @@ End Class
 ",
 "Public Class Program
     Public Sub MySub(arg As String)
+    End Sub
+End Class
+")
+        End Function
+
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        Public Async Function TestRemoveByValMoreThanOneModifier() As Task
+            Await VerifyCodeFixAsync(
+"Public Class Program
+    Public Sub MySub(Optional [|ByVal|] arg As String = "Default")
+    End Sub
+End Class
+",
+"Public Class Program
+    Public Sub MySub(Optional arg As String = "Default")
+    End Sub
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        Public Async Function TestRemoveByValCodeHasError() As Task
+            Await VerifyCodeFixAsync(
+"Public Class Program
+    Public Sub MySub([|ByVal|] arg)
+    End Sub
+End Class
+",
+"Public Class Program
+    Public Sub MySub(arg)
     End Sub
 End Class
 ")
