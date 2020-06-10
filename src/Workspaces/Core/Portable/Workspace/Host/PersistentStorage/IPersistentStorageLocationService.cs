@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Host
             // Ensure that each unique workspace kind for any given solution has a unique
             // folder to store their data in.
 
-
             var cacheDirectory = GetCacheDirectory();
             var kind = StripInvalidPathChars(solution.Workspace.Kind ?? "");
             var hash = StripInvalidPathChars(Checksum.Create(solution.FilePath).ToString());
