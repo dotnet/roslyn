@@ -863,7 +863,10 @@ namespace Microsoft.Cci
                 portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
             }
 
-            WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+            if (portabilityPolicy != 0)
+            {
+                WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+            }
 
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
