@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             string? clientName,
             CancellationToken cancellationToken)
         {
-            var documents = SolutionProvider.GetDocumentsFromProvider(request.TextDocument.Uri, clientName);
+            var documents = SolutionProvider.GetDocuments(request.TextDocument.Uri, clientName);
 
             if (!documents.Any())
             {

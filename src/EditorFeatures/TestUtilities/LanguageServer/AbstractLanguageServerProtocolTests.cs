@@ -72,8 +72,6 @@ namespace Roslyn.Test.Utilities
                     typeof(IRequestHandler).Assembly, typeof(IRequestHandler));
             var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
-            var solutionProviderTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(TestLspSolutionProvider).Assembly, typeof(ILspSolutionProvider));
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(LanguageServerProtocol))

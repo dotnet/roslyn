@@ -63,7 +63,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
 
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
-            _lazyTextManager = new Lazy<IVsTextManager>(() => (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager)));
+            _lazyTextManager = new Lazy<IVsTextManager>(() =>
+            {
+                _foregroundThreadAffinitization.AssertIsForeground();
+                return (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
+            });
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
