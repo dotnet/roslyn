@@ -314,6 +314,7 @@ record C(int X, int Y)
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Boolean C.Equals(C? )",
                 "C..ctor(C )",
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -3061,7 +3062,13 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
 {
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,50): error CS8866: Record member 'A.P4' must be a readable instance property of type 'object' to match positional parameter 'P4'.
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "object", "P4").WithLocation(12, 50),
+                // (12,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
+                // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(12, 72));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -3080,7 +3087,13 @@ record B(int P1, object P2) : A
 {
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8866: Record member 'A.P1' must be a readable instance property of type 'int' to match positional parameter 'P1'.
+                // record B(int P1, object P2) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "int", "P1").WithLocation(7, 14),
+                // (7,25): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // record B(int P1, object P2) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(7, 25));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -3112,7 +3125,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,21): error CS8866: Record member 'A.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
+                // record B(int X, int Y, int Z) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("A.Y", "int", "Y").WithLocation(7, 21),
+                // (7,28): error CS8866: Record member 'A.Z' must be a readable instance property of type 'int' to match positional parameter 'Z'.
+                // record B(int X, int Y, int Z) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Z").WithArguments("A.Z", "int", "Z").WithLocation(7, 28));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -3206,6 +3225,7 @@ record C(int X, int Y, int Z) : B
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Boolean C.Equals(C? )",
                 "C..ctor(C )",
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -3349,7 +3369,13 @@ record C(object P1, int P2, object P3, int P4) : B
 {
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,17): error CS8866: Record member 'B.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // record C(object P1, int P2, object P3, int P4) : B
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("B.P1", "object", "P1").WithLocation(13, 17),
+                // (13,44): error CS8866: Record member 'A.P4' must be a readable instance property of type 'int' to match positional parameter 'P4'.
+                // record C(object P1, int P2, object P3, int P4) : B
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(13, 44));
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
@@ -3364,7 +3390,13 @@ record C(object P1, int P2, object P3, int P4) : B
     public int P2 { get; set; }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,14): error CS8866: Record member 'C.P1' must be a readable instance property of type 'int' to match positional parameter 'P1'.
+                // record C(int P1, object P2)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("C.P1", "int", "P1").WithLocation(1, 14),
+                // (1,25): error CS8866: Record member 'C.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // record C(int P1, object P2)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("C.P2", "object", "P2").WithLocation(1, 25));
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -3392,7 +3424,13 @@ record B(object P1, int P2, object P3, int P4) : A
     public new object P2 { get; }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,25): error CS8866: Record member 'B.P2' must be a readable instance property of type 'int' to match positional parameter 'P2'.
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "int", "P2").WithLocation(8, 25),
+                // (8,36): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(8, 36));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -3420,7 +3458,13 @@ record B(object P1, int P2, object P3, int P4) : A
     public new int P2 { get; }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,17): error CS8866: Record member 'B.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("B.P1", "object", "P1").WithLocation(8, 17),
+                // (8,44): error CS8866: Record member 'A.P4' must be a readable instance property of type 'int' to match positional parameter 'P4'.
+                // record B(object P1, int P2, object P3, int P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(8, 44));
 
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -3445,7 +3489,13 @@ record B(object P1, int P2, object P3, int P4) : A
     public ref object P5 => throw null;
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,39): error CS8866: Record member 'C.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // record C(object P1, object P2, object P3, object P4, object P5)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("C.P3", "object", "P3").WithLocation(1, 39),
+                // (1,50): error CS8866: Record member 'C.P4' must be a readable instance property of type 'object' to match positional parameter 'P4'.
+                // record C(object P1, object P2, object P3, object P4, object P5)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("C.P4", "object", "P4").WithLocation(1, 50));
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -3458,22 +3508,6 @@ record B(object P1, int P2, object P3, int P4) : A
                 "ref System.Object C.P5 { get; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
-
-            var verifier = CompileAndVerify(source);
-
-            verifier.VerifyIL("C..ctor(C)", @"
-{
-  // Code size       19 (0x13)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""object..ctor()""
-  IL_0006:  ldarg.0
-  IL_0007:  ldarg.1
-  IL_0008:  ldfld      ""object C.<P2>k__BackingField""
-  IL_000d:  stfld      ""object C.<P2>k__BackingField""
-  IL_0012:  ret
-}
-");
         }
 
         [Fact]
@@ -3646,7 +3680,10 @@ record C(object P1, object P2) : B
 {
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,28): error CS8866: Record member 'B.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // record C(object P1, object P2) : B
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "object", "P2").WithLocation(11, 28));
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
@@ -3693,6 +3730,7 @@ record C(object P)
                 "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
+                "void B.Deconstruct(out System.Object P, out System.Object Q)"
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings());
 
@@ -3712,6 +3750,7 @@ record C(object P)
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Boolean C.Equals(C? )",
                 "C..ctor(C )",
+                "void C.Deconstruct(out System.Object P)"
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
         }
@@ -3732,7 +3771,16 @@ record C(object P)
 {
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
+                // (1,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(1, 28),
+                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -3744,7 +3792,13 @@ record C(object P)
             comp = CreateCompilation(sourceA);
             var refA = comp.EmitToImageReference();
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
+                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
             actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             expectedMembers = new[]
             {
@@ -3768,7 +3822,10 @@ record C(object P)
 {
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,17): error CS8866: Record member 'A.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
+                // record B(object P) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("A.P", "object", "P").WithLocation(1, 17));
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
 
             comp = CreateCompilation(sourceA);
@@ -3997,6 +4054,1247 @@ End Class
         }
 
         [Fact]
+        public void Deconstruct_Simple()
+        {
+            var source =
+@"using System;
+
+record B(int X, int Y)
+{
+    public static void Main()
+    {
+        M(new B(1, 2));
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("B.Deconstruct", @"
+{
+    // Code size       17 (0x11)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  ldarg.0
+    IL_0002:  call       ""int B.X.get""
+    IL_0007:  stind.i4
+    IL_0008:  ldarg.2
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""int B.Y.get""
+    IL_000f:  stind.i4
+    IL_0010:  ret
+}");
+
+            var deconstruct = ((CSharpCompilation)verifier.Compilation).GetMember<MethodSymbol>("B.Deconstruct");
+            Assert.Equal(2, deconstruct.ParameterCount);
+
+            Assert.Equal(RefKind.Out, deconstruct.Parameters[0].RefKind);
+            Assert.Equal("X", deconstruct.Parameters[0].Name);
+
+            Assert.Equal(RefKind.Out, deconstruct.Parameters[1].RefKind);
+            Assert.Equal("Y", deconstruct.Parameters[1].Name);
+
+            Assert.True(deconstruct.ReturnsVoid);
+            Assert.False(deconstruct.IsVirtual);
+            Assert.False(deconstruct.IsStatic);
+            Assert.Equal(Accessibility.Public, deconstruct.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void Deconstruct_PositionalAndNominalProperty()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    public int Y { get; init; }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X)",
+                verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Nested()
+        {
+            var source =
+@"using System;
+
+record B(int X, int Y);
+
+record C(B B, int Z)
+{
+    public static void Main()
+    {
+        M(new C(new B(1, 2), 3));
+    }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(B(int x, int y), int z):
+                Console.Write(x);
+                Console.Write(y);
+                Console.Write(z);
+                break;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("B.Deconstruct", @"
+{
+    // Code size       17 (0x11)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  ldarg.0
+    IL_0002:  call       ""int B.X.get""
+    IL_0007:  stind.i4
+    IL_0008:  ldarg.2
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""int B.Y.get""
+    IL_000f:  stind.i4
+    IL_0010:  ret
+}");
+
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+    // Code size       17 (0x11)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  ldarg.0
+    IL_0002:  call       ""B C.B.get""
+    IL_0007:  stind.ref
+    IL_0008:  ldarg.2
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""int C.Z.get""
+    IL_000f:  stind.i4
+    IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void Deconstruct_PropertyCollision()
+        {
+            var source =
+@"using System;
+
+record B(int X, int Y)
+{
+    public int X => 3;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "32");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_MethodCollision_01()
+        {
+            var source = @"
+record B(int X, int Y)
+{
+    public int X() => 3;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,14): error CS0102: The type 'B' already contains a definition for 'X'
+                // record B(int X, int Y)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("B", "X").WithLocation(2, 14));
+
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_MethodCollision_02()
+        {
+            var source = @"
+record B
+{
+    public int X(int y) => y;
+}
+
+record C(int X, int Y) : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8866: Record member 'B.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // record C(int X, int Y) : B
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(7, 14)
+            );
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_MethodCollision_03()
+        {
+            var source = @"
+using System;
+
+record B
+{
+    public int X() => 3;
+}
+
+record C(int X, int Y) : B
+{
+    public new int X { get; }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "02");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                verifier.Compilation.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_MethodCollision_04()
+        {
+            var source = @"
+record C(int X, int Y)
+{
+    public int X(int arg) => 3;
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,14): error CS0102: The type 'C' already contains a definition for 'X'
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 14));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_FieldCollision()
+        {
+            var source = @"
+using System;
+
+record C(int X)
+{
+    int X;
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(0));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,14): error CS0102: The type 'C' already contains a definition for 'X'
+                // record C(int X)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(4, 14));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_EventCollision()
+        {
+            var source = @"
+using System;
+
+record C(Action X)
+{
+    event Action X;
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(Action x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(() => { }));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,17): error CS0102: The type 'C' already contains a definition for 'X'
+                // record C(Action X)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(4, 17));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Action X)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_WriteOnlyPropertyInBase()
+        {
+            var source = @"
+using System;
+
+record B
+{
+    public int X { set { } }
+}
+
+record C(int X) : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,14): error CS8866: Record member 'B.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // record C(int X) : B
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(9, 14));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_PrivateWriteOnlyPropertyInBase()
+        {
+            var source = @"
+using System;
+
+record B
+{
+    private int X { set { } }
+}
+
+record C(int X) : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X)",
+                verifier.Compilation.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Empty()
+        {
+            var source = @"
+record C
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //             case C():
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
+                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
+                //             case C():
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+
+            Assert.Null(comp.GetMember("C.Deconstruct"));
+        }
+
+        [Fact]
+        public void Deconstruct_Inheritance_01()
+        {
+            var source = @"
+using System;
+
+record B(int X, int Y)
+{
+    internal B() : this(0, 1) { }
+}
+
+record C : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+        switch (c)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0101");
+            verifier.VerifyDiagnostics();
+
+            var comp = verifier.Compilation;
+            Assert.Null(comp.GetMember("C.Deconstruct"));
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Inheritance_02()
+        {
+            var source = @"
+using System;
+
+record B(int X, int Y)
+{
+    // https://github.com/dotnet/roslyn/issues/44902
+    internal B() : this(0, 1) { }
+}
+
+record C(int X, int Y, int Z) : B(X, Y)
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y, int z):
+                Console.Write(x);
+                Console.Write(y);
+                Console.Write(z);
+                break;
+        }
+        switch (c)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(0, 1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "01201");
+            verifier.VerifyDiagnostics();
+
+            var comp = verifier.Compilation;
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y, out System.Int32 Z)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Inheritance_03()
+        {
+            var source = @"
+using System;
+
+record B(int X, int Y)
+{
+    internal B() : this(0, 1) { }
+}
+
+record C(int X, int Y) : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+        switch (c)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(0, 1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0101");
+            verifier.VerifyDiagnostics();
+
+            var comp = verifier.Compilation;
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Inheritance_04()
+        {
+            var source = @"
+using System;
+
+record A<T>(T P) { internal A() : this(default(T)) { } }
+record B1(int P, object Q) : A<int>(P) { internal B1() : this(0, null) { } }
+record B2(object P, object Q) : A<object>(P) { internal B2() : this(null, null) { } }
+record B3<T>(T P, object Q) : A<T>(P) { internal B3() : this(default, 0) { } }
+
+class C
+{
+    static void M0(A<int> arg)
+    {
+        switch (arg)
+        {
+            case A<int>(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void M1(B1 arg)
+    {
+        switch (arg)
+        {
+            case B1(int p, object q):
+                Console.Write(p);
+                Console.Write(q);
+                break;
+        }
+    }
+
+    static void M2(B2 arg)
+    {
+        switch (arg)
+        {
+            case B2(object p, object q):
+                Console.Write(p);
+                Console.Write(q);
+                break;
+        }
+    }
+
+    static void M3(B3<int> arg)
+    {
+        switch (arg)
+        {
+            case B3<int>(int p, object q):
+                Console.Write(p);
+                Console.Write(q);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M0(new A<int>(0));
+        M1(new B1(1, 2));
+        M2(new B2(3, 4));
+        M3(new B3<int>(5, 6));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0123456");
+            verifier.VerifyDiagnostics();
+
+            var comp = verifier.Compilation;
+            Assert.Equal(
+                "void A<T>.Deconstruct(out T P)",
+                comp.GetMember("A.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B1.Deconstruct(out System.Int32 P, out System.Object Q)",
+                comp.GetMember("B1.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B2.Deconstruct(out System.Object P, out System.Object Q)",
+                comp.GetMember("B2.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B3<T>.Deconstruct(out T P, out System.Object Q)",
+                comp.GetMember("B3.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Conversion_01()
+        {
+            var source = @"
+using System;
+
+record C(int X, int Y)
+{
+    public long X { get; init; }
+    public long Y { get; init; }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(0, 1));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,14): error CS8866: Record member 'C.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("C.X", "int", "X").WithLocation(4, 14),
+                // (4,21): error CS8866: Record member 'C.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "int", "Y").WithLocation(4, 21));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Conversion_02()
+        {
+            var source = @"
+#nullable enable
+using System;
+
+record C(string? X, string Y)
+{
+    public string X { get; init; } = null!;
+    public string? Y { get; init; }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(var x, string y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(""a"", ""b""));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.String? X, out System.String Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Conversion_03()
+        {
+            var source = @"
+using System;
+
+class Base { }
+class Derived : Base { }
+
+record C(Derived X, Base Y)
+{
+    public Base X { get; init; }
+    public Derived Y { get; init; }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(Derived x, Base y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(new Derived(), new Base()));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,18): error CS8866: Record member 'C.X' must be a readable instance property of type 'Derived' to match positional parameter 'X'.
+                // record C(Derived X, Base Y)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("C.X", "Derived", "X").WithLocation(7, 18),
+                // (7,26): error CS8866: Record member 'C.Y' must be a readable instance property of type 'Base' to match positional parameter 'Y'.
+                // record C(Derived X, Base Y)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "Base", "Y").WithLocation(7, 26));
+
+            Assert.Equal(
+                "void C.Deconstruct(out Derived X, out Base Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Empty_WithParameterList()
+        {
+            var source = @"
+record C()
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS8850: A positional record must have both a 'data' modifier and non-empty parameter list
+                // record C()
+                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 9));
+
+            Assert.Equal(
+                "void C.Deconstruct()",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined()
+        {
+            var source =
+@"using System;
+
+record B(int X, int Y)
+{
+    public void Deconstruct(out int X, out int Y)
+    {
+        X = this.X + 1;
+        Y = this.Y + 2;
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(0, 0));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_01()
+        {
+            var source =
+@"using System;
+
+record B(int X, int Y)
+{
+    public void Deconstruct(out int Z)
+    {
+        Z = X + Y;
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+        switch (b)
+        {
+            case B(int z):
+                Console.Write(z);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+
+            var expectedSymbols = new[]
+            {
+                "void B.Deconstruct(out System.Int32 Z)",
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+            };
+            Assert.Equal(expectedSymbols, verifier.Compilation.GetMembers("B.Deconstruct").Select(s => s.ToTestDisplayString(includeNonNullable: false)));
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_02()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    public int Deconstruct(out int a) => throw null;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'B', with 1 out parameters and a void return type.
+                //             case B(int x):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x)").WithArguments("B", "1").WithLocation(11, 19));
+
+            Assert.Equal("System.Int32 B.Deconstruct(out System.Int32 a)", comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_03()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    public void Deconstruct(int X)
+    {
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            var expectedSymbols = new[]
+            {
+                "void B.Deconstruct(System.Int32 X)",
+                "void B.Deconstruct(out System.Int32 X)",
+            };
+            Assert.Equal(expectedSymbols, verifier.Compilation.GetMembers("B.Deconstruct").Select(s => s.ToTestDisplayString(includeNonNullable: false)));
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_04()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    public void Deconstruct(ref int X)
+    {
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,19): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //             case B(int x):
+                Diagnostic(ErrorCode.ERR_BadArgRef, "(int x)").WithArguments("1", "ref").WithLocation(13, 19),
+                // (13,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'B', with 1 out parameters and a void return type.
+                //             case B(int x):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x)").WithArguments("B", "1").WithLocation(13, 19));
+
+            Assert.Equal("void B.Deconstruct(ref System.Int32 X)", comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_05()
+        {
+            var source =
+@"using System;
+
+record A(int X)
+{
+    public A() : this(0) { }
+    public int Deconstruct(out int a, out int b) => throw null;
+}
+record B(int X, int Y) : A(X)
+{
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal("void B.Deconstruct(out System.Int32 X, out System.Int32 Y)", verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45010")]
+        [WorkItem(45010, "https://github.com/dotnet/roslyn/issues/45010")]
+        public void Deconstruct_ObsoleteProperty()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    [Obsolete] int X { get; } = X;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal("void B.Deconstruct(out System.Int32 X)", verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45009")]
+        [WorkItem(45009, "https://github.com/dotnet/roslyn/issues/45009")]
+        public void Deconstruct_RefProperty()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    static int _x = 2;
+    ref int X => ref _x;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal("void B.Deconstruct(out System.Int32 X)", verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Static()
+        {
+            var source = @"
+using System;
+
+record B(int X, int Y)
+{
+    static int Y { get; }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS8866: Record member 'B.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
+                // record B(int X, int Y)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "int", "Y").WithLocation(4, 21));
+
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
         public void Overrides_01()
         {
             var source =
@@ -4038,6 +5336,7 @@ record B(int X, int Y) : A
                 "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -4081,6 +5380,7 @@ record B(int X, int Y) : A
                 "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -4126,6 +5426,9 @@ record B(int X, int Y) : A
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (1,27): error CS8866: Record member 'C.Q' must be a readable instance property of type 'object' to match positional parameter 'Q'.
+                // record C(object P, object Q)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Q").WithArguments("C.Q", "object", "Q").WithLocation(1, 27),
                 // (4,16): error CS0102: The type 'C' already contains a definition for 'P'
                 //     public int P { get; }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 16),
@@ -6202,6 +7505,7 @@ True");
                 "System.Boolean B1.Equals(System.Object? )",
                 "System.Boolean B1.Equals(B1? )",
                 "B1..ctor(B1 )",
+                "void B1.Deconstruct(out System.Int32 P)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }

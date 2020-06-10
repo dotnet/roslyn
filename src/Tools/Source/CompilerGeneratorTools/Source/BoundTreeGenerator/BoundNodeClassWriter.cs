@@ -1084,7 +1084,7 @@ namespace BoundTreeGenerator
                     Indent();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        WriteLine("Case BoundKind.{0} :", FixKeyword(StripBound(node.Name)));
+                        WriteLine("Case BoundKind.{0}", FixKeyword(StripBound(node.Name)));
                         Indent();
                         WriteLine("Return Visit{0}(CType(node, {1}), arg)", StripBound(node.Name), node.Name);
                         Outdent();
