@@ -330,14 +330,24 @@ class C
 {
     void Goo(S s)
     {
-        s.Slice(1, s.Length - 2) = default;
+        s.Slice([|1, s.Length - 2|]) = default;
+    }
+}";
+            var fixedSource =
+@"
+struct S { public ref S Slice(int start, int length) => throw null; public int Length { get; } public ref S this[System.Range r] { get => throw null; } }
+class C
+{
+    void Goo(S s)
+    {
+        s[1..^1] = default;
     }
 }";
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = source,
-                FixedCode = source,
+                FixedCode = fixedSource,
             }.RunAsync();
         }
 

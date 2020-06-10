@@ -131,9 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
-            // If the target method is writeable then we need to make sure we do not change a writeable 
-            // indexer to a read-only indexer, otherwise it will cause compiler errors
-            if (invocation.TargetMethod.IsReadOnly == false && invocation.Parent != null && invocation.Syntax.IsLeftSideOfAnyAssignExpression())
+            var theIndexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
+            // If the slice-like method is being written to and returns a reference, we need to make sure that
+            // the range method to substitute also returns a reference that can be written to
+            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && invocation.TargetMethod.ReturnsByRef == true && theIndexer != null && theIndexer.ReturnsByRef == false)
             {
                 return null;
             }
