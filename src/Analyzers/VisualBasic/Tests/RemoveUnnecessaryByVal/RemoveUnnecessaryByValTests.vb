@@ -16,8 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryB
             Await New VerifyVB.Test With
             {
                 .TestCode = source,
-                .FixedCode = fixedSource,
-                .TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
+                .FixedCode = fixedSource
             }.RunAsync()
         End Function
 
