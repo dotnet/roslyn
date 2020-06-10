@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #nullable enable
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public virtual bool IsSupported(Workspace workspace) => false;
-        
+
         protected virtual string GetCacheDirectory()
         {
             // Store in the LocalApplicationData/Roslyn/hash folder (%appdatalocal%/... on Windows,
