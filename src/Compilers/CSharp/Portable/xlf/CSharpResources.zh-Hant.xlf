@@ -3560,8 +3560,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all structs, or all interfaces</source>
-        <target state="translated">{0}' 的部分宣告必須全部為類別、全部為結構，或全部為介面。</target>
+        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
+        <target state="needs-review-translation">{0}' 的部分宣告必須全部為類別、全部為結構，或全部為介面。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

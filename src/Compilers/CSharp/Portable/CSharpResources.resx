@@ -1087,7 +1087,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all structs, or all interfaces</value>
+    <value>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
