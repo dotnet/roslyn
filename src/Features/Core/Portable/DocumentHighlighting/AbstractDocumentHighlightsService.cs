@@ -167,7 +167,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
-
             references = references.FilterToItemsToShow(options);
             references = references.FilterNonMatchingMethodNames(solution, symbol);
             references = references.FilterToAliasMatches(symbol as IAliasSymbol);
@@ -297,9 +296,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
 
                 case SymbolKind.Parameter:
-                    // If it's an indexer parameter, we will have also cascaded to the accessor
-                    // one that actually receives the references
-                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
+                    // If it's an indexer parameter, we will determine by the property symbols
+                    if (symbol.ContainingSymbol is IMethodSymbol methodSymbol && methodSymbol.AssociatedSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
                     {
                         return false;
                     }

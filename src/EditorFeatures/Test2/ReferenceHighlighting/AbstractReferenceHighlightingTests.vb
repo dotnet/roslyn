@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 
@@ -55,13 +56,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim expectedTags As New List(Of String)
 
                 For Each hostDocument In workspace.Documents
-                    For Each nameAndSpans In hostDocument.AnnotatedSpans.OrderBy(Function(x) x.Value.First().Start)
-                        For Each span In nameAndSpans.Value
-                            expectedTags.Add(nameAndSpans.Key + ":" + span.ToString())
+                    Dim nameAndSpansList = New List(Of Tuple(Of String, TextSpan))
+                    For Each kvp As KeyValuePair(Of String, Immutable.ImmutableArray(Of TextSpan)) In hostDocument.AnnotatedSpans
+                        Dim name = kvp.Key
+                        Dim spanList = kvp.Value
+
+                        For Each span In spanList
+                            nameAndSpansList.Add(New Tuple(Of String, TextSpan)(name, span))
                         Next
                     Next
-                Next
 
+                    For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Item2.Start)
+                        expectedTags.Add(nameAndSpan.Item1 + ":" + nameAndSpan.Item2.ToString())
+                    Next
+                Next
                 AssertEx.Equal(expectedTags, producedTags)
             End Using
         End Function
