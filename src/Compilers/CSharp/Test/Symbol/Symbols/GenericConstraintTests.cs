@@ -6862,5 +6862,38 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7)
                 );
         }
+
+        [Fact]
+        public void Bug41779()
+        {
+            var source =
+@"interface I
+{
+    object GetService();
+}
+
+static class Program
+{
+    static T GetService<T>(this I obj) => default;
+    
+    static void M(I provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,18): error CS7003: Unexpected use of an unbound generic name
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "GetService<>").WithLocation(12, 18),
+                // (13,18): error CS7003: Unexpected use of an unbound generic name
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "GetService<>").WithLocation(13, 18),
+                // (14,18): error CS7003: Unexpected use of an unbound generic name
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "GetService<>").WithLocation(14, 18)
+            );
+        }
     }
 }
