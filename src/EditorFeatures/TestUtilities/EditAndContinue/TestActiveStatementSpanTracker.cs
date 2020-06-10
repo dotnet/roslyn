@@ -4,29 +4,15 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
-using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    [ExportWorkspaceService(typeof(IActiveStatementSpanTracker), ServiceLayer.Host)]
-    [Shared]
-    [PartNotDiscoverable]
     internal class TestActiveStatementSpanTracker : IActiveStatementSpanTracker
     {
         public Dictionary<DocumentId, TextSpan?[]>? Spans;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestActiveStatementSpanTracker()
-        {
-        }
-
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should be marked with 'ImportingConstructorAttribute'", Justification = "Used incorrectly by test code")]
         public TestActiveStatementSpanTracker(Dictionary<DocumentId, TextSpan?[]>? spans = null)
         {
             Spans = spans;

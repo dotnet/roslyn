@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,10 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class StatementEditingTests : EditingTestBase
     {
-        private static readonly IExportProviderFactory s_exportProviderFactoryWithTestActiveStatementSpanTracker =
-            ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(TestActiveStatementSpanTracker)));
-
         #region Strings
 
         [Fact]
@@ -8382,12 +8376,9 @@ class C
     }
 }
 ";
-
-            using var workspace = TestWorkspace.CreateCSharp("", exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
-                workspace,
+            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 null,
@@ -8425,12 +8416,9 @@ class C
     }
 }
 ";
-
-            using var workspace = TestWorkspace.CreateCSharp("", exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
-                workspace,
+            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 null,
