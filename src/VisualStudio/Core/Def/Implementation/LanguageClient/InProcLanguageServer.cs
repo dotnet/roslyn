@@ -120,12 +120,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             try
             {
-                if (!_jsonRpc.IsDisposed)
-                {
-                    _jsonRpc.Dispose();
-                }
+                _jsonRpc.Dispose();
             }
-            catch (Exception)
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
                 // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
