@@ -6228,8 +6228,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
-        <source>Method or delegate cannot return type '{0}'</source>
-        <target state="translated">メソッドまたはデリゲートは、型 '{0}' を返すことができません。</target>
+        <source>The return type of a method, delegate, or function pointer cannot be '{0}'</source>
+        <target state="needs-review-translation">メソッドまたはデリゲートは、型 '{0}' を返すことができません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompileCancelled">

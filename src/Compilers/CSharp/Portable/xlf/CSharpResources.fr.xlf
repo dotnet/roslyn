@@ -6228,8 +6228,8 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
-        <source>Method or delegate cannot return type '{0}'</source>
-        <target state="translated">Ni la méthode, ni le délégué ne peuvent retourner un type '{0}'</target>
+        <source>The return type of a method, delegate, or function pointer cannot be '{0}'</source>
+        <target state="needs-review-translation">Ni la méthode, ni le délégué ne peuvent retourner un type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompileCancelled">

@@ -77,7 +77,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (returnType.IsVoidType() && refKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NoVoidHere, returnTypeParameter.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_NoVoidHere, returnTypeParameter.Location);
+                }
+                else if (returnType.IsStatic)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, returnTypeParameter.Location, returnType);
+                }
+                else if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
+                {
+                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeParameter.Location, returnType);
                 }
             }
 
