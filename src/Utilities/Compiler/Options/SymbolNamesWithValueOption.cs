@@ -405,11 +405,11 @@ namespace Analyzer.Utilities
 
                 if (addParenthesis)
                 {
-                    nameBuilder.Append("(");
+                    nameBuilder.Append('(');
                 }
                 if (addBrackets)
                 {
-                    nameBuilder.Append("[");
+                    nameBuilder.Append('[');
                 }
 
                 for (int i = 0; i < parameters.Length; i++)
@@ -417,17 +417,17 @@ namespace Analyzer.Utilities
                     AppendParameterFullType(parameters[i], nameBuilder);
                     if (i < parameters.Length - 1)
                     {
-                        nameBuilder.Append(",");
+                        nameBuilder.Append(',');
                     }
                 }
 
                 if (addParenthesis)
                 {
-                    nameBuilder.Append(")");
+                    nameBuilder.Append(')');
                 }
                 if (addBrackets)
                 {
-                    nameBuilder.Append("]");
+                    nameBuilder.Append(']');
                 }
 
                 return nameBuilder.ToString();

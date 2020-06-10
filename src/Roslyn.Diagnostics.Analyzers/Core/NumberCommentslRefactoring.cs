@@ -216,7 +216,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             if (prefixOpt != null)
             {
-                builder.Append("\"");
+                builder.Append('"');
             }
 
             return builder.ToString();

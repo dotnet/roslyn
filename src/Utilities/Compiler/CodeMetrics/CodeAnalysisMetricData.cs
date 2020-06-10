@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             builder.Append($"{symbolName}: (Lines: {SourceLines}, ExecutableLines: {ExecutableLines}, MntIndex: {MaintainabilityIndex}, CycCxty: {CyclomaticComplexity}");
-            if (CoupledNamedTypes.Count > 0)
+            if (!CoupledNamedTypes.IsEmpty)
             {
                 var coupledNamedTypesStr = string.Join(", ", CoupledNamedTypes.Select(t => t.ToDisplayString()).OrderBy(n => n));
                 builder.Append($", CoupledTypes: {{{coupledNamedTypesStr}}}");

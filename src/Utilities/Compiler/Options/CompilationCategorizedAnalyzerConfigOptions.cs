@@ -49,7 +49,7 @@ namespace Analyzer.Utilities
         {
             get
             {
-                Debug.Assert(ReferenceEquals(this, Empty) || _generalOptions.Count > 0 || _specificOptions.Count > 0);
+                Debug.Assert(ReferenceEquals(this, Empty) || !_generalOptions.IsEmpty || !_specificOptions.IsEmpty);
                 return ReferenceEquals(this, Empty);
             }
         }
