@@ -44,6 +44,11 @@
         <target state="translated">Potlačené ID diagnostiky {0} neodpovídá potlačitelnému ID {1} pro daný popisovač potlačení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidNonSourceFile">
+        <source>Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Blok dané operace nepatří do aktuálního analytického kontextu.</target>

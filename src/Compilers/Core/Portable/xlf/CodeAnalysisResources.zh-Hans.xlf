@@ -44,6 +44,11 @@
         <target state="translated">对于给定的禁止显示描述符，禁止显示的诊断 ID“{0}”与可禁止显示的 ID“{1}”不匹配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidNonSourceFile">
+        <source>Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">给定操作块不属于当前的分析上下文。</target>

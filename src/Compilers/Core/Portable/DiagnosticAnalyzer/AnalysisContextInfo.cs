@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Text;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -12,14 +13,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal struct AnalysisContextInfo
     {
-        private readonly Compilation _compilation;
-        private readonly IOperation _operation;
-        private readonly ISymbol _symbol;
-        private readonly SyntaxTree _tree;
-        private readonly SyntaxNode _node;
+        private readonly Compilation? _compilation;
+        private readonly IOperation? _operation;
+        private readonly ISymbol? _symbol;
+        private readonly SyntaxTree? _tree;
+        private readonly AdditionalText? _nonSourceFile;
+        private readonly SyntaxNode? _node;
 
         public AnalysisContextInfo(Compilation compilation) :
-            this(compilation: compilation, operation: null, symbol: null, tree: null, node: null)
+            this(compilation: compilation, operation: null, symbol: null, tree: null, node: null, nonSourceFile: null)
         {
         }
 
@@ -29,41 +31,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public AnalysisContextInfo(Compilation compilation, ISymbol symbol) :
-            this(compilation: compilation, operation: null, symbol: symbol, tree: null, node: null)
+            this(compilation: compilation, operation: null, symbol: symbol, tree: null, node: null, nonSourceFile: null)
         {
         }
 
         public AnalysisContextInfo(Compilation compilation, SyntaxTree tree) :
-            this(compilation: compilation, operation: null, symbol: null, tree: tree, node: null)
+            this(compilation: compilation, operation: null, symbol: null, tree: tree, node: null, nonSourceFile: null)
+        {
+        }
+
+        public AnalysisContextInfo(Compilation compilation, AdditionalText nonSourceFile) :
+            this(compilation: compilation, operation: null, symbol: null, tree: null, node: null, nonSourceFile)
         {
         }
 
         public AnalysisContextInfo(Compilation compilation, SyntaxNode node) :
-            this(compilation: compilation, operation: null, symbol: null, tree: node.SyntaxTree, node: node)
+            this(compilation: compilation, operation: null, symbol: null, tree: node.SyntaxTree, node, nonSourceFile: null)
         {
         }
 
         public AnalysisContextInfo(Compilation compilation, IOperation operation) :
-            this(compilation: compilation, operation: operation, symbol: null, tree: operation.Syntax.SyntaxTree, node: operation.Syntax)
+            this(compilation: compilation, operation: operation, symbol: null, tree: operation.Syntax.SyntaxTree, node: operation.Syntax, nonSourceFile: null)
         {
         }
 
         public AnalysisContextInfo(Compilation compilation, ISymbol symbol, SyntaxNode node) :
-            this(compilation: compilation, operation: null, symbol: symbol, tree: node.SyntaxTree, node: node)
+            this(compilation: compilation, operation: null, symbol: symbol, tree: node.SyntaxTree, node, nonSourceFile: null)
         {
         }
 
         public AnalysisContextInfo(
-            Compilation compilation,
-            IOperation operation,
-            ISymbol symbol,
-            SyntaxTree tree,
-            SyntaxNode node)
+            Compilation? compilation,
+            IOperation? operation,
+            ISymbol? symbol,
+            SyntaxTree? tree,
+            SyntaxNode? node,
+            AdditionalText? nonSourceFile)
         {
             _compilation = compilation;
             _operation = operation;
             _symbol = symbol;
             _tree = tree;
+            _nonSourceFile = nonSourceFile;
             _node = node;
         }
 
@@ -89,6 +98,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (_tree?.FilePath != null)
             {
                 sb.AppendLine($"{nameof(SyntaxTree)}: {_tree.FilePath}");
+            }
+
+            if (_nonSourceFile?.Path != null)
+            {
+                sb.AppendLine($"{nameof(AdditionalText)}: {_nonSourceFile.Path}");
             }
 
             if (_node != null)

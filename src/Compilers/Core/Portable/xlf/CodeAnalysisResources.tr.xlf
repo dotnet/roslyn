@@ -44,6 +44,11 @@
         <target state="translated">'{0}' gizlenmiş tanılama kimliği, belirtilen gizleme tanımlayıcısı için gizlenebilir '{1}' kimliği ile eşleşmiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidNonSourceFile">
+        <source>Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Belirtilen işlem bloğu geçerli analiz bağlamına ait değil.</target>

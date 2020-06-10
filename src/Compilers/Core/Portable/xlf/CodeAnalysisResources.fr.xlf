@@ -44,6 +44,11 @@
         <target state="translated">L'ID de diagnostic supprimé '{0}' ne correspond pas à l'ID supprimable '{1}' pour le descripteur de suppression spécifié.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidNonSourceFile">
+        <source>Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Le bloc d'opérations donné n'appartient pas au contexte d'analyse actuel.</target>

@@ -44,6 +44,11 @@
         <target state="translated">Die unterdrückte Diagnose-ID "{0}" entspricht nicht der unterdrückbaren ID "{1}" für den angegebenen Deskriptor zur Unterdrückung.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidNonSourceFile">
+        <source>Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Der angegebene Operationsblock gehört nicht zum aktuellen Analysekontext.</target>

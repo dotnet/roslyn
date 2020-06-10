@@ -2144,5 +2144,54 @@ namespace Microsoft.CodeAnalysis
                     endContext => endContext.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.OwningSymbol.Locations[0])));
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AdditionalFileAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly bool _registerFromInitialize;
+            private readonly TextSpan _diagnosticSpan;
+
+            public AdditionalFileAnalyzer(bool registerFromInitialize, TextSpan diagnosticSpan, string id = "ID0001")
+            {
+                _registerFromInitialize = registerFromInitialize;
+                _diagnosticSpan = diagnosticSpan;
+
+                Descriptor = new DiagnosticDescriptor(
+                    id,
+                    "Title1",
+                    "Message1",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_registerFromInitialize)
+                {
+                    context.RegisterAdditionalFileAction(AnalyzeAdditionalFile);
+                }
+                else
+                {
+                    context.RegisterCompilationStartAction(context =>
+                        context.RegisterAdditionalFileAction(AnalyzeAdditionalFile));
+                }
+            }
+
+            private void AnalyzeAdditionalFile(AdditionalFileAnalysisContext context)
+            {
+                if (context.AdditionalFile.Path == null)
+                {
+                    return;
+                }
+
+                var text = context.AdditionalFile.GetText();
+                var location = Location.Create(context.AdditionalFile.Path, _diagnosticSpan, text.Lines.GetLinePositionSpan(_diagnosticSpan));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
+            }
+        }
     }
 }

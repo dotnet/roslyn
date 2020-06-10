@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -18,6 +19,11 @@ namespace Roslyn.Test.Utilities
         {
             Path = path;
             _text = text;
+        }
+
+        public TestAdditionalText(string text = "", Encoding? encoding = null, string path = "dummy")
+            : this(path, new StringText(text, encoding))
+        {
         }
 
         public override string Path { get; }

@@ -44,6 +44,11 @@
         <target state="translated">L'ID diagnostica '{0}' eliminato non corrisponde all'ID eliminabile '{1}' per il descrittore di eliminazione specificato.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidNonSourceFile">
+        <source>Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Il blocco operazioni specificato non appartiene al contesto di analisi corrente.</target>

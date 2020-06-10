@@ -94,8 +94,10 @@ public class C
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
+            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
+
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
-                compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null));
+                compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options));
         }
 
         [Fact]

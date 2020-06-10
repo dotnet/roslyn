@@ -44,6 +44,11 @@
         <target state="translated">Pominięty identyfikator diagnostyki „{0}” nie pasuje do możliwego do pominięcia identyfikatora „{1}” dla danego deskryptora pomijania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="InvalidNonSourceFile">
+        <source>Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Non-source file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
         <target state="translated">Dany blok operacji nie należy do bieżącego kontekstu analizy.</target>
