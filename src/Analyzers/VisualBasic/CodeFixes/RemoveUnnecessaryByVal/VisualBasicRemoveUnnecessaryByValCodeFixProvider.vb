@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
 
         Protected Overrides Async Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim node = DirectCast(root.FindNode(diagnostics.First().Location.SourceSpan), ParameterSyntax)
+            Dim node = DirectCast(root.FindNode(diagnostics(0).AdditionalLocations(0).SourceSpan), ParameterSyntax)
             Dim tokenList = SyntaxFactory.TokenList(node.Modifiers.Where(Function(m) Not m.IsKind(SyntaxKind.ByValKeyword)))
             editor.ReplaceNode(node, node.WithModifiers(tokenList))
         End Function
