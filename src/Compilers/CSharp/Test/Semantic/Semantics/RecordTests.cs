@@ -146,6 +146,25 @@ record Point(int x, int y);
         }
 
         [Fact]
+        public void PartialRecordMixedWithClass()
+        {
+            var src = @"
+partial record C(int X, int Y)
+{
+}
+partial class C
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0261: Partial declarations of 'C' must be all classes, all records, all structs, or all interfaces
+                // partial class C
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "C").WithArguments("C").WithLocation(5, 15)
+                );
+        }
+
+        [Fact]
         public void RecordProperties_01()
         {
             var src = @"
