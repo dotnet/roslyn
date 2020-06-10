@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -41,8 +42,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
   <Target Name=""_InitializeSourceControlProperties"" BeforeTargets=""InitializeSourceControlInformation"">
     <ItemGroup>
       <SourceRoot Include=""{root1}"" SourceControl=""git"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*""/>
-      <SourceRoot Include=""{root1}sub1\"" SourceControl=""git"" NestedRoot=""sub1"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M1/*""/>
-      <SourceRoot Include=""{root1}sub2\"" SourceControl=""git"" NestedRoot=""sub2"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M2/*""/>
+      <SourceRoot Include=""{root1}sub1{Path.DirectorySeparatorChar}"" SourceControl=""git"" NestedRoot=""sub1"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M1/*""/>
+      <SourceRoot Include=""{root1}sub2{Path.DirectorySeparatorChar}"" SourceControl=""git"" NestedRoot=""sub2"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M2/*""/>
     </ItemGroup>
   </Target>
   <Target Name=""_GenerateSourceLinkFile""
@@ -86,8 +87,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     $@"{root2}: /_1/",
                     $@"{root1}: /_/",
-                    $@"{root1}sub1\: /_/sub1/",
-                    $@"{root1}sub2\: /_/sub2/",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: /_/sub1/",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: /_/sub2/",
                     "true",
                     $@"{escapedRoot2}=/_1/,{escapedRoot1}=/_/,PreviousPathMap",
                     "true"
@@ -124,8 +125,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
-                    $@"{root1}sub1\: {root1}sub1\",
-                    $@"{root1}sub2\: {root1}sub2\",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: {root1}sub1{Path.DirectorySeparatorChar}",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"",
                     $@""
                 });
@@ -133,8 +134,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[{root2}]=[https://raw.githubusercontent.com/Source/Package/*]," +
                 $@"[{root1}]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[{root1}sub1\]=[https://raw.githubusercontent.com/M1/*]," +
-                $@"[{root1}sub2\]=[https://raw.githubusercontent.com/M2/*]",
+                $@"[{root1}sub1{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M1/*]," +
+                $@"[{root1}sub2{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M2/*]",
                 File.ReadAllText(sourceLinkJsonPath));
 
             // deterministic local build:
@@ -160,8 +161,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
-                    $@"{root1}sub1\: {root1}sub1\",
-                    $@"{root1}sub2\: {root1}sub2\",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: {root1}sub1{Path.DirectorySeparatorChar}",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"",
                     $@""
                 });
@@ -169,8 +170,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[{root2}]=[https://raw.githubusercontent.com/Source/Package/*]," +
                 $@"[{root1}]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[{root1}sub1\]=[https://raw.githubusercontent.com/M1/*]," +
-                $@"[{root1}sub2\]=[https://raw.githubusercontent.com/M2/*]",
+                $@"[{root1}sub1{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M1/*]," +
+                $@"[{root1}sub2{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M2/*]",
                 File.ReadAllText(sourceLinkJsonPath));
 
             // DeterministicSourcePaths override:
@@ -196,8 +197,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
-                    $@"{root1}sub1\: {root1}sub1\",
-                    $@"{root1}sub2\: {root1}sub2\",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: {root1}sub1{Path.DirectorySeparatorChar}",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"false",
                     $@""
                 });
@@ -205,8 +206,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[{root2}]=[https://raw.githubusercontent.com/Source/Package/*]," +
                 $@"[{root1}]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[{root1}sub1\]=[https://raw.githubusercontent.com/M1/*]," +
-                $@"[{root1}sub2\]=[https://raw.githubusercontent.com/M2/*]",
+                $@"[{root1}sub1{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M1/*]," +
+                $@"[{root1}sub2{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M2/*]",
                 File.ReadAllText(sourceLinkJsonPath));
 
             // SourceControlInformationFeatureSupported = false:
@@ -322,9 +323,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 },
                 expectedResults: new[]
                 {
-                    @"X\",
-                    @"Y\",
-                    @"Z\",
+                    $"X{Path.DirectorySeparatorChar}",
+                    $"Y{Path.DirectorySeparatorChar}",
+                    $"Z{Path.DirectorySeparatorChar}",
                 });
         }
 
