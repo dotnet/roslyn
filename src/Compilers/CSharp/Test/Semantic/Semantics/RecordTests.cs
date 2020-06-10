@@ -8097,6 +8097,12 @@ record B : A<int>;
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8));
