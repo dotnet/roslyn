@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
                     Dim parameterSyntax = DirectCast(syntaxContext.Node, ParameterSyntax)
                     For Each modifier In parameterSyntax.Modifiers
                         If modifier.IsKind(SyntaxKind.ByValKeyword) Then
-                            syntaxContext.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, modifier.GetLocation()))
+                            syntaxContext.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, modifier.GetLocation(), additionalLocations:={ parameterSyntax.GetLocation() }))
                         End If
                     Next
                 End Sub, SyntaxKind.Parameter)
