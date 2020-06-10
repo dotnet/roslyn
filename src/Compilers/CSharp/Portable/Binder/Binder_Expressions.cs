@@ -5956,7 +5956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument) && !IsUnboundTypeAllowed(genericName))
                         {
                             diagnostics.Add(ErrorCode.ERR_UnexpectedUnboundGenericName, genericName.Location);
-                            return BadExpression(node, boundLeft);
+                            return BadExpression(node);
                         }
                     }
                 }
