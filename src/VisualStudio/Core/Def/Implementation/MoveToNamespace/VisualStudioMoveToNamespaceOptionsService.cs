@@ -18,18 +18,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
     [Export(typeof(IMoveToNamespaceOptionsService)), Shared]
     internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
-        private readonly string?[] _history = new string[3];
+        private readonly string?[] _history;
+        private readonly Func<MoveToNamespaceDialogViewModel, bool?> _showDialog;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioMoveToNamespaceOptionsService()
+            : this(new string[3], (viewModel) => new MoveToNamespaceDialog(viewModel).ShowModal())
         {
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should be marked with 'ImportingConstructorAttribute'", Justification = "Test constructor")]
+        internal VisualStudioMoveToNamespaceOptionsService(string?[] history, Func<MoveToNamespaceDialogViewModel, bool?> showDialog)
+        {
+            _history = history;
+            _showDialog = showDialog;
         }
 
         public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,
-            ISyntaxFactsService syntaxFactsService)
+            ISyntaxFacts syntaxFactsService)
         {
             var viewModel = new MoveToNamespaceDialogViewModel(
                 defaultNamespace,
@@ -37,8 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
                 syntaxFactsService,
                 _history.WhereNotNull().ToImmutableArray());
 
-            var dialog = new MoveToNamespaceDialog(viewModel);
-            var result = dialog.ShowModal();
+            var result = _showDialog(viewModel);
 
             if (result == true)
             {
@@ -61,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
             for (var i = _history.Length - 1; i > 0; i--)
             {
-                if (_history[i] == null)
+                if (_history[i-1] == null)
                 {
                     continue;
                 }
