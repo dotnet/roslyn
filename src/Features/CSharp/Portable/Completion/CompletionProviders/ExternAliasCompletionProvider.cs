@@ -54,7 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     .FindTokenOnLeftOfPosition(position, cancellationToken)
                     .GetPreviousTokenIfTouchingWord(position);
 
-                if (targetToken.IsKind(SyntaxKind.AliasKeyword) && targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective))
+                if (!targetToken.IsKind(SyntaxKind.AliasKeyword)
+                    && !(targetToken.IsKind(SyntaxKind.IdentifierToken) && targetToken.HasMatchingText(SyntaxKind.AliasKeyword)))
+                {
+                    return;
+                }
+
+                if (targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective)
+                    || (targetToken.Parent.IsKind(SyntaxKind.IdentifierName) && targetToken.Parent.IsParentKind(SyntaxKind.IncompleteMember)))
                 {
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();
