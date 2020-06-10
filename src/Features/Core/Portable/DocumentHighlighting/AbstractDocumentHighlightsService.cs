@@ -296,8 +296,13 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
 
                 case SymbolKind.Parameter:
-                    // If it's an indexer parameter, we will determine by the property symbols
-                    if (symbol.ContainingSymbol is IMethodSymbol methodSymbol && methodSymbol.AssociatedSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
+
+                    // If it's an indexer parameter, we will determine by the property 
+                    // symbols instead of the accessor symbols because accessor 
+                    // symbols with no references are filtered out
+                    if (symbol.ContainingSymbol is IMethodSymbol methodSymbol
+                        && methodSymbol.AssociatedSymbol is IPropertySymbol containingProperty
+                        && containingProperty.IsIndexer)
                     {
                         return false;
                     }

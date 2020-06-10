@@ -56,18 +56,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim expectedTags As New List(Of String)
 
                 For Each hostDocument In workspace.Documents
-                    Dim nameAndSpansList = New List(Of Tuple(Of String, TextSpan))
-                    For Each kvp As KeyValuePair(Of String, Immutable.ImmutableArray(Of TextSpan)) In hostDocument.AnnotatedSpans
-                        Dim name = kvp.Key
-                        Dim spanList = kvp.Value
-
-                        For Each span In spanList
-                            nameAndSpansList.Add(New Tuple(Of String, TextSpan)(name, span))
-                        Next
-                    Next
-
-                    For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Item2.Start)
-                        expectedTags.Add(nameAndSpan.Item1 + ":" + nameAndSpan.Item2.ToString())
+                    Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
+                        Function(name) name.Value,
+                        Function(name, spans) New With {name, spans}) _
+                        .Select(Function(nameAndSpans) _
+                                    New With {.Name = nameAndSpans.name.Key,
+                                              .Span = nameAndSpans.spans
+                                })
+                    For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
+                        expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.ToString())
                     Next
                 Next
 
