@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         ImmutableArray<Document> GetDocuments(Uri documentUri);
 
         /// <summary>
-        /// Return the latest solution we know about.
+        /// Return the latest solution from the main workspace that we know about.
         /// </summary>
-        Solution GetCurrentSolution();
+        Solution GetCurrentSolutionForMainWorkspace();
     }
 }

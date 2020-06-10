@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         public async Task<object> HandleAsync(LSP.TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var document = request.TextDocument.GetDocument(_solutionProvider);
+            var document = _solutionProvider.GetDocument(request.TextDocument);
             if (document == null)
             {
                 return Array.Empty<LSP.Location>();

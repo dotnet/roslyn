@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
         }
 
-        public static ImmutableArray<Document> GetDocumentsFromProvider(this Uri uri, ILspSolutionProvider solutionProvider, string? clientName = null)
+        public static ImmutableArray<Document> GetDocumentsFromProvider(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName = null)
         {
             var documents = solutionProvider.GetDocuments(uri);
 
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             });
         }
 
-        public static Document? GetDocument(this TextDocumentIdentifier documentIdentifier, ILspSolutionProvider solutionProvider, string? clientName = null)
+        public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
         {
-            var documents = documentIdentifier.Uri.GetDocumentsFromProvider(solutionProvider, clientName);
+            var documents = solutionProvider.GetDocumentsFromProvider(documentIdentifier.Uri, clientName);
 
             if (documents.Length == 0)
             {

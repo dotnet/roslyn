@@ -10,11 +10,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractBaseRequestHandler<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractRequestHandler<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType>
     {
         protected readonly ILspSolutionProvider SolutionProvider;
 
-        protected AbstractBaseRequestHandler(ILspSolutionProvider solutionProvider)
+        protected AbstractRequestHandler(ILspSolutionProvider solutionProvider)
         {
             SolutionProvider = solutionProvider;
         }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(MSLSPMethods.ProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : AbstractBaseRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    internal class GetTextDocumentWithContextHandler : AbstractRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             string? clientName,
             CancellationToken cancellationToken)
         {
-            var documents = request.TextDocument.Uri.GetDocumentsFromProvider(SolutionProvider, clientName);
+            var documents = SolutionProvider.GetDocumentsFromProvider(request.TextDocument.Uri, clientName);
 
             if (!documents.Any())
             {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // ID in GetDocumentIdsWithFilePath, but there's really nothing we can do since we don't have contexts for
             // close documents anyways.
             var openDocument = documents.First();
-            var currentContextDocumentId = openDocument.Project.Solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
+            var currentContextDocumentId = openDocument.Project.Solution.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
 
             return Task.FromResult<ActiveProjectContexts?>(new ActiveProjectContexts
             {

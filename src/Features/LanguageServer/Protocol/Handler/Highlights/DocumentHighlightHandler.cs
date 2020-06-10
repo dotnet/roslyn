@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentDocumentHighlightName)]
-    internal class DocumentHighlightsHandler : AbstractBaseRequestHandler<TextDocumentPositionParams, DocumentHighlight[]>
+    internal class DocumentHighlightsHandler : AbstractRequestHandler<TextDocumentPositionParams, DocumentHighlight[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<DocumentHighlight[]> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities,
             string? clientName, CancellationToken cancellationToken)
         {
-            var document = request.TextDocument.GetDocument(SolutionProvider, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<DocumentHighlight>();

@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="clientName">the lsp client making the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the LSP response.</returns>
-        /// 
         Task<ResponseType> HandleRequestAsync(RequestType request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken);
     }
 }

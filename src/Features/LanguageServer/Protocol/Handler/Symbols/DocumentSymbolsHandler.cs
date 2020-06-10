@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentDocumentSymbolName)]
-    internal class DocumentSymbolsHandler : AbstractBaseRequestHandler<DocumentSymbolParams, object[]>
+    internal class DocumentSymbolsHandler : AbstractRequestHandler<DocumentSymbolParams, object[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, ClientCapabilities clientCapabilities,
             string clientName, CancellationToken cancellationToken)
         {
-            var document = request.TextDocument.GetDocument(SolutionProvider, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();

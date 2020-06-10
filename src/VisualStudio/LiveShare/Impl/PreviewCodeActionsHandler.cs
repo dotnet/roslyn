@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         public async Task<LSP.TextEdit[]> HandleAsync(RunCodeActionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var edits = ArrayBuilder<LSP.TextEdit>.GetInstance();
-            var document = request.CodeActionParams.TextDocument.GetDocument(_solutionProvider);
+            var document = _solutionProvider.GetDocument(request.CodeActionParams.TextDocument);
             var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document,
                 _codeFixService,
                 _codeRefactoringService,

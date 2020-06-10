@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -18,6 +21,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -35,7 +39,8 @@ namespace Roslyn.Test.Utilities
         [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
         internal class TestLspSolutionProvider : ILspSolutionProvider
         {
-            private Solution _currentSolution;
+            [DisallowNull]
+            private Solution? _currentSolution;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -45,11 +50,10 @@ namespace Roslyn.Test.Utilities
 
             public void UpdateSolution(Solution solution)
             {
-                Contract.ThrowIfFalse(_currentSolution == null);
                 _currentSolution = solution;
             }
 
-            public Solution GetCurrentSolution()
+            public Solution GetCurrentSolutionForMainWorkspace()
             {
                 Contract.ThrowIfNull(_currentSolution);
                 return _currentSolution;
@@ -75,7 +79,7 @@ namespace Roslyn.Test.Utilities
                 .WithPart(typeof(LanguageServerProtocol))
                 .WithParts(requestHelperTypes)
                 .WithParts(executeCommandHandlerTypes)
-                .WithParts(solutionProviderTypes));
+                .WithPart(typeof(TestLspSolutionProvider)));
             return exportProviderFactory.CreateExportProvider();
         }
 
@@ -140,7 +144,7 @@ namespace Roslyn.Test.Utilities
             return text.ToString();
         }
 
-        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string containerName = null)
+        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string? containerName = null)
             => new LSP.SymbolInformation()
             {
                 Kind = kind,
@@ -149,7 +153,7 @@ namespace Roslyn.Test.Utilities
                 ContainerName = containerName
             };
 
-        protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId projectContext = null)
+        protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
         {
             var documentIdentifier = new LSP.VSTextDocumentIdentifier() { Uri = uri };
 
@@ -162,7 +166,7 @@ namespace Roslyn.Test.Utilities
             return documentIdentifier;
         }
 
-        protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId projectContext = null)
+        protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId? projectContext = null)
             => new LSP.TextDocumentPositionParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri, projectContext),
@@ -266,7 +270,7 @@ namespace Roslyn.Test.Utilities
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
             {
-                var document = solution.GetDocument(testDocument.Id);
+                var document = solution.GetRequiredDocument(testDocument.Id);
                 var text = document.GetTextSynchronously(CancellationToken.None);
                 foreach (var (name, spans) in testDocument.AnnotatedSpans)
                 {

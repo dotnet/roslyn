@@ -55,15 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             // Get all of the execute workspace command handlers in M.CA.LanguageServer
             var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
-            var solutionProviderTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(TestLspSolutionProvider).Assembly, typeof(ILspSolutionProvider));
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(MockDocumentNavigationServiceFactory))
                 .WithParts(liveShareRequestHelperTypes)
                 .WithParts(roslynRequestHelperTypes)
                 .WithParts(executeCommandHandlerTypes)
-                .WithParts(solutionProviderTypes));
+                .WithPart(typeof(TestLspSolutionProvider)));
             return exportProviderFactory.CreateExportProvider();
         }
 

@@ -17,7 +17,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractGoToDefinitionHandlerBase<RequestType, ResponseType> : AbstractBaseRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractGoToDefinitionHandlerBase<RequestType, ResponseType> : AbstractRequestHandler<RequestType, ResponseType>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = request.TextDocument.GetDocument(SolutionProvider, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return locations.ToArrayAndFree();

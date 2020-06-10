@@ -19,8 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     [Export(typeof(ILspSolutionProvider)), Shared]
     class VisualStudioLspSolutionProvider : ILspSolutionProvider
     {
-        private VisualStudioWorkspace _visualStudioWorkspace;
-        private MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
+        private readonly VisualStudioWorkspace _visualStudioWorkspace;
+        private readonly MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _miscellaneousFilesWorkspace = miscellaneousFilesWorkspace;
         }
 
-        public Solution GetCurrentSolution()
+        public Solution GetCurrentSolutionForMainWorkspace()
         {
             return _visualStudioWorkspace.CurrentSolution;
         }

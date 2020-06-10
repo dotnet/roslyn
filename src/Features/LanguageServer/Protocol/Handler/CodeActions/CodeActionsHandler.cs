@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandler : AbstractBaseRequestHandler<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>
+    internal class CodeActionsHandler : AbstractRequestHandler<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<LSP.SumType<LSP.Command, LSP.CodeAction>[]> HandleRequestAsync(LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities,
             string? clientName, CancellationToken cancellationToken)
         {
-            var document = request.TextDocument.GetDocument(SolutionProvider, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             var codeActions = await GetCodeActionsAsync(document,
                 _codeFixService,
                 _codeRefactoringService,
