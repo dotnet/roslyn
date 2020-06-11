@@ -3923,6 +3923,49 @@ public record C(object P1, object P2) : B(0, 1)
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_WithFieldInitializer()
+        {
+            var source =
+@"public record C(int I)
+{
+    public int I { get; set; } = 42;
+    public int field = 43;
+    public C(C c)
+    {
+        System.Console.Write("" RAN "");
+    }
+    public static void Main()
+    {
+        var c = new C(1);
+        c.I = 2;
+        c.field = 100;
+        System.Console.Write((c.I, c.field));
+
+        var c2 = new C(c);
+        System.Console.Write((c2.I, c2.field));
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 100) RAN (0, 0)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ldstr      "" RAN ""
+  IL_000d:  call       ""void System.Console.Write(string)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_UsesThis()
         {
             var source =
