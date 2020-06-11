@@ -694,7 +694,11 @@ True");
             var comp = CreateCompilation(@"
 record C(int x, int y)
 {
-    public C(C other) : this(other.x, other.y) { }
+    public C(C other)
+    {
+        x = other.x;
+        y = other.y;
+    }
 }");
             comp.VerifyDiagnostics();
 
@@ -720,17 +724,36 @@ record C(int x, int y)
 ");
             verifier.VerifyIL("C..ctor(C)", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  3
+  // Code size       31 (0x1f)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  callvirt   ""int C.x.get""
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
   IL_0007:  ldarg.1
-  IL_0008:  callvirt   ""int C.y.get""
-  IL_000d:  call       ""C..ctor(int, int)""
-  IL_0012:  ret
+  IL_0008:  callvirt   ""int C.x.get""
+  IL_000d:  call       ""void C.x.init""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  callvirt   ""int C.y.get""
+  IL_0019:  call       ""void C.y.init""
+  IL_001e:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void RecordClone2_0_WithThisInitializer()
+        {
+            var comp = CreateCompilation(@"
+record C(int x, int y)
+{
+    public C(C other) : this(other.x, other.y) { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,25): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C other) : this(other.x, other.y) { }
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithLocation(4, 25)
+                );
         }
 
         [Fact]
