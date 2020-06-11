@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IStreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
-        private readonly ProjectDependencyGraph _dependencyGraph;
         private readonly FindReferencesSearchOptions _options;
 
         public FindReferencesSearchEngine(
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _finders = finders;
             _progress = progress;
             _cancellationToken = cancellationToken;
-            _dependencyGraph = solution.GetProjectDependencyGraph();
             _options = options;
 
             _progressTracker = progress.ProgressTracker;
