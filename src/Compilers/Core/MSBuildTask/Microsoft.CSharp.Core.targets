@@ -15,7 +15,6 @@
                                         '$(MaxSupportedLangVersion)' == ''">8.0</MaxSupportedLangVersion>
 
     <!-- .NETCoreApp == 5.0 -->
-    <!-- https://github.com/dotnet/roslyn/issues/44962 Remove this when CSharp9 becomes the default  -->
     <MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '5.0' AND
                                         '$(MaxSupportedLangVersion)' == ''">9.0</MaxSupportedLangVersion>
     
