@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,66 +17,64 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal partial class FindReferencesSearchEngine
     {
-        //private async Task ProcessProjectsAsync(
-        //    IEnumerable<ProjectId> connectedProjectSet,
-        //    ProjectToDocumentMap projectToDocumentMap)
-        //{
-        //    var visitedProjects = new HashSet<ProjectId>();
+        private async Task ProcessProjectsAsync(
+            IEnumerable<ProjectId> connectedProjectSet,
+            ProjectToDocumentMap projectToDocumentMap)
+        {
+            var visitedProjects = new HashSet<ProjectId>();
 
-        //    // Make sure we process each project in the set.  Process each project in depth first
-        //    // order.  That way when we process a project, the compilations for all projects that it
-        //    // depends on will have been created already.
-        //    var tasks = new List<Task>();
-        //    foreach (var projectId in connectedProjectSet)
-        //    {
-        //        _cancellationToken.ThrowIfCancellationRequested();
+            // Make sure we process each project in the set.  Process each project in depth first
+            // order.  That way when we process a project, the compilations for all projects that it
+            // depends on will have been created already.
+            foreach (var projectId in connectedProjectSet)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
 
-        //        AddProjectTasks(projectId, projectToDocumentMap, visitedProjects, tasks);
-        //    }
+                await ProcessProjectAsync(
+                    projectId, projectToDocumentMap, visitedProjects).ConfigureAwait(false);
+            }
+        }
 
-        //    await Task.WhenAll(tasks).ConfigureAwait(false);
-        //}
+        private async Task ProcessProjectAsync(
+            ProjectId projectId,
+            ProjectToDocumentMap projectToDocumentMap,
+            HashSet<ProjectId> visitedProjects)
+        {
+            // Don't visit projects more than once.  
+            if (visitedProjects.Add(projectId))
+            {
+                var project = _solution.GetProject(projectId);
 
-        //private void AddProjectTasks(
-        //    ProjectId projectId,
-        //    ProjectToDocumentMap projectToDocumentMap,
-        //    HashSet<ProjectId> visitedProjects,
-        //    List<Task> tasks)
-        //{
-        //    // Don't visit projects more than once.  
-        //    if (visitedProjects.Add(projectId))
-        //    {
-        //        var project = _solution.GetProject(projectId);
+                // Visit dependencies first.  That way the compilation for a project that we depend
+                // on is already ready for us when we need it.
+                foreach (var dependent in project.ProjectReferences)
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
 
-        //        // Visit dependencies first.  That way the compilation for a project that we depend
-        //        // on is already ready for us when we need it.
-        //        foreach (var dependent in project.ProjectReferences)
-        //        {
-        //            _cancellationToken.ThrowIfCancellationRequested();
-        //            AddProjectTasks(
-        //                dependent.ProjectId, projectToDocumentMap, visitedProjects, tasks);
-        //        }
+                    await ProcessProjectAsync(
+                        dependent.ProjectId, projectToDocumentMap, visitedProjects).ConfigureAwait(false);
+                }
 
-        //        tasks.Add(Task.Run(() => ProcessProjectAsync(project, projectToDocumentMap)));
-        //    }
-        //}
+                await ProcessProjectAsync(project, projectToDocumentMap).ConfigureAwait(false);
+            }
+        }
 
-        //private Task ProcessProjectAsync(
-        //    Project project,
-        //    ProjectToDocumentMap projectToDocumentMap)
-        //{
-        //    if (!projectToDocumentMap.TryGetValue(project, out var documentMap))
-        //    {
-        //        // No files in this project to process.  We can bail here.  We'll have cached our
-        //        // compilation if there are any projects left to process that depend on us.
-        //        return Task.CompletedTask;
-        //    }
+        private async Task ProcessProjectAsync(
+            Project project,
+            ProjectToDocumentMap projectToDocumentMap)
+        {
+            if (!projectToDocumentMap.TryGetValue(project, out var documentMap))
+            {
+                // No files in this project to process.  We can bail here.  We'll have cached our
+                // compilation if there are any projects left to process that depend on us.
+                return;
+            }
 
-        //    projectToDocumentMap.Remove(project);
+            projectToDocumentMap.Remove(project);
 
-        //    // Now actually process the project.
-        //    return ProcessProjectAsync(project, documentMap);
-        //}
+            // Now actually process the project.
+            await ProcessProjectAsync(project, documentMap).ConfigureAwait(false);
+        }
 
         private async Task ProcessProjectAsync(
             Project project,
@@ -90,8 +87,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // make sure we hold onto compilation while we search documents belong to this project
                     var start = DateTime.Now;
                     var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                    // _getCompilationsTime += DateTime.Now - start;
-                    Interlocked.Add(ref _getCompilationsTimeTicks, (long)(DateTime.Now - start).TotalMilliseconds);
+                    Interlocked.Add(ref _getCompilationsTimeTicks, (int)(DateTime.Now - start).TotalMilliseconds);
 
                     var documentTasks = new List<Task>();
                     foreach (var kvp in documentMap)

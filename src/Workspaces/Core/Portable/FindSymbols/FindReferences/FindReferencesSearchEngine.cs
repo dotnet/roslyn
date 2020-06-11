@@ -111,22 +111,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     kvp1 => kvp1.Value.Sum(kvp2 => kvp2.Value.Count));
                 await _progressTracker.AddItemsAsync(totalFindCount).ConfigureAwait(false);
 
+#if false
                 var tasks = new List<Task>();
-                foreach (var (project, documentMap) in projectToDocumentMap)
+                foreach (var (project, documentmap) in projectToDocumentMap)
                 {
-                    tasks.Add(Task.Run(() => ProcessProjectAsync(project, documentMap)));
+                    tasks.Add(Task.Run(() => ProcessProjectAsync(project, documentmap)));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
+#else
+                // Now, go through each connected project set and process it independently.
+                foreach (var connectedProjectSet in connectedProjects)
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
 
-                //// Now, go through each connected project set and process it independently.
-                //foreach (var connectedProjectSet in connectedProjects)
-                //{
-                //    _cancellationToken.ThrowIfCancellationRequested();
-
-                //    await ProcessProjectsAsync(
-                //        connectedProjectSet, projectToDocumentMap).ConfigureAwait(false);
-                //}
+                    await ProcessProjectsAsync(
+                        connectedProjectSet, projectToDocumentMap).ConfigureAwait(false);
+                }
+#endif
             }
         }
 
