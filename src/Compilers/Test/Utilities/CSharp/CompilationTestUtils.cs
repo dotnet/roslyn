@@ -391,14 +391,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             static IOperation getOperation(SemanticModel model, SyntaxNode expression)
             {
-                // Nullable suppressions are not directly represented in the bound tree. Rather, they are set
-                // as flags on the bound node underlying the node. Therefore, there is similarly no representation
-                // in the IOperation tree, and we should retrieve the IOperation node underlying the suppression.
-                if (expression.IsKind(SyntaxKind.SuppressNullableWarningExpression))
+                while (true)
                 {
-                    expression = ((PostfixUnaryExpressionSyntax)expression).Operand;
+                    // Nullable suppressions and parenthesized expressions are not directly represented in the bound tree.
+                    // Rather, they are set as flags on the bound node underlying the node. Therefore, there is similarly
+                    // no representation in the IOperation tree, and we should retrieve the IOperation node underlying
+                    // the expression.
+                    switch (expression)
+                    {
+                        case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression, Operand: { } operand }:
+                            expression = operand;
+                            continue;
+
+                        case ParenthesizedExpressionSyntax { Expression: { }  nested }:
+                            expression = nested;
+                            continue;
+
+                        default:
+                            goto getOperation;
+                    }
                 }
 
+getOperation:
                 return model.GetOperation(expression);
             }
         }
