@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal partial class FindReferencesSearchEngine
     {
-        private async Task ProcessProjectAsync(Project project, DocumentMap documentMap)
+        private async Task ProcessProjectAsync(
+            Project project,
+            DocumentMap documentMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, _cancellationToken))
             {
