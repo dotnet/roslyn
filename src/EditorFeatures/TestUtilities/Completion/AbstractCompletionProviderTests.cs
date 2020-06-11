@@ -260,8 +260,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected async Task VerifyProviderCommitAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit,
-            char? commitChar, string textTypedSoFar, SourceCodeKind? sourceCodeKind = null)
+        protected async Task VerifyProviderCommitAsync(
+            string markupBeforeCommit,
+            string itemToCommit,
+            string expectedCodeAfterCommit,
+            char? commitChar,
+            string textTypedSoFar,
+            SourceCodeKind? sourceCodeKind = null)
         {
             WorkspaceFixture.GetWorkspace(markupBeforeCommit, ExportProvider);
 
