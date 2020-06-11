@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -53,6 +52,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         documentMap.Add(document, (symbol, finder));
                     }
                 }
+
+#if DEBUG
+                foreach (var (project, documentMap) in finalMap)
+                {
+                    Contract.ThrowIfTrue(documentMap.Any(kvp1 => kvp1.Value.Count != kvp1.Value.ToSet().Count));
+                }
+#endif
 
                 return finalMap;
             }
