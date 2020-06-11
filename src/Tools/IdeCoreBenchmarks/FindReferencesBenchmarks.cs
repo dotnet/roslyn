@@ -92,9 +92,13 @@ namespace IdeCoreBenchmarks
             var compilation = await project.GetCompilationAsync();
             Console.WriteLine("Time to get first compilation: " + (DateTime.Now - start));
 
-            Console.WriteLine("Pausing 5 seconds");
-            Thread.Sleep(5000);
+            //Console.WriteLine("Pausing 5 seconds");
+            //Thread.Sleep(5000);
 
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
+            Process.GetCurrentProcess().PriorityBoostEnabled = false;
+
+            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.SyntaxToken");
             await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.SyntaxToken");
 
             //await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.SyntaxFacts");

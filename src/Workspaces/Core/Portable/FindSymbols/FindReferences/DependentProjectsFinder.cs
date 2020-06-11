@@ -27,15 +27,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static partial class DependentProjectsFinder
     {
-        /// <summary>
-        /// Dependent projects cache.
-        /// For a given solution, maps from an assembly (source-project or metadata-assembly) to the set of projects referencing it.
-        ///     Key: DefinitionProject, which contains the project-id for a source-project-assembly, or assembly-name for a metadata-assembly.
-        ///     Value: List of DependentProjects, where each DependentProject contains a dependent project ID and a flag indicating whether the dependent project has internals access to definition project.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Solution, DependentProjectMap> s_dependentProjectsCache =
-            new ConditionalWeakTable<Solution, DependentProjectMap>();
-
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
             Solution solution, ISymbol symbol, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
         {
@@ -81,21 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // 1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
 
             var visibility = symbol.GetResultantVisibility();
-            if (visibility == SymbolVisibility.Private)
-            {
-                // For private symbols, we only need the current project (and related submissions).  No need to cache
-                // that, just simply compute and return the result.
-                return GetProjects(solution, await ComputeDependentProjectsAsync(solution, symbolOrigination, visibility, cancellationToken).ConfigureAwait(false));
-            }
-
-            // Otherwise, for non-private symbols, we cache the dependent projects for non-private symbols to speed up
-            // future calls.
-            var dependentProjectsMap = s_dependentProjectsCache.GetValue(solution, _ => new DependentProjectMap());
-
-            var asyncLazy = dependentProjectsMap.GetOrAdd(
-                new DefinitionProject(symbolOrigination.sourceProject?.Id, symbolOrigination.assembly.Name.ToLower()),
-                _ => AsyncLazy.Create(c => ComputeDependentProjectsAsync(solution, symbolOrigination, visibility, c), cacheResult: true));
-            var dependentProjects = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var dependentProjects = await ComputeDependentProjectsAsync(solution, symbolOrigination, visibility, cancellationToken).ConfigureAwait(false);
 
             // 2) Filter the above computed dependent projects based on symbol visibility.
             return GetProjects(solution, visibility == SymbolVisibility.Internal
