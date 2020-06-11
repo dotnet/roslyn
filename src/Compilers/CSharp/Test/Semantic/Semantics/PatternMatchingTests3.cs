@@ -1232,21 +1232,20 @@ Target->Ultimate
     }
 }";
             CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (6,29): error CS8521: Pattern-matching is not permitted for pointer types.
+                // (6,29): error CS8370: Feature 'null pointer constant pattern' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     bool M1(int* p) => p is null; // 1
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(6, 29),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "null").WithArguments("null pointer constant pattern", "8.0").WithLocation(6, 29),
                 // (7,29): error CS8521: Pattern-matching is not permitted for pointer types.
                 //     bool M2(int* p) => p is var _; // 2
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(7, 29),
-                // (12,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                // (12,18): error CS8370: Feature 'null pointer constant pattern' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //             case null: // 3
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(12, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "null").WithArguments("null pointer constant pattern", "8.0").WithLocation(12, 18),
                 // (20,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //             case var _: // 4
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(20, 18)
-                );
-            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                );
+            );
+            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
@@ -2923,14 +2922,18 @@ class C
             }
         }
 
-        [Fact]
-        public void Relational_SignedEnumExhaustive()
+        [Theory]
+        [InlineData("sbyte", true)]
+        [InlineData("short", true)]
+        [InlineData("int", true)]
+        [InlineData("long", true)]
+        [InlineData("sbyte", false)]
+        [InlineData("short", false)]
+        [InlineData("int", false)]
+        [InlineData("long", false)]
+        public void Relational_SignedEnumExhaustive(string typeName, bool withExhaustive)
         {
-            foreach (var typeName in new[] { "sbyte", "short", "int", "long" })
-            {
-                foreach (var withExhaustive in new[] { false, true })
-                {
-                    var source = @"
+            var source = @"
 enum E : " + typeName + @"
 {
     Zero,
@@ -2957,21 +2960,19 @@ class C
 " : "")
 + @"    };
 }";
-                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
-                    if (withExhaustive)
-                    {
-                        compilation.VerifyDiagnostics(
-                            );
-                    }
-                    else
-                    {
-                        compilation.VerifyDiagnostics(
-                            // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
-                            //     static int M(E c) => c switch
-                            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
-                            );
-                    }
-                }
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            if (withExhaustive)
+            {
+                compilation.VerifyEmitDiagnostics(
+                    );
+            }
+            else
+            {
+                compilation.VerifyEmitDiagnostics(
+                    // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                    //     static int M(E c) => c switch
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
+                    );
             }
         }
 
@@ -5500,6 +5501,144 @@ class C
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 17)
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(44398, "https://github.com/dotnet/roslyn/issues/44398")]
+        public void MismatchedExpressionPattern()
+        {
+            var source =
+@"class C
+{
+    static void M(int a)
+    {
+        if (a is a is > 0 and < 500) { }
+        if (true is < 0) { }
+        if (true is 0) { }
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (5,18): error CS0150: A constant value is expected
+                //         if (a is a is > 0 and < 500) { }
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "a").WithLocation(5, 18),
+                // (5,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (a is a is > 0 and < 500) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(5, 25),
+                // (5,33): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (a is a is > 0 and < 500) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "500").WithArguments("int", "bool").WithLocation(5, 33),
+                // (6,21): error CS8781: Relational patterns may not be used for a value of type 'bool'.
+                //         if (true is < 0) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0").WithArguments("bool").WithLocation(6, 21),
+                // (6,23): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (true is < 0) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(6, 23),
+                // (7,21): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (true is 0) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(7, 21)
+                );
+        }
+
+        [Fact, WorkItem(44518, "https://github.com/dotnet/roslyn/issues/44518")]
+        public void ErrorRecovery_01()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        _ = is < true;
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS1525: Invalid expression term 'is'
+                //         _ = is < true;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(5, 13)
+                );
+        }
+
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
+        public void ErrorRecovery_02()
+        {
+            var source =
+@"using System;
+public class C {
+    public void M(nint x) {
+        int z = x switch{
+                1=>//1,
+                2=>2,
+        };
+        Console.WriteLine(z);
+    }
+    public void M(nuint x) {
+        int z = x switch{
+                1=>//1,
+                2=>2,
+        };
+        Console.WriteLine(z);
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS1003: Syntax error, ',' expected
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 18),
+                // (6,18): error CS8504: Pattern missing
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 18),
+                // (13,18): error CS1003: Syntax error, ',' expected
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(13, 18),
+                // (13,18): error CS8504: Pattern missing
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(13, 18)
+                );
+        }
+
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
+        public void ErrorRecovery_03()
+        {
+            var source =
+@"public class C {
+    public void M(nint x) {
+        _ = x is >= 1 and;
+    }
+    public void M(nuint x) {
+        _ = x is >= 1 and;
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,26): error CS8504: Pattern missing
+                //         _ = x is >= 1 and;
+                Diagnostic(ErrorCode.ERR_MissingPattern, ";").WithLocation(3, 26),
+                // (6,26): error CS8504: Pattern missing
+                //         _ = x is >= 1 and;
+                Diagnostic(ErrorCode.ERR_MissingPattern, ";").WithLocation(6, 26)
+                );
+        }
+
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
+        public void ErrorRecovery_04()
+        {
+            var source =
+@"public class C {
+    public void M() {
+        _ = 0f is >= 0/0;
+        _ = 0d is >= 0/0;
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,22): error CS0020: Division by constant zero
+                //         _ = 0f is >= 0/0;
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "0/0").WithLocation(3, 22),
+                // (4,22): error CS0020: Division by constant zero
+                //         _ = 0d is >= 0/0;
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "0/0").WithLocation(4, 22)
+                );
         }
     }
 }

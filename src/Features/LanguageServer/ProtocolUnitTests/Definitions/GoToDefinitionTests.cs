@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         }
 
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(Solution solution, LSP.Location caret)
-            => (LSP.Location[])await GetLanguageServer(solution).GoToDefinitionAsync(solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
+                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
     }
 }

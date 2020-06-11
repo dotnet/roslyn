@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             foreach (var referencedProject in referencedProjects.Where(p => p.SupportsCompilation))
             {
                 var compilation = await referencedProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var assembly = SymbolFinder.FindSimilarSymbols(compilation.Assembly, currentCompilation).SingleOrDefault();
+                var assembly = SymbolFinder.FindSimilarSymbols(compilation.Assembly, currentCompilation, cancellationToken).SingleOrDefault();
                 var metadataReference = currentCompilation.GetMetadataReference(assembly);
 
                 if (HasGlobalAlias(metadataReference))

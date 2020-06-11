@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return New DescriptionAndNode(VBFeaturesResources.Insert_Await, newRoot)
         End Function
 
-        Private Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Private Shared Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim expression = TryCast(oldNode, ExpressionSyntax)
             If expression Is Nothing Then
                 Return SpecializedTasks.Null(Of SyntaxNode)()
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End Select
         End Function
 
-        Private Function DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
             If Not IsInAsyncBlock(expression) Then
                 Return False
             End If
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return typeArguments.Any(Function(ta) inferredTypes.Any(Function(it) compilation.ClassifyConversion(it, ta).Exists))
         End Function
 
-        Private Function IsInAsyncBlock(expression As ExpressionSyntax) As Boolean
+        Private Shared Function IsInAsyncBlock(expression As ExpressionSyntax) As Boolean
 
             For Each ancestor In expression.Ancestors
                 Select Case ancestor.Kind
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return False
         End Function
 
-        Private Function DoesExpressionReturnTask(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function DoesExpressionReturnTask(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Dim taskType As INamedTypeSymbol = Nothing
             Dim returnType As INamedTypeSymbol = Nothing
             Return TryGetTaskType(semanticModel, taskType) AndAlso

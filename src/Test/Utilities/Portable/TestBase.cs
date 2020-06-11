@@ -100,10 +100,8 @@ namespace Roslyn.Test.Utilities
                 var objectModel =
                     AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_ObjectModel).GetReference(display: "System.ObjectModel.dll");
 
-
                 var uixaml = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml).
                     GetReference(display: "System.Runtime.WindowsRuntime.UI.Xaml.dll");
-
 
                 var interop = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime).
                     GetReference(display: "System.Runtime.InteropServices.WindowsRuntime.dll");

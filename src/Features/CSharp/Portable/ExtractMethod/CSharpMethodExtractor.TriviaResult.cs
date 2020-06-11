@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return (location, tokenPair, triviaMap) => TriviaResolver(location, tokenPair, triviaMap, method);
             }
 
-            private SyntaxToken AnnotationResolver(
+            private static SyntaxToken AnnotationResolver(
                 SyntaxNode node,
                 TriviaLocation location,
                 SyntaxAnnotation annotation,
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 };
             }
 
-            private (BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken) GetResolverElements(SyntaxNode method)
+            private static (BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken) GetResolverElements(SyntaxNode method)
             {
                 return method switch
                 {
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return allList;
             }
 
-            private IEnumerable<SyntaxTrivia> AppendLeadingTrivia(PreviousNextTokenPair tokenPair)
+            private static IEnumerable<SyntaxTrivia> AppendLeadingTrivia(PreviousNextTokenPair tokenPair)
             {
                 if (tokenPair.PreviousToken.RawKind == (int)SyntaxKind.OpenBraceToken ||
                     tokenPair.PreviousToken.RawKind == (int)SyntaxKind.SemicolonToken)
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
             }
 
-            private IEnumerable<SyntaxTrivia> AppendTrailingTrivia(PreviousNextTokenPair tokenPair)
+            private static IEnumerable<SyntaxTrivia> AppendTrailingTrivia(PreviousNextTokenPair tokenPair)
             {
                 if (tokenPair.PreviousToken.RawKind == (int)SyntaxKind.OpenBraceToken ||
                     tokenPair.PreviousToken.RawKind == (int)SyntaxKind.SemicolonToken)

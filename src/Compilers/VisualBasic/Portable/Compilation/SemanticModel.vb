@@ -3432,7 +3432,7 @@ _Default:
             VisualBasicDeclarationComputer.ComputeDeclarationsInSpan(Me, span, getSymbol, builder, cancellationToken)
         End Sub
 
-        Friend Overrides Sub ComputeDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
+        Friend Overrides Sub ComputeDeclarationsInNode(node As SyntaxNode, associatedSymbol As ISymbol, getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
             VisualBasicDeclarationComputer.ComputeDeclarationsInNode(Me, node, getSymbol, builder, cancellationToken)
         End Sub
 

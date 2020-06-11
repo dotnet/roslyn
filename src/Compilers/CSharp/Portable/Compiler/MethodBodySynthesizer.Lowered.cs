@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.RuntimeMembers;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -251,8 +248,106 @@ start:
     /// Contains methods related to synthesizing bound nodes in lowered form 
     /// that does not need any processing before passing to codegen
     /// </summary>
-    internal static partial class MethodBodySynthesizer
+    internal static class MethodBodySynthesizer
     {
+        public const int HASH_FACTOR = -1521134295; // (int)0xa5555529
+
+        public static BoundExpression GenerateHashCombine(
+            BoundExpression currentHashValue,
+            MethodSymbol system_Collections_Generic_EqualityComparer_T__GetHashCode,
+            MethodSymbol system_Collections_Generic_EqualityComparer_T__get_Default,
+            ref BoundLiteral? boundHashFactor,
+            BoundExpression valueToHash,
+            SyntheticBoundNodeFactory F)
+        {
+            TypeSymbol system_Int32 = currentHashValue.Type!;
+            Debug.Assert(system_Int32.SpecialType == SpecialType.System_Int32);
+
+            //  bound HASH_FACTOR
+            boundHashFactor ??= F.Literal(HASH_FACTOR);
+
+            // Generate 'currentHashValue' <= 'currentHashValue * HASH_FACTOR 
+            currentHashValue = F.Binary(BinaryOperatorKind.IntMultiplication, system_Int32, currentHashValue, boundHashFactor);
+
+            // Generate 'currentHashValue' <= 'currentHashValue + EqualityComparer<valueToHash type>.Default.GetHashCode(valueToHash)'
+            currentHashValue = F.Binary(BinaryOperatorKind.IntAddition,
+                                     system_Int32,
+                                     currentHashValue,
+                                     GenerateGetHashCode(system_Collections_Generic_EqualityComparer_T__GetHashCode, system_Collections_Generic_EqualityComparer_T__get_Default, valueToHash, F));
+            return currentHashValue;
+        }
+
+        public static BoundCall GenerateGetHashCode(
+            MethodSymbol system_Collections_Generic_EqualityComparer_T__GetHashCode,
+            MethodSymbol system_Collections_Generic_EqualityComparer_T__get_Default,
+            BoundExpression valueToHash,
+            SyntheticBoundNodeFactory F)
+        {
+            // Prepare constructed symbols
+            NamedTypeSymbol equalityComparerType = system_Collections_Generic_EqualityComparer_T__GetHashCode.ContainingType;
+            NamedTypeSymbol constructedEqualityComparer = equalityComparerType.Construct(valueToHash.Type);
+
+            return F.Call(F.StaticCall(constructedEqualityComparer,
+                                       system_Collections_Generic_EqualityComparer_T__get_Default.AsMember(constructedEqualityComparer)),
+                          system_Collections_Generic_EqualityComparer_T__GetHashCode.AsMember(constructedEqualityComparer),
+                          valueToHash);
+        }
+
+        /// <summary>
+        /// Given a set of fields, produce an expression that is true when all of the given fields on
+        /// `this` are equal to the fields on <paramref name="otherReceiver" /> according to the
+        /// default EqualityComparer.
+        /// </summary>
+        public static BoundExpression GenerateFieldEquals(
+            BoundExpression? initialExpression,
+            BoundExpression otherReceiver,
+            ArrayBuilder<FieldSymbol> fields,
+            SyntheticBoundNodeFactory F)
+        {
+            Debug.Assert(fields.Count > 0);
+
+            //  Expression:
+            //
+            //      System.Collections.Generic.EqualityComparer<T_1>.Default.Equals(this.backingFld_1, value.backingFld_1)
+            //      ...
+            //      && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, value.backingFld_N)
+
+            //  prepare symbols
+            var equalityComparer_get_Default = F.WellKnownMethod(
+                WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
+            var equalityComparer_Equals = F.WellKnownMethod(
+                WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals);
+
+            NamedTypeSymbol equalityComparerType = equalityComparer_Equals.ContainingType;
+
+            BoundExpression? retExpression = initialExpression;
+
+            // Compare fields
+            foreach (var field in fields)
+            {
+                // Prepare constructed comparer
+                var constructedEqualityComparer = equalityComparerType.Construct(field.Type);
+
+                // System.Collections.Generic.EqualityComparer<T_index>.
+                //   Default.Equals(this.backingFld_index, local.backingFld_index)'
+                BoundExpression nextEquals = F.Call(
+                    F.StaticCall(constructedEqualityComparer,
+                                 equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
+                    equalityComparer_Equals.AsMember(constructedEqualityComparer),
+                    F.Field(F.This(), field),
+                    F.Field(otherReceiver, field));
+
+                // Generate 'retExpression' = 'retExpression && nextEquals'
+                retExpression = retExpression is null
+                    ? nextEquals
+                    : F.LogicalAnd(retExpression, nextEquals);
+            }
+
+            RoslynDebug.AssertNotNull(retExpression);
+
+            return retExpression;
+        }
+
         /// <summary>
         /// Construct a body for a method containing a call to a single other method with the same signature (modulo name).
         /// </summary>
@@ -263,12 +358,11 @@ start:
         internal static BoundBlock ConstructSingleInvocationMethodBody(SyntheticBoundNodeFactory F, MethodSymbol methodToInvoke, bool useBaseReference)
         {
             var argBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-            //var refKindBuilder = ArrayBuilder<RefKind>.GetInstance();
 
+            RoslynDebug.AssertNotNull(F.CurrentFunction);
             foreach (var param in F.CurrentFunction.Parameters)
             {
                 argBuilder.Add(F.Parameter(param));
-                //refKindBuilder.Add(param.RefKind);
             }
 
             BoundExpression invocation = F.Call(useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.ContainingType) : F.This(),

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             // If we're on a method declaration, we'll get an IMethodSymbol back.  In that case, check
             // if it has the 'Async' suffix, and remove that suffix if so.
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
+            var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
 
             var isOrdinaryOrLocalFunction = methodSymbolOpt.IsOrdinaryMethodOrLocalFunction();
             if (isOrdinaryOrLocalFunction &&
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
                 newDocument, annotation, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> RemoveAwaitFromCallersAsync(
+        private static async Task<Solution> RemoveAwaitFromCallersAsync(
             Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                if (semanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol)
+                if (semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol methodSymbol)
                 {
                     var references = await SymbolFinder.FindRenamableReferencesAsync(
                         methodSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             return document.Project.Solution;
         }
 
-        private async Task<Solution> RemoveAwaitFromCallersAsync(
+        private static async Task<Solution> RemoveAwaitFromCallersAsync(
             Solution solution, ImmutableArray<ReferenceLocation> locations, CancellationToken cancellationToken)
         {
             var currentSolution = solution;
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             return currentSolution;
         }
 
-        private async Task<Solution> RemoveAwaitFromCallersAsync(
+        private static async Task<Solution> RemoveAwaitFromCallersAsync(
             Solution currentSolution, IGrouping<Document, ReferenceLocation> group, CancellationToken cancellationToken)
         {
             var document = group.Key;
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             return currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
         }
 
-        private void RemoveAwaitFromCallerIfPresent(
+        private static void RemoveAwaitFromCallerIfPresent(
             SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             SyntaxNode root, ReferenceLocation referenceLocation,
             CancellationToken cancellationToken)

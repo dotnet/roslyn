@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // This will find explicit calls to the method (which can happen when C# references
             // a VB parameterized property).
             var result = await FindDocumentsAsync(
-                project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+                project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name).ConfigureAwait(false);
 
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)

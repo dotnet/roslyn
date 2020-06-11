@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticService(
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : this()
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
+        private static bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
         {
             if (key == null)
             {
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [Conditional("DEBUG")]
-        private void AssertIfNull(ImmutableArray<DiagnosticData> diagnostics)
+        private static void AssertIfNull(ImmutableArray<DiagnosticData> diagnostics)
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [Conditional("DEBUG")]
-        private void AssertIfNull<T>(T obj) where T : class
+        private static void AssertIfNull<T>(T obj) where T : class
         {
             if (obj == null)
             {
@@ -405,6 +405,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Id = args.Id;
                 Diagnostics = diagnostics;
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly DiagnosticService _diagnosticService;
+
+            internal TestAccessor(DiagnosticService diagnosticService)
+                => _diagnosticService = diagnosticService;
+
+            internal ref readonly EventListenerTracker<IDiagnosticService> EventListenerTracker
+                => ref _diagnosticService._eventListenerTracker;
         }
     }
 }

@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.VisualStudio.Text
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     <[UseExportProvider]>
@@ -22,6 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 &lt;/html&gt;
 </text>.NormalizedValue
         Private Shared s_baseIndentationOfNugget As Integer = 8
+
+        Public Sub New(output As ITestOutputHelper)
+            MyBase.New(output)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -883,7 +888,6 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestWithStatement()
@@ -989,7 +993,6 @@ End Class</Code>.Value
                 indentationLine:=6,
                 expectedIndentation:=16)
         End Sub
-
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>

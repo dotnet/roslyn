@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(", IsImplicit");
             }
 
-
             LogString(")");
 
             // Syntax
@@ -766,9 +765,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Operation, "Expression");
         }
 
-        internal override void VisitWith(IWithOperation operation)
+        internal override void VisitWithStatement(IWithStatementOperation operation)
         {
-            LogString(nameof(IWithOperation));
+            LogString(nameof(IWithStatementOperation));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, "Value");
@@ -1972,6 +1971,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Operand, "Operand");
             VisitArray(operation.DimensionSizes, "DimensionSizes", logElementCount: true);
+        }
+
+        public override void VisitWith(IWithOperation operation)
+        {
+            LogString(nameof(IWithOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.Value, "Value");
+            Indent();
+            LogSymbol(operation.CloneMethod, nameof(operation.CloneMethod));
+            LogNewLine();
+            Unindent();
+            Visit(operation.Initializer, "Initializer");
         }
 
         #endregion

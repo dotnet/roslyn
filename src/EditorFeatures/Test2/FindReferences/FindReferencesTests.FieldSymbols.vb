@@ -511,5 +511,24 @@ class Definition:Program
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFieldReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~F:C.[|i|]")]
+
+        class C
+        {
+            int {|Definition:$$i|};
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

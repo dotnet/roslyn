@@ -367,7 +367,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.BodyEnd
 
-
                 Case SyntaxKind.SimpleDoLoopBlock,
                      SyntaxKind.DoWhileLoopBlock,
                      SyntaxKind.DoUntilLoopBlock,
@@ -388,7 +387,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.EndWhileStatement
                     Return Label.EndLoop
 
-
                 Case SyntaxKind.ForBlock
                     Return Label.ForBlock
 
@@ -408,7 +406,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.NextStatement
 
-
                 Case SyntaxKind.UsingBlock
                     Return Label.UsingBlock
 
@@ -418,7 +415,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.EndUsingStatement
                     isLeaf = True
                     Return Label.EndUsingStatement
-
 
                 Case SyntaxKind.SyncLockBlock
                     Return Label.SyncLockBlock
@@ -430,7 +426,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.EndSyncLockStatement
 
-
                 Case SyntaxKind.WithBlock
                     Return Label.WithBlock
 
@@ -441,7 +436,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.EndWithStatement
 
-
                 Case SyntaxKind.LocalDeclarationStatement
                     Return Label.LocalDeclarationStatement
 
@@ -450,7 +444,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.ModifiedIdentifier
                     Return Label.LocalVariableName
-
 
                 Case SyntaxKind.MultiLineIfBlock,
                      SyntaxKind.SingleLineIfStatement
@@ -481,7 +474,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.EndIfStatement
 
-
                 Case SyntaxKind.TryBlock
                     Return Label.TryBlock
 
@@ -509,7 +501,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.EndTryStatement
                     isLeaf = True
                     Return Label.EndTryStatement
-
 
                 Case SyntaxKind.ErrorStatement
                     isLeaf = True
@@ -558,7 +549,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.EndSelectStatement
 
-
                 Case SyntaxKind.ExitForStatement,
                      SyntaxKind.ExitDoStatement,
                      SyntaxKind.ExitWhileStatement,
@@ -579,7 +569,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.ReturnStatement
                     Return Label.ReturnStatement
-
 
                 Case SyntaxKind.GoToStatement,
                      SyntaxKind.StopStatement,
