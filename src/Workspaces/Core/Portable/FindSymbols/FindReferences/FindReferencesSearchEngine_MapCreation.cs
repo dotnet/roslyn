@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -23,42 +26,46 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, _cancellationToken))
             {
+                using var _ = ArrayBuilder<Task<(ImmutableArray<Document>, ISymbol, IReferenceFinder)>>.GetInstance(out var tasks);
+
+                foreach (var (project, projectQueue) in projectMap)
+                {
+                    foreach (var (symbol, finder) in projectQueue)
+                    {
+                        tasks.Add(Task.Run(() =>
+                            DetermineDocumentsToSearchAsync(project, symbol, finder), _cancellationToken));
+                    }
+                }
+
                 var finalMap = new ProjectToDocumentMap();
 
-                foreach (var kvp in projectMap)
+                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+                foreach (var (documents, symbol, finder) in results)
                 {
-                    var project = kvp.Key;
-                    var projectQueue = kvp.Value;
-
-                    var documentMap = new DocumentMap();
-
-                    foreach (var symbolAndFinder in projectQueue)
+                    foreach (var document in documents)
                     {
-                        _cancellationToken.ThrowIfCancellationRequested();
-
-                        var (symbol, finder) = symbolAndFinder;
-
-                        var documents = await finder.DetermineDocumentsToSearchAsync(
-                            symbol, project, _documents, _options, _cancellationToken).ConfigureAwait(false);
-                        foreach (var document in documents.Distinct().WhereNotNull())
+                        if (!finalMap.TryGetValue(document.Project, out var documentMap))
                         {
-                            if (_documents == null || _documents.Contains(document))
-                            {
-                                documentMap.Add(document, symbolAndFinder);
-                            }
+                            documentMap = new DocumentMap();
+                            finalMap.Add(document.Project, documentMap);
                         }
-                    }
 
-                    Contract.ThrowIfTrue(documentMap.Any(kvp1 => kvp1.Value.Count != kvp1.Value.ToSet().Count));
-
-                    if (documentMap.Count > 0)
-                    {
-                        finalMap.Add(project, documentMap);
+                        documentMap.Add(document, (symbol, finder));
                     }
                 }
 
                 return finalMap;
             }
+        }
+
+        private async Task<(ImmutableArray<Document>, ISymbol, IReferenceFinder)> DetermineDocumentsToSearchAsync(
+            Project project, ISymbol symbol, IReferenceFinder finder)
+        {
+            var documents = await finder.DetermineDocumentsToSearchAsync(
+                symbol, project, _documents, _options, _cancellationToken).ConfigureAwait(false);
+            var finalDocs = documents.WhereNotNull().Where(
+                d => _documents == null || _documents.Contains(d)).ToImmutableArray();
+            return (finalDocs, symbol, finder);
         }
 
         private async Task<ProjectMap> CreateProjectMapAsync(ConcurrentSet<ISymbol> symbols)
