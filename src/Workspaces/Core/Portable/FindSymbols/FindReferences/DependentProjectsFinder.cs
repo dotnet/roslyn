@@ -239,8 +239,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Ok, we have some project that at least references this assembly.  Add it to the result, keeping track
                 // if it can see internals or not as well.
                 internalsVisibleToSet ??= GetInternalsVisibleToSet(symbolOrigination.assembly);
-                var internalsVisableTo = internalsVisibleToSet.Contains(project.AssemblyName);
-                dependentProjects.Add(new DependentProject(project.Id, internalsVisableTo));
+                var internalsVisibleTo = internalsVisibleToSet.Contains(project.AssemblyName);
+                dependentProjects.Add(new DependentProject(project.Id, internalsVisibleTo));
             }
         }
 
