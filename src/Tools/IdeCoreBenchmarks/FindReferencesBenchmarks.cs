@@ -74,7 +74,7 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public async Task RunAnalyzer()
+        public async Task RunFindReferences()
         {
             var solution = _workspace.CurrentSolution;
             var project = solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis.CSharp");

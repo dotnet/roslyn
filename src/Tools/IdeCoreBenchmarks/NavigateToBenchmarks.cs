@@ -75,7 +75,7 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public async Task RunAnalyzer()
+        public async Task RunNavigateTo()
         {
             var solution = _workspace.CurrentSolution;
             // Search each project with an independent threadpool task.
