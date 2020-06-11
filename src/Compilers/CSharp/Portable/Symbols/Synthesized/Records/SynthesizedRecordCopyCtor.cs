@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (HasCopyConstructorSignature(member) &&
                     !member.HasUnsupportedMetadata &&
-                    AccessCheck.IsSymbolAccessible(member.OriginalDefinition, within.OriginalDefinition, ref useSiteDiagnostics))
+                    AccessCheck.IsSymbolAccessible(member, within, ref useSiteDiagnostics))
                 {
                     return member;
                 }
