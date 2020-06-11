@@ -226,8 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ConvertSwitchExpression(BoundUnconvertedSwitchExpression source, TypeSymbol destination, Conversion? conversionIfTargetTyped, DiagnosticBag diagnostics, bool hasErrors = false)
         {
             bool targetTyped = conversionIfTargetTyped != null;
+            Conversion conversion = conversionIfTargetTyped ?? Conversion.Identity;
             Debug.Assert(targetTyped || destination.IsErrorType() || destination.Equals(source.Type, TypeCompareKind.ConsiderEverything));
-            ImmutableArray<Conversion> underlyingConversions = conversionIfTargetTyped.GetValueOrDefault().UnderlyingConversions;
+            ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
             var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance(source.SwitchArms.Length);
             for (int i = 0, n = source.SwitchArms.Length; i < n; i++)
             {
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
-                source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.DecisionDag,
+                source.Syntax, source.Type, targetTyped, conversion, source.Expression, newSwitchArms, source.DecisionDag,
                 source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors);
         }
 

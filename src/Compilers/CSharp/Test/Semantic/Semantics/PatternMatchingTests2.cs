@@ -2596,5 +2596,139 @@ public class C
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "s is string or null").WithArguments("string").WithLocation(7, 13)
                 );
         }
+
+        [Fact]
+        public void SemanticModelForSwitchExpression()
+        {
+            var source =
+@"public class C
+{
+    void M(int i)
+    {
+        C x0 = i switch // 0
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        _ = i switch // 1
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        D x2 = i switch // 2
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        D x3 = i switch // 3
+        {
+            0 => new E(), // 3.1
+            1 => new F(), // 3.2
+            _ => throw null,
+        };
+        C x4 = i switch // 4
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        };
+        D x5 = i switch // 5
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        };
+        D x6 = i switch // 6
+        {
+            0 => 1,
+            1 => 2,
+            _ => throw null,
+        };
+    }
+}
+
+class A : C { }
+class B : C { }
+class D
+{
+    public static implicit operator D(C c) => throw null;
+    public static implicit operator D(short s) => throw null;
+}
+class E
+{
+    public static implicit operator C(E c) => throw null;
+}
+class F
+{
+    public static implicit operator C(F c) => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (11,15): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch // 1
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(11, 15),
+                // (25,18): error CS0029: Cannot implicitly convert type 'E' to 'D'
+                //             0 => new E(), // 3.1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new E()").WithArguments("E", "D").WithLocation(25, 18),
+                // (26,18): error CS0029: Cannot implicitly convert type 'F' to 'D'
+                //             1 => new F(), // 3.2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(26, 18)
+                );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var switches = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().ToArray();
+            for (int i = 0; i < switches.Length; i++)
+            {
+                var @switch = switches[i];
+                var typeInfo = model.GetTypeInfo(@switch);
+                var conversion = model.GetConversion(@switch);
+                switch (i)
+                {
+                    case 0:
+                        Assert.Null(typeInfo.Type);
+                        Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
+                        Assert.Equal(ConversionKind.SwitchExpression, conversion.Kind);
+                        break;
+                    case 1:
+                        Assert.Null(typeInfo.Type);
+                        Assert.True(typeInfo.ConvertedType.IsErrorType());
+                        Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                        break;
+                    case 2:
+                        Assert.Null(typeInfo.Type);
+                        Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
+                        Assert.Equal(ConversionKind.SwitchExpression, conversion.Kind);
+                        break;
+                    case 3:
+                        Assert.True(typeInfo.Type.IsErrorType());
+                        Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
+                        Assert.Equal(ConversionKind.NoConversion, conversion.Kind);
+                        break;
+                    case 4:
+                        Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+                        Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
+                        Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                        break;
+                    case 5:
+                        Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+                        Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
+                        Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
+                        break;
+                    case 6:
+                        Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+                        Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
+                        Assert.Equal(ConversionKind.SwitchExpression, conversion.Kind);
+                        break;
+                    default:
+                        Assert.False(true);
+                        break;
+                }
+            }
+        }
     }
 }
