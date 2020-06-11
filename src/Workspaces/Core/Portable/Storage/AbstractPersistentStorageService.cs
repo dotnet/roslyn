@@ -74,11 +74,13 @@ namespace Microsoft.CodeAnalysis.Storage
                     return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage!);
                 }
 
-                var workingFolder = _locationService.TryGetStorageLocation(solution);
-                if (workingFolder == null)
-                {
-                    return NoOpPersistentStorage.Instance;
-                }
+                //var workingFolder = _locationService.TryGetStorageLocation(solution);
+                //if (workingFolder == null)
+                //{
+                //    return NoOpPersistentStorage.Instance;
+                //}
+                var workingFolder = @"C:\Users\cyrus\AppData\Local\Temp\RoslynTests\AnalyzerRunner\temp-db";
+                Console.WriteLine("WorkingFolder: " + workingFolder);
 
                 // If we already had some previous cached service, let's let it start cleaning up
                 if (_currentPersistentStorage != null)

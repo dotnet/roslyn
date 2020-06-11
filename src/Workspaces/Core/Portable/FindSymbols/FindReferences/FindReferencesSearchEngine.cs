@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progressTracker = progress.ProgressTracker;
         }
 
-        private TimeSpan _getCompilationsTime;
+        private long _getCompilationsTimeTicks;
 
         public async Task FindReferencesAsync(ISymbol symbol)
         {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 start = DateTime.Now;
                 await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
                 Console.WriteLine("Search cost: " + (DateTime.Now - start));
-                Console.WriteLine("GetCompilations: " + _getCompilationsTime);
+                Console.WriteLine("GetCompilations: " + TimeSpan.FromMilliseconds(_getCompilationsTimeTicks));
             }
             finally
             {
@@ -111,14 +111,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     kvp1 => kvp1.Value.Sum(kvp2 => kvp2.Value.Count));
                 await _progressTracker.AddItemsAsync(totalFindCount).ConfigureAwait(false);
 
-                // Now, go through each connected project set and process it independently.
-                foreach (var connectedProjectSet in connectedProjects)
+                var tasks = new List<Task>();
+                foreach (var (project, documentMap) in projectToDocumentMap)
                 {
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    await ProcessProjectsAsync(
-                        connectedProjectSet, projectToDocumentMap).ConfigureAwait(false);
+                    tasks.Add(Task.Run(() => ProcessProjectAsync(project, documentMap)));
                 }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                //// Now, go through each connected project set and process it independently.
+                //foreach (var connectedProjectSet in connectedProjects)
+                //{
+                //    _cancellationToken.ThrowIfCancellationRequested();
+
+                //    await ProcessProjectsAsync(
+                //        connectedProjectSet, projectToDocumentMap).ConfigureAwait(false);
+                //}
             }
         }
 

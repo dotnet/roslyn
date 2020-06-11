@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Validators;
 
@@ -38,7 +39,7 @@ namespace IdeCoreBenchmarks
         private static void Main(string[] args)
         {
             Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
-            new BenchmarkSwitcher(typeof(Program).Assembly).Run(args, new DebugInProcessConfig());
+            new BenchmarkSwitcher(typeof(Program).Assembly).Run(args);
         }
     }
 }

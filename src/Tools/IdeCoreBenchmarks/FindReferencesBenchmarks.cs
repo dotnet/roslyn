@@ -12,8 +12,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Engines;
+using BenchmarkDotNet.Jobs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -23,9 +25,17 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
 {
-    [MemoryDiagnoser]
+    [Config(typeof(ServerGCConfig))]
     public class FindReferencesBenchmarks
     {
+        private class ServerGCConfig : ManualConfig
+        {
+            public ServerGCConfig()
+            {
+                AddJob(Job.Default.WithGcMode(new GcMode { Server = true }));
+            }
+        }
+
         private readonly string _solutionPath;
 
         private MSBuildWorkspace _workspace;
