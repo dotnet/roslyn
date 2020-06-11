@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal partial class FindReferencesSearchEngine
     {
+        private static readonly Func<Project, DocumentMap> s_createDocumentMap = _ => new DocumentMap();
+
         private async Task<ProjectToDocumentMap> CreateProjectToDocumentMapAsync(ProjectMap projectMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, _cancellationToken))
@@ -36,20 +39,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var finalMap = new ProjectToDocumentMap();
-
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                var finalMap = new ProjectToDocumentMap();
                 foreach (var (documents, symbol, finder) in results)
                 {
                     foreach (var document in documents)
                     {
-                        if (!finalMap.TryGetValue(document.Project, out var documentMap))
-                        {
-                            documentMap = new DocumentMap();
-                            finalMap.Add(document.Project, documentMap);
-                        }
-
-                        documentMap.Add(document, (symbol, finder));
+                        finalMap.GetOrAdd(document.Project, s_createDocumentMap)
+                                .Add(document, (symbol, finder));
                     }
                 }
 
