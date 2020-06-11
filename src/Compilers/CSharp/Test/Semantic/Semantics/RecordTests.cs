@@ -3888,6 +3888,89 @@ public record C(object P1, object P2) : B(0, 1)
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject()
+        {
+            var source =
+@"public record C(int I)
+{
+    public C(C c)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<I>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""object..ctor()""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_UsesThis()
+        {
+            var source =
+@"public record C(int I)
+{
+    public C(C c) : this(c.I)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  callvirt   ""int C.I.get""
+  IL_0007:  call       ""C..ctor(int)""
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_UsesBase()
+        {
+            var source =
+@"public record C(int I)
+{
+    public C(C c) : base()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<I>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""object..ctor()""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_NoPositionalMembers()
         {
             var source =

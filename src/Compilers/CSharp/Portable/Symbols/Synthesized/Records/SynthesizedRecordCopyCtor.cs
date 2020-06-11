@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in containingType.InstanceConstructors)
             {
                 if (HasCopyConstructorSignature(member) &&
+                    !member.HasUnsupportedMetadata &&
                     AccessCheck.IsSymbolAccessible(member.OriginalDefinition, within.OriginalDefinition, ref useSiteDiagnostics))
                 {
                     return member;
