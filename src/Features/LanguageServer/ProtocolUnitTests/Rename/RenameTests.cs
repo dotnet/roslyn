@@ -126,6 +126,6 @@ $@"<Workspace>
 
         private static async Task<WorkspaceEdit> RunRenameAsync(Solution solution, LSP.Location renameLocation, string renamevalue)
            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.RenameParams, LSP.WorkspaceEdit>(LSP.Methods.TextDocumentRenameName,
-               solution, CreateRenameParams(renameLocation, renamevalue), new LSP.ClientCapabilities(), null, CancellationToken.None);
+               CreateRenameParams(renameLocation, renamevalue), new LSP.ClientCapabilities(), null, CancellationToken.None);
     }
 }
