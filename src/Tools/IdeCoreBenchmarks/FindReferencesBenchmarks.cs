@@ -77,6 +77,10 @@ namespace IdeCoreBenchmarks
         public async Task RunFindReferences()
         {
             var solution = _workspace.CurrentSolution;
+
+            // There might be multiple projects with this name.  That's ok.  FAR goes and finds all the linked-projects
+            // anyways  to perform the search on all the equivalent symbols from them.  So the end perf cost is the
+            // same.
             var project = solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis.CSharp");
 
             var start = DateTime.Now;
