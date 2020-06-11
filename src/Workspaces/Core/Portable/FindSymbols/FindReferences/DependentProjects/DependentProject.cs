@@ -9,6 +9,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.DependentProjects
 {
+    /// <summary>
+    /// Represents a project that depends on some assembly, and if that project can see the internal symbols of that
+    /// assembly or not.
+    /// </summary>
     internal readonly struct DependentProject : IEquatable<DependentProject>
     {
         public readonly ProjectId ProjectId;

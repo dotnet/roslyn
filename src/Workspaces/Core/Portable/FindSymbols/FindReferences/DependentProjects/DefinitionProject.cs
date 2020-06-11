@@ -10,10 +10,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.DependentProjects
 {
+    /// <summary>
+    /// The name of the assembly, and optionally also the project, that a symbol came from. Used in the <see
+    /// cref="DependentProjectsFinder"/> to quickly find which set of projects in a solution should searched when
+    /// looking at symbols from that same location.
+    /// </summary>
     internal readonly struct DefinitionProject : IEquatable<DefinitionProject>
     {
         private readonly ProjectId? _sourceProjectId;
-        private readonly string? _assemblyName;
+        private readonly string _assemblyName;
 
         public DefinitionProject(ProjectId? sourceProjectId, string assemblyName)
         {
@@ -29,6 +34,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.DependentProjects
                _assemblyName == other._assemblyName;
 
         public override int GetHashCode()
-            => Hash.Combine(_sourceProjectId, _assemblyName?.GetHashCode() ?? 0);
+            => Hash.Combine(_sourceProjectId, _assemblyName.GetHashCode());
     }
 }
