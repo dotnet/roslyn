@@ -305,7 +305,7 @@ namespace Analyzer.Utilities.Extensions
             if (operation.Instance == null &&
                 operation.Property.ContainingType.IsAnonymousType)
             {
-                var declarationSyntax = operation.Property.ContainingType.DeclaringSyntaxReferences[0].GetSyntax(); // TODO: Should the method take CancellationToken and pass it to GetSyntax() ?
+                var declarationSyntax = operation.Property.ContainingType.DeclaringSyntaxReferences[0].GetSyntax();
                 return operation.GetAncestor(OperationKind.AnonymousObjectCreation, (IAnonymousObjectCreationOperation a) => a.Syntax == declarationSyntax);
             }
 
