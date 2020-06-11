@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -57,7 +58,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
+                var start = DateTime.Now;
                 var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
+                Console.WriteLine("Time to make doc map: " + (DateTime.Now - start));
                 ValidateProjectToDocumentMap(projectToDocumentMap);
 
                 await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
