@@ -64,21 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         private readonly DebuggeeModuleInfoCache _baselineMetadata;
         private readonly IComponentModel _componentModel;
+        private IManagedModuleInfoProvider? _managedModuleInfoProvider;
 
         // Lazily initialized to avoid loading debugger related assemblies during MEF composition.
-        private IManagedModuleInfoProvider? _managedModuleInfoProvider;
         private IManagedModuleInfoProvider ManagedModuleInfoProvider
-        {
-            get
-            {
-                if (_managedModuleInfoProvider == null)
-                {
-                    _managedModuleInfoProvider = _componentModel.GetService<IManagedModuleInfoProvider>();
-                }
-
-                return _managedModuleInfoProvider;
-            }
-        }
+            => _managedModuleInfoProvider ??= _componentModel.GetService<IManagedModuleInfoProvider>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
