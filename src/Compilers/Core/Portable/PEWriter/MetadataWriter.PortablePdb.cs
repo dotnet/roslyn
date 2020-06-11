@@ -950,7 +950,7 @@ namespace Microsoft.Cci
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
-                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.MetadataReferenceInfo),
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
 
             static PEReader GetReader(ISymbol symbol)

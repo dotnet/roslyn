@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.IO;
 using Microsoft.CodeAnalysis.BuildTasks;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -437,7 +438,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb", "subdir\\test.vb");
             vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
-            Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.vb subdir\test.vb", vbc.GenerateResponseFileContents());
+            Assert.Equal(@$"/optionstrict:custom /out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.vb subdir{Path.DirectorySeparatorChar}test.vb", vbc.GenerateResponseFileContents());
 
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");

@@ -250,6 +250,49 @@ start:
     /// </summary>
     internal static class MethodBodySynthesizer
     {
+        public const int HASH_FACTOR = -1521134295; // (int)0xa5555529
+
+        public static BoundExpression GenerateHashCombine(
+            BoundExpression currentHashValue,
+            MethodSymbol system_Collections_Generic_EqualityComparer_T__GetHashCode,
+            MethodSymbol system_Collections_Generic_EqualityComparer_T__get_Default,
+            ref BoundLiteral? boundHashFactor,
+            BoundExpression valueToHash,
+            SyntheticBoundNodeFactory F)
+        {
+            TypeSymbol system_Int32 = currentHashValue.Type!;
+            Debug.Assert(system_Int32.SpecialType == SpecialType.System_Int32);
+
+            //  bound HASH_FACTOR
+            boundHashFactor ??= F.Literal(HASH_FACTOR);
+
+            // Generate 'currentHashValue' <= 'currentHashValue * HASH_FACTOR 
+            currentHashValue = F.Binary(BinaryOperatorKind.IntMultiplication, system_Int32, currentHashValue, boundHashFactor);
+
+            // Generate 'currentHashValue' <= 'currentHashValue + EqualityComparer<valueToHash type>.Default.GetHashCode(valueToHash)'
+            currentHashValue = F.Binary(BinaryOperatorKind.IntAddition,
+                                     system_Int32,
+                                     currentHashValue,
+                                     GenerateGetHashCode(system_Collections_Generic_EqualityComparer_T__GetHashCode, system_Collections_Generic_EqualityComparer_T__get_Default, valueToHash, F));
+            return currentHashValue;
+        }
+
+        public static BoundCall GenerateGetHashCode(
+            MethodSymbol system_Collections_Generic_EqualityComparer_T__GetHashCode,
+            MethodSymbol system_Collections_Generic_EqualityComparer_T__get_Default,
+            BoundExpression valueToHash,
+            SyntheticBoundNodeFactory F)
+        {
+            // Prepare constructed symbols
+            NamedTypeSymbol equalityComparerType = system_Collections_Generic_EqualityComparer_T__GetHashCode.ContainingType;
+            NamedTypeSymbol constructedEqualityComparer = equalityComparerType.Construct(valueToHash.Type);
+
+            return F.Call(F.StaticCall(constructedEqualityComparer,
+                                       system_Collections_Generic_EqualityComparer_T__get_Default.AsMember(constructedEqualityComparer)),
+                          system_Collections_Generic_EqualityComparer_T__GetHashCode.AsMember(constructedEqualityComparer),
+                          valueToHash);
+        }
+
         /// <summary>
         /// Given a set of fields, produce an expression that is true when all of the given fields on
         /// `this` are equal to the fields on <paramref name="otherReceiver" /> according to the

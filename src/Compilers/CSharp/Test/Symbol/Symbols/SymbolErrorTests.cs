@@ -10577,22 +10577,22 @@ interface IA
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-    // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
-    //         clx a = new clx();   // CS8036
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly").WithLocation(12, 13),
-    // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
-    //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
-    // (12,13): warning CS0169: The field 'cly.a' is never used
-    //         clx a = new clx();   // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
-    // (13,13): warning CS0169: The field 'cly.i' is never used
-    //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
-    // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
-    //         static int s = 2;    // no error
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
-    );
+                // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly").WithLocation(12, 13),
+                // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                //         int i = 7;           // CS8036
+                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
+                // (12,13): warning CS0169: The field 'cly.a' is never used
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+                // (13,13): warning CS0169: The field 'cly.i' is never used
+                //         int i = 7;           // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
+                //         static int s = 2;    // no error
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
+            );
         }
 
         [Fact]
@@ -14697,16 +14697,16 @@ class C
 }
 ";
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-// (5,5): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
+// (5,5): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
 //     ArgIterator M(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-// (11,12): error CS1599: Method or delegate cannot return type 'System.RuntimeArgumentHandle'
+// (11,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.RuntimeArgumentHandle'
 //     public RuntimeArgumentHandle Test2() // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle"),
-// (17,19): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
+// (17,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
 //     public static ArgIterator operator +(C c1, C c2) // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-// (9,21): error CS1599: Method or delegate cannot return type 'System.TypedReference'
+// (9,21): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.TypedReference'
 //     public delegate TypedReference Test1(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference")
                 );
@@ -14741,13 +14741,13 @@ class C
 }
 ";
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (6,9): error CS1599: Method or delegate cannot return type 'TypedReference'
+                // (6,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //         System.TypedReference local1() // 1599
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(6, 9),
-                // (12,9): error CS1599: Method or delegate cannot return type 'RuntimeArgumentHandle'
+                // (12,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
                 //         System.RuntimeArgumentHandle local2() // 1599
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(12, 9),
-                // (18,9): error CS1599: Method or delegate cannot return type 'ArgIterator'
+                // (18,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
                 //         System.ArgIterator local3() // 1599
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(18, 9));
         }
@@ -16313,6 +16313,31 @@ namespace N1
             };
 
             CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void CS8050ERR_InitializerOnNonAutoProperty()
+        {
+            var source =
+@"public class C
+{
+    int A { get; set; } = 1;
+    
+    int I { get { throw null; } set {  } } = 1;
+    static int S { get { throw null; } set {  } } = 1;
+    protected int P { get { throw null; } set {  } } = 1;
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,9): error CS8050: Only auto-implemented properties can have initializers.
+                //     int I { get { throw null; } set {  } } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("C.I").WithLocation(5, 9),
+                // (6,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     static int S { get { throw null; } set {  } } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithArguments("C.S").WithLocation(6, 16),
+                // (7,19): error CS8050: Only auto-implemented properties can have initializers.
+                //     protected int P { get { throw null; } set {  } } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("C.P").WithLocation(7, 19)
+            );
         }
 
         [Fact]

@@ -1293,8 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InitializerOnNonAutoProperty = 8050,
         ERR_AutoPropertyMustHaveGetAccessor = 8051,
         // ERR_AutoPropertyInitializerInInterface = 8052,
-        // available 8053
-
+        ERR_InstancePropertyInitializerInInterface = 8053,
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
         // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
@@ -1634,6 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PointerTypeInPatternMatching = 8521,
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
+        // available 8524-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -1832,6 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MultipleRecordParameterLists = 8863,
         ERR_BadRecordBase = 8864,
         ERR_BadInheritanceFromRecord = 8865,
+        ERR_BadRecordMemberForPositionalParameter = 8866,
 
         #endregion
 

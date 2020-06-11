@@ -2738,7 +2738,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Semicolon after method or accessor block is not valid</value>
   </data>
   <data name="ERR_MethodReturnCantBeRefAny" xml:space="preserve">
-    <value>Method or delegate cannot return type '{0}'</value>
+    <value>The return type of a method, delegate, or function pointer cannot be '{0}'</value>
   </data>
   <data name="ERR_CompileCancelled" xml:space="preserve">
     <value>Compilation cancelled by user</value>
@@ -4752,6 +4752,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
     <value>Only auto-implemented properties can have initializers.</value>
   </data>
+  <data name="ERR_InstancePropertyInitializerInInterface" xml:space="preserve">
+    <value>Instance properties in interfaces cannot have initializers.</value>
+  </data>
   <data name="ERR_AutoPropertyMustHaveGetAccessor" xml:space="preserve">
     <value>Auto-implemented properties must have get accessors.</value>
   </data>
@@ -5716,6 +5719,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRecursivePatterns" xml:space="preserve">
     <value>recursive patterns</value>
   </data>
+  <data name="IDS_FeatureNullPointerConstantPattern" xml:space="preserve">
+    <value>null pointer constant pattern</value>
+  </data>
   <data name="ERR_WrongNumberOfSubpatterns" xml:space="preserve">
     <value>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</value>
   </data>
@@ -6246,5 +6252,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadInheritanceFromRecord" xml:space="preserve">
     <value>Only records may inherit from records.</value>
+  </data>
+  <data name="ERR_BadRecordMemberForPositionalParameter" xml:space="preserve">
+    <value>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</value>
   </data>
 </root>

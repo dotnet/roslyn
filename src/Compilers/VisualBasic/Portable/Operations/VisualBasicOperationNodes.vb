@@ -1153,8 +1153,8 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyWithOperation
-        Inherits LazyWithOperation
+    Friend NotInheritable Class VisualBasicLazyWithStatementOperation
+        Inherits LazyWithStatementOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _withStatement As BoundWithStatement

@@ -28,6 +28,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
@@ -12232,7 +12233,7 @@ class C
 }");
 
             var generatedSource = "public class D { }";
-            var generator = new SimpleGenerator(generatedSource, "generatedSource.cs");
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
@@ -12256,8 +12257,8 @@ class C
 class C
 {
 }");
-            var generator = new SimpleGenerator(source1, source1Name);
-            var generator2 = new SimpleGenerator2(source2, source2Name);
+            var generator = new SingleFileTestGenerator(source1, source1Name);
+            var generator2 = new SingleFileTestGenerator2(source2, source2Name);
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
 
@@ -12287,9 +12288,121 @@ class C
 [*.cs]
 key = value");
 
-            var generator = new SimpleGenerator("public class D {}", "generated.cs");
+            var generator = new SingleFileTestGenerator("public class D {}", "generated.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: null);
+        }
+
+        [Fact]
+        public void SourceGeneratorsCanReadAnalyzerConfig()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var analyzerConfig1 = dir.CreateFile(".globaleditorconfig").WriteAllText(@"
+is_global = true
+key1 = value1
+
+[*.cs]
+key2 = value2
+
+[*.vb]
+key3 = value3");
+
+            var analyzerConfig2 = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+key4 = value4
+
+[*.vb]
+key5 = value5");
+
+            var subDir = dir.CreateDirectory("subDir");
+            var analyzerConfig3 = subDir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+key6 = value6
+
+[*.vb]
+key7 = value7");
+
+            var generator = new CallbackGenerator((ic) => { }, (gc) =>
+            {
+                // can get the global options
+                var globalOptions = gc.AnalyzerConfigOptions.GlobalOptions;
+                Assert.True(globalOptions.TryGetValue("key1", out var keyValue));
+                Assert.Equal("value1", keyValue);
+                Assert.False(globalOptions.TryGetValue("key2", out _));
+                Assert.False(globalOptions.TryGetValue("key3", out _));
+                Assert.False(globalOptions.TryGetValue("key4", out _));
+                Assert.False(globalOptions.TryGetValue("key5", out _));
+                Assert.False(globalOptions.TryGetValue("key6", out _));
+                Assert.False(globalOptions.TryGetValue("key7", out _));
+
+                // can get the options for class C
+                var classOptions = gc.AnalyzerConfigOptions.GetOptions(gc.Compilation.SyntaxTrees.First());
+                Assert.True(classOptions.TryGetValue("key1", out keyValue));
+                Assert.Equal("value1", keyValue);
+                Assert.False(classOptions.TryGetValue("key2", out _));
+                Assert.False(classOptions.TryGetValue("key3", out _));
+                Assert.True(classOptions.TryGetValue("key4", out keyValue));
+                Assert.Equal("value4", keyValue);
+                Assert.False(classOptions.TryGetValue("key5", out _));
+                Assert.False(classOptions.TryGetValue("key6", out _));
+                Assert.False(classOptions.TryGetValue("key7", out _));
+            });
+
+            var args = new[] {
+                "/langversion:preview",
+                "/analyzerconfig:" + analyzerConfig1.Path,
+                "/analyzerconfig:" + analyzerConfig2.Path,
+                "/analyzerconfig:" + analyzerConfig3.Path,
+                "/t:library",
+                src.Path
+            };
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, generators: ImmutableArray.Create<ISourceGenerator>(generator));
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            // test for both the original tree and the generated one
+            var provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+
+            // get the global options
+            var globalOptions = provider.GlobalOptions;
+            Assert.True(globalOptions.TryGetValue("key1", out var keyValue));
+            Assert.Equal("value1", keyValue);
+            Assert.False(globalOptions.TryGetValue("key2", out _));
+            Assert.False(globalOptions.TryGetValue("key3", out _));
+            Assert.False(globalOptions.TryGetValue("key4", out _));
+            Assert.False(globalOptions.TryGetValue("key5", out _));
+            Assert.False(globalOptions.TryGetValue("key6", out _));
+            Assert.False(globalOptions.TryGetValue("key7", out _));
+
+            // get the options for class C
+            var classOptions = provider.GetOptions(cmd.Compilation.SyntaxTrees.First());
+            Assert.True(classOptions.TryGetValue("key1", out keyValue));
+            Assert.Equal("value1", keyValue);
+            Assert.False(classOptions.TryGetValue("key2", out _));
+            Assert.False(classOptions.TryGetValue("key3", out _));
+            Assert.True(classOptions.TryGetValue("key4", out keyValue));
+            Assert.Equal("value4", keyValue);
+            Assert.False(classOptions.TryGetValue("key5", out _));
+            Assert.False(classOptions.TryGetValue("key6", out _));
+            Assert.False(classOptions.TryGetValue("key7", out _));
+
+            // get the options for generated class D 
+            var generatedOptions = provider.GetOptions(cmd.Compilation.SyntaxTrees.Last());
+            Assert.True(generatedOptions.TryGetValue("key1", out keyValue));
+            Assert.Equal("value1", keyValue);
+            Assert.False(generatedOptions.TryGetValue("key2", out _));
+            Assert.False(generatedOptions.TryGetValue("key3", out _));
+            Assert.True(classOptions.TryGetValue("key4", out keyValue));
+            Assert.Equal("value4", keyValue);
+            Assert.False(generatedOptions.TryGetValue("key5", out _));
+            Assert.False(generatedOptions.TryGetValue("key6", out _));
+            Assert.False(generatedOptions.TryGetValue("key7", out _));
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -12412,6 +12525,69 @@ option1 = def");
             Assert.Contains("'option1'", output, StringComparison.Ordinal);
             Assert.Contains("'file.cs'", output, StringComparison.Ordinal);
         }
+
+        [Fact]
+        public void GlobalAnalyzerConfigWithOptions()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+}");
+            var additionalFile = dir.CreateFile("file.txt");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+key1 = value1
+
+[*.txt]
+key2 = value2");
+
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+is_global = true
+key3 = value3");
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:library",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                "/analyzerconfig:" + globalConfig.Path,
+                "/analyzer:" + Assembly.GetExecutingAssembly().Location,
+                "/nowarn:8032,Warning01",
+                "/additionalfile:" + additionalFile.Path,
+                src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal("", outWriter.ToString());
+            Assert.Equal(0, exitCode);
+
+            var comp = cmd.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+
+            var provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            var options = provider.GetOptions(tree);
+            Assert.NotNull(options);
+            Assert.True(options.TryGetValue("key1", out string val));
+            Assert.Equal("value1", val);
+            Assert.False(options.TryGetValue("key2", out _));
+            Assert.True(options.TryGetValue("key3", out val));
+            Assert.Equal("value3", val);
+
+            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
+            Assert.NotNull(options);
+            Assert.False(options.TryGetValue("key1", out _));
+            Assert.True(options.TryGetValue("key2", out val));
+            Assert.Equal("value2", val);
+            Assert.True(options.TryGetValue("key3", out val));
+            Assert.Equal("value3", val);
+
+            options = provider.GlobalOptions;
+            Assert.NotNull(options);
+            Assert.False(options.TryGetValue("key1", out _));
+            Assert.False(options.TryGetValue("key2", out _));
+            Assert.True(options.TryGetValue("key3", out val));
+            Assert.Equal("value3", val);
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -12528,43 +12704,6 @@ option1 = def");
                 },
                 SyntaxKind.PragmaWarningDirectiveTrivia
                 );
-        }
-    }
-
-    [Generator]
-    internal class SimpleGenerator : ISourceGenerator
-    {
-        private readonly string _sourceToAdd;
-        private readonly string _fileName;
-
-        /// <remarks>
-        /// Required for reflection based tests
-        /// </remarks>
-        public SimpleGenerator()
-        {
-            _sourceToAdd = string.Empty;
-        }
-
-        public SimpleGenerator(string sourceToAdd, string fileName)
-        {
-            _sourceToAdd = sourceToAdd;
-            _fileName = fileName;
-        }
-
-        public void Execute(SourceGeneratorContext context)
-        {
-            context.AddSource(_fileName, SourceText.From(_sourceToAdd, Encoding.UTF8));
-        }
-
-        public void Initialize(InitializationContext context)
-        {
-        }
-    }
-
-    internal class SimpleGenerator2 : SimpleGenerator
-    {
-        public SimpleGenerator2(string sourceToAdd, string fileName) : base(sourceToAdd, fileName)
-        {
         }
     }
 }

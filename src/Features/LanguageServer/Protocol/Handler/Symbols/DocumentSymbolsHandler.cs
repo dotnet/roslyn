@@ -21,18 +21,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentDocumentSymbolName)]
-    internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
+    internal class DocumentSymbolsHandler : AbstractRequestHandler<DocumentSymbolParams, object[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentSymbolsHandler()
+        public DocumentSymbolsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<object[]> HandleRequestAsync(Solution solution, DocumentSymbolParams request,
-            ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken)
+        public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, ClientCapabilities clientCapabilities,
+            string clientName, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();

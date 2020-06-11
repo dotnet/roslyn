@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal partial class FindReferencesSearchEngine
     {
+        private static readonly Func<Project, DocumentMap> s_createDocumentMap = _ => new DocumentMap();
+
         private async Task<ProjectToDocumentMap> CreateProjectToDocumentMapAsync(ProjectMap projectMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, _cancellationToken))
@@ -37,22 +39,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var finalMap = new ProjectToDocumentMap();
-
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                var finalMap = new ProjectToDocumentMap();
                 foreach (var (documents, symbol, finder) in results)
                 {
                     foreach (var document in documents)
                     {
-                        if (!finalMap.TryGetValue(document.Project, out var documentMap))
-                        {
-                            documentMap = new DocumentMap();
-                            finalMap.Add(document.Project, documentMap);
-                        }
-
-                        documentMap.Add(document, (symbol, finder));
+                        finalMap.GetOrAdd(document.Project, s_createDocumentMap)
+                                .Add(document, (symbol, finder));
                     }
                 }
+
+#if DEBUG
+                foreach (var (project, documentMap) in finalMap)
+                {
+                    Contract.ThrowIfTrue(documentMap.Any(kvp1 => kvp1.Value.Count != kvp1.Value.ToSet().Count));
+                }
+#endif
 
                 return finalMap;
             }
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var documents = await finder.DetermineDocumentsToSearchAsync(
                 symbol, project, _documents, _options, _cancellationToken).ConfigureAwait(false);
-            var finalDocs = documents.WhereNotNull().Where(
+            var finalDocs = documents.WhereNotNull().Distinct().Where(
                 d => _documents == null || _documents.Contains(d)).ToImmutableArray();
             return (finalDocs, symbol, finder);
         }

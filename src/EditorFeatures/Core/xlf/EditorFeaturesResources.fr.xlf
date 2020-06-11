@@ -112,11 +112,6 @@
         <target state="translated">Suppression du document non prise en charge</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_file">
-        <source>Rename _file</source>
-        <target state="translated">Renommer le _fichier</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Renommer le _fichier (le type ne correspond pas au nom du fichier)</target>
@@ -126,6 +121,11 @@
         <source>Rename _file (not allowed on partial types)</source>
         <target state="translated">Renommer le _fichier (non autorisé sur les types partiels)</target>
         <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="new">Rename symbol's _file</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>

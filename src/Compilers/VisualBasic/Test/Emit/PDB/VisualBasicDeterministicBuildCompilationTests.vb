@@ -63,7 +63,7 @@ Public Class VisualBasicDeterministicBuildCompilationTests
             Using embeddedPdb As MetadataReaderProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded)
                 Dim pdbReader = embeddedPdb.GetMetadataReader()
 
-                Dim metadataReferenceReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.MetadataReferenceInfo, pdbReader)
+                Dim metadataReferenceReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationMetadataReferences, pdbReader)
                 Dim compilationOptionsReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader)
 
                 VerifyCompilationOptions(compilationOptions, compilationOptionsReader, emitOptions, originalCompilation)
