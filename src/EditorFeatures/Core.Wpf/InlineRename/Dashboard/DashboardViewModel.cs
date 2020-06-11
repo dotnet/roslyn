@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             InlineRenameFileRenameInfo.TypeDoesNotMatchFileName => EditorFeaturesResources.Rename_file_name_doesnt_match,
             InlineRenameFileRenameInfo.TypeWithMultipleLocations => EditorFeaturesResources.Rename_file_partial_type,
-            _ => EditorFeaturesResources.Rename_file
+            _ => EditorFeaturesResources.Rename_symbols_file
         };
 
         public string HeaderText
