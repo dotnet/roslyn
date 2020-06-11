@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             var hostPath = Path.Combine(hostDirectory, hostSubdirectory, hostExecutableFileName);
             var initializationFilePath = (initializationFileName != null) ? Path.Combine(hostDirectory, hostSubdirectory, initializationFileName) : null;
 
-            return new InteractiveHostOptions(hostPath, initializationFilePath, culture,platform);
+            return new InteractiveHostOptions(hostPath, initializationFilePath, culture, platform);
         }
     }
 }

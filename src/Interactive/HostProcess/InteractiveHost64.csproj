@@ -6,11 +6,11 @@
     <Prefer32Bit>false</Prefer32Bit>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <UseWindowsForms>true</UseWindowsForms>
 
-    <!-- Publishing -->
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-    <PublishReadyToRun>true</PublishReadyToRun>
+    <!-- Publishing (only precompile binaries when building on CI to avoid slowing down dev builds by ~10s) -->
+    <PublishReadyToRun Condition="'$(ContinousIntegrationBuild)' == 'true'">true</PublishReadyToRun>
     <SelfContained>false</SelfContained>    
     <PublishDocumentationFiles>false</PublishDocumentationFiles>
   </PropertyGroup>
