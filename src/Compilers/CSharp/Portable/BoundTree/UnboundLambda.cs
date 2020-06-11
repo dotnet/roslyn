@@ -338,11 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
-<<<<<<< HEAD
-            this.Data = new PlainUnboundLambdaState(this, binder, names, discardsOpt, types, refKinds, isAsync, isStatic);
-=======
-            this.Data = new PlainUnboundLambdaState(this, binder, names, discardsOpt, types, refKinds, isAsync, includeCache: true);
->>>>>>> upstream/master
+            this.Data = new PlainUnboundLambdaState(this, binder, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true);
         }
 
         private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, NullableWalker.VariableState nullableState, bool hasErrors) :
@@ -1168,13 +1164,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
             ImmutableArray<RefKind> parameterRefKinds,
             bool isAsync,
-<<<<<<< HEAD
-            bool isStatic)
-            : base(binder, unboundLambda)
-=======
+            bool isStatic,
             bool includeCache)
             : base(binder, unboundLambda, includeCache)
->>>>>>> upstream/master
         {
             _parameterNames = parameterNames;
             _parameterIsDiscardOpt = parameterIsDiscardOpt;
@@ -1250,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(unboundLambda: null, Binder, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, includeCache);
+            return new PlainUnboundLambdaState(unboundLambda: null, Binder, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, _isStatic, includeCache);
         }
 
         protected override BoundExpression GetLambdaExpressionBody(BoundBlock body)

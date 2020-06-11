@@ -137,13 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-<<<<<<< HEAD
-            var outerLocalFunction = _staticLocalOrAnonymousFunction;
-=======
             ExecutableCodeBinder.ValidateIteratorMethod(_compilation, node.Symbol, _diagnostics);
 
-            var outerLocalFunction = _staticLocalFunction;
->>>>>>> upstream/master
+            var outerLocalFunction = _staticLocalOrAnonymousFunction;
             if (node.Symbol.IsStatic)
             {
                 _staticLocalOrAnonymousFunction = node.Symbol;
@@ -207,8 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-<<<<<<< HEAD
-=======
         private void CheckReferenceToMethodIfLocalFunction(BoundExpression node, MethodSymbol method)
         {
             if (method?.OriginalDefinition is LocalFunctionSymbol localFunction)
@@ -217,7 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
->>>>>>> upstream/master
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
             if (_inExpressionLambda)

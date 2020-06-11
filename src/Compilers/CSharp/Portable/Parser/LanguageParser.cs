@@ -5,11 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-<<<<<<< HEAD
 using System.Diagnostics.Contracts;
-=======
 using System.Runtime.CompilerServices;
->>>>>>> upstream/master
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -12048,34 +12045,17 @@ tryAgain:
                         @delegate,
                         parameterList,
                         _syntaxFactory.Block(
+                            attributeLists: default,
                             openBrace,
                             statements: default,
                             SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)),
                         expressionBody: null);
                 }
 
-                var body = this.ParseBlock();
+                var body = this.ParseBlock(attributes: default);
                 return _syntaxFactory.AnonymousMethodExpression(
-<<<<<<< HEAD
                     modifiers, @delegate, parameterList, body, expressionBody: null);
             }
-=======
-                    asyncToken,
-                    @delegate,
-                    parameterList,
-                    _syntaxFactory.Block(
-                        attributeLists: default,
-                        openBrace,
-                        statements: default,
-                        SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)),
-                    expressionBody: null);
-            }
-
-            var body = this.ParseBlock(attributes: default);
-            IsInAsync = parentScopeIsInAsync;
-            return _syntaxFactory.AnonymousMethodExpression(
-                asyncToken, @delegate, parameterList, body, expressionBody: null);
->>>>>>> upstream/master
         }
 
         private SyntaxList<SyntaxToken> ParseAnonymousFunctionModifiers()

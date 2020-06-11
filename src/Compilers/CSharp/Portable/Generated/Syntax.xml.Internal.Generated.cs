@@ -5632,11 +5632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly BlockSyntax block;
         internal readonly ExpressionSyntax? expressionBody;
 
-<<<<<<< HEAD
-        internal AnonymousMethodExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
-=======
-        internal AnonymousMethodExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
->>>>>>> upstream/master
+        internal AnonymousMethodExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 5;
@@ -5761,19 +5757,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this;
         }
 
-<<<<<<< HEAD
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
             => new AnonymousMethodExpressionSyntax(this.Kind, this.modifiers, this.delegateKeyword, this.parameterList, this.block, this.expressionBody, diagnostics, GetAnnotations());
 
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-            => new AnonymousMethodExpressionSyntax(this.Kind, this.modifiers, this.delegateKeyword, this.parameterList, this.block, this.expressionBody, GetDiagnostics(), annotations);
-=======
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new AnonymousMethodExpressionSyntax(this.Kind, this.asyncKeyword, this.delegateKeyword, this.parameterList, this.block, this.expressionBody, diagnostics, GetAnnotations());
-
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new AnonymousMethodExpressionSyntax(this.Kind, this.asyncKeyword, this.delegateKeyword, this.parameterList, this.block, this.expressionBody, GetDiagnostics(), annotations);
->>>>>>> upstream/master
+            => new AnonymousMethodExpressionSyntax(this.Kind, this.modifiers, this.delegateKeyword, this.parameterList, this.block, this.expressionBody, GetDiagnostics(), annotations);
 
         internal AnonymousMethodExpressionSyntax(ObjectReader reader)
           : base(reader)
@@ -5852,11 +5840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly BlockSyntax? block;
         internal readonly ExpressionSyntax? expressionBody;
 
-<<<<<<< HEAD
-        internal SimpleLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
-=======
-        internal SimpleLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
->>>>>>> upstream/master
+        internal SimpleLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 5;
@@ -5981,19 +5965,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this;
         }
 
-<<<<<<< HEAD
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
             => new SimpleLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameter, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
 
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-            => new SimpleLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameter, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
-=======
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new SimpleLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameter, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
-
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new SimpleLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameter, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
->>>>>>> upstream/master
+            => new SimpleLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameter, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
 
         internal SimpleLambdaExpressionSyntax(ObjectReader reader)
           : base(reader)
@@ -6150,11 +6126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly BlockSyntax? block;
         internal readonly ExpressionSyntax? expressionBody;
 
-<<<<<<< HEAD
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
-=======
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken? asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
->>>>>>> upstream/master
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 5;
@@ -6279,19 +6251,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this;
         }
 
-<<<<<<< HEAD
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
             => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameterList, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
 
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameterList, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
-=======
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameterList, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
-
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameterList, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
->>>>>>> upstream/master
+            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.modifiers, this.parameterList, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
 
         internal ParenthesizedLambdaExpressionSyntax(ObjectReader reader)
           : base(reader)
@@ -34527,20 +34491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public AnonymousMethodExpressionSyntax AnonymousMethodExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
         {
-<<<<<<< HEAD
-            #if DEBUG
-=======
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
->>>>>>> upstream/master
             if (delegateKeyword == null) throw new ArgumentNullException(nameof(delegateKeyword));
             if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
@@ -34551,20 +34502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public SimpleLambdaExpressionSyntax SimpleLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-<<<<<<< HEAD
-            #if DEBUG
-=======
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
->>>>>>> upstream/master
             if (parameter == null) throw new ArgumentNullException(nameof(parameter));
             if (arrowToken == null) throw new ArgumentNullException(nameof(arrowToken));
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
@@ -34596,20 +34534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-<<<<<<< HEAD
-            #if DEBUG
-=======
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
->>>>>>> upstream/master
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken == null) throw new ArgumentNullException(nameof(arrowToken));
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
@@ -39289,20 +39214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
         {
-<<<<<<< HEAD
-            #if DEBUG
-=======
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
->>>>>>> upstream/master
             if (delegateKeyword == null) throw new ArgumentNullException(nameof(delegateKeyword));
             if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
@@ -39313,20 +39225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-<<<<<<< HEAD
-            #if DEBUG
-=======
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
->>>>>>> upstream/master
             if (parameter == null) throw new ArgumentNullException(nameof(parameter));
             if (arrowToken == null) throw new ArgumentNullException(nameof(arrowToken));
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
@@ -39358,20 +39257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-<<<<<<< HEAD
-            #if DEBUG
-=======
 #if DEBUG
-            if (asyncKeyword != null)
-            {
-                switch (asyncKeyword.Kind)
-                {
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(asyncKeyword));
-                }
-            }
->>>>>>> upstream/master
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken == null) throw new ArgumentNullException(nameof(arrowToken));
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));

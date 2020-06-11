@@ -2598,13 +2598,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(ParameterListSyntax? parameterList, CSharpSyntaxNode body)
             => body is BlockSyntax block
-<<<<<<< HEAD
                 ? AnonymousMethodExpression(default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
-                : AnonymousMethodExpression(default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, null, (ExpressionSyntax)null);
-=======
-                ? AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
                 : throw new ArgumentException(nameof(body));
->>>>>>> upstream/master
 
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
             => body is BlockSyntax block

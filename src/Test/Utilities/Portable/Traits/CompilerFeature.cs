@@ -34,12 +34,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         NullableReferenceTypes,
         DefaultInterfaceImplementation,
         LambdaDiscardParameters,
-<<<<<<< HEAD
-        AnonymousFunctions,
-=======
         StatementAttributes,
         TopLevelStatements,
         InitOnlySetters,
->>>>>>> upstream/master
+        AnonymousFunctions,
     }
 }

@@ -1606,14 +1606,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
         ERR_VarianceInterfaceNesting = 8427,
-<<<<<<< HEAD
-        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8428,
-        ERR_StaticAnonymousFunctionCannotCaptureThis = 8429,
-
-=======
         ERR_ImplicitIndexIndexerWithName = 8428,
         ERR_ImplicitRangeIndexerWithName = 8429,
->>>>>>> upstream/master
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1823,6 +1817,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AddressOfMethodGroupInExpressionTree = 8810,
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
+
+        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
+        ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
 
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,

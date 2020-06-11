@@ -2533,11 +2533,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new LambdaExpressionSyntax WithBlock(BlockSyntax? block) => (LambdaExpressionSyntax)WithBlockCore(block);
         public new LambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => (LambdaExpressionSyntax)WithExpressionBodyCore(expressionBody);
 
-<<<<<<< HEAD
         public new LambdaExpressionSyntax AddModifiers(params SyntaxToken[] items) => (LambdaExpressionSyntax)AddModifiersCore(items);
-=======
+
         public new AnonymousFunctionExpressionSyntax AddBlockAttributeLists(params AttributeListSyntax[] items) => AddBlockAttributeListsCore(items);
->>>>>>> upstream/master
 
         public new AnonymousFunctionExpressionSyntax AddBlockStatements(params StatementSyntax[] items) => AddBlockStatementsCore(items);
     }

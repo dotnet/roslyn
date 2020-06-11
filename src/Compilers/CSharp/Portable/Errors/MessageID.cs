@@ -315,9 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# preview features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
-<<<<<<< HEAD
-                case MessageID.IDS_FeatureStaticAnonymousFunction:
-=======
                 case MessageID.IDS_FeatureFunctionPointers:
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
                 case MessageID.IDS_FeatureExternLocalFunctions: // syntax check
@@ -334,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_TopLevelStatements:
                 case MessageID.IDS_FeatureInitOnlySetters: // semantic check
                 case MessageID.IDS_FeatureRecords:
->>>>>>> upstream/master
+                case MessageID.IDS_FeatureStaticAnonymousFunction: // syntax check
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
