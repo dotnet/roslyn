@@ -5719,6 +5719,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRecursivePatterns" xml:space="preserve">
     <value>recursive patterns</value>
   </data>
+  <data name="IDS_FeatureNullPointerConstantPattern" xml:space="preserve">
+    <value>null pointer constant pattern</value>
+  </data>
   <data name="ERR_WrongNumberOfSubpatterns" xml:space="preserve">
     <value>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</value>
   </data>
@@ -6249,6 +6252,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadInheritanceFromRecord" xml:space="preserve">
     <value>Only records may inherit from records.</value>
+  </data>
+  <data name="ERR_BadRecordMemberForPositionalParameter" xml:space="preserve">
+    <value>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</value>
   </data>
   <data name="IDS_FeatureTargetTypedConditional" xml:space="preserve">
     <!-- This is only used to display a typeless bound node in diagnostics. -->
