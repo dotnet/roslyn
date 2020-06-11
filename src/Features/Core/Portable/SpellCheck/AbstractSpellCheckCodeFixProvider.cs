@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 }
 
                 var insertionText = await GetInsertionTextAsync(document, item, completionList.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
-                results.Add(matchCost, insertionText );
+                results.Add(matchCost, insertionText);
             }
 
             var nameText = nameToken.ValueText;
