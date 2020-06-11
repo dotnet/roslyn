@@ -304,6 +304,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var beforeIsLanguage = e.BeforeContentType.IsOfType(contentTypeName);
             var beforeIsInteractiveCommand = e.BeforeContentType.IsOfType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
 
+            // Workaround for https://github.com/dotnet/interactive-window/issues/156
+            if (beforeIsLanguage && e.AfterContentType.TypeName == "inert" ||
+                afterIsLanguage && e.BeforeContentType.TypeName == "inert")
+            {
+                return;
+            }
+
             Debug.Assert((afterIsLanguage && beforeIsInteractiveCommand)
                       || (beforeIsLanguage && afterIsInteractiveCommand));
 
