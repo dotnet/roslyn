@@ -43,17 +43,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return requestHandlerDictionary.ToImmutable();
         }
 
-        public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, Solution solution, RequestType request,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken) where RequestType : class
+        public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,
+            string? clientName, CancellationToken cancellationToken) where RequestType : class
         {
-            Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(request);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");
 
             var handler = (IRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            return handler.HandleRequestAsync(solution, request, clientCapabilities, clientName, cancellationToken);
+            return handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken);
         }
     }
 }

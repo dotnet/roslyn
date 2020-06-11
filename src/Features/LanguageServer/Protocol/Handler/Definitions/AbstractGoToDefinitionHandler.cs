@@ -17,18 +17,18 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal class GoToDefinitionHandlerBase
+    internal abstract class AbstractGoToDefinitionHandler<RequestType, ResponseType> : AbstractRequestHandler<RequestType, ResponseType>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
-        public GoToDefinitionHandlerBase(IMetadataAsSourceFileService metadataAsSourceFileService)
+        public AbstractGoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, ILspSolutionProvider solutionProvider) : base(solutionProvider)
             => _metadataAsSourceFileService = metadataAsSourceFileService;
 
-        protected async Task<LSP.Location[]> GetDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, bool typeOnly, string? clientName, CancellationToken cancellationToken)
+        protected async Task<LSP.Location[]> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, string? clientName, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return locations.ToArrayAndFree();

@@ -25,19 +25,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
-        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri uri, string? clientName = null)
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
             //       separator
-            var documentIds = solution.GetDocumentIdsWithFilePath(uri.AbsolutePath);
+            var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
 
             if (!documentIds.Any())
             {
-                documentIds = solution.GetDocumentIdsWithFilePath(uri.LocalPath);
+                documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
             }
 
-            var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
+            return documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
+        }
+
+        public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
+        {
+            var documents = solutionProvider.GetDocuments(uri);
 
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
@@ -58,9 +63,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             });
         }
 
-        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName = null)
+        public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
         {
-            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName);
+            var documents = solutionProvider.GetDocuments(documentIdentifier.Uri, clientName);
 
             if (documents.Length == 0)
             {

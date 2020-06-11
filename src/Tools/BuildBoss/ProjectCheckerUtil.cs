@@ -332,7 +332,6 @@ namespace BuildBoss
                     case "net20":
                     case "net472":
                     case "netcoreapp3.1":
-                    case "$(RoslynPortableTargetFrameworks)":
                         continue;
                 }
 
