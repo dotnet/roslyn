@@ -3772,7 +3772,7 @@ public record C(object P1, object P2) : B(3, 4)
 @"public record B(object N1, object N2)
 {
     [System.Obsolete(""Obsolete"", true)]
-    public B(B b) : this(30, 40) { }
+    public B(B b) { }
 }
 public record C(object P1, object P2) : B(3, 4) { }
 ";
@@ -3881,9 +3881,9 @@ public record C(object P1, object P2) : B(0, 1)
                 // (6,12): error CS1729: 'B' does not contain a constructor that takes 0 arguments
                 //     public C(C c) // 1, 2
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(6, 12),
-                // (6,12): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
+                // (6,12): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     public C(C c) // 1, 2
-                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithArguments("B.B(B)").WithLocation(6, 12)
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithLocation(6, 12)
                 );
         }
 
@@ -3893,24 +3893,31 @@ public record C(object P1, object P2) : B(0, 1)
             var source =
 @"public record C(int I)
 {
+    public int I { get; set; } = 42;
     public C(C c)
     {
     }
+    public static void Main()
+    {
+        var c = new C(1);
+        c.I = 2;
+        var c2 = new C(c);
+        System.Console.Write((c.I, c2.I));
+    }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 0)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
             verifier.VerifyIL("C..ctor(C)", @"
 {
-  // Code size       14 (0xe)
-  .maxstack  2
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C.<I>k__BackingField""
-  IL_0007:  ldarg.0
-  IL_0008:  call       ""object..ctor()""
-  IL_000d:  ret
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ret
 }
 ");
         }
@@ -3927,45 +3934,48 @@ public record C(object P1, object P2) : B(0, 1)
 }
 ";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
-            verifier.VerifyIL("C..ctor(C)", @"
-{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  callvirt   ""int C.I.get""
-  IL_0007:  call       ""C..ctor(int)""
-  IL_000c:  ret
-}
-");
+            comp.VerifyDiagnostics(
+                // (3,21): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C c) : this(c.I)
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithLocation(3, 21)
+                );
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
-        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_UsesBase()
+        public void CopyCtor_UserDefined_DerivesFromObject_UsesBase()
         {
             var source =
 @"public record C(int I)
 {
     public C(C c) : base()
     {
+        System.Console.Write(""RAN "");
+    }
+    public static void Main()
+    {
+        var c = new C(1);
+        System.Console.Write(c.I);
+        System.Console.Write("" "");
+        var c2 = c with { I = 2 };
+        System.Console.Write(c2.I);
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 RAN 2", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
             verifier.VerifyIL("C..ctor(C)", @"
 {
-  // Code size       14 (0xe)
-  .maxstack  2
+  // Code size       20 (0x14)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C.<I>k__BackingField""
-  IL_0007:  ldarg.0
-  IL_0008:  call       ""object..ctor()""
-  IL_000d:  ret
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ldstr      ""RAN ""
+  IL_000d:  call       ""void System.Console.Write(string)""
+  IL_0012:  nop
+  IL_0013:  ret
 }
 ");
         }
@@ -3989,9 +3999,9 @@ public record C(object P1) : B(0, 1)
                 // (6,12): error CS1729: 'B' does not contain a constructor that takes 0 arguments
                 //     public C(C c) // 1, 2
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(6, 12),
-                // (6,12): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
+                // (6,12): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     public C(C c) // 1, 2
-                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithArguments("B.B(B)").WithLocation(6, 12)
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithLocation(6, 12)
                 );
         }
 
@@ -4011,9 +4021,9 @@ public record C(object P1, object P2) : B(0, 1)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,21): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
+                // (6,21): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     public C(C c) : this(1, 2) // 1
-                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithArguments("B.B(B)").WithLocation(6, 21)
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithLocation(6, 21)
                 );
         }
 
@@ -4040,13 +4050,103 @@ public record D(int j) : B(0)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,21): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
+                // (6,21): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     public C(C c) : base(1) // 1
-                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithArguments("B.B(B)").WithLocation(6, 21),
-                // (13,22): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(6, 21),
+                // (13,22): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     public D(D? d) : base(1) // 2
-                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithArguments("B.B(B)").WithLocation(13, 22)
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(13, 22)
                 );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefined_WithFieldInitializers()
+        {
+            var source =
+@"public record C(int I)
+{
+}
+public record D(int J) : C(1)
+{
+    public int field = 42;
+    public D(D d) : base(d)
+    {
+        System.Console.Write(""RAN "");
+    }
+    public static void Main()
+    {
+        var d = new D(2);
+        System.Console.Write((d.I, d.J, d.field));
+        System.Console.Write("" "");
+
+        var d2 = d with { I = 10, J = 20 };
+        System.Console.Write((d2.I, d2.J, d.field));
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 42) RAN (10, 20, 42)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("D..ctor(D)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""C..ctor(C)""
+  IL_0007:  nop
+  IL_0008:  nop
+  IL_0009:  ldstr      ""RAN ""
+  IL_000e:  call       ""void System.Console.Write(string)""
+  IL_0013:  nop
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_Synthesized_WithFieldInitializers()
+        {
+            var source =
+@"public record C(int I)
+{
+}
+public record D(int J) : C(1)
+{
+    public int field = 42;
+    public static void Main()
+    {
+        var d = new D(2);
+        System.Console.Write((d.I, d.J, d.field));
+        System.Console.Write("" "");
+
+        var d2 = d with { I = 10, J = 20 };
+        System.Console.Write((d2.I, d2.J, d.field));
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 42) (10, 20, 42)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("D..ctor(D)", @"
+ {
+      // Code size       33 (0x21)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  ldarg.1
+      IL_0002:  call       ""C..ctor(C)""
+      IL_0007:  nop
+      IL_0008:  ldarg.0
+      IL_0009:  ldarg.1
+      IL_000a:  ldfld      ""int D.<J>k__BackingField""
+      IL_000f:  stfld      ""int D.<J>k__BackingField""
+      IL_0014:  ldarg.0
+      IL_0015:  ldarg.1
+      IL_0016:  ldfld      ""int D.field""
+      IL_001b:  stfld      ""int D.field""
+      IL_0020:  ret
+    }
+");
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
@@ -4055,7 +4155,7 @@ public record D(int j) : B(0)
             var source =
 @"public record B(object N1, object N2)
 {
-    private B(B b) : this(0, 1) { }
+    private B(B b) { }
 }
 public record C(object P1, object P2) : B(0, 1)
 {
@@ -4063,30 +4163,24 @@ public record C(object P1, object P2) : B(0, 1)
 }
 public record D(object P1, object P2) : B(0, 1)
 {
-    private D(D d) : base(d) { } // 2, 3
+    private D(D d) : base(d) { } // 2
 }
-public record E(object P1, object P2) : B(0, 1); // 4
+public record E(object P1, object P2) : B(0, 1); // 3
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,22): error CS8867: No accessible copy constructor found in base type 'B'.
+                // (7,22): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     private C(C c) : base(2, 3) { } // 1
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "base").WithArguments("B").WithLocation(7, 22),
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(7, 22),
                 // (11,22): error CS0122: 'B.B(B)' is inaccessible due to its protection level
-                //     private D(D d) : base(d) { } // 2, 3
+                //     private D(D d) : base(d) { } // 2
                 Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("B.B(B)").WithLocation(11, 22),
-                // (11,22): error CS8867: No accessible copy constructor found in base type 'B'.
-                //     private D(D d) : base(d) { } // 2, 3
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "base").WithArguments("B").WithLocation(11, 22),
                 // (13,15): error CS8867: No accessible copy constructor found in base type 'B'.
-                // public record E(object P1, object P2) : B(0, 1); // 4
+                // public record E(object P1, object P2) : B(0, 1); // 3
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("B").WithLocation(13, 15)
                 );
             // Should we complain about private user-defined copy constructor on unsealed type (ie. will prevent inheritance)?
             // https://github.com/dotnet/roslyn/issues/45012
-
-            // We should not have both diagnostics 2 and 3 (redundant)
-            // https://github.com/dotnet/roslyn/issues/45079
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
@@ -4095,7 +4189,7 @@ public record E(object P1, object P2) : B(0, 1); // 4
             var sourceA =
 @"public record B(object N1, object N2)
 {
-    internal B(B b) : this(0, 1) { }
+    internal B(B b) { }
 }";
             var compA = CreateCompilation(sourceA);
             var refA = compA.EmitToImageReference();
@@ -4121,9 +4215,9 @@ record C(object P1, object P2) : B(3, 4)
                 // (4,24): error CS7036: There is no argument given that corresponds to the required formal parameter 'N2' of 'B.B(object, object)'
                 //     protected C(C c) : base(c) { } // 1, 2
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "base").WithArguments("N2", "B.B(object, object)").WithLocation(4, 24),
-                // (4,24): error CS8867: No accessible copy constructor found in base type 'B'.
+                // (4,24): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     protected C(C c) : base(c) { } // 1, 2
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "base").WithArguments("B").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(4, 24)
                 );
         }
 
@@ -4136,7 +4230,7 @@ using System.Runtime.CompilerServices;
 
 public record B(object N1, object N2)
 {
-    internal B(B b) : this(0, 1) { }
+    internal B(B b) { }
 }";
             var compA = CreateCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, assemblyName: "AssemblyA", parseOptions: TestOptions.RegularPreview);
             var refA = compA.EmitToImageReference();
@@ -4380,9 +4474,9 @@ public record C : B
 }";
             var comp2 = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
             comp2.VerifyDiagnostics(
-                // (4,12): error CS8867: No accessible copy constructor found in base type 'B'.
+                // (4,12): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     public C(C c) { }
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithLocation(4, 12)
                 );
         }
 

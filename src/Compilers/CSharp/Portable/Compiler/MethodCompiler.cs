@@ -977,7 +977,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Do not emit initializers if we are invoking another constructor of this class.
                     includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
                                                 !HasThisConstructorInitializer(methodSymbol) &&
-                                                !(methodSymbol is SynthesizedRecordCopyCtor); // A record copy constructor is special, regular initializers are not supposed to be executed by it.
+                                                !(methodSymbol is SynthesizedRecordCopyCtor) &&
+                                                !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol); // A record copy constructor is special, regular initializers are not supposed to be executed by it.
 
                     body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested, out forSemanticModel);
                     if (diagsForCurrentMethod.HasAnyErrors() && body != null)
@@ -1983,11 +1984,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        internal static BoundCall GenerateBaseCopyConstructorInitializer(SynthesizedRecordCopyCtor constructor, DiagnosticBag diagnostics)
+        private static BoundCall GenerateBaseCopyConstructorInitializer(SynthesizedRecordCopyCtor constructor, DiagnosticBag diagnostics)
         {
             NamedTypeSymbol containingType = constructor.ContainingType;
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
-            Location diagnosticsLocation = constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.Locations[0];
+            Location diagnosticsLocation = constructor.Locations.FirstOrNone();
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             MethodSymbol baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteDiagnostics);
@@ -2010,7 +2011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
             BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
-            BoundExpression argument = new BoundParameter(constructor.GetNonNullSyntaxNode(), constructor.Parameters[0]);
+            BoundExpression argument = new BoundParameter(syntax, constructor.Parameters[0]);
 
             return new BoundCall(
                 syntax: syntax,

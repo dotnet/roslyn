@@ -3962,7 +3962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     allowProtectedConstructorsOfBaseType: true);
                 MethodSymbol resultMember = memberResolutionResult.Member;
 
-                validateRecordCopyConstructor(containingType, constructor, baseType, resultMember, errorLocation, diagnostics);
+                validateRecordCopyConstructor(constructor, baseType, resultMember, errorLocation, diagnostics);
 
                 if (found)
                 {
@@ -3994,7 +3994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-
+                    var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
                     if (!hasErrors)
                     {
                         hasErrors = !CheckInvocationArgMixing(
@@ -4003,7 +4003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             receiver,
                             resultMember.Parameters,
                             arguments,
-                            memberResolutionResult.Result.ArgsToParamsOpt,
+                            argsToParamsOpt,
                             this.LocalScopeDepth,
                             diagnostics);
                     }
@@ -4018,7 +4018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isDelegateCall: false,
                         expanded: memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
                         invokedAsExtensionMethod: false,
-                        argsToParamsOpt: memberResolutionResult.Result.ArgsToParamsOpt,
+                        argsToParamsOpt: argsToParamsOpt,
                         resultKind: LookupResultKind.Viable,
                         binderOpt: this,
                         type: constructorReturnType,
@@ -4046,32 +4046,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Free();
             }
 
-            static void validateRecordCopyConstructor(NamedTypeSymbol containingType, MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol baseCtor, Location errorLocation, DiagnosticBag diagnostics)
+            static void validateRecordCopyConstructor(MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol resultMember, Location errorLocation, DiagnosticBag diagnostics)
             {
-                // Are we dealing with a user-defined copy constructor in a record type?
-                if (containingType is SourceNamedTypeSymbol sourceType &&
-                    sourceType.IsRecord &&
-                    SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor))
+                if (IsUserDefinedRecordCopyConstructor(constructor))
                 {
                     if (baseType.SpecialType == SpecialType.System_Object)
                     {
+                        if (resultMember.ContainingType.SpecialType != SpecialType.System_Object)
+                        {
+                            // Record deriving from object must use `base()`, not `this()`
+                            diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation);
+                        }
+
                         return;
                     }
 
                     // Unless the base type is 'object', the constructor should invoke a base type copy constructor
-                    HashSet<DiagnosticInfo> ignoredUseSiteDiagnostics = null;
-                    var foundBaseCopyCtor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref ignoredUseSiteDiagnostics);
-                    if (foundBaseCopyCtor is null)
+                    if (resultMember is null || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(resultMember))
                     {
-                        // if there is no base type copy constructor, we'll report that instead
-                        diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, errorLocation, baseType);
-                    }
-                    else if (baseCtor is null || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(baseCtor))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation, foundBaseCopyCtor);
+                        diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation);
                     }
                 }
             }
+        }
+
+        internal static bool IsUserDefinedRecordCopyConstructor(MethodSymbol constructor)
+        {
+            return constructor.ContainingType is SourceNamedTypeSymbol sourceType &&
+                sourceType.IsRecord &&
+                SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor);
         }
 
         private BoundExpression BindImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
