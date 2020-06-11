@@ -2997,7 +2997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var thisEquals = addThisEquals(equalityContract, otherEqualsMethod: otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
             addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
             addObjectEquals(thisEquals);
-            addHashCode();
+            addHashCode(equalityContract);
 
             otherEqualsMethods.Free();
             memberSignatures.Free();
@@ -3132,9 +3132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addHashCode()
+            void addHashCode(PropertySymbol equalityContract)
             {
-                var hashCode = new SynthesizedRecordGetHashCode(this, memberOffset: members.Count);
+                var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(hashCode))
                 {
                     // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
