@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Visit(node.Left);
                 }
 
-                return base.Visit(node);
+                return base.VisitAssignmentOperator(node);
             }
 
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
