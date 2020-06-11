@@ -3966,6 +3966,59 @@ public record C(object P1, object P2) : B(0, 1)
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_DerivesFromObject_GivesParameterToBase()
+        {
+            var source = @"
+public record C(object I)
+{
+    public C(C c) : base(1) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                //     public C(C c) : base(1) { }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("object", "1").WithLocation(4, 21),
+                // (4,21): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C c) : base(1) { }
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(4, 21)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_DerivesFromObject_WithSomeOtherConstructor()
+        {
+            var source = @"
+public record C(object I)
+{
+    public C(int i) : this((object)null) { }
+    public static void Main()
+    {
+        var c = new C((object)null);
+        var c2 = new C(1);
+        var c3 = new C(c);
+        System.Console.Write(""RAN"");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(int)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""C..ctor(object)""
+  IL_0007:  nop
+  IL_0008:  nop
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_UsesThis()
         {
             var source =

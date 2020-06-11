@@ -4052,7 +4052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (baseType.SpecialType == SpecialType.System_Object)
                     {
-                        if (resultMember.ContainingType.SpecialType != SpecialType.System_Object)
+                        if (resultMember is null || resultMember.ContainingType.SpecialType != SpecialType.System_Object)
                         {
                             // Record deriving from object must use `base()`, not `this()`
                             diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation);
