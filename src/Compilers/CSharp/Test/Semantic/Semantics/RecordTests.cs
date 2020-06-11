@@ -3777,11 +3777,7 @@ public record C(object P1, object P2) : B(3, 4)
 public record C(object P1, object P2) : B(3, 4) { }
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (6,1): error CS0619: 'B.B(B)' is obsolete: 'Obsolete'
-                // public record C(object P1, object P2) : B(3, 4) { }
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "public record C(object P1, object P2) : B(3, 4) { }").WithArguments("B.B(B)", "Obsolete").WithLocation(6, 1)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
@@ -3885,7 +3881,7 @@ public record C(object P1, object P2) : B(0, 1)
                 // (6,12): error CS1729: 'B' does not contain a constructor that takes 0 arguments
                 //     public C(C c) // 1, 2
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(6, 12),
-                // (6,12): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                // (6,12): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
                 //     public C(C c) // 1, 2
                 Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithArguments("B.B(B)").WithLocation(6, 12)
                 );
@@ -3910,7 +3906,7 @@ public record C(object P1) : B(0, 1)
                 // (6,12): error CS1729: 'B' does not contain a constructor that takes 0 arguments
                 //     public C(C c) // 1, 2
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(6, 12),
-                // (6,12): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                // (6,12): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
                 //     public C(C c) // 1, 2
                 Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithArguments("B.B(B)").WithLocation(6, 12)
                 );
@@ -3932,7 +3928,7 @@ public record C(object P1, object P2) : B(0, 1)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,21): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                // (6,21): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
                 //     public C(C c) : this(1, 2) // 1
                 Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithArguments("B.B(B)").WithLocation(6, 21)
                 );
@@ -3961,10 +3957,10 @@ public record D(int j) : B(0)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,21): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                // (6,21): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
                 //     public C(C c) : base(1) // 1
                 Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithArguments("B.B(B)").WithLocation(6, 21),
-                // (13,22): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                // (13,22): error CS8868: A copy constructor in a record type deriving from another record must invoke that base record's copy constructor 'B.B(B)'.
                 //     public D(D? d) : base(1) // 2
                 Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithArguments("B.B(B)").WithLocation(13, 22)
                 );
@@ -3984,24 +3980,30 @@ public record C(object P1, object P2) : B(0, 1)
 }
 public record D(object P1, object P2) : B(0, 1)
 {
-    private D(D d) : base(d) { } // 2
+    private D(D d) : base(d) { } // 2, 3
 }
-public record E(object P1, object P2) : B(0, 1); // 3
+public record E(object P1, object P2) : B(0, 1); // 4
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,22): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                // (7,22): error CS8867: No accessible copy constructor found in base type 'B'.
                 //     private C(C c) : base(2, 3) { } // 1
-                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithArguments("B.B(B)").WithLocation(7, 22),
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "base").WithArguments("B").WithLocation(7, 22),
                 // (11,22): error CS0122: 'B.B(B)' is inaccessible due to its protection level
-                //     private D(D d) : base(d) { } // 2
+                //     private D(D d) : base(d) { } // 2, 3
                 Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("B.B(B)").WithLocation(11, 22),
-                // (13,15): error CS0122: 'B.B(B)' is inaccessible due to its protection level
-                // public record E(object P1, object P2) : B(0, 1); // 3
-                Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("B.B(B)").WithLocation(13, 15)
+                // (11,22): error CS8867: No accessible copy constructor found in base type 'B'.
+                //     private D(D d) : base(d) { } // 2, 3
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "base").WithArguments("B").WithLocation(11, 22),
+                // (13,15): error CS8867: No accessible copy constructor found in base type 'B'.
+                // public record E(object P1, object P2) : B(0, 1); // 4
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("B").WithLocation(13, 15)
                 );
             // Should we complain about private user-defined copy constructor on unsealed type (ie. will prevent inheritance)?
-            // https://github.com/dotnet/roslyn/issues/45012 
+            // https://github.com/dotnet/roslyn/issues/45012
+
+            // We should not have both diagnostics 2 and 3 (redundant)
+            // https://github.com/dotnet/roslyn/issues/45079
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
@@ -4028,14 +4030,17 @@ record C(object P1, object P2) : B(3, 4); // 1
             var sourceC = @"
 record C(object P1, object P2) : B(3, 4)
 {
-    protected C(C c) : base(c) { } // 1
+    protected C(C c) : base(c) { } // 1, 2
 }
 ";
             var compC = CreateCompilation(sourceC, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compC.VerifyDiagnostics(
                 // (4,24): error CS7036: There is no argument given that corresponds to the required formal parameter 'N2' of 'B.B(object, object)'
-                //     protected C(C c) : base(c) { } // 1
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "base").WithArguments("N2", "B.B(object, object)").WithLocation(4, 24)
+                //     protected C(C c) : base(c) { } // 1, 2
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "base").WithArguments("N2", "B.B(object, object)").WithLocation(4, 24),
+                // (4,24): error CS8867: No accessible copy constructor found in base type 'B'.
+                //     protected C(C c) : base(c) { } // 1, 2
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "base").WithArguments("B").WithLocation(4, 24)
                 );
         }
 
@@ -4283,6 +4288,18 @@ public record C : B {
                 // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
                 // public record C : B {
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 15)
+                );
+
+            var source2 = @"
+public record C : B
+{
+    public C(C c) { }
+}";
+            var comp2 = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp2.VerifyDiagnostics(
+                // (4,12): error CS8867: No accessible copy constructor found in base type 'B'.
+                //     public C(C c) { }
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(4, 12)
                 );
         }
 

@@ -3950,48 +3950,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MemberResolutionResult<MethodSymbol> memberResolutionResult;
                 ImmutableArray<MethodSymbol> candidateConstructors;
-                bool found;
-                MethodSymbol resultMember;
-                ImmutableArray<int> argsToParamsOpt;
-                bool isExpanded;
-                if (constructor is SynthesizedRecordCopyCtor)
-                {
-                    resultMember = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType);
-                    found = resultMember is object;
-                    argsToParamsOpt = default;
-                    isExpanded = false;
-                    candidateConstructors = ImmutableArray<MethodSymbol>.Empty;
-                    analyzedArguments.Arguments.Add(new BoundParameter(constructor.GetNonNullSyntaxNode(), constructor.Parameters[0]));
-
-                    if (found)
-                    {
-                        HashSet<DiagnosticInfo> ignoredUseSiteDiagnostics = null;
-                        if (!this.IsAccessible(resultMember, ref ignoredUseSiteDiagnostics, accessThroughType: null))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BadAccess, errorLocation, resultMember);
-                        }
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, errorLocation, baseType);
-                    }
-                }
-                else
-                {
-                    found = TryPerformConstructorOverloadResolution(
-                                        initializerType,
-                                        analyzedArguments,
-                                        WellKnownMemberNames.InstanceConstructorName,
-                                        errorLocation,
-                                        false, // Don't suppress result diagnostics
-                                        diagnostics,
-                                        out memberResolutionResult,
-                                        out candidateConstructors,
-                                        allowProtectedConstructorsOfBaseType: true);
-                    resultMember = memberResolutionResult.Member;
-                    argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
-                    isExpanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-                }
+                bool found = TryPerformConstructorOverloadResolution(
+                                    initializerType,
+                                    analyzedArguments,
+                                    WellKnownMemberNames.InstanceConstructorName,
+                                    errorLocation,
+                                    false, // Don't suppress result diagnostics
+                                    diagnostics,
+                                    out memberResolutionResult,
+                                    out candidateConstructors,
+                                    allowProtectedConstructorsOfBaseType: true);
+                MethodSymbol resultMember = memberResolutionResult.Member;
 
                 validateRecordCopyConstructor(containingType, constructor, baseType, resultMember, errorLocation, diagnostics);
 
@@ -4034,7 +4003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             receiver,
                             resultMember.Parameters,
                             arguments,
-                            argsToParamsOpt,
+                            memberResolutionResult.Result.ArgsToParamsOpt,
                             this.LocalScopeDepth,
                             diagnostics);
                     }
@@ -4047,9 +4016,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedArguments.GetNames(),
                         refKinds,
                         isDelegateCall: false,
-                        expanded: isExpanded,
+                        expanded: memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
                         invokedAsExtensionMethod: false,
-                        argsToParamsOpt: argsToParamsOpt,
+                        argsToParamsOpt: memberResolutionResult.Result.ArgsToParamsOpt,
                         resultKind: LookupResultKind.Viable,
                         binderOpt: this,
                         type: constructorReturnType,
@@ -4081,24 +4050,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Are we dealing with a user-defined copy constructor in a record type?
                 if (containingType is SourceNamedTypeSymbol sourceType &&
-                    sourceType.IsRecord() &&
-                    SynthesizedRecordCopyCtor.FindCopyConstructor(containingType).Equals(constructor, TypeCompareKind.ConsiderEverything))
+                    sourceType.IsRecord &&
+                    SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor))
                 {
                     if (baseType.SpecialType == SpecialType.System_Object)
                     {
                         return;
                     }
 
-                    // Unless the base type is 'object', the constructor should invoke the base type copy constructor
-                    var correctBaseCopyCtor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType);
-                    if (correctBaseCopyCtor is null)
+                    // Unless the base type is 'object', the constructor should invoke a base type copy constructor
+                    HashSet<DiagnosticInfo> ignoredUseSiteDiagnostics = null;
+                    var foundBaseCopyCtor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref ignoredUseSiteDiagnostics);
+                    if (foundBaseCopyCtor is null)
                     {
-                        // We'll have reported a problem with the base type of the record elsewhere
-                        return;
+                        // if there is no base type copy constructor, we'll report that instead
+                        diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, errorLocation, baseType);
                     }
-                    else if (!correctBaseCopyCtor.Equals(baseCtor, TypeCompareKind.ConsiderEverything))
+                    else if (baseCtor is null || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(baseCtor))
                     {
-                        diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation, correctBaseCopyCtor);
+                        diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation, foundBaseCopyCtor);
                     }
                 }
             }

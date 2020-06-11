@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -48,26 +49,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var param = F.Parameter(Parameters[0]);
             foreach (var field in ContainingType.GetFieldsToEmit())
             {
-                if (!field.IsStatic && field.ContainingType.Equals(ContainingType))
+                if (!field.IsStatic)
                 {
                     statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
                 }
             }
         }
 
-        internal static MethodSymbol? FindCopyConstructor(NamedTypeSymbol containingType)
+        internal static MethodSymbol? FindCopyConstructor(NamedTypeSymbol containingType, NamedTypeSymbol within, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            // We should handle ambiguities once we consider custom modifiers, as we do in overload resolution
+            // https://github.com/dotnet/roslyn/issues/45077
             foreach (var member in containingType.InstanceConstructors)
             {
-                if (member is MethodSymbol { IsStatic: false, ParameterCount: 1, Arity: 0 } method &&
-                    method.Parameters[0].Type.Equals(containingType, TypeCompareKind.CLRSignatureCompareOptions) &&
-                    method.Parameters[0].RefKind == RefKind.None)
+                if (HasCopyConstructorSignature(member) &&
+                    AccessCheck.IsSymbolAccessible(member.OriginalDefinition, within.OriginalDefinition, ref useSiteDiagnostics))
                 {
-                    return method;
+                    return member;
                 }
             }
 
             return null;
+        }
+
+        internal static bool IsCopyConstructor(Symbol member)
+        {
+            if (member is MethodSymbol { MethodKind: MethodKind.Constructor } method)
+            {
+                return HasCopyConstructorSignature(method);
+            }
+
+            return false;
+        }
+
+        internal static bool HasCopyConstructorSignature(MethodSymbol member)
+        {
+            NamedTypeSymbol containingType = member.ContainingType;
+            // We should relax the comparison to AllIgnoreOptions, so that a copy constructor with a custom modifier is recognized
+            // https://github.com/dotnet/roslyn/issues/45077
+            return member is MethodSymbol { IsStatic: false, ParameterCount: 1, Arity: 0 } method &&
+                method.Parameters[0].Type.Equals(containingType, TypeCompareKind.CLRSignatureCompareOptions) &&
+                method.Parameters[0].RefKind == RefKind.None;
         }
     }
 }

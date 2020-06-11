@@ -3356,9 +3356,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (constructor.Initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) != true &&
                 ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any() &&
-                !SynthesizedRecordCopyCtor.FindCopyConstructor(ContainingType).Equals(this.ContainingMember(), TypeCompareKind.ConsiderEverything))
+                !SynthesizedRecordCopyCtor.IsCopyConstructor(this.ContainingMember()))
             {
-                // Note: for copy constructors, we check the constructor initializer elsewhere
+                // Note: we check the constructor initializer of copy constructors elsewhere
                 Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, constructor.Initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
             }
 

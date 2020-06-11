@@ -105,21 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        public bool IsRecord()
-        {
-            foreach (var syntaxRef in this.SyntaxReferences)
-            {
-                var typeDecl = (CSharpSyntaxNode)syntaxRef.GetSyntax();
-                SyntaxKind typeKind = typeDecl.Kind();
-                if (typeKind == SyntaxKind.RecordDeclaration)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private static SyntaxToken GetName(CSharpSyntaxNode node)
         {
             switch (node.Kind())

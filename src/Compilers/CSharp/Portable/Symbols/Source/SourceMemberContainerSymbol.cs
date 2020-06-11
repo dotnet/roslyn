@@ -764,6 +764,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool IsRecord
+        {
+            get
+            {
+                return this.declaration.Declarations[0].Kind == DeclarationKind.Record;
+            }
+        }
+
         public override bool IsImplicitlyDeclared
         {
             get
