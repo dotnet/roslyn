@@ -5719,6 +5719,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRecursivePatterns" xml:space="preserve">
     <value>recursive patterns</value>
   </data>
+  <data name="IDS_FeatureNullPointerConstantPattern" xml:space="preserve">
+    <value>null pointer constant pattern</value>
+  </data>
   <data name="ERR_WrongNumberOfSubpatterns" xml:space="preserve">
     <value>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</value>
   </data>
