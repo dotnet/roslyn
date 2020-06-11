@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundFunctionPointerInvocationOperation(BoundFunctionPointerInvocation boundFunctionPointerInvocation)
         {
-            ITypeSymbol type = boundFunctionPointerInvocation.Type.GetPublicSymbol();
+            ITypeSymbol type = boundFunctionPointerInvocation.GetPublicTypeSymbol();
             SyntaxNode syntax = boundFunctionPointerInvocation.Syntax;
             Optional<object> constantValue = ConvertToOptional(boundFunctionPointerInvocation.ConstantValue);
             bool isImplicit = boundFunctionPointerInvocation.WasCompilerGenerated;
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundUnconvertedAddressOf.Operand,
                 _semanticModel,
                 boundUnconvertedAddressOf.Syntax,
-                boundUnconvertedAddressOf.Type.GetPublicSymbol(),
+                boundUnconvertedAddressOf.GetPublicTypeSymbol(),
                 ConvertToOptional(boundUnconvertedAddressOf.ConstantValue),
                 boundUnconvertedAddressOf.WasCompilerGenerated);
         }
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             MethodSymbol constructor = boundWithExpression.CloneMethod;
             SyntaxNode syntax = boundWithExpression.Syntax;
-            ITypeSymbol type = boundWithExpression.Type.GetPublicSymbol();
+            ITypeSymbol type = boundWithExpression.GetPublicTypeSymbol();
             Optional<object> constantValue = ConvertToOptional(boundWithExpression.ConstantValue);
             bool isImplicit = boundWithExpression.WasCompilerGenerated;
             return new CSharpLazyWithExpressionOperation(this, boundWithExpression, constructor.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IIsTypeOperation CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)
         {
             BoundNode valueOperand = boundIsOperator.Operand;
-            ITypeSymbol typeOperand = boundIsOperator.TargetType.Type.GetPublicSymbol();
+            ITypeSymbol typeOperand = boundIsOperator.TargetType.GetPublicTypeSymbol();
             SyntaxNode syntax = boundIsOperator.Syntax;
             ITypeSymbol type = boundIsOperator.GetPublicTypeSymbol();
             bool isNegated = false;
@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ISizeOfOperation CreateBoundSizeOfOperatorOperation(BoundSizeOfOperator boundSizeOfOperator)
         {
-            ITypeSymbol typeOperand = boundSizeOfOperator.SourceType.Type.GetPublicSymbol();
+            ITypeSymbol typeOperand = boundSizeOfOperator.SourceType.GetPublicTypeSymbol();
             SyntaxNode syntax = boundSizeOfOperator.Syntax;
             ITypeSymbol type = boundSizeOfOperator.GetPublicTypeSymbol();
             Optional<object> constantValue = ConvertToOptional(boundSizeOfOperator.ConstantValue);
@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ITypeOfOperation CreateBoundTypeOfOperatorOperation(BoundTypeOfOperator boundTypeOfOperator)
         {
-            ITypeSymbol typeOperand = boundTypeOfOperator.SourceType.Type.GetPublicSymbol();
+            ITypeSymbol typeOperand = boundTypeOfOperator.SourceType.GetPublicTypeSymbol();
             SyntaxNode syntax = boundTypeOfOperator.Syntax;
             ITypeSymbol type = boundTypeOfOperator.GetPublicTypeSymbol();
             Optional<object> constantValue = ConvertToOptional(boundTypeOfOperator.ConstantValue);
