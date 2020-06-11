@@ -1,17 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal class DiagnosticReporter
+    internal sealed class DiagnosticReporter
     {
+        internal ImmutableList<WorkspaceDiagnostic> Diagnostics;
         private readonly Workspace _workspace;
 
         public DiagnosticReporter(Workspace workspace)
         {
             _workspace = workspace;
+            Diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
         }
 
         public void Report(DiagnosticReportingMode mode, string message, Func<string, Exception> createException = null)
@@ -36,6 +41,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 default:
                     throw new ArgumentException($"Invalid {nameof(DiagnosticReportingMode)} specified: {mode}", nameof(mode));
             }
+        }
+
+        internal void AddDiagnostic(WorkspaceDiagnostic diagnostic)
+        {
+            ImmutableInterlocked.Update(ref Diagnostics, (list, d) => list.Add(d), diagnostic);
         }
 
         public void Report(WorkspaceDiagnostic diagnostic)

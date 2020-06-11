@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -39,10 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         private readonly IIndentationManagerService _indentationManagerService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEditorFormattingService(IIndentationManagerService indentationManagerService)
-        {
-            _indentationManagerService = indentationManagerService;
-        }
+            => _indentationManagerService = indentationManagerService;
 
         public bool SupportsFormatDocument => true;
         public bool SupportsFormatOnPaste => true;
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // mess with it if it's inside a line.
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
-                var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await token.SyntaxTree!.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (!token.IsFirstTokenOnLine(text))
                 {
                     return true;
@@ -287,9 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         }
 
         private ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
-        {
-            return new CSharpSmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
-        }
+            => new CSharpSmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
 
         private async Task<IList<TextChange>> FormatRangeAsync(
             Document document,

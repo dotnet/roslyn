@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
@@ -11,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             _outputHelper = outputHelper
         End Sub
 
-        <WpfFact>
+        <WpfTheory>
         <WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub NoConflictForDelegate()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub NoConflictForDelegate(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -29,14 +31,14 @@ class C
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
+                </Workspace>, host:=host, renameTo:="bar")
             End Using
         End Sub
 
-        <WpfFact(Skip:="917043")>
+        <WpfTheory(Skip:="917043")>
         <WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub NoConflictForIsolatedScopes()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub NoConflictForIsolatedScopes(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -53,14 +55,13 @@ class C
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="F")
+                </Workspace>, host:=host, renameTo:="F")
             End Using
         End Sub
 
-
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictBetweenFields()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictBetweenFields(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -72,15 +73,15 @@ class Goo
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
+                </Workspace>, host:=host, renameTo:="bar")
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictBetweenFieldAndMethodDeclaration()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictBetweenFieldAndMethodDeclaration(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -92,15 +93,15 @@ class Goo
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
+                </Workspace>, host:=host, renameTo:="bar")
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictBetweenPropertyAndFieldDeclaration()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictBetweenPropertyAndFieldDeclaration(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -112,15 +113,15 @@ class Program
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
+                </Workspace>, host:=host, renameTo:="bar")
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictBetweenMethodDeclarations()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictBetweenMethodDeclarations(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -132,15 +133,15 @@ class Goo
 }
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
+                </Workspace>, host:=host, renameTo:="bar")
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictBetweenParameterDeclarations()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictBetweenParameterDeclarations(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -151,15 +152,15 @@ class Goo
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
+                </Workspace>, host:=host, renameTo:="bar")
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub NoConflictBetweenMethodsOfDifferentSignature()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub NoConflictBetweenMethodsOfDifferentSignature(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -171,14 +172,14 @@ class Goo
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
+                </Workspace>, host:=host, renameTo:="bar")
 
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictBetweenMemberDeclarationsWithOutOrRefDifferenceOnly()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictBetweenMemberDeclarationsWithOutOrRefDifferenceOnly(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -190,15 +191,15 @@ class Goo
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
+                </Workspace>, host:=host, renameTo:="bar")
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub NoConflictBetweenMethodsDifferingByArity()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub NoConflictBetweenMethodsDifferingByArity(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -210,15 +211,15 @@ class Goo
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
+                </Workspace>, host:=host, renameTo:="bar")
 
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(546429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546429")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub NoConflictWithNamespaceDefinedInMetadata()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub NoConflictWithNamespaceDefinedInMetadata(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -226,14 +227,14 @@ class Goo
 namespace [|$$Goo|] { }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="System")
+                </Workspace>, host:=host, renameTo:="System")
 
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub NoConflictWithEquallyNamedNamespaces()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub NoConflictWithEquallyNamedNamespaces(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -242,15 +243,15 @@ namespace [|$$Goo|] { }
 namespace N1 { }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="N1")
+                </Workspace>, host:=host, renameTo:="N1")
 
             End Using
         End Sub
 
         <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_ConflictInFieldInitializerOfFieldAndModuleNameResolvedThroughFullQualification()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_ConflictInFieldInitializerOfFieldAndModuleNameResolvedThroughFullQualification(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -272,16 +273,16 @@ class [|$$C|]
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="A")
+                </Workspace>, host:=host, renameTo:="A")
 
                 result.AssertLabeledSpansAre("stmt1", "var y = new ns.A();", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_NoConflictBetweenLambdaParameterAndField()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_NoConflictBetweenLambdaParameterAndField(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -294,14 +295,14 @@ class Program
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="y")
+                </Workspace>, host:=host, renameTo:="y")
             End Using
         End Sub
 
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_ConflictBetweenTypeParametersInTypeDeclaration()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_ConflictBetweenTypeParametersInTypeDeclaration(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -313,16 +314,16 @@ class Program<{|declconflict:A|}, [|$$B|]>
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="A")
+                </Workspace>, host:=host, renameTo:="A")
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -336,16 +337,16 @@ class Program
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="A")
+                </Workspace>, host:=host, renameTo:="A")
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration_2()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_ConflictBetweenTypeParametersInMethodDeclaration_2(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -359,16 +360,16 @@ class Program
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="\u0061")
+                </Workspace>, host:=host, renameTo:="\u0061")
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_ConflictBetweenTypeParameterAndMember_1()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_ConflictBetweenTypeParameterAndMember_1(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -382,16 +383,16 @@ class Program<{|declconflict:@a|}>
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="\u0061")
+                </Workspace>, host:=host, renameTo:="\u0061")
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_ConflictBetweenTypeParameterAndMember_2()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_ConflictBetweenTypeParameterAndMember_2(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -404,16 +405,16 @@ class Program<{|declconflict:@a|}>
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="\u0061")
+                </Workspace>, host:=host, renameTo:="\u0061")
 
                 result.AssertLabeledSpansAre("declconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(658801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658801")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_OverridingImplicitlyUsedMethod()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_OverridingImplicitlyUsedMethod(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -445,16 +446,16 @@ class C : A
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="MoveNext")
+                </Workspace>, host:=host, renameTo:="MoveNext")
 
                 result.AssertLabeledSpansAre("possibleImplicitConflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_OverridingImplicitlyUsedMethod_1()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_OverridingImplicitlyUsedMethod_1(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -486,15 +487,15 @@ class C : A
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="MoveNext")
+                </Workspace>, host:=host, renameTo:="MoveNext")
 
             End Using
         End Sub
 
         <WorkItem(682669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682669")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CS_OverridingImplicitlyUsedMethod_2()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CS_OverridingImplicitlyUsedMethod_2(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -525,14 +526,14 @@ class C : A
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="MoveNext")
+                </Workspace>, host:=host, renameTo:="MoveNext")
 
             End Using
         End Sub
 
         <WorkItem(851604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851604")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictInsideAttributeArgument()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictInsideAttributeArgument(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -546,7 +547,7 @@ class C
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Method")
+                </Workspace>, host:=host, renameTo:="Method")
 
                 result.AssertLabeledSpansAre("first", "Method", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("second", "DefaultValue(C.Method)", type:=RelatedLocationType.ResolvedReferenceConflict)
@@ -554,8 +555,8 @@ class C
         End Sub
 
         <WorkItem(6306, "https://github.com/dotnet/roslyn/issues/6306")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ResolveConflictInAnonymousTypeProperty()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ResolveConflictInAnonymousTypeProperty(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -570,7 +571,7 @@ class C
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="X")
+                </Workspace>, host:=host, renameTo:="X")
 
                 result.AssertLabeledSpansAre("first", "X(new { a = 1 }, a => (long)a.a);", type:=RelatedLocationType.ResolvedNonReferenceConflict)
                 result.AssertLabeledSpansAre("origin", "X", type:=RelatedLocationType.NoConflict)
@@ -578,8 +579,8 @@ class C
         End Sub
 
         <WorkItem(6308, "https://github.com/dotnet/roslyn/issues/6308")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ResolveConflictWhenAnonymousTypeIsUsedAsGenericArgument()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ResolveConflictWhenAnonymousTypeIsUsedAsGenericArgument(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -595,7 +596,7 @@ class C
 }
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="X")
+                </Workspace>, host:=host, renameTo:="X")
 
                 result.AssertLabeledSpansAre("first", "M(new { }, (_, a) => (long)X(a))", type:=RelatedLocationType.ResolvedNonReferenceConflict)
                 result.AssertLabeledSpansAre("second", "M(new { }, (_, a) => (long)X(a))", type:=RelatedLocationType.ResolvedNonReferenceConflict)
@@ -603,10 +604,10 @@ class C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(18566, "https://github.com/dotnet/roslyn/issues/18566")>
-        Public Sub ParameterInPartialMethodDefinitionConflictingWithLocalInPartialMethodImplementation()
+        Public Sub ParameterInPartialMethodDefinitionConflictingWithLocalInPartialMethodImplementation(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -626,7 +627,7 @@ partial class C
 }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
+                </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("parameter0", "y", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("parameter1", "y", RelatedLocationType.NoConflict)

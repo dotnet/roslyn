@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, elementType.CustomModifiers.As<Cci.ICustomModifier>());
+                return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(elementType.CustomModifiers));
             }
         }
 
@@ -52,16 +56,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         TypeDefinitionHandle Cci.ITypeReference.TypeDef => default(TypeDefinitionHandle);
         Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode => Cci.PrimitiveTypeCode.NotPrimitive;
 
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context) => null;
-        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference => null;
-        Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference => null;
-        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference => null;
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => null;
-        Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference => null;
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
-        Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference => null;
-        Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference => null;
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context) => null;
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context) => null;
+        Cci.ITypeDefinition? Cci.ITypeReference.GetResolvedType(EmitContext context) => null;
+        Cci.IGenericMethodParameterReference? Cci.ITypeReference.AsGenericMethodParameterReference => null;
+        Cci.IGenericTypeInstanceReference? Cci.ITypeReference.AsGenericTypeInstanceReference => null;
+        Cci.IGenericTypeParameterReference? Cci.ITypeReference.AsGenericTypeParameterReference => null;
+        Cci.INamespaceTypeDefinition? Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => null;
+        Cci.INamespaceTypeReference? Cci.ITypeReference.AsNamespaceTypeReference => null;
+        Cci.INestedTypeDefinition? Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
+        Cci.INestedTypeReference? Cci.ITypeReference.AsNestedTypeReference => null;
+        Cci.ISpecializedNestedTypeReference? Cci.ITypeReference.AsSpecializedNestedTypeReference => null;
+        Cci.ITypeDefinition? Cci.ITypeReference.AsTypeDefinition(EmitContext context) => null;
+        Cci.IDefinition? Cci.IReference.AsDefinition(EmitContext context) => null;
     }
 }

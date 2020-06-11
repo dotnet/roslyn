@@ -1,5 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -299,6 +303,55 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xfe });
             TestTryReadByteOrderMark(expectedEncoding: Encoding.BigEndianUnicode, expectedPreambleLength: 2, data: new byte[] { 0xfe, 0xff });
+        }
+
+        [Fact]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
+        public void WriteWithRangeStartingLaterThanZero()
+        {
+            var sourceText = SourceText.From("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+            var writer = new StringWriter();
+            sourceText.Write(writer, TextSpan.FromBounds(1, sourceText.Length));
+
+            Assert.Equal("BCDEFGHIJKLMNOPQRSTUVWXYZ", writer.ToString());
+        }
+
+        public static IEnumerable<object[]> AllRanges(int totalLength) =>
+            from start in Enumerable.Range(0, totalLength)
+            from length in Enumerable.Range(0, totalLength - start)
+            select new object[] { new TextSpan(start, length) };
+
+        [Theory]
+        [MemberData(nameof(AllRanges), 10)]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
+        public void WriteWithAllRanges(TextSpan span)
+        {
+            const string Text = "0123456789";
+            var sourceText = SourceText.From(Text);
+
+            var writer = new StringWriter();
+            sourceText.Write(writer, span);
+
+            Assert.Equal(Text.Substring(span.Start, span.Length), writer.ToString());
+        }
+
+        [Fact]
+        public void WriteWithSpanStartingAfterEndThrowsOutOfRange()
+        {
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(() =>
+                SourceText.From("ABC").Write(TextWriter.Null, TextSpan.FromBounds(4, 4)));
+
+            Assert.Equal("span", ex.ParamName);
+        }
+
+        [Fact]
+        public void WriteWithSpanEndingAfterEndThrowsOutOfRange()
+        {
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(() =>
+                SourceText.From("ABC").Write(TextWriter.Null, TextSpan.FromBounds(2, 4)));
+
+            Assert.Equal("span", ex.ParamName);
         }
     }
 }

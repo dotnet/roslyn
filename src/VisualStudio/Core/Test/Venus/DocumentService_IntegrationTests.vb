@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
@@ -14,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -51,7 +54,6 @@ class {|Definition:C1|}
         </Document>
     </Project>
 </Workspace>
-
 
             Dim exportProvider = ExportProviderCache _
                 .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic() _
@@ -155,8 +157,10 @@ class {|Definition:C1|}
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestDocumentOperationCanApplyChange() As System.Threading.Tasks.Task
+        <InlineData(True)>
+        <InlineData(False)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDocumentOperationCanApplyChange(ignoreUnchangeableDocuments As Boolean) As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -166,7 +170,7 @@ class C { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance, ignoreUnchangeableDocumentsWhenApplyingChanges:=ignoreUnchangeableDocuments)
 
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
@@ -179,8 +183,19 @@ class C { }
                 ' confirm apply changes are not supported
                 Assert.False(document.CanApplyChange())
 
+                Assert.Equal(ignoreUnchangeableDocuments, workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
+
                 ' see whether changes can be applied to the solution
-                Assert.Throws(Of NotSupportedException)(Sub() workspace.TryApplyChanges(newDocument.Project.Solution))
+                If ignoreUnchangeableDocuments Then
+                    Assert.True(workspace.TryApplyChanges(newDocument.Project.Solution))
+
+                    ' Changes should not be made if Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges is true
+                    Dim currentDocument = workspace.CurrentSolution.GetDocument(document.Id)
+                    Assert.True(currentDocument.GetTextSynchronously(CancellationToken.None).ContentEquals(document.GetTextSynchronously(CancellationToken.None)))
+                Else
+                    ' should throw if Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges is false
+                    Assert.Throws(Of NotSupportedException)(Sub() workspace.TryApplyChanges(newDocument.Project.Solution))
+                End If
             End Using
         End Function
 
@@ -196,6 +211,8 @@ class { }
 </Workspace>
 
             Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+                Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
@@ -204,7 +221,7 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Dim diagnosticService = New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
 
                 ' confirm diagnostic support is off for the document
                 Assert.False(document.SupportsDiagnostics())
@@ -319,6 +336,7 @@ class { }
             Implements SVsServiceProvider
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

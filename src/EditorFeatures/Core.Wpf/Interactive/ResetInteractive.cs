@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -37,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _createImport = createImport;
         }
 
-        internal Task Execute(IInteractiveWindow interactiveWindow, string title)
+        internal Task ExecuteAsync(IInteractiveWindow interactiveWindow, string title)
         {
             if (GetProjectProperties(out var references, out var referenceSearchPaths, out var sourceSearchPaths, out var projectNamespaces, out var projectDirectory, out var is64Bit))
             {
@@ -89,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             {
                 // First, start a build.
                 // If the build fails do not reset the REPL.
-                var builtSuccessfully = await BuildProject().ConfigureAwait(true);
+                var builtSuccessfully = await BuildProjectAsync().ConfigureAwait(true);
                 if (!builtSuccessfully)
                 {
                     return;
@@ -140,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         /// A method that should trigger an async project build.
         /// </summary>
         /// <returns>Whether or not the build was successful.</returns>
-        protected abstract Task<bool> BuildProject();
+        protected abstract Task<bool> BuildProjectAsync();
 
         /// <summary>
         /// A method that should trigger a project cancellation.

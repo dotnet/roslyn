@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -22,6 +24,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -42,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticAnalyzerService(
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
@@ -89,19 +93,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
         {
+            var currentSolution = _workspace.CurrentSolution;
+            var infoCache = _diagnosticService.AnalyzerInfoCache;
+            var hostAnalyzers = currentSolution.State.Analyzers;
+
             if (hierarchy == null)
             {
-                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt: null));
+                return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
             }
 
             // Analyzers are only supported for C# and VB currently.
-            var projectsWithHierarchy = _workspace.CurrentSolution.Projects
+            var projectsWithHierarchy = currentSolution.Projects
                 .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
                 .Where(p => _workspace.GetHierarchy(p.Id) == hierarchy);
 
             if (projectsWithHierarchy.Count() <= 1)
             {
-                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectsWithHierarchy.FirstOrDefault()));
+                var project = projectsWithHierarchy.FirstOrDefault();
+                if (project == null)
+                {
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache));
+                }
+                else
+                {
+                    return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project));
+                }
             }
             else
             {
@@ -110,16 +126,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
                 foreach (var project in projectsWithHierarchy)
                 {
-                    var newDescriptorTuples = _diagnosticService.CreateDiagnosticDescriptorsPerReference(project);
-                    foreach (var kvp in newDescriptorTuples)
+                    var descriptorsPerReference = hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, project);
+                    foreach (var (displayName, descriptors) in descriptorsPerReference)
                     {
-                        if (descriptorsMap.TryGetValue(kvp.Key, out var existingDescriptors))
+                        if (descriptorsMap.TryGetValue(displayName, out var existingDescriptors))
                         {
-                            descriptorsMap[kvp.Key] = existingDescriptors.Concat(kvp.Value).Distinct();
+                            descriptorsMap[displayName] = existingDescriptors.Concat(descriptors).Distinct();
                         }
                         else
                         {
-                            descriptorsMap[kvp.Key] = kvp.Value;
+                            descriptorsMap[displayName] = descriptors;
                         }
                     }
                 }
@@ -149,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             if (visible)
             {
                 if (command.CommandID.ID == RunCodeAnalysisForSelectedProjectCommandId &&
-                    hierarchy.TryGetProject(out var project))
+                    hierarchy!.TryGetProject(out var project))
                 {
                     // Change to show the name of the project as part of the menu item display text.
                     command.Text = string.Format(ServicesVSResources.Run_Code_Analysis_on_0, project.Name);
@@ -179,33 +195,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public void RunAnalyzers(IVsHierarchy? hierarchy)
         {
             var project = GetProject(hierarchy);
-            var solution = _workspace.CurrentSolution;
+            Solution solution = _workspace.CurrentSolution;
             string? projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
             // Add a message to VS status bar that we are running code analysis.
-            var statusMessage = projectOrSolutionName != null
-                ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
-                : ServicesVSResources.Running_code_analysis_for_Solution;
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
-            statusBar?.SetText(statusMessage);
+            var totalProjectCount = project != null ? 1 : (uint)solution.ProjectIds.Count;
+            var statusBarUpdater = statusBar != null ?
+                new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, totalProjectCount) :
+                null;
 
             // Force complete analyzer execution in background.
             var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
             Task.Run(async () =>
             {
-                await _diagnosticService.ForceAnalyzeAsync(solution, project?.Id, CancellationToken.None).ConfigureAwait(false);
+                try
+                {
+                    var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
+                    await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
 
-                // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
-                // then ForceAnalyzeAsync will not cause analyzers to execute.
-                // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
-                HandleProjectsWithDisabledAnalysis();
-
-                // Add a message to VS status bar that we completed executing code analysis.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var notificationMesage = projectOrSolutionName != null
-                    ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
-                    : ServicesVSResources.Code_analysis_completed_for_Solution;
-                statusBar?.SetText(notificationMesage);
+                    // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
+                    // then ForceAnalyzeAsync will not cause analyzers to execute.
+                    // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
+                    HandleProjectsWithDisabledAnalysis();
+                }
+                finally
+                {
+                    statusBarUpdater?.Dispose();
+                }
             }).CompletesAsyncOperation(asyncToken);
 
             return;
@@ -330,6 +347,95 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     Debug.Fail("Unable to determine whether build is active or not");
                     return true;
                 }
+            }
+        }
+
+        private sealed class StatusBarUpdater : IDisposable
+        {
+            private readonly IVsStatusbar _statusBar;
+            private readonly IThreadingContext _threadingContext;
+            private readonly uint _totalProjectCount;
+            private readonly string _statusMessageWhileRunning;
+            private readonly string _statusMesageOnCompleted;
+            private readonly string _statusMesageOnTerminated;
+            private readonly Timer _timer;
+
+            private int _analyzedProjectCount;
+            private bool _disposed;
+            private uint _statusBarCookie;
+
+            public StatusBarUpdater(IVsStatusbar statusBar, IThreadingContext threadingContext, string? projectOrSolutionName, uint totalProjectCount)
+            {
+                Contract.ThrowIfFalse(threadingContext.HasMainThread);
+                _statusBar = statusBar;
+                _threadingContext = threadingContext;
+                _totalProjectCount = totalProjectCount;
+
+                _statusMessageWhileRunning = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Running_code_analysis_for_Solution;
+                _statusMesageOnCompleted = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Code_analysis_completed_for_Solution;
+                _statusMesageOnTerminated = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Code_analysis_terminated_before_completion_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Code_analysis_terminated_before_completion_for_Solution;
+
+                // Set the initial status bar progress and text.
+                _statusBar.Progress(ref _statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: totalProjectCount);
+                _statusBar.SetText(_statusMessageWhileRunning);
+
+                // Create a timer to periodically update the status message while running analysis.
+                _timer = new Timer(new TimerCallback(UpdateStatusOnTimer), new AutoResetEvent(false),
+                    dueTime: TimeSpan.FromSeconds(5), period: TimeSpan.FromSeconds(5));
+            }
+
+            internal void OnProjectAnalyzed(Project _)
+            {
+                Interlocked.Increment(ref _analyzedProjectCount);
+                UpdateStatusCore();
+            }
+
+            // Add a message to VS status bar that we are running code analysis.
+            private void UpdateStatusOnTimer(object state)
+                => UpdateStatusCore();
+
+            public void Dispose()
+            {
+                _timer.Dispose();
+                _disposed = true;
+                UpdateStatusCore();
+            }
+
+            private void UpdateStatusCore()
+            {
+                _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                    string message;
+                    int fInProgress;
+                    var analyzedProjectCount = (uint)_analyzedProjectCount;
+                    if (analyzedProjectCount == _totalProjectCount)
+                    {
+                        message = _statusMesageOnCompleted;
+                        fInProgress = 0;
+                    }
+                    else if (_disposed)
+                    {
+                        message = _statusMesageOnTerminated;
+                        fInProgress = 0;
+                    }
+                    else
+                    {
+                        message = _statusMessageWhileRunning;
+                        fInProgress = 1;
+                    }
+
+                    // Update the status bar progress and text.
+                    _statusBar.Progress(ref _statusBarCookie, fInProgress, message, analyzedProjectCount, _totalProjectCount);
+                    _statusBar.SetText(message);
+                });
             }
         }
     }

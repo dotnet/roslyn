@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -506,6 +508,80 @@ public class C
                 //     public event System.Action PrivateRemover { add { } private remove { } }
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(5, 57)
                 );
+        }
+
+        [Fact]
+        [WorkItem(38444, "https://github.com/dotnet/roslyn/issues/38444")]
+        public void EmitRefAssembly_InternalAttributeConstructor()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+using System;
+internal class SomeAttribute : Attribute
+{
+    internal SomeAttribute()
+    {
+    }
+}
+[Some]
+public class C
+{
+}
+");
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: new EmitOptions(includePrivateMembers: false));
+                emitResult.Diagnostics.Verify();
+                Assert.True(emitResult.Success);
+
+                VerifyMethods(output, "C", new[] { "C..ctor()" });
+                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
+                VerifyMethods(output, "SomeAttribute", new[] { "SomeAttribute..ctor()" });
+                VerifyMethods(metadataOutput, "SomeAttribute", new[] { "SomeAttribute..ctor()" });
+            }
+        }
+
+        [Fact]
+        [WorkItem(38444, "https://github.com/dotnet/roslyn/issues/38444")]
+        public void EmitRefAssembly_InternalAttributeConstructor_DoesntIncludeMethodsOrStaticConstructors()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+using System;
+internal class SomeAttribute : Attribute
+{
+    internal SomeAttribute()
+    {
+    }
+
+    static SomeAttribute()
+    {
+    }
+
+    internal void F()
+    {
+    }
+}
+[Some]
+public class C
+{
+}
+");
+
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: new EmitOptions(includePrivateMembers: false));
+                emitResult.Diagnostics.Verify();
+                Assert.True(emitResult.Success);
+
+                VerifyMethods(output, "C", new[] { "C..ctor()" });
+                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
+                VerifyMethods(output, "SomeAttribute", new[] { "SomeAttribute..ctor()", "SomeAttribute..cctor()", "void SomeAttribute.F()" });
+                VerifyMethods(metadataOutput, "SomeAttribute", new[] { "SomeAttribute..ctor()" });
+            }
         }
 
         private static void VerifyMethods(MemoryStream stream, string containingType, string[] expectedMethods)

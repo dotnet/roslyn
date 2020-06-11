@@ -12,7 +12,6 @@ retry_wait_time_seconds=30
 global_json_file="$(dirname "$(dirname "${scriptroot}")")/global.json"
 declare -A native_assets
 
-. $scriptroot/pipeline-logging-functions.sh
 . $scriptroot/native/common-library.sh
 
 while (($# > 0)); do
@@ -121,7 +120,7 @@ else
     $installer_command
 
     if [[ $? != 0 ]]; then
-      Write-PipelineTelemetryError -category 'NativeToolsBootstrap' "Execution Failed"
+      echo "Execution Failed" >&2
       exit 1
     fi
   done
@@ -135,7 +134,7 @@ if [[ -d $install_bin ]]; then
   echo "Native tools are available from $install_bin"
   echo "##vso[task.prependpath]$install_bin"
 else
-  Write-PipelineTelemetryError -category 'NativeToolsBootstrap' "Native tools install directory does not exist, installation failed"
+  echo "Native tools install directory does not exist, installation failed" >&2
   exit 1
 fi
 

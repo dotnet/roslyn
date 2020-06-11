@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -10,10 +14,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+
+#pragma warning disable CA1822 // Mark members as static - Multiple 'JsonRpcMethod' attribute annotated methods.
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -35,33 +41,36 @@ namespace Microsoft.CodeAnalysis.Remote
                 NavigateToItemKind.Structure);
 
         public LanguageServer(Stream stream, IServiceProvider serviceProvider)
-            : base(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
+            : base(serviceProvider, stream)
         {
             StartService();
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public object Initialize(int? processId, string rootPath, Uri rootUri, ClientCapabilities capabilities, TraceSetting trace, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(JToken _1, CancellationToken _2)
         {
-            // our LSP server only supports WorkspaceStreamingSymbolProvider capability
-            // for now
-            return new InitializeResult()
+            return Task.FromResult(new InitializeResult()
             {
                 Capabilities = new VSServerCapabilities()
                 {
-                    WorkspaceStreamingSymbolProvider = true
+                    DisableGoToWorkspaceSymbols = true,
+                    WorkspaceSymbolProvider = true,
+                    TextDocumentSync = new TextDocumentSyncOptions
+                    {
+                        Change = TextDocumentSyncKind.None
+                    }
                 }
-            };
+            });
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public Task Initialized()
+        public Task InitializedAsync()
         {
             return Task.CompletedTask;
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
-        public void Shutdown(CancellationToken cancellationToken)
+        public void Shutdown(CancellationToken _)
         {
             // our language server shutdown when VS shutdown
             // we have this so that we don't get log file every time VS shutdown
@@ -74,8 +83,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // we have this so that we don't get log file every time VS shutdown
         }
 
-        [JsonRpcMethod(VSSymbolMethods.WorkspaceBeginSymbolName)]
-        public Task<VSBeginSymbolParams> BeginWorkspaceSymbolAsync(string query, int searchId, CancellationToken cancellationToken)
+        [JsonRpcMethod(Methods.WorkspaceSymbolName, UseSingleObjectParameterDeserialization = true)]
+        public Task<SymbolInformation[]> WorkspaceSymbolAsync(WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -84,49 +93,54 @@ namespace Microsoft.CodeAnalysis.Remote
                     // for now, we use whatever solution we have currently. in future, we will add an ability to sync VS's current solution
                     // on demand from OOP side
                     // https://github.com/dotnet/roslyn/issues/37424
-                    await SearchAsync(SolutionService.PrimaryWorkspace.CurrentSolution, query, searchId, cancellationToken).ConfigureAwait(false);
-                    return new VSBeginSymbolParams();
+                    var results = await SearchAsync(SolutionService.PrimaryWorkspace.CurrentSolution, args, cancellationToken).ConfigureAwait(false);
+                    return results.ToArray();
                 }
             }, cancellationToken);
         }
 
-        private async Task SearchAsync(Solution solution, string query, int searchId, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<SymbolInformation>> SearchAsync(Solution solution, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
-            var tasks = solution.Projects.Select(p => SearchProjectAsync(p, cancellationToken)).ToArray();
+            Contract.ThrowIfNull(args.PartialResultToken);
+
+            var tasks = solution.Projects.SelectMany(p => p.Documents).Select(d => SearchDocumentAndReportSymbolsAsync(d, args, cancellationToken));
             await Task.WhenAll(tasks).ConfigureAwait(false);
-            return;
-
-            async Task SearchProjectAsync(Project project, CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var results = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project,
-                    ImmutableArray<Document>.Empty,
-                    query,
-                    s_supportedKinds,
-                    cancellationToken).ConfigureAwait(false);
-
-                var convertedResults = await ConvertAsync(results, cancellationToken).ConfigureAwait(false);
-
-                await InvokeAsync(
-                    VSSymbolMethods.WorkspacePublishSymbolName,
-                    new object[] { new VSPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
-                    cancellationToken).ConfigureAwait(false);
-            }
+            return ImmutableArray<SymbolInformation>.Empty;
         }
 
-        private static async Task<VSSymbolInformation[]> ConvertAsync(
+        private static async Task<ImmutableArray<SymbolInformation>> SearchDocumentAsync(Document document, string query, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var results = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                document,
+                query,
+                s_supportedKinds,
+                cancellationToken).ConfigureAwait(false);
+
+            return await ConvertAsync(results, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Search the document and report the results back using <see cref="IProgress{T}"/>
+        /// <see cref="IProgress{T}.Report(T)"/> implementation for symbol search is threadsafe.
+        /// </summary>
+        private static async Task SearchDocumentAndReportSymbolsAsync(Document document, WorkspaceSymbolParams args, CancellationToken cancellationToken)
+        {
+            var convertedResults = await SearchDocumentAsync(document, args.Query, cancellationToken).ConfigureAwait(false);
+            args.PartialResultToken.Report(convertedResults.ToArray());
+        }
+
+        private static async Task<ImmutableArray<SymbolInformation>> ConvertAsync(
             ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
         {
-            var symbols = new VSSymbolInformation[results.Length];
+            var symbols = ImmutableArray.CreateBuilder<SymbolInformation>();
 
-            for (var i = 0; i < results.Length; i++)
+            foreach (var result in results)
             {
-                var result = results[i];
                 var text = await result.NavigableItem.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                symbols[i] = new VSSymbolInformation()
+                symbols.Add(new VSSymbolInformation()
                 {
                     Name = result.Name,
                     ContainerName = result.AdditionalInformation,
@@ -137,10 +151,10 @@ namespace Microsoft.CodeAnalysis.Remote
                         Range = ProtocolConversions.TextSpanToRange(result.NavigableItem.SourceSpan, text)
                     },
                     Icon = new VisualStudio.Text.Adornments.ImageElement(result.NavigableItem.Glyph.GetImageId())
-                };
+                });
             }
 
-            return symbols;
+            return symbols.ToImmutableArray();
         }
     }
 }

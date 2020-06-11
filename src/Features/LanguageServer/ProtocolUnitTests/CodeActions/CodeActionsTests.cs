@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -24,18 +26,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
-            var expected = CreateCommand(CSharpFeaturesResources.Use_implicit_type, locations["caret"].Single());
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var expected = CreateCommand(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single());
             var clientCapabilities = CreateClientCapabilitiesWithExperimentalValue("supportsWorkspaceEdits", JToken.FromObject(false));
 
-            var results = await RunGetCodeActionsAsync(solution, locations["caret"].Single(), clientCapabilities);
-            var useImplicitTypeResult = results.Single(r => r.Title == CSharpFeaturesResources.Use_implicit_type);
+            var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, locations["caret"].Single(), clientCapabilities);
+            var useImplicitTypeResult = results.Single(r => r.Title == CSharpAnalyzersResources.Use_implicit_type);
             AssertJsonEquals(expected, useImplicitTypeResult);
         }
 
         private static async Task<LSP.Command[]> RunGetCodeActionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)
         {
-            var results = await GetLanguageServer(solution).GetCodeActionsAsync(solution, CreateCodeActionParams(caret), clientCapabilities, CancellationToken.None);
+            var results = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>(LSP.Methods.TextDocumentCodeActionName,
+                CreateCodeActionParams(caret), clientCapabilities, null, CancellationToken.None);
             return results.Select(r => (LSP.Command)r).ToArray();
         }
 

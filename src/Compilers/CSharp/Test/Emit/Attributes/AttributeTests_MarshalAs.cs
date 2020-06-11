@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,7 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int count = 0;
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                var compilation = CreateEmptyCompilation(new SyntaxTree[0], new[] { assembly.GetReference() });
+                var compilation = CreateEmptyCompilation(
+                    new SyntaxTree[0],
+                    new[] { assembly.GetReference() },
+                    options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
                 foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
                 {
@@ -1078,7 +1083,7 @@ class X
     
         [MarshalAs(UnmanagedType.CustomMarshaler, MarshalType = ""aaa\0bbb"", MarshalCookie = ""ccc\0ddd"" )]
         int CustomMarshaler13
-    ) 
+    )
     {
         throw null;
     }
@@ -1091,6 +1096,51 @@ class X
                 { "foo:LPArray0",          new byte[] { 0x2a, 0x50 } },
                 { "foo:SafeArray8",        new byte[] { 0x1d, 0x00 } },
                 { "foo:CustomMarshaler13", new byte[] { 0x2c, 0x00, 0x00, 0x07, 0x61, 0x61, 0x61, 0x00, 0x62, 0x62, 0x62, 0x07, 0x63, 0x63, 0x63, 0x00, 0x64, 0x64, 0x64 } },
+            };
+
+            var verifier = CompileAndVerifyFieldMarshal(source, blobs, isField: false);
+            VerifyParameterMetadataDecoding(verifier, blobs);
+        }
+
+        [Fact]
+        public void Parameters_LocalFunction()
+        {
+            var source = @"
+using System;
+using System.Runtime.InteropServices;
+
+class X
+{
+    void M()
+    {
+        [return: MarshalAs(UnmanagedType.LPStr)]
+        static X local(
+
+            [MarshalAs(UnmanagedType.IDispatch)]
+            ref int IDispatch,
+
+            [MarshalAs(UnmanagedType.LPArray)]
+            out int LPArray0,
+
+            [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_EMPTY)]
+            int SafeArray8,
+
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalType = ""aaa\0bbb"", MarshalCookie = ""ccc\0ddd"" )]
+            int CustomMarshaler13
+        )
+        {
+            throw null;
+        }
+    }
+}
+";
+            var blobs = new Dictionary<string, byte[]>()
+            {
+                { "<M>g__local|0_0:",                  new byte[] { 0x14 } }, // return value
+                { "<M>g__local|0_0:IDispatch",         new byte[] { 0x1a } },
+                { "<M>g__local|0_0:LPArray0",          new byte[] { 0x2a, 0x50 } },
+                { "<M>g__local|0_0:SafeArray8",        new byte[] { 0x1d, 0x00 } },
+                { "<M>g__local|0_0:CustomMarshaler13", new byte[] { 0x2c, 0x00, 0x00, 0x07, 0x61, 0x61, 0x61, 0x00, 0x62, 0x62, 0x62, 0x07, 0x63, 0x63, 0x63, 0x00, 0x64, 0x64, 0x64 } },
             };
 
             var verifier = CompileAndVerifyFieldMarshal(source, blobs, isField: false);
@@ -1316,6 +1366,51 @@ class X
 
                 // (23,16): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value 0
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("X.field", "0"));
+        }
+
+        [Fact]
+        public void Parameters_Errors_LocalFunction()
+        {
+            var source = @"
+#pragma warning disable 8321 // Unreferenced local function
+
+using System.Runtime.InteropServices;
+
+class X
+{
+    void M()
+    {
+        static void f1(
+            [MarshalAs(UnmanagedType.ByValArray)]
+            int ByValArray,
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+            int ByValTStr
+        )
+        {
+        }
+
+        [return: MarshalAs(UnmanagedType.ByValArray)]
+        static int f2() { return 0; }
+
+        [return: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+        static int f3() { return 0; }
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                    // (11,24): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
+                    //             [MarshalAs(UnmanagedType.ByValArray)]
+                    Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray").WithLocation(11, 24),
+                    // (14,24): error CS7055: Unmanaged type 'ByValTStr' is only valid for fields.
+                    //             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+                    Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValTStr").WithArguments("ByValTStr").WithLocation(14, 24),
+                    // (20,28): error CS7055: Unmanaged type 'ByValArray' is only valid for fields.
+                    //         [return: MarshalAs(UnmanagedType.ByValArray)]
+                    Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray").WithLocation(20, 28),
+                    // (23,28): error CS7055: Unmanaged type 'ByValTStr' is only valid for fields.
+                    //         [return: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+                    Diagnostic(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValTStr").WithArguments("ByValTStr").WithLocation(23, 28));
         }
 
         /// <summary>

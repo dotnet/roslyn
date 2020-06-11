@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -116,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
             SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
-            if (!method.IsImplicitlyDeclared)
+            if (!method.IsImplicitlyDeclared && !(method is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }
@@ -127,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
         {
+            Debug.Assert(method.MethodKind != MethodKind.LocalFunction && method.MethodKind != MethodKind.AnonymousFunction);
+
             var containingType = method.ContainingType;
             while ((object)containingType != null)
             {
@@ -138,37 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 containingType = containingType.ContainingType;
             }
 
-            // Skip lambdas and local functions. They can't have custom attributes.
-            var nonLambda = method.ContainingNonLambdaMember();
-            if (nonLambda?.Kind == SymbolKind.Method)
+            return method switch
             {
-                method = (MethodSymbol)nonLambda;
-
-                if (method.IsDirectlyExcludedFromCodeCoverage)
-                {
-                    return true;
-                }
-
-                var associatedSymbol = method.AssociatedSymbol;
-                switch (associatedSymbol?.Kind)
-                {
-                    case SymbolKind.Property:
-                        if (((PropertySymbol)associatedSymbol).IsDirectlyExcludedFromCodeCoverage)
-                        {
-                            return true;
-                        }
-                        break;
-
-                    case SymbolKind.Event:
-                        if (((EventSymbol)associatedSymbol).IsDirectlyExcludedFromCodeCoverage)
-                        {
-                            return true;
-                        }
-                        break;
-                }
-            }
-
-            return false;
+                { IsDirectlyExcludedFromCodeCoverage: true } => true,
+                { AssociatedSymbol: PropertySymbol { IsDirectlyExcludedFromCodeCoverage: true } } => true,
+                { AssociatedSymbol: EventSymbol { IsDirectlyExcludedFromCodeCoverage: true } } => true,
+                _ => false
+            };
         }
 
         private static BoundExpressionStatement GetCreatePayloadStatement(
@@ -243,7 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodBodyFactory.Literal(dynamicAnalysisSpans.Length)));
         }
 
-        public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
+#nullable enable
+        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out LocalSymbol? synthesizedLocal)
+#nullable restore
         {
             BoundStatement previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
             if (_methodBody == original)
@@ -582,6 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
                     case SyntaxKind.ConstructorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
 
@@ -607,6 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     AccessorDeclarationSyntax accessorSyntax = (AccessorDeclarationSyntax)syntax;
                     return SkipAttributes(syntax, accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, null);
 

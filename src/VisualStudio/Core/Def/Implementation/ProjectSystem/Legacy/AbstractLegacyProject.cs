@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -131,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         public string AssemblyName => VisualStudioProject.AssemblyName;
 
         public string GetOutputFileName()
-            => VisualStudioProject.IntermediateOutputFilePath;
+            => VisualStudioProject.CompilationOutputAssemblyFilePath;
 
         public virtual void Disconnect()
         {
@@ -343,9 +345,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         // from native to managed can end up resulting in boxed ints instead.  Handle both here so 
         // we're resilient to however the IVsHierarchy was actually implemented.
         private static uint UnboxVSItemId(object id)
-        {
-            return id is uint ? (uint)id : unchecked((uint)(int)id);
-        }
+            => id is uint ? (uint)id : unchecked((uint)(int)id);
 
         private static void ComputeFolderNames(uint folderItemID, List<string> names, IVsHierarchy hierarchy)
         {

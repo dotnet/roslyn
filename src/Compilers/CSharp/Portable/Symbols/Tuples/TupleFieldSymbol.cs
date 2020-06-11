@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 #nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -111,6 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
             return _underlyingField.GetUseSiteDiagnostic();
+        }
+
+        internal override bool RequiresCompletion => _underlyingField.RequiresCompletion;
+
+        internal override bool HasComplete(CompletionPart part) => _underlyingField.HasComplete(part);
+
+        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        {
+            _underlyingField.ForceComplete(locationOpt, cancellationToken);
         }
 
         public override sealed int GetHashCode()

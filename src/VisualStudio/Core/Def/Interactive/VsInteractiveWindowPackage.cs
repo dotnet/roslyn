@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 extern alias InteractiveHost;
 
 using System;
@@ -43,8 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             Assumes.Present(_componentModel);
             Assumes.Present(menuCommandService);
 
-            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler = FailFast.OnFatalException;
-            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.NonFatalHandler = WatsonReporter.Report;
+            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler = WatsonReporter.ReportFatal;
+            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.NonFatalHandler = WatsonReporter.ReportNonFatal;
 
             // Load the Roslyn package so that its FatalError handlers are hooked up.
             shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);
@@ -70,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var nonFatalHandlerSetter = type.GetDeclaredMethod("set_NonFatalHandler");
 
             handlerSetter.Invoke(null, new object[] { new Action<Exception>(FailFast.OnFatalException) });
-            nonFatalHandlerSetter.Invoke(null, new object[] { new Action<Exception>(WatsonReporter.Report) });
+            nonFatalHandlerSetter.Invoke(null, new object[] { new Action<Exception>(WatsonReporter.ReportNonFatal) });
         }
 
         protected TVsInteractiveWindowProvider InteractiveWindowProvider

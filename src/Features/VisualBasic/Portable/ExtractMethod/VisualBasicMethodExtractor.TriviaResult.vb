@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -42,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return Function(location, tokenPair, triviaMap) TriviaResolver(location, tokenPair, triviaMap, methodDefinition)
             End Function
 
-            Private Function AnnotationResolver(
+            Private Shared Function AnnotationResolver(
                 node As SyntaxNode,
                 location As TriviaLocation,
                 annotation As SyntaxAnnotation,
@@ -65,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return method.EndBlockStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True)
                 End Select
 
-                Return Contract.FailWithReturn(Of SyntaxToken)("can't happen")
+                throw ExceptionUtilities.UnexpectedValue(location)
             End Function
 
             Private Function TriviaResolver(
@@ -105,10 +107,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return FilterTriviaList(RemoveTrailingElasticTrivia(tokenPair.PreviousToken, list, tokenPair.NextToken))
                 End Select
 
-                Return Contract.FailWithReturn(Of IEnumerable(Of SyntaxTrivia))("Shouldn't reach here")
+                throw ExceptionUtilities.UnexpectedValue(location)
             End Function
 
-            Private Function RemoveTrailingElasticTrivia(
+            Private Shared Function RemoveTrailingElasticTrivia(
                 token1 As SyntaxToken, list As IEnumerable(Of SyntaxTrivia), token2 As SyntaxToken) As IEnumerable(Of SyntaxTrivia)
 
                 ' special case for skipped token trivia
@@ -125,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return token1.TrailingTrivia.Concat(list)
             End Function
 
-            Private Function RemoveLeadingElasticTrivia(
+            Private Shared Function RemoveLeadingElasticTrivia(
                 token1 As SyntaxToken, list As IEnumerable(Of SyntaxTrivia), token2 As SyntaxToken) As IEnumerable(Of SyntaxTrivia)
 
                 If token1.IsLastTokenOfStatement() Then
@@ -139,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return list.Concat(token2.LeadingTrivia)
             End Function
 
-            Private Function RemoveLeadingElasticTrivia(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Private Shared Function RemoveLeadingElasticTrivia(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
                 ' remove leading elastic trivia if it is followed by noisy trivia
                 Dim trivia = list.FirstOrDefault()
                 If Not trivia.IsElastic() Then
@@ -157,11 +159,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return list
             End Function
 
-            Private Function ReplaceElasticToEndOfLine(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Private Shared Function ReplaceElasticToEndOfLine(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
                 Return list.Select(Function(t) If(t.IsElastic, SyntaxFactory.CarriageReturnLineFeed, t))
             End Function
 
-            Private Function SingleLineStatement(token As SyntaxToken) As Boolean
+            Private Shared Function SingleLineStatement(token As SyntaxToken) As Boolean
                 ' check whether given token is the last token of a single line statement
                 Dim singleLineIf = token.Parent.GetAncestor(Of SingleLineIfStatementSyntax)()
                 If singleLineIf IsNot Nothing Then
@@ -176,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End Function
 
-            Private Function RemoveElasticAfterColon(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Private Shared Function RemoveElasticAfterColon(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
                 ' make sure we don't have elastic trivia after colon trivia
                 Dim colon = False
                 Dim result = New List(Of SyntaxTrivia)()

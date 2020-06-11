@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
@@ -8,34 +10,37 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Microsoft.CodeAnalysis.[Shared].Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImports
     <[UseExportProvider]>
     Public Class OrganizeImportsTests
-        Private Async Function CheckAsync(initial As XElement, final As XElement,
+        Private Shared Async Function CheckAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
                                           Optional separateImportGroups As Boolean = False) As Task
             Using workspace = New AdhocWorkspace()
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
 
-                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+                Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
+                options = options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+                document = document.WithSolutionOptions(options)
 
                 Dim newRoot = Await (Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
                 Assert.Equal(final.Value.NormalizeLineEndings(), newRoot.ToFullString())
             End Using
         End Function
 
-        Private Async Function CheckWithFormatAsync(initial As XElement, final As XElement,
+        Private Shared Async Function CheckWithFormatAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
                                           Optional separateImportGroups As Boolean = False) As Task
             Using workspace = New AdhocWorkspace()
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
 
-                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+                Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
+                options = options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+                document = document.WithSolutionOptions(options)
 
                 Dim organizedDocument = Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)
                 Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, workspace.Options, CancellationToken.None)

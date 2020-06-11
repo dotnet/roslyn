@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 
@@ -1347,7 +1349,6 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-
         <Fact>
         Public Sub InstancePropertyAsNewInitializer_Update()
             Dim src1 = "
@@ -2293,7 +2294,6 @@ Class C
     Dim b As Integer = 1
 End Class
 "
-
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
@@ -5650,8 +5650,6 @@ End Module"
             Dim active = GetActiveStatements(src1, src2)
             Extensions.VerifyUnchangedDocument(src2, active)
         End Sub
-
-
 
 #End Region
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -370,6 +372,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false, 5)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false, 5)]
         [Theory]
+        internal async Task Project_CompilationOutputFilePaths_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
+        {
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawler);
+            var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+            workspace.OnSolutionAdded(solutionInfo);
+            var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
+            if (firstDocumentActive)
+            {
+                MakeFirstDocumentActive(project);
+            }
+
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var newSolution = workspace.CurrentSolution.WithProjectCompilationOutputFilePaths(project.Id, new CompilationOutputFilePaths(assemblyPath: "/newPath"));
+            var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, newSolution));
+
+            Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
+        }
+
+        [InlineData(BackgroundAnalysisScope.ActiveFile, false, 0)]
+        [InlineData(BackgroundAnalysisScope.ActiveFile, true, 1)]
+        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false, 5)]
+        [InlineData(BackgroundAnalysisScope.FullSolution, false, 5)]
+        [Theory]
         internal async Task Project_RunAnalyzers_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
             using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawler);
@@ -403,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(Analyzer.TestOption, false));
+            var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(Analyzer.TestOption, false))));
 
             Assert.Equal(10, worker.SyntaxDocumentIds.Count);
             Assert.Equal(10, worker.DocumentIds.Count);
@@ -422,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(BackgroundAnalysisScope.Default, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.ActiveFile;
-            var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope));
+            var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope))));
 
             Assert.Equal(newAnalysisScope, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
             Assert.Equal(1, worker.SyntaxDocumentIds.Count);
@@ -441,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(BackgroundAnalysisScope.Default, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.FullSolution;
-            var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope));
+            var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope))));
 
             Assert.Equal(newAnalysisScope, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
             Assert.Equal(10, worker.SyntaxDocumentIds.Count);
@@ -1052,7 +1079,7 @@ End Class";
 
             var root = Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseCompilationUnit(code);
             var property = root.FindToken(position).Parent.FirstAncestorOrSelf<Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyBlockSyntax>();
-            var memberId = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsService.Instance.GetMethodLevelMemberId(root, property);
+            var memberId = Microsoft.CodeAnalysis.VisualBasic.LanguageServices.VisualBasicSyntaxFacts.Instance.GetMethodLevelMemberId(root, property);
 
             Assert.Equal(0, memberId);
         }
@@ -1063,7 +1090,8 @@ End Class";
             var solution = GetInitialSolutionInfoWithP2P();
 
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
-            workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false)));
 
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1083,7 +1111,8 @@ End Class";
             var solution = GetInitialSolutionInfoWithP2P();
 
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
-            workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true)));
 
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1203,14 +1232,14 @@ End Class";
                 // make sure global operaiton is actually started
                 // otherwise, solution crawler might processed event we are later waiting for
                 var operationWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.GlobalOperation);
-                await operationWaiter.CreateExpeditedWaitTask();
+                await operationWaiter.ExpeditedWaitAsync();
 
                 // mutate solution
                 workspace.OnSolutionAdded(solution);
 
                 // wait for workspace events to be all processed
                 var workspaceWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.Workspace);
-                await workspaceWaiter.CreateExpeditedWaitTask();
+                await workspaceWaiter.ExpeditedWaitAsync();
 
                 // now wait for semantic processor to finish
                 var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
@@ -1312,10 +1341,10 @@ End Class";
         private async Task WaitWaiterAsync(ExportProvider provider)
         {
             var workspaceWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.Workspace);
-            await workspaceWaiter.CreateExpeditedWaitTask();
+            await workspaceWaiter.ExpeditedWaitAsync();
 
             var solutionCrawlerWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.SolutionCrawler);
-            await solutionCrawlerWaiter.CreateExpeditedWaitTask();
+            await solutionCrawlerWaiter.ExpeditedWaitAsync();
         }
 
         private static SolutionInfo GetInitialSolutionInfoWithP2P()
@@ -1371,19 +1400,18 @@ End Class";
         }
 
         private static AsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
-        {
-            return provider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        }
+            => provider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
         private static void SetOptions(Workspace workspace)
         {
             // override default timespan to make test run faster
-            workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                                                 .WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
                                                  .WithChangedOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS, 0)
                                                  .WithChangedOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS, 0)
                                                  .WithChangedOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS, 0)
                                                  .WithChangedOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100);
+                                                 .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100)));
         }
 
         private static void MakeFirstDocumentActive(Project project)
@@ -1415,13 +1443,14 @@ End Class";
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
 
-                SetOptions(this);
+                WorkCoordinatorTests.SetOptions(this);
             }
 
             public static WorkCoordinatorWorkspace CreateWithAnalysisScope(BackgroundAnalysisScope analysisScope, string workspaceKind = null, bool disablePartialSolutions = true)
             {
                 var workspace = new WorkCoordinatorWorkspace(workspaceKind, disablePartialSolutions);
-                workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope)));
                 return workspace;
             }
 
@@ -1439,14 +1468,10 @@ End Class";
             public readonly IIncrementalAnalyzer Analyzer;
 
             public AnalyzerProvider(IIncrementalAnalyzer analyzer)
-            {
-                Analyzer = analyzer;
-            }
+                => Analyzer = analyzer;
 
             public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            {
-                return Analyzer;
-            }
+                => Analyzer;
         }
 
         internal class Metadata : IncrementalAnalyzerProviderMetadata
@@ -1508,14 +1533,16 @@ End Class";
                 return Task.CompletedTask;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 InvalidateDocumentIds.Add(documentId);
+                return Task.CompletedTask;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 InvalidateProjectIds.Add(projectId);
+                return Task.CompletedTask;
             }
 
             private void Process(DocumentId documentId, CancellationToken cancellationToken)
@@ -1538,30 +1565,20 @@ End Class";
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return e.Option == TestOption;
-            }
+                => e.Option == TestOption;
 
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
             #endregion
         }
 
@@ -1583,8 +1600,8 @@ End Class";
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
-            public void RemoveDocument(DocumentId documentId) { }
-            public void RemoveProject(ProjectId projectId) { }
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken) => Task.CompletedTask;
             #endregion
         }
 

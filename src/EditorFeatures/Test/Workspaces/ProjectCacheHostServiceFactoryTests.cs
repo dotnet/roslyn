@@ -1,10 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -241,21 +249,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             private MockHostServices() { }
 
             protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
-            {
-                return new MockHostWorkspaceServices(this, workspace);
-            }
+                => new MockHostWorkspaceServices(this, workspace);
+        }
+
+        private sealed class MockTaskSchedulerProvider : ITaskSchedulerProvider
+        {
+            public TaskScheduler CurrentContextScheduler
+                => (SynchronizationContext.Current != null) ? TaskScheduler.FromCurrentSynchronizationContext() : TaskScheduler.Default;
+        }
+
+        private sealed class MockWorkspaceAsynchronousOperationListenerProvider : IWorkspaceAsynchronousOperationListenerProvider
+        {
+            public IAsynchronousOperationListener GetListener()
+                => AsynchronousOperationListenerProvider.NullListener;
         }
 
         private class MockHostWorkspaceServices : HostWorkspaceServices
         {
             private readonly HostServices _hostServices;
             private readonly Workspace _workspace;
-            private static readonly IWorkspaceTaskSchedulerFactory s_taskSchedulerFactory = new WorkspaceTaskSchedulerFactory();
+            private static readonly ITaskSchedulerProvider s_taskSchedulerProvider = new MockTaskSchedulerProvider();
+            private static readonly IWorkspaceAsynchronousOperationListenerProvider s_asyncListenerProvider = new MockWorkspaceAsynchronousOperationListenerProvider();
+            private readonly OptionServiceFactory.OptionService _optionService;
 
             public MockHostWorkspaceServices(HostServices hostServices, Workspace workspace)
             {
                 _hostServices = hostServices;
                 _workspace = workspace;
+
+                var globalOptionService = new GlobalOptionService(ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersister>>.Empty);
+                _optionService = new OptionServiceFactory.OptionService(globalOptionService, this);
             }
 
             public override HostServices HostServices => _hostServices;
@@ -263,15 +286,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             public override Workspace Workspace => _workspace;
 
             public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
-            {
-                return ImmutableArray<TLanguageService>.Empty;
-            }
+                => ImmutableArray<TLanguageService>.Empty;
 
             public override TWorkspaceService GetService<TWorkspaceService>()
             {
-                if (s_taskSchedulerFactory is TWorkspaceService)
+                if (s_taskSchedulerProvider is TWorkspaceService)
                 {
-                    return (TWorkspaceService)s_taskSchedulerFactory;
+                    return (TWorkspaceService)s_taskSchedulerProvider;
+                }
+
+                if (s_asyncListenerProvider is TWorkspaceService)
+                {
+                    return (TWorkspaceService)s_asyncListenerProvider;
+                }
+
+                if (_optionService is TWorkspaceService workspaceOptionService)
+                {
+                    return workspaceOptionService;
                 }
 
                 return default;

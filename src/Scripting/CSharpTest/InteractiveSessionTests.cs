@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -1155,6 +1157,21 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(true, state.ReturnValue);
         }
 
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task CSharp9PatternForms()
+        {
+            var options = ScriptOptions.Default.WithLanguageVersion(MessageID.IDS_FeatureAndPattern.RequiredVersion());
+            var state = await CSharpScript.RunAsync("object x = 1;", options: options);
+            state = await state.ContinueWithAsync("x is long or int", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is int and < 10", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is (long or < 10L)", options: options);
+            Assert.Equal(false, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is not > 100", options: options);
+            Assert.Equal(true, state.ReturnValue);
+        }
+
         #endregion
 
         #region References
@@ -1596,7 +1613,7 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(

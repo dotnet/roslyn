@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -93,6 +95,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundDynamicIndexerAccessExpressionOperation((BoundDynamicIndexerAccess)boundNode);
                 case BoundKind.ObjectCreationExpression:
                     return CreateBoundObjectCreationExpressionOperation((BoundObjectCreationExpression)boundNode);
+                case BoundKind.WithExpression:
+                    return CreateBoundWithExpressionOperation((BoundWithExpression)boundNode);
                 case BoundKind.DynamicObjectCreationExpression:
                     return CreateBoundDynamicObjectCreationExpressionOperation((BoundDynamicObjectCreationExpression)boundNode);
                 case BoundKind.ObjectInitializerExpression:
@@ -256,6 +260,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundRecursivePatternOperation((BoundITuplePattern)boundNode);
                 case BoundKind.DiscardPattern:
                     return CreateBoundDiscardPatternOperation((BoundDiscardPattern)boundNode);
+                case BoundKind.BinaryPattern:
+                    return CreateBoundBinaryPatternOperation((BoundBinaryPattern)boundNode);
+                case BoundKind.NegatedPattern:
+                    return CreateBoundNegatedPatternOperation((BoundNegatedPattern)boundNode);
+                case BoundKind.RelationalPattern:
+                    return CreateBoundRelationalPatternOperation((BoundRelationalPattern)boundNode);
+                case BoundKind.TypePattern:
+                    return CreateBoundTypePatternOperation((BoundTypePattern)boundNode);
                 case BoundKind.SwitchStatement:
                     return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
                 case BoundKind.SwitchLabel:
@@ -289,6 +301,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return CreateCollectionValuePlaceholderOperation((BoundObjectOrCollectionValuePlaceholder)boundNode);
+                case BoundKind.FunctionPointerInvocation:
+                    return CreateBoundFunctionPointerInvocationOperation((BoundFunctionPointerInvocation)boundNode);
+                case BoundKind.UnconvertedAddressOfOperator:
+                    return CreateBoundUnconvertedAddressOfOperatorOperation((BoundUnconvertedAddressOfOperator)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -324,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                     }
 
-                    return new CSharpLazyNoneOperation(this, boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit: isImplicit);
+                    return new CSharpLazyNoneOperation(this, boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit: isImplicit, type: null);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
@@ -422,6 +438,33 @@ namespace Microsoft.CodeAnalysis.Operations
 
             bool isVirtual = IsCallVirtual(targetMethod, boundCall.ReceiverOpt);
             return new CSharpLazyInvocationOperation(this, boundCall, targetMethod.GetPublicSymbol(), isVirtual, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundFunctionPointerInvocationOperation(BoundFunctionPointerInvocation boundFunctionPointerInvocation)
+        {
+            ITypeSymbol type = boundFunctionPointerInvocation.Type.GetPublicSymbol();
+            SyntaxNode syntax = boundFunctionPointerInvocation.Syntax;
+            Optional<object> constantValue = ConvertToOptional(boundFunctionPointerInvocation.ConstantValue);
+            bool isImplicit = boundFunctionPointerInvocation.WasCompilerGenerated;
+
+            if (boundFunctionPointerInvocation.ResultKind != LookupResultKind.Viable)
+            {
+                return new CSharpLazyInvalidOperation(this, boundFunctionPointerInvocation, _semanticModel, syntax, type, constantValue, isImplicit);
+            }
+
+            return new CSharpLazyNoneOperation(this, boundFunctionPointerInvocation, _semanticModel, syntax, constantValue, isImplicit, type);
+        }
+
+        private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
+        {
+            return new CSharpLazyAddressOfOperation(
+                this,
+                boundUnconvertedAddressOf.Operand,
+                _semanticModel,
+                boundUnconvertedAddressOf.Syntax,
+                boundUnconvertedAddressOf.Type.GetPublicSymbol(),
+                ConvertToOptional(boundUnconvertedAddressOf.ConstantValue),
+                boundUnconvertedAddressOf.WasCompilerGenerated);
         }
 
         internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)
@@ -631,6 +674,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyObjectCreationOperation(this, boundObjectCreationExpression, constructor.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+        private IOperation CreateBoundWithExpressionOperation(BoundWithExpression boundWithExpression)
+        {
+            MethodSymbol constructor = boundWithExpression.CloneMethod;
+            SyntaxNode syntax = boundWithExpression.Syntax;
+            ITypeSymbol type = boundWithExpression.Type.GetPublicSymbol();
+            Optional<object> constantValue = ConvertToOptional(boundWithExpression.ConstantValue);
+            bool isImplicit = boundWithExpression.WasCompilerGenerated;
+            return new CSharpLazyWithExpressionOperation(this, boundWithExpression, constructor.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
         private IDynamicObjectCreationOperation CreateBoundDynamicObjectCreationExpressionOperation(BoundDynamicObjectCreationExpression boundDynamicObjectCreationExpression)
         {
             ImmutableArray<string> argumentNames = boundDynamicObjectCreationExpression.ArgumentNamesOpt.NullToEmpty();
@@ -648,7 +701,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 case BoundObjectOrCollectionValuePlaceholder implicitReceiver:
                     return CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add",
-                                                                   implicitReceiver.Syntax, type: null, value: default, isImplicit: true);
+                                                                   implicitReceiver.Syntax, type: null, value: null, isImplicit: true);
 
                 case BoundMethodGroup methodGroup:
                     return CreateBoundDynamicMemberAccessOperation(methodGroup.ReceiverOpt, TypeMap.AsTypeSymbols(methodGroup.TypeArgumentsOpt), methodGroup.Name,
@@ -675,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (indexer)
             {
                 case BoundDynamicIndexerAccess boundDynamicIndexerAccess:
-                    return Create(boundDynamicIndexerAccess.ReceiverOpt);
+                    return Create(boundDynamicIndexerAccess.Receiver);
 
                 case BoundObjectInitializerMember boundObjectInitializerMember:
                     return CreateImplicitReceiver(boundObjectInitializerMember.Syntax, boundObjectInitializerMember.ReceiverType);
@@ -890,12 +943,21 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundExpression boundOperand = boundConversion.Operand;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
-                // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
-                // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
-                // hide the resolved method.
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol type = boundConversion.Type.GetPublicSymbol();
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
+
+                if (boundConversion.Type is FunctionPointerTypeSymbol)
+                {
+                    Debug.Assert(boundConversion.Conversion.MethodSymbol is object);
+                    return new AddressOfOperation(
+                        CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand, boundConversion.SymbolOpt, suppressVirtualCalls: false),
+                        _semanticModel, syntax, type, constantValue, boundConversion.WasCompilerGenerated);
+                }
+
+                // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
+                // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
+                // hide the resolved method.
                 return new CSharpLazyDelegateCreationOperation(this, boundConversion, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
@@ -1550,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
-                info = default;
+                info = null;
             }
 
             return info;
@@ -1890,6 +1952,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyConstantPatternOperation(inputType.GetPublicSymbol(), this, value, _semanticModel, syntax, isImplicit);
         }
 
+        private IOperation CreateBoundRelationalPatternOperation(BoundRelationalPattern boundRelationalPattern)
+        {
+            BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundRelationalPattern.Relation);
+            BoundNode value = boundRelationalPattern.Value;
+            SyntaxNode syntax = boundRelationalPattern.Syntax;
+            bool isImplicit = boundRelationalPattern.WasCompilerGenerated;
+            TypeSymbol inputType = boundRelationalPattern.InputType;
+            return new CSharpLazyRelationalPatternOperation(inputType.GetPublicSymbol(), this, operatorKind, value, _semanticModel, syntax, isImplicit);
+        }
+
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
         {
             ISymbol variable = boundDeclarationPattern.Variable.GetPublicSymbol();
@@ -1914,6 +1986,28 @@ namespace Microsoft.CodeAnalysis.Operations
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundITuplePattern boundITuplePattern)
         {
             return new CSharpLazyITuplePatternOperation(this, boundITuplePattern, _semanticModel);
+        }
+
+        private IOperation CreateBoundTypePatternOperation(BoundTypePattern boundTypePattern)
+        {
+            return new TypePatternOperation(
+                matchedType: boundTypePattern.ConvertedType.GetPublicSymbol(),
+                inputType: boundTypePattern.InputType.GetPublicSymbol(),
+                semanticModel: _semanticModel,
+                syntax: boundTypePattern.Syntax,
+                type: null, // this is not an expression
+                constantValue: default(Optional<object>),
+                isImplicit: boundTypePattern.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundNegatedPatternOperation(BoundNegatedPattern boundNegatedPattern)
+        {
+            return new CSharpLazyNegatedPatternOperation(this, boundNegatedPattern, _semanticModel);
+        }
+
+        private IOperation CreateBoundBinaryPatternOperation(BoundBinaryPattern boundBinaryPattern)
+        {
+            return new CSharpLazyBinaryPatternOperation(this, boundBinaryPattern, _semanticModel);
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

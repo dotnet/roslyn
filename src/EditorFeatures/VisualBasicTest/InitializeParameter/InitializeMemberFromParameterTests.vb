@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -364,7 +366,6 @@ class C
 end class")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestInsertionLocation6() As Task
 
@@ -694,21 +695,226 @@ End Structure
 ", index:=1, parameters:=Always_Warning)
         End Function
 
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestGenerateRemainingFields1() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    public sub new([||]i as integer, j as integer, k as integer)
+    end sub
+end class",
+"
+class C
+    Private ReadOnly i As Integer
+    Private ReadOnly j As Integer
+    Private ReadOnly k As Integer
+
+    public sub new(i as integer, j as integer, k as integer)
+        Me.i = i
+        Me.j = j
+        Me.k = k
+    end sub
+end class", index:=3)
+        End Function
+
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestGenerateRemainingFields2() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    Private ReadOnly i As Integer
+
+    public sub new(i as integer, [||]j as integer, k as integer)
+        Me.i = i
+    end sub
+end class",
+"
+class C
+    Private ReadOnly i As Integer
+    Private ReadOnly j As Integer
+    Private ReadOnly k As Integer
+
+    public sub new(i as integer, j as integer, k as integer)
+        Me.i = i
+        Me.j = j
+        Me.k = k
+    end sub
+end class", index:=2)
+        End Function
+
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestGenerateRemainingFields3() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    Private ReadOnly j As Integer
+
+    public sub new([||]i as integer, j as integer, k as integer)
+        Me.j = j
+    end sub
+end class",
+"
+class C
+    Private ReadOnly i As Integer
+    Private ReadOnly j As Integer
+    Private ReadOnly k As Integer
+
+    public sub new(i as integer, j as integer, k as integer)
+        Me.i = i
+        Me.j = j
+        Me.k = k
+    end sub
+end class", index:=2)
+        End Function
+
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestGenerateRemainingFields4() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    Private ReadOnly k As Integer
+
+    public sub new([||]i as integer, j as integer, k as integer)
+        Me.k = k
+    end sub
+end class",
+"
+class C
+    Private ReadOnly i As Integer
+    Private ReadOnly j As Integer
+    Private ReadOnly k As Integer
+
+    public sub new(i as integer, j as integer, k as integer)
+        Me.i = i
+        Me.j = j
+        Me.k = k
+    end sub
+end class", index:=2)
+        End Function
+
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestGenerateRemainingProperties1() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    public sub new([||]i as integer, j as integer, k as integer)
+    end sub
+end class",
+"
+class C
+    public sub new(i as integer, j as integer, k as integer)
+        Me.I = i
+        Me.J = j
+        Me.K = k
+    end sub
+
+    Public ReadOnly Property I As Integer
+    Public ReadOnly Property J As Integer
+    Public ReadOnly Property K As Integer
+end class", index:=2)
+        End Function
+
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestGenerateRemainingProperties2() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    Private ReadOnly i As Integer
+
+    public sub new(i as integer, [||]j as integer, k as integer)
+        Me.i = i
+    end sub
+end class",
+"
+class C
+    Private ReadOnly i As Integer
+
+    public sub new(i as integer, j as integer, k as integer)
+        Me.i = i
+        Me.J = j
+        Me.K = k
+    end sub
+
+    Public ReadOnly Property J As Integer
+    Public ReadOnly Property K As Integer
+end class", index:=3)
+        End Function
+
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestGenerateRemainingProperties3() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    Private ReadOnly j As Integer
+
+    public sub new([||]i as integer, j as integer, k as integer)
+        Me.j = j
+    end sub
+end class",
+"
+class C
+    Private ReadOnly j As Integer
+
+    public sub new(i as integer, j as integer, k as integer)
+        Me.I = i
+        Me.j = j
+        Me.K = k
+    end sub
+
+    Public ReadOnly Property I As Integer
+    Public ReadOnly Property K As Integer
+end class", index:=3)
+        End Function
+
+        <WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestGenerateRemainingProperties4() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    Private ReadOnly k As Integer
+
+    public sub new([||]i as integer, j as integer, k as integer)
+        Me.k = k
+    end sub
+end class",
+"
+class C
+    Private ReadOnly k As Integer
+
+    public sub new(i as integer, j as integer, k as integer)
+        Me.I = i
+        Me.J = j
+        Me.k = k
+    end sub
+
+    Public ReadOnly Property I As Integer
+    Public ReadOnly Property J As Integer
+end class", index:=3)
+        End Function
+
         Private ReadOnly Property OmitIfDefault_Warning As TestParameters
             Get
-                Return New TestParameters(options:=[Option](CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning))
+                Return New TestParameters(options:=[Option](CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning))
             End Get
         End Property
 
         Private ReadOnly Property Never_Warning As TestParameters
             Get
-                Return New TestParameters(options:=[Option](CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning))
+                Return New TestParameters(options:=[Option](CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption2.Warning))
             End Get
         End Property
 
         Private ReadOnly Property Always_Warning As TestParameters
             Get
-                Return New TestParameters(options:=[Option](CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning))
+                Return New TestParameters(options:=[Option](CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Warning))
             End Get
         End Property
     End Class

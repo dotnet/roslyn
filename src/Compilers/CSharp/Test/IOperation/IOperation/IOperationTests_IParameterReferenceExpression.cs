@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -988,9 +990,9 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: I, IsInvalid) (Syntax: 
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                    // (6,25): error CS1729: 'I' does not contain a constructor that takes 1 arguments
-                    // 		return /*<bind>*/new I(x)/*</bind>*/;
-                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(x)").WithArguments("I", "1").WithLocation(6, 25)
+                // (6,24): error CS1729: 'I' does not contain a constructor that takes 1 arguments
+                // 		return /*<bind>*/new I(x)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "I").WithArguments("I", "1").WithLocation(6, 24)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation1, expectedOperationTree, expectedDiagnostics);

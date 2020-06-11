@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // Taken from csharp\LanguageAnalysis\Compiler\IDE\LIB\CMEvents.cpp
 
@@ -17,9 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     internal partial class CSharpCodeModelService
     {
         protected override AbstractCodeModelEventCollector CreateCodeModelEventCollector()
-        {
-            return new CodeModelEventCollector(this);
-        }
+            => new CodeModelEventCollector(this);
 
         private class CodeModelEventCollector : AbstractCodeModelEventCollector
         {
@@ -707,14 +707,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             private bool CompareModifiers(MemberDeclarationSyntax oldMember, MemberDeclarationSyntax newMember)
-            {
-                return oldMember.GetModifierFlags() == newMember.GetModifierFlags();
-            }
+                => oldMember.GetModifierFlags() == newMember.GetModifierFlags();
 
             private bool CompareModifiers(ParameterSyntax oldParameter, ParameterSyntax newParameter)
-            {
-                return oldParameter.GetParameterFlags() == newParameter.GetParameterFlags();
-            }
+                => oldParameter.GetParameterFlags() == newParameter.GetParameterFlags();
 
             private bool CompareNames(NameSyntax oldName, NameSyntax newName)
             {
@@ -845,9 +841,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             protected override void CollectCore(SyntaxNode oldRoot, SyntaxNode newRoot, CodeModelEventQueue eventQueue)
-            {
-                CompareCompilationUnits((CompilationUnitSyntax)oldRoot, (CompilationUnitSyntax)newRoot, eventQueue);
-            }
+                => CompareCompilationUnits((CompilationUnitSyntax)oldRoot, (CompilationUnitSyntax)newRoot, eventQueue);
 
             protected override void EnqueueAddEvent(SyntaxNode node, SyntaxNode parent, CodeModelEventQueue eventQueue)
             {

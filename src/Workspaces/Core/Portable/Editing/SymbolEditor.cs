@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return projectIds;
         }
 
-        private async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
+        private static async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
         {
             var project = solution.GetProject(projectId);
             if (project.SupportsCompilation)
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public async Task<IReadOnlyList<SyntaxNode>> GetCurrentDeclarationsAsync(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
-            return this.GetDeclarations(currentSymbol).ToImmutableReadOnlyListOrEmpty();
+            return this.GetDeclarations(currentSymbol).ToBoxedImmutableArray();
         }
 
         /// <summary>
@@ -267,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editing
             cancellationToken);
         }
 
-        private void CheckSymbolArgument(ISymbol currentSymbol, ISymbol argSymbol)
+        private static void CheckSymbolArgument(ISymbol currentSymbol, ISymbol argSymbol)
         {
             if (currentSymbol == null)
             {
@@ -486,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     var newDeclaration = model.SyntaxTree.GetRoot(cancellationToken).GetCurrentNode(decl);
                     if (newDeclaration != null)
                     {
-                        var newSymbol = model.GetDeclaredSymbol(newDeclaration);
+                        var newSymbol = model.GetDeclaredSymbol(newDeclaration, cancellationToken);
                         if (newSymbol != null)
                         {
                             return newSymbol;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Text;
@@ -9,32 +11,24 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 {
     public class LongestCommonSubsequenceTests
     {
-        LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
+        private readonly LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
 
         private class LongestCommonSubsequenceString : LongestCommonSubsequence<string>
         {
             protected override bool ItemsEqual(string oldSequence, int oldIndex, string newSequence, int newIndex)
-            {
-                return oldSequence[oldIndex] == newSequence[newIndex];
-            }
+                => oldSequence[oldIndex] == newSequence[newIndex];
 
             public IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(string oldSequence, string newSequence)
-            {
-                return GetMatchingPairs(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => GetMatchingPairs(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
             public IEnumerable<SequenceEdit> GetEdits(string oldSequence, string newSequence)
-            {
-                return GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
             public double ComputeDistance(string oldSequence, string newSequence)
-            {
-                return ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
         }
 
-        private void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
+        private static void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
         {
             var sb = new StringBuilder(expectedPairsStr.Length);
             foreach (var actPair in actualPairs)
@@ -45,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             Assert.Equal(expectedPairsStr, actualPairsStr);
         }
 
-        private void VerifyEdits(string oldStr, string newStr, IEnumerable<SequenceEdit> edits)
+        private static void VerifyEdits(string oldStr, string newStr, IEnumerable<SequenceEdit> edits)
         {
             var oldChars = oldStr.ToCharArray();
             var newChars = new char[newStr.Length];
@@ -105,7 +99,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
         }
-
 
         [Fact]
         public void InsertAtBeginning()
@@ -316,7 +309,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             var x9 = new string('x', 9);
             var x10 = new string('x', 10);
             var x99 = new string('x', 99);
-            var x100 = new string('x', 100);
             var x1000 = new string('x', 1000);
 
             var y1000 = new string('y', 1000);

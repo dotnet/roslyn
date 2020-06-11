@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int Code { get { return _errorCode; } }
 
-        public DiagnosticDescriptor Descriptor
+        public virtual DiagnosticDescriptor Descriptor
         {
             get
             {
@@ -312,7 +314,7 @@ namespace Microsoft.CodeAnalysis
         /// Get the message id (for example "CS1001") for the message. This includes both the error number
         /// and a prefix identifying the source.
         /// </summary>
-        public string MessageIdentifier
+        public virtual string MessageIdentifier
         {
             get
             {
@@ -398,7 +400,7 @@ namespace Microsoft.CodeAnalysis
             return ((IFormattable)this).ToString(null, formatProvider);
         }
 
-        string IFormattable.ToString(string format, IFormatProvider? formatProvider)
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         {
             return String.Format(formatProvider, "{0}: {1}",
                 _messageProvider.GetMessagePrefix(this.MessageIdentifier, this.Severity, this.IsWarningAsError, formatProvider as CultureInfo),

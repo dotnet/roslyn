@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        private void TestInvalidStreamVersion()
+        public void TestInvalidStreamVersion()
         {
             var stream = new MemoryStream();
             stream.WriteByte(0);
@@ -35,17 +37,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
         {
-            var stream = new MemoryStream();
-            var writer = new ObjectWriter(stream);
+            using var stream = new MemoryStream();
 
-            writeAction(writer);
-            writer.Dispose();
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                writeAction(writer);
+            }
 
             stream.Position = 0;
-            using (var reader = ObjectReader.TryGetReader(stream))
-            {
-                readAction(reader);
-            }
+            using var reader = ObjectReader.TryGetReader(stream);
+            readAction(reader);
         }
 
         private void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
@@ -56,17 +57,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
-            var stream = new MemoryStream();
-            var writer = new ObjectWriter(stream);
+            using var stream = new MemoryStream();
 
-            writeAction(writer, value);
-            writer.Dispose();
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                writeAction(writer, value);
+            }
 
             stream.Position = 0;
-            using (var reader = ObjectReader.TryGetReader(stream))
-            {
-                return (T)readAction(reader);
-            }
+            using var reader = ObjectReader.TryGetReader(stream);
+            return readAction(reader);
         }
 
         private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
@@ -500,6 +500,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => TestWritingPrimitiveArrays(w), r => TestReadingPrimitiveArrays(r));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void TestByteSpan([CombinatorialValues(0, 1, 2, 3, 1000, 1000000)] int size)
+        {
+            var data = new byte[size];
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] = (byte)i;
+            }
+
+            TestRoundTrip(w => TestWritingByteSpan(data, w), r => TestReadingByteSpan(data, r));
+        }
+
         [Fact]
         public void TestPrimitiveArrayMembers()
         {
@@ -548,7 +561,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var inputString = new string[] { "h", "e", "l", "l", "o" };
 
             writer.WriteValue(inputBool);
-            writer.WriteValue(inputByte);
+            writer.WriteValue((object)inputByte);
             writer.WriteValue(inputChar);
             writer.WriteValue(inputDecimal);
             writer.WriteValue(inputDouble);
@@ -594,6 +607,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(Enumerable.SequenceEqual(inputULong, (ulong[])reader.ReadValue()));
             Assert.True(Enumerable.SequenceEqual(inputUShort, (ushort[])reader.ReadValue()));
             Assert.True(Enumerable.SequenceEqual(inputString, (string[])reader.ReadValue()));
+        }
+
+        private static void TestWritingByteSpan(byte[] data, ObjectWriter writer)
+        {
+            writer.WriteValue(data.AsSpan());
+        }
+
+        private static void TestReadingByteSpan(byte[] expected, ObjectReader reader)
+        {
+            Assert.True(Enumerable.SequenceEqual(expected, (byte[])reader.ReadValue()));
         }
 
         [Fact]
@@ -1111,17 +1134,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestObjectMapLimits()
         {
-            using (var stream = new MemoryStream())
+            using var stream = new MemoryStream();
+            var instances = new List<TypeWithTwoMembers<int, string>>();
+
+            // We need enough items to exercise all sizes of ObjectRef
+            for (int i = 0; i < ushort.MaxValue + 1; i++)
             {
-                var instances = new List<TypeWithTwoMembers<int, string>>();
+                instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
+            }
 
-                // We need enough items to exercise all sizes of ObjectRef
-                for (int i = 0; i < ushort.MaxValue + 1; i++)
-                {
-                    instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
-                }
-
-                var writer = new ObjectWriter(stream);
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
                 {
@@ -1130,20 +1153,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         writer.WriteValue(instance);
                     }
                 }
+            }
 
-                writer.Dispose();
-
-                stream.Position = 0;
-                using (var reader = ObjectReader.TryGetReader(stream))
+            stream.Position = 0;
+            using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: true))
+            {
+                for (int pass = 0; pass < 2; pass++)
                 {
-                    for (int pass = 0; pass < 2; pass++)
+                    foreach (var instance in instances)
                     {
-                        foreach (var instance in instances)
-                        {
-                            var obj = reader.ReadValue();
-                            Assert.NotNull(obj);
-                            Assert.True(Equalish(obj, instance));
-                        }
+                        var obj = reader.ReadValue();
+                        Assert.NotNull(obj);
+                        Assert.True(Equalish(obj, instance));
                     }
                 }
             }

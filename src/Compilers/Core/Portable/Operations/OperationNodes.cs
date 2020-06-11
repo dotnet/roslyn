@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract class BaseNoneOperation : Operation
     {
-        protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.None, semanticModel, syntax, type: null, constantValue, isImplicit)
+        protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit, ITypeSymbol type) :
+            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -32,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal class NoneOperation : BaseNoneOperation
     {
-        public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, constantValue, isImplicit)
+        public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit, ITypeSymbol type) :
+            base(semanticModel, syntax, constantValue, isImplicit, type)
         {
             Children = SetParentOperation(children, this);
         }
@@ -45,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IOperation> _lazyChildrenInterlocked;
 
-        public LazyNoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+        public LazyNoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit, ITypeSymbol type) :
+            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit, type)
         {
         }
 
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private static CommonConversion Identity()
         {
-            return new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null, isImplicit: true);
+            return new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null, isImplicit: true, isNullable: false);
         }
     }
 
@@ -712,7 +714,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit)
-            : this(matchedType, matchesNull, declaredSymbol, inputType, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+            : this(matchedType, matchesNull, declaredSymbol, inputType, semanticModel, syntax, type: null, constantValue: default, isImplicit)
         { }
     }
 

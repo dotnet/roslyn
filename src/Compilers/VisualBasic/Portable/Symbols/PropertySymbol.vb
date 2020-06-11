@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -175,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' overridden property if such property exists.
         ''' 
         ''' NOTE: It is not possible in VB, but possible in other languages (for example in C#) to
-        '''       override read-write property an provide override only for setter, thus inheriting 
+        '''       override read-write property and provide override only for setter, thus inheriting 
         '''       getter's implementation. This method will find the Get method from the most-derived
         '''       overridden property in this case
         ''' </summary>
@@ -202,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' overridden property if such property exists.
         ''' 
         ''' NOTE: It is not possible in VB, but possible in other languages (for example in C#) to
-        '''       override read-write property an provide override only for getter, thus inheriting 
+        '''       override read-write property and provide override only for getter, thus inheriting 
         '''       setter's implementation. This method will find the Set method from the most-derived
         '''       overridden property in this case
         ''' </summary>

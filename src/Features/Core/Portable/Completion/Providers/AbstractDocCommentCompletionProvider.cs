@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     using static DocumentationCommentXmlNames;
 
-    internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : CommonCompletionProvider
+    internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompletionProvider
         where TSyntax : SyntaxNode
     {
         // Tag names
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected AbstractDocCommentCompletionProvider(CompletionItemRules defaultRules)
         {
-            this.defaultRules = defaultRules ?? throw new ArgumentNullException(nameof(defaultRules)); ;
+            this.defaultRules = defaultRules ?? throw new ArgumentNullException(nameof(defaultRules));
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -109,9 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
-        {
-            return new[] { GetCDataItem(), GetCommentItem(), GetItem(InheritdocElementName), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
-        }
+            => new[] { GetCDataItem(), GetCommentItem(), GetItem(InheritdocElementName), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
 
         private CompletionItem GetCommentItem()
         {
@@ -238,19 +238,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected IEnumerable<CompletionItem> GetItemTagItems()
-        {
-            return new[] { TermElementName, DescriptionElementName }.Select(GetItem);
-        }
+            => new[] { TermElementName, DescriptionElementName }.Select(GetItem);
 
         protected IEnumerable<CompletionItem> GetListItems()
-        {
-            return s_listTagNames.Select(GetItem);
-        }
+            => s_listTagNames.Select(GetItem);
 
         protected IEnumerable<CompletionItem> GetListHeaderItems()
-        {
-            return s_listHeaderTagNames.Select(GetItem);
-        }
+            => s_listHeaderTagNames.Select(GetItem);
 
         private IEnumerable<CompletionItem> GetParameterItems<TSymbol>(ImmutableArray<TSymbol> symbols, TSyntax syntax, string tagName) where TSymbol : ISymbol
         {
@@ -259,17 +253,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return names.Select(name => CreateCompletionItem(FormatParameter(tagName, name)));
         }
 
-        private string FormatParameter(string kind, string name)
-        {
-            return $"{kind} {NameAttributeName}=\"{name}\"";
-        }
+        private static string FormatParameter(string kind, string name)
+            => $"{kind} {NameAttributeName}=\"{name}\"";
 
-        private string FormatParameterRefTag(string kind, string name)
-        {
-            return $"<{kind} {NameAttributeName}=\"{name}\"/>";
-        }
+        private static string FormatParameterRefTag(string kind, string name)
+            => $"<{kind} {NameAttributeName}=\"{name}\"/>";
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default, CancellationToken cancellationToken = default)
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = null, CancellationToken cancellationToken = default)
         {
             var includesCommitCharacter = true;
 

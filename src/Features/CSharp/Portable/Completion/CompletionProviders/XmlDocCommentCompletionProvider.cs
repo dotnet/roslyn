@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -20,8 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     using static DocumentationCommentXmlNames;
 
+    [ExportCompletionProvider(nameof(XmlDocCommentCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(PartialTypeCompletionProvider))]
+    [Shared]
     internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XmlDocCommentCompletionProvider() : base(s_defaultRules)
         {
         }
@@ -31,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var c = text[characterPosition];
             return c == '<' || c == '"' || CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('<', '"', ' ');
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             Document document, int position,
@@ -192,15 +203,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // <elem attr$$
                 (elementName, attributes) = GetElementNameAndAttributes(token.Parent.Parent);
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute) ||
-                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute) ||
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
+            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute, out XmlAttributeSyntax attributeSyntax) ||
+                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
             {
                 // In the following, 'attr1' may be a regular text attribute, or one of the special 'cref' or 'name' attributes
                 // <elem attr1="" $$
                 // <elem attr1="" $$attr2	
                 // <elem attr1="" attr2$$
-                var attributeSyntax = (XmlAttributeSyntax)token.Parent;
 
                 if (token == attributeSyntax.EndQuoteToken)
                 {
@@ -245,26 +255,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (name: nameSyntax?.LocalName.ValueText, attributes);
         }
 
-        private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
+        private static bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
         {
-            XmlAttributeSyntax attributeSyntax = null;
-
-            if (token.Parent.IsKind(SyntaxKind.IdentifierName) && token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute))
+            XmlAttributeSyntax attributeSyntax;
+            if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
+                token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute, out XmlNameAttributeSyntax xmlName))
             {
                 // Handle the special 'name' attributes: name="bar$$
-                attributeSyntax = (XmlNameAttributeSyntax)token.Parent.Parent;
+                attributeSyntax = xmlName;
             }
-            else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) && token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
+            else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) &&
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out XmlTextAttributeSyntax xmlText))
             {
                 // Handle the other general text attributes: foo="bar$$
-                attributeSyntax = (XmlTextAttributeSyntax)token.Parent;
+                attributeSyntax = xmlText;
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute) || token.Parent.IsKind(SyntaxKind.XmlTextAttribute))
+            else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
+                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
             {
                 // When there's no attribute value yet, the parent attribute is returned:
                 //     name="$$
                 //     foo="$$
-                attributeSyntax = (XmlAttributeSyntax)token.Parent;
                 if (token != attributeSyntax.StartQuoteToken)
                 {
                     attributeSyntax = null;

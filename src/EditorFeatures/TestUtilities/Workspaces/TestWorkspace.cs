@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -12,6 +14,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -41,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IList<TestHostDocument> AnalyzerConfigDocuments { get; }
         public IList<TestHostDocument> ProjectionDocuments { get; }
 
+        internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
+
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -52,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
         }
 
-        public TestWorkspace(ExportProvider exportProvider, string? workspaceKind = null, bool disablePartialSolutions = true)
+        public TestWorkspace(ExportProvider exportProvider, string? workspaceKind = null, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
             : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Test)
         {
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
@@ -64,6 +70,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.ProjectionDocuments = new List<TestHostDocument>();
 
             this.CanApplyChangeDocument = true;
+            this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
+
+            if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
+            {
+                // Avoid showing dialogs in tests by default
+                callback.NotificationCallback = (message, title, severity) =>
+                {
+                    var severityText = severity switch
+                    {
+                        NotificationSeverity.Information => "💡",
+                        NotificationSeverity.Warning => "⚠",
+                        _ => "❌"
+                    };
+
+                    var fullMessage = string.IsNullOrEmpty(title)
+                        ? message
+                        : $"{title}:{Environment.NewLine}{Environment.NewLine}{message}";
+
+                    throw new InvalidOperationException($"{severityText} {fullMessage}");
+                };
+            }
 
             _backgroundCompiler = new BackgroundCompiler(this);
             _backgroundParser = new BackgroundParser(this);
@@ -99,9 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public new void RegisterText(SourceTextContainer text)
-        {
-            base.RegisterText(text);
-        }
+            => base.RegisterText(text);
 
         protected override void Dispose(bool finalize)
         {
@@ -143,9 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void AddTestSolution(TestHostSolution solution)
-        {
-            this.OnSolutionAdded(SolutionInfo.Create(solution.Id, solution.Version, solution.FilePath, projects: solution.Projects.Select(p => p.ToProjectInfo())));
-        }
+            => this.OnSolutionAdded(SolutionInfo.Create(solution.Id, solution.Version, solution.FilePath, projects: solution.Projects.Select(p => p.ToProjectInfo())));
 
         public void AddTestProject(TestHostProject project)
         {
@@ -173,29 +196,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public new void OnProjectRemoved(ProjectId projectId)
-        {
-            base.OnProjectRemoved(projectId);
-        }
+            => base.OnProjectRemoved(projectId);
 
         public new void OnProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
-        {
-            base.OnProjectReferenceAdded(projectId, projectReference);
-        }
+            => base.OnProjectReferenceAdded(projectId, projectReference);
 
         public new void OnProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
-        {
-            base.OnProjectReferenceRemoved(projectId, projectReference);
-        }
+            => base.OnProjectReferenceRemoved(projectId, projectReference);
 
         public new void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
-        {
-            base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
-        }
+            => base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
 
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
-        {
-            base.OnParseOptionsChanged(projectId, parseOptions);
-        }
+            => base.OnParseOptionsChanged(projectId, parseOptions);
 
         public void OnDocumentRemoved(DocumentId documentId, bool closeDocument = false)
         {
@@ -208,9 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public new void OnDocumentSourceCodeKindChanged(DocumentId documentId, SourceCodeKind sourceCodeKind)
-        {
-            base.OnDocumentSourceCodeKindChanged(documentId, sourceCodeKind);
-        }
+            => base.OnDocumentSourceCodeKindChanged(documentId, sourceCodeKind);
 
         public DocumentId? GetDocumentId(TestHostDocument hostDocument)
         {
@@ -225,33 +236,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostDocument GetTestDocument(DocumentId documentId)
-        {
-            return this.Documents.FirstOrDefault(d => d.Id == documentId);
-        }
+            => this.Documents.FirstOrDefault(d => d.Id == documentId);
 
         public TestHostDocument GetTestAdditionalDocument(DocumentId documentId)
-        {
-            return this.AdditionalDocuments.FirstOrDefault(d => d.Id == documentId);
-        }
+            => this.AdditionalDocuments.FirstOrDefault(d => d.Id == documentId);
 
         public TestHostDocument GetTestAnalyzerConfigDocument(DocumentId documentId)
-        {
-            return this.AnalyzerConfigDocuments.FirstOrDefault(d => d.Id == documentId);
-        }
+            => this.AnalyzerConfigDocuments.FirstOrDefault(d => d.Id == documentId);
 
         public TestHostProject GetTestProject(DocumentId documentId)
-        {
-            return GetTestProject(documentId.ProjectId);
-        }
+            => GetTestProject(documentId.ProjectId);
 
         public TestHostProject GetTestProject(ProjectId projectId)
-        {
-            return this.Projects.FirstOrDefault(p => p.Id == projectId);
-        }
+            => this.Projects.FirstOrDefault(p => p.Id == projectId);
 
         public TServiceInterface GetService<TServiceInterface>()
+            => ExportProvider.GetExportedValue<TServiceInterface>();
+
+        public TServiceInterface GetService<TServiceInterface>(string contentType)
         {
-            return ExportProvider.GetExportedValue<TServiceInterface>();
+            var values = ExportProvider.GetExports<TServiceInterface, ContentTypeMetadata>();
+            return values.Single(value => value.Metadata.ContentTypes.Contains(contentType)).Value;
+        }
+
+        public TServiceInterface GetService<TServiceInterface>(string contentType, string name)
+        {
+            var values = ExportProvider.GetExports<TServiceInterface, OrderableContentTypeMetadata>();
+            return values.Single(value => value.Metadata.Name == name && value.Metadata.ContentTypes.Contains(contentType)).Value;
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
@@ -264,6 +275,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
                 case ApplyChangesKind.RemoveAnalyzerConfigDocument:
+                case ApplyChangesKind.AddAnalyzerReference:
+                case ApplyChangesKind.RemoveAnalyzerReference:
+                case ApplyChangesKind.AddSolutionAnalyzerReference:
+                case ApplyChangesKind.RemoveSolutionAnalyzerReference:
                     return true;
 
                 case ApplyChangesKind.ChangeDocument:
@@ -336,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
-            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id);
+            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders);
             hostProject.AddAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -349,10 +364,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.OnAnalyzerConfigDocumentRemoved(documentId);
         }
 
-        internal override void SetDocumentContext(DocumentId documentId)
+        protected override void ApplyProjectChanges(ProjectChanges projectChanges)
         {
-            OnDocumentContextUpdated(documentId);
+            if (projectChanges.OldProject.FilePath != projectChanges.NewProject.FilePath)
+            {
+                var hostProject = this.GetTestProject(projectChanges.NewProject.Id);
+                hostProject.OnProjectFilePathChanged(projectChanges.NewProject.FilePath);
+                base.OnProjectNameChanged(projectChanges.NewProject.Id, projectChanges.NewProject.Name, projectChanges.NewProject.FilePath);
+            }
+
+            base.ApplyProjectChanges(projectChanges);
         }
+
+        internal override void SetDocumentContext(DocumentId documentId)
+            => OnDocumentContextUpdated(documentId);
 
         /// <summary>
         /// Creates a TestHostDocument backed by a projection buffer. The surface buffer is 
@@ -665,9 +690,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public new void ClearSolution()
-        {
-            base.ClearSolution();
-        }
+            => base.ClearSolution();
 
         public void ChangeSolution(Solution solution)
         {

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 9.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Operations
@@ -8,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
         Private NotInheritable Class VisualBasicAnalyzer
             Inherits Analyzer
 
-            Public Sub New(syntaxFacts As ISyntaxFactsService, features As Feature)
+            Public Sub New(syntaxFacts As ISyntaxFacts, features As Feature)
                 MyBase.New(syntaxFacts, features)
             End Sub
 

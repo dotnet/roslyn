@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Runtime.CompilerServices
@@ -103,8 +105,12 @@ Friend Module ParserTestUtilities
         Return Parse(code, fileName:="", options:=options)
     End Function
 
-    Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, Encoding.UTF8), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
+    Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing, Optional encoding As Encoding = Nothing) As SyntaxTree
+        If encoding Is Nothing Then
+            encoding = Encoding.UTF8
+        End If
+
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
         Dim root = tree.GetRoot()
         ' Verify FullText
         Assert.Equal(source, root.ToFullString)

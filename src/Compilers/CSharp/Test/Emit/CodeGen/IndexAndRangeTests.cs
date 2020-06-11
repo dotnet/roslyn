@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -36,6 +38,76 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             Assert.Equal(methodName, symbol.Name);
             Assert.Equal(2, symbol.Parameters.Length);
             Assert.Equal(containingTypeName, symbol.ContainingType.Name);
+        }
+
+        [Fact]
+        public void ExpressionTreePatternIndexAndRange()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+struct S
+{
+    public int Length => 0;
+    public S Slice(int start, int length) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int[], int>> e = (int[] a) => a[new Index(0, true)]; // 1
+        Expression<Func<List<int>, int>> e2 = (List<int> a) => a[new Index(0, true)]; // 2
+        
+        Expression<Func<int[], int[]>> e3 = (int[] a) => a[new Range(0, 1)]; // 3
+        Expression<Func<S, S>> e4 = (S s) => s[new Range(0, 1)]; // 4
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(
+                new[] { src, TestSources.GetSubArray, });
+            comp.VerifyEmitDiagnostics(
+                // (16,55): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<int[], int>> e = (int[] a) => a[new Index(0, true)]; // 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(16, 55),
+                // (17,64): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<List<int>, int>> e2 = (List<int> a) => a[new Index(0, true)]; // 2
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(17, 64),
+                // (19,58): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<int[], int[]>> e3 = (int[] a) => a[new Range(0, 1)]; // 3
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Range(0, 1)]").WithLocation(19, 58),
+                // (20,46): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<S, S>> e4 = (S s) => s[new Range(0, 1)]; // 4
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "s[new Range(0, 1)]").WithLocation(20, 46)
+            );
+        }
+
+        [Fact]
+        public void ExpressionTreeFromEndIndexAndRange()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<Index>> e = () => ^1;
+        Expression<Func<Range>> e2 = () => 1..2;
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (10,43): error CS8791: An expression tree may not contain a from-end index ('^') expression.
+                //         Expression<Func<Index>> e = () => ^1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsFromEndIndexExpression, "^1").WithLocation(10, 43),
+                // (11,44): error CS8792: An expression tree may not contain a range ('..') expression.
+                //         Expression<Func<Range>> e2 = () => 1..2;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsRangeExpression, "1..2").WithLocation(11, 44)
+            );
         }
 
         [Fact]
@@ -1655,6 +1727,82 @@ class C
     IL_000d:  callvirt   ""string string.Substring(int, int)""
     IL_0012:  call       ""void System.Console.WriteLine(string)""
     IL_0017:  ret
+}");
+        }
+
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
+        public void FakeIndexIndexerOnDefaultStruct()
+        {
+            var verifier = CompileAndVerifyWithIndexAndRange(@"
+using System;
+
+struct NotASpan
+{
+    public int Length => 1;
+
+    public int this[int index] => 0;
+}
+
+class C
+{
+    static int Repro() => default(NotASpan)[^0];
+
+    static void Main() => Repro();
+}");
+
+            verifier.VerifyIL("C.Repro", @"
+{
+    // Code size       25 (0x19)
+    .maxstack  3
+    .locals init (int V_0,
+                  NotASpan V_1)
+    IL_0000:  ldloca.s   V_1
+    IL_0002:  dup
+    IL_0003:  initobj    ""NotASpan""
+    IL_0009:  dup
+    IL_000a:  call       ""int NotASpan.Length.get""
+    IL_000f:  ldc.i4.0
+    IL_0010:  sub
+    IL_0011:  stloc.0
+    IL_0012:  ldloc.0
+    IL_0013:  call       ""int NotASpan.this[int].get""
+    IL_0018:  ret
+}");
+        }
+
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
+        public void FakeIndexIndexerOnStructConstructor()
+        {
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+
+class C
+{
+    static byte Repro() => new Span<byte>(new byte[] { })[^1];
+}");
+
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("C.Repro", @"
+ {
+    // Code size       31 (0x1f)
+    .maxstack  3
+    .locals init (int V_0,
+                  System.Span<byte> V_1)
+    IL_0000:  ldc.i4.0
+    IL_0001:  newarr     ""byte""
+    IL_0006:  newobj     ""System.Span<byte>..ctor(byte[])""
+    IL_000b:  stloc.1
+    IL_000c:  ldloca.s   V_1
+    IL_000e:  dup
+    IL_000f:  call       ""int System.Span<byte>.Length.get""
+    IL_0014:  ldc.i4.1
+    IL_0015:  sub
+    IL_0016:  stloc.0
+    IL_0017:  ldloc.0
+    IL_0018:  call       ""ref byte System.Span<byte>.this[int].get""
+    IL_001d:  ldind.u1
+    IL_001e:  ret
 }");
         }
 

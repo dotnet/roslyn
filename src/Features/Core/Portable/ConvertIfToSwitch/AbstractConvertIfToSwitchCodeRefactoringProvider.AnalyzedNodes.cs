@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -68,9 +70,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 public readonly TIsExpressionSyntax IsExpressionSyntax;
 
                 public Type(TIsExpressionSyntax expression)
-                {
-                    IsExpressionSyntax = expression;
-                }
+                    => IsExpressionSyntax = expression;
             }
 
             /// <summary>
@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 public readonly TPatternSyntax PatternSyntax;
 
                 public Source(TPatternSyntax patternSyntax)
-                {
-                    PatternSyntax = patternSyntax;
-                }
+                    => PatternSyntax = patternSyntax;
             }
 
             /// <summary>
@@ -94,9 +92,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 public readonly TExpressionSyntax ExpressionSyntax;
 
                 public Constant(TExpressionSyntax expression)
-                {
-                    ExpressionSyntax = expression;
-                }
+                    => ExpressionSyntax = expression;
             }
 
             /// <summary>
@@ -126,6 +122,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 {
                     LowerBound = lowerBound;
                     HigherBound = higherBound;
+                }
+            }
+
+            /// <summary>
+            /// Represents an and-pattern, constructed from two other patterns.
+            /// </summary>
+            internal sealed class And : AnalyzedPattern
+            {
+                public readonly AnalyzedPattern LeftPattern;
+                public readonly AnalyzedPattern RightPattern;
+
+                public And(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern)
+                {
+                    LeftPattern = leftPattern;
+                    RightPattern = rightPattern;
                 }
             }
         }

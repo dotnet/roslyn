@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -10,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    interface IPersistentStorageLocationService : IWorkspaceService
+    internal interface IPersistentStorageLocationService : IWorkspaceService
     {
         bool IsSupported(Workspace workspace);
         string? TryGetStorageLocation(Solution solution);
@@ -20,11 +22,22 @@ namespace Microsoft.CodeAnalysis.Host
     internal class DefaultPersistentStorageLocationService : IPersistentStorageLocationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultPersistentStorageLocationService()
         {
         }
 
         public virtual bool IsSupported(Workspace workspace) => false;
+
+        protected virtual string GetCacheDirectory()
+        {
+            // Store in the LocalApplicationData/Roslyn/hash folder (%appdatalocal%/... on Windows,
+            // ~/.local/share/... on unix).  This will place the folder in a location we can trust
+            // to be able to get back to consistently as long as we're working with the same
+            // solution and the same workspace kind.
+            var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
+            return Path.Combine(appDataFolder, "Microsoft", "VisualStudio", "Roslyn", "Cache");
+        }
 
         public string? TryGetStorageLocation(Solution solution)
         {
@@ -37,15 +50,11 @@ namespace Microsoft.CodeAnalysis.Host
             // Ensure that each unique workspace kind for any given solution has a unique
             // folder to store their data in.
 
-            // Store in the LocalApplicationData/Roslyn/hash folder (%appdatalocal%/... on Windows,
-            // ~/.local/share/... on unix).  This will place the folder in a location we can trust
-            // to be able to get back to consistently as long as we're working with the same
-            // solution and the same workspace kind.
-            var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
+            var cacheDirectory = GetCacheDirectory();
             var kind = StripInvalidPathChars(solution.Workspace.Kind ?? "");
             var hash = StripInvalidPathChars(Checksum.Create(solution.FilePath).ToString());
 
-            return Path.Combine(appDataFolder, "Microsoft", "VisualStudio", "Roslyn", "Cache", kind, hash);
+            return Path.Combine(cacheDirectory, kind, hash);
 
             static string StripInvalidPathChars(string val)
             {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -26,6 +28,11 @@ namespace Roslyn.Utilities
         public static IList<T> EmptyList<T>()
         {
             return Empty.List<T>.Instance;
+        }
+
+        public static IReadOnlyList<T> EmptyBoxedImmutableArray<T>()
+        {
+            return Empty.BoxedImmutableArray<T>.Instance;
         }
 
         public static IReadOnlyList<T> EmptyReadOnlyList<T>()
@@ -68,6 +75,11 @@ namespace Roslyn.Utilities
         public static IEnumerator<T> SingletonEnumerator<T>(T value)
         {
             return new Singleton.Enumerator<T>(value);
+        }
+
+        public static IReadOnlyList<T> SingletonReadOnlyList<T>(T value)
+        {
+            return new Singleton.List<T>(value);
         }
 
         public static IList<T> SingletonList<T>(T value)

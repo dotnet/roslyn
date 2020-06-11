@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -15,16 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Switch case labels have a constant expression associated with them.
         /// </summary>
-        private readonly ConstantValue _switchCaseLabelConstant;
+        private readonly ConstantValue? _switchCaseLabelConstant;
 
         // PERF: Often we do not need this, so we make this lazy
-        private string _lazyName;
+        private string? _lazyName;
 
         public SourceLabelSymbol(
             MethodSymbol containingMethod,
             SyntaxNodeOrToken identifierNodeOrToken,
-            ConstantValue switchCaseLabelConstant = null)
+            ConstantValue? switchCaseLabelConstant = null)
         {
+            Debug.Assert(identifierNodeOrToken.IsToken || identifierNodeOrToken.IsNode);
             _containingMethod = containingMethod;
             _identifierNodeOrToken = identifierNodeOrToken;
             _switchCaseLabelConstant = switchCaseLabelConstant;
@@ -76,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _identifierNodeOrToken.IsToken && _identifierNodeOrToken.Parent == null
                     ? ImmutableArray<Location>.Empty
-                    : ImmutableArray.Create<Location>(_identifierNodeOrToken.GetLocation());
+                    : ImmutableArray.Create<Location>(_identifierNodeOrToken.GetLocation()!);
             }
         }
 
@@ -84,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CSharpSyntaxNode node = null;
+                CSharpSyntaxNode? node = null;
 
                 if (_identifierNodeOrToken.IsToken)
                 {
@@ -93,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    node = _identifierNodeOrToken.AsNode().FirstAncestorOrSelf<SwitchLabelSyntax>();
+                    node = _identifierNodeOrToken.AsNode()!.FirstAncestorOrSelf<SwitchLabelSyntax>();
                 }
 
                 return node == null ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create<SyntaxReference>(node.GetReference());
@@ -131,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If the label is a switch case label, returns the associated constant value with
         /// case expression, otherwise returns null.
         /// </summary>
-        public ConstantValue SwitchCaseLabelConstant
+        public ConstantValue? SwitchCaseLabelConstant
         {
             get
             {
@@ -139,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -147,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var symbol = obj as SourceLabelSymbol;
-            return (object)symbol != null
+            return (object?)symbol != null
                 && symbol._identifierNodeOrToken.Kind() != SyntaxKind.None
                 && symbol._identifierNodeOrToken.Equals(_identifierNodeOrToken)
                 && symbol._containingMethod.Equals(_containingMethod, compareKind);

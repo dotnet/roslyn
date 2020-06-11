@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -19,11 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
         [ImportingConstructor]
-        // TODO: remove the AllowDefault = true on HostDiagnosticUpdateSource by making it a proper mock
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectFactory(
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
-            [ImportMany]IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
-            [Import(AllowDefault = true)] HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
             _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
@@ -31,9 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language)
-        {
-            return CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
-        }
+            => CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
 
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
         {
@@ -44,15 +48,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitialized();
 
             var id = ProjectId.CreateNewId(projectSystemName);
-            var directoryNameOpt = creationInfo.FilePath != null ? Path.GetDirectoryName(creationInfo.FilePath) : null;
+            var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
             // We will use the project system name as the default display name of the project
-            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _dynamicFileInfoProviders, _hostDiagnosticUpdateSource, id, displayName: projectSystemName, language, directoryNameOpt);
+            var project = new VisualStudioProject(
+                _visualStudioWorkspaceImpl,
+                _dynamicFileInfoProviders,
+                _hostDiagnosticUpdateSource,
+                id,
+                displayName: projectSystemName,
+                language,
+                assemblyName: assemblyName,
+                compilationOptions: creationInfo.CompilationOptions,
+                filePath: creationInfo.FilePath,
+                parseOptions: creationInfo.ParseOptions);
 
             var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
                                                              : VersionStamp.Create();
-
-            var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
             _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
@@ -72,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (w.CurrentSolution.ProjectIds.Count == 0)
                 {
                     // Fetch the current solution path. Since we're on the UI thread right now, we can do that.
-                    string solutionFilePath = null;
+                    string? solutionFilePath = null;
                     var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
                     if (solution != null)
                     {
@@ -88,7 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             SolutionId.CreateNewId(solutionFilePath),
                             VersionStamp.Create(),
                             solutionFilePath,
-                            projects: new[] { projectInfo }));
+                            projects: new[] { projectInfo },
+                            analyzerReferences: w.CurrentSolution.AnalyzerReferences));
                 }
                 else
                 {
@@ -97,15 +110,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language);
             });
-
-            // We do all these sets after the w.OnProjectAdded, as the setting of these properties is going to try to modify the workspace
-            // again. Those modifications will all implicitly do nothing, since the workspace already has the values from above.
-            // We could pass these all through the constructor (but that gets verbose), or have some other control to ignore these,
-            // but that seems like overkill.
-            project.AssemblyName = assemblyName;
-            project.CompilationOptions = creationInfo.CompilationOptions;
-            project.FilePath = creationInfo.FilePath;
-            project.ParseOptions = creationInfo.ParseOptions;
 
             return project;
         }

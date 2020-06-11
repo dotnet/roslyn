@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -24,6 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpReverseForStatementCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var forStatement = await context.TryGetRelevantNodeAsync<ForStatementSyntax>().ConfigureAwait(false);
@@ -45,7 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             if (declaration == null ||
                 declaration.Variables.Count != 1 ||
                 forStatement.Incrementors.Count != 1)
+            {
                 return;
+            }
 
             var variable = declaration.Variables[0];
             var after = forStatement.Incrementors[0];
@@ -57,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             if (MatchesIncrementPattern(variable, condition, after, out var start, out var equals, out var end) ||
                 MatchesDecrementPattern(variable, condition, after, out end, out start))
             {
-                var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 if (IsUnsignedBoundary(semanticModel, variable, start, end, cancellationToken))
                 {
                     // Don't allow reversing when you have unsigned types and are on the start/end
@@ -71,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             }
         }
 
-        private bool IsUnsignedBoundary(
+        private static bool IsUnsignedBoundary(
             SemanticModel semanticModel, VariableDeclaratorSyntax variable,
             ExpressionSyntax start, ExpressionSyntax end, CancellationToken cancellationToken)
         {
@@ -95,50 +105,36 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
         private static bool ValueEquals(Optional<object> valueOpt, ulong value)
             => valueOpt.HasValue && IsIntegral(valueOpt.Value) && ToUInt64(valueOpt.Value) == value;
 
-        private static bool IsIntegral(object value)
-            => value switch
-            {
-                sbyte _ => true,
-                byte _ => true,
-                short _ => true,
-                ushort _ => true,
-                int _ => true,
-                uint _ => true,
-                long _ => true,
-                ulong _ => true,
-                _ => false,
-            };
-
-        private bool MatchesIncrementPattern(
+        private static bool MatchesIncrementPattern(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition, ExpressionSyntax after,
             [NotNullWhen(true)] out ExpressionSyntax? start, out bool equals, [NotNullWhen(true)] out ExpressionSyntax? end)
         {
             equals = default;
-            end = default;
+            end = null;
             return IsIncrementInitializer(variable, out start) &&
                    IsIncrementCondition(variable, condition, out equals, out end) &&
                    IsIncrementAfter(variable, after);
         }
 
-        private bool MatchesDecrementPattern(
+        private static bool MatchesDecrementPattern(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition, ExpressionSyntax after,
             [NotNullWhen(true)] out ExpressionSyntax? end, [NotNullWhen(true)] out ExpressionSyntax? start)
         {
-            start = default;
+            start = null;
             return IsDecrementInitializer(variable, out end) &&
                    IsDecrementCondition(variable, condition, out start) &&
                    IsDecrementAfter(variable, after);
         }
 
-        private bool IsIncrementInitializer(VariableDeclaratorSyntax variable, out ExpressionSyntax? start)
+        private static bool IsIncrementInitializer(VariableDeclaratorSyntax variable, [NotNullWhen(true)] out ExpressionSyntax? start)
         {
             start = variable.Initializer?.Value;
             return start != null;
         }
 
-        private bool IsIncrementCondition(
+        private static bool IsIncrementCondition(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition,
-            out bool equals, out ExpressionSyntax? end)
+            out bool equals, [NotNullWhen(true)] out ExpressionSyntax? end)
         {
             // i < ...   i <= ...
             if (condition.Kind() == SyntaxKind.LessThanExpression ||
@@ -158,12 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                 return IsVariableReference(variable, condition.Right);
             }
 
-            end = default;
+            end = null;
             equals = default;
             return false;
         }
 
-        private bool IsIncrementAfter(
+        private static bool IsIncrementAfter(
             VariableDeclaratorSyntax variable, ExpressionSyntax after)
         {
             // i++
@@ -197,16 +193,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
         private static bool IsLiteralOne(ExpressionSyntax expression)
             => expression.WalkDownParentheses() is LiteralExpressionSyntax literal && literal.Token.Value is 1;
 
-        private bool IsDecrementInitializer(
+        private static bool IsDecrementInitializer(
             VariableDeclaratorSyntax variable, [NotNullWhen(true)] out ExpressionSyntax? end)
         {
             end = variable.Initializer?.Value;
             return end != null;
         }
 
-        private bool IsDecrementCondition(
+        private static bool IsDecrementCondition(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition,
-            out ExpressionSyntax? start)
+            [NotNullWhen(true)] out ExpressionSyntax? start)
         {
             // i >= ...
             if (condition.Kind() == SyntaxKind.GreaterThanOrEqualExpression)
@@ -222,11 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                 return IsVariableReference(variable, condition.Right);
             }
 
-            start = default;
+            start = null;
             return false;
         }
 
-        private bool IsDecrementAfter(
+        private static bool IsDecrementAfter(
             VariableDeclaratorSyntax variable, ExpressionSyntax after)
         {
             // i--
@@ -257,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             return false;
         }
 
-        private bool IsVariableReference(VariableDeclaratorSyntax variable, ExpressionSyntax expr)
+        private static bool IsVariableReference(VariableDeclaratorSyntax variable, ExpressionSyntax expr)
             => expr.WalkDownParentheses() is IdentifierNameSyntax identifier &&
                identifier.Identifier.ValueText == variable.Identifier.ValueText;
 
@@ -357,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             return expr.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private BinaryExpressionSyntax Invert(
+        private static BinaryExpressionSyntax Invert(
             VariableDeclaratorSyntax variable, BinaryExpressionSyntax condition, ExpressionSyntax operand)
         {
             var (left, right) = IsVariableReference(variable, condition.Left)
@@ -376,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             return SyntaxFactory.BinaryExpression(newExpressionKind, left, newOperator, right);
         }
 
-        private ExpressionSyntax InvertAfter(ExpressionSyntax after)
+        private static ExpressionSyntax InvertAfter(ExpressionSyntax after)
         {
             var opToken = after switch
             {

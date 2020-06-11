@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -258,7 +260,6 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.CollectionInitializer)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestConstructor() As Task
             Dim text = <a><![CDATA[
@@ -269,7 +270,6 @@ End Class]]></a>
 
             Await TestAsync(text.Value, HelpKeywords.Constructor)
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDistinct() As Task
@@ -474,7 +474,6 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Erase")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEraseStatement2() As Task
             Dim text = <a><![CDATA[
@@ -487,7 +486,6 @@ End Class]]></a>
 
             Await TestAsync(text.Value, "vb.Erase")
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestError() As Task
@@ -1498,7 +1496,6 @@ Public Class Test
 End Class
 ]]></a>.Value, "vb.As")
 
-
         End Function
 
         <WorkItem(863305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863305")>
@@ -1938,7 +1935,6 @@ End Class]]></a>.Value, "vb.Not")
     End Sub
 End Class]]></a>.Value, "vb.Integer")
         End Function
-
 
         <WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>

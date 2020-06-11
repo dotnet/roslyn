@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -115,9 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private object CreateComAggregate()
-        {
-            return Interop.ComAggregate.CreateAggregatedObject(this);
-        }
+            => Interop.ComAggregate.CreateAggregatedObject(this);
 
         internal void TearDown()
         {
@@ -175,9 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected virtual void DisconnectFromServices()
-        {
-            Marshal.ThrowExceptionForHR(this.Debugger.UnadviseDebuggerEvents(_debuggerEventsCookie));
-        }
+            => Marshal.ThrowExceptionForHR(this.Debugger.UnadviseDebuggerEvents(_debuggerEventsCookie));
 
         /// <summary>
         /// Called right after we instantiate the language service.  Used to set up any internal
@@ -346,9 +344,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private void InitializeLanguageDebugInfo()
-        {
-            this.LanguageDebugInfo = this.CreateLanguageDebugInfo();
-        }
+            => this.LanguageDebugInfo = this.CreateLanguageDebugInfo();
 
         protected abstract Guid DebuggerLanguageId { get; }
 
@@ -365,9 +361,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private void UninitializeLanguageDebugInfo()
-        {
-            this.LanguageDebugInfo = null;
-        }
+            => this.LanguageDebugInfo = null;
 
         private void InitializeDebugMode()
         {

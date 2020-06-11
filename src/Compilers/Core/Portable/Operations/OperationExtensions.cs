@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +36,15 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             // if wrong compilation is given, GetSemanticModel will throw due to tree not belong to the given compilation.
-            var model = operation.SemanticModel ?? compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            var model = operation.SemanticModel;
+
+            // An IOperation tree for a simple program includes statements from all compilation units involved,
+            // but each model is tied to a single syntax tree.
+            if (model is null || model.SyntaxTree != operation.Syntax.SyntaxTree)
+            {
+                model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            }
+
             if (model.IsSpeculativeSemanticModel)
             {
                 // GetDiagnostics not supported for speculative semantic model.
@@ -231,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicOperation"/>.
         /// Returns a non-null argument <see cref="RefKind"/> for C#.
-        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an argument in VB.
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
@@ -248,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicOperation"/>.
         /// Returns a non-null argument <see cref="RefKind"/> for C#.
-        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an argument in VB.
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
@@ -265,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicOperation"/>.
         /// Returns a non-null argument <see cref="RefKind"/> for C#.
-        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an argument in VB.
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
@@ -364,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            return default;
+            return null;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -137,6 +139,11 @@ namespace Microsoft.CodeAnalysis
         /// and for reduced extension methods with a 'this in' parameter.
         /// </summary>
         bool IsReadOnly { get; }
+
+        /// <summary>
+        /// Returns true for 'init' set accessors, and false otherwise.
+        /// </summary>
+        bool IsInitOnly { get; }
 
         /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Get the unique key to identify our data.
                     var key = PrefixMetadataSymbolTreeInfo + keySuffix;
                     using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
-                    using (var reader = ObjectReader.TryGetReader(stream))
+                    using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
                     {
                         if (reader != null)
                         {
@@ -106,9 +108,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     Contract.ThrowIfNull(result);
 
                     using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                     {
-                        result.WriteTo(writer);
+                        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                        {
+                            result.WriteTo(writer);
+                        }
+
                         stream.Position = 0;
 
                         await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);
@@ -124,7 +129,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     return await createAsync().ConfigureAwait(false);
                 }
-            };
+            }
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;

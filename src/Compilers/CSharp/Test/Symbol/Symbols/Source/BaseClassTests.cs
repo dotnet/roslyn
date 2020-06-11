@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -1428,9 +1431,33 @@ public class B : N { }
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
-        [Fact]
-        public void NamespaceClassInterfaceEscapedIdentifier()
+        [Fact, WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        public void NamespaceClassInterfaceEscapedIdentifier1()
+        {
+            var text = @"
+namespace @if
+{
+    public interface @break { }
+    public class @int<@string> { }
+    public class @float : @int<@break>, @if.@break { }
+}";
+            var comp = CreateCompilation(Parse(text));
+            NamespaceSymbol nif = (NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMembers("if").Single();
+            Assert.Equal("if", nif.Name);
+            Assert.Equal("@if", nif.ToString());
+            NamedTypeSymbol cfloat = (NamedTypeSymbol)nif.GetMembers("float").Single();
+            Assert.Equal("float", cfloat.Name);
+            Assert.Equal("@if.@float", cfloat.ToString());
+            NamedTypeSymbol cint = cfloat.BaseType();
+            Assert.Equal("int", cint.Name);
+            Assert.Equal("@if.@int<@if.@break>", cint.ToString());
+            NamedTypeSymbol ibreak = cfloat.Interfaces().Single();
+            Assert.Equal("break", ibreak.Name);
+            Assert.Equal("@if.@break", ibreak.ToString());
+        }
+
+        [Fact, WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        public void NamespaceClassInterfaceEscapedIdentifier2()
         {
             var text = @"
 namespace @if
@@ -1449,9 +1476,9 @@ namespace @if
             NamedTypeSymbol cint = cfloat.BaseType();
             Assert.Equal("int", cint.Name);
             Assert.Equal("@if.@int<@if.@break>", cint.ToString());
-            NamedTypeSymbol ibreak = cfloat.Interfaces().Single();
-            Assert.Equal("break", ibreak.Name);
-            Assert.Equal("@if.@break", ibreak.ToString());
+
+            // No interfaces as the above doesn't parse due to the errant : in the base list.
+            Assert.Empty(cfloat.Interfaces());
         }
 
         [WorkItem(539328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539328")]
@@ -2274,6 +2301,59 @@ class Derived : Base
                 // (12,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
                 //     class E : A<C*>.B { }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
+        }
+
+        [Fact]
+        [WorkItem(1107185, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107185")]
+        public void Tuple_MissingNestedTypeArgument_01()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class A : I<(object, A.B)>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // class A : I<(object, A.B)>
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 24));
+        }
+
+        [Fact]
+        [WorkItem(1107185, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107185")]
+        public void Tuple_MissingNestedTypeArgument_02()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B : A<(object, B.C)>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0146: Circular base class dependency involving 'B' and 'B'
+                // class B : A<(object, B.C)>
+                Diagnostic(ErrorCode.ERR_CircularBase, "C").WithArguments("B", "B").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void Tuple_MissingNestedTypeArgument_03()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class A : I<System.ValueTuple<object, A.B>>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,41): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // class A : I<System.ValueTuple<object, A.B>>
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 41));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Roslyn.Test.Utilities;
@@ -14,7 +16,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var cache = new DebuggeeModuleInfoCache();
             var mvid = Guid.NewGuid();
 
-            Assert.Null(cache.GetOrAdd(mvid, m => { Assert.Equal(mvid, m); return default; }));
+            Assert.Null(cache.GetOrAdd(mvid, m =>
+            {
+                Assert.Equal(mvid, m);
+                return null;
+            }));
         }
 
         [Fact]
@@ -50,7 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             Assert.True(cache.Remove(mvid1));
             Assert.False(cache.Remove(mvid1));
-            Assert.Null(cache.GetOrAdd(mvid1, _ => default));
+            Assert.Null(cache.GetOrAdd(mvid1, _ => null));
         }
 
         [Fact]
@@ -69,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Same(metadata1, cache.GetOrAdd(mvid1, _ => new DebuggeeModuleInfo(metadata1, symReader1)).Metadata);
 
             Assert.True(cache.Remove(mvid1));
-            Assert.Null(cache.GetOrAdd(mvid1, _ => default));
+            Assert.Null(cache.GetOrAdd(mvid1, _ => null));
 
             Assert.Same(metadata2, cache.GetOrAdd(mvid1, _ => new DebuggeeModuleInfo(metadata2, symReader2)).Metadata);
         }

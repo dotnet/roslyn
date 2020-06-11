@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
@@ -20,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The underlying field
         /// </summary>
-        private readonly SyntaxNode _node;
+        private readonly SyntaxNode? _node;
 
         /// <summary>
         /// The index from the parent's children list of this node.
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="node">The underlying syntax node.</param>
         /// <param name="index">The index.</param>
-        internal SyntaxNodeOrTokenList(SyntaxNode node, int index)
+        internal SyntaxNodeOrTokenList(SyntaxNode? node, int index)
             : this()
         {
             Debug.Assert(node != null || index == 0);
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private static SyntaxNode CreateNode(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
+        private static SyntaxNode? CreateNode(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
         {
             if (nodesAndTokens == null)
             {
@@ -76,11 +80,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the underlying syntax node.
         /// </summary>
-        internal SyntaxNode Node => _node;
+        internal SyntaxNode? Node => _node;
 
         internal int Position => _node?.Position ?? 0;
 
-        internal SyntaxNode Parent => _node?.Parent;
+        internal SyntaxNode? Parent => _node?.Parent;
 
         /// <summary>
         /// Gets the count of nodes in this list
@@ -111,13 +115,13 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (unchecked((uint)index < (uint)_node.SlotCount))
                         {
-                            var green = _node.Green.GetSlot(index);
+                            var green = _node.Green.GetRequiredSlot(index);
                             if (green.IsToken)
                             {
                                 return new SyntaxToken(this.Parent, green, _node.GetChildPosition(index), this.index + index);
                             }
 
-                            return _node.GetNodeSlot(index);
+                            return _node.GetRequiredNodeSlot(index);
                         }
                     }
                 }
@@ -239,7 +243,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="array">The array to copy the elements into.</param>
         /// <param name="arrayOffset">The array offset to start writing to.</param>
         /// <param name="count">The count of elements to copy.</param>
-        internal void CopyTo(int offset, GreenNode[] array, int arrayOffset, int count)
+        internal void CopyTo(int offset, GreenNode?[] array, int arrayOffset, int count)
         {
             for (int i = 0; i < count; i++)
             {
@@ -304,7 +308,7 @@ namespace Microsoft.CodeAnalysis
 
             var nodes = this.ToList();
             nodes.InsertRange(index, nodesAndTokens);
-            return CreateList(nodes[0].UnderlyingNode, nodes);
+            return CreateList(nodes[0].UnderlyingNode!, nodes);
         }
 
         private static SyntaxNodeOrTokenList CreateList(GreenNode creator, List<SyntaxNodeOrToken> items)
@@ -314,10 +318,10 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxNodeOrTokenList);
             }
 
-            var newGreen = creator.CreateList(items.Select(n => n.UnderlyingNode));
+            var newGreen = creator.CreateList(items.Select(n => n.UnderlyingNode!))!;
             if (newGreen.IsToken)
             {
-                newGreen = creator.CreateList(new[] { newGreen }, alwaysCreateListNode: true);
+                newGreen = creator.CreateList(new[] { newGreen }, alwaysCreateListNode: true)!;
             }
 
             return new SyntaxNodeOrTokenList(newGreen.CreateRed(), 0);
@@ -337,7 +341,7 @@ namespace Microsoft.CodeAnalysis
             var node = this[index];
             var nodes = this.ToList();
             nodes.RemoveAt(index);
-            return CreateList(node.UnderlyingNode, nodes);
+            return CreateList(node.UnderlyingNode!, nodes);
         }
 
         /// <summary>
@@ -383,7 +387,7 @@ namespace Microsoft.CodeAnalysis
                 var nodes = this.ToList();
                 nodes.RemoveAt(index);
                 nodes.InsertRange(index, newNodesAndTokens);
-                return CreateList(nodeOrTokenInList.UnderlyingNode, nodes);
+                return CreateList(nodeOrTokenInList.UnderlyingNode!, nodes);
             }
 
             throw new ArgumentOutOfRangeException(nameof(nodeOrTokenInList));
@@ -475,7 +479,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>
         ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SyntaxNodeOrTokenList && Equals((SyntaxNodeOrTokenList)obj);
         }
@@ -550,7 +554,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 throw new NotSupportedException();
             }

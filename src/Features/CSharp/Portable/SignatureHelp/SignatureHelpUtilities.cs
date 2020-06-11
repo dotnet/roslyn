@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -85,30 +87,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         internal static TextSpan GetSignatureHelpSpan(BaseArgumentListSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getBaseArgumentListCloseToken);
-        }
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getBaseArgumentListCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(TypeArgumentListSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken);
-        }
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(InitializerExpressionSyntax initializer)
             => CommonSignatureHelpUtilities.GetSignatureHelpSpan(initializer, initializer.SpanStart, s_getInitializerExpressionCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(AttributeArgumentListSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getAttributeArgumentListCloseToken);
-        }
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getAttributeArgumentListCloseToken);
 
         internal static bool IsTriggerParenOrComma<TSyntaxNode>(SyntaxToken token, Func<char, bool> isTriggerCharacter) where TSyntaxNode : SyntaxNode
         {
             // Don't dismiss if the user types ( to start a parenthesized expression or tuple
             // Note that the tuple initially parses as a parenthesized expression 
-            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr))
             {
-                var parenthesizedExpr = ((ParenthesizedExpressionSyntax)token.Parent).WalkUpParentheses();
+                var parenthesizedExpr = parenExpr.WalkUpParentheses();
                 if (parenthesizedExpr.Parent is ArgumentSyntax)
                 {
                     var parent = parenthesizedExpr.Parent;

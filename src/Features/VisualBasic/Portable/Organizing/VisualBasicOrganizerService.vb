@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -8,10 +10,11 @@ Imports Microsoft.CodeAnalysis.Organizing.Organizers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing
     <ExportLanguageService(GetType(IOrganizingService), LanguageNames.VisualBasic), [Shared]>
-    Friend Partial Class VisualBasicOrganizingService
+    Partial Friend Class VisualBasicOrganizingService
         Inherits AbstractOrganizingService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(<ImportMany()> organizers As IEnumerable(Of Lazy(Of ISyntaxOrganizer, LanguageMetadata)))
             MyBase.New(organizers.Where(Function(o) o.Metadata.Language = LanguageNames.VisualBasic).Select(Function(o) o.Value))
         End Sub

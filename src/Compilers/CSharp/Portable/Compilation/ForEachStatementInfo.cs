@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using Roslyn.Utilities;
@@ -18,22 +22,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the &quot;GetEnumerator&quot; method.
         /// </summary>
-        public IMethodSymbol GetEnumeratorMethod { get; }
+        public IMethodSymbol? GetEnumeratorMethod { get; }
 
         /// <summary>
         /// Gets the &quot;MoveNext&quot; method (or &quot;MoveNextAsync&quot; in an asynchronous foreach).
         /// </summary>
-        public IMethodSymbol MoveNextMethod { get; }
+        public IMethodSymbol? MoveNextMethod { get; }
 
         /// <summary>
         /// Gets the &quot;Current&quot; property.
         /// </summary>
-        public IPropertySymbol CurrentProperty { get; }
+        public IPropertySymbol? CurrentProperty { get; }
 
         /// <summary>
         /// Gets the &quot;Dispose&quot; method (or &quot;DisposeAsync&quot; in an asynchronous foreach).
         /// </summary>
-        public IMethodSymbol DisposeMethod { get; }
+        public IMethodSymbol? DisposeMethod { get; }
 
         /// <summary>
         /// The intermediate type to which the output of the <see cref="CurrentProperty"/> is converted
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// As you might hope, for an array, it is the element type of the array.
         /// </remarks>
-        public ITypeSymbol ElementType { get; }
+        public ITypeSymbol? ElementType { get; }
 
         /// <summary>
         /// The conversion from the <see cref="ElementType"/> to the iteration variable type.
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentConversion = currentConversion;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is ForEachStatementInfo && Equals((ForEachStatementInfo)obj);
         }
