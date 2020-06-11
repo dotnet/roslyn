@@ -699,7 +699,7 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function TestHighlightParamAndComments1() As Task
+        Public Async Function TestHighlightParamAndCommentsCursorOnDefinition() As Task
             Dim input =
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
@@ -726,7 +726,7 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function TestHighlightParamAndComments2() As Task
+        Public Async Function TestHighlightParamAndCommentsCursorOnReference() As Task
             Dim input =
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
@@ -753,7 +753,7 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function TestHighlightParamAndComments3() As Task
+        Public Async Function TestHighlightParamAndCommentsDefinitionNestedBetweenReferences() As Task
             Dim input =
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
