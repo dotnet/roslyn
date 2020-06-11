@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
-                var start = DateTime.Now;
                 var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
-                Console.WriteLine("Time to make doc map: " + (DateTime.Now - start));
                 ValidateProjectToDocumentMap(projectToDocumentMap);
 
                 await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);

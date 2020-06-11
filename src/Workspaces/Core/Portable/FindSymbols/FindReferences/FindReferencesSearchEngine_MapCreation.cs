@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var documents = await finder.DetermineDocumentsToSearchAsync(
                 symbol, project, _documents, _options, _cancellationToken).ConfigureAwait(false);
-            var finalDocs = documents.WhereNotNull().Where(
+            var finalDocs = documents.WhereNotNull().Distinct().Where(
                 d => _documents == null || _documents.Contains(d)).ToImmutableArray();
             return (finalDocs, symbol, finder);
         }
