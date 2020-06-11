@@ -6579,12 +6579,14 @@ class Program
         var y = new C();
         WriteLine(x.Equals(y) && x.GetHashCode() == y.GetHashCode());
         WriteLine(((object)x).Equals(y));
+        WriteLine(((System.IEquatable<C>)x).Equals(y));
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
+True
 True");
             verifier.VerifyIL("C.Equals(C)",
 @"{
@@ -6958,7 +6960,8 @@ True");
         public void Equality_07()
         {
             var source =
-@"using static System.Console;
+@"using System;
+using static System.Console;
 record A;
 record B : A;
 record C : B;
@@ -6985,6 +6988,16 @@ class Program
         WriteLine(((B)new C()).Equals(new B()));
         WriteLine(((B)new C()).Equals(new C()));
         WriteLine(new C().Equals((A)new C()));
+        WriteLine(((IEquatable<A>)new B()).Equals(new A()));
+        WriteLine(((IEquatable<A>)new B()).Equals(new B()));
+        WriteLine(((IEquatable<A>)new B()).Equals(new C()));
+        WriteLine(((IEquatable<A>)new C()).Equals(new A()));
+        WriteLine(((IEquatable<A>)new C()).Equals(new B()));
+        WriteLine(((IEquatable<A>)new C()).Equals(new C()));
+        WriteLine(((IEquatable<B>)new C()).Equals(new A()));
+        WriteLine(((IEquatable<B>)new C()).Equals(new B()));
+        WriteLine(((IEquatable<B>)new C()).Equals(new C()));
+        WriteLine(((IEquatable<C>)new C()).Equals(new C()));
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
@@ -6998,6 +7011,16 @@ True
 False
 False
 False
+True
+False
+True
+False
+False
+False
+True
+False
+False
+True
 True
 False
 True
@@ -7068,7 +7091,9 @@ True");
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
 
-            // Should include <>Clone.
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.<>Clone"), isOverride: false);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.<>Clone"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.<>Clone"), isOverride: true);
 
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.GetHashCode"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.GetHashCode"), isOverride: true);
@@ -7796,6 +7821,577 @@ record C
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
             comp.VerifyEmitDiagnostics(
                 );
+        }
+
+        [Fact]
+        public void IEquatableT_01()
+        {
+            var source =
+@"record A<T>;
+record B : A<int>;
+class Program
+{
+    static void F<T>(System.IEquatable<T> t)
+    {
+    }
+    static void M<T>()
+    {
+        F(new A<T>());
+        F(new B());
+        F<A<int>>(new B());
+        F<B>(new B());
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'Program.F<T>(IEquatable<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(new B());
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.IEquatable<T>)").WithLocation(11, 9));
+        }
+
+        [Fact]
+        public void IEquatableT_02()
+        {
+            var source =
+@"using System;
+record A;
+record B<T> : A;
+record C : B<int>;
+class Program
+{
+    static string F<T>(IEquatable<T> t)
+    {
+        return typeof(T).Name;
+    }
+    static void Main()
+    {
+        Console.WriteLine(F(new A()));
+        Console.WriteLine(F<A>(new C()));
+        Console.WriteLine(F<B<int>>(new C()));
+        Console.WriteLine(F<C>(new C()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"A
+A
+B`1
+C");
+        }
+
+        [Fact]
+        public void IEquatableT_03()
+        {
+            var source =
+@"#nullable enable
+using System;
+record A<T> : IEquatable<A<T>>
+{
+}
+record B : A<object>, IEquatable<A<object>>, IEquatable<B?>;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B?>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B?>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_04()
+        {
+            var source =
+@"using System;
+record A<T>
+{
+    internal static bool Report(string s) { Console.WriteLine(s); return false; }
+    public virtual bool Equals(A<T> other) => Report(""A<T>.Equals(A<T>)"");
+}
+record B : A<object>
+{
+    public override bool Equals(A<object> other) => Report(""B.Equals(A<object>)"");
+    public virtual bool Equals(B other) => Report(""B.Equals(B)"");
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new A<object>();
+        var b = new B();
+        _ = a.Equals(b);
+        _ = ((A<object>)b).Equals(b);
+        _ = b.Equals(a);
+        _ = b.Equals(b);
+        _ = ((IEquatable<A<object>>)a).Equals(b);
+        _ = ((IEquatable<A<object>>)b).Equals(b);
+        _ = ((IEquatable<B>)b).Equals(b);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(A<object>)
+B.Equals(B)
+A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(B)");
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<B>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_05()
+        {
+            var source =
+@"using System;
+record A<T> : IEquatable<A<T>>
+{
+    internal static bool Report(string s) { Console.WriteLine(s); return false; }
+    public virtual bool Equals(A<T> other) => Report(""A<T>.Equals(A<T>)"");
+}
+record B : A<object>, IEquatable<A<object>>, IEquatable<B>
+{
+    public override bool Equals(A<object> other) => Report(""B.Equals(A<object>)"");
+    public virtual bool Equals(B other) => Report(""B.Equals(B)"");
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new A<object>();
+        var b = new B();
+        _ = a.Equals(b);
+        _ = ((A<object>)b).Equals(b);
+        _ = b.Equals(a);
+        _ = b.Equals(b);
+        _ = ((IEquatable<A<object>>)a).Equals(b);
+        _ = ((IEquatable<A<object>>)b).Equals(b);
+        _ = ((IEquatable<B>)b).Equals(b);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(A<object>)
+B.Equals(B)
+A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(B)");
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_06()
+        {
+            var source =
+@"using System;
+record A<T> : IEquatable<A<T>>
+{
+    internal static bool Report(string s) { Console.WriteLine(s); return false; }
+    bool IEquatable<A<T>>.Equals(A<T> other) => Report(""A<T>.Equals(A<T>)"");
+}
+record B : A<object>, IEquatable<A<object>>, IEquatable<B>
+{
+    bool IEquatable<A<object>>.Equals(A<object> other) => Report(""B.Equals(A<object>)"");
+    bool IEquatable<B>.Equals(B other) => Report(""B.Equals(B)"");
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new A<object>();
+        var b = new B();
+        _ = a.Equals(b);
+        _ = ((A<object>)b).Equals(b);
+        _ = b.Equals(a);
+        _ = b.Equals(b);
+        _ = ((IEquatable<A<object>>)a).Equals(b);
+        _ = ((IEquatable<A<object>>)b).Equals(b);
+        _ = ((IEquatable<B>)b).Equals(b);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(B)");
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_07()
+        {
+            var source =
+@"using System;
+record A<T> : IEquatable<B1>, IEquatable<B2>
+{
+    bool IEquatable<B1>.Equals(B1 other) => false;
+    bool IEquatable<B2>.Equals(B2 other) => false;
+}
+record B1 : A<object>;
+record B2 : A<int>;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<B1>", "System.IEquatable<B2>", "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<B1>", "System.IEquatable<B2>", "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B1");
+            AssertEx.Equal(new[] { "System.IEquatable<B1>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<B2>", "System.IEquatable<A<System.Object>>", "System.IEquatable<B1>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B2");
+            AssertEx.Equal(new[] { "System.IEquatable<B2>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<B1>", "System.IEquatable<A<System.Int32>>", "System.IEquatable<B2>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_08()
+        {
+            var source =
+@"interface I<T>
+{
+}
+record A<T> : I<A<T>>
+{
+}
+record B : A<object>, I<A<object>>, I<B>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "I<A<T>>", "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "I<A<T>>", "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "I<A<System.Object>>", "I<B>", "System.IEquatable<B>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "I<A<System.Object>>", "I<B>", "System.IEquatable<B>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_09()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual int GetHashCode() => 0;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"record A<T>;
+record B : A<int>;
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<B>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Int32>>[missing]", "System.IEquatable<B>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_10()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual int GetHashCode() => 0;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"record A<T> : System.IEquatable<A<T>>;
+record B : A<int>, System.IEquatable<B>;
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(1, 8),
+                // (1,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(1, 8),
+                // (1,15): error CS8864: Records may only inherit from object or another record
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "System.IEquatable<A<T>>").WithLocation(1, 15),
+                // (1,22): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<A<T>>").WithArguments("IEquatable<>", "System").WithLocation(1, 22),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,27): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<B>").WithArguments("IEquatable<>", "System").WithLocation(2, 27));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<B>", "System.IEquatable<B>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Int32>>[missing]", "System.IEquatable<B>", "System.IEquatable<B>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_11()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual int GetHashCode() => 0;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"using System;
+record A<T> : IEquatable<A<T>>;
+record B : A<int>, IEquatable<B>;
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
+                // (2,15): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<A<T>>").WithArguments("IEquatable<>").WithLocation(2, 15),
+                // (2,15): error CS8864: Records may only inherit from object or another record
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "IEquatable<A<T>>").WithLocation(2, 15),
+                // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
+                // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
+                // (3,20): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<B>").WithArguments("IEquatable<>").WithLocation(3, 20));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "IEquatable<B>", "System.IEquatable<B>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Int32>>[missing]", "IEquatable<B>", "System.IEquatable<B>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_12()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual int GetHashCode() => 0;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T>
+    {
+        bool Equals(T other);
+        void Other();
+    }
+}";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"record A;
+class Program
+{
+    static void Main()
+    {
+        System.IEquatable<A> a = new A();
+        _ = a.Equals(null);
+    }
+}";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0535: 'A' does not implement interface member 'IEquatable<A>.Other()'
+                // record A;
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("A", "System.IEquatable<A>.Other()").WithLocation(1, 8));
+        }
+
+        [Fact]
+        public void IEquatableT_13()
+        {
+            var source =
+@"record A
+{
+    internal virtual bool Equals(A other) => false;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0737: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is not public.
+                // record A
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(1, 8));
+        }
+
+        [Fact]
+        public void IEquatableT_14()
+        {
+            var source =
+@"record A
+{
+    public bool Equals(A other) => false;
+}
+record B : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,8): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
+                // record B : A
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(A?)", "A.Equals(A)").WithLocation(5, 8));
+        }
+
+        [WorkItem(45026, "https://github.com/dotnet/roslyn/issues/45026")]
+        [Fact]
+        public void IEquatableT_15()
+        {
+            var source =
+@"using System;
+record R
+{
+    bool IEquatable<R>.Equals(R other) => false;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IEquatableT_16()
+        {
+            var source =
+@"using System;
+class A<T>
+{
+    record B<U> : IEquatable<B<T>>
+    {
+        bool IEquatable<B<T>>.Equals(B<T> other) => false;
+        bool IEquatable<B<U>>.Equals(B<U> other) => false;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0695: 'A<T>.B<U>' cannot implement both 'IEquatable<A<T>.B<T>>' and 'IEquatable<A<T>.B<U>>' because they may unify for some type parameter substitutions
+                //     record B<U> : IEquatable<B<T>>
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "B").WithArguments("A<T>.B<U>", "System.IEquatable<A<T>.B<T>>", "System.IEquatable<A<T>.B<U>>").WithLocation(4, 12));
         }
 
         [Fact]
