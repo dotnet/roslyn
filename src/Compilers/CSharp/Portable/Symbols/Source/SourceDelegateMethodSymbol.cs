@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DelegateDeclarationSyntax syntax,
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers)
-            : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation())
+            : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false)
         {
             _returnType = returnType;
             this.MakeFlags(methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                // Method or delegate cannot return type '{0}'
+                // The return type of a method, delegate, or function pointer cannot be '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.Type);
             }
 

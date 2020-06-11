@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             out ImmutableDictionary<TSyntaxKind, TSyntaxKind> assignmentToTokenMap)
         {
             var binaryToAssignmentBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>();
-            var assignmentToTokenBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>(); ;
+            var assignmentToTokenBuilder = ImmutableDictionary.CreateBuilder<TSyntaxKind, TSyntaxKind>();
 
             foreach (var (exprKind, assignmentKind, tokenKind) in kinds)
             {

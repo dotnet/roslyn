@@ -266,11 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                     hasErrors = true;
                 }
-                else if (inputType.IsPointerType() == true && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+                else if (inputType.IsPointerType())
                 {
-                    // before C# 8 we did not permit `pointer is null`
-                    diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, patternExpression.Location);
-                    hasErrors = true;
+                    CheckFeatureAvailability(patternExpression, MessageID.IDS_FeatureNullPointerConstantPattern, diagnostics, patternExpression.Location);
                 }
             }
 
@@ -366,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // input value among many constant tests.
                         convertedExpression = operand;
                     }
-                    else if (conversion.ConversionKind == ConversionKind.NullToPointer ||
+                    else if (conversion.ConversionKind == ConversionKind.ImplicitNullToPointer ||
                         (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true))
                     {
                         convertedExpression = operand;
@@ -394,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            else if (inputType.TypeKind == TypeKind.Pointer || patternType.TypeKind == TypeKind.Pointer)
+            else if (inputType.IsPointerOrFunctionPointer() || patternType.IsPointerOrFunctionPointer())
             {
                 // pattern-matching is not permitted for pointer types
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, typeSyntax.Location);
@@ -624,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            if (inputType.IsPointerType())
+            if (inputType.IsPointerOrFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;
@@ -962,10 +960,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            if (inputType.IsPointerType() &&
-                (node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation ||
-                 // before C# 8 we did not permit `pointer is var x`
-                 Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
+            if ((inputType.IsPointerOrFunctionPointer() && node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+                || (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;
@@ -1250,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BinaryOperatorKind.Float:
                 case BinaryOperatorKind.Double:
-                    if (!hasErrors && constantValueOpt != null && double.IsNaN(constantValueOpt.DoubleValue))
+                    if (!hasErrors && constantValueOpt != null && !constantValueOpt.IsBad && double.IsNaN(constantValueOpt.DoubleValue))
                     {
                         diagnostics.Add(ErrorCode.ERR_RelationalPatternWithNaN, node.Expression.Location);
                         hasErrors = true;

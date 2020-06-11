@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name);
         }
 
         protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -33,6 +34,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     private static string s_goo;
     private static string Goo => s_goo ??= new string('c', 42);
 }");
+        }
+
+        [WorkItem(44793, "https://github.com/dotnet/roslyn/issues/44793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestMissingBeforeCSharp8()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    private static string s_goo;
+    private static string Goo => s_goo [||]?? (s_goo = new string('c', 42));
+}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3)));
         }
 
         [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]

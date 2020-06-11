@@ -5,6 +5,7 @@
     <DisplayName>Roslyn Insiders (Without Tool Window)</DisplayName>
     <Description>Pre-release build of Roslyn compilers and language services.</Description>
     <License>EULA.rtf</License>
+    <AllowClientRole>true</AllowClientRole>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />

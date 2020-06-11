@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _boundNode As BoundNode
 
         Public Sub New(operationFactory As VisualBasicOperationFactory, boundNode As BoundNode, semanticModel As SemanticModel, node As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, node, constantValue, isImplicit)
+            MyBase.New(semanticModel, node, constantValue, isImplicit, type:=Nothing)
             _operationFactory = operationFactory
             _boundNode = boundNode
         End Sub
@@ -1153,8 +1153,8 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyWithOperation
-        Inherits LazyWithOperation
+    Friend NotInheritable Class VisualBasicLazyWithStatementOperation
+        Inherits LazyWithStatementOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _withStatement As BoundWithStatement

@@ -122,13 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             progressTracker.Description = FeaturesResources.Formatting_document;
             using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
             {
-                var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
+                var result = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
                 progressTracker.ItemCompleted();
                 return result;
             }
         }
 
-        private async Task<Document> RemoveSortUsingsAsync(
+        private static async Task<Document> RemoveSortUsingsAsync(
             Document document, OrganizeUsingsSet organizeUsingsSet, CancellationToken cancellationToken)
         {
             if (organizeUsingsSet.IsRemoveUnusedImportEnabled)

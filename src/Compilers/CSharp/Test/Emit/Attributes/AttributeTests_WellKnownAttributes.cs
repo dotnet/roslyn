@@ -10322,6 +10322,72 @@ partial class C
         }
 
         [Fact]
+        public void SkipLocalsInitAttributeOnExtendedPartialMethod_01()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial class C
+{
+    public partial int M()
+    {
+        int x = 1;
+        x = x + x + x;
+        return x;
+    }
+}
+
+partial class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public partial int M();
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularWithExtendedPartialMethods, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnExtendedPartialMethod_02()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+partial class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public partial int M()
+    {
+        int x = 1;
+        x = x + x + x;
+        return x;
+    }
+}
+
+partial class C
+{
+    public partial int M();
+}
+";
+
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularWithExtendedPartialMethods, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
         public unsafe void StackallocWithSkipLocalsInit()
         {
             var src = @"

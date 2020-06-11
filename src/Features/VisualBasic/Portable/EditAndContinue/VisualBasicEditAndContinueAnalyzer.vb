@@ -2615,7 +2615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
             End Sub
 
-            Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
+            Private Shared Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
                 ' Ignore Async and Iterator keywords when matching modifiers.
                 ' State machine checks are done in ComputeBodyMatch.
 

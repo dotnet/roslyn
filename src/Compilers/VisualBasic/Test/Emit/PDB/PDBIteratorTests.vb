@@ -530,8 +530,8 @@ End Module
 </symbols>)
         End Sub
 
+        <Fact>
         <WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PortableStateMachineDebugInfo()
             Dim src = "
 Imports System.Collections.Generic
@@ -551,7 +551,7 @@ End Class"
             Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
                 Dim mdReader = provider.GetMetadataReader()
                 Dim writer = New StringWriter()
-                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+                Dim visualizer = New MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences)
                 visualizer.WriteMethodDebugInformation()
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("
@@ -561,7 +561,7 @@ MethodDebugInformation (index: 0x31, size: 40):
 2: nil
 3: nil
 4: nil
-5: #22
+5:
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)

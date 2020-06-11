@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 storage.ReadStreamAsync(project, key, cancellationToken);
 
             using var stream = await readTask.ConfigureAwait(false);
-            using var reader = ObjectReader.TryGetReader(stream);
+            using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
 
             if (reader == null)
             {

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
-#pragma warning disable CS0618 // Type or member is obsolete
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +12,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal readonly struct UnitTestingSessionWithSolutionWrapper : IDisposable
     {
         internal SessionWithSolution? UnderlyingObject { get; }
