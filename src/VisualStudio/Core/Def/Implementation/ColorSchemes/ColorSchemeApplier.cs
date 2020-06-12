@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             if (themeChanged)
             {
                 // Default Foreground colors if they match our theme colors.
-                _colorDefaulter.DefaultClassifications();
+                _colorDefaulter.DefaultClassifications(IsThemeCustomized());
             }
 
             // If the color scheme has updated, apply the scheme.
