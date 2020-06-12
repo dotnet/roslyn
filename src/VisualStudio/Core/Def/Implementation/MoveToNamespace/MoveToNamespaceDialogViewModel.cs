@@ -4,14 +4,14 @@
 
 #nullable enable
 
-using System.Collections.Immutable;
-using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Imaging;
 using System;
-using Microsoft.CodeAnalysis.LanguageServices;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {

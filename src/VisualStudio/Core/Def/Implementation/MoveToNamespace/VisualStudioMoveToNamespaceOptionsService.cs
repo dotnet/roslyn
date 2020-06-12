@@ -11,7 +11,6 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveToNamespace;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
@@ -21,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
     {
         private const int HistorySize = 3;
 
-        public readonly LinkedList<string?> History = new LinkedList<string?>();
+        public readonly LinkedList<string> History = new LinkedList<string>();
         private readonly Func<MoveToNamespaceDialogViewModel, bool?> _showDialog;
 
         [ImportingConstructor]
