@@ -5230,6 +5230,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsThrowExpression" xml:space="preserve">
     <value>An expression tree may not contain a throw-expression.</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsWithExpression" xml:space="preserve">
+    <value>An expression tree may not contain a with-expression.</value>
+  </data>
   <data name="ERR_BadAssemblyName" xml:space="preserve">
     <value>Invalid assembly name: {0}</value>
   </data>
