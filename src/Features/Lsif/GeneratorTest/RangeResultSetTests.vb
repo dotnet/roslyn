@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
         <Theory>
         <InlineData("class C { [|string|] s; }", "mscorlib#T:System.String", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
-        <InlineData("class C { void M() { [|M|](); }", TestProjectAssemblyName + "#M:C.M", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
-        <InlineData("class C { void M(string s) { M([|s|]) }", TestProjectAssemblyName + "#M:C.M(System.String)#s", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
-        <InlineData("class C { void M(string s) { string local; M([|local|]) }", Nothing, Nothing)>
+        <InlineData("class C { void M() { [|M|](); } }", TestProjectAssemblyName + "#M:C.M", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
+        <InlineData("class C { void M(string s) { M([|s|]); } }", TestProjectAssemblyName + "#M:C.M(System.String)#s", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
+        <InlineData("class C { void M(string s) { string local = """"; M([|local|]); } }", Nothing, Nothing)>
         <InlineData("class C { void M(string s) { M(s [|+|] s) }", Nothing, Nothing)>
         <InlineData("using [|S|] = System.String;", Nothing, Nothing)>
         <InlineData("class C { [|global|]::System.String s; }", "<global namespace>", WellKnownSymbolMonikerSchemes.DotnetNamespace)>
@@ -49,7 +49,9 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                             <Document Name="A.cs" FilePath="Z:\A.cs">
                                 <%= code %>
                             </Document>
+                            <ProjectReference Alias="A">ReferencedWithAlias</ProjectReference>
                         </Project>
+                        <Project AssemblyName="ReferencedWithAlias" Language="C#" FilePath="Z:\ReferencedWithAlias.csproj"></Project>
                     </Workspace>))
 
             Assert.Empty(lsif.Vertices.OfType(Of Range))
