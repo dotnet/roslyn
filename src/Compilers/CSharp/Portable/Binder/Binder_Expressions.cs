@@ -713,6 +713,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SuppressNullableWarningExpression:
                     return BindSuppressNullableWarningExpression((PostfixUnaryExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.WithExpression:
+                    return BindWithExpression((WithExpressionSyntax)node, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
@@ -3776,7 +3779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Null for implicit, 
         /// BaseConstructorInitializerSyntax.ArgumentList, or 
         /// ThisConstructorInitializerSyntax.ArgumentList, or 
-        /// BaseClassWithArgumentsSyntax.ArgumentList for explicit.</param>
+        /// SimpleBaseTypeSyntax.ArgumentList for explicit.</param>
         /// <param name="constructor">Constructor containing the initializer.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. unable to find constructor to invoke).</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
@@ -3861,7 +3864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol initializerType = containingType;
 
                 bool isBaseConstructorInitializer = initializerArgumentListOpt == null ||
-                                                    initializerArgumentListOpt.Parent.Kind() == SyntaxKind.BaseConstructorInitializer;
+                                                    initializerArgumentListOpt.Parent.Kind() != SyntaxKind.ThisConstructorInitializer;
 
                 if (isBaseConstructorInitializer)
                 {
@@ -3907,10 +3910,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(initializerArgumentListOpt.Parent.Kind() == SyntaxKind.ThisConstructorInitializer);
                 }
 
+                CSharpSyntaxNode nonNullSyntax;
+                Location errorLocation;
+
+                switch (initializerArgumentListOpt?.Parent)
+                {
+                    case ConstructorInitializerSyntax initializerSyntax:
+                        nonNullSyntax = initializerSyntax;
+                        errorLocation = initializerSyntax.ThisOrBaseKeyword.GetLocation();
+                        break;
+
+                    case SimpleBaseTypeSyntax baseWithArguments:
+                        Debug.Assert(baseWithArguments.Parent?.Parent is RecordDeclarationSyntax recordDecl && recordDecl.BaseList.Types.FirstOrDefault() == baseWithArguments);
+                        nonNullSyntax = initializerArgumentListOpt;
+                        errorLocation = initializerArgumentListOpt.GetLocation();
+                        break;
+
+                    default:
+                        // Note: use syntax node of constructor with initializer, not constructor invoked by initializer (i.e. methodResolutionResult).
+                        nonNullSyntax = constructor.GetNonNullSyntaxNode();
+                        errorLocation = constructor.Locations[0];
+                        break;
+                }
+
                 if (initializerArgumentListOpt != null && analyzedArguments.HasDynamicArgument)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor,
-                                    ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, errorLocation);
 
                     return new BoundBadExpression(
                             syntax: initializerArgumentListOpt.Parent,
@@ -3918,20 +3943,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
                             childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments),
                             type: constructorReturnType);
-                }
-
-                CSharpSyntaxNode nonNullSyntax;
-                Location errorLocation;
-                if (initializerArgumentListOpt != null)
-                {
-                    nonNullSyntax = initializerArgumentListOpt.Parent;
-                    errorLocation = ((ConstructorInitializerSyntax)nonNullSyntax).ThisOrBaseKeyword.GetLocation();
-                }
-                else
-                {
-                    // Note: use syntax node of constructor with initializer, not constructor invoked by initializer (i.e. methodResolutionResult).
-                    nonNullSyntax = constructor.GetNonNullSyntaxNode();
-                    errorLocation = constructor.Locations[0];
                 }
 
                 BoundExpression receiver = ThisReference(nonNullSyntax, initializerType, wasCompilerGenerated: true);
@@ -3957,7 +3968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(initializerType.IsErrorType() ||
                             (initializerArgumentListOpt != null && initializerArgumentListOpt.Parent.Kind() == SyntaxKind.ThisConstructorInitializer));
                         diagnostics.Add(ErrorCode.ERR_RecursiveConstructorCall,
-                                        ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation(),
+                                        errorLocation,
                                         constructor);
 
                         hasErrors = true; // prevent recursive constructor from being emitted
@@ -4340,7 +4351,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (syntax.Kind())
             {
                 case SyntaxKind.ObjectInitializerExpression:
-                    return BindObjectInitializerExpression(syntax, type, diagnostics, implicitReceiver);
+                    // Uses a special binder to produce customized diagnostics for the object initializer
+                    return BindObjectInitializerExpression(
+                        syntax, type, diagnostics, implicitReceiver, useObjectInitDiagnostics: true);
+
+                case SyntaxKind.WithInitializerExpression:
+                    return BindObjectInitializerExpression(
+                        syntax, type, diagnostics, implicitReceiver, useObjectInitDiagnostics: false);
 
                 case SyntaxKind.CollectionInitializerExpression:
                     return BindCollectionInitializerExpression(syntax, type, diagnostics, implicitReceiver);
@@ -4363,6 +4380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.ObjectInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
+                    Debug.Assert(syntax.Parent.Parent.Kind() != SyntaxKind.WithInitializerExpression);
                     return BindInitializerExpression((InitializerExpressionSyntax)syntax, type, typeSyntax, diagnostics);
                 default:
                     return BindValue(syntax, diagnostics, BindValueKind.RValue);
@@ -4373,7 +4391,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax initializerSyntax,
             TypeSymbol initializerType,
             DiagnosticBag diagnostics,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            bool useObjectInitDiagnostics)
         {
             // SPEC:    7.6.10.2 Object initializers
             //
@@ -4381,13 +4400,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    Each member initializer must name an accessible field or property of the object being initialized, followed by an equals sign and
             // SPEC:    an expression or an object initializer or collection initializer.
 
-            Debug.Assert(initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression);
+            Debug.Assert(initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression ||
+                         initializerSyntax.Kind() == SyntaxKind.WithInitializerExpression);
             Debug.Assert((object)initializerType != null);
-
-            var initializerBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-
-            // Member name map to report duplicate assignments to a field/property.
-            var memberNameMap = new HashSet<string>();
 
             // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
             //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
@@ -4395,22 +4410,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
             // Note that this is only used for the LHS of the assignment - these diagnostics do not apply on the RHS.
             // For this reason, we will actually need two binders: this and this.WithAdditionalFlags.
-            var objectInitializerMemberBinder = this.WithAdditionalFlags(BinderFlags.ObjectInitializerMember);
+            var objectInitializerMemberBinder = useObjectInitDiagnostics
+                ? this.WithAdditionalFlags(BinderFlags.ObjectInitializerMember)
+                : this;
 
+            var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
+
+            // Member name map to report duplicate assignments to a field/property.
+            var memberNameMap = PooledHashSet<string>.GetInstance();
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
-                BoundExpression boundMemberInitializer = BindObjectInitializerMemberAssignment(
+                BoundExpression boundMemberInitializer = BindInitializerMemberAssignment(
                     memberInitializer, initializerType, objectInitializerMemberBinder, diagnostics, implicitReceiver);
 
-                initializerBuilder.Add(boundMemberInitializer);
+                initializers.Add(boundMemberInitializer);
 
                 ReportDuplicateObjectMemberInitializers(boundMemberInitializer, memberNameMap, diagnostics);
             }
 
-            return new BoundObjectInitializerExpression(initializerSyntax, implicitReceiver, initializerBuilder.ToImmutableAndFree(), initializerType);
+            return new BoundObjectInitializerExpression(
+                initializerSyntax,
+                implicitReceiver,
+                initializers.ToImmutableAndFree(),
+                initializerType);
         }
 
-        private BoundExpression BindObjectInitializerMemberAssignment(
+        private BoundExpression BindInitializerMemberAssignment(
             ExpressionSyntax memberInitializer,
             TypeSymbol initializerType,
             Binder objectInitializerMemberBinder,
@@ -4444,7 +4469,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // See comments in BindObjectInitializerExpression for more details.
 
                     Debug.Assert(objectInitializerMemberBinder != null);
-                    Debug.Assert(objectInitializerMemberBinder.Flags.Includes(BinderFlags.ObjectInitializerMember));
 
                     boundLeft = objectInitializerMemberBinder.BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
                 }
@@ -4614,8 +4638,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // CheckValueKind to generate possible diagnostics for invalid initializers non-viable member lookup result:
                 //      1) CS0154 (ERR_PropertyLacksGet)
                 //      2) CS0200 (ERR_AssgReadonlyProp)
-
-                Debug.Assert(Flags.Includes(CSharp.BinderFlags.ObjectInitializerMember));
                 if (!CheckValueKind(boundMember.Syntax, boundMember, valueKind, checkingReceiver: false, diagnostics: diagnostics))
                 {
                     hasErrors = true;

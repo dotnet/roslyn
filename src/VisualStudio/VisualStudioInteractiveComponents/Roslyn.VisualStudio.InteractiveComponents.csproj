@@ -73,6 +73,14 @@
 
   <Import Project="$(VSToolsPath)\vssdk\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\vssdk\Microsoft.VsSDK.targets')" />
 
+  <Target Name="NoLocalizeEmptyResx" AfterTargets="EnsureResourceToMergeWithCTO">
+    <ItemGroup>
+      <EmbeddedResource Update="@(EmbeddedResource)" Condition="'%(ManifestResourceName)' == '_EmptyResource'">
+        <XlfInput>false</XlfInput>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
+
   <Target Name="VsixSourceItemsOutputGroup"
           Returns="@(VSIXSourceItem)"
           DependsOnTargets="GetVsixSourceItems">

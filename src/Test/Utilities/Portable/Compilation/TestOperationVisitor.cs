@@ -7,11 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -436,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Same(operation.Operation, operation.Children.Single());
         }
 
-        internal override void VisitWith(IWithOperation operation)
+        internal override void VisitWithStatement(IWithStatementOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
             AssertEx.Equal(new[] { operation.Value, operation.Body }, operation.Children);
@@ -1520,6 +1518,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.False(operation.ConstantValue.HasValue);
             _ = operation.IsAsynchronous;
             _ = operation.IsImplicit;
+        }
+
+        public override void VisitWith(IWithOperation operation)
+        {
+            Assert.Equal(OperationKind.With, operation.Kind);
+            _ = operation.CloneMethod;
+            IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Value).Concat(operation.Initializer);
+            AssertEx.Equal(children, operation.Children);
         }
     }
 }

@@ -385,6 +385,9 @@ dotnet_diagnostic.IDE0077.severity = %value%
 # IDE0078
 csharp_style_prefer_pattern_matching = false:silent
 
+# IDE0080
+dotnet_diagnostic.IDE0080.severity = %value%
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -905,6 +908,9 @@ No editorconfig based code style option
 
 # IDE0078, PreferPatternMatching
 csharp_style_prefer_pattern_matching = false:silent
+
+# IDE0080
+No editorconfig based code style option
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion

@@ -274,4 +274,19 @@
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
   </data>
+  <data name="Negate_expression_changes_semantics" xml:space="preserve">
+    <value>Negate expression (changes semantics)</value>
+  </data>
+  <data name="Remove_operator_preserves_semantics" xml:space="preserve">
+    <value>Remove operator (preserves semantics)</value>
+  </data>
+  <data name="Remove_suppression_operators" xml:space="preserve">
+    <value>Remove suppression operators</value>
+  </data>
+  <data name="Remove_unnecessary_suppression_operator" xml:space="preserve">
+    <value>Remove unnecessary suppression operator</value>
+  </data>
+  <data name="Suppression_operator_has_no_effect_and_can_be_misinterpreted" xml:space="preserve">
+    <value>Suppression operator has no effect and can be misinterpreted</value>
+  </data>
 </root>
