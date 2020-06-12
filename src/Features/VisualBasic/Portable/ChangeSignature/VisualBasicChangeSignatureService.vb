@@ -138,16 +138,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
         End Function
 
-        Protected Overrides Function GetPositionBeforeParameterListClosingBrace(matchingNode As SyntaxNode) As Integer
-            Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
-
-            If parameters Is Nothing Then
-                Throw New ArgumentException("Unexpected SyntaxNode", NameOf(matchingNode))
-            End If
-
-            Return parameters.CloseParenToken.SpanStart
-        End Function
-
         Private Shared Function TryGetSelectedIndexFromDeclaration(position As Integer, matchingNode As SyntaxNode) As Integer
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
             Return If(parameters Is Nothing, 0, GetParameterIndex(parameters.Parameters, position))

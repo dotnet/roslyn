@@ -8,9 +8,10 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
+namespace Roslyn.Test.Utilities.TestGenerators
 {
     internal class SingleFileTestGenerator : ISourceGenerator
     {
