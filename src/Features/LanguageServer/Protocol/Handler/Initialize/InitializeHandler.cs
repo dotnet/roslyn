@@ -44,7 +44,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DefinitionProvider = true,
                     RenameProvider = true,
                     ImplementationProvider = true,
-                    CompletionProvider = new LSP.CompletionOptions { ResolveProvider = true, TriggerCharacters = triggerCharacters },
+                    CompletionProvider = new LSP.CompletionOptions
+                    {
+                        ResolveProvider = true,
+                        TriggerCharacters = triggerCharacters,
+                        AllCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray(),
+                    },
                     SignatureHelpProvider = new LSP.SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                     DocumentSymbolProvider = true,
                     WorkspaceSymbolProvider = true,

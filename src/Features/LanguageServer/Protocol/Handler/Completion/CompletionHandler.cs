@@ -84,7 +84,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             static TCompletionItem CreateCompletionItem<TCompletionItem>(LSP.CompletionParams request, CompletionItem item) where TCompletionItem : LSP.CompletionItem, new()
-                => new TCompletionItem
+            {
+                var completionItem = new TCompletionItem
                 {
                     Label = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix,
                     InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : item.DisplayText,
@@ -92,17 +93,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
                     Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText },
-                    CommitCharacters = GetCommitCharacters(item)
                 };
 
-            static string[] GetCommitCharacters(CompletionItem item)
+                // We only set the commit characters if they differ from the default.
+                var commitCharacters = GetCommitCharacters(item);
+                if (commitCharacters != null)
+                {
+                    completionItem.CommitCharacters = commitCharacters;
+                }
+
+                return completionItem;
+            }
+
+            static string[]? GetCommitCharacters(CompletionItem item)
             {
                 var commitCharacterRules = item.Rules.CommitCharacterRules;
 
-                // If the item doesn't have any special rules, just return the default commit characters.
+                // If the item doesn't have any special rules, just use the default commit characters.
                 if (commitCharacterRules.IsEmpty)
                 {
-                    return CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
+                    return null;
                 }
 
                 using var _ = ArrayBuilder<char>.GetInstance(out var commitCharacters);
