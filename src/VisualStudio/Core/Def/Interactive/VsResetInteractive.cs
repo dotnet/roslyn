@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var projectDir = (string)dteProject.Properties.Item("FullPath").Value;
             var outputFileName = (string)dteProject.Properties.Item("OutputFileName").Value;
             var defaultNamespace = (string)dteProject.Properties.Item("DefaultNamespace").Value;
-            var targetFramework = (string)dteProject.Properties.Item("TargetFramework").Value;
+            var targetFrameworkMoniker = (string)dteProject.Properties.Item("TargetFrameworkMoniker").Value;
             var relativeOutputPath = (string)dteProject.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value;
 
             Debug.Assert(!string.IsNullOrEmpty(projectDir));
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             sourceSearchPaths = sourceSearchPathsBuilder.ToImmutableArray();
             projectNamespaces = namespacesToImportBuilder.ToImmutableArray();
 
-            platform = (projectOpt != null) ? GetInteractiveHostPlatform(targetFramework, projectOpt.CompilationOptions.Platform) : null;
+            platform = (projectOpt != null) ? GetInteractiveHostPlatform(targetFrameworkMoniker, projectOpt.CompilationOptions.Platform) : null;
         }
 
         internal Project GetProjectFromHierarchy(IVsHierarchy hierarchy)
@@ -188,10 +188,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             return false;
         }
 
-        private static InteractiveHostPlatform? GetInteractiveHostPlatform(string targetFramework, Platform platform)
+        private static InteractiveHostPlatform? GetInteractiveHostPlatform(string targetFrameworkMoniker, Platform platform)
         {
-            if (targetFramework.StartsWith("netcoreapp", StringComparison.OrdinalIgnoreCase) ||
-                targetFramework.StartsWith("netstandard", StringComparison.OrdinalIgnoreCase))
+            if (targetFrameworkMoniker.StartsWith(".NETCoreApp", StringComparison.OrdinalIgnoreCase) ||
+                targetFrameworkMoniker.StartsWith(".NETStandard", StringComparison.OrdinalIgnoreCase))
             {
                 return InteractiveHostPlatform.Core;
             }
