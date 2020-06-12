@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         public Task<Connection> ActivateAsync(CancellationToken token)
         {
-            Contract.ThrowIfFalse(_languageServer == null, "This language server has already been initialized");
+            Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             _languageServer = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace,
