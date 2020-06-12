@@ -37341,7 +37341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public DataPropertyDeclarationSyntax DataPropertyDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken)
         {
-            #if DEBUG
+#if DEBUG
             if (dataKeyword == null) throw new ArgumentNullException(nameof(dataKeyword));
             if (dataKeyword.Kind != SyntaxKind.DataKeyword) throw new ArgumentException(nameof(dataKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
@@ -37349,7 +37349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
             if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            #endif
+#endif
 
             return new DataPropertyDeclarationSyntax(SyntaxKind.DataPropertyDeclaration, attributeLists.Node, modifiers.Node, dataKeyword, type, identifier, initializer, semicolonToken, this.context);
         }
@@ -42106,7 +42106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public static DataPropertyDeclarationSyntax DataPropertyDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken)
         {
-            #if DEBUG
+#if DEBUG
             if (dataKeyword == null) throw new ArgumentNullException(nameof(dataKeyword));
             if (dataKeyword.Kind != SyntaxKind.DataKeyword) throw new ArgumentException(nameof(dataKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
@@ -42114,7 +42114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
             if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            #endif
+#endif
 
             return new DataPropertyDeclarationSyntax(SyntaxKind.DataPropertyDeclaration, attributeLists.Node, modifiers.Node, dataKeyword, type, identifier, initializer, semicolonToken);
         }
