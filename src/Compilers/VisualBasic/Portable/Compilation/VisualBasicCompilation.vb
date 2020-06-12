@@ -1807,8 +1807,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ClassifyConversion(source, destination).ToCommonConversion()
         End Function
 
-        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As [Optional](Of Object)) As IConvertibleConversion
-            constantValue = Nothing
+        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As OperationConstantValue) As IConvertibleConversion
+            constantValue = OperationConstantValue.None
 
             If destination Is Nothing Then
                 Return New Conversion(Nothing) ' No conversion
@@ -1818,7 +1818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If sourceType Is Nothing Then
                 If source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing AndAlso destination.IsReferenceType Then
-                    constantValue = source.ConstantValue
+                    constantValue = source.GetConstantValue()
                     Return New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.WideningNothingLiteral, Nothing))
                 End If
 
@@ -1828,7 +1828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As Conversion = ClassifyConversion(sourceType, destination)
 
             If result.IsReference AndAlso source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing Then
-                constantValue = source.ConstantValue
+                constantValue = source.GetConstantValue()
             End If
 
             Return result

@@ -1968,9 +1968,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyConversion(source, destination).ToCommonConversion();
         }
 
-        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol? destination, out Optional<object> constantValue)
+        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol? destination, out OperationConstantValue constantValue)
         {
-            constantValue = default;
+            constantValue = OperationConstantValue.None;
 
             if (destination is null)
             {
@@ -1983,7 +1983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
                 {
-                    constantValue = source.ConstantValue;
+                    constantValue = source.GetConstantValue();
                     return Conversion.NullLiteral;
                 }
 
@@ -1994,7 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result.IsReference && source.ConstantValue.HasValue && source.ConstantValue.Value is null)
             {
-                constantValue = source.ConstantValue;
+                constantValue = source.GetConstantValue();
             }
 
             return result;
