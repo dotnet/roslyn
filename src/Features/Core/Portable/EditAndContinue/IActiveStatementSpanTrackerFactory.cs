@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal interface IActiveStatementSpanTracker
+    internal interface IActiveStatementSpanTrackerFactory : IWorkspaceService
     {
-        bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span);
+        IActiveStatementSpanTracker GetOrCreateActiveStatementSpanTracker();
     }
 }
