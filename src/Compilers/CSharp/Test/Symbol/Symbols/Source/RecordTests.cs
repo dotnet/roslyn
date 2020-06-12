@@ -1795,7 +1795,7 @@ class C : B
             Assert.True(symbolInfo.Symbol!.Equals(p1, SymbolEqualityComparer.Default));
 
             var p4 = (IPropertySymbol)model.GetDeclaredSymbol(props[3])!;
-            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated , p4.Type.NullableAnnotation);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, p4.Type.NullableAnnotation);
             typeInfo = model.GetTypeInfo(props[3].Initializer!.Value);
             Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
         }
