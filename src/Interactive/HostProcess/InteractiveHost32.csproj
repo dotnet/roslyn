@@ -9,11 +9,6 @@
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="Desktop\CSharpInteractive.rsp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />

@@ -15,14 +15,6 @@
     <PublishDocumentationFiles>false</PublishDocumentationFiles>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="Core\CSharpInteractive.rsp" Link="CSharpInteractive.rsp">
-      <CopyToOutputDirectory Condition="'$(TargetFramework)' != 'net472'">PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Desktop\CSharpInteractive.rsp" Link="CSharpInteractive.rsp">
-      <CopyToOutputDirectory Condition="'$(TargetFramework)' == 'net472'">PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
