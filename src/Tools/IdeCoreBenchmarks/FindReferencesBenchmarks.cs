@@ -99,8 +99,8 @@ namespace IdeCoreBenchmarks
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
             Process.GetCurrentProcess().PriorityBoostEnabled = false;
 
-            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.SyntaxToken");
-            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.SyntaxToken");
+            await FindReferences(solution, compilation, "System.Console");
+            await FindReferences(solution, compilation, "System.Console");
 
             //await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.SyntaxFacts");
             //await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
