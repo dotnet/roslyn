@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     public abstract class AbstractInteractiveHostTests : CSharpTestBase
     {
-        internal readonly static string HostRootPath = Path.Combine(Path.GetDirectoryName(typeof(AbstractInteractiveHostTests).Assembly.Location), "Host");
+        internal readonly static string HostRootPath = Path.Combine(Path.GetDirectoryName(typeof(AbstractInteractiveHostTests).Assembly.Location)!, "Host");
     }
 }
