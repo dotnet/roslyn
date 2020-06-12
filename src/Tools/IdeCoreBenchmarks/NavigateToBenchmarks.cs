@@ -62,6 +62,8 @@ namespace IdeCoreBenchmarks
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
+            // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
+            // perform, including seeing how big the initial string table is.
             using var storage = storageService.GetStorage(_workspace.CurrentSolution);
         }
 
@@ -73,7 +75,7 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public async Task RunAnalyzer()
+        public async Task RunNavigateTo()
         {
             var solution = _workspace.CurrentSolution;
             // Search each project with an independent threadpool task.

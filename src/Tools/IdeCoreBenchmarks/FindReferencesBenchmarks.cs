@@ -62,12 +62,13 @@ namespace IdeCoreBenchmarks
                 .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
 
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
-            // Thread.Sleep(TimeSpan.FromSeconds(20));
 
             var start = DateTime.Now;
             _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
+            // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
+            // perform, including seeing how big the initial string table is.
             var storageService = _workspace.Services.GetService<IPersistentStorageService>();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
@@ -83,7 +84,7 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public async Task RunAnalyzer()
+        public async Task RunFindReferences()
         {
             var solution = _workspace.CurrentSolution;
             var project = solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis");
