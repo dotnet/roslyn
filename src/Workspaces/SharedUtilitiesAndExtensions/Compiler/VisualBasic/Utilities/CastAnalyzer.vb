@@ -68,6 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return semanticModel.GetTypeInfo(parentExpression, cancellationToken).Type
                 End If
             End If
+
             If Not Object.Equals(expressionTypeInfo.Type, expressionTypeInfo.ConvertedType) Then
                 Return expressionTypeInfo.ConvertedType
             End If
@@ -113,35 +114,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Dim parentSimpleArgument = TryCast(parent, SimpleArgumentSyntax)
-            If parentSimpleArgument IsNot Nothing Then
-                If TypeOf parentSimpleArgument.Expression Is CastExpressionSyntax OrElse
-               TypeOf parentSimpleArgument.Expression Is PredefinedCastExpressionSyntax Then
-                    Return semanticModel.GetTypeInfo(parentSimpleArgument.Expression, cancellationToken).Type
-                End If
+            If TypeOf parentSimpleArgument?.Expression Is CastExpressionSyntax OrElse
+               TypeOf parentSimpleArgument?.Expression Is PredefinedCastExpressionSyntax Then
+                Return semanticModel.GetTypeInfo(parentSimpleArgument.Expression, cancellationToken).Type
             End If
 
             Return expressionTypeInfo.ConvertedType
         End Function
 
-        Private Shared Function GetSpeculatedExpressionToOuterTypeConversion(speculatedExpression As ExpressionSyntax, speculationAnalyzer As SpeculationAnalyzer, cancellationToken As CancellationToken, <Out> ByRef speculatedExpressionOuterType As ITypeSymbol) As Conversion
-            Dim innerSpeculatedExpression = speculatedExpression.WalkDownParentheses()
-            Dim typeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(innerSpeculatedExpression, cancellationToken)
-            Dim conv = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(innerSpeculatedExpression, cancellationToken)
+        'Private Shared Function GetSpeculatedExpressionToOuterTypeConversion(speculatedExpression As ExpressionSyntax, speculationAnalyzer As SpeculationAnalyzer, cancellationToken As CancellationToken, <Out> ByRef speculatedExpressionOuterType As ITypeSymbol) As Conversion
+        '    Dim innerSpeculatedExpression = speculatedExpression.WalkDownParentheses()
+        '    Dim typeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(innerSpeculatedExpression, cancellationToken)
+        '    Dim conv = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(innerSpeculatedExpression, cancellationToken)
 
-            If Not conv.IsIdentity OrElse Not Object.Equals(typeInfo.Type, typeInfo.ConvertedType) Then
-                speculatedExpressionOuterType = typeInfo.ConvertedType
-                Return conv
-            End If
+        '    If Not conv.IsIdentity OrElse Not Object.Equals(typeInfo.Type, typeInfo.ConvertedType) Then
+        '        speculatedExpressionOuterType = typeInfo.ConvertedType
+        '        Return conv
+        '    End If
 
-            speculatedExpression = speculatedExpression.WalkUpParentheses()
-            typeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculatedExpression, cancellationToken)
-            speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, typeInfo, speculationAnalyzer.SpeculativeSemanticModel, cancellationToken)
-            If speculatedExpressionOuterType Is Nothing Then
-                Return Nothing
-            End If
+        '    speculatedExpression = speculatedExpression.WalkUpParentheses()
+        '    typeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculatedExpression, cancellationToken)
+        '    speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, typeInfo, speculationAnalyzer.SpeculativeSemanticModel, cancellationToken)
+        '    If speculatedExpressionOuterType Is Nothing Then
+        '        Return Nothing
+        '    End If
 
-            Return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType)
-        End Function
+        '    Return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType)
+        'End Function
 
         Private Shared Function AsTypeInVariableDeclarator(node As SyntaxNode, semanticModel As SemanticModel) As ITypeSymbol
             If node Is Nothing Then
