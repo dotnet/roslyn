@@ -62,11 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
         private void OnSelected(string namespaceName)
         {
-            if (History.Contains(namespaceName))
-            {
-                History.Remove(namespaceName);
-            }
-
+            History.Remove(namespaceName);
             History.AddFirst(namespaceName);
 
             if (History.Count > HistorySize)
