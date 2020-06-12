@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             {
                 try
                 {
-                    var title = string.Format(EditorFeaturesWpfResources.Downloading_IntelliSense_index_for_0, _source);
+                    var title = string.Format(EditorFeaturesResources.Downloading_IntelliSense_index_for_0, _source);
                     await _service._progressService.OnDownloadFullDatabaseStartedAsync(title).ConfigureAwait(false);
 
                     var (succeeded, delay) = await DownloadFullDatabaseWorkerAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     else
                     {
                         await _service._progressService.OnDownloadFullDatabaseFailedAsync(
-                            EditorFeaturesWpfResources.Downloading_index_failed).ConfigureAwait(false);
+                            EditorFeaturesResources.Downloading_index_failed).ConfigureAwait(false);
                     }
 
                     return delay;
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 catch (Exception e)
                 {
                     var message = string.Format(
-                        EditorFeaturesWpfResources.Downloading_index_failed_0,
+                        EditorFeaturesResources.Downloading_index_failed_0,
                         "\r\n" + e.ToString());
                     await _service._progressService.OnDownloadFullDatabaseFailedAsync(message).ConfigureAwait(false);
                     throw;
