@@ -19,9 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -30,6 +28,8 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Microsoft.CodeAnalysis.CSharp.Scripting;
+    using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
     public sealed class InteractiveHostTests : AbstractInteractiveHostTests, IAsyncLifetime
@@ -290,6 +290,7 @@ void goo()
             Assert.True(execution);
             Assert.Equal("2\r\n", output);
         }
+
         [Fact(Skip = "529027")]
         public async Task AsyncExecute_HangingForegroundThreads()
         {
@@ -360,6 +361,7 @@ while(true) {}
             Assert.True(execution);
             Assert.Equal("2\r\n", output);
         }
+
         [Fact]
         public async Task AsyncExecuteFile_SourceKind()
         {
@@ -417,6 +419,7 @@ WriteLine(5);
             output = await ReadOutputToEnd();
             Assert.Equal("4", output.Trim());
         }
+
         [Fact]
         public async Task AsyncExecuteFile_InvalidFileContent()
         {
@@ -627,6 +630,7 @@ WriteLine(5);
             Assert.Equal("", error.Trim());
             Assert.Equal("1", output.Trim());
         }
+
         [Fact]
         public async Task AddReference_Dependencies_Versions()
         {
@@ -654,6 +658,7 @@ WriteLine(5);
             Assert.Equal("", error.Trim());
             Assert.Equal("2", output.Trim());
         }
+
         [Fact]
         public async Task AddReference_AlreadyLoadedDependencies()
         {
@@ -672,6 +677,7 @@ WriteLine(5);
             Assert.Equal("", error.Trim());
             Assert.Equal("1", output.Trim());
         }
+
         [Fact(Skip = "101161")]
         public async Task AddReference_LoadUpdatedReference()
         {
@@ -775,6 +781,7 @@ new D().Y
             Assert.Equal("TODO: error", error.Trim());
             Assert.Equal("", output.Trim());
         }
+
         //// TODO (987032):
         ////        [Fact]
         ////        public void AsyncInitializeContextWithDotNETLibraries()
@@ -880,6 +887,7 @@ typeof(C).Assembly.GetName()");
             Assert.Equal($"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }", output[0]);
             Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
         }
+
         [Fact]
         public async Task DefaultUsings()
         {
