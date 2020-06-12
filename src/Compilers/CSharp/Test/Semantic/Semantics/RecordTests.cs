@@ -3908,7 +3908,7 @@ public record C(object P1, object P2) : B(0, 1)
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 0)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 0)");
             verifier.VerifyIL("C..ctor(C)", @"
 {
   // Code size        9 (0x9)
@@ -3948,7 +3948,7 @@ public record C(object P1, object P2) : B(0, 1)
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 100) RAN (0, 0)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 100) RAN (0, 0)");
             verifier.VerifyIL("C..ctor(C)", @"
 {
   // Code size       20 (0x14)
