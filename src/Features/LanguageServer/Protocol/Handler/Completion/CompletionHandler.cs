@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -90,8 +91,55 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText }
+                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText },
+                    CommitCharacters = GetCommitCharacters(item)
                 };
+
+            static string[] GetCommitCharacters(CompletionItem item)
+            {
+                var commitCharacterRules = item.Rules.CommitCharacterRules;
+
+                // If the item doesn't have any special rules, just return the default commit characters.
+                if (commitCharacterRules.IsEmpty)
+                {
+                    return CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
+                }
+
+                using var _ = ArrayBuilder<char>.GetInstance(out var commitCharacters);
+                commitCharacters.AddRange(CompletionRules.Default.DefaultCommitCharacters);
+                foreach (var rule in commitCharacterRules)
+                {
+                    switch (rule.Kind)
+                    {
+                        case CharacterSetModificationKind.Add:
+                            foreach (var c in rule.Characters)
+                            {
+                                if (!commitCharacters.Contains(c))
+                                {
+                                    commitCharacters.Add(c);
+                                }
+                            }
+                            continue;
+
+                        case CharacterSetModificationKind.Remove:
+                            foreach (var c in rule.Characters)
+                            {
+                                if (commitCharacters.Contains(c))
+                                {
+                                    commitCharacters.Remove(c);
+                                }
+                            }
+                            continue;
+
+                        case CharacterSetModificationKind.Replace:
+                            commitCharacters.Clear();
+                            commitCharacters.AddRange(rule.Characters);
+                            continue;
+                    }
+                }
+
+                return commitCharacters.Select(c => c.ToString()).ToArray();
+            }
         }
 
         private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)
