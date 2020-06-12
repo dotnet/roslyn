@@ -5,6 +5,7 @@
 #nullable enable 
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,21 +19,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
     [Export(typeof(IMoveToNamespaceOptionsService)), Shared]
     internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
-        private readonly string?[] _history;
+        private const int HistorySize = 3;
+
+        public readonly LinkedList<string?> History = new LinkedList<string?>();
         private readonly Func<MoveToNamespaceDialogViewModel, bool?> _showDialog;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioMoveToNamespaceOptionsService()
         {
-            _history = new string[3];
             _showDialog = viewModel => new MoveToNamespaceDialog(viewModel).ShowModal();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should be marked with 'ImportingConstructorAttribute'", Justification = "Test constructor")]
-        internal VisualStudioMoveToNamespaceOptionsService(string?[] history, Func<MoveToNamespaceDialogViewModel, bool?> showDialog)
+        internal VisualStudioMoveToNamespaceOptionsService(Func<MoveToNamespaceDialogViewModel, bool?> showDialog)
         {
-            _history = history;
             _showDialog = showDialog;
         }
 
@@ -45,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
                 defaultNamespace,
                 availableNamespaces,
                 syntaxFactsService,
-                _history.WhereNotNull().ToImmutableArray());
+                History.WhereNotNull().ToImmutableArray());
 
             var result = _showDialog(viewModel);
 
@@ -62,23 +63,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
         private void OnSelected(string namespaceName)
         {
-            var currentIndex = _history.IndexOf((n) => n == namespaceName);
-            if (currentIndex >= 0)
+            if (History.Contains(namespaceName))
             {
-                _history[currentIndex] = null;
+                History.Remove(namespaceName);
             }
 
-            for (var i = _history.Length - 1; i > 0; i--)
+            History.AddFirst(namespaceName);
+
+            if (History.Count > HistorySize)
             {
-                if (_history[i - 1] == null)
-                {
-                    continue;
-                }
-
-                _history[i] = _history[i - 1];
+                History.RemoveLast();
             }
-
-            _history[0] = namespaceName;
         }
     }
 }

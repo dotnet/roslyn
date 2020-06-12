@@ -13,25 +13,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
     Public Class VisualStudioMoveToNamespaceServiceTests
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)>
         Public Sub TestMoveNamespace_History()
-            Dim history(2) As String
-            Dim service = New VisualStudioMoveToNamespaceOptionsService(history, Function(viewModel As MoveToNamespaceDialogViewModel) True)
+            Dim service = New VisualStudioMoveToNamespaceOptionsService(Function(viewModel As MoveToNamespaceDialogViewModel) True)
 
             Dim namespaces = {"namespaceone", "namespacetwo", "namespaces.two", "namespaces.three"}
             Dim result = service.GetChangeNamespaceOptions(namespaces(0), namespaces.AsImmutable(), syntaxFactsService:=VisualBasicSyntaxFacts.Instance)
 
-            AssertEx.SetEqual({namespaces(0), Nothing, Nothing}, history)
+            AssertEx.Equal({namespaces(0)}, service.History)
 
             result = service.GetChangeNamespaceOptions(namespaces(1), namespaces.AsImmutable(), syntaxFactsService:=VisualBasicSyntaxFacts.Instance)
-            AssertEx.SetEqual({namespaces(1), namespaces(0), Nothing}, history)
+            AssertEx.Equal({namespaces(1), namespaces(0)}, service.History)
 
             result = service.GetChangeNamespaceOptions(namespaces(2), namespaces.AsImmutable(), syntaxFactsService:=VisualBasicSyntaxFacts.Instance)
-            AssertEx.SetEqual({namespaces(2), namespaces(1), namespaces(0)}, history)
+            AssertEx.Equal({namespaces(2), namespaces(1), namespaces(0)}, service.History)
 
             result = service.GetChangeNamespaceOptions(namespaces(3), namespaces.AsImmutable(), syntaxFactsService:=VisualBasicSyntaxFacts.Instance)
-            AssertEx.SetEqual({namespaces(3), namespaces(2), namespaces(1)}, history)
+            AssertEx.Equal({namespaces(3), namespaces(2), namespaces(1)}, service.History)
 
             result = service.GetChangeNamespaceOptions(namespaces(2), namespaces.AsImmutable(), syntaxFactsService:=VisualBasicSyntaxFacts.Instance)
-            AssertEx.SetEqual({namespaces(2), namespaces(3), namespaces(1)}, history)
+            AssertEx.Equal({namespaces(2), namespaces(3), namespaces(1)}, service.History)
         End Sub
     End Class
 End Namespace
