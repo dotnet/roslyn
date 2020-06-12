@@ -6011,7 +6011,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 editScript:=edits,
                 activeStatements:=ActiveStatementsDescription.Empty,
                 additionalOldSources:=Nothing,
@@ -6042,7 +6042,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 editScript:=edits,
                 activeStatements:=ActiveStatementsDescription.Empty,
                 additionalOldSources:=Nothing,
@@ -6129,7 +6129,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
+            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics(
                 editScript:=edits,
                 activeStatements:=ActiveStatementsDescription.Empty,
                 additionalOldSources:=Nothing,
@@ -6161,7 +6161,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
+            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 Nothing,

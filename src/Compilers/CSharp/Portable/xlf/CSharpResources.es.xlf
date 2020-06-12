@@ -197,6 +197,11 @@
         <target state="translated">Un patrón de tipo "{0}" no se puede controlar por un patrón de tipo "{1}". Use la versión de lenguaje "{2}" o superior para buscar un tipo abierto con un patrón constante.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
+        <source>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</source>
+        <target state="new">A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">El nombre "{0}" no coincide con el parámetro de "Deconstruct" correspondiente, "{1}".</target>
@@ -490,6 +495,11 @@
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
         <target state="translated">"{0}": el tipo usado en una instrucción using debe poder convertirse implícitamente en "System.IDisposable". ¿Quiso decir "await using" en lugar de "using"?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoCopyConstructorInBaseType">
+        <source>No accessible copy constructor found in base type '{0}'.</source>
+        <target state="new">No accessible copy constructor found in base type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
@@ -3580,8 +3590,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all structs, or all interfaces</source>
-        <target state="translated">Las declaraciones parciales de '{0}' deben ser todas clases, todas estructuras o todas interfaces</target>
+        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
+        <target state="needs-review-translation">Las declaraciones parciales de '{0}' deben ser todas clases, todas estructuras o todas interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

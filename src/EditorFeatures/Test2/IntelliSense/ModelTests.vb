@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Friend Shared Function Create(threadingContext As IThreadingContext, Optional controller As IController(Of Model) = Nothing) As TestModelComputation
                 If controller Is Nothing Then
-                    Dim mock = New Mock(Of IController(Of Model))
+                    Dim mock = New Mock(Of IController(Of Model))(MockBehavior.Strict)
                     controller = mock.Object
                 End If
 
@@ -40,7 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub ChainingTaskStartsAsyncOperation()
             Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
-            Dim controller = New Mock(Of IController(Of Model))
+            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
+            controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) m)
@@ -55,9 +56,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub ChainingTaskThatCompletesNotifiesController()
             Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
-            Dim controller = New Mock(Of IController(Of Model))
-            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim model = New Model()
+            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
+            controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
+            controller.Setup(Sub(c) c.OnModelUpdated(model))
+            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) model)
             modelComputation.Wait()
@@ -68,9 +71,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub ControllerIsOnlyUpdatedAfterLastTaskCompletes()
             Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
-            Dim controller = New Mock(Of IController(Of Model))
-            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim model = New Model()
+            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
+            controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
+            controller.Setup(Sub(c) c.OnModelUpdated(model))
+            Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim gate = New Object
 
             Monitor.Enter(gate)
@@ -89,8 +94,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Async Function ControllerIsNotUpdatedIfComputationIsCancelled() As Task
             Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
-            Dim controller = New Mock(Of IController(Of Model))
-            Dim token = New Mock(Of IAsyncToken)
+            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
+            Dim token = New Mock(Of IAsyncToken)(MockBehavior.Strict)
             controller.Setup(Function(c) c.BeginAsyncOperation(
                                  It.IsAny(Of String),
                                  Nothing,

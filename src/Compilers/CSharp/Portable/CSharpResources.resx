@@ -1087,7 +1087,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all structs, or all interfaces</value>
+    <value>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
@@ -6264,5 +6264,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadRecordMemberForPositionalParameter" xml:space="preserve">
     <value>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</value>
+  </data>
+  <data name="ERR_NoCopyConstructorInBaseType" xml:space="preserve">
+    <value>No accessible copy constructor found in base type '{0}'.</value>
+  </data>
+  <data name="ERR_CopyConstructorMustInvokeBaseCopyConstructor" xml:space="preserve">
+    <value>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</value>
   </data>
 </root>
