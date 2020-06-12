@@ -2638,5 +2638,270 @@ partial class Derived : Base
                 Assert.Equal(3, array.Sizes[1]);
             }
         }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_01()
+        {
+            var source = @"
+partial class C
+{
+    public partial int M();
+    public partial long M() => 42; // 1
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial long M() => 42; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M").WithLocation(5, 25));
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_02()
+        {
+            var source = @"
+partial class C
+{
+    public partial long M();
+    public partial int M() => 42; // 1
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (5,24): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial int M() => 42; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M").WithLocation(5, 24));
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_03()
+        {
+            var source = @"
+using System.Collections.Generic;
+#nullable enable
+
+partial class C
+{
+    public partial string? M1();
+    public partial string M1() => ""hello"";
+
+    public partial IEnumerable<string?> M2();
+    public partial IEnumerable<string> M2() => null!;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_04()
+        {
+            var source = @"
+using System.Collections.Generic;
+#nullable enable
+
+partial class C
+{
+    public partial string M1();
+    public partial string? M1() => null; // 1
+
+    public partial IEnumerable<string> M2();
+    public partial IEnumerable<string?> M2() => null!; // 2
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (8,28): error CS8818: Nullability of reference types in return type doesn't match partial method declaration.
+                //     public partial string? M1() => null; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(8, 28),
+                // (11,41): error CS8818: Nullability of reference types in return type doesn't match partial method declaration.
+                //     public partial IEnumerable<string?> M2() => null!; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M2").WithLocation(11, 41));
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_05()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Base { }
+class Derived : Base { }
+
+partial class C
+{
+    public partial Base M1();
+    public partial Derived M1() => new Derived(); // 1
+
+    public partial IEnumerable<Base> M2();
+    public partial IEnumerable<Derived> M2() => null!; // 2
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (10,28): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial Derived M1() => new Derived(); // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(10, 28),
+                // (13,41): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial IEnumerable<Derived> M2() => null!; // 2
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M2").WithLocation(13, 41));
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_06()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class Base { }
+class Derived : Base { }
+
+partial class C
+{
+    public partial Derived M1();
+    public partial Base M1() => new Base(); // 1
+
+    public partial IEnumerable<Derived> M2();
+    public partial IEnumerable<Base> M2() => null!; // 2
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (10,25): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial Base M1() => new Base(); // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(10, 25),
+                // (13,38): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial IEnumerable<Base> M2() => null!; // 2
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M2").WithLocation(13, 38));
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_07()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+partial class C
+{
+    public partial U M1<U>();
+    public partial V M1<V>() => default;
+
+    public partial IEnumerable<U> M2<U>();
+    public partial IEnumerable<U> M2<U>() => default;
+
+    public partial U M3<U>();
+    public partial V M3<V>() => default;
+
+    public partial IEnumerable<U> M4<U>();
+    public partial IEnumerable<V> M4<V>() => default;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_08()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+partial class C
+{
+    public partial int M1();
+    public partial ERROR M1() => throw null!; // 1
+
+    public partial IEnumerable<int> M2();
+    public partial IEnumerable<ERROR> M2() => throw null!; // 2
+
+    public partial int M3();
+    public partial IEnumerable<ERROR> M3() => throw null!; // 3
+
+    public partial ERROR M4(); // 4
+    public partial int M4() => throw null!;
+
+    public partial IEnumerable<ERROR> M5(); // 5
+    public partial IEnumerable<int> M5() => throw null!;
+
+    public partial IEnumerable<ERROR> M6(); // 6
+    public partial int M6() => throw null!;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial ERROR M1() => throw null!; // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(7, 20),
+                // (10,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial IEnumerable<ERROR> M2() => throw null!; // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(10, 32),
+                // (13,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial IEnumerable<ERROR> M3() => throw null!; // 3
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(13, 32),
+                // (15,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial ERROR M4(); // 4
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(15, 20),
+                // (18,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial IEnumerable<ERROR> M5(); // 5
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(18, 32),
+                // (21,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial IEnumerable<ERROR> M6(); // 6
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(21, 32));
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_09()
+        {
+            var source = @"
+partial class C
+{
+    public partial ref int M1();
+    public partial int M1() => throw null!; // 1
+
+    public partial int M2();
+    public partial ref int M2() => throw null!; // 2
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (5,24): error CS8818: Both partial method declarations must return by reference or neither may return by reference.
+                //     public partial int M1() => throw null!; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 24),
+                // (8,28): error CS8818: Both partial method declarations must return by reference or neither may return by reference.
+                //     public partial ref int M2() => throw null!; // 2
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28));
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_10()
+        {
+            var source = @"
+partial class C
+{
+    public partial U M1<U>();
+    public partial U M1<U>() where U : struct => throw null!; // 1
+
+    public partial U M2<U>() where U : struct;
+    public partial U M2<U>() => throw null!; // 2
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (5,22): error CS0761: Partial method declarations of 'C.M1<U>()' have inconsistent constraints for type parameter 'U'
+                //     public partial U M1<U>() where U : struct => throw null!; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("C.M1<U>()", "U").WithLocation(5, 22),
+                // (8,22): error CS0761: Partial method declarations of 'C.M2<U>()' have inconsistent constraints for type parameter 'U'
+                //     public partial U M2<U>() => throw null!; // 2
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M2").WithArguments("C.M2<U>()", "U").WithLocation(8, 22));
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_11()
+        {
+            var source = @"
+partial class C<T>
+{
+    public partial T M1();
+    public partial T M2();
+}
+
+partial class C<T>
+{
+    public partial T M1() => throw null!;
+    public partial T M2() => throw null!;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
     }
 }

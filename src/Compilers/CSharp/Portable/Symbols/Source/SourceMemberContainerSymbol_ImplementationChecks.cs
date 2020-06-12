@@ -1072,11 +1072,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                  checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
             }
+        }
 
-            static bool IsOrContainsErrorType(TypeSymbol typeSymbol)
-            {
-                return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
-            }
+        internal static bool IsOrContainsErrorType(TypeSymbol typeSymbol)
+        {
+            return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
         }
 
         static readonly ReportMismatchInReturnType<Location> ReportBadReturn =

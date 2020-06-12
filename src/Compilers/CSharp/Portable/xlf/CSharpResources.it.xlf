@@ -557,6 +557,16 @@
         <target state="translated">Nessuna o entrambe le dichiarazioni di metodi parziali devono essere di tipo readonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodRefReturnDifference">
+        <source>Both partial method declarations must return by reference or neither may return by reference.</source>
+        <target state="new">Both partial method declarations must return by reference or neither may return by reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodReturnTypeDifference">
+        <source>Both partial method declarations must have the same return type.</source>
+        <target state="new">Both partial method declarations must have the same return type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
         <source>Partial method '{0}' must have an implementation part because it has accessibility modifiers.</source>
         <target state="new">Partial method '{0}' must have an implementation part because it has accessibility modifiers.</target>
@@ -2147,6 +2157,16 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">Il supporto dei valori Null dei tipi riferimento nel tipo restituito non corrisponde al membro di cui è stato eseguito l'override.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
