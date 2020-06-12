@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                 nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                 nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                nodeToBind.Kind() == SyntaxKind.SimpleBaseType || // iniializer for a record constructor
+                nodeToBind.Kind() == SyntaxKind.SimpleBaseType || // initializer for a record constructor
                 nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
                 nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                 nodeToBind.Kind() == SyntaxKind.GotoCaseStatement || // for error recovery
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                     nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                     nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                    nodeToBind.Kind() == SyntaxKind.SimpleBaseType || // iniializer for a record constructor
+                    nodeToBind.Kind() == SyntaxKind.SimpleBaseType || // initializer for a record constructor
                     nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||

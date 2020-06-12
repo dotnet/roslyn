@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -502,8 +502,8 @@ unsafe class C
                 Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
 
                 var typeInfo = model.GetTypeInfo(decl);
-                var classifedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
-                Assert.Equal(conversion, classifedConversion);
+                var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
+                Assert.Equal(conversion, classifiedConversion);
             }
         }
 
@@ -557,8 +557,8 @@ unsafe class C
                 Assert.True(conversion.IsPointer);
 
                 var typeInfo = model.GetTypeInfo(decl);
-                var classifedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
-                Assert.Equal(conversion, classifedConversion);
+                var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
+                Assert.Equal(conversion, classifiedConversion);
             }
         }
 
@@ -616,8 +616,8 @@ IVariableDeclaratorOperation (Symbol: delegate*<delegate*<System.Object, System.
             var typeInfo = model.GetTypeInfo(initializer);
             Assert.Equal(expectedOriginalType, typeInfo.Type!.ToTestDisplayString());
             Assert.Equal(expectedConvertedType, typeInfo.ConvertedType!.ToTestDisplayString());
-            var classifedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
-            Assert.Equal(conversion, classifedConversion);
+            var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
+            Assert.Equal(conversion, classifiedConversion);
 
             VerifyOperationTreeForNode(comp, model, decl, expectedOperationTree);
         }
