@@ -2649,6 +2649,44 @@ public class C
             1 => 2,
             _ => throw null,
         };
+        _ = (C)(i switch // 7
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 8
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 9
+        {
+            0 => new E(), // 9.1
+            1 => new F(), // 9.2
+            _ => throw null,
+        });
+        _ = (C)(i switch // 10
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 11
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 12
+        {
+            0 => 1,
+            1 => 2,
+            _ => throw null,
+        });
     }
 }
 
@@ -2677,7 +2715,13 @@ class F
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new E()").WithArguments("E", "D").WithLocation(25, 18),
                 // (26,18): error CS0029: Cannot implicitly convert type 'F' to 'D'
                 //             1 => new F(), // 3.2
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(26, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(26, 18),
+                // (63,18): error CS0029: Cannot implicitly convert type 'E' to 'D'
+                //             0 => new E(), // 9.1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new E()").WithArguments("E", "D").WithLocation(63, 18),
+                // (64,18): error CS0029: Cannot implicitly convert type 'F' to 'D'
+                //             1 => new F(), // 9.2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(64, 18)
                 );
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2690,6 +2734,7 @@ class F
                 switch (i)
                 {
                     case 0:
+                    case 7:
                         Assert.Null(typeInfo.Type);
                         Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
                         Assert.Equal(ConversionKind.SwitchExpression, conversion.Kind);
@@ -2700,6 +2745,7 @@ class F
                         Assert.Equal(ConversionKind.Identity, conversion.Kind);
                         break;
                     case 2:
+                    case 8:
                         Assert.Null(typeInfo.Type);
                         Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
                         Assert.Equal(ConversionKind.SwitchExpression, conversion.Kind);
@@ -2709,7 +2755,13 @@ class F
                         Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
                         Assert.Equal(ConversionKind.NoConversion, conversion.Kind);
                         break;
+                    case 9:
+                        Assert.Null(typeInfo.Type);
+                        Assert.Equal("?", typeInfo.ConvertedType.ToTestDisplayString());
+                        Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                        break;
                     case 4:
+                    case 10:
                         Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
                         Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
                         Assert.Equal(ConversionKind.Identity, conversion.Kind);
@@ -2719,7 +2771,13 @@ class F
                         Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
                         Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
                         break;
+                    case 11:
+                        Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+                        Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
+                        Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                        break;
                     case 6:
+                    case 12:
                         Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
                         Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
                         Assert.Equal(ConversionKind.SwitchExpression, conversion.Kind);

@@ -2117,6 +2117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (highestBoundExpr is BoundConvertedSwitchExpression e)
                 {
+                    Debug.Assert(boundExpr == highestBoundExpr);
                     type = e.NaturalTypeOpt;
                     convertedType = e.Type;
                     convertedNullability = e.TopLevelNullability;
