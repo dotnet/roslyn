@@ -123,12 +123,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             static Guid GetSolutionSessionId()
             {
-                var solutionContext = TelemetryHelper.DataModelTelemetrySession.GetContext(SolutionContextName);
-                var sessionIdProperty = solutionContext is object
-                    ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
-                    : "";
-                _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
-                return solutionSessionId;
+                try
+                {
+                    var solutionContext = TelemetryHelper.DataModelTelemetrySession.GetContext(SolutionContextName);
+                    var sessionIdProperty = solutionContext is object
+                        ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
+                        : "";
+                    _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
+                    return solutionSessionId;
+                }
+                catch (TypeInitializationException)
+                {
+                    // The TelemetryHelper cannot be constructed during unittests.
+                    return default;
+                }
             }
         }
     }
