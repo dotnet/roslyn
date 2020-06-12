@@ -722,10 +722,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="input">The compilation before any source generation has occurred.</param>
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
         /// <param name="generators">The generators to run</param>
+        /// <param name="analyzerConfigOptionsProvider">A provider that returns analyzer config options</param>
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
         /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
+        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
@@ -807,25 +808,11 @@ namespace Microsoft.CodeAnalysis
 
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
 
-            // At this point we have a compilation with nothing yet computed. 
-            // We pass it to the generators, which will realize any symbols they require. 
-            compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTexts, diagnostics);
-
-            if (generators.Length > 0)
-            {
-                var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length);
-                if (!sourceFileAnalyzerConfigOptions.IsDefault)
-                {
-                    sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedSyntaxTrees.Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath)));
-                }
-
-                embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
-            }
-
             CompileAndEmit(
                 touchedFilesLogger,
                 ref compilation,
                 analyzers,
+                generators,
                 additionalTexts,
                 analyzerConfigSet,
                 sourceFileAnalyzerConfigOptions,
@@ -868,38 +855,45 @@ namespace Microsoft.CodeAnalysis
             return exitCode;
         }
 
-        private static CompilerAnalyzerConfigOptionsProvider CreateAnalyzerConfigOptionsProvider(
+        private static CompilerAnalyzerConfigOptionsProvider UpdateAnalyzerConfigOptionsProvider(
+            CompilerAnalyzerConfigOptionsProvider existing,
             IEnumerable<SyntaxTree> syntaxTrees,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
-            ImmutableArray<AdditionalText> additionalFiles,
-            ImmutableArray<AnalyzerConfigOptionsResult> additionalFileOptions)
+            ImmutableArray<AdditionalText> additionalFiles = default,
+            ImmutableArray<AnalyzerConfigOptionsResult> additionalFileOptions = default)
         {
             var builder = ImmutableDictionary.CreateBuilder<object, AnalyzerConfigOptions>();
             int i = 0;
             foreach (var syntaxTree in syntaxTrees)
             {
+
                 var options = sourceFileAnalyzerConfigOptions[i].AnalyzerOptions;
 
                 // Optimization: don't create a bunch of entries pointing to a no-op
                 if (options.Count > 0)
                 {
+                    Debug.Assert(existing.GetOptions(syntaxTree) == CompilerAnalyzerConfigOptions.Empty);
                     builder.Add(syntaxTree, new CompilerAnalyzerConfigOptions(options));
                 }
                 i++;
             }
 
-            for (i = 0; i < additionalFiles.Length; i++)
+            if (!additionalFiles.IsDefault)
             {
-                var options = additionalFileOptions[i].AnalyzerOptions;
-
-                // Optimization: don't create a bunch of entries pointing to a no-op
-                if (options.Count > 0)
+                for (i = 0; i < additionalFiles.Length; i++)
                 {
-                    builder.Add(additionalFiles[i], new CompilerAnalyzerConfigOptions(options));
+                    var options = additionalFileOptions[i].AnalyzerOptions;
+
+                    // Optimization: don't create a bunch of entries pointing to a no-op
+                    if (options.Count > 0)
+                    {
+                        Debug.Assert(existing.GetOptions(additionalFiles[i]) == CompilerAnalyzerConfigOptions.Empty);
+                        builder.Add(additionalFiles[i], new CompilerAnalyzerConfigOptions(options));
+                    }
                 }
             }
 
-            return new CompilerAnalyzerConfigOptionsProvider(builder.ToImmutable());
+            return existing.WithAdditionalTreeOptions(builder.ToImmutable());
         }
 
         /// <summary>
@@ -911,6 +905,7 @@ namespace Microsoft.CodeAnalysis
             TouchedFileLogger touchedFilesLogger,
             ref Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTextFiles,
             AnalyzerConfigSet analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
@@ -933,15 +928,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             DiagnosticBag analyzerExceptionDiagnostics = null;
-
-            if (!analyzers.IsEmpty)
+            if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
-                analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                analyzerExceptionDiagnostics = new DiagnosticBag();
-
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
                 if (Arguments.AnalyzerConfigPaths.Length > 0)
                 {
+                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
+
                     // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
                     // configuring diagnostic reporting on additional text files individually.
                     ImmutableArray<AnalyzerConfigOptionsResult> additionalFileAnalyzerOptions =
@@ -952,34 +945,60 @@ namespace Microsoft.CodeAnalysis
                         diagnostics.AddRange(result.Diagnostics);
                     }
 
-                    analyzerConfigProvider = CreateAnalyzerConfigOptionsProvider(
+                    analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
+                        analyzerConfigProvider,
                         compilation.SyntaxTrees,
                         sourceFileAnalyzerConfigOptions,
                         additionalTextFiles,
                         additionalFileAnalyzerOptions);
                 }
 
+                if (!generators.IsEmpty)
+                {
+                    // At this point we have a compilation with nothing yet computed. 
+                    // We pass it to the generators, which will realize any symbols they require. 
+                    compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
+
+                    var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length);
+                    if (Arguments.AnalyzerConfigPaths.Length > 0)
+                    {
+                        var generatedSourceFileAnalyzerConfigOptions = generatedSyntaxTrees.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
+                        analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
+                            analyzerConfigProvider,
+                            generatedSyntaxTrees,
+                            generatedSourceFileAnalyzerConfigOptions);
+                    }
+
+                    embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
+                }
+
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                    additionalTextFiles, analyzerConfigProvider);
+                      additionalTextFiles, analyzerConfigProvider);
 
-                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
-                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
-                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                var severityFilter = SeverityFilter.Hidden;
-                if (Arguments.ErrorLogPath == null)
-                    severityFilter |= SeverityFilter.Info;
+                if (!analyzers.IsEmpty)
+                {
+                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    analyzerExceptionDiagnostics = new DiagnosticBag();
 
-                analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
-                    compilation,
-                    analyzers,
-                    analyzerOptions,
-                    new AnalyzerManager(analyzers),
-                    analyzerExceptionDiagnostics.Add,
-                    Arguments.ReportAnalyzer,
-                    severityFilter,
-                    out compilation,
-                    analyzerCts.Token);
-                reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
+                    // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                    //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                    //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                    var severityFilter = SeverityFilter.Hidden;
+                    if (Arguments.ErrorLogPath == null)
+                        severityFilter |= SeverityFilter.Info;
+
+                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
+                        compilation,
+                        analyzers,
+                        analyzerOptions,
+                        new AnalyzerManager(analyzers),
+                        analyzerExceptionDiagnostics.Add,
+                        Arguments.ReportAnalyzer,
+                        severityFilter,
+                        out compilation,
+                        analyzerCts.Token);
+                    reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
+                }
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);

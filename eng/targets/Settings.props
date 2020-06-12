@@ -16,7 +16,6 @@
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
-    <RoslynPortableTargetFrameworks>netcoreapp3.1;net472</RoslynPortableTargetFrameworks>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <Features>strict</Features>

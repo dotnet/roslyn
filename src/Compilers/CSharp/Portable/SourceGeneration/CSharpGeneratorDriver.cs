@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public sealed class CSharpGeneratorDriver : GeneratorDriver
     {
-        public CSharpGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
-            : base(parseOptions, generators, additionalTexts)
+        public CSharpGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
+            : base(parseOptions, generators, optionsProvider, additionalTexts)
         {
         }
 
