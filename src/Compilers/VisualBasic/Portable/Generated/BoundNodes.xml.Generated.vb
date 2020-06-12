@@ -9281,355 +9281,355 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <MethodImpl(MethodImplOptions.NoInlining), DebuggerStepThrough>
         Friend Function VisitInternal(node As BoundNode, arg As A) As R
             Select Case node.Kind
-                Case BoundKind.TypeArguments :
+                Case BoundKind.TypeArguments
                     Return VisitTypeArguments(CType(node, BoundTypeArguments), arg)
-                Case BoundKind.OmittedArgument :
+                Case BoundKind.OmittedArgument
                     Return VisitOmittedArgument(CType(node, BoundOmittedArgument), arg)
-                Case BoundKind.LValueToRValueWrapper :
+                Case BoundKind.LValueToRValueWrapper
                     Return VisitLValueToRValueWrapper(CType(node, BoundLValueToRValueWrapper), arg)
-                Case BoundKind.WithLValueExpressionPlaceholder :
+                Case BoundKind.WithLValueExpressionPlaceholder
                     Return VisitWithLValueExpressionPlaceholder(CType(node, BoundWithLValueExpressionPlaceholder), arg)
-                Case BoundKind.WithRValueExpressionPlaceholder :
+                Case BoundKind.WithRValueExpressionPlaceholder
                     Return VisitWithRValueExpressionPlaceholder(CType(node, BoundWithRValueExpressionPlaceholder), arg)
-                Case BoundKind.RValuePlaceholder :
+                Case BoundKind.RValuePlaceholder
                     Return VisitRValuePlaceholder(CType(node, BoundRValuePlaceholder), arg)
-                Case BoundKind.LValuePlaceholder :
+                Case BoundKind.LValuePlaceholder
                     Return VisitLValuePlaceholder(CType(node, BoundLValuePlaceholder), arg)
-                Case BoundKind.Dup :
+                Case BoundKind.Dup
                     Return VisitDup(CType(node, BoundDup), arg)
-                Case BoundKind.BadExpression :
+                Case BoundKind.BadExpression
                     Return VisitBadExpression(CType(node, BoundBadExpression), arg)
-                Case BoundKind.BadStatement :
+                Case BoundKind.BadStatement
                     Return VisitBadStatement(CType(node, BoundBadStatement), arg)
-                Case BoundKind.Parenthesized :
+                Case BoundKind.Parenthesized
                     Return VisitParenthesized(CType(node, BoundParenthesized), arg)
-                Case BoundKind.BadVariable :
+                Case BoundKind.BadVariable
                     Return VisitBadVariable(CType(node, BoundBadVariable), arg)
-                Case BoundKind.ArrayAccess :
+                Case BoundKind.ArrayAccess
                     Return VisitArrayAccess(CType(node, BoundArrayAccess), arg)
-                Case BoundKind.ArrayLength :
+                Case BoundKind.ArrayLength
                     Return VisitArrayLength(CType(node, BoundArrayLength), arg)
-                Case BoundKind.[GetType] :
+                Case BoundKind.[GetType]
                     Return VisitGetType(CType(node, BoundGetType), arg)
-                Case BoundKind.FieldInfo :
+                Case BoundKind.FieldInfo
                     Return VisitFieldInfo(CType(node, BoundFieldInfo), arg)
-                Case BoundKind.MethodInfo :
+                Case BoundKind.MethodInfo
                     Return VisitMethodInfo(CType(node, BoundMethodInfo), arg)
-                Case BoundKind.TypeExpression :
+                Case BoundKind.TypeExpression
                     Return VisitTypeExpression(CType(node, BoundTypeExpression), arg)
-                Case BoundKind.TypeOrValueExpression :
+                Case BoundKind.TypeOrValueExpression
                     Return VisitTypeOrValueExpression(CType(node, BoundTypeOrValueExpression), arg)
-                Case BoundKind.NamespaceExpression :
+                Case BoundKind.NamespaceExpression
                     Return VisitNamespaceExpression(CType(node, BoundNamespaceExpression), arg)
-                Case BoundKind.MethodDefIndex :
+                Case BoundKind.MethodDefIndex
                     Return VisitMethodDefIndex(CType(node, BoundMethodDefIndex), arg)
-                Case BoundKind.MaximumMethodDefIndex :
+                Case BoundKind.MaximumMethodDefIndex
                     Return VisitMaximumMethodDefIndex(CType(node, BoundMaximumMethodDefIndex), arg)
-                Case BoundKind.InstrumentationPayloadRoot :
+                Case BoundKind.InstrumentationPayloadRoot
                     Return VisitInstrumentationPayloadRoot(CType(node, BoundInstrumentationPayloadRoot), arg)
-                Case BoundKind.ModuleVersionId :
+                Case BoundKind.ModuleVersionId
                     Return VisitModuleVersionId(CType(node, BoundModuleVersionId), arg)
-                Case BoundKind.ModuleVersionIdString :
+                Case BoundKind.ModuleVersionIdString
                     Return VisitModuleVersionIdString(CType(node, BoundModuleVersionIdString), arg)
-                Case BoundKind.SourceDocumentIndex :
+                Case BoundKind.SourceDocumentIndex
                     Return VisitSourceDocumentIndex(CType(node, BoundSourceDocumentIndex), arg)
-                Case BoundKind.UnaryOperator :
+                Case BoundKind.UnaryOperator
                     Return VisitUnaryOperator(CType(node, BoundUnaryOperator), arg)
-                Case BoundKind.UserDefinedUnaryOperator :
+                Case BoundKind.UserDefinedUnaryOperator
                     Return VisitUserDefinedUnaryOperator(CType(node, BoundUserDefinedUnaryOperator), arg)
-                Case BoundKind.NullableIsTrueOperator :
+                Case BoundKind.NullableIsTrueOperator
                     Return VisitNullableIsTrueOperator(CType(node, BoundNullableIsTrueOperator), arg)
-                Case BoundKind.BinaryOperator :
+                Case BoundKind.BinaryOperator
                     Return VisitBinaryOperator(CType(node, BoundBinaryOperator), arg)
-                Case BoundKind.UserDefinedBinaryOperator :
+                Case BoundKind.UserDefinedBinaryOperator
                     Return VisitUserDefinedBinaryOperator(CType(node, BoundUserDefinedBinaryOperator), arg)
-                Case BoundKind.UserDefinedShortCircuitingOperator :
+                Case BoundKind.UserDefinedShortCircuitingOperator
                     Return VisitUserDefinedShortCircuitingOperator(CType(node, BoundUserDefinedShortCircuitingOperator), arg)
-                Case BoundKind.CompoundAssignmentTargetPlaceholder :
+                Case BoundKind.CompoundAssignmentTargetPlaceholder
                     Return VisitCompoundAssignmentTargetPlaceholder(CType(node, BoundCompoundAssignmentTargetPlaceholder), arg)
-                Case BoundKind.AssignmentOperator :
+                Case BoundKind.AssignmentOperator
                     Return VisitAssignmentOperator(CType(node, BoundAssignmentOperator), arg)
-                Case BoundKind.ReferenceAssignment :
+                Case BoundKind.ReferenceAssignment
                     Return VisitReferenceAssignment(CType(node, BoundReferenceAssignment), arg)
-                Case BoundKind.AddressOfOperator :
+                Case BoundKind.AddressOfOperator
                     Return VisitAddressOfOperator(CType(node, BoundAddressOfOperator), arg)
-                Case BoundKind.TernaryConditionalExpression :
+                Case BoundKind.TernaryConditionalExpression
                     Return VisitTernaryConditionalExpression(CType(node, BoundTernaryConditionalExpression), arg)
-                Case BoundKind.BinaryConditionalExpression :
+                Case BoundKind.BinaryConditionalExpression
                     Return VisitBinaryConditionalExpression(CType(node, BoundBinaryConditionalExpression), arg)
-                Case BoundKind.Conversion :
+                Case BoundKind.Conversion
                     Return VisitConversion(CType(node, BoundConversion), arg)
-                Case BoundKind.RelaxationLambda :
+                Case BoundKind.RelaxationLambda
                     Return VisitRelaxationLambda(CType(node, BoundRelaxationLambda), arg)
-                Case BoundKind.ConvertedTupleElements :
+                Case BoundKind.ConvertedTupleElements
                     Return VisitConvertedTupleElements(CType(node, BoundConvertedTupleElements), arg)
-                Case BoundKind.UserDefinedConversion :
+                Case BoundKind.UserDefinedConversion
                     Return VisitUserDefinedConversion(CType(node, BoundUserDefinedConversion), arg)
-                Case BoundKind.[DirectCast] :
+                Case BoundKind.[DirectCast]
                     Return VisitDirectCast(CType(node, BoundDirectCast), arg)
-                Case BoundKind.[TryCast] :
+                Case BoundKind.[TryCast]
                     Return VisitTryCast(CType(node, BoundTryCast), arg)
-                Case BoundKind.[TypeOf] :
+                Case BoundKind.[TypeOf]
                     Return VisitTypeOf(CType(node, BoundTypeOf), arg)
-                Case BoundKind.SequencePoint :
+                Case BoundKind.SequencePoint
                     Return VisitSequencePoint(CType(node, BoundSequencePoint), arg)
-                Case BoundKind.SequencePointExpression :
+                Case BoundKind.SequencePointExpression
                     Return VisitSequencePointExpression(CType(node, BoundSequencePointExpression), arg)
-                Case BoundKind.SequencePointWithSpan :
+                Case BoundKind.SequencePointWithSpan
                     Return VisitSequencePointWithSpan(CType(node, BoundSequencePointWithSpan), arg)
-                Case BoundKind.NoOpStatement :
+                Case BoundKind.NoOpStatement
                     Return VisitNoOpStatement(CType(node, BoundNoOpStatement), arg)
-                Case BoundKind.MethodGroup :
+                Case BoundKind.MethodGroup
                     Return VisitMethodGroup(CType(node, BoundMethodGroup), arg)
-                Case BoundKind.PropertyGroup :
+                Case BoundKind.PropertyGroup
                     Return VisitPropertyGroup(CType(node, BoundPropertyGroup), arg)
-                Case BoundKind.ReturnStatement :
+                Case BoundKind.ReturnStatement
                     Return VisitReturnStatement(CType(node, BoundReturnStatement), arg)
-                Case BoundKind.YieldStatement :
+                Case BoundKind.YieldStatement
                     Return VisitYieldStatement(CType(node, BoundYieldStatement), arg)
-                Case BoundKind.ThrowStatement :
+                Case BoundKind.ThrowStatement
                     Return VisitThrowStatement(CType(node, BoundThrowStatement), arg)
-                Case BoundKind.RedimStatement :
+                Case BoundKind.RedimStatement
                     Return VisitRedimStatement(CType(node, BoundRedimStatement), arg)
-                Case BoundKind.RedimClause :
+                Case BoundKind.RedimClause
                     Return VisitRedimClause(CType(node, BoundRedimClause), arg)
-                Case BoundKind.EraseStatement :
+                Case BoundKind.EraseStatement
                     Return VisitEraseStatement(CType(node, BoundEraseStatement), arg)
-                Case BoundKind.[Call] :
+                Case BoundKind.[Call]
                     Return VisitCall(CType(node, BoundCall), arg)
-                Case BoundKind.Attribute :
+                Case BoundKind.Attribute
                     Return VisitAttribute(CType(node, BoundAttribute), arg)
-                Case BoundKind.LateMemberAccess :
+                Case BoundKind.LateMemberAccess
                     Return VisitLateMemberAccess(CType(node, BoundLateMemberAccess), arg)
-                Case BoundKind.LateInvocation :
+                Case BoundKind.LateInvocation
                     Return VisitLateInvocation(CType(node, BoundLateInvocation), arg)
-                Case BoundKind.LateAddressOfOperator :
+                Case BoundKind.LateAddressOfOperator
                     Return VisitLateAddressOfOperator(CType(node, BoundLateAddressOfOperator), arg)
-                Case BoundKind.TupleLiteral :
+                Case BoundKind.TupleLiteral
                     Return VisitTupleLiteral(CType(node, BoundTupleLiteral), arg)
-                Case BoundKind.ConvertedTupleLiteral :
+                Case BoundKind.ConvertedTupleLiteral
                     Return VisitConvertedTupleLiteral(CType(node, BoundConvertedTupleLiteral), arg)
-                Case BoundKind.ObjectCreationExpression :
+                Case BoundKind.ObjectCreationExpression
                     Return VisitObjectCreationExpression(CType(node, BoundObjectCreationExpression), arg)
-                Case BoundKind.NoPiaObjectCreationExpression :
+                Case BoundKind.NoPiaObjectCreationExpression
                     Return VisitNoPiaObjectCreationExpression(CType(node, BoundNoPiaObjectCreationExpression), arg)
-                Case BoundKind.AnonymousTypeCreationExpression :
+                Case BoundKind.AnonymousTypeCreationExpression
                     Return VisitAnonymousTypeCreationExpression(CType(node, BoundAnonymousTypeCreationExpression), arg)
-                Case BoundKind.AnonymousTypePropertyAccess :
+                Case BoundKind.AnonymousTypePropertyAccess
                     Return VisitAnonymousTypePropertyAccess(CType(node, BoundAnonymousTypePropertyAccess), arg)
-                Case BoundKind.AnonymousTypeFieldInitializer :
+                Case BoundKind.AnonymousTypeFieldInitializer
                     Return VisitAnonymousTypeFieldInitializer(CType(node, BoundAnonymousTypeFieldInitializer), arg)
-                Case BoundKind.ObjectInitializerExpression :
+                Case BoundKind.ObjectInitializerExpression
                     Return VisitObjectInitializerExpression(CType(node, BoundObjectInitializerExpression), arg)
-                Case BoundKind.CollectionInitializerExpression :
+                Case BoundKind.CollectionInitializerExpression
                     Return VisitCollectionInitializerExpression(CType(node, BoundCollectionInitializerExpression), arg)
-                Case BoundKind.NewT :
+                Case BoundKind.NewT
                     Return VisitNewT(CType(node, BoundNewT), arg)
-                Case BoundKind.DelegateCreationExpression :
+                Case BoundKind.DelegateCreationExpression
                     Return VisitDelegateCreationExpression(CType(node, BoundDelegateCreationExpression), arg)
-                Case BoundKind.ArrayCreation :
+                Case BoundKind.ArrayCreation
                     Return VisitArrayCreation(CType(node, BoundArrayCreation), arg)
-                Case BoundKind.ArrayLiteral :
+                Case BoundKind.ArrayLiteral
                     Return VisitArrayLiteral(CType(node, BoundArrayLiteral), arg)
-                Case BoundKind.ArrayInitialization :
+                Case BoundKind.ArrayInitialization
                     Return VisitArrayInitialization(CType(node, BoundArrayInitialization), arg)
-                Case BoundKind.FieldAccess :
+                Case BoundKind.FieldAccess
                     Return VisitFieldAccess(CType(node, BoundFieldAccess), arg)
-                Case BoundKind.PropertyAccess :
+                Case BoundKind.PropertyAccess
                     Return VisitPropertyAccess(CType(node, BoundPropertyAccess), arg)
-                Case BoundKind.EventAccess :
+                Case BoundKind.EventAccess
                     Return VisitEventAccess(CType(node, BoundEventAccess), arg)
-                Case BoundKind.Block :
+                Case BoundKind.Block
                     Return VisitBlock(CType(node, BoundBlock), arg)
-                Case BoundKind.StateMachineScope :
+                Case BoundKind.StateMachineScope
                     Return VisitStateMachineScope(CType(node, BoundStateMachineScope), arg)
-                Case BoundKind.LocalDeclaration :
+                Case BoundKind.LocalDeclaration
                     Return VisitLocalDeclaration(CType(node, BoundLocalDeclaration), arg)
-                Case BoundKind.AsNewLocalDeclarations :
+                Case BoundKind.AsNewLocalDeclarations
                     Return VisitAsNewLocalDeclarations(CType(node, BoundAsNewLocalDeclarations), arg)
-                Case BoundKind.DimStatement :
+                Case BoundKind.DimStatement
                     Return VisitDimStatement(CType(node, BoundDimStatement), arg)
-                Case BoundKind.Initializer :
+                Case BoundKind.Initializer
                     Return VisitInitializer(CType(node, BoundInitializer), arg)
-                Case BoundKind.FieldInitializer :
+                Case BoundKind.FieldInitializer
                     Return VisitFieldInitializer(CType(node, BoundFieldInitializer), arg)
-                Case BoundKind.PropertyInitializer :
+                Case BoundKind.PropertyInitializer
                     Return VisitPropertyInitializer(CType(node, BoundPropertyInitializer), arg)
-                Case BoundKind.ParameterEqualsValue :
+                Case BoundKind.ParameterEqualsValue
                     Return VisitParameterEqualsValue(CType(node, BoundParameterEqualsValue), arg)
-                Case BoundKind.GlobalStatementInitializer :
+                Case BoundKind.GlobalStatementInitializer
                     Return VisitGlobalStatementInitializer(CType(node, BoundGlobalStatementInitializer), arg)
-                Case BoundKind.Sequence :
+                Case BoundKind.Sequence
                     Return VisitSequence(CType(node, BoundSequence), arg)
-                Case BoundKind.ExpressionStatement :
+                Case BoundKind.ExpressionStatement
                     Return VisitExpressionStatement(CType(node, BoundExpressionStatement), arg)
-                Case BoundKind.IfStatement :
+                Case BoundKind.IfStatement
                     Return VisitIfStatement(CType(node, BoundIfStatement), arg)
-                Case BoundKind.SelectStatement :
+                Case BoundKind.SelectStatement
                     Return VisitSelectStatement(CType(node, BoundSelectStatement), arg)
-                Case BoundKind.CaseBlock :
+                Case BoundKind.CaseBlock
                     Return VisitCaseBlock(CType(node, BoundCaseBlock), arg)
-                Case BoundKind.CaseStatement :
+                Case BoundKind.CaseStatement
                     Return VisitCaseStatement(CType(node, BoundCaseStatement), arg)
-                Case BoundKind.SimpleCaseClause :
+                Case BoundKind.SimpleCaseClause
                     Return VisitSimpleCaseClause(CType(node, BoundSimpleCaseClause), arg)
-                Case BoundKind.RangeCaseClause :
+                Case BoundKind.RangeCaseClause
                     Return VisitRangeCaseClause(CType(node, BoundRangeCaseClause), arg)
-                Case BoundKind.RelationalCaseClause :
+                Case BoundKind.RelationalCaseClause
                     Return VisitRelationalCaseClause(CType(node, BoundRelationalCaseClause), arg)
-                Case BoundKind.DoLoopStatement :
+                Case BoundKind.DoLoopStatement
                     Return VisitDoLoopStatement(CType(node, BoundDoLoopStatement), arg)
-                Case BoundKind.WhileStatement :
+                Case BoundKind.WhileStatement
                     Return VisitWhileStatement(CType(node, BoundWhileStatement), arg)
-                Case BoundKind.ForToUserDefinedOperators :
+                Case BoundKind.ForToUserDefinedOperators
                     Return VisitForToUserDefinedOperators(CType(node, BoundForToUserDefinedOperators), arg)
-                Case BoundKind.ForToStatement :
+                Case BoundKind.ForToStatement
                     Return VisitForToStatement(CType(node, BoundForToStatement), arg)
-                Case BoundKind.ForEachStatement :
+                Case BoundKind.ForEachStatement
                     Return VisitForEachStatement(CType(node, BoundForEachStatement), arg)
-                Case BoundKind.ExitStatement :
+                Case BoundKind.ExitStatement
                     Return VisitExitStatement(CType(node, BoundExitStatement), arg)
-                Case BoundKind.ContinueStatement :
+                Case BoundKind.ContinueStatement
                     Return VisitContinueStatement(CType(node, BoundContinueStatement), arg)
-                Case BoundKind.TryStatement :
+                Case BoundKind.TryStatement
                     Return VisitTryStatement(CType(node, BoundTryStatement), arg)
-                Case BoundKind.CatchBlock :
+                Case BoundKind.CatchBlock
                     Return VisitCatchBlock(CType(node, BoundCatchBlock), arg)
-                Case BoundKind.Literal :
+                Case BoundKind.Literal
                     Return VisitLiteral(CType(node, BoundLiteral), arg)
-                Case BoundKind.MeReference :
+                Case BoundKind.MeReference
                     Return VisitMeReference(CType(node, BoundMeReference), arg)
-                Case BoundKind.ValueTypeMeReference :
+                Case BoundKind.ValueTypeMeReference
                     Return VisitValueTypeMeReference(CType(node, BoundValueTypeMeReference), arg)
-                Case BoundKind.MyBaseReference :
+                Case BoundKind.MyBaseReference
                     Return VisitMyBaseReference(CType(node, BoundMyBaseReference), arg)
-                Case BoundKind.MyClassReference :
+                Case BoundKind.MyClassReference
                     Return VisitMyClassReference(CType(node, BoundMyClassReference), arg)
-                Case BoundKind.PreviousSubmissionReference :
+                Case BoundKind.PreviousSubmissionReference
                     Return VisitPreviousSubmissionReference(CType(node, BoundPreviousSubmissionReference), arg)
-                Case BoundKind.HostObjectMemberReference :
+                Case BoundKind.HostObjectMemberReference
                     Return VisitHostObjectMemberReference(CType(node, BoundHostObjectMemberReference), arg)
-                Case BoundKind.Local :
+                Case BoundKind.Local
                     Return VisitLocal(CType(node, BoundLocal), arg)
-                Case BoundKind.PseudoVariable :
+                Case BoundKind.PseudoVariable
                     Return VisitPseudoVariable(CType(node, BoundPseudoVariable), arg)
-                Case BoundKind.Parameter :
+                Case BoundKind.Parameter
                     Return VisitParameter(CType(node, BoundParameter), arg)
-                Case BoundKind.ByRefArgumentPlaceholder :
+                Case BoundKind.ByRefArgumentPlaceholder
                     Return VisitByRefArgumentPlaceholder(CType(node, BoundByRefArgumentPlaceholder), arg)
-                Case BoundKind.ByRefArgumentWithCopyBack :
+                Case BoundKind.ByRefArgumentWithCopyBack
                     Return VisitByRefArgumentWithCopyBack(CType(node, BoundByRefArgumentWithCopyBack), arg)
-                Case BoundKind.LateBoundArgumentSupportingAssignmentWithCapture :
+                Case BoundKind.LateBoundArgumentSupportingAssignmentWithCapture
                     Return VisitLateBoundArgumentSupportingAssignmentWithCapture(CType(node, BoundLateBoundArgumentSupportingAssignmentWithCapture), arg)
-                Case BoundKind.LabelStatement :
+                Case BoundKind.LabelStatement
                     Return VisitLabelStatement(CType(node, BoundLabelStatement), arg)
-                Case BoundKind.Label :
+                Case BoundKind.Label
                     Return VisitLabel(CType(node, BoundLabel), arg)
-                Case BoundKind.GotoStatement :
+                Case BoundKind.GotoStatement
                     Return VisitGotoStatement(CType(node, BoundGotoStatement), arg)
-                Case BoundKind.StatementList :
+                Case BoundKind.StatementList
                     Return VisitStatementList(CType(node, BoundStatementList), arg)
-                Case BoundKind.ConditionalGoto :
+                Case BoundKind.ConditionalGoto
                     Return VisitConditionalGoto(CType(node, BoundConditionalGoto), arg)
-                Case BoundKind.WithStatement :
+                Case BoundKind.WithStatement
                     Return VisitWithStatement(CType(node, BoundWithStatement), arg)
-                Case BoundKind.UnboundLambda :
+                Case BoundKind.UnboundLambda
                     Return VisitUnboundLambda(CType(node, UnboundLambda), arg)
-                Case BoundKind.Lambda :
+                Case BoundKind.Lambda
                     Return VisitLambda(CType(node, BoundLambda), arg)
-                Case BoundKind.QueryExpression :
+                Case BoundKind.QueryExpression
                     Return VisitQueryExpression(CType(node, BoundQueryExpression), arg)
-                Case BoundKind.QuerySource :
+                Case BoundKind.QuerySource
                     Return VisitQuerySource(CType(node, BoundQuerySource), arg)
-                Case BoundKind.ToQueryableCollectionConversion :
+                Case BoundKind.ToQueryableCollectionConversion
                     Return VisitToQueryableCollectionConversion(CType(node, BoundToQueryableCollectionConversion), arg)
-                Case BoundKind.QueryableSource :
+                Case BoundKind.QueryableSource
                     Return VisitQueryableSource(CType(node, BoundQueryableSource), arg)
-                Case BoundKind.QueryClause :
+                Case BoundKind.QueryClause
                     Return VisitQueryClause(CType(node, BoundQueryClause), arg)
-                Case BoundKind.Ordering :
+                Case BoundKind.Ordering
                     Return VisitOrdering(CType(node, BoundOrdering), arg)
-                Case BoundKind.QueryLambda :
+                Case BoundKind.QueryLambda
                     Return VisitQueryLambda(CType(node, BoundQueryLambda), arg)
-                Case BoundKind.RangeVariableAssignment :
+                Case BoundKind.RangeVariableAssignment
                     Return VisitRangeVariableAssignment(CType(node, BoundRangeVariableAssignment), arg)
-                Case BoundKind.GroupTypeInferenceLambda :
+                Case BoundKind.GroupTypeInferenceLambda
                     Return VisitGroupTypeInferenceLambda(CType(node, GroupTypeInferenceLambda), arg)
-                Case BoundKind.AggregateClause :
+                Case BoundKind.AggregateClause
                     Return VisitAggregateClause(CType(node, BoundAggregateClause), arg)
-                Case BoundKind.GroupAggregation :
+                Case BoundKind.GroupAggregation
                     Return VisitGroupAggregation(CType(node, BoundGroupAggregation), arg)
-                Case BoundKind.RangeVariable :
+                Case BoundKind.RangeVariable
                     Return VisitRangeVariable(CType(node, BoundRangeVariable), arg)
-                Case BoundKind.AddHandlerStatement :
+                Case BoundKind.AddHandlerStatement
                     Return VisitAddHandlerStatement(CType(node, BoundAddHandlerStatement), arg)
-                Case BoundKind.RemoveHandlerStatement :
+                Case BoundKind.RemoveHandlerStatement
                     Return VisitRemoveHandlerStatement(CType(node, BoundRemoveHandlerStatement), arg)
-                Case BoundKind.RaiseEventStatement :
+                Case BoundKind.RaiseEventStatement
                     Return VisitRaiseEventStatement(CType(node, BoundRaiseEventStatement), arg)
-                Case BoundKind.UsingStatement :
+                Case BoundKind.UsingStatement
                     Return VisitUsingStatement(CType(node, BoundUsingStatement), arg)
-                Case BoundKind.SyncLockStatement :
+                Case BoundKind.SyncLockStatement
                     Return VisitSyncLockStatement(CType(node, BoundSyncLockStatement), arg)
-                Case BoundKind.XmlName :
+                Case BoundKind.XmlName
                     Return VisitXmlName(CType(node, BoundXmlName), arg)
-                Case BoundKind.XmlNamespace :
+                Case BoundKind.XmlNamespace
                     Return VisitXmlNamespace(CType(node, BoundXmlNamespace), arg)
-                Case BoundKind.XmlDocument :
+                Case BoundKind.XmlDocument
                     Return VisitXmlDocument(CType(node, BoundXmlDocument), arg)
-                Case BoundKind.XmlDeclaration :
+                Case BoundKind.XmlDeclaration
                     Return VisitXmlDeclaration(CType(node, BoundXmlDeclaration), arg)
-                Case BoundKind.XmlProcessingInstruction :
+                Case BoundKind.XmlProcessingInstruction
                     Return VisitXmlProcessingInstruction(CType(node, BoundXmlProcessingInstruction), arg)
-                Case BoundKind.XmlComment :
+                Case BoundKind.XmlComment
                     Return VisitXmlComment(CType(node, BoundXmlComment), arg)
-                Case BoundKind.XmlAttribute :
+                Case BoundKind.XmlAttribute
                     Return VisitXmlAttribute(CType(node, BoundXmlAttribute), arg)
-                Case BoundKind.XmlElement :
+                Case BoundKind.XmlElement
                     Return VisitXmlElement(CType(node, BoundXmlElement), arg)
-                Case BoundKind.XmlMemberAccess :
+                Case BoundKind.XmlMemberAccess
                     Return VisitXmlMemberAccess(CType(node, BoundXmlMemberAccess), arg)
-                Case BoundKind.XmlEmbeddedExpression :
+                Case BoundKind.XmlEmbeddedExpression
                     Return VisitXmlEmbeddedExpression(CType(node, BoundXmlEmbeddedExpression), arg)
-                Case BoundKind.XmlCData :
+                Case BoundKind.XmlCData
                     Return VisitXmlCData(CType(node, BoundXmlCData), arg)
-                Case BoundKind.ResumeStatement :
+                Case BoundKind.ResumeStatement
                     Return VisitResumeStatement(CType(node, BoundResumeStatement), arg)
-                Case BoundKind.OnErrorStatement :
+                Case BoundKind.OnErrorStatement
                     Return VisitOnErrorStatement(CType(node, BoundOnErrorStatement), arg)
-                Case BoundKind.UnstructuredExceptionHandlingStatement :
+                Case BoundKind.UnstructuredExceptionHandlingStatement
                     Return VisitUnstructuredExceptionHandlingStatement(CType(node, BoundUnstructuredExceptionHandlingStatement), arg)
-                Case BoundKind.UnstructuredExceptionHandlingCatchFilter :
+                Case BoundKind.UnstructuredExceptionHandlingCatchFilter
                     Return VisitUnstructuredExceptionHandlingCatchFilter(CType(node, BoundUnstructuredExceptionHandlingCatchFilter), arg)
-                Case BoundKind.UnstructuredExceptionOnErrorSwitch :
+                Case BoundKind.UnstructuredExceptionOnErrorSwitch
                     Return VisitUnstructuredExceptionOnErrorSwitch(CType(node, BoundUnstructuredExceptionOnErrorSwitch), arg)
-                Case BoundKind.UnstructuredExceptionResumeSwitch :
+                Case BoundKind.UnstructuredExceptionResumeSwitch
                     Return VisitUnstructuredExceptionResumeSwitch(CType(node, BoundUnstructuredExceptionResumeSwitch), arg)
-                Case BoundKind.AwaitOperator :
+                Case BoundKind.AwaitOperator
                     Return VisitAwaitOperator(CType(node, BoundAwaitOperator), arg)
-                Case BoundKind.SpillSequence :
+                Case BoundKind.SpillSequence
                     Return VisitSpillSequence(CType(node, BoundSpillSequence), arg)
-                Case BoundKind.StopStatement :
+                Case BoundKind.StopStatement
                     Return VisitStopStatement(CType(node, BoundStopStatement), arg)
-                Case BoundKind.EndStatement :
+                Case BoundKind.EndStatement
                     Return VisitEndStatement(CType(node, BoundEndStatement), arg)
-                Case BoundKind.MidResult :
+                Case BoundKind.MidResult
                     Return VisitMidResult(CType(node, BoundMidResult), arg)
-                Case BoundKind.ConditionalAccess :
+                Case BoundKind.ConditionalAccess
                     Return VisitConditionalAccess(CType(node, BoundConditionalAccess), arg)
-                Case BoundKind.ConditionalAccessReceiverPlaceholder :
+                Case BoundKind.ConditionalAccessReceiverPlaceholder
                     Return VisitConditionalAccessReceiverPlaceholder(CType(node, BoundConditionalAccessReceiverPlaceholder), arg)
-                Case BoundKind.LoweredConditionalAccess :
+                Case BoundKind.LoweredConditionalAccess
                     Return VisitLoweredConditionalAccess(CType(node, BoundLoweredConditionalAccess), arg)
-                Case BoundKind.ComplexConditionalAccessReceiver :
+                Case BoundKind.ComplexConditionalAccessReceiver
                     Return VisitComplexConditionalAccessReceiver(CType(node, BoundComplexConditionalAccessReceiver), arg)
-                Case BoundKind.NameOfOperator :
+                Case BoundKind.NameOfOperator
                     Return VisitNameOfOperator(CType(node, BoundNameOfOperator), arg)
-                Case BoundKind.TypeAsValueExpression :
+                Case BoundKind.TypeAsValueExpression
                     Return VisitTypeAsValueExpression(CType(node, BoundTypeAsValueExpression), arg)
-                Case BoundKind.InterpolatedStringExpression :
+                Case BoundKind.InterpolatedStringExpression
                     Return VisitInterpolatedStringExpression(CType(node, BoundInterpolatedStringExpression), arg)
-                Case BoundKind.Interpolation :
+                Case BoundKind.Interpolation
                     Return VisitInterpolation(CType(node, BoundInterpolation), arg)
             End Select
             Return DefaultVisit(node, arg)
