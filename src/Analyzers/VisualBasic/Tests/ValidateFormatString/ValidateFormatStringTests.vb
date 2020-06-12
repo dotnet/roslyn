@@ -36,6 +36,7 @@ Class C
 End Class")
         End Function
 
+        <WorkItem(42764, "https://github.com/dotnet/roslyn/issues/42764")>
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function LiteralArray() As Task
             Await TestDiagnosticMissingAsync("
