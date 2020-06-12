@@ -66,8 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             if (IsTrivial(pattern))
                 return;
 
-            // C# 9.0 does not support pattern variables under `not` and `or` combinators.
-            if (HasIllegalPatternVariables(pattern))
+            // C# 9.0 does not support pattern variables under `not` and `or` combinators,
+            // except for top-level `not` patterns.
+            if (HasIllegalPatternVariables(pattern, isTopLevel: true))
                 return;
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -78,12 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 properties: null));
         }
 
-        private static bool HasIllegalPatternVariables(AnalyzedPattern pattern, bool permitDesignations = true)
+        private static bool HasIllegalPatternVariables(AnalyzedPattern pattern, bool permitDesignations = true, bool isTopLevel = false)
         {
             switch (pattern)
             {
                 case Not p:
-                    return HasIllegalPatternVariables(p.Pattern, permitDesignations: false);
+                    return HasIllegalPatternVariables(p.Pattern, permitDesignations: isTopLevel);
                 case Binary p:
                     if (p.IsDisjunctive)
                         permitDesignations = false;

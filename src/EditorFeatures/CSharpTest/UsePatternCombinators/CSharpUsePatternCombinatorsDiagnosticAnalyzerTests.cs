@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
 {
     public class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        private static readonly ParseOptions CSharp9 = TestOptions.RegularPreview;
+        private static readonly ParseOptions CSharp9 = TestOptions.RegularPreview.WithLanguageVersion(LanguageVersionExtensions.CSharp9);
 
         private static readonly OptionsCollection PreferPatternMatching = new OptionsCollection(LanguageNames.CSharp)
         {
@@ -78,7 +79,6 @@ class C
         [InlineData("o is C")]
         [InlineData("o is C c")]
         [InlineData("o != null")]
-        [InlineData("!(o is C c)")]
         [InlineData("!(o is null)")]
         [InlineData("o is int ii || o is long jj")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
@@ -87,6 +87,7 @@ class C
             await TestAllMissingOnExpressionAsync(expression);
         }
 
+        [InlineData("!(o is C c)", "o is not C c")]
         [InlineData("o is int ii && o is long jj", "o is int ii and long jj")]
         [InlineData("!(o is C)", "o is not C")]
         [InlineData("!(o is C _)", "o is not C _")]
