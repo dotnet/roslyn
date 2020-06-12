@@ -336,6 +336,16 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <Visible>false</Visible>
     </Content>
+    <Content Include="..\..\Interactive\HostProcess\Desktop\CSharpInteractive.rsp">
+      <Link>InteractiveHost\Desktop\CSharpInteractive.rsp</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\..\Interactive\HostProcess\Core\CSharpInteractive.rsp">
+      <Link>InteractiveHost\Core\CSharpInteractive.rsp</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
