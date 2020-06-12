@@ -3853,6 +3853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol constructorReturnType = constructor.ReturnType;
                 Debug.Assert(constructorReturnType.IsVoidType()); //true of all constructors
+                NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
                 // Get the bound arguments and the argument names.
                 // : this(__arglist()) is legal
@@ -3949,19 +3950,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MemberResolutionResult<MethodSymbol> memberResolutionResult;
                 ImmutableArray<MethodSymbol> candidateConstructors;
-                if (TryPerformConstructorOverloadResolution(
-                    initializerType,
-                    analyzedArguments,
-                    WellKnownMemberNames.InstanceConstructorName,
-                    errorLocation,
-                    false, // Don't suppress result diagnostics
-                    diagnostics,
-                    out memberResolutionResult,
-                    out candidateConstructors,
-                    allowProtectedConstructorsOfBaseType: true))
+                bool found = TryPerformConstructorOverloadResolution(
+                                    initializerType,
+                                    analyzedArguments,
+                                    WellKnownMemberNames.InstanceConstructorName,
+                                    errorLocation,
+                                    false, // Don't suppress result diagnostics
+                                    diagnostics,
+                                    out memberResolutionResult,
+                                    out candidateConstructors,
+                                    allowProtectedConstructorsOfBaseType: true);
+                MethodSymbol resultMember = memberResolutionResult.Member;
+
+                validateRecordCopyConstructor(constructor, baseType, resultMember, errorLocation, diagnostics);
+
+                if (found)
                 {
                     bool hasErrors = false;
-                    MethodSymbol resultMember = memberResolutionResult.Member;
 
                     if (resultMember == constructor)
                     {
@@ -3990,7 +3995,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                     var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
-
                     if (!hasErrors)
                     {
                         hasErrors = !CheckInvocationArgMixing(
@@ -4041,6 +4045,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 analyzedArguments.Free();
             }
+
+            static void validateRecordCopyConstructor(MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol resultMember, Location errorLocation, DiagnosticBag diagnostics)
+            {
+                if (IsUserDefinedRecordCopyConstructor(constructor))
+                {
+                    if (baseType.SpecialType == SpecialType.System_Object)
+                    {
+                        if (resultMember is null || resultMember.ContainingType.SpecialType != SpecialType.System_Object)
+                        {
+                            // Record deriving from object must use `base()`, not `this()`
+                            diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation);
+                        }
+
+                        return;
+                    }
+
+                    // Unless the base type is 'object', the constructor should invoke a base type copy constructor
+                    if (resultMember is null || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(resultMember))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation);
+                    }
+                }
+            }
+        }
+
+        internal static bool IsUserDefinedRecordCopyConstructor(MethodSymbol constructor)
+        {
+            return constructor.ContainingType is SourceNamedTypeSymbol sourceType &&
+                sourceType.IsRecord &&
+                SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor);
         }
 
         private BoundExpression BindImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
