@@ -349,6 +349,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return StringConstants.TypeScriptLanguageName;
             }
+            else if (fileExtension == ".vb")
+            {
+                return StringConstants.VBLspLanguageName;
+            }
 
             return null;
         }
