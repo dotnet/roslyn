@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             expression = operand;
                             continue;
 
-                        case ParenthesizedExpressionSyntax { Expression: { }  nested }:
+                        case ParenthesizedExpressionSyntax { Expression: { } nested }:
                             expression = nested;
                             continue;
 
