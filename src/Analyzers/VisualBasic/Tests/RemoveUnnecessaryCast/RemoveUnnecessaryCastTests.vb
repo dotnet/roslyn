@@ -31,6 +31,38 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Async Function TestDontRemoveCastSimpleArgument1() As Task
+            Dim markup =
+<File>
+Option Strict On
+Imports System.Drawing
+Module M
+    Sub Main()
+        Dim x As New Point([|CInt(System.Math.Floor(1.1))|], 1)
+    End Sub
+End Module
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Async Function TestDontRemoveCastSimpleArgument2() As Task
+            Dim markup =
+<File>
+Option Strict On
+Imports System.Drawing
+Module M
+    Sub Main()
+       Dim y As New Point([|CInt(1.1), 1)|]
+    End Sub
+End Module
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
         <WorkItem(545148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545148")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Async Function TestParenthesizeToKeepParseTheSame1() As Task
@@ -38,7 +70,7 @@ End Module
 <File>
 Imports System.Collections
 Imports System.Linq
- 
+
 Module Program
     Sub Main
         Dim a = CType([|CObj(From x In "" Select x)|], IEnumerable)
@@ -50,7 +82,7 @@ End Module
 <File>
 Imports System.Collections
 Imports System.Linq
- 
+
 Module Program
     Sub Main
         Dim a = CType((From x In "" Select x), IEnumerable)
@@ -1121,7 +1153,7 @@ Module Program
         Dim a = {[|CLng(Nothing)|]}
         Goo(a)
     End Sub
- 
+
     Sub Goo(a() As Long)
     End Sub
 End Module
@@ -1899,7 +1931,7 @@ Imports System
 Interface I
     Property A As Action
 End Interface
- 
+
 Class C
     Implements I
     Property A As Action = [|CType(Sub() If True Then, Action)|] Implements I.A
@@ -1912,7 +1944,7 @@ Imports System
 Interface I
     Property A As Action
 End Interface
- 
+
 Class C
     Implements I
     Property A As Action = (Sub() If True Then) Implements I.A
@@ -1991,7 +2023,7 @@ Imports System
 Module Program
     Sub Main()
         Dim x As Action = Sub() Console.WriteLine("Hello")
-        [|CType(x, Action)|] : Console.WriteLine() 
+        [|CType(x, Action)|] : Console.WriteLine()
     End Sub
 End Module
 
@@ -2003,7 +2035,7 @@ Imports System
 Module Program
     Sub Main()
         Dim x As Action = Sub() Console.WriteLine("Hello")
-        x() : Console.WriteLine() 
+        x() : Console.WriteLine()
     End Sub
 End Module
 
@@ -2167,7 +2199,7 @@ Class M
     Shared Sub Main()
         [|CType(New M(), I1).Goo()|]
     End Sub
- 
+
     Public Sub Goo() Implements I1.Goo
     End Sub
 End Class
@@ -2356,11 +2388,11 @@ Class X
 End Class
 
 Class Y
-	Inherits X
-	Implements IDisposable
-	Private Sub IDisposable_Dispose() Implements IDisposable.Dispose
-		Console.WriteLine("Y.Dispose")
-	End Sub
+    Inherits X
+    Implements IDisposable
+    Private Sub IDisposable_Dispose() Implements IDisposable.Dispose
+        Console.WriteLine("Y.Dispose")
+    End Sub
 End Class
 </File>
 
@@ -2486,7 +2518,7 @@ End Class
         Public Async Function TestDontRemoveCastToInterfaceForSealedType5() As Task
             ' Note: The cast below cannot be removed (even though C is sealed)
             ' because default values differ for optional parameters and
-            ' hence the method is not considered an implementation. 
+            ' hence the method is not considered an implementation.
 
             Dim markup =
 <File>

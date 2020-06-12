@@ -68,7 +68,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return semanticModel.GetTypeInfo(parentExpression, cancellationToken).Type
                 End If
             End If
-
             If Not Object.Equals(expressionTypeInfo.Type, expressionTypeInfo.ConvertedType) Then
                 Return expressionTypeInfo.ConvertedType
             End If
@@ -111,6 +110,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                          parentTernaryConditional.WhenTrue)
 
                 Return semanticModel.GetTypeInfo(otherExpression).Type
+            End If
+
+            Dim parentSimpleArgument = TryCast(parent, SimpleArgumentSyntax)
+            If parentSimpleArgument IsNot Nothing Then
+                If TypeOf parentSimpleArgument.Expression Is CastExpressionSyntax OrElse
+               TypeOf parentSimpleArgument.Expression Is PredefinedCastExpressionSyntax Then
+                    Return semanticModel.GetTypeInfo(parentSimpleArgument.Expression, cancellationToken).Type
+                End If
             End If
 
             Return expressionTypeInfo.ConvertedType
@@ -247,17 +254,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If outerType IsNot Nothing Then
                 Dim castToOuterType As Conversion = _semanticModel.ClassifyConversion(_castNode.SpanStart, _castNode, outerType)
                 Dim expressionToOuterType As Conversion
-                Dim speculatedExpressionOuterType As ITypeSymbol = Nothing
+                Dim speculatedExpressionOuterType As ITypeSymbol ' = Nothing
                 Dim outerSpeculatedExpression = _castNode.WalkUpParentheses()
 
-                If outerSpeculatedExpression.IsParentKind(SyntaxKind.DirectCastExpression) OrElse
-                    outerSpeculatedExpression.IsParentKind(SyntaxKind.TryCastExpression) OrElse
-                    outerSpeculatedExpression.IsParentKind(SyntaxKind.CTypeExpression) Then
-                    speculatedExpressionOuterType = outerType
-                    expressionToOuterType = _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
-                Else
-                    expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer.ReplacedExpression, speculationAnalyzer, _cancellationToken, speculatedExpressionOuterType)
-                End If
+                'If outerSpeculatedExpression.IsParentKind(SyntaxKind.DirectCastExpression) OrElse
+                '    outerSpeculatedExpression.IsParentKind(SyntaxKind.TryCastExpression) OrElse
+                '    outerSpeculatedExpression.IsParentKind(SyntaxKind.CTypeExpression) Then
+                speculatedExpressionOuterType = outerType
+                expressionToOuterType = _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
+                'Else
+                'expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer.ReplacedExpression, speculationAnalyzer, _cancellationToken, speculatedExpressionOuterType)
+                'End If
 
                 ' CONSIDER: Anonymous function conversions cannot be compared from different semantic models as lambda symbol comparison requires syntax tree equality. Should this be a compiler bug?
                 ' For now, just revert back to computing expressionToOuterType using the original semantic model.
