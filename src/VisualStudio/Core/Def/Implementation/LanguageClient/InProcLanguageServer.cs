@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly CodeAnalysis.Workspace _workspace;
 
         private VSClientCapabilities _clientCapabilities;
+        private bool _shuttingDown;
 
         public InProcLanguageServer(Stream inputStream,
             Stream outputStream,
@@ -65,6 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _clientCapabilities = new VSClientCapabilities();
         }
+
+        public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
 
         /// <summary>
         /// Handle the LSP initialize request by storing the client capabilities
@@ -104,11 +107,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
-        public object? Shutdown(CancellationToken _) => null;
+        public Task ShutdownAsync(CancellationToken _)
+        {
+            Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
+
+            _shuttingDown = true;
+            _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
+
+            return Task.CompletedTask;
+        }
 
         [JsonRpcMethod(Methods.ExitName)]
-        public void Exit()
+        public Task ExitAsync(CancellationToken _)
         {
+            Contract.ThrowIfFalse(_shuttingDown, "Shutdown has not been called yet.");
+
+            try
+            {
+                _jsonRpc.Dispose();
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            {
+                // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
+                // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
+            }
+
+            return Task.CompletedTask;
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]
