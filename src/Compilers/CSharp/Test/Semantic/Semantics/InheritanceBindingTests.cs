@@ -9020,11 +9020,11 @@ class Derived : Base
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (8,26): error CS0115: 'Derived.Goo<T>(T)': no suitable method found to override
-                //     public override void Goo<T>(T value) where T : class, struct { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Goo").WithArguments("Derived.Goo<T>(T)").WithLocation(8, 26),
-                // (8,60): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
                 //     public override void Goo<T>(T value) where T : struct, class { }
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "class").WithLocation(8, 60));
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Goo").WithArguments("Derived.Goo<T>(T)").WithLocation(8, 26),
+                // (8,60): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
+                //     public override void Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(8, 60));
         }
 
         [Fact]
@@ -9044,9 +9044,9 @@ class Derived : Base
                 // (8,26): error CS0115: 'Derived.Goo<T>(T)': no suitable method found to override
                 //     public override void Goo<T>(T value) where T : class, struct { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Goo").WithArguments("Derived.Goo<T>(T)").WithLocation(8, 26),
-                // (8,59): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                // (8,59): error CS8869: The 'struct' constraint cannot be combined with the 'class' constraint
                 //     public override void Goo<T>(T value) where T : class, struct { }
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "struct").WithLocation(8, 59));
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "class").WithLocation(8, 59));
         }
 
         [Fact]
@@ -9064,9 +9064,9 @@ class Derived : Base
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,60): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                // (9,60): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
                 //     public override void Goo<T>(T value) where T : struct, class { }
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "class").WithLocation(9, 60));
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(9, 60));
         }
 
         [Fact]
@@ -9086,9 +9086,9 @@ class C : I
                 // (8,12): error CS0539: 'C.Goo<T>(T)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I.Goo<T>(T value) where T : struct, class { }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C.Goo<T>(T)").WithLocation(8, 12),
-                // (8,46): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                // (8,46): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
                 //     void I.Goo<T>(T value) where T : struct, class { }
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "class").WithLocation(8, 46)
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(8, 46)
                 );
         }
 
@@ -9109,9 +9109,9 @@ class C : I
                 // (8,12): error CS0539: 'C.Goo<T>(T)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I.Goo<T>(T value) where T : class, struct { }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C.Goo<T>(T)").WithLocation(8, 12),
-                // (8,45): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                // (8,45): error CS8869: The 'struct' constraint cannot be combined with the 'class' constraint
                 //     void I.Goo<T>(T value) where T : class, struct { }
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "struct").WithLocation(8, 45));
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "class").WithLocation(8, 45));
         }
 
         [Fact]
@@ -9129,9 +9129,9 @@ class C : I
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,46): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                // (9,46): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
                 //     void I.Goo<T>(T value) where T : struct, class { }
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "class").WithLocation(9, 46));
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(9, 46));
         }
 
         [Fact]

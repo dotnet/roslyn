@@ -1827,9 +1827,9 @@ public class Test2
             var c = CreateCompilation("public class Test<T> where T : class, unmanaged {}");
 
             c.VerifyDiagnostics(
-                // (1,39): error CS8380: The 'unmanaged' constraint must come before any other constraints
+                // (1,39): error CS8869: The 'unmanaged' constraint cannot be combined with the 'class' constraint
                 // public class Test<T> where T : class, unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 39));
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "class").WithLocation(1, 39));
 
             var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
@@ -1845,9 +1845,9 @@ public class Test2
             var c = CreateCompilation("public class Test<T> where T : struct, unmanaged {}");
 
             c.VerifyDiagnostics(
-                // (1,40): error CS8380: The 'unmanaged' constraint must come before any other constraints
+                // (1,40): error CS8869: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
                 // public class Test<T> where T : struct, unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 40));
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "struct").WithLocation(1, 40));
 
             var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
@@ -4151,6 +4151,147 @@ public class MyClass
                     //         fixed (int* ptr = &ms.field)
                     Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&ms.field").WithLocation(12, 27)
                 );
+        }
+
+        [Fact, WorkItem(45141, "https://github.com/dotnet/roslyn/issues/45141")]
+        public void CannotCombineDiagnostics()
+        {
+            var comp = CreateCompilation(@"
+class C1<T1> where T1 : class, struct, unmanaged, notnull
+{
+    void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+}
+class C2<T1> where T1 : struct, class, unmanaged, notnull
+{
+    void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+}
+class C3<T1> where T1 : unmanaged, struct, class, notnull
+{
+    void M3<T2>() where T2 : unmanaged, struct, class, notnull {}
+}
+class C4<T1> where T1 : notnull, struct, unmanaged, class
+{
+    void M4<T2>() where T2 : notnull, struct, unmanaged, class {}
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (2,32): error CS8869: The 'struct' constraint cannot be combined with the 'class' constraint
+                // class C1<T1> where T1 : class, struct, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "class").WithLocation(2, 32),
+                // (2,40): error CS8869: The 'unmanaged' constraint cannot be combined with the 'class' constraint
+                // class C1<T1> where T1 : class, struct, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "class").WithLocation(2, 40),
+                // (2,51): error CS8869: The 'notnull' constraint cannot be combined with the 'class' constraint
+                // class C1<T1> where T1 : class, struct, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "class").WithLocation(2, 51),
+                // (4,37): error CS8869: The 'struct' constraint cannot be combined with the 'class' constraint
+                //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "class").WithLocation(4, 37),
+                // (4,45): error CS8869: The 'unmanaged' constraint cannot be combined with the 'class' constraint
+                //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "class").WithLocation(4, 45),
+                // (4,56): error CS8869: The 'notnull' constraint cannot be combined with the 'class' constraint
+                //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "class").WithLocation(4, 56),
+                // (6,33): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
+                // class C2<T1> where T1 : struct, class, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(6, 33),
+                // (6,40): error CS8869: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
+                // class C2<T1> where T1 : struct, class, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "struct").WithLocation(6, 40),
+                // (6,51): error CS8869: The 'notnull' constraint cannot be combined with the 'struct' constraint
+                // class C2<T1> where T1 : struct, class, unmanaged, notnull
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "struct").WithLocation(6, 51),
+                // (8,38): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
+                //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(8, 38),
+                // (8,45): error CS8869: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
+                //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "struct").WithLocation(8, 45),
+                // (8,56): error CS8869: The 'notnull' constraint cannot be combined with the 'struct' constraint
+                //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "struct").WithLocation(8, 56),
+                // (10,36): error CS8869: The 'struct' constraint cannot be combined with the 'unmanaged' constraint
+                // class C3<T1> where T1 : unmanaged, struct, class, notnull
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "unmanaged").WithLocation(10, 36),
+                // (10,44): error CS8869: The 'class' constraint cannot be combined with the 'unmanaged' constraint
+                // class C3<T1> where T1 : unmanaged, struct, class, notnull
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "unmanaged").WithLocation(10, 44),
+                // (10,51): error CS8869: The 'notnull' constraint cannot be combined with the 'unmanaged' constraint
+                // class C3<T1> where T1 : unmanaged, struct, class, notnull
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "unmanaged").WithLocation(10, 51),
+                // (12,41): error CS8869: The 'struct' constraint cannot be combined with the 'unmanaged' constraint
+                //     void M3<T2>() where T2 : unmanaged, struct, class, notnull {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "unmanaged").WithLocation(12, 41),
+                // (12,49): error CS8869: The 'class' constraint cannot be combined with the 'unmanaged' constraint
+                //     void M3<T2>() where T2 : unmanaged, struct, class, notnull {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "unmanaged").WithLocation(12, 49),
+                // (12,56): error CS8869: The 'notnull' constraint cannot be combined with the 'unmanaged' constraint
+                //     void M3<T2>() where T2 : unmanaged, struct, class, notnull {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "unmanaged").WithLocation(12, 56),
+                // (14,34): error CS8869: The 'struct' constraint cannot be combined with the 'notnull' constraint
+                // class C4<T1> where T1 : notnull, struct, unmanaged, class
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "notnull").WithLocation(14, 34),
+                // (14,42): error CS8869: The 'unmanaged' constraint cannot be combined with the 'notnull' constraint
+                // class C4<T1> where T1 : notnull, struct, unmanaged, class
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "notnull").WithLocation(14, 42),
+                // (14,53): error CS8869: The 'class' constraint cannot be combined with the 'notnull' constraint
+                // class C4<T1> where T1 : notnull, struct, unmanaged, class
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "notnull").WithLocation(14, 53),
+                // (16,39): error CS8869: The 'struct' constraint cannot be combined with the 'notnull' constraint
+                //     void M4<T2>() where T2 : notnull, struct, unmanaged, class {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "notnull").WithLocation(16, 39),
+                // (16,47): error CS8869: The 'unmanaged' constraint cannot be combined with the 'notnull' constraint
+                //     void M4<T2>() where T2 : notnull, struct, unmanaged, class {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "notnull").WithLocation(16, 47),
+                // (16,58): error CS8869: The 'class' constraint cannot be combined with the 'notnull' constraint
+                //     void M4<T2>() where T2 : notnull, struct, unmanaged, class {}
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "notnull").WithLocation(16, 58)
+            );
+        }
+
+        [Fact, WorkItem(45141, "https://github.com/dotnet/roslyn/issues/45141")]
+        public void CannotCombineDiagnostics_InheritedClassStruct()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public virtual void M<T1>() where T1 : class {}
+}
+class D : C
+{
+    public override void M<T1>() where T1 : C, class, struct {}
+}
+class E
+{
+    public virtual void M<T2>() where T2 : struct {}
+}
+class F : E
+{
+    public override void M<T2>() where T2 : E, struct, class {}
+}
+class G
+{
+    public virtual void M<T3>() where T3 : unmanaged {}
+}
+class H : G
+{
+    public override void M<T3>() where T3 : G, unmanaged, struct {}
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M<T1>() where T1 : C, class, struct {}
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "C").WithLocation(8, 45),
+                // (16,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M<T2>() where T2 : E, struct, class {}
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "E").WithLocation(16, 45),
+                // (24,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M<T3>() where T3 : G, unmanaged, struct {}
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "G").WithLocation(24, 45)
+            );
         }
     }
 }

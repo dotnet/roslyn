@@ -152,6 +152,11 @@
         <target state="translated">Erreur de syntaxe de ligne de commande : '{0}' est une valeur non valide pour l'option '{1}'. La valeur doit se présenter sous la forme '{2}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotCombineTypeConstraints">
+        <source>The '{0}' constraint cannot be combined with the '{1}' constraint</source>
+        <target state="new">The '{0}' constraint cannot be combined with the '{1}' constraint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
         <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{0}'.</target>
@@ -1114,6 +1119,11 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
+      <trans-unit id="IDS_Class">
+        <source>class</source>
+        <target state="new">class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
         <target state="translated">implémentation d'interface par défaut</target>
@@ -1364,9 +1374,19 @@
         <target state="translated">&lt;Null&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_Notnull">
+        <source>notnull</source>
+        <target state="new">notnull</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
         <target state="translated">contraintes des méthodes d'implémentation d'interface par remplacement et explicites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Struct">
+        <source>struct</source>
+        <target state="new">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -1387,6 +1407,11 @@
       <trans-unit id="IDS_TopLevelStatements">
         <source>top-level statements</source>
         <target state="new">top-level statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Unmanaged">
+        <source>unmanaged</source>
+        <target state="new">unmanaged</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">

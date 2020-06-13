@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!InExecutableBinder); // Cannot eagerly report diagnostics handled by LazyMissingNonNullTypesContextDiagnosticInfo 
             bool hasTypeLikeConstraint = false;
             bool reportedOverrideWithConstraints = false;
+            MessageID? firstTypeConstraintString = null;
 
             for (int i = 0, n = constraintsSyntax.Count; i < n; i++)
             {
@@ -137,7 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (i != 0)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+                            if (!reportedOverrideWithConstraints)
+                            {
+                                reportNotFirstOrCannotCombine(diagnostics, syntax.GetFirstToken().GetLocation(), ErrorCode.ERR_RefValBoundMustBeFirst, MessageID.IDS_Class, firstTypeConstraintString);
+                            }
 
                             if (isForOverride && (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.ReferenceType)) != 0)
                             {
@@ -145,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
+                        firstTypeConstraintString ??= MessageID.IDS_Class;
                         var constraintSyntax = (ClassOrStructConstraintSyntax)syntax;
                         SyntaxToken questionToken = constraintSyntax.QuestionToken;
                         if (questionToken.IsKind(SyntaxKind.QuestionToken))
@@ -175,7 +180,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (i != 0)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+                            if (!reportedOverrideWithConstraints)
+                            {
+                                reportNotFirstOrCannotCombine(diagnostics, syntax.GetFirstToken().GetLocation(), ErrorCode.ERR_RefValBoundMustBeFirst, MessageID.IDS_Struct, firstTypeConstraintString);
+                            }
 
                             if (isForOverride && (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.ReferenceType)) != 0)
                             {
@@ -183,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
+                        firstTypeConstraintString ??= MessageID.IDS_Struct;
                         constraints |= TypeParameterConstraintKind.ValueType;
                         continue;
                     case SyntaxKind.ConstructorConstraint:
@@ -233,9 +242,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConstraintContextualKeyword.Unmanaged:
                                     if (i != 0)
                                     {
-                                        diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, typeSyntax.GetLocation());
+                                        reportNotFirstOrCannotCombine(diagnostics, typeSyntax.GetLocation(), ErrorCode.ERR_UnmanagedConstraintMustBeFirst, MessageID.IDS_Unmanaged, firstTypeConstraintString);
                                         continue;
                                     }
+
+                                    firstTypeConstraintString ??= MessageID.IDS_Unmanaged;
 
                                     // This should produce diagnostics if the types are missing
                                     GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType, diagnostics, typeSyntax);
@@ -247,9 +258,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConstraintContextualKeyword.NotNull:
                                     if (i != 0)
                                     {
-                                        diagnostics.Add(ErrorCode.ERR_NotNullConstraintMustBeFirst, typeSyntax.GetLocation());
+                                        reportNotFirstOrCannotCombine(diagnostics, typeSyntax.GetLocation(), ErrorCode.ERR_NotNullConstraintMustBeFirst, MessageID.IDS_Notnull, firstTypeConstraintString);
                                     }
 
+                                    firstTypeConstraintString ??= MessageID.IDS_Notnull;
                                     constraints |= TypeParameterConstraintKind.NotNull;
                                     continue;
 
@@ -284,6 +296,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_OverrideWithConstraints, syntax.GetLocation());
                     reportedOverrideWithConstraints = true;
+                }
+            }
+
+            static void reportNotFirstOrCannotCombine(DiagnosticBag diagnostics, Location constraintLocation, ErrorCode notFirstDiagnostic, MessageID currentConstraintString, MessageID? firstConstraintString)
+            {
+                if (firstConstraintString is MessageID firstConstraint)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CannotCombineTypeConstraints, constraintLocation, currentConstraintString.Localize(), firstConstraint.Localize());
+                }
+                else
+                {
+                    diagnostics.Add(notFirstDiagnostic, constraintLocation);
                 }
             }
         }

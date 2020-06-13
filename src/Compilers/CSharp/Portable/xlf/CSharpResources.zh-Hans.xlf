@@ -152,6 +152,11 @@
         <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotCombineTypeConstraints">
+        <source>The '{0}' constraint cannot be combined with the '{1}' constraint</source>
+        <target state="new">The '{0}' constraint cannot be combined with the '{1}' constraint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
         <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{0}'.</target>
@@ -1114,6 +1119,11 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
+      <trans-unit id="IDS_Class">
+        <source>class</source>
+        <target state="new">class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
         <target state="translated">默认接口实现</target>
@@ -1364,9 +1374,19 @@
         <target state="translated">&lt;null&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_Notnull">
+        <source>notnull</source>
+        <target state="new">notnull</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
         <target state="translated">重写和显式接口实现方法的约束</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Struct">
+        <source>struct</source>
+        <target state="new">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -1387,6 +1407,11 @@
       <trans-unit id="IDS_TopLevelStatements">
         <source>top-level statements</source>
         <target state="new">top-level statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Unmanaged">
+        <source>unmanaged</source>
+        <target state="new">unmanaged</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
