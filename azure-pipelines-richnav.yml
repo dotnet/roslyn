@@ -1,10 +1,12 @@
-# Run on master CI builds
-trigger:
+trigger: none
+pr: none
+
+schedules:
+- cron: "0 0 * * *"
+  displayName: Daily midnight (UTC) RichNav indexer run
   branches:
     include:
     - master
-
-pr: none
 
 jobs:
 - job: RichCodeNav_Indexing

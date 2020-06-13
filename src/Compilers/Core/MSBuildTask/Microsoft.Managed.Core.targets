@@ -107,7 +107,7 @@
       <!-- Collect the requested items and remember which metadata is wanted -->
       <_GeneratedEditorConfigMetadata Include="@(%(CompilerVisibleItemMetadata.Identity))" Condition="'$(_GeneratedEditorConfigHasItems)' == 'true'">
         <ItemType>%(Identity)</ItemType>
-        <MetadataName>%(MetadataName)</MetadataName>
+        <MetadataName>%(CompilerVisibleItemMetadata.MetadataName)</MetadataName>
       </_GeneratedEditorConfigMetadata>
 
       <!-- Record that we'll write a file, and add it to the editorconfig inputs -->

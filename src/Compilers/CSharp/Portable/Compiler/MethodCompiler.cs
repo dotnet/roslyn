@@ -977,7 +977,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Do not emit initializers if we are invoking another constructor of this class.
                     includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
                                                 !HasThisConstructorInitializer(methodSymbol) &&
-                                                !(methodSymbol is SynthesizedRecordCopyCtor); // A record copy constructor is special, regular initializers are not supposed to be executed by it.
+                                                !(methodSymbol is SynthesizedRecordCopyCtor) &&
+                                                !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol); // A record copy constructor is special, regular initializers are not supposed to be executed by it.
 
                     body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested, out forSemanticModel);
                     if (diagsForCurrentMethod.HasAnyErrors() && body != null)
@@ -1846,6 +1847,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (constructor is SynthesizedRecordCopyCtor copyCtor)
+            {
+                return GenerateBaseCopyConstructorInitializer(copyCtor, diagnostics);
+            }
+
             // Now, in order to do overload resolution, we're going to need a binder. There are
             // two possible situations:
             //
@@ -1975,6 +1981,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binderOpt: null,
                 type: baseConstructor.ReturnType,
                 hasErrors: hasErrors)
+            { WasCompilerGenerated = true };
+        }
+
+        private static BoundCall GenerateBaseCopyConstructorInitializer(SynthesizedRecordCopyCtor constructor, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+            Location diagnosticsLocation = constructor.Locations.FirstOrNone();
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            MethodSymbol baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteDiagnostics);
+
+            if (baseConstructor is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
+                return null;
+            }
+
+            if (Binder.ReportUseSiteDiagnostics(baseConstructor, diagnostics, diagnosticsLocation))
+            {
+                return null;
+            }
+
+            if (!useSiteDiagnostics.IsNullOrEmpty())
+            {
+                diagnostics.Add(diagnosticsLocation, useSiteDiagnostics);
+            }
+
+            CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
+            BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
+            BoundExpression argument = new BoundParameter(syntax, constructor.Parameters[0]);
+
+            return new BoundCall(
+                syntax: syntax,
+                receiverOpt: receiver,
+                method: baseConstructor,
+                arguments: ImmutableArray.Create(argument),
+                argumentNamesOpt: default,
+                argumentRefKindsOpt: default,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default,
+                resultKind: LookupResultKind.Viable,
+                binderOpt: null,
+                type: baseConstructor.ReturnType,
+                hasErrors: false)
             { WasCompilerGenerated = true };
         }
 

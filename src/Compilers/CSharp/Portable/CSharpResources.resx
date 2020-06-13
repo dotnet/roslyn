@@ -1087,7 +1087,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all structs, or all interfaces</value>
+    <value>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
@@ -2738,7 +2738,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Semicolon after method or accessor block is not valid</value>
   </data>
   <data name="ERR_MethodReturnCantBeRefAny" xml:space="preserve">
-    <value>Method or delegate cannot return type '{0}'</value>
+    <value>The return type of a method, delegate, or function pointer cannot be '{0}'</value>
   </data>
   <data name="ERR_CompileCancelled" xml:space="preserve">
     <value>Compilation cancelled by user</value>
@@ -5719,6 +5719,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRecursivePatterns" xml:space="preserve">
     <value>recursive patterns</value>
   </data>
+  <data name="IDS_FeatureNullPointerConstantPattern" xml:space="preserve">
+    <value>null pointer constant pattern</value>
+  </data>
   <data name="ERR_WrongNumberOfSubpatterns" xml:space="preserve">
     <value>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</value>
   </data>
@@ -6249,5 +6252,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadInheritanceFromRecord" xml:space="preserve">
     <value>Only records may inherit from records.</value>
+  </data>
+  <data name="ERR_BadRecordMemberForPositionalParameter" xml:space="preserve">
+    <value>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</value>
+  </data>
+  <data name="ERR_NoCopyConstructorInBaseType" xml:space="preserve">
+    <value>No accessible copy constructor found in base type '{0}'.</value>
+  </data>
+  <data name="ERR_CopyConstructorMustInvokeBaseCopyConstructor" xml:space="preserve">
+    <value>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</value>
   </data>
 </root>

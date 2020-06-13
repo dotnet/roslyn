@@ -30,9 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             string source,
             MetadataReference[]? references = null,
             Action<ModuleSymbol>? symbolValidator = null,
-            string? expectedOutput = null)
+            string? expectedOutput = null,
+            TargetFramework targetFramework = TargetFramework.Standard)
         {
-            return CompileAndVerify(source, references, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped);
+            return CompileAndVerify(source, references, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped, targetFramework: targetFramework);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
@@ -1125,7 +1126,7 @@ unsafe class Caller
         [InlineData("stdcall")]
         public void UnmanagedCallingConventions(string convention)
         {
-            // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelgate>(TDelegate delegate) to
+            // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelegate>(TDelegate delegate) to
             // get a function pointer around a native calling convention
             var ilStub = $@"
 .class public auto ansi beforefieldinit UnmanagedFunctionPointer
@@ -4114,7 +4115,7 @@ unsafe class C
         [Fact]
         public void MultipleApplicableMethods()
         {
-            // This is analgous to MethodBodyModelTests.MethodGroupToDelegate04, where both methods
+            // This is analogous to MethodBodyModelTests.MethodGroupToDelegate04, where both methods
             // are applicable even though D(delegate*<int, void>) is not compatible.
             var comp = CreateCompilationWithFunctionPointers(@"
 public unsafe class Program1
@@ -7031,6 +7032,44 @@ unsafe public class C
                 //         delegate*<ref string, ref string?> ptr3 = ptr1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string, string?>").WithLocation(20, 51)
             );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SpanInArgumentAndReturn()
+        {
+            var comp = CompileAndVerifyFunctionPointers(@"
+using System;
+public class C
+{
+    static char[] chars = new[] { '1', '2', '3', '4' };
+
+    static Span<char> ChopSpan(Span<char> span) => span[..^1];
+
+    public static unsafe void Main()
+    {
+        delegate*<Span<char>, Span<char>> ptr = &ChopSpan;
+        Console.Write(new string(ptr(chars)));
+    }
+}
+", targetFramework: TargetFramework.NetCoreApp30, expectedOutput: "123");
+
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (delegate*<System.Span<char>, System.Span<char>> V_0)
+  IL_0000:  ldftn      ""System.Span<char> C.ChopSpan(System.Span<char>)""
+  IL_0006:  stloc.0
+  IL_0007:  ldsfld     ""char[] C.chars""
+  IL_000c:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
+  IL_0011:  ldloc.0
+  IL_0012:  calli      ""delegate*<System.Span<char>, System.Span<char>>""
+  IL_0017:  call       ""System.ReadOnlySpan<char> System.Span<char>.op_Implicit(System.Span<char>)""
+  IL_001c:  newobj     ""string..ctor(System.ReadOnlySpan<char>)""
+  IL_0021:  call       ""void System.Console.Write(string)""
+  IL_0026:  ret
+}
+");
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

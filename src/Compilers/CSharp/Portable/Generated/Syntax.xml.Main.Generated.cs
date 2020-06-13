@@ -10,8 +10,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System.Diagnostics.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
 
     public partial class CSharpSyntaxVisitor<TResult>
     {
@@ -3885,11 +3885,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BlockSyntax Block(SyntaxList<AttributeListSyntax> attributeLists, SyntaxList<StatementSyntax> statements)
             => SyntaxFactory.Block(attributeLists, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), statements, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new BlockSyntax instance.</summary>
         public static BlockSyntax Block(SyntaxList<StatementSyntax> statements = default)
             => SyntaxFactory.Block(default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), statements, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new LocalFunctionStatementSyntax instance.</summary>
         public static LocalFunctionStatementSyntax LocalFunctionStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
@@ -4092,11 +4092,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static GotoStatementSyntax GotoStatement(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax? expression)
             => SyntaxFactory.GotoStatement(kind, attributeLists, SyntaxFactory.Token(SyntaxKind.GotoKeyword), caseOrDefaultKeyword, expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new GotoStatementSyntax instance.</summary>
         public static GotoStatementSyntax GotoStatement(SyntaxKind kind, ExpressionSyntax? expression = default)
             => SyntaxFactory.GotoStatement(kind, default, SyntaxFactory.Token(SyntaxKind.GotoKeyword), default, expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new BreakStatementSyntax instance.</summary>
         public static BreakStatementSyntax BreakStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
@@ -4142,11 +4142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ReturnStatementSyntax ReturnStatement(SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax? expression)
             => SyntaxFactory.ReturnStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.ReturnKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new ReturnStatementSyntax instance.</summary>
         public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax? expression = default)
             => SyntaxFactory.ReturnStatement(default, SyntaxFactory.Token(SyntaxKind.ReturnKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new ThrowStatementSyntax instance.</summary>
         public static ThrowStatementSyntax ThrowStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken throwKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
@@ -4160,11 +4160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ThrowStatementSyntax ThrowStatement(SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax? expression)
             => SyntaxFactory.ThrowStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.ThrowKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new ThrowStatementSyntax instance.</summary>
         public static ThrowStatementSyntax ThrowStatement(ExpressionSyntax? expression = default)
             => SyntaxFactory.ThrowStatement(default, SyntaxFactory.Token(SyntaxKind.ThrowKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new YieldStatementSyntax instance.</summary>
         public static YieldStatementSyntax YieldStatement(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
@@ -4190,11 +4190,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static YieldStatementSyntax YieldStatement(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax? expression)
             => SyntaxFactory.YieldStatement(kind, attributeLists, SyntaxFactory.Token(SyntaxKind.YieldKeyword), SyntaxFactory.Token(GetYieldStatementReturnOrBreakKeywordKind(kind)), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new YieldStatementSyntax instance.</summary>
         public static YieldStatementSyntax YieldStatement(SyntaxKind kind, ExpressionSyntax? expression = default)
             => SyntaxFactory.YieldStatement(kind, default, SyntaxFactory.Token(SyntaxKind.YieldKeyword), SyntaxFactory.Token(GetYieldStatementReturnOrBreakKeywordKind(kind)), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         private static SyntaxKind GetYieldStatementReturnOrBreakKeywordKind(SyntaxKind kind)
             => kind switch
@@ -4389,11 +4389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, BlockSyntax block)
             => SyntaxFactory.CheckedStatement(kind, attributeLists, SyntaxFactory.Token(GetCheckedStatementKeywordKind(kind)), block);
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new CheckedStatementSyntax instance.</summary>
         public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, BlockSyntax? block = default)
             => SyntaxFactory.CheckedStatement(kind, default, SyntaxFactory.Token(GetCheckedStatementKeywordKind(kind)), block ?? SyntaxFactory.Block());
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         private static SyntaxKind GetCheckedStatementKeywordKind(SyntaxKind kind)
             => kind switch
@@ -4415,11 +4415,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static UnsafeStatementSyntax UnsafeStatement(SyntaxList<AttributeListSyntax> attributeLists, BlockSyntax block)
             => SyntaxFactory.UnsafeStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), block);
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new UnsafeStatementSyntax instance.</summary>
         public static UnsafeStatementSyntax UnsafeStatement(BlockSyntax? block = default)
             => SyntaxFactory.UnsafeStatement(default, SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), block ?? SyntaxFactory.Block());
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new LockStatementSyntax instance.</summary>
         public static LockStatementSyntax LockStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
@@ -4589,11 +4589,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TryStatementSyntax TryStatement(SyntaxList<AttributeListSyntax> attributeLists, BlockSyntax block, SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax? @finally)
             => SyntaxFactory.TryStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.TryKeyword), block, catches, @finally);
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new TryStatementSyntax instance.</summary>
         public static TryStatementSyntax TryStatement(SyntaxList<CatchClauseSyntax> catches = default)
             => SyntaxFactory.TryStatement(default, SyntaxFactory.Token(SyntaxKind.TryKeyword), SyntaxFactory.Block(), catches, default);
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new CatchClauseSyntax instance.</summary>
         public static CatchClauseSyntax CatchClause(SyntaxToken catchKeyword, CatchDeclarationSyntax? declaration, CatchFilterClauseSyntax? filter, BlockSyntax block)
@@ -5565,11 +5565,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (IncompleteMemberSyntax)Syntax.InternalSyntax.SyntaxFactory.IncompleteMember(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
         public static IncompleteMemberSyntax IncompleteMember(TypeSyntax? type = default)
             => SyntaxFactory.IncompleteMember(default, default(SyntaxTokenList), type);
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new SkippedTokensTriviaSyntax instance.</summary>
         public static SkippedTokensTriviaSyntax SkippedTokensTrivia(SyntaxTokenList tokens)

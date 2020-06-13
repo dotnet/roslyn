@@ -1633,6 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PointerTypeInPatternMatching = 8521,
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
+        // available 8524-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -1831,6 +1832,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MultipleRecordParameterLists = 8863,
         ERR_BadRecordBase = 8864,
         ERR_BadInheritanceFromRecord = 8865,
+        ERR_BadRecordMemberForPositionalParameter = 8866,
+        ERR_NoCopyConstructorInBaseType = 8867,
+        ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
 
         #endregion
 

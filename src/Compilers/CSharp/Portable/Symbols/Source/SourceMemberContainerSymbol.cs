@@ -764,6 +764,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool IsRecord
+        {
+            get
+            {
+                return this.declaration.Declarations[0].Kind == DeclarationKind.Record;
+            }
+        }
+
         public override bool IsImplicitlyDeclared
         {
             get
@@ -2983,7 +2991,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = binderFactory.GetBinder(paramList);
 
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
-                addProperties(ctor.Parameters);
+                var existingOrAddedMembers = addProperties(ctor.Parameters);
+                addDeconstruct(ctor.Parameters, existingOrAddedMembers);
             }
 
             addCopyCtor();
@@ -2996,7 +3005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var thisEquals = addThisEquals(equalityContract, otherEqualsMethod: otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
             addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
             addObjectEquals(thisEquals);
-            addHashCode();
+            addHashCode(equalityContract);
 
             otherEqualsMethods.Free();
             memberSignatures.Free();
@@ -3019,6 +3028,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ctor;
             }
 
+            void addDeconstruct(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<PropertySymbol> properties)
+            {
+                var ctor = new SynthesizedRecordDeconstruct(this, parameters, properties, memberOffset: members.Count);
+                if (!memberSignatures.ContainsKey(ctor))
+                {
+                    members.Add(ctor);
+                }
+            }
+
             void addCopyCtor()
             {
                 var ctor = new SynthesizedRecordCopyCtor(this, memberOffset: members.Count);
@@ -3037,15 +3055,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addProperties(ImmutableArray<ParameterSymbol> recordParameters)
+            ImmutableArray<PropertySymbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
+                var existingOrAddedMembers = ArrayBuilder<PropertySymbol>.GetInstance(recordParameters.Length);
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
-                    if (!memberSignatures.ContainsKey(property) &&
-                        !hidesInheritedMember(property, this))
+                    _ = memberSignatures.TryGetValue(property, out var existingMember);
+                    existingMember ??= getInheritedMember(property, this);
+                    if (existingMember is null)
                     {
+                        existingOrAddedMembers.Add(property);
                         members.Add(property);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
@@ -3053,6 +3074,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
+                    }
+                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
+                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        // There already exists a member corresponding to the candidate synthesized property.
+                        // The deconstructor is specified to simply assign from this property to the corresponding out parameter.
+                        existingOrAddedMembers.Add(prop);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
+                            param.Locations[0],
+                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
+                            param.TypeWithAnnotations,
+                            param.Name);
                     }
                 }
 
@@ -3064,9 +3100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters[addedCount - 1].Syntax.SpanStart < builder.InstanceInitializersForRecordDeclarationWithParameters[addedCount].Syntax.SpanStart);
                 }
 #endif
+                return existingOrAddedMembers.ToImmutableAndFree();
             }
 
-            static bool hidesInheritedMember(Symbol symbol, NamedTypeSymbol type)
+            static Symbol? getInheritedMember(Symbol symbol, NamedTypeSymbol type)
             {
                 while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
                 {
@@ -3080,15 +3117,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         out var hiddenBuilder);
                     if (hiddenBuilder is object)
                     {
+                        var result = hiddenBuilder[0];
                         hiddenBuilder.Free();
-                        return true;
+                        return result;
                     }
                     if (bestMatch is object)
                     {
-                        return true;
+                        return bestMatch;
                     }
                 }
-                return false;
+                return null;
             }
 
             void addObjectEquals(MethodSymbol thisEquals)
@@ -3101,9 +3139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addHashCode()
+            void addHashCode(PropertySymbol equalityContract)
             {
-                var hashCode = new SynthesizedRecordGetHashCode(this, memberOffset: members.Count);
+                var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(hashCode))
                 {
                     // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
