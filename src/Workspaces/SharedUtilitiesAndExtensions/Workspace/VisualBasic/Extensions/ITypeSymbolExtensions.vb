@@ -48,6 +48,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return SyntaxKind.CULngKeyword
                 Case specialType.System_UInt16
                     Return SyntaxKind.CUShortKeyword
+                Case SpecialType.System_String
+                    Return SyntaxKind.CStrKeyword
                 Case Else
                     Return SyntaxKind.None
             End Select
