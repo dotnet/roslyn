@@ -162,7 +162,26 @@ public record C(int i)
             comp.VerifyDiagnostics(
                 // (8,44): error CS8849: An expression tree may not contain a with-expression.
                 //         Expression<Func<C, C>> expr = c => c with { i = 5 };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsWithExpression, "c with { i = 5 }").WithLocation(8, 44)
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsWithExpression, "c with { i = 5 }").WithLocation(8, 44)       
+                );
+        }
+        
+        [Fact]
+        public void PartialRecordMixedWithClass()
+        {
+            var src = @"
+partial record C(int X, int Y)
+{
+}
+partial class C
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0261: Partial declarations of 'C' must be all classes, all records, all structs, or all interfaces
+                // partial class C
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "C").WithArguments("C").WithLocation(5, 15)
                 );
         }
 
@@ -3639,6 +3658,16 @@ class Program
   IL_0001:  call       ""B..ctor()""
   IL_0006:  ret
 }");
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ret
+}");
+
             verifier.VerifyIL("Program.Main",
 @"{
   // Code size       41 (0x29)
@@ -3658,6 +3687,1000 @@ class Program
   IL_0023:  call       ""void System.Console.WriteLine(string, object, object)""
   IL_0028:  ret
 }");
+        }
+
+        [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void CopyCtor(bool useCompilationReference)
+        {
+            var sourceA =
+@"public record B(object N1, object N2)
+{
+}";
+            var compA = CreateCompilation(sourceA);
+            var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+
+            verifierA.VerifyIL("B..ctor(B)", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""object B.<N1>k__BackingField""
+  IL_000d:  stfld      ""object B.<N1>k__BackingField""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  ldfld      ""object B.<N2>k__BackingField""
+  IL_0019:  stfld      ""object B.<N2>k__BackingField""
+  IL_001e:  ret
+}");
+
+            var refA = useCompilationReference ? compA.ToMetadataReference() : compA.EmitToImageReference();
+
+            var sourceB =
+@"record C(object P1, object P2) : B(3, 4)
+{
+    static void Main()
+    {
+        var c1 = new C(1, 2);
+        System.Console.Write((c1.P1, c1.P2, c1.N1, c1.N2));
+        System.Console.Write("" "");
+
+        var c2 = new C(c1);
+        System.Console.Write((c2.P1, c2.P2, c2.N1, c2.N2));
+        System.Console.Write("" "");
+
+        var c3 = c1 with { P1 = 10, N1 = 30 };
+        System.Console.Write((c3.P1, c3.P2, c3.N1, c3.N2));
+    }
+}";
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            compB.VerifyDiagnostics();
+
+            var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            // call base copy constructor B..ctor(B)
+            verifierB.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_001f:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithOtherOverload()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    public B(C c) : this(30, 40) => throw null;
+}
+public record C(object P1, object P2) : B(3, 4)
+{
+    static void Main()
+    {
+        var c1 = new C(1, 2);
+        System.Console.Write((c1.P1, c1.P2, c1.N1, c1.N2));
+        System.Console.Write("" "");
+
+        var c2 = c1 with { P1 = 10, P2 = 20, N1 = 30, N2 = 40 };
+        System.Console.Write((c2.P1, c2.P2, c2.N1, c2.N2));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4) (10, 20, 30, 40)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            // call base copy constructor B..ctor(B)
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_001f:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithObsoleteCopyConstructor()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    [System.Obsolete(""Obsolete"", true)]
+    public B(B b) { }
+}
+public record C(object P1, object P2) : B(3, 4) { }
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithParamsCopyConstructor()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    public B(B b, params int[] i) : this(30, 40) { }
+}
+public record C(object P1, object P2) : B(3, 4) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().Where(m => m.Name == ".ctor").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B..ctor(System.Object N1, System.Object N2)",
+                "B..ctor(B b, params System.Int32[] i)",
+                "B..ctor(B )"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_001f:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithInitializers()
+        {
+            var source =
+@"public record C(object N1, object N2)
+{
+    private int field = 42;
+    public int Property = 43;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""object C.<N1>k__BackingField""
+  IL_000d:  stfld      ""object C.<N1>k__BackingField""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  ldfld      ""object C.<N2>k__BackingField""
+  IL_0019:  stfld      ""object C.<N2>k__BackingField""
+  IL_001e:  ldarg.0
+  IL_001f:  ldarg.1
+  IL_0020:  ldfld      ""int C.field""
+  IL_0025:  stfld      ""int C.field""
+  IL_002a:  ldarg.0
+  IL_002b:  ldarg.1
+  IL_002c:  ldfld      ""int C.Property""
+  IL_0031:  stfld      ""int C.Property""
+  IL_0036:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+}
+public record C(object P1, object P2) : B(0, 1)
+{
+    public C(C c) // 1, 2
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS1729: 'B' does not contain a constructor that takes 0 arguments
+                //     public C(C c) // 1, 2
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(6, 12),
+                // (6,12): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C c) // 1, 2
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithLocation(6, 12)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject()
+        {
+            var source =
+@"public record C(int I)
+{
+    public int I { get; set; } = 42;
+    public C(C c)
+    {
+    }
+    public static void Main()
+    {
+        var c = new C(1);
+        c.I = 2;
+        var c2 = new C(c);
+        System.Console.Write((c.I, c2.I));
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 0)");
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_WithFieldInitializer()
+        {
+            var source =
+@"public record C(int I)
+{
+    public int I { get; set; } = 42;
+    public int field = 43;
+    public C(C c)
+    {
+        System.Console.Write("" RAN "");
+    }
+    public static void Main()
+    {
+        var c = new C(1);
+        c.I = 2;
+        c.field = 100;
+        System.Console.Write((c.I, c.field));
+
+        var c2 = new C(c);
+        System.Console.Write((c2.I, c2.field));
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(2, 100) RAN (0, 0)");
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ldstr      "" RAN ""
+  IL_000d:  call       ""void System.Console.Write(string)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_DerivesFromObject_GivesParameterToBase()
+        {
+            var source = @"
+public record C(object I)
+{
+    public C(C c) : base(1) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                //     public C(C c) : base(1) { }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("object", "1").WithLocation(4, 21),
+                // (4,21): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C c) : base(1) { }
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(4, 21)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_DerivesFromObject_WithSomeOtherConstructor()
+        {
+            var source = @"
+public record C(object I)
+{
+    public C(int i) : this((object)null) { }
+    public static void Main()
+    {
+        var c = new C((object)null);
+        var c2 = new C(1);
+        var c3 = new C(c);
+        System.Console.Write(""RAN"");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(int)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""C..ctor(object)""
+  IL_0007:  nop
+  IL_0008:  nop
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_DerivesFromObject_UsesThis()
+        {
+            var source =
+@"public record C(int I)
+{
+    public C(C c) : this(c.I)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,21): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C c) : this(c.I)
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithLocation(3, 21)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefined_DerivesFromObject_UsesBase()
+        {
+            var source =
+@"public record C(int I)
+{
+    public C(C c) : base()
+    {
+        System.Console.Write(""RAN "");
+    }
+    public static void Main()
+    {
+        var c = new C(1);
+        System.Console.Write(c.I);
+        System.Console.Write("" "");
+        var c2 = c with { I = 2 };
+        System.Console.Write(c2.I);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 RAN 2", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ldstr      ""RAN ""
+  IL_000d:  call       ""void System.Console.Write(string)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_NoPositionalMembers()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+}
+public record C(object P1) : B(0, 1)
+{
+    public C(C c) // 1, 2
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS1729: 'B' does not contain a constructor that takes 0 arguments
+                //     public C(C c) // 1, 2
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(6, 12),
+                // (6,12): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C c) // 1, 2
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithLocation(6, 12)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_UsesThis()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+}
+public record C(object P1, object P2) : B(0, 1)
+{
+    public C(C c) : this(1, 2) // 1
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C c) : this(1, 2) // 1
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithLocation(6, 21)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_UsesBase()
+        {
+            var source =
+@"public record B(int i)
+{
+}
+public record C(int j) : B(0)
+{
+    public C(C c) : base(1) // 1
+    {
+    }
+}
+#nullable enable
+public record D(int j) : B(0)
+{
+    public D(D? d) : base(1) // 2
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C c) : base(1) // 1
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(6, 21),
+                // (13,22): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public D(D? d) : base(1) // 2
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(13, 22)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefined_WithFieldInitializers()
+        {
+            var source =
+@"public record C(int I)
+{
+}
+public record D(int J) : C(1)
+{
+    public int field = 42;
+    public D(D d) : base(d)
+    {
+        System.Console.Write(""RAN "");
+    }
+    public static void Main()
+    {
+        var d = new D(2);
+        System.Console.Write((d.I, d.J, d.field));
+        System.Console.Write("" "");
+
+        var d2 = d with { I = 10, J = 20 };
+        System.Console.Write((d2.I, d2.J, d.field));
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 42) RAN (10, 20, 42)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("D..ctor(D)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""C..ctor(C)""
+  IL_0007:  nop
+  IL_0008:  nop
+  IL_0009:  ldstr      ""RAN ""
+  IL_000e:  call       ""void System.Console.Write(string)""
+  IL_0013:  nop
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_Synthesized_WithFieldInitializers()
+        {
+            var source =
+@"public record C(int I)
+{
+}
+public record D(int J) : C(1)
+{
+    public int field = 42;
+    public static void Main()
+    {
+        var d = new D(2);
+        System.Console.Write((d.I, d.J, d.field));
+        System.Console.Write("" "");
+
+        var d2 = d with { I = 10, J = 20 };
+        System.Console.Write((d2.I, d2.J, d.field));
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 42) (10, 20, 42)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("D..ctor(D)", @"
+ {
+      // Code size       33 (0x21)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  ldarg.1
+      IL_0002:  call       ""C..ctor(C)""
+      IL_0007:  nop
+      IL_0008:  ldarg.0
+      IL_0009:  ldarg.1
+      IL_000a:  ldfld      ""int D.<J>k__BackingField""
+      IL_000f:  stfld      ""int D.<J>k__BackingField""
+      IL_0014:  ldarg.0
+      IL_0015:  ldarg.1
+      IL_0016:  ldfld      ""int D.field""
+      IL_001b:  stfld      ""int D.field""
+      IL_0020:  ret
+    }
+");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButPrivate()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    private B(B b) { }
+}
+public record C(object P1, object P2) : B(0, 1)
+{
+    private C(C c) : base(2, 3) { } // 1
+}
+public record D(object P1, object P2) : B(0, 1)
+{
+    private D(D d) : base(d) { } // 2
+}
+public record E(object P1, object P2) : B(0, 1); // 3
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,22): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     private C(C c) : base(2, 3) { } // 1
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(7, 22),
+                // (11,22): error CS0122: 'B.B(B)' is inaccessible due to its protection level
+                //     private D(D d) : base(d) { } // 2
+                Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("B.B(B)").WithLocation(11, 22),
+                // (13,15): error CS8867: No accessible copy constructor found in base type 'B'.
+                // public record E(object P1, object P2) : B(0, 1); // 3
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("B").WithLocation(13, 15)
+                );
+            // Should we complain about private user-defined copy constructor on unsealed type (ie. will prevent inheritance)?
+            // https://github.com/dotnet/roslyn/issues/45012
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_InaccessibleToCallerFromPE()
+        {
+            var sourceA =
+@"public record B(object N1, object N2)
+{
+    internal B(B b) { }
+}";
+            var compA = CreateCompilation(sourceA);
+            var refA = compA.EmitToImageReference();
+
+            var sourceB = @"
+record C(object P1, object P2) : B(3, 4); // 1
+";
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compB.VerifyDiagnostics(
+                // (2,8): error CS8867: No accessible copy constructor found in base type 'B'.
+                // record C(object P1, object P2) : B(3, 4); // 1
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 8)
+                );
+
+            var sourceC = @"
+record C(object P1, object P2) : B(3, 4)
+{
+    protected C(C c) : base(c) { } // 1, 2
+}
+";
+            var compC = CreateCompilation(sourceC, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compC.VerifyDiagnostics(
+                // (4,24): error CS7036: There is no argument given that corresponds to the required formal parameter 'N2' of 'B.B(object, object)'
+                //     protected C(C c) : base(c) { } // 1, 2
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "base").WithArguments("N2", "B.B(object, object)").WithLocation(4, 24),
+                // (4,24): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     protected C(C c) : base(c) { } // 1, 2
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(4, 24)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_InaccessibleToCallerFromPE_WithIVT()
+        {
+            var sourceA = @"
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""AssemblyB"")]
+
+public record B(object N1, object N2)
+{
+    internal B(B b) { }
+}";
+            var compA = CreateCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, assemblyName: "AssemblyA", parseOptions: TestOptions.RegularPreview);
+            var refA = compA.EmitToImageReference();
+
+            var sourceB = @"
+record C(int j) : B(3, 4);
+";
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, assemblyName: "AssemblyB");
+            compB.VerifyDiagnostics();
+
+            var sourceC = @"
+record C(int j) : B(3, 4)
+{
+    protected C(C c) : base(c) { }
+}
+";
+            var compC = CreateCompilation(sourceC, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, assemblyName: "AssemblyB");
+            compC.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [WorkItem(45012, "https://github.com/dotnet/roslyn/issues/45012")]
+        public void CopyCtor_UserDefinedButPrivate_InSealedType()
+        {
+            var source =
+@"public record B(int i)
+{
+}
+public sealed record C(int j) : B(0)
+{
+    private C(C c) : base(c)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var copyCtor = comp.GetMembers("C..ctor")[0];
+            Assert.Equal("C..ctor(C c)", copyCtor.ToTestDisplayString());
+            Assert.True(copyCtor.DeclaredAccessibility == Accessibility.Private);
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [WorkItem(45012, "https://github.com/dotnet/roslyn/issues/45012")]
+        public void CopyCtor_UserDefinedButInternal()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+}
+public sealed record Sealed(object P1, object P2) : B(0, 1)
+{
+    internal Sealed(Sealed s) : base(s)
+    {
+    }
+}
+public record Unsealed(object P1, object P2) : B(0, 1)
+{
+    internal Unsealed(Unsealed s) : base(s)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var sealedCopyCtor = comp.GetMembers("Sealed..ctor")[0];
+            Assert.Equal("Sealed..ctor(Sealed s)", sealedCopyCtor.ToTestDisplayString());
+            Assert.True(sealedCopyCtor.DeclaredAccessibility == Accessibility.Internal);
+
+            var unsealedCopyCtor = comp.GetMembers("Unsealed..ctor")[0];
+            Assert.Equal("Unsealed..ctor(Unsealed s)", unsealedCopyCtor.ToTestDisplayString());
+            Assert.True(unsealedCopyCtor.DeclaredAccessibility == Accessibility.Internal);
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_BaseHasRefKind()
+        {
+            var source =
+@"public record B(int i)
+{
+    public B(ref B b) => throw null; // 1, not recognized as copy constructor
+}
+public record C(int j) : B(1)
+{
+    internal C(C c) : base(c)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                //     public B(ref B b) => throw null; // 1, not recognized as copy constructor
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "B").WithLocation(3, 12)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_BaseHasRefKind_WithThisInitializer()
+        {
+            var source =
+@"public record B(int i)
+{
+    public B(ref B b) : this(0) => throw null; // 1, not recognized as copy constructor
+}
+public record C(int j) : B(1)
+{
+    internal C(C c) : base(c)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().Where(m => m.Name == ".ctor").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B..ctor(System.Int32 i)",
+                "B..ctor(ref B b)",
+                "B..ctor(B )"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithPrivateField()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    private int field1 = 100;
+    public int GetField1() => field1;
+}
+public record C(object P1, object P2) : B(3, 4)
+{
+    private int field2 = 200;
+    public int GetField2() => field2;
+
+    static void Main()
+    {
+        var c1 = new C(1, 2);
+        var c2 = new C(c1);
+        System.Console.Write((c2.P1, c2.P2, c2.N1, c2.N2, c2.GetField1(), c2.GetField2()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4, 100, 200)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_001f:  ldarg.0
+  IL_0020:  ldarg.1
+  IL_0021:  ldfld      ""int C.field2""
+  IL_0026:  stfld      ""int C.field2""
+  IL_002b:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_MissingInMetadata()
+        {
+            // IL for `public record B { }`
+            var ilSource = @"
+.class public auto ansi beforefieldinit B extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class B '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    // Removed copy constructor
+    //.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+}
+";
+            var source = @"
+public record C : B {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
+                // public record C : B {
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 15)
+                );
+
+            var source2 = @"
+public record C : B
+{
+    public C(C c) { }
+}";
+            var comp2 = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp2.VerifyDiagnostics(
+                // (4,12): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C c) { }
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithLocation(4, 12)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_InaccessibleInMetadata()
+        {
+            // IL for `public record B { }`
+            var ilSource = @"
+.class public auto ansi beforefieldinit B extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class B '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    // Inaccessible copy constructor
+    .method private hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+}
+";
+            var source = @"
+public record C : B {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
+                // public record C : B {
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 15)
+                );
         }
 
         [Fact]
@@ -3937,6 +4960,9 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
@@ -3993,6 +5019,9 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
@@ -4026,6 +5055,8 @@ End Class
         Set
         End Set
     End Property
+    Public Sub New(a as A)
+    End Sub
 End Class
 Public Class B
     Inherits A
@@ -4048,6 +5079,9 @@ Public Class B
         Set
         End Set
     End Property
+    Public Sub New(b as B)
+        MyBase.New(b)
+    End Sub
 End Class
 ";
             var compA = CreateVisualBasicCompilation(sourceA);
@@ -4060,6 +5094,9 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(object P, object Q, object R)").WithArguments("b", "B.B(B)").WithLocation(1, 9),
                 // (1,42): error CS8864: Records may only inherit from object or another record
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(1, 42)
@@ -6581,12 +7618,14 @@ class Program
         var y = new C();
         WriteLine(x.Equals(y) && x.GetHashCode() == y.GetHashCode());
         WriteLine(((object)x).Equals(y));
+        WriteLine(((System.IEquatable<C>)x).Equals(y));
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
+True
 True");
             verifier.VerifyIL("C.Equals(C)",
 @"{
@@ -6960,7 +7999,8 @@ True");
         public void Equality_07()
         {
             var source =
-@"using static System.Console;
+@"using System;
+using static System.Console;
 record A;
 record B : A;
 record C : B;
@@ -6987,6 +8027,16 @@ class Program
         WriteLine(((B)new C()).Equals(new B()));
         WriteLine(((B)new C()).Equals(new C()));
         WriteLine(new C().Equals((A)new C()));
+        WriteLine(((IEquatable<A>)new B()).Equals(new A()));
+        WriteLine(((IEquatable<A>)new B()).Equals(new B()));
+        WriteLine(((IEquatable<A>)new B()).Equals(new C()));
+        WriteLine(((IEquatable<A>)new C()).Equals(new A()));
+        WriteLine(((IEquatable<A>)new C()).Equals(new B()));
+        WriteLine(((IEquatable<A>)new C()).Equals(new C()));
+        WriteLine(((IEquatable<B>)new C()).Equals(new A()));
+        WriteLine(((IEquatable<B>)new C()).Equals(new B()));
+        WriteLine(((IEquatable<B>)new C()).Equals(new C()));
+        WriteLine(((IEquatable<C>)new C()).Equals(new C()));
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
@@ -7000,6 +8050,16 @@ True
 False
 False
 False
+True
+False
+True
+False
+False
+False
+True
+False
+False
+True
 True
 False
 True
@@ -7070,7 +8130,9 @@ True");
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
 
-            // Should include <>Clone.
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.<>Clone"), isOverride: false);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.<>Clone"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.<>Clone"), isOverride: true);
 
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.GetHashCode"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.GetHashCode"), isOverride: true);
@@ -7798,6 +8860,577 @@ record C
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
             comp.VerifyEmitDiagnostics(
                 );
+        }
+
+        [Fact]
+        public void IEquatableT_01()
+        {
+            var source =
+@"record A<T>;
+record B : A<int>;
+class Program
+{
+    static void F<T>(System.IEquatable<T> t)
+    {
+    }
+    static void M<T>()
+    {
+        F(new A<T>());
+        F(new B());
+        F<A<int>>(new B());
+        F<B>(new B());
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'Program.F<T>(IEquatable<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(new B());
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.IEquatable<T>)").WithLocation(11, 9));
+        }
+
+        [Fact]
+        public void IEquatableT_02()
+        {
+            var source =
+@"using System;
+record A;
+record B<T> : A;
+record C : B<int>;
+class Program
+{
+    static string F<T>(IEquatable<T> t)
+    {
+        return typeof(T).Name;
+    }
+    static void Main()
+    {
+        Console.WriteLine(F(new A()));
+        Console.WriteLine(F<A>(new C()));
+        Console.WriteLine(F<B<int>>(new C()));
+        Console.WriteLine(F<C>(new C()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"A
+A
+B`1
+C");
+        }
+
+        [Fact]
+        public void IEquatableT_03()
+        {
+            var source =
+@"#nullable enable
+using System;
+record A<T> : IEquatable<A<T>>
+{
+}
+record B : A<object>, IEquatable<A<object>>, IEquatable<B?>;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B?>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B?>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_04()
+        {
+            var source =
+@"using System;
+record A<T>
+{
+    internal static bool Report(string s) { Console.WriteLine(s); return false; }
+    public virtual bool Equals(A<T> other) => Report(""A<T>.Equals(A<T>)"");
+}
+record B : A<object>
+{
+    public override bool Equals(A<object> other) => Report(""B.Equals(A<object>)"");
+    public virtual bool Equals(B other) => Report(""B.Equals(B)"");
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new A<object>();
+        var b = new B();
+        _ = a.Equals(b);
+        _ = ((A<object>)b).Equals(b);
+        _ = b.Equals(a);
+        _ = b.Equals(b);
+        _ = ((IEquatable<A<object>>)a).Equals(b);
+        _ = ((IEquatable<A<object>>)b).Equals(b);
+        _ = ((IEquatable<B>)b).Equals(b);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(A<object>)
+B.Equals(B)
+A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(B)");
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<B>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_05()
+        {
+            var source =
+@"using System;
+record A<T> : IEquatable<A<T>>
+{
+    internal static bool Report(string s) { Console.WriteLine(s); return false; }
+    public virtual bool Equals(A<T> other) => Report(""A<T>.Equals(A<T>)"");
+}
+record B : A<object>, IEquatable<A<object>>, IEquatable<B>
+{
+    public override bool Equals(A<object> other) => Report(""B.Equals(A<object>)"");
+    public virtual bool Equals(B other) => Report(""B.Equals(B)"");
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new A<object>();
+        var b = new B();
+        _ = a.Equals(b);
+        _ = ((A<object>)b).Equals(b);
+        _ = b.Equals(a);
+        _ = b.Equals(b);
+        _ = ((IEquatable<A<object>>)a).Equals(b);
+        _ = ((IEquatable<A<object>>)b).Equals(b);
+        _ = ((IEquatable<B>)b).Equals(b);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(A<object>)
+B.Equals(B)
+A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(B)");
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_06()
+        {
+            var source =
+@"using System;
+record A<T> : IEquatable<A<T>>
+{
+    internal static bool Report(string s) { Console.WriteLine(s); return false; }
+    bool IEquatable<A<T>>.Equals(A<T> other) => Report(""A<T>.Equals(A<T>)"");
+}
+record B : A<object>, IEquatable<A<object>>, IEquatable<B>
+{
+    bool IEquatable<A<object>>.Equals(A<object> other) => Report(""B.Equals(A<object>)"");
+    bool IEquatable<B>.Equals(B other) => Report(""B.Equals(B)"");
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new A<object>();
+        var b = new B();
+        _ = a.Equals(b);
+        _ = ((A<object>)b).Equals(b);
+        _ = b.Equals(a);
+        _ = b.Equals(b);
+        _ = ((IEquatable<A<object>>)a).Equals(b);
+        _ = ((IEquatable<A<object>>)b).Equals(b);
+        _ = ((IEquatable<B>)b).Equals(b);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"A<T>.Equals(A<T>)
+B.Equals(A<object>)
+B.Equals(B)");
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "System.IEquatable<B>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_07()
+        {
+            var source =
+@"using System;
+record A<T> : IEquatable<B1>, IEquatable<B2>
+{
+    bool IEquatable<B1>.Equals(B1 other) => false;
+    bool IEquatable<B2>.Equals(B2 other) => false;
+}
+record B1 : A<object>;
+record B2 : A<int>;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<B1>", "System.IEquatable<B2>", "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<B1>", "System.IEquatable<B2>", "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B1");
+            AssertEx.Equal(new[] { "System.IEquatable<B1>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<B2>", "System.IEquatable<A<System.Object>>", "System.IEquatable<B1>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B2");
+            AssertEx.Equal(new[] { "System.IEquatable<B2>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<B1>", "System.IEquatable<A<System.Int32>>", "System.IEquatable<B2>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_08()
+        {
+            var source =
+@"interface I<T>
+{
+}
+record A<T> : I<A<T>>
+{
+}
+record B : A<object>, I<A<object>>, I<B>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "I<A<T>>", "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "I<A<T>>", "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "I<A<System.Object>>", "I<B>", "System.IEquatable<B>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Object>>", "I<A<System.Object>>", "I<B>", "System.IEquatable<B>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_09()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual int GetHashCode() => 0;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"record A<T>;
+record B : A<int>;
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<B>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Int32>>[missing]", "System.IEquatable<B>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_10()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual int GetHashCode() => 0;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"record A<T> : System.IEquatable<A<T>>;
+record B : A<int>, System.IEquatable<B>;
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(1, 8),
+                // (1,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(1, 8),
+                // (1,15): error CS8864: Records may only inherit from object or another record
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "System.IEquatable<A<T>>").WithLocation(1, 15),
+                // (1,22): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<A<T>>").WithArguments("IEquatable<>", "System").WithLocation(1, 22),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,27): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<B>").WithArguments("IEquatable<>", "System").WithLocation(2, 27));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<B>", "System.IEquatable<B>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Int32>>[missing]", "System.IEquatable<B>", "System.IEquatable<B>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_11()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual int GetHashCode() => 0;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"using System;
+record A<T> : IEquatable<A<T>>;
+record B : A<int>, IEquatable<B>;
+";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
+                // (2,15): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<A<T>>").WithArguments("IEquatable<>").WithLocation(2, 15),
+                // (2,15): error CS8864: Records may only inherit from object or another record
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "IEquatable<A<T>>").WithLocation(2, 15),
+                // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
+                // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
+                // (3,20): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<B>").WithArguments("IEquatable<>").WithLocation(3, 20));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "IEquatable<B>", "System.IEquatable<B>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Int32>>[missing]", "IEquatable<B>", "System.IEquatable<B>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_12()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object other) => false;
+        public virtual int GetHashCode() => 0;
+    }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T>
+    {
+        bool Equals(T other);
+        void Other();
+    }
+}";
+            var comp = CreateEmptyCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source1 =
+@"record A;
+class Program
+{
+    static void Main()
+    {
+        System.IEquatable<A> a = new A();
+        _ = a.Equals(null);
+    }
+}";
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0535: 'A' does not implement interface member 'IEquatable<A>.Other()'
+                // record A;
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("A", "System.IEquatable<A>.Other()").WithLocation(1, 8));
+        }
+
+        [Fact]
+        public void IEquatableT_13()
+        {
+            var source =
+@"record A
+{
+    internal virtual bool Equals(A other) => false;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0737: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is not public.
+                // record A
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(1, 8));
+        }
+
+        [Fact]
+        public void IEquatableT_14()
+        {
+            var source =
+@"record A
+{
+    public bool Equals(A other) => false;
+}
+record B : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,8): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
+                // record B : A
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(A?)", "A.Equals(A)").WithLocation(5, 8));
+        }
+
+        [WorkItem(45026, "https://github.com/dotnet/roslyn/issues/45026")]
+        [Fact]
+        public void IEquatableT_15()
+        {
+            var source =
+@"using System;
+record R
+{
+    bool IEquatable<R>.Equals(R other) => false;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IEquatableT_16()
+        {
+            var source =
+@"using System;
+class A<T>
+{
+    record B<U> : IEquatable<B<T>>
+    {
+        bool IEquatable<B<T>>.Equals(B<T> other) => false;
+        bool IEquatable<B<U>>.Equals(B<U> other) => false;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0695: 'A<T>.B<U>' cannot implement both 'IEquatable<A<T>.B<T>>' and 'IEquatable<A<T>.B<U>>' because they may unify for some type parameter substitutions
+                //     record B<U> : IEquatable<B<T>>
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "B").WithArguments("A<T>.B<U>", "System.IEquatable<A<T>.B<T>>", "System.IEquatable<A<T>.B<U>>").WithLocation(4, 12));
         }
 
         [Fact]

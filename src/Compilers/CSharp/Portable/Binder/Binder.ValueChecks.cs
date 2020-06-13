@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    // If we got here this should be a pttern indexer taking a Range,
+                    // If we got here this should be a pattern indexer taking a Range,
                     // meaning that the pattern symbol must be a method (either Slice or Substring)
                     return CheckMethodReturnValueKind(
                         (MethodSymbol)patternIndexer.PatternSymbol,

@@ -751,7 +751,7 @@ class C
         }
 
         [Fact]
-        public void Equality_CallingConvetionNotEqual()
+        public void Equality_CallingConventionNotEqual()
         {
             var comp = CreateFunctionPointerCompilation(@"
 class C
@@ -893,7 +893,7 @@ class C
         }
 
         [Fact]
-        public void Equality_DifferringRefKinds()
+        public void Equality_DifferingRefKinds()
         {
             var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
@@ -961,7 +961,7 @@ class C
         }
 
         [Fact]
-        public void DifferringModOpts()
+        public void DifferingModOpts()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit Test1
