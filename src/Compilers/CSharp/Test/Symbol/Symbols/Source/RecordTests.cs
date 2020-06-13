@@ -1508,7 +1508,8 @@ class C
                 parseOptions: TestOptions.RegularPreview,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 sourceSymbolValidator: symbolValidator,
-                symbolValidator: symbolValidator);
+                symbolValidator: symbolValidator,
+                verify: Verification.Fails /* init-only */);
         }
 
         [Fact]
