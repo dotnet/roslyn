@@ -6818,7 +6818,7 @@ public class Test
         }
 
         [Fact]
-        public void TestOverridenObsoleteSetterOnAttributes()
+        public void TestOverriddenObsoleteSetterOnAttributes()
         {
             var source = @"
 using System;

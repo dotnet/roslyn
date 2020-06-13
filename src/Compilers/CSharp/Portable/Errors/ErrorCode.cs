@@ -1833,6 +1833,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRecordBase = 8864,
         ERR_BadInheritanceFromRecord = 8865,
         ERR_BadRecordMemberForPositionalParameter = 8866,
+        ERR_NoCopyConstructorInBaseType = 8867,
+        ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
 
         #endregion
 
