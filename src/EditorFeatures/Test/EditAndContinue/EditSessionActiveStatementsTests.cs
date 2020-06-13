@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 var solution = Workspace.CurrentSolution;
 
-                var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
+                var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>(MockBehavior.Strict);
                 var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
                 var debuggingSession = new DebuggingSession(solution, mockCompilationOutputsProvider);
