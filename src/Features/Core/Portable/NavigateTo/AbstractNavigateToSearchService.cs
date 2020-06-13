@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 var solution = document.Project.Solution;
 
-                var result = await client.TryRunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
                     solution,
@@ -46,10 +46,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(r => r.Rehydrate(solution));
-                }
+                return result.SelectAsArray(r => r.Rehydrate(solution));
             }
 
             return await SearchDocumentInCurrentProcessAsync(
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 var solution = project.Solution;
 
-                var result = await client.TryRunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                     solution,
@@ -72,10 +69,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(r => r.Rehydrate(solution));
-                }
+                return result.SelectAsArray(r => r.Rehydrate(solution));
             }
 
             return await SearchProjectInCurrentProcessAsync(

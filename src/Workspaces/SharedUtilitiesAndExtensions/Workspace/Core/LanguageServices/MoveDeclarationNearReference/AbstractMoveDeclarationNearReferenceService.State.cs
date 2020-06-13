@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             public ILocalSymbol LocalSymbol { get; private set; }
             public SyntaxNode OutermostBlock { get; private set; }
             public SyntaxNode InnermostBlock { get; private set; }
-            public SyntaxList<TStatementSyntax> OutermostBlockStatements { get; private set; }
-            public SyntaxList<TStatementSyntax> InnermostBlockStatements { get; private set; }
+            public IReadOnlyList<SyntaxNode> OutermostBlockStatements { get; private set; }
+            public IReadOnlyList<SyntaxNode> InnermostBlockStatements { get; private set; }
             public TStatementSyntax FirstStatementAffectedInInnermostBlock { get; private set; }
             public int IndexOfDeclarationStatementInInnermostBlock { get; private set; }
             public int IndexOfFirstStatementAffectedInInnermostBlock { get; private set; }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                OutermostBlock = DeclarationStatement.Parent;
+                OutermostBlock = syntaxFacts.GetStatementContainer(DeclarationStatement);
                 if (!syntaxFacts.IsExecutableBlock(OutermostBlock))
                 {
                     return false;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
                 var allAffectedStatements = new HashSet<TStatementSyntax>(referencingStatements.SelectMany(
                     expr => expr.GetAncestorsOrThis<TStatementSyntax>()));
-                FirstStatementAffectedInInnermostBlock = InnermostBlockStatements.FirstOrDefault(allAffectedStatements.Contains);
+                FirstStatementAffectedInInnermostBlock = InnermostBlockStatements.Cast<TStatementSyntax>().FirstOrDefault(allAffectedStatements.Contains);
 
                 if (FirstStatementAffectedInInnermostBlock == null)
                 {

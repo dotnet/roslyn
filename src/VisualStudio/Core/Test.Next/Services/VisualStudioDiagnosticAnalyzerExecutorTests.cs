@@ -149,7 +149,7 @@ End Class";
                 var service = solution.Workspace.Services.GetService<IRemotableDataService>();
 
                 var source = new CancellationTokenSource();
-                using var session = new KeepAliveSession(new InvokeThrowsCancellationConnection(source), service);
+                using var session = new InvokeThrowsCancellationConnection(source);
                 var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(session, solution, source.Token));
                 Assert.Equal(exception.CancellationToken, source.Token);
 
@@ -159,7 +159,7 @@ End Class";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestHostAnalyzers()
+        public async Task TestHostAnalyzers_OutOfProc()
         {
             var code = @"class Test
 {
@@ -174,7 +174,8 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 var options = workspace.Options
-                    .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
+                    .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion))
+                    .WithChangedOption(Microsoft.CodeAnalysis.Test.Utilities.RemoteHost.RemoteHostOptions.RemoteHostTest, true);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
 
@@ -184,8 +185,8 @@ End Class";
                 var runner = CreateAnalyzerRunner();
 
                 var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
-                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
                 // no result for open file only analyzer unless forced
                 var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
@@ -269,9 +270,8 @@ End Class";
                 TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider());
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                                     .WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
-                                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
 
             return workspace;
         }
@@ -325,7 +325,7 @@ End Class";
             public override Workspace Workspace => _workspace;
         }
 
-        private sealed class InvokeThrowsCancellationConnection : RemoteHostClient.Connection
+        private sealed class InvokeThrowsCancellationConnection : RemoteServiceConnection
         {
             private readonly CancellationTokenSource _source;
 
@@ -334,22 +334,27 @@ End Class";
                 _source = source;
             }
 
-            public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+            public override void Dispose()
+            {
+            }
+
+            public override Task RunRemoteAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
                 // cancel and throw cancellation exception
                 _source.Cancel();
                 _source.Token.ThrowIfCancellationRequested();
 
-                throw Utilities.ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable;
             }
 
-            public override Task<T> InvokeAsync<T>(
-                string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
+            public override Task<T> RunRemoteAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
+            {
+                // cancel and throw cancellation exception
+                _source.Cancel();
+                _source.Token.ThrowIfCancellationRequested();
 
-            public override Task<T> InvokeAsync<T>(
-                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
+                throw ExceptionUtilities.Unreachable;
+            }
         }
     }
 }

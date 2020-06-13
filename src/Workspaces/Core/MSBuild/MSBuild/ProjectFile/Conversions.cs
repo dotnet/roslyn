@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             && (string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals("On", value, StringComparison.OrdinalIgnoreCase));
 
-
         public static int ToInt(string value)
         {
             if (value == null)

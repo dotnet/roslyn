@@ -208,6 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return (switchExpression.OpenBraceToken, switchExpression.CloseBraceToken);
                 case PropertyPatternClauseSyntax property:
                     return (property.OpenBraceToken, property.CloseBraceToken);
+#if !CODE_STYLE
+                case WithExpressionSyntax withExpr:
+                    return (withExpr.Initializer.OpenBraceToken, withExpr.Initializer.CloseBraceToken);
+#endif
             }
 
             return default;
@@ -1030,6 +1034,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             deconstructionLeft = null;
             return false;
         }
+
+        public static bool IsTopLevelOfUsingAliasDirective(this SyntaxToken node)
+            => node switch
+            {
+                { Parent: NameEqualsSyntax { Parent: UsingDirectiveSyntax _ } } => true,
+                { Parent: IdentifierNameSyntax { Parent: UsingDirectiveSyntax _ } } => true,
+                _ => false
+            };
 
         public static T WithCommentsFrom<T>(this T node, SyntaxToken leadingToken, SyntaxToken trailingToken)
             where T : SyntaxNode

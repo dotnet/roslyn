@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 var node = Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken);
 
                 // warn when inlining into a conditional expression, as the inlined expression will not be executed.
-                if (semanticModel.GetSymbolInfo(o).Symbol is IMethodSymbol { IsConditional: true })
+                if (semanticModel.GetSymbolInfo(o, cancellationToken).Symbol is IMethodSymbol { IsConditional: true })
                 {
                     node = node.WithAdditionalAnnotations(
                         WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
@@ -366,6 +366,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 scope = parentExpressions.LastOrDefault().Parent;
             }
 
+            if (scope.IsKind(SyntaxKind.GlobalStatement))
+            {
+                scope = scope.Parent;
+            }
+
             return scope;
         }
 
@@ -437,6 +442,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             {
                 var newLabeledStatement = labeledStatement.ReplaceNode(newLocalDeclaration, SyntaxFactory.ParseStatement(""));
                 return newScope.ReplaceNode(labeledStatement, newLabeledStatement);
+            }
+
+            // If the local is parented by a global statement, we need to remove the parent global statement.
+            if (newLocalDeclaration.IsParentKind(SyntaxKind.GlobalStatement, out GlobalStatementSyntax globalStatement))
+            {
+                return newScope.RemoveNode(globalStatement, SyntaxRemoveOptions.KeepNoTrivia);
             }
 
             return newScope.RemoveNode(newLocalDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
