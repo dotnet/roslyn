@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  * Every value parameter (non-ref or similar) from the delegate type has an implicit conversion to the corresponding
                 //    target parameter
                 //  * Every ref or similar parameter has an identity conversion to the corresponding target parameter
-                // However, the delegate compatiblity requirements are stricter:
+                // However, the delegate compatibility requirements are stricter:
                 //  * Every value parameter (non-ref or similar) from the delegate type has an implicit _reference_ conversion to the
                 //    corresponding target parameter.
                 //  * Every ref or similar parameter has an identity conversion to the corresponding target parameter
