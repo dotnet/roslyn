@@ -50,7 +50,6 @@ End Class
 ")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
         Public Async Function TestRemoveByValMoreThanOneModifier() As Task
             Await VerifyCodeFixAsync(
