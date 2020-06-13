@@ -39,9 +39,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
 
         Protected Overrides Async Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim node = DirectCast(root.FindNode(diagnostics(0).AdditionalLocations(0).SourceSpan), ParameterSyntax)
-            Dim tokenList = SyntaxFactory.TokenList(node.Modifiers.Where(Function(m) Not m.IsKind(SyntaxKind.ByValKeyword)))
-            editor.ReplaceNode(node, node.WithModifiers(tokenList))
+            For Each diagnostic In diagnostics
+                Dim node = DirectCast(root.FindNode(diagnostic.AdditionalLocations(0).SourceSpan), ParameterSyntax)
+                Dim tokenList = SyntaxFactory.TokenList(node.Modifiers.Where(Function(m) Not m.IsKind(SyntaxKind.ByValKeyword)))
+                editor.ReplaceNode(node, node.WithModifiers(tokenList))
+            Next
         End Function
 
         Private Class MyCodeAction
