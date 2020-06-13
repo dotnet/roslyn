@@ -18,8 +18,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub SessionStopsWhenPresenterIsDismissed()
             Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
-            Dim presenter = New Mock(Of IIntelliSensePresenterSession)
-            Dim controller = New Mock(Of IController(Of Model))
+            Dim presenter = New Mock(Of IIntelliSensePresenterSession)(MockBehavior.Strict)
+            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
+            controller.Setup(Sub(c) c.StopModelComputation())
             Dim session = New Session(Of IController(Of Model), Model, IIntelliSensePresenterSession)(
                 controller.Object,
                 New ModelComputation(Of Model)(threadingContext, controller.Object, TaskScheduler.Default),
@@ -33,8 +34,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         Public Sub PresenterIsDismissedWhenSessionIsStopped()
             Dim threadingContext = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue(Of IThreadingContext)
-            Dim presenter = New Mock(Of IIntelliSensePresenterSession)
-            Dim controller = New Mock(Of IController(Of Model))
+            Dim presenter = New Mock(Of IIntelliSensePresenterSession)(MockBehavior.Strict)
+            presenter.Setup(Sub(p) p.Dismiss())
+            Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             Dim session = New Session(Of IController(Of Model), Model, IIntelliSensePresenterSession)(
                 controller.Object,
                 New ModelComputation(Of Model)(threadingContext, controller.Object, TaskScheduler.Default),
