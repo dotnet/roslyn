@@ -3197,17 +3197,17 @@ Class Program
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo(s:="""", i:=1, d:=CType(b, {0}))
+        Foo(s:="""", i:=1, d:={0})
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "String"), index:=0,
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "CStr(b)"), index:=0,
                 title:=String.Format(FeaturesResources.Convert_type_to_0, "String"))
 
-            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=1,
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "CType(b, Derived)"), index:=1,
                 title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived"))
 
-            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=2,
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "CType(b, Derived2)"), index:=2,
                 title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived2"))
         End Function
 
