@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
                 context.RegisterCodeFix(New MyCodeAction(
                     VisualBasicAnalyzersResources.Remove_ByVal,
                     Function(ct) FixAsync(context.Document, diagnostic, ct)),
-                    context.Diagnostics)
+                    diagnostic)
             Next
             Return Task.CompletedTask
         End Function
