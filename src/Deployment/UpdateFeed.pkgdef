@@ -1,0 +1,5 @@
+﻿﻿[$RootKey$\ExtensionManager\Repositories\{03DCDE40-2352-4E87-AA70-7D23A150613C}]
+@="https://roslyn.blob.core.windows.net/vsix/$feature$/atom.xml"
+"Priority"=dword:00000064
+"Protocol"="Atom Feed"
+"DisplayName"="Roslyn - $feature$"

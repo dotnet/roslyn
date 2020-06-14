@@ -13,11 +13,18 @@
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+
+    <!-- Git info -->
+    <GitSha>$(BUILD_SOURCEVERSION)</GitSha>
+    <GitSha Condition="'$(GitSha)' != ''">$(GitSha.Substring(0, 9))</GitSha>
+    <GitBranch>$(BUILD_SOURCEBRANCH.Replace('refs/heads/', ''))</GitBranch>
+    <GitBranchName>$(BUILD_SOURCEBRANCHNAME)</GitBranchName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
+    <None Include="UpdateFeed.pkgdef" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Compilers\Extension\Roslyn.Compilers.Extension.csproj">
@@ -48,4 +55,30 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
+  <Target Name="UpdateFeed" BeforeTargets="PrepareForBuild" Condition="'$(GitBranchName)' != ''" Inputs="UpdateFeed.pkgdef" Outputs="$(IntermediateOutputPath)\UpdateFeed.pkgdef">
+    <PropertyGroup>
+      <UpdateFeedContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\UpdateFeed.pkgdef'))</UpdateFeedContent>
+      <UpdateFeedContent>$(UpdateFeedContent.Replace('$feature$', '$(GitBranchName)'))</UpdateFeedContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(IntermediateOutputPath)\UpdateFeed.pkgdef"
+                      Lines="$(UpdateFeedContent)" 
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Content Include="$(IntermediateOutputPath)\UpdateFeed.pkgdef" 
+               Link="UpdateFeed.pkgdef"
+               CopyToOutputDirectory="PreserveNewest" 
+               IncludeInVSIX="true" />
+    </ItemGroup>
+  </Target>
+  <Target Name="GetMoreInfoUrl" Returns="@(MoreInfoUrl -> Distinct())">
+    <ItemGroup>
+      <MoreInfoUrl Include="https://github.com/dotnet/roslyn/commits/$(GitSha)" UseLiteral="True" />
+    </ItemGroup>
+  </Target>
+  <Target Name="GetReleaseNotesUrl" Returns="@(ReleaseNotesUrl -> Distinct())">
+    <ItemGroup>
+      <ReleaseNotesUrl Include="https://github.com/dotnet/roslyn/compare/$(GitBranch)...$(GitSha)" UseLiteral="True" />
+    </ItemGroup>
+  </Target>
 </Project>

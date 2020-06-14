@@ -4,7 +4,9 @@
     <Identity Id="f6d4ae9d-5ca3-4e0b-9035-9457cccf53fa" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Roslyn Insiders (Without Tool Window)</DisplayName>
     <Description>Pre-release build of Roslyn compilers and language services.</Description>
+    <MoreInfo>|%CurrentProject%;GetMoreInfoUrl|</MoreInfo>
     <License>EULA.rtf</License>
+    <ReleaseNotes>|%CurrentProject%;GetReleaseNotesUrl|</ReleaseNotes>
     <AllowClientRole>true</AllowClientRole>
   </Metadata>
   <Installation>
@@ -47,6 +49,9 @@
                  Location="|ExpressionEvaluatorPackage;VSIXContainerProjectOutputGroup|" 
                  Id="21BAC26D-2935-4D0D-A282-AD647E2592B5" />
   </Dependencies>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="File" Path="UpdateFeed.pkgdef" />
+  </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,17.0)" DisplayName="Visual Studio core editor" />
   </Prerequisites>
