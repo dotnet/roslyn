@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
@@ -26,7 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         protected const string ProviderName = "Roslyn";
 
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public CodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
+        public CodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(codeFixService, codeRefactoringService, solutionProvider)
         {
         }
 
@@ -45,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         /// <returns></returns>
         public async Task<SumType<Command, CodeAction>[]> HandleAsync(CodeActionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var result = await base.HandleRequestAsync(requestContext.Context, param, requestContext.GetClientCapabilities(), null, cancellationToken).ConfigureAwait(false);
+            var result = await base.HandleRequestAsync(param, requestContext.GetClientCapabilities(), null, cancellationToken).ConfigureAwait(false);
 
             var commands = new ArrayBuilder<SumType<Command, CodeAction>>();
             foreach (var resultObj in result)
@@ -71,8 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RoslynCodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
-            : base(codeFixService, codeRefactoringService)
+        public RoslynCodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(solutionProvider, codeFixService, codeRefactoringService)
         {
         }
     }
@@ -82,8 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
-            : base(codeFixService, codeRefactoringService)
+        public CSharpCodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(solutionProvider, codeFixService, codeRefactoringService)
         {
         }
     }
@@ -93,8 +95,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualBasicCodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
-            : base(codeFixService, codeRefactoringService)
+        public VisualBasicCodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(solutionProvider, codeFixService, codeRefactoringService)
         {
         }
     }
@@ -104,8 +106,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
-            : base(codeFixService, codeRefactoringService)
+        public TypeScriptCodeActionsHandlerShim(ILspSolutionProvider solutionProvider, ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
+            : base(solutionProvider, codeFixService, codeRefactoringService)
         {
         }
     }

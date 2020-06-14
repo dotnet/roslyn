@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_AddressOfMethodGroup = MessageBase + 12780,
         IDS_FeatureInitOnlySetters = MessageBase + 12781,
         IDS_FeatureRecords = MessageBase + 12782,
+        IDS_FeatureNullPointerConstantPattern = MessageBase + 12783,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -352,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNotNullGenericTypeConstraint:// semantic check
                 case MessageID.IDS_FeatureSwitchExpression:
                 case MessageID.IDS_FeatureAsyncUsing:
+                case MessageID.IDS_FeatureNullPointerConstantPattern: //semantic check
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

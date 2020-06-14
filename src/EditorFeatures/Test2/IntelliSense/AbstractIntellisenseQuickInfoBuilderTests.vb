@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                Dim trackingSpan = New Mock(Of ITrackingSpan)(MockBehavior.Strict) With {
                     .DefaultValue = DefaultValue.Mock
                 }
 
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 Dim codeAnalysisQuickInfoItem = Await quickInfoService.GetQuickInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(False)
 
-                Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                Dim trackingSpan = New Mock(Of ITrackingSpan)(MockBehavior.Strict) With {
                     .DefaultValue = DefaultValue.Mock
                 }
 
