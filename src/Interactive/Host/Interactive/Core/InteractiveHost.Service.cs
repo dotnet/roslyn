@@ -231,19 +231,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                     return;
                 }
 
-                try
-                {
-                    var serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                    await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
-                    var jsonRPC = JsonRpc.Attach(serverStream, new Service(invokeOnMainThread));
-                    await jsonRPC.Completion.ConfigureAwait(false);
-                    // the client can instantiate interactive host now:
-                    s_clientExited.Wait();
-                }
-                finally
-                {
-                    // TODO:(miziga): delete and make a finally or catch statement for the try
-                }                // force exit even if there are foreground threads running:
+                var serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
+
+                var jsonRpc = CreateRpc(serverStream, incomingCallTarget: new Service(invokeOnMainThread));
+
+                await jsonRpc.Completion.ConfigureAwait(false);
+
+                // the client can instantiate interactive host now:
+                s_clientExited.Wait();
+
                 Environment.Exit(0);
             }
 
@@ -253,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             // Used by ResetInteractive - consider improving (we should remember the parameters for auto-reset, e.g.)
 
-            public async Task<RemoteExecutionResult> SetPathsAsync(
+            public async Task<RemoteExecutionResult.Data> SetPathsAsync(
                 string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
                 string? baseDirectory)
@@ -267,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     _lastTask = SetPathsAsync(_lastTask, completionSource, referenceSearchPaths, sourceSearchPaths, baseDirectory);
                 }
 
-                return await completionSource.Task.ConfigureAwait(false);
+                return (await completionSource.Task.ConfigureAwait(false)).Serialize();
             }
 
             private async Task<EvaluationState> SetPathsAsync(
@@ -304,14 +301,15 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Reads given initialization file (.rsp) and loads and executes all assembly references and files, respectively specified in it.
             /// Execution is performed on the UI thread.
             /// </summary>
-            public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFilePath, bool isRestarting)
+            public async Task<RemoteExecutionResult.Data> InitializeContextAsync(string? initializationFilePath, bool isRestarting)
             {
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
                 {
                     _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFilePath, isRestarting);
                 }
-                return await completionSource.Task.ConfigureAwait(false);
+
+                return (await completionSource.Task.ConfigureAwait(false)).Serialize();
             }
 
             /// <summary>
@@ -324,6 +322,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     _lastTask = AddReferenceAsync(_lastTask, completionSource, reference);
                 }
+
                 return await completionSource.Task.ConfigureAwait(false);
             }
 
@@ -358,14 +357,14 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Executes given script snippet on the UI thread in the context of the current session.
             /// </summary>
-            public async Task<RemoteExecutionResult> ExecuteAsync(string text)
+            public async Task<RemoteExecutionResult.Data> ExecuteAsync(string text)
             {
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
                 {
                     _lastTask = ExecuteAsync(completionSource, _lastTask, text);
                 }
-                return await completionSource.Task.ConfigureAwait(false);
+                return (await completionSource.Task.ConfigureAwait(false)).Serialize();
             }
 
             private async Task<EvaluationState> ExecuteAsync(TaskCompletionSource<RemoteExecutionResult> completionSource, Task<EvaluationState> lastTask, string text)
@@ -415,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Remote API. Executes given script file on the UI thread in the context of the current session.
             /// </summary>
-            public async Task<RemoteExecutionResult> ExecuteFileAsync(string path)
+            public async Task<RemoteExecutionResult.Data> ExecuteFileAsync(string path)
             {
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
 
@@ -423,40 +422,37 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     _lastTask = ExecuteFileAsync(completionSource, _lastTask, path);
                 }
-                return await completionSource.Task.ConfigureAwait(false);
+
+                return (await completionSource.Task.ConfigureAwait(false)).Serialize();
             }
 
-            private EvaluationState CompleteExecution(EvaluationState state, TaskCompletionSource<RemoteExecutionResult> completionSource, bool success)
+            private EvaluationState CompleteExecution(EvaluationState state, TaskCompletionSource<RemoteExecutionResult> completionSource, bool success, RemoteInitializationResult? initResult = null)
             {
                 // send any updates to the host object and current directory back to the client:
                 var globals = GetServiceState().Globals;
-                var currentSourcePaths = globals.SourcePaths.ToArray();
-                var currentReferencePaths = globals.ReferencePaths.ToArray();
-                var currentWorkingDirectory = Directory.GetCurrentDirectory();
+                var newSourcePaths = globals.SourcePaths.ToImmutableArray();
+                var newReferencePaths = globals.ReferencePaths.ToImmutableArray();
+                var newWorkingDirectory = Directory.GetCurrentDirectory();
 
-                var changedSourcePaths = currentSourcePaths.SequenceEqual(state.SourceSearchPaths) ? null : currentSourcePaths;
-                var changedReferencePaths = currentReferencePaths.SequenceEqual(state.ReferenceSearchPaths) ? null : currentReferencePaths;
-                var changedWorkingDirectory = currentWorkingDirectory == state.WorkingDirectory ? null : currentWorkingDirectory;
+                var changedSourcePaths = newSourcePaths.SequenceEqual(state.SourceSearchPaths) ? default : newSourcePaths;
+                var changedReferencePaths = newReferencePaths.SequenceEqual(state.ReferenceSearchPaths) ? default : newReferencePaths;
+                var changedWorkingDirectory = (newWorkingDirectory == state.WorkingDirectory) ? null : newWorkingDirectory;
 
-                completionSource.TrySetResult(new RemoteExecutionResult(success, changedSourcePaths, changedReferencePaths, changedWorkingDirectory));
+                completionSource.TrySetResult(new RemoteExecutionResult(success, changedSourcePaths, changedReferencePaths, changedWorkingDirectory, initResult));
 
                 // no changes in resolvers:
-                if (changedReferencePaths == null && changedSourcePaths == null && changedWorkingDirectory == null)
+                if (changedReferencePaths.IsDefault && changedSourcePaths.IsDefault && changedWorkingDirectory == null)
                 {
                     return state;
                 }
 
-                var newSourcePaths = ImmutableArray.CreateRange(currentSourcePaths);
-                var newReferencePaths = ImmutableArray.CreateRange(currentReferencePaths);
-                var newWorkingDirectory = currentWorkingDirectory;
-
-                ScriptOptions newOptions = state.ScriptOptions;
-                if (changedReferencePaths != null || changedWorkingDirectory != null)
+                var newOptions = state.ScriptOptions;
+                if (!changedReferencePaths.IsDefault || changedWorkingDirectory != null)
                 {
                     newOptions = newOptions.WithMetadataResolver(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
                 }
 
-                if (changedSourcePaths != null || changedWorkingDirectory != null)
+                if (!changedSourcePaths.IsDefault || changedWorkingDirectory != null)
                 {
                     newOptions = newOptions.WithSourceResolver(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
                 }
@@ -466,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newOptions,
                     newSourcePaths,
                     newReferencePaths,
-                    workingDirectory: newWorkingDirectory);
+                    newWorkingDirectory);
             }
 
             private static async Task<EvaluationState> ReportUnhandledExceptionIfAnyAsync(Task<EvaluationState> lastTask)
@@ -508,9 +504,14 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var serviceState = GetServiceState();
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
+                string? initializationScriptPath = null;
+                var initialImports = ImmutableArray<string>.Empty;
+                var metadataReferencePaths = ImmutableArray.CreateBuilder<string>();
+
                 try
                 {
-                    // TODO (tomat): this is also done in CommonInteractiveEngine, perhaps we can pass the parsed command lines to here?
+                    metadataReferencePaths.Add(typeof(object).Assembly.Location);
+                    metadataReferencePaths.Add(typeof(InteractiveScriptGlobals).Assembly.Location);
 
                     if (!isRestarting)
                     {
@@ -548,17 +549,19 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 if (!resolvedReferences.IsDefaultOrEmpty)
                                 {
                                     metadataReferences.AddRange(resolvedReferences);
+                                    metadataReferencePaths.AddRange(resolvedReferences.Where(r => r.FilePath != null).Select(r => r.FilePath!));
                                 }
                             }
 
-                            var scriptPathOpt = args.SourceFiles.IsEmpty ? null : args.SourceFiles[0].Path;
+                            initializationScriptPath = args.SourceFiles.IsEmpty ? null : args.SourceFiles[0].Path;
+                            initialImports = CommandLineHelpers.GetImports(args);
 
                             var rspState = new EvaluationState(
                                 state.ScriptState,
                                 state.ScriptOptions.
-                                    WithFilePath(scriptPathOpt).
+                                    WithFilePath(initializationScriptPath).
                                     WithReferences(metadataReferences).
-                                    WithImports(CommandLineHelpers.GetImports(args)).
+                                    WithImports(initialImports).
                                     WithMetadataResolver(metadataResolver).
                                     WithSourceResolver(sourceResolver),
                                 args.SourcePaths,
@@ -574,9 +577,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                             globals.Args.AddRange(args.ScriptArguments);
 
-                            if (scriptPathOpt != null)
+                            if (initializationScriptPath != null)
                             {
-                                var newScriptState = await TryExecuteFileAsync(rspState, scriptPathOpt).ConfigureAwait(false);
+                                var newScriptState = await TryExecuteFileAsync(rspState, initializationScriptPath).ConfigureAwait(false);
                                 if (newScriptState != null)
                                 {
                                     // remove references and imports from the options, they have been applied and will be inherited from now on:
@@ -601,7 +604,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    state = CompleteExecution(state, completionSource, success: true);
+                    var initResult = new RemoteInitializationResult(initializationScriptPath, metadataReferencePaths.ToImmutableArray(), initialImports);
+                    state = CompleteExecution(state, completionSource, success: true, initResult);
                 }
 
                 return state;

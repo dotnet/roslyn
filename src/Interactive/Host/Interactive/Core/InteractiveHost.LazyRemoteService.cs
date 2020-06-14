@@ -4,7 +4,10 @@
 
 #nullable enable
 
+extern alias Scripting;
+
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -15,6 +18,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 using StreamJsonRpc;
+using Scripting::Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -63,17 +67,24 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 try
                 {
-                    Host.ProcessStarting?.Invoke(Options);
-
                     var remoteService = await TryStartProcessAsync(Options.HostPath, Options.Culture, cancellationToken).ConfigureAwait(false);
                     if (remoteService == null)
                     {
                         return default;
                     }
 
+                    RemoteExecutionResult result;
+
                     if (SkipInitialization)
                     {
-                        return new InitializedRemoteService(remoteService, new RemoteExecutionResult(success: true));
+                        var initializationResult = new RemoteInitializationResult(
+                            initializationScript: null,
+                            metadataReferencePaths: ImmutableArray.Create(typeof(object).Assembly.Location, typeof(InteractiveScriptGlobals).Assembly.Location),
+                            imports: ImmutableArray<string>.Empty);
+
+                        result = new RemoteExecutionResult(success: true, initializationResult: initializationResult);
+                        Host.ProcessInitialized?.Invoke(Options, result);
+                        return new InitializedRemoteService(remoteService, result);
                     }
 
                     bool initializing = true;
@@ -88,9 +99,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     // try to execute initialization script:
                     var isRestarting = InstanceId > 1;
-                    var initializationResult = await InvokeRemoteAsync<RemoteExecutionResult>(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFilePath, isRestarting).ConfigureAwait(false);
+                    result = await ExecuteRemoteAsync(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFilePath, isRestarting).ConfigureAwait(false);
+
                     initializing = false;
-                    if (!initializationResult.Success)
+                    if (!result.Success)
                     {
                         Host.ReportProcessExited(remoteService.Process);
                         remoteService.Dispose();
@@ -98,12 +110,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return default;
                     }
 
+                    Contract.ThrowIfNull(result.InitializationResult);
+
                     // Hook up a handler that initiates restart when the process exits.
                     // Note that this is just so that we restart the process as soon as we see it dying and it doesn't need to be 100% bullet-proof.
                     // If we don't receive the "process exited" event we will restart the process upon the next remote operation.
                     remoteService.HookAutoRestartEvent();
 
-                    return new InitializedRemoteService(remoteService, initializationResult);
+                    Host.ProcessInitialized?.Invoke(Options, result);
+
+                    return new InitializedRemoteService(remoteService, result);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
@@ -161,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 var clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                JsonRpc jsonRpc;
+                JsonRpc? jsonRpc = null;
 
                 void ProcessExitedBeforeEstablishingConnection(object sender, EventArgs e)
                     => _cancellationSource.Cancel();
@@ -178,8 +194,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
 
                     await clientStream.ConnectAsync(cancellationToken).ConfigureAwait(false);
-
-                    jsonRpc = JsonRpc.Attach(clientStream);
+                    jsonRpc = CreateRpc(clientStream, incomingCallTarget: null);
 
                     await jsonRpc.InvokeWithCancellationAsync(
                         nameof(Service.InitializeAsync),
@@ -193,6 +208,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         RemoteService.InitiateTermination(newProcess, newProcessId);
                     }
 
+                    jsonRpc?.Dispose();
                     return null;
                 }
                 finally

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -22,6 +23,15 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : IDisposable
     {
+        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
+        {
+            // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
+            NotifyClientOfEvents = false,
+
+            // Only allow public methods (may be on internal types) to be invoked remotely.
+            AllowNonPublicInvocation = false
+        };
+
         internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
 
         private readonly Type _replServiceProviderType;
@@ -47,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         private readonly bool _joinOutputWritingThreadsOnDisposal;
 
-        internal event Action<InteractiveHostOptions>? ProcessStarting;
+        internal event Action<InteractiveHostOptions, RemoteExecutionResult>? ProcessInitialized;
 
         public InteractiveHost(
             Type replServiceProviderType,
@@ -244,6 +254,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             return default;
         }
 
+        private async Task<RemoteExecutionResult> ExecuteRemoteAsync(string targetName, params object?[] arguments)
+            => (await InvokeRemoteAsync<RemoteExecutionResult.Data>(targetName, arguments).ConfigureAwait(false))?.Deserialize() ?? default;
+
         private async Task<TResult> InvokeRemoteAsync<TResult>(string targetName, params object?[] arguments)
         {
             var initializedRemoteService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
@@ -251,8 +264,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 return default!;
             }
+
             return await InvokeRemoteAsync<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
         }
+
+        private static async Task<RemoteExecutionResult> ExecuteRemoteAsync(RemoteService remoteService, string targetName, params object?[] arguments)
+            => (await InvokeRemoteAsync<RemoteExecutionResult.Data>(remoteService, targetName, arguments).ConfigureAwait(false))?.Deserialize() ?? default;
+
         private static async Task<TResult> InvokeRemoteAsync<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
         {
             try
@@ -263,6 +281,25 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 return default!;
             }
+        }
+
+        private static JsonRpc CreateRpc(Stream stream, object? incomingCallTarget)
+        {
+            //var formatter = new JsonMessageFormatter();
+
+            //var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, formatter))
+            //{
+            //    CancelLocallyInvokedMethodsWhenConnectionIsClosed = true
+            //};
+
+            //if (incomingCallTarget != null)
+            //{
+            //    jsonRpc.AddLocalRpcTarget(incomingCallTarget, s_jsonRpcTargetOptions);
+            //}
+
+            //jsonRpc.StartListening();
+
+            return JsonRpc.Attach(stream, incomingCallTarget);
         }
 
         #region Operations
@@ -312,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
             Contract.ThrowIfNull(code);
-            return InvokeRemoteAsync<RemoteExecutionResult>(nameof(Service.ExecuteAsync), code);
+            return ExecuteRemoteAsync(nameof(Service.ExecuteAsync), code);
         }
 
         /// <summary>
@@ -327,9 +364,11 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
-            return InvokeRemoteAsync<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);
+            return ExecuteRemoteAsync(nameof(Service.ExecuteFileAsync), path);
         }
-        /// <summary>        /// Asynchronously adds a reference to the set of available references for next submission.
+
+        /// <summary>
+        /// Asynchronously adds a reference to the set of available references for next submission.
         /// </summary>
         /// <param name="reference">The reference to add.</param>
         /// <remarks>
@@ -351,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             Contract.ThrowIfNull(sourceSearchPaths);
             Contract.ThrowIfNull(baseDirectory);
 
-            return InvokeRemoteAsync<RemoteExecutionResult>(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);
+            return ExecuteRemoteAsync(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);
         }
 
         #endregion
