@@ -15,4 +15,9 @@
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
   </ItemGroup>
+
+  <!--
+    InteractiveHost32 is deployed to the same directory as InteractiveHost64 as it shares the same dependencies.
+  -->
+  <Target Name="PublishProjectOutputGroup" DependsOnTargets="GenerateBindingRedirectsUpdateAppConfig;BuiltProjectOutputGroup" Returns="@(BuiltProjectOutputGroupOutput)" />
 </Project>
