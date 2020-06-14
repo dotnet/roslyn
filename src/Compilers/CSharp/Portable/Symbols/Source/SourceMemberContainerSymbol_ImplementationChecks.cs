@@ -263,11 +263,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                                 if (useSiteDiagnostic != null && useSiteDiagnostic.DefaultSeverity == DiagnosticSeverity.Error)
                                                 {
-                                                    diagnostics.Add(useSiteDiagnostic, GetImplementsLocation(@interface));
+                                                    diagnostics.Add(useSiteDiagnostic, GetImplementsLocationOrFallback(@interface));
                                                 }
                                                 else
                                                 {
-                                                    diagnostics.Add(ErrorCode.ERR_UnimplementedInterfaceMember, GetImplementsLocation(@interface) ?? this.Locations[0], this, interfaceMember);
+                                                    diagnostics.Add(ErrorCode.ERR_UnimplementedInterfaceMember, GetImplementsLocationOrFallback(@interface), this, interfaceMember);
                                                 }
                                             }
                                         }
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         break;
 
                                     case HasBaseTypeDeclaringInterfaceResult.IgnoringNullableMatch:
-                                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, GetImplementsLocation(@interface) ?? this.Locations[0], this, interfaceMember);
+                                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, GetImplementsLocationOrFallback(@interface), this, interfaceMember);
                                         break;
 
                                     default:
@@ -324,7 +324,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base);
 
-        internal Location GetImplementsLocation(NamedTypeSymbol implementedInterface)
+#nullable enable
+        private Location GetImplementsLocationOrFallback(NamedTypeSymbol implementedInterface)
+        {
+            return GetImplementsLocation(implementedInterface) ?? this.Locations[0];
+        }
+
+        internal Location? GetImplementsLocation(NamedTypeSymbol implementedInterface)
+#nullable restore
         {
             // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
@@ -1442,6 +1449,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+
         /// <summary>
         /// It is invalid for a type to directly (vs through a base class) implement two interfaces that
         /// unify (i.e. are the same for some substitution of type parameters).
@@ -1484,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeSymbol.Equals(interface1.OriginalDefinition, interface2.OriginalDefinition, TypeCompareKind.ConsiderEverything2) &&
                         interface1.CanUnifyWith(interface2))
                     {
-                        if (GetImplementsLocation(interface1).SourceSpan.Start > GetImplementsLocation(interface2).SourceSpan.Start)
+                        if (GetImplementsLocationOrFallback(interface1).SourceSpan.Start > GetImplementsLocationOrFallback(interface2).SourceSpan.Start)
                         {
                             // Mention interfaces in order of their appearance in the base list, for consistency.
                             var temp = interface1;
@@ -1497,6 +1506,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+#nullable restore
 
         /// <summary>
         /// Though there is a method that C# considers to be an implementation of the interface method, that
