@@ -874,7 +874,7 @@ class MyClass
 interface I {}
 class C4 
 {
-   public void F1<T>() where T : class, struct, I {}   // CS0449
+   public void F1<T>() where T : class, struct, I {}   // CS8869
    public void F2<T>() where T : I, struct {}   // CS0449
    public void F3<T>() where T : I, class {}   // CS0449
    // OK
@@ -884,11 +884,14 @@ class C4
 }
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (5,41): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "struct").WithLocation(5, 41),
+                // (5,41): error CS8869: The 'struct' constraint cannot be combined with the 'class' constraint
+                //    public void F1<T>() where T : class, struct, I {}   // CS8869
+                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "class").WithLocation(5, 41),
                 // (6,37): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                //    public void F2<T>() where T : I, struct {}   // CS0449
                 Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "struct").WithLocation(6, 37),
                 // (7,37): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                //    public void F3<T>() where T : I, class {}   // CS0449
                 Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "class").WithLocation(7, 37));
         }
 
