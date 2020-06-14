@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IsEmpty { get; }
 
         /// <summary>
-        /// Produce a sample value contained in the set. Throws <see cref="ArgumentException"/> if the set is empty.
+        /// Produce a sample value contained in the set. Throws <see cref="ArgumentException"/> if the set is empty. If the set
+        /// contains values but we cannot produce a particular value (e.g. for the set `nint > int.MaxValue`), returns null.
         /// </summary>
         ConstantValue? Sample { get; }
     }
