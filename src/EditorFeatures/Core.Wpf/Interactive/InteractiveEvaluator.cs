@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Interactive;
@@ -44,40 +45,42 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private readonly string _hostDirectory;
         private readonly string _initialWorkingDirectory;
-        private string _initialScriptFileOpt;
 
         private readonly IThreadingContext _threadingContext;
         private readonly IContentType _contentType;
         private readonly InteractiveWorkspace _workspace;
-        private IInteractiveWindow _currentWindow;
-        private ImmutableArray<MetadataReference> _responseFileReferences;
-        private ImmutableArray<string> _responseFileImports;
-        private MetadataReferenceResolver _metadataReferenceResolver;
-        private SourceReferenceResolver _sourceReferenceResolver;
-
-        private ProjectId _previousSubmissionProjectId;
-        private ProjectId _currentSubmissionProjectId;
-
         private readonly IViewClassifierAggregatorService _classifierAggregator;
         private readonly IInteractiveWindowCommandsFactory _commandsFactory;
         private readonly ImmutableArray<IInteractiveWindowCommand> _commands;
-        private IInteractiveWindowCommands _interactiveCommands;
-        private ITextBuffer _currentSubmissionBuffer;
-
-        /// <remarks>
-        /// This is a set because the same buffer might be re-added when the content type is changed.
-        /// </remarks>
-        private readonly HashSet<ITextBuffer> _submissionBuffers = new HashSet<ITextBuffer>();
-
-        private int _submissionCount = 0;
         private readonly EventHandler<ContentTypeChangedEventArgs> _contentTypeChangedHandler;
 
-        internal InteractiveEvaluatorResetOptions ResetOptions { get; set; }
-            = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
-
+        // InteractiveHost state:
+        private MetadataReferenceResolver _metadataReferenceResolver;
+        private SourceReferenceResolver _sourceReferenceResolver;
+        private RemoteInitializationResult _initializationResult;
         public ImmutableArray<string> ReferenceSearchPaths { get; private set; }
         public ImmutableArray<string> SourceSearchPaths { get; private set; }
         public string WorkingDirectory { get; private set; }
+
+        // InteractiveWorkspace state:
+        private ProjectId _previousSubmissionProjectId;
+        private ProjectId _currentSubmissionProjectId;
+
+        // InteractiveWindow state:
+        private IInteractiveWindow _currentWindow;
+        private IInteractiveWindowCommands _interactiveCommands;
+
+        /// <remarks>
+        /// Submission buffers in the order they were submitted. 
+        /// Includes both command buffers as well as language buffers.
+        /// Does not include the current buffer unless it has been submitted.
+        /// </remarks>
+        private readonly List<ITextBuffer> _submittedBuffers = new List<ITextBuffer>();
+
+        private int _submissionCount = 0;
+
+        internal InteractiveEvaluatorResetOptions ResetOptions { get; set; }
+            = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
 
         InteractiveEvaluatorResetOptions IResettableInteractiveEvaluator.ResetOptions { get => ResetOptions; set => ResetOptions = value; }
 
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, _initialWorkingDirectory);
 
             _interactiveHost = new InteractiveHost(replType, initialWorkingDirectory);
-            _interactiveHost.ProcessStarting += ProcessStarting;
+            _interactiveHost.ProcessInitialized += ProcessInitialized;
         }
 
         public int SubmissionCount => _submissionCount;
@@ -164,9 +167,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #region Initialization
 
-        public static string GetConfiguration()
-            => null;
-
         private IInteractiveWindow GetCurrentWindowOrThrow()
         {
             var window = _currentWindow;
@@ -190,78 +190,56 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         /// <summary>
-        /// Invoked by <see cref="InteractiveHost"/> when a new process is being started.
+        /// Invoked by <see cref="InteractiveHost"/> when a new process initialization completes.
         /// </summary>
-        private void ProcessStarting(InteractiveHostOptions options)
+        private void ProcessInitialized(InteractiveHostOptions options, RemoteExecutionResult result)
         {
-            var textView = GetCurrentWindowOrThrow().TextView;
+            Contract.ThrowIfFalse(result.InitializationResult != null);
 
             if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
             {
                 _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    ProcessStarting(options);
+                    ProcessInitialized(options, result);
                 });
 
                 return;
             }
 
+            var textView = GetCurrentWindowOrThrow().TextView;
+
+            var lastSubmittedBuffer = _submittedBuffers.LastOrDefault();
+
             // Freeze all existing classifications and then clear the list of submission buffers we have.
-            _submissionBuffers.Remove(_currentSubmissionBuffer); // if present
-            foreach (var textBuffer in _submissionBuffers)
+            foreach (var textBuffer in _submittedBuffers)
             {
                 InertClassifierProvider.CaptureExistingClassificationSpans(_classifierAggregator, textView, textBuffer);
             }
-            _submissionBuffers.Clear();
 
-            // We always start out empty
+            _submittedBuffers.Clear();
+
+            // clear workspace state:
             _workspace.ClearSolution();
             _currentSubmissionProjectId = null;
             _previousSubmissionProjectId = null;
 
-            var metadataService = _workspace.CurrentSolution.Services.MetadataService;
-            var mscorlibRef = metadataService.GetReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly);
-            var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, Script.HostAssemblyReferenceProperties);
+            // update host state:
+            _initializationResult = result.InitializationResult;
+            ReferenceSearchPaths = result.ChangedReferencePaths.ToImmutableArrayOrEmpty();
+            SourceSearchPaths = result.ChangedSourcePaths.ToImmutableArrayOrEmpty();
+            WorkingDirectory = result.ChangedWorkingDirectory ?? _initialWorkingDirectory;
 
-            _responseFileReferences = ImmutableArray.Create<MetadataReference>(mscorlibRef, interactiveHostObjectRef);
-            _responseFileImports = ImmutableArray<string>.Empty;
-            _initialScriptFileOpt = null;
-            ReferenceSearchPaths = ImmutableArray<string>.Empty;
-            SourceSearchPaths = ImmutableArray<string>.Empty;
+            var metadataService = _workspace.Services.GetRequiredService<IMetadataService>();
+            _metadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, WorkingDirectory);
+            _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory);
 
-            if (File.Exists(options.InitializationFilePath))
+            // If the current buffer has not been submitted, create and add a submission project for it to the workspace.
+            // It it has been submitted then a new buffer and its corresponding submission project will be added later.
+            var currentSubmissionBuffer = _currentWindow.CurrentLanguageBuffer;
+            if (currentSubmissionBuffer != lastSubmittedBuffer)
             {
-                // The base directory for relative paths is the directory that contains the .rsp file.
-                // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                var responseFileDirectory = Path.GetDirectoryName(options.InitializationFilePath);
-                var args = this.CommandLineParser.Parse(new[] { "@" + options.InitializationFilePath }, responseFileDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
-
-                if (args.Errors.Length == 0)
-                {
-                    var metadataResolver = CreateMetadataReferenceResolver(metadataService, args.ReferencePaths, responseFileDirectory);
-                    var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, responseFileDirectory);
-
-                    // ignore unresolved references, they will be reported in the interactive window:
-                    var responseFileReferences = args.ResolveMetadataReferences(metadataResolver).Where(r => !(r is UnresolvedMetadataReference));
-
-                    _initialScriptFileOpt = args.SourceFiles.IsEmpty ? null : args.SourceFiles[0].Path;
-
-                    ReferenceSearchPaths = args.ReferencePaths;
-                    SourceSearchPaths = args.SourcePaths;
-
-                    _responseFileReferences = _responseFileReferences.AddRange(responseFileReferences);
-                    _responseFileImports = CommandLineHelpers.GetImports(args);
-                }
-            }
-
-            _metadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, _initialWorkingDirectory);
-            _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, _initialWorkingDirectory);
-
-            // create the first submission project in the workspace after reset:
-            if (_currentSubmissionBuffer != null)
-            {
-                AddSubmission(_currentSubmissionBuffer, this.LanguageName);
+                AddSubmissionProject(currentSubmissionBuffer, LanguageName);
             }
         }
 
@@ -284,8 +262,17 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #region Workspace
 
+        /// <summary>
+        /// Invoked on UI thread when a new language buffer is created and before it is added to the projection.
+        /// </summary>
         private void SubmissionBufferAdded(object sender, SubmissionBufferAddedEventArgs args)
-            => AddSubmission(args.NewBuffer, this.LanguageName);
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            args.NewBuffer.ContentTypeChanged += _contentTypeChangedHandler;
+
+            AddSubmissionProject(args.NewBuffer, LanguageName);
+        }
 
         // The REPL window might change content type to host command content type (when a host command is typed at the beginning of the buffer).
         private void LanguageBufferContentTypeChanged(object sender, ContentTypeChangedEventArgs e)
@@ -311,8 +298,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 return;
             }
 
-            Debug.Assert((afterIsLanguage && beforeIsInteractiveCommand)
-                      || (beforeIsLanguage && afterIsInteractiveCommand));
+            Debug.Assert(afterIsLanguage && beforeIsInteractiveCommand
+                      || beforeIsLanguage && afterIsInteractiveCommand);
 
             // We're switching between the target language and the Interactive Command "language".
             // First, remove the current submission from the solution.
@@ -339,61 +326,65 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _workspace.SetCurrentSolution(newSolution);
 
             // Add a new submission with the correct language for the current buffer.
-            var languageName = afterIsLanguage
-                ? this.LanguageName
-                : InteractiveLanguageNames.InteractiveCommand;
+            var languageName = afterIsLanguage ? LanguageName : InteractiveLanguageNames.InteractiveCommand;
 
-            AddSubmission(buffer, languageName);
+            AddSubmissionProject(buffer, languageName);
         }
 
-        private void AddSubmission(ITextBuffer subjectBuffer, string languageName)
+        private void AddSubmissionProject(ITextBuffer submissionBuffer, string languageName)
         {
             var solution = _workspace.CurrentSolution;
             Project project;
-            ImmutableArray<string> imports;
-            ImmutableArray<MetadataReference> references;
+            var imports = ImmutableArray<string>.Empty;
+            var references = ImmutableArray<MetadataReference>.Empty;
 
-            if (_previousSubmissionProjectId != null)
+            if (_previousSubmissionProjectId == null)
             {
-                // only the first project needs imports and references
-                imports = ImmutableArray<string>.Empty;
-                references = ImmutableArray<MetadataReference>.Empty;
-            }
-            else if (_initialScriptFileOpt != null)
-            {
-                // insert a project for initialization script listed in .rsp:
-                project = CreateSubmissionProject(solution, languageName, _responseFileImports, _responseFileReferences);
-                var documentId = DocumentId.CreateNewId(project.Id, debugName: _initialScriptFileOpt);
-                solution = project.Solution.AddDocument(documentId, Path.GetFileName(_initialScriptFileOpt), new FileTextLoader(_initialScriptFileOpt, defaultEncoding: null));
-                _previousSubmissionProjectId = project.Id;
+                // The Interactive Window may have added the first language buffer before 
+                // the host initialization has completed. Do not create a submission project 
+                // for the buffer in such case. It will be created when the initialization completes.
+                if (_initializationResult == null)
+                {
+                    return;
+                }
 
-                imports = ImmutableArray<string>.Empty;
-                references = ImmutableArray<MetadataReference>.Empty;
-            }
-            else
-            {
-                imports = _responseFileImports;
-                references = _responseFileReferences;
+                var initResult = _initializationResult;
+
+                imports = initResult.Imports.ToImmutableArrayOrEmpty();
+
+                var metadataService = _workspace.Services.GetRequiredService<IMetadataService>();
+                references = initResult.MetadataReferencePaths.ToImmutableArrayOrEmpty().SelectAsArray(
+                    (path, metadataService) => (MetadataReference)metadataService.GetReference(path, MetadataReferenceProperties.Assembly),
+                    metadataService);
+
+                // if a script was specified in .rps file insert a project with a document that represents it:
+                var scriptPath = initResult.ScriptPath;
+                if (scriptPath != null)
+                {
+                    project = CreateSubmissionProject(solution, languageName, imports, references);
+
+                    var initDocumentId = DocumentId.CreateNewId(project.Id, debugName: scriptPath);
+                    solution = project.Solution.AddDocument(initDocumentId, Path.GetFileName(scriptPath), new FileTextLoader(scriptPath, defaultEncoding: null));
+                    _previousSubmissionProjectId = project.Id;
+
+                    // imports and references will be inherited:
+                    imports = ImmutableArray<string>.Empty;
+                    references = ImmutableArray<MetadataReference>.Empty;
+                }
             }
 
             // project for the new submission:
             project = CreateSubmissionProject(solution, languageName, imports, references);
 
-            // Keep track of this buffer so we can freeze the classifications for it in the future.
-            _submissionBuffers.Add(subjectBuffer);
+            var documentId = DocumentId.CreateNewId(project.Id, debugName: project.Name);
+            solution = project.Solution.AddDocument(documentId, project.Name, submissionBuffer.CurrentSnapshot.AsText());
 
-            SetSubmissionDocument(subjectBuffer, project);
+            _workspace.SetCurrentSolution(solution);
+
+            // opening document will start workspace listening to changes in this text container
+            _workspace.OpenDocument(documentId, submissionBuffer.AsTextContainer());
 
             _currentSubmissionProjectId = project.Id;
-
-            if (_currentSubmissionBuffer != null)
-            {
-                _currentSubmissionBuffer.ContentTypeChanged -= _contentTypeChangedHandler;
-            }
-
-            subjectBuffer.ContentTypeChanged += _contentTypeChangedHandler;
-
-            _currentSubmissionBuffer = subjectBuffer;
         }
 
         private Project CreateSubmissionProject(Solution solution, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
@@ -431,18 +422,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return solution.GetProject(projectId);
         }
 
-        private void SetSubmissionDocument(ITextBuffer buffer, Project project)
-        {
-            var documentId = DocumentId.CreateNewId(project.Id, debugName: project.Name);
-            var solution = project.Solution
-                .AddDocument(documentId, project.Name, buffer.CurrentSnapshot.AsText());
-
-            _workspace.SetCurrentSolution(solution);
-
-            // opening document will start workspace listening to changes in this text container
-            _workspace.OpenDocument(documentId, buffer.AsTextContainer());
-        }
-
         #endregion
 
         #region IInteractiveEngine
@@ -456,8 +435,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return false;
         }
 
+        /// <summary>
+        /// Invoked when the Interactive Window is created.
+        /// </summary>
         Task<ExecutionResult> IInteractiveEvaluator.InitializeAsync()
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             var window = GetCurrentWindowOrThrow();
             var resetOptions = ResetOptions;
 
@@ -466,8 +450,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return ResetCoreAsync(GetHostOptions(initialize: true, resetOptions.Platform));
         }
 
+        /// <summary>
+        /// Invoked by the reset toolbar button.
+        /// </summary>
         Task<ExecutionResult> IInteractiveEvaluator.ResetAsync(bool initialize)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             var window = GetCurrentWindowOrThrow();
 
             var resetOptions = ResetOptions;
@@ -490,10 +479,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             try
             {
+                _threadingContext.ThrowIfNotOnUIThread();
+
                 OnBeforeReset(options.Platform);
 
-                var result = await _interactiveHost.ResetAsync(options).ConfigureAwait(false);
-
+                // Initiate reset and return to the UI thread to update state.
+                var result = await _interactiveHost.ResetAsync(options).ConfigureAwait(true);
                 if (result.Success)
                 {
                     UpdateResolvers(result);
@@ -511,22 +502,31 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             try
             {
+                _threadingContext.ThrowIfNotOnUIThread();
+
+                var currentSubmissionBuffer = _currentWindow.CurrentLanguageBuffer;
+                Contract.ThrowIfNull(currentSubmissionBuffer);
+                currentSubmissionBuffer.ContentTypeChanged -= _contentTypeChangedHandler;
+                _submittedBuffers.Add(currentSubmissionBuffer);
+
                 if (_interactiveCommands.InCommand)
                 {
-                    var cmdResult = _interactiveCommands.TryExecuteCommand();
-                    if (cmdResult != null)
+                    // Takes the content of the current language buffer, parses it as a command
+                    // and returns a task that execute the command, or null if the text doesn't parse.
+                    var commandTask = _interactiveCommands.TryExecuteCommand();
+                    if (commandTask != null)
                     {
-                        return await cmdResult.ConfigureAwait(false);
+                        return await commandTask.ConfigureAwait(false);
                     }
                 }
 
-                var result = await _interactiveHost.ExecuteAsync(text).ConfigureAwait(false);
-
+                // Execute code and return to the UI thread to update state.
+                var result = await _interactiveHost.ExecuteAsync(text).ConfigureAwait(true);
                 if (result.Success)
                 {
                     // We are not executing a command (the current content type is not "Interactive Command"),
                     // so the source document should not have been removed.
-                    Debug.Assert(_workspace.CurrentSolution.GetProject(_currentSubmissionProjectId).HasDocuments);
+                    Contract.ThrowIfFalse(_workspace.CurrentSolution.GetProject(_currentSubmissionProjectId).HasDocuments);
 
                     // only remember the submission if we compiled successfully, otherwise we
                     // ignore it's id so we don't reference it in the next submission.
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         #region Paths, Resolvers
 
         private void UpdateResolvers(RemoteExecutionResult result)
-            => UpdateResolvers(result.ChangedReferencePaths.AsImmutableOrNull(), result.ChangedSourcePaths.AsImmutableOrNull(), result.ChangedWorkingDirectory);
+            => UpdateResolvers(result.ChangedReferencePaths, result.ChangedSourcePaths, result.ChangedWorkingDirectory);
 
         private void UpdateResolvers(ImmutableArray<string> changedReferenceSearchPaths, ImmutableArray<string> changedSourceSearchPaths, string changedWorkingDirectory)
         {
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var solution = _workspace.CurrentSolution;
 
             // Maybe called after reset, when no submissions are available.
-            var optionsOpt = (_currentSubmissionProjectId != null) ? solution.GetProjectState(_currentSubmissionProjectId).CompilationOptions : null;
+            var options = (_currentSubmissionProjectId != null) ? solution.GetProjectState(_currentSubmissionProjectId).CompilationOptions : null;
 
             if (changedWorkingDirectory != null)
             {
@@ -592,26 +592,18 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             if (!changedReferenceSearchPaths.IsDefault || changedWorkingDirectory != null)
             {
                 _metadataReferenceResolver = CreateMetadataReferenceResolver(_workspace.CurrentSolution.Services.MetadataService, ReferenceSearchPaths, WorkingDirectory);
-
-                if (optionsOpt != null)
-                {
-                    optionsOpt = optionsOpt.WithMetadataReferenceResolver(_metadataReferenceResolver);
-                }
+                options = options?.WithMetadataReferenceResolver(_metadataReferenceResolver);
             }
 
             if (!changedSourceSearchPaths.IsDefault || changedWorkingDirectory != null)
             {
                 _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory);
-
-                if (optionsOpt != null)
-                {
-                    optionsOpt = optionsOpt.WithSourceReferenceResolver(_sourceReferenceResolver);
-                }
+                options = options?.WithSourceReferenceResolver(_sourceReferenceResolver);
             }
 
-            if (optionsOpt != null)
+            if (options != null)
             {
-                _workspace.SetCurrentSolution(solution.WithProjectCompilationOptions(_currentSubmissionProjectId, optionsOpt));
+                _workspace.SetCurrentSolution(solution.WithProjectCompilationOptions(_currentSubmissionProjectId, options));
             }
         }
 
