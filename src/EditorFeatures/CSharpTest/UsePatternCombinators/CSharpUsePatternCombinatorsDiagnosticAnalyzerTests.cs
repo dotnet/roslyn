@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -20,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
     {
         private static readonly ParseOptions CSharp9 = TestOptions.RegularPreview.WithLanguageVersion(LanguageVersionExtensions.CSharp9);
 
-        private static readonly OptionsCollection PreferPatternMatching = new OptionsCollection(LanguageNames.CSharp)
+        private static readonly OptionsCollection s_disabled = new OptionsCollection(LanguageNames.CSharp)
         {
-            { CSharpCodeStyleOptions.PreferPatternMatching, true }
+            { CSharpCodeStyleOptions.PreferPatternMatching, new CodeStyleOption2<bool>(false, NotificationOption2.None) }
         };
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -30,11 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
 
         private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions parseOptions = null, bool enabled = true)
             => TestMissingAsync(FromExpression(expression), new TestParameters(
-                parseOptions: parseOptions ?? CSharp9, options: enabled ? PreferPatternMatching : null));
+                parseOptions: parseOptions ?? CSharp9, options: enabled ? null : s_disabled));
 
         private Task TestAllAsync(string initialMarkup, string expectedMarkup)
             => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
-                parseOptions: CSharp9, options: PreferPatternMatching);
+                parseOptions: CSharp9, options: null);
 
         private Task TestAllOnExpressionAsync(string expression, string expected)
             => TestAllAsync(FromExpression(expression), FromExpression(expected));
