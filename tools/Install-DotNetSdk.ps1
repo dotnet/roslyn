@@ -77,8 +77,10 @@ Function Install-DotNet($Version, [switch]$Runtime) {
     Write-Host "Downloading .NET Core $sdkSubstring$Version..."
     $Installer = Get-InstallerExe -Version $Version -Runtime:$Runtime
     Write-Host "Installing .NET Core $sdkSubstring$Version..."
-    cmd /c start /wait $Installer /install /quiet
-    if ($LASTEXITCODE -ne 0) {
+    cmd /c start /wait $Installer /install /passive /norestart
+    if ($LASTEXITCODE -eq 3010) {
+        Write-Verbose "Restart required"
+    } elseif ($LASTEXITCODE -ne 0) {
         throw "Failure to install .NET Core SDK"
     }
 }
@@ -95,14 +97,22 @@ if ($InstallLocality -eq 'machine') {
     if ($IsMacOS -or $IsLinux) {
         $DotNetInstallDir = '/usr/share/dotnet'
     } else {
+        $restartRequired = $false
         if ($PSCmdlet.ShouldProcess(".NET Core SDK $sdkVersion", "Install")) {
             Install-DotNet -Version $sdkVersion
+            $restartRequired = $restartRequired -or ($LASTEXITCODE -eq 3010)
         }
 
         $runtimeVersions | Get-Unique |% {
             if ($PSCmdlet.ShouldProcess(".NET Core runtime $_", "Install")) {
                 Install-DotNet -Version $_ -Runtime
+                $restartRequired = $restartRequired -or ($LASTEXITCODE -eq 3010)
             }
+        }
+
+        if ($restartRequired) {
+            Write-Host -ForegroundColor Yellow "System restart required"
+            Exit 3010
         }
 
         return
