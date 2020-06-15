@@ -71,18 +71,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _workQueue = new AsyncBatchingWorkQueue<VSReferenceItem>(
-                TimeSpan.FromSeconds(0.5), ReportIfNotEmptyAsync, cancellationToken);
+                TimeSpan.FromSeconds(0.5), ReportReferencesAsync, cancellationToken);
 
             CancellationToken = cancellationToken;
         }
 
-        public override Task OnCompletedAsync()
-        {
-            // Upon completion, we wait an additional 0.5s (the time in between batches) to ensure
-            // that all results have been reported.
-            Thread.Sleep(500);
-            return Task.CompletedTask;
-        }
+        // After all definitions/references have been found, wait here until all results have been reported.
+        public override async Task OnCompletedAsync()
+            => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
@@ -271,13 +267,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        private Task ReportIfNotEmptyAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
+        private Task ReportReferencesAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
         {
-            if (referencesToReport.IsEmpty)
-            {
-                return Task.CompletedTask;
-            }
-
             // We can report outside of the lock here since _progress is thread-safe.
             _progress.Report(referencesToReport.ToArray());
             return Task.CompletedTask;
