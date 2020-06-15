@@ -2725,62 +2725,88 @@ class F
                 );
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
+
+            void checkType(ExpressionSyntax expr, string? expectedNaturalType, string? expectedConvertedType, ConversionKind expectedConversionKind)
+            {
+                var typeInfo = model.GetTypeInfo(expr);
+                var conversion = model.GetConversion(expr);
+                if (expectedNaturalType is null)
+                    Assert.Null(typeInfo.Type);
+                else
+                    Assert.Equal(expectedNaturalType, typeInfo.Type.ToTestDisplayString());
+                if (expectedConvertedType is null)
+                    Assert.Null(typeInfo.ConvertedType);
+                else
+                    Assert.Equal(expectedConvertedType, typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(expectedConversionKind, conversion.Kind);
+            }
+
             var switches = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().ToArray();
             for (int i = 0; i < switches.Length; i++)
             {
-                var @switch = switches[i];
-                var typeInfo = model.GetTypeInfo(@switch);
-                var conversion = model.GetConversion(@switch);
+                var expr = switches[i];
                 switch (i)
                 {
                     case 0:
                     case 7:
-                        Assert.Null(typeInfo.Type);
-                        Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
-                        Assert.Equal(ConversionKind.SwitchExpression, conversion.Kind);
+                        checkType(expr, null, "C", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, null, "C", ConversionKind.ImplicitThrow);
                         break;
                     case 1:
-                        Assert.Null(typeInfo.Type);
-                        Assert.True(typeInfo.ConvertedType.IsErrorType());
-                        Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "B", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
                         break;
                     case 2:
                     case 8:
-                        Assert.Null(typeInfo.Type);
-                        Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
-                        Assert.Equal(ConversionKind.SwitchExpression, conversion.Kind);
+                        checkType(expr, null, "D", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "A", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "B", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
                         break;
                     case 3:
-                        Assert.True(typeInfo.Type.IsErrorType());
-                        Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
-                        Assert.Equal(ConversionKind.NoConversion, conversion.Kind);
+                        checkType(expr, "?", "D", ConversionKind.NoConversion);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
                         break;
                     case 9:
-                        Assert.Null(typeInfo.Type);
-                        Assert.Equal("?", typeInfo.ConvertedType.ToTestDisplayString());
-                        Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
                         break;
                     case 4:
                     case 10:
-                        Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
-                        Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
-                        Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                        checkType(expr, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
                         break;
                     case 5:
-                        Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
-                        Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
-                        Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
+                        checkType(expr, "C", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
                         break;
                     case 11:
-                        Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
-                        Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
-                        Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                        checkType(expr, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
                         break;
                     case 6:
                     case 12:
-                        Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-                        Assert.Equal("D", typeInfo.ConvertedType.ToTestDisplayString());
-                        Assert.Equal(ConversionKind.SwitchExpression, conversion.Kind);
+                        checkType(expr, "System.Int32", "D", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
                         break;
                     default:
                         Assert.False(true);
