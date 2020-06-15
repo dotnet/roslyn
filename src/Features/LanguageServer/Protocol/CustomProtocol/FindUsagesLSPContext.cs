@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     // have to hold off on reporting it until later when we do find a reference.
                     if (definition.DisplayIfNoReferences)
                     {
-                        AddToReferencesToReport_MustBeCalledUnderLock(definitionItem);
+                        _workQueue.AddWork(definitionItem);
                     }
                     else
                     {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 // If the definition hasn't been reported yet, add it to our list of references to report.
                 if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(definition);
+                    _workQueue.AddWork(definition);
                     _definitionsWithoutReference.Remove(definitionId);
                 }
 
@@ -147,15 +147,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 if (referenceItem != null)
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(referenceItem);
+                    _workQueue.AddWork(referenceItem);
                 }
             }
-        }
-
-        private void AddToReferencesToReport_MustBeCalledUnderLock(VSReferenceItem item)
-        {
-            Debug.Assert(_semaphore.CurrentCount == 0);
-            _workQueue.AddWork(item);
         }
 
         private static async Task<LSP.VSReferenceItem?> GenerateVSReferenceItemAsync(
