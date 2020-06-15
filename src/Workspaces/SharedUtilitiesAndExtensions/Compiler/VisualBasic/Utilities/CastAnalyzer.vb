@@ -138,6 +138,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If speculatedExpressionOuterType Is Nothing Then
                 Return Nothing
             End If
+            ' If we are here we might be inside a SimpleArgument but it is
+            ' not part of a ParamArray which is handled above.
             If outerSpeculatedExpression.IsParentKind(SyntaxKind.SimpleArgument) Then
                 speculatedExpressionOuterType = outerType
                 Return _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
