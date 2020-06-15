@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string LegacyFormatSuppressMessageAttributeDiagnosticId = "IDE0077";
 
         public const string RemoveConfusingSuppressionForIsExpressionDiagnosticId = "IDE0080";
+        public const string RemoveUnnecessaryByValDiagnosticId = "IDE0081";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
