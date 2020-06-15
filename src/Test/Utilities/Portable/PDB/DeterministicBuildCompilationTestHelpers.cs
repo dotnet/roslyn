@@ -52,7 +52,7 @@ namespace Roslyn.Test.Utilities.PDB
             }
 
             pdbOptions.TryGetValue("portability-policy", out var actualPortabilityPolicy);
-            Assert.Equal(portabilityPolicy.ToString(), actualPortabilityPolicy ?? "0");
+            Assert.Equal((portabilityPolicy == 0) ? null : portabilityPolicy.ToString(), actualPortabilityPolicy);
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             Assert.Equal(compilerVersion.ToString(), pdbOptions["compiler-version"]);
