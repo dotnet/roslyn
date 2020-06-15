@@ -1,0 +1,97 @@
+# Branches that trigger a build on commit
+trigger:
+- master
+- features/*
+- demos/*
+
+variables:
+- name: AzureSubscription
+  value: roslyn-Azure
+- name: SleetVersion
+  value: 3.1.11
+# Build speed-ups since real build will already have checked all of this
+- name: UseRoslynAnalyzers
+  value: false
+- name: RoslynCheckCodeStyle
+  value: false
+
+jobs:
+- job: Build
+  pool:
+    vmImage: windows-latest
+  timeoutInMinutes: 90
+  steps:
+    - checkout: self
+      fetchDepth: 1
+    - script: Build.cmd -msbuildEngine dotnet -configuration Release -prepareMachine -restore -bootstrap -pack /p:VersionSuffix=ci.$(Build.SourceBranchName).$(Build.BuildId) /p:VsixVersion=42.42.42.$(Build.BuildId)
+      displayName: Build Packages
+
+    - task: MSBuild@1
+      displayName: Build Vsix
+      inputs:
+        solution: 'src\Deployment\RoslynDeployment.csproj'
+        configuration: Release
+        msbuildArguments: '-r -p:BootstrapBuildPath=$(Build.SourcesDirectory)\artifacts\Bootstrap -p:VersionSuffix=ci.$(Build.SourceBranchName).$(Build.BuildId) -p:VsixVersion=42.42.42.$(Build.BuildId)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: Public Vsix
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\RoslynDeployment.vsix'
+        ArtifactName: vsix
+        ArtifactType: Container
+      condition: succeeded()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Public NuGet
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\Shipping'
+        ArtifactName: nuget
+        ArtifactType: Container
+      condition: succeeded()
+
+- job: Upload
+  pool:
+    vmImage: windows-latest
+  timeoutInMinutes: 90
+  dependsOn: Build
+  steps:
+    - checkout: none
+    - download: current
+
+    - task: AzureFileCopy@4
+      displayName: Upload Vsix
+      inputs:
+        SourcePath: '$(Pipeline.Workspace)\vsix\RoslynDeployment.vsix'
+        azureSubscription: $(AzureSubscription)
+        Destination: AzureBlob
+        storage: roslyn
+        ContainerName: vsix
+        BlobPrefix: '$(Build.SourceBranchName)/RoslynDeployment.$(Build.BuildId).vsix'
+
+    - task: AzureFileCopy@4
+      displayName: Upload Permalink Vsix
+      inputs:
+        SourcePath: '$(Pipeline.Workspace)\vsix\RoslynDeployment.vsix'
+        azureSubscription: $(AzureSubscription)
+        Destination: AzureBlob
+        storage: roslyn
+        ContainerName: latest
+        BlobPrefix: '$(Build.SourceBranchName)/RoslynDeployment.vsix'
+
+    - pwsh: |
+        if ((dotnet tool list -g | select-string sleet) -ne $null) {
+          if ((dotnet tool list -g | select-string sleet | select-string $(SleetVersion)) -eq $null) {
+            dotnet tool uninstall -g sleet
+          } else {
+            return
+          }
+        }
+        dotnet tool install -g Sleet --version $(SleetVersion)
+      displayName: 'Use Sleet $(SleetVersion)'
+
+    - script: 'sleet init --config none --verbose -p "SLEET_FEED_CONNECTIONSTRING=$(FeedStorageConnectionString)" -p "SLEET_FEED_CONTAINER=nuget" -p "SLEET_FEED_TYPE=azure"'
+      displayName: 'Init Feed'
+
+    - script: 'sleet push --config none $(Pipeline.Workspace)\nuget -f --verbose -p "SLEET_FEED_CONNECTIONSTRING=$(FeedStorageConnectionString)" -p "SLEET_FEED_CONTAINER=nuget" -p "SLEET_FEED_TYPE=azure"'
+      displayName: 'Push Packages'
+
