@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return expressionTypeInfo.ConvertedType
         End Function
 
-        Private Shared Function GetSpeculatedExpressionToOuterTypeConversion(speculatedExpression As ExpressionSyntax, speculationAnalyzer As SpeculationAnalyzer, cancellationToken As CancellationToken, <Out> ByRef speculatedExpressionOuterType As ITypeSymbol) As Conversion
+        Private Function GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer As SpeculationAnalyzer, speculatedExpression As ExpressionSyntax, outerSpeculatedExpression As ExpressionSyntax, outerType As ITypeSymbol, cancellationToken As CancellationToken, <Out> ByRef speculatedExpressionOuterType As ITypeSymbol) As Conversion
             Dim innerSpeculatedExpression = speculatedExpression.WalkDownParentheses()
             Dim typeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(innerSpeculatedExpression, cancellationToken)
             Dim conv = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(innerSpeculatedExpression, cancellationToken)
@@ -137,6 +137,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, typeInfo, speculationAnalyzer.SpeculativeSemanticModel, cancellationToken)
             If speculatedExpressionOuterType Is Nothing Then
                 Return Nothing
+            End If
+            Stop
+            If outerSpeculatedExpression.IsParentKind(SyntaxKind.SimpleArgument) Then
+                speculatedExpressionOuterType = outerType
+                Return _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
             End If
 
             Return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType)
@@ -262,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     speculatedExpressionOuterType = outerType
                     expressionToOuterType = _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
                 Else
-                    expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer.ReplacedExpression, speculationAnalyzer, _cancellationToken, speculatedExpressionOuterType)
+                    expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer, speculationAnalyzer.ReplacedExpression, outerSpeculatedExpression, outerType, _cancellationToken, speculatedExpressionOuterType)
                 End If
 
                 ' CONSIDER: Anonymous function conversions cannot be compared from different semantic models as lambda symbol comparison requires syntax tree equality. Should this be a compiler bug?
@@ -277,8 +282,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If castToOuterType.IsUserDefined OrElse expressionToCastType.IsUserDefined Then
                     Return (HaveSameUserDefinedConversion(expressionToCastType, expressionToOuterType) OrElse
                             HaveSameUserDefinedConversion(castToOuterType, expressionToOuterType)) AndAlso
-                           (UserDefinedConversionIsAllowed(_castNode) AndAlso
-                            Not expressionToCastType.IsNarrowing)
+                           UserDefinedConversionIsAllowed(_castNode) AndAlso
+                            Not expressionToCastType.IsNarrowing
                 ElseIf expressionToOuterType.IsUserDefined Then
                     Return False
                 End If
@@ -293,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim expressionToCastTypeIsWideningRefOrDefault As Boolean = expressionToCastType.IsWidening AndAlso (expressionToCastType.IsReference OrElse expressionToCastType.IsDefault)
                     Dim expressionToOuterTypeIsWideningRefOrDefault As Boolean = expressionToOuterType.IsWidening AndAlso (expressionToOuterType.IsReference OrElse expressionToOuterType.IsDefault)
 
-                    If (expressionToCastTypeIsWideningRefOrDefault AndAlso expressionToOuterTypeIsWideningRefOrDefault) Then
+                    If expressionToCastTypeIsWideningRefOrDefault AndAlso expressionToOuterTypeIsWideningRefOrDefault Then
                         If expressionToCastType.IsDefault Then
                             Return Not CastRemovalChangesDefaultValue(castType, outerType)
                         End If
@@ -311,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 If Not castToOuterType.IsValueType AndAlso castToOuterType = expressionToOuterType Then
-                    If (castToOuterType.IsNullableValueType) Then
+                    If castToOuterType.IsNullableValueType Then
                         Return expressionToOuterType.IsWidening AndAlso
                             DirectCast(castExpressionType.OriginalDefinition, ITypeSymbol).SpecialType = SpecialType.System_Nullable_T
                     ElseIf expressionToCastType.IsWidening AndAlso expressionToCastType.IsNumeric AndAlso Not castToOuterType.IsIdentity Then
