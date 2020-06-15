@@ -3586,13 +3586,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
         {
-            WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
-            WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
-            WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
-
             // LanguageVersion should already be mapped to a specific version
             Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
             WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+
+            if (Options.CheckOverflow)
+            {
+                WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+            }
+
+            if (Options.NullableContextOptions != NullableContextOptions.Disable)
+            {
+                WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+            }
+
+            if (Options.AllowUnsafe)
+            {
+                WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+            }
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())
