@@ -128,7 +128,11 @@ namespace Roslyn.Utilities
             }
         }
 
-        public async Task WaitUntilCurrentBatchCompletesAsync() => await _updateTask.ConfigureAwait(false);
+        public Task WaitUntilCurrentBatchCompletesAsync()
+        {
+            lock (_gate)
+                return _updateTask;
+        }
 
         private void AddItemsToBatch(IEnumerable<TItem> items)
         {

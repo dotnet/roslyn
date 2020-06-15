@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         }
 
         // After all definitions/references have been found, wait here until all results have been reported.
-        public override async Task OnCompletedAsync()
-            => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+        public override Task OnCompletedAsync() => _workQueue.WaitUntilCurrentBatchCompletesAsync();
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
