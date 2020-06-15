@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     internal static partial class CSharpCodeStyleOptions
     {
         private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion);
+        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Silent);
 
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferPatternMatching = CreateOption(
             CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatching),
-            defaultValue: CodeStyleOption2<bool>.Default,
+            defaultValue: s_trueWithSilentEnforcement,
             storageLocations: new OptionStorageLocation2[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_pattern_matching"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatching)}")});
