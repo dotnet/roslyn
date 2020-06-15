@@ -55,7 +55,7 @@ Option Strict On
 Imports System.Drawing
 Module M
     Sub Main()
-       Dim y As New Point([|CInt(1.1), 1)|]
+       Dim y As New Point([|CInt(1.1)|], 1)
     End Sub
 End Module
 </File>

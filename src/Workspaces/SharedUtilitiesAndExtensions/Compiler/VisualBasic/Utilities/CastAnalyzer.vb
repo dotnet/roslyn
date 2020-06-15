@@ -138,7 +138,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If speculatedExpressionOuterType Is Nothing Then
                 Return Nothing
             End If
-            Stop
             If outerSpeculatedExpression.IsParentKind(SyntaxKind.SimpleArgument) Then
                 speculatedExpressionOuterType = outerType
                 Return _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
@@ -282,8 +281,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If castToOuterType.IsUserDefined OrElse expressionToCastType.IsUserDefined Then
                     Return (HaveSameUserDefinedConversion(expressionToCastType, expressionToOuterType) OrElse
                             HaveSameUserDefinedConversion(castToOuterType, expressionToOuterType)) AndAlso
-                           UserDefinedConversionIsAllowed(_castNode) AndAlso
-                            Not expressionToCastType.IsNarrowing
+                           (UserDefinedConversionIsAllowed(_castNode) AndAlso
+                            Not expressionToCastType.IsNarrowing)
                 ElseIf expressionToOuterType.IsUserDefined Then
                     Return False
                 End If
