@@ -146,6 +146,27 @@ record Point(int x, int y);
         }
 
         [Fact]
+        public void TestInExpressionTree()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+public record C(int i)
+{
+    public static void M()
+    {
+        Expression<Func<C, C>> expr = c => c with { i = 5 };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,44): error CS8849: An expression tree may not contain a with-expression.
+                //         Expression<Func<C, C>> expr = c => c with { i = 5 };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsWithExpression, "c with { i = 5 }").WithLocation(8, 44)
+                );
+        }
+
+        [Fact]
         public void PartialRecordMixedWithClass()
         {
             var src = @"
