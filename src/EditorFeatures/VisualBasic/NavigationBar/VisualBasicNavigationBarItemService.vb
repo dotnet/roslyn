@@ -210,7 +210,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 childItems.AddRange(CreateItemsForMemberGroup(constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             End If
 
-
             ' Get any of the methods named "Finalize" in this class, and list them first. The legacy
             ' behavior that we will consider a method a finalizer even if it is shadowing the real
             ' Finalize method instead of overriding it, so this code is actually correct!

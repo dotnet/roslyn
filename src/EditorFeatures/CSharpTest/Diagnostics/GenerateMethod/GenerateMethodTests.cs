@@ -360,7 +360,6 @@ class Class
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationCrossingNullableAnnotationsEnabled()
         {
@@ -436,7 +435,6 @@ class Class
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationNamedValueArg()
@@ -8771,6 +8769,39 @@ class Class
     }
 
     private bool GreaterThanZero(int i)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerArgument()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate*<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate*<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate*<int, float> y)
     {
         throw new NotImplementedException();
     }

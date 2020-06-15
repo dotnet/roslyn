@@ -1232,21 +1232,20 @@ Target->Ultimate
     }
 }";
             CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (6,29): error CS8521: Pattern-matching is not permitted for pointer types.
+                // (6,29): error CS8370: Feature 'null pointer constant pattern' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     bool M1(int* p) => p is null; // 1
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(6, 29),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "null").WithArguments("null pointer constant pattern", "8.0").WithLocation(6, 29),
                 // (7,29): error CS8521: Pattern-matching is not permitted for pointer types.
                 //     bool M2(int* p) => p is var _; // 2
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(7, 29),
-                // (12,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                // (12,18): error CS8370: Feature 'null pointer constant pattern' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //             case null: // 3
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(12, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "null").WithArguments("null pointer constant pattern", "8.0").WithLocation(12, 18),
                 // (20,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //             case var _: // 4
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(20, 18)
-                );
-            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                );
+            );
+            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
@@ -1950,6 +1949,9 @@ class C
         if (o is 1 and int x3) { }
         if (o is (1 or 2) and int x4) { }
         if (o is not (1 or 2) and int x5) { }
+
+        if (o is not int x6) { }
+        if (o is not (1 and int x7)) { }
     }
 
     void Bad(object o)
@@ -1958,11 +1960,9 @@ class C
         if (o is int y2 or (1 or 2)) { }
         if (o is 1 or int y3) { }
         if (o is (1 or 2) or int y4) { }
-        if (o is not int y5) { }
-        if (o is not (1 and int y6)) { }
-        if (o is Point { X: var y7 } or Animal _) { }
-        if (o is Point(var y8, _) or Animal _) { }
-        if (o is object or (1 or var y9)) { }
+        if (o is Point { X: var y5 } or Animal _) { }
+        if (o is Point(var y6, _) or Animal _) { }
+        if (o is object or (1 or var y7)) { }
     }
 
     void NotBad(object o)
@@ -1984,36 +1984,30 @@ class Animal { }
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                // (16,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (19,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y1 or 1) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y1").WithLocation(16, 22),
-                // (17,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y1").WithLocation(19, 22),
+                // (20,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y2 or (1 or 2)) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y2").WithLocation(17, 22),
-                // (18,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y2").WithLocation(20, 22),
+                // (21,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is 1 or int y3) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y3").WithLocation(18, 27),
-                // (19,34): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y3").WithLocation(21, 27),
+                // (22,34): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is (1 or 2) or int y4) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y4").WithLocation(19, 34),
-                // (20,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is not int y5) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y5").WithLocation(20, 26),
-                // (21,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is not (1 and int y6)) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y6").WithLocation(21, 33),
-                // (22,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is Point { X: var y7 } or Animal _) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(22, 33),
-                // (23,28): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is Point(var y8, _) or Animal _) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y8").WithLocation(23, 28),
-                // (24,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                //         if (o is object or (1 or var y9)) { }
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is object or (1 or var y9)").WithArguments("object").WithLocation(24, 13),
-                // (24,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is object or (1 or var y9)) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y9").WithLocation(24, 38)
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y4").WithLocation(22, 34),
+                // (23,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is Point { X: var y5 } or Animal _) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y5").WithLocation(23, 33),
+                // (24,28): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is Point(var y6, _) or Animal _) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y6").WithLocation(24, 28),
+                // (25,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                //         if (o is object or (1 or var y7)) { }
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is object or (1 or var y7)").WithArguments("object").WithLocation(25, 13),
+                // (25,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is object or (1 or var y7)) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(25, 38)
                 );
         }
 
@@ -2923,14 +2917,18 @@ class C
             }
         }
 
-        [Fact]
-        public void Relational_SignedEnumExhaustive()
+        [Theory]
+        [InlineData("sbyte", true)]
+        [InlineData("short", true)]
+        [InlineData("int", true)]
+        [InlineData("long", true)]
+        [InlineData("sbyte", false)]
+        [InlineData("short", false)]
+        [InlineData("int", false)]
+        [InlineData("long", false)]
+        public void Relational_SignedEnumExhaustive(string typeName, bool withExhaustive)
         {
-            foreach (var typeName in new[] { "sbyte", "short", "int", "long" })
-            {
-                foreach (var withExhaustive in new[] { false, true })
-                {
-                    var source = @"
+            var source = @"
 enum E : " + typeName + @"
 {
     Zero,
@@ -2957,21 +2955,19 @@ class C
 " : "")
 + @"    };
 }";
-                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
-                    if (withExhaustive)
-                    {
-                        compilation.VerifyDiagnostics(
-                            );
-                    }
-                    else
-                    {
-                        compilation.VerifyDiagnostics(
-                            // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
-                            //     static int M(E c) => c switch
-                            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
-                            );
-                    }
-                }
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            if (withExhaustive)
+            {
+                compilation.VerifyEmitDiagnostics(
+                    );
+            }
+            else
+            {
+                compilation.VerifyEmitDiagnostics(
+                    // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                    //     static int M(E c) => c switch
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
+                    );
             }
         }
 
@@ -5535,6 +5531,306 @@ class C
                 // (7,21): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         if (true is 0) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(7, 21)
+                );
+        }
+
+        [Fact, WorkItem(44518, "https://github.com/dotnet/roslyn/issues/44518")]
+        public void ErrorRecovery_01()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        _ = is < true;
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS1525: Invalid expression term 'is'
+                //         _ = is < true;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(5, 13)
+                );
+        }
+
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
+        public void ErrorRecovery_02()
+        {
+            var source =
+@"using System;
+public class C {
+    public void M(nint x) {
+        int z = x switch{
+                1=>//1,
+                2=>2,
+        };
+        Console.WriteLine(z);
+    }
+    public void M(nuint x) {
+        int z = x switch{
+                1=>//1,
+                2=>2,
+        };
+        Console.WriteLine(z);
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS1003: Syntax error, ',' expected
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 18),
+                // (6,18): error CS8504: Pattern missing
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 18),
+                // (13,18): error CS1003: Syntax error, ',' expected
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(13, 18),
+                // (13,18): error CS8504: Pattern missing
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(13, 18)
+                );
+        }
+
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
+        public void ErrorRecovery_03()
+        {
+            var source =
+@"public class C {
+    public void M(nint x) {
+        _ = x is >= 1 and;
+    }
+    public void M(nuint x) {
+        _ = x is >= 1 and;
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,26): error CS8504: Pattern missing
+                //         _ = x is >= 1 and;
+                Diagnostic(ErrorCode.ERR_MissingPattern, ";").WithLocation(3, 26),
+                // (6,26): error CS8504: Pattern missing
+                //         _ = x is >= 1 and;
+                Diagnostic(ErrorCode.ERR_MissingPattern, ";").WithLocation(6, 26)
+                );
+        }
+
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
+        public void ErrorRecovery_04()
+        {
+            var source =
+@"public class C {
+    public void M() {
+        _ = 0f is >= 0/0;
+        _ = 0d is >= 0/0;
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,22): error CS0020: Division by constant zero
+                //         _ = 0f is >= 0/0;
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "0/0").WithLocation(3, 22),
+                // (4,22): error CS0020: Division by constant zero
+                //         _ = 0d is >= 0/0;
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "0/0").WithLocation(4, 22)
+                );
+        }
+
+        [Fact]
+        public void IsNot_01()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        object o = ""s"";
+        if (o is not string s) return;
+        Console.WriteLine(s);
+    }
+}";
+            string expectedOutput = "s";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void IsNot_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        object o = ""s"";
+        if (o is (not (string s))) return;
+        Console.WriteLine(s);
+    }
+}";
+            string expectedOutput = "s";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void IsNot_03()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        object o = ""s"";
+        {
+            if (o is string s)
+                _ = s;
+            else
+                _ = s; // 1
+        }
+        {
+            if (o is not string s)
+                _ = s; // 2
+            else
+                _ = s;
+        }
+        {
+            if (o is not not string s)
+                _ = s;
+            else
+                _ = s; // 3
+        }
+        {
+            if (o is not not not string s)
+                _ = s; // 4
+            else
+                _ = s;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (10,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(10, 21),
+                // (14,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(14, 21),
+                // (22,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(22, 21),
+                // (26,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(26, 21)
+                );
+        }
+
+        [Fact]
+        public void IsNot_04()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        object o = ""s"";
+        {
+            if (o is (string s))
+                _ = s;
+            else
+                _ = s; // 1
+        }
+        {
+            if (o is (not (string s)))
+                _ = s; // 2
+            else
+                _ = s;
+        }
+        {
+            if (o is (not (not (string s))))
+                _ = s;
+            else
+                _ = s; // 3
+        }
+        {
+            if (o is (not (not (not (string s)))))
+                _ = s; // 4
+            else
+                _ = s;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (10,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(10, 21),
+                // (14,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(14, 21),
+                // (22,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(22, 21),
+                // (26,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(26, 21)
+                );
+        }
+
+        [Fact]
+        public void IsNot_05()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        (object, object) o = (1, 2);
+        {
+            if (o is (1, string s))
+                _ = s;
+            else
+                _ = s; // 1
+        }
+        {
+            if (o is (not (1, string s)))
+                _ = s; // 2
+            else
+                _ = s;
+        }
+        {
+            if (o is (not (not (1, string s))))
+                _ = s;
+            else
+                _ = s; // 3
+        }
+        {
+            if (o is (not (not (not (1, string s)))))
+                _ = s; // 4
+            else
+                _ = s;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (10,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(10, 21),
+                // (14,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(14, 21),
+                // (22,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(22, 21),
+                // (26,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(26, 21)
                 );
         }
     }

@@ -708,6 +708,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 eventQueue:=eventQueue)
         End Function
 
+        Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
+            WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+
+            ' LanguageVersion should already be mapped to an effective version at this point
+            Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
+            WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
+
+            WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
+
+            If Options.ParseOptions IsNot Nothing Then
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
+                                                                                              If (p.Value Is Nothing) Then
+                                                                                                  Return p.Key
+                                                                                              End If
+
+                                                                                              Return p.Key + "=" + p.Value.ToString()
+                                                                                          End Function)
+                WriteValue(builder, CompilationOptionNames.Define, String.Join(",", preprocessorStrings))
+            End If
+        End Sub
+
+        Private Sub WriteValue(builder As BlobBuilder, key As String, value As String)
+            builder.WriteUTF8(key)
+            builder.WriteByte(0)
+            builder.WriteUTF8(value)
+            builder.WriteByte(0)
+        End Sub
 #End Region
 
 #Region "Submission"
@@ -2725,6 +2752,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
+        End Function
+
+        Protected Overrides Function CommonCreateFunctionPointerTypeSymbol(
+                returnType As ITypeSymbol,
+                refKind as RefKind,
+                parameterTypes as ImmutableArray(Of ITypeSymbol),
+                parameterRefKinds as ImmutableArray(Of RefKind)) As IFunctionPointerTypeSymbol
+            Throw New NotSupportedException(VBResources.ThereAreNoFunctionPointerTypesInVB)
         End Function
 
         Protected Overrides Function CommonCreateNativeIntegerTypeSymbol(signed As Boolean) As INamedTypeSymbol

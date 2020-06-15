@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -43,10 +42,9 @@ class 123 { }
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 WpfTestRunner.RequireWpfFact($"This test uses {NameOf(IForegroundNotificationService)}")
-                Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
-                Dim provider = New DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), diagnosticService, foregroundService, listenerProvider)
+                Dim provider = workspace.ExportProvider.GetExportedValues(Of ITaggerProvider)().OfType(Of DiagnosticsSquiggleTaggerProvider)().Single()
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
 
                 Using disposable = TryCast(tagger, IDisposable)

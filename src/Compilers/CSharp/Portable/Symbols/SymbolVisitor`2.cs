@@ -119,6 +119,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Called when visiting a <see cref="FunctionPointerTypeSymbol"/>; Override this with specific
+        /// implementation; Calling <see cref="DefaultVisit"/>  if it's not overridden
+        /// </summary>
+        /// <param name="symbol">The visited symbol</param>
+        /// <param name="argument">Additional argument</param>
+        /// <returns></returns>
+        public virtual TResult VisitFunctionPointerType(FunctionPointerTypeSymbol symbol, TArgument argument)
+        {
+            return DefaultVisit(symbol, argument);
+        }
+
+        /// <summary>
         /// Called when visiting an <see cref="ErrorTypeSymbol" /> 
         /// Error symbol is created when there is compiler error; Override this with specific
         /// implementation; Calling <see cref="DefaultVisit" /> if it's not overridden 

@@ -184,6 +184,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 return false;
             }
+            else if (x.MethodKind == MethodKindEx.FunctionPointerSignature)
+            {
+                // We use the signature of a function pointer type to determine equivalence, but
+                // function pointer types do not have containing types.
+                return false;
+            }
 
             return true;
         }
@@ -191,7 +197,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private static IEnumerable<INamedTypeSymbol> Unwrap(INamedTypeSymbol namedType)
         {
             yield return namedType;
-
 
             if (namedType is IErrorTypeSymbol errorType)
             {

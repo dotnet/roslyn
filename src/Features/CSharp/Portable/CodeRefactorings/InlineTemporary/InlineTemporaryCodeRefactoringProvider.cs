@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 var node = Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken);
 
                 // warn when inlining into a conditional expression, as the inlined expression will not be executed.
-                if (semanticModel.GetSymbolInfo(o).Symbol is IMethodSymbol { IsConditional: true })
+                if (semanticModel.GetSymbolInfo(o, cancellationToken).Symbol is IMethodSymbol { IsConditional: true })
                 {
                     node = node.WithAdditionalAnnotations(
                         WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));

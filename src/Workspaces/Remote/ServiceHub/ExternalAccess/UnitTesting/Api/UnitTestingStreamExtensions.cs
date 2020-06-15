@@ -4,16 +4,17 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal static class UnitTestingStreamExtensions
     {
         public static JsonRpc UnitTesting_CreateStreamJsonRpc(

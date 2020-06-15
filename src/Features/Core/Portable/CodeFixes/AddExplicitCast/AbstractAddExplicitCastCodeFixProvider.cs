@@ -149,7 +149,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     continue;
                 }
 
-
                 validPotentialConversionTypes.Add(conversionTuple);
             }
 

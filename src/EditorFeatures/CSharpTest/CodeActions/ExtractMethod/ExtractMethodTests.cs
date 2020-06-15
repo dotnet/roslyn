@@ -2214,7 +2214,6 @@ class C
     }
 }");
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestAnnotatedNullableParameters1()
             => TestInRegularAndScript1Async(
@@ -2873,7 +2872,6 @@ class C
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNullableObjectWithExplicitCast()

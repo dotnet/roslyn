@@ -2104,6 +2104,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
+                else if (boundExpr is BoundConversion { ConversionKind: ConversionKind.MethodGroup, Conversion: var exprConversion, Type: { TypeKind: TypeKind.FunctionPointer }, SymbolOpt: var symbol })
+                {
+                    // Because the method group is a separate syntax node from the &, the lowest bound node here is the BoundConversion. However,
+                    // the conversion represents an implicit method group conversion from a typeless method group to a function pointer type, so
+                    // we should reflect that in the types and conversion we return.
+                    convertedType = type;
+                    convertedNullability = nullability;
+                    conversion = exprConversion;
+                    type = null;
+                    nullability = new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull);
+                }
                 else
                 {
                     convertedType = type;
@@ -3230,6 +3241,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+
+                case BoundKind.FunctionPointerInvocation:
+                    {
+                        var invocation = (BoundFunctionPointerInvocation)boundNode;
+                        symbols = ImmutableArray.Create<Symbol>(invocation.FunctionPointer);
+                        resultKind = invocation.ResultKind;
+                        break;
+                    }
+
+                case BoundKind.UnconvertedAddressOfOperator:
+                    {
+                        // We try to match the results given for a similar piece of syntax here: bad invocations.
+                        // A BoundUnconvertedAddressOfOperator represents this syntax: &M
+                        // Similarly, a BoundCall for a bad invocation represents this syntax: M(args)
+                        // Calling GetSymbolInfo on the syntax will return an array of candidate symbols that were
+                        // looked up, but calling GetMemberGroup will return an empty array. So, we ignore the member
+                        // group result in the call below.
+                        symbols = GetMethodGroupSemanticSymbols(
+                            ((BoundUnconvertedAddressOfOperator)boundNode).Operand,
+                            boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, methodGroup: out _);
+                        break;
+                    }
 
                 case BoundKind.IndexerAccess:
                     {
@@ -4904,7 +4937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (declarationSyntax.Parent is TupleTypeSyntax tupleTypeSyntax)
             {
-                return (GetSymbolInfo(tupleTypeSyntax).Symbol.GetSymbol() as NamedTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax)).GetPublicSymbol();
+                return (GetSymbolInfo(tupleTypeSyntax, cancellationToken).Symbol.GetSymbol() as NamedTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax)).GetPublicSymbol();
             }
 
             return null;
@@ -4953,6 +4986,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint);
                         // Include only global statements at the top level
                         return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
+
+                    case SymbolKind.NamedType:
+                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint.ContainingSymbol);
+                        return (node) => false;
 
                     default:
                         ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
