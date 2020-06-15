@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _workQueue = new AsyncBatchingWorkQueue<VSReferenceItem>(
-                TimeSpan.FromSeconds(0.5), ReportReferencesAsync, cancellationToken);
+                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, cancellationToken);
 
             CancellationToken = cancellationToken;
         }
