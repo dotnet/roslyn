@@ -69,6 +69,42 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return items;
         }
 
+        /// <summary>
+        /// Get the metadata name of all the base types and interfaces this type derived from.
+        /// </summary>
+        private static ImmutableArray<string> GetReceiverTypeNames(ITypeSymbol receiverTypeSymbol)
+        {
+            using var _ = PooledHashSet<string>.GetInstance(out var allTypeNamesBuilder);
+
+            if (receiverTypeSymbol is IArrayTypeSymbol arrayTypeSymbol)
+            {
+                var elementTypeSymbol = arrayTypeSymbol.ElementType;
+                while (elementTypeSymbol is IArrayTypeSymbol symbol)
+                {
+                    elementTypeSymbol = symbol.ElementType;
+                }
+
+                // We do not differentiate array of different kinds sicne they are all represented in the indices as "NonArrayElementTypeName[]"
+                // e.g. int[], int[][], int[,], etc. are all represented as int[].
+                allTypeNamesBuilder.Add(elementTypeSymbol.MetadataName + "[]");
+            }
+            else
+            {
+                allTypeNamesBuilder.Add(receiverTypeSymbol.MetadataName);
+            }
+
+            allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetBaseTypes().Select(t => t.MetadataName));
+            allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetAllInterfacesIncludingThis().Select(t => t.MetadataName));
+
+            // interface doesn't inherit from object, but is implicitly convertible to object type.
+            if (receiverTypeSymbol.IsInterfaceType())
+            {
+                allTypeNamesBuilder.Add(nameof(Object));
+            }
+
+            return allTypeNamesBuilder.ToImmutableArray();
+        }
+
         public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsInCurrentProcessAsync(
             Document document,
             int position,
@@ -80,19 +116,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var counter = new StatisticCounter();
             var ticks = Environment.TickCount;
 
-            // Get the metadata name of all the base types and interfaces this type derived from.
-            using var _ = PooledHashSet<string>.GetInstance(out var allTypeNamesBuilder);
-            allTypeNamesBuilder.Add(receiverTypeSymbol.MetadataName);
-            allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetBaseTypes().Select(t => t.MetadataName));
-            allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetAllInterfacesIncludingThis().Select(t => t.MetadataName));
-
-            // interface doesn't inherit from object, but is implicitly convertible to object type.
-            if (receiverTypeSymbol.IsInterfaceType())
-            {
-                allTypeNamesBuilder.Add(nameof(Object));
-            }
-
-            var allTypeNames = allTypeNamesBuilder.ToImmutableArray();
             var indicesResult = await TryGetIndicesAsync(
                 document.Project, forceIndexCreation, cancellationToken).ConfigureAwait(false);
 
@@ -117,7 +140,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             counter.NoFilter = !indicesResult.HasResult;
 
             ticks = Environment.TickCount;
-            var items = await GetExtensionMethodItemsAsync(document, receiverTypeSymbol, allTypeNames, indicesResult, position, namespaceInScope, counter, cancellationToken).ConfigureAwait(false);
+
+            var items = await GetExtensionMethodItemsAsync(
+                document, receiverTypeSymbol, GetReceiverTypeNames(receiverTypeSymbol), indicesResult, position,
+                namespaceInScope, counter, cancellationToken).ConfigureAwait(false);
 
             counter.GetSymbolTicks = Environment.TickCount - ticks;
 
@@ -161,7 +187,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     counter, cancellationToken);
 
                 var isSymbolFromCurrentCompilation = project == currentProject;
-                GetExtensionMethodItemsWorker(position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation, builder, namespaceNameCache);
+                GetExtensionMethodItemsWorker(
+                    position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation,
+                    builder, namespaceNameCache, cancellationToken);
             }
 
             // Get extension method items from PE
@@ -176,7 +204,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         assembly, filter, namespaceFilter, internalsVisible,
                         counter, cancellationToken);
 
-                    GetExtensionMethodItemsWorker(position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation: false, builder, namespaceNameCache);
+                    GetExtensionMethodItemsWorker(
+                        position, semanticModel, receiverTypeSymbol, matchingMethodSymbols,
+                        isSymbolFromCurrentCompilation: false, builder, namespaceNameCache, cancellationToken);
                 }
             }
 
@@ -190,10 +220,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<IMethodSymbol> matchingMethodSymbols,
             bool isSymbolFromCurrentCompilation,
             ArrayBuilder<SerializableImportCompletionItem> builder,
-            Dictionary<INamespaceSymbol, string> stringCache)
+            Dictionary<INamespaceSymbol, string> stringCache,
+            CancellationToken cancellationToken)
         {
             foreach (var methodSymbol in matchingMethodSymbols)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Symbols could be from a different compilation,
                 // because we retrieved them on a per-assembly basis.
                 // Need to find the matching one in current compilation
@@ -251,8 +284,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var (fullyQualifiedContainerName, methodNames) in extensionMethodFilter)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 // First try to filter out types from already imported namespaces
                 var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
                 var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName.Substring(0, indexOfLastDot) : string.Empty;
@@ -276,6 +307,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var methodName in methodNames)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var methodSymbols = containerSymbol.GetMembers(methodName).OfType<IMethodSymbol>();
 
                     foreach (var methodSymbol in methodSymbols)

@@ -512,6 +512,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 simpleTypeName = If(typeParameterNames?.Contains(text), Nothing, text)
                 Return simpleTypeName IsNot Nothing
 
+            ElseIf TypeOf node Is ArrayTypeSyntax Then
+                ' We do Not differentiate array of different kinds for simplicity.
+                ' e.g. int(), int()(), int(,), etc. are all represented as int[] in the index.
+                Dim arrayType = DirectCast(node, ArrayTypeSyntax)
+                Dim elementTypeName As String
+#Disable Warning BC42030 ' Variable is passed by reference before it has been assigned a value
+                simpleTypeName = If(TryGetSimpleTypeNameWorker(arrayType.ElementType, typeParameterNames, elementTypeName), CreateTargetTypeStringForArray(elementTypeName), Nothing)
+#Enable Warning BC42030 ' Variable is passed by reference before it has been assigned a value
+                Return simpleTypeName IsNot Nothing
+
             ElseIf TypeOf node Is GenericNameSyntax Then
                 Dim genericName = DirectCast(node, GenericNameSyntax)
                 Dim name = genericName.Identifier.Text

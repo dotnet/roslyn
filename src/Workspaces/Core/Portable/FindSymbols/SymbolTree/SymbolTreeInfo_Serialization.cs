@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("19");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("20");
 
         /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the

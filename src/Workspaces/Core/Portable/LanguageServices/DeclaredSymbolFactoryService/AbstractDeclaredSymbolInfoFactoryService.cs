@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected static List<Dictionary<string, string>> AllocateAliasMapList()
             => s_aliasMapListPool.Allocate();
 
+        protected static string CreateTargetTypeStringForArray(string elementTypeName)
+            => elementTypeName + "[]";
+
         protected static void FreeAliasMapList(List<Dictionary<string, string>> list)
         {
             if (list != null)

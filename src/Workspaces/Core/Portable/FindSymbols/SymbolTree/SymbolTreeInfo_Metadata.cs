@@ -410,6 +410,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
             {
                 // Only bother looking for extension methods in static types.
+                // Note this check means we would ignore extension methods declared in assemblies
+                // compiled from VB code, since a module in VB is compiled into class with 
+                // "sealed" attribute but not "abstract". 
+                // Although this can be addressed by checking custom attributes,
+                // we believe this is not a common scenario to warrant potential perf impact.
                 if ((typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
                     (typeDefinition.Attributes & TypeAttributes.Sealed) != 0)
                 {
@@ -728,7 +733,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             }
                             else
                             {
-                                simpleBuilder.Add(parameterTypeInfo.Name, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
+                                // We do not differentiate array of different kinds for simplicity.
+                                // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
+                                var parameterTypeName = parameterTypeInfo.IsArray ? parameterTypeInfo.Name + "[]" : parameterTypeInfo.Name;
+                                simpleBuilder.Add(parameterTypeName, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
                             }
                         }
                     }

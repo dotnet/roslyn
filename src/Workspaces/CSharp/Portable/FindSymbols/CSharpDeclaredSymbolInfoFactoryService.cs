@@ -540,6 +540,14 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         simpleTypeName = typeParameterNames?.Contains(text) == true ? null : text;
                         return simpleTypeName != null;
 
+                    case ArrayTypeSyntax arrayTypeNode:
+                        // We do not differentiate array of different kinds for simplicity.
+                        // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
+                        simpleTypeName = TryGetSimpleTypeName(arrayTypeNode.ElementType, typeParameterNames, out var elementTypeName)
+                            ? CreateTargetTypeStringForArray(elementTypeName)
+                            : null;
+                        return simpleTypeName != null;
+
                     case GenericNameSyntax genericNameNode:
                         var name = genericNameNode.Identifier.Text;
                         var arity = genericNameNode.Arity;

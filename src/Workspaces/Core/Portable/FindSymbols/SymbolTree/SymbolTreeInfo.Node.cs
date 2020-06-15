@@ -80,9 +80,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly struct ParameterTypeInfo
         {
             /// <summary>
-            /// This is the type name of the parameter when <see cref="IsComplexType"/> is false.
+            /// This is the type name of the parameter when <see cref="IsComplexType"/> is false. 
+            /// For array types, this is just the elemtent type name.
             /// </summary>
             public readonly string Name;
+
+            /// <summary>
+            /// Indicate if the type of parameter is any kind of array.
+            /// </summary>
+
+            public readonly bool IsArray;
 
             /// <summary>
             /// Similar to <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>, we divide extension methods into simple 
@@ -97,10 +104,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             public readonly bool IsComplexType;
 
-            public ParameterTypeInfo(string name, bool isComplex)
+            public ParameterTypeInfo(string name, bool isComplex, bool isArray)
             {
                 Name = name;
                 IsComplexType = isComplex;
+                IsArray = isArray;
             }
         }
 
@@ -129,15 +137,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public static readonly ParameterTypeInfoProvider Instance = new ParameterTypeInfoProvider();
 
             private static ParameterTypeInfo ComplexInfo
-                => new ParameterTypeInfo(string.Empty, isComplex: true);
+                => new ParameterTypeInfo(string.Empty, isComplex: true, isArray: false);
 
             public ParameterTypeInfo GetPrimitiveType(PrimitiveTypeCode typeCode)
-                => new ParameterTypeInfo(typeCode.ToString(), isComplex: false);
+                => new ParameterTypeInfo(typeCode.ToString(), isComplex: false, isArray: false);
 
             public ParameterTypeInfo GetGenericInstantiation(ParameterTypeInfo genericType, ImmutableArray<ParameterTypeInfo> typeArguments)
                 => genericType.IsComplexType
                     ? ComplexInfo
-                    : new ParameterTypeInfo(genericType.Name, isComplex: false);
+                    : new ParameterTypeInfo(genericType.Name, isComplex: false, isArray: false);
 
             public ParameterTypeInfo GetByReferenceType(ParameterTypeInfo elementType)
                 => elementType;
@@ -146,14 +154,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var type = reader.GetTypeDefinition(handle);
                 var name = reader.GetString(type.Name);
-                return new ParameterTypeInfo(name, isComplex: false);
+                return new ParameterTypeInfo(name, isComplex: false, isArray: false);
             }
 
             public ParameterTypeInfo GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
             {
                 var type = reader.GetTypeReference(handle);
                 var name = reader.GetString(type.Name);
-                return new ParameterTypeInfo(name, isComplex: false);
+                return new ParameterTypeInfo(name, isComplex: false, isArray: false);
             }
 
             public ParameterTypeInfo GetTypeFromSpecification(MetadataReader reader, object genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
@@ -162,9 +170,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return new SignatureDecoder<ParameterTypeInfo, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
             }
 
-            public ParameterTypeInfo GetArrayType(ParameterTypeInfo elementType, ArrayShape shape) => ComplexInfo;
+            public ParameterTypeInfo GetArrayType(ParameterTypeInfo elementType, ArrayShape shape) => GetArrayTypeInfo(elementType);
 
-            public ParameterTypeInfo GetSZArrayType(ParameterTypeInfo elementType) => ComplexInfo;
+            public ParameterTypeInfo GetSZArrayType(ParameterTypeInfo elementType) => GetArrayTypeInfo(elementType);
+
+            private static ParameterTypeInfo GetArrayTypeInfo(ParameterTypeInfo elementType)
+                => elementType.IsComplexType
+                    ? ComplexInfo
+                    : new ParameterTypeInfo(elementType.Name, isComplex: false, isArray: true);
 
             public ParameterTypeInfo GetFunctionPointerType(MethodSignature<ParameterTypeInfo> signature) => ComplexInfo;
 
