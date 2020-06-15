@@ -44,6 +44,9 @@ $EnvVars = @{}
 if (!$NoPrerequisites) {
     & "$PSScriptRoot\tools\Install-NuGetCredProvider.ps1" -AccessToken $AccessToken -Force:$UpgradePrerequisites
     & "$PSScriptRoot\tools\Install-DotNetSdk.ps1" -InstallLocality $InstallLocality
+    if ($LASTEXITCODE -eq 3010) {
+        Exit 3010
+    }
 
     # The procdump tool and env var is required for dotnet test to collect hang/crash dumps of tests.
     # But it only works on Windows.
