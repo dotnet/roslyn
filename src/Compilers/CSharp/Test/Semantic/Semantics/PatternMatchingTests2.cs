@@ -2574,6 +2574,65 @@ public class C
         }
 
         [Fact]
+        public void IsNullableReferenceType_01()
+        {
+            var source =
+@"#nullable enable
+public class C {
+    public void M1(object o) {
+        var t = o is string? { };
+    }
+    public void M2(object o) {
+        var t = o is (string? { });
+    }
+    public void M3(object o) {
+        var t = o is string?;
+    }
+    public void M4(object o) {
+        var t = o is string? _;
+    }
+    public void M5(object o) {
+        var t = o is (string? _);
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (4,22): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
+                //         var t = o is string? { };
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string?", "string").WithLocation(4, 22),
+                // (7,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         var t = o is (string? { });
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? { })").WithArguments("object", "2").WithLocation(7, 22),
+                // (7,29): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? { });
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(7, 29),
+                // (7,31): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? { });
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 31),
+                // (10,22): error CS8650: It is not legal to use nullable reference type 'string?' in an is-type expression; use the underlying type 'string' instead.
+                //         var t = o is string?;
+                Diagnostic(ErrorCode.ERR_IsNullableType, "string?").WithArguments("string").WithLocation(10, 22),
+                // (13,30): error CS0103: The name '_' does not exist in the current context
+                //         var t = o is string? _;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(13, 30),
+                // (13,31): error CS1003: Syntax error, ':' expected
+                //         var t = o is string? _;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(13, 31),
+                // (13,31): error CS1525: Invalid expression term ';'
+                //         var t = o is string? _;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(13, 31),
+                // (16,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         var t = o is (string? _);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? _)").WithArguments("object", "2").WithLocation(16, 22),
+                // (16,29): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? _);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(16, 29),
+                // (16,31): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? _);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",", "").WithLocation(16, 31)
+                );
+        }
+
+        [Fact]
         public void IsAlwaysPatternKinds()
         {
             var source =
