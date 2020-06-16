@@ -1804,7 +1804,7 @@ option1 = value2",
         }
 
         [Fact]
-        public void GlobalConfigSectionsPopertiesAreNotCaseSensitive()
+        public void GlobalConfigSectionsPropertiesAreNotCaseSensitive()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true
@@ -1968,7 +1968,7 @@ dotnet_diagnostic.cs000.severity = error
 
 
         [Fact]
-        public void GlobalConfigSeverityIsOverridenByEditorConfig()
+        public void GlobalConfigSeverityIsOverriddenByEditorConfig()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"

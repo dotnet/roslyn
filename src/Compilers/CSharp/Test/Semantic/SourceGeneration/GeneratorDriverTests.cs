@@ -658,7 +658,7 @@ class C { }
             {
                 sgc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8));
 
-                // the assert should swallow the exception, so we'll actually succesfully generate
+                // the assert should swallow the exception, so we'll actually successfully generate
                 Assert.Throws<ArgumentException>("hintName", () => sgc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)));
 
                 // also throws for <name> vs <name>.cs

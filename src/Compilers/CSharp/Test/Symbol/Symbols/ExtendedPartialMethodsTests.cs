@@ -656,7 +656,7 @@ partial class D
         }
 
         [Fact]
-        public void Override_WrongAccessiblity()
+        public void Override_WrongAccessibility()
         {
             const string text1 = @"
 partial class D

@@ -1826,6 +1826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Codes 8820, 8821 used by features/static-lambdas
 
+        ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,
         ERR_AssignmentInitOnly = 8852,
@@ -1841,6 +1842,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRecordBase = 8864,
         ERR_BadInheritanceFromRecord = 8865,
         ERR_BadRecordMemberForPositionalParameter = 8866,
+        ERR_NoCopyConstructorInBaseType = 8867,
+        ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
 
         #endregion
 

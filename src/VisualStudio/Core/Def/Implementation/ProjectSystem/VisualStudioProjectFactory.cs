@@ -14,12 +14,16 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.Internal.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [Export(typeof(VisualStudioProjectFactory))]
     internal sealed class VisualStudioProjectFactory
     {
+        private const string SolutionContextName = "Solution";
+        private const string SolutionSessionIdPropertyName = "SolutionSessionID";
+
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
@@ -78,7 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         language: language,
                         filePath: creationInfo.FilePath,
                         compilationOptions: creationInfo.CompilationOptions,
-                        parseOptions: creationInfo.ParseOptions);
+                        parseOptions: creationInfo.ParseOptions)
+                    .WithTelemetryId(creationInfo.ProjectGuid);
 
                 // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
                 if (w.CurrentSolution.ProjectIds.Count == 0)
@@ -95,13 +100,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                     }
 
+                    var solutionSessionId = GetSolutionSessionId();
+
                     w.OnSolutionAdded(
                         SolutionInfo.Create(
                             SolutionId.CreateNewId(solutionFilePath),
                             VersionStamp.Create(),
                             solutionFilePath,
                             projects: new[] { projectInfo },
-                            analyzerReferences: w.CurrentSolution.AnalyzerReferences));
+                            analyzerReferences: w.CurrentSolution.AnalyzerReferences)
+                        .WithTelemetryId(solutionSessionId));
                 }
                 else
                 {
@@ -112,6 +120,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             });
 
             return project;
+
+            static Guid GetSolutionSessionId()
+            {
+                try
+                {
+                    var solutionContext = TelemetryHelper.DataModelTelemetrySession.GetContext(SolutionContextName);
+                    var sessionIdProperty = solutionContext is object
+                        ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
+                        : "";
+                    _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
+                    return solutionSessionId;
+                }
+                catch (TypeInitializationException)
+                {
+                    // The TelemetryHelper cannot be constructed during unittests.
+                    return default;
+                }
+            }
         }
     }
 }
