@@ -6062,11 +6062,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     default:
                         {
-                            // Ensure that there is an error thrown when an Unbound Generic is found.
-                            if (right is GenericNameSyntax genericNameRight && rightHasTypeArguments && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument) && !IsUnboundTypeAllowed(genericNameRight))
-                            {
-                                diagnostics.Add(ErrorCode.ERR_UnexpectedUnboundGenericName, genericNameRight.Location);
-                            }
                             // Can't dot into the null literal
                             if (boundLeft.Kind == BoundKind.Literal && ((BoundLiteral)boundLeft).ConstantValueOpt == ConstantValue.Null)
                             {
@@ -6079,6 +6074,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if ((object)leftType != null)
                             {
+                                // Ensure that an error is thrown when an unbound generic is found.
+                                if (right is GenericNameSyntax genericNameRight && rightHasTypeArguments &&
+                                    typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument) && !IsUnboundTypeAllowed(genericNameRight))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_UnexpectedUnboundGenericName, genericNameRight.Location);
+                                }
+
                                 // NB: We don't know if we really only need RValue access, or if we are actually
                                 // passing the receiver implicitly by ref (e.g. in a struct instance method invocation).
                                 // These checks occur later.
