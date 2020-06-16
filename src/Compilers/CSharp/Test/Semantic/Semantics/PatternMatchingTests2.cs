@@ -2726,18 +2726,12 @@ class F
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
-            void checkType(ExpressionSyntax expr, string? expectedNaturalType, string? expectedConvertedType, ConversionKind expectedConversionKind)
+            void checkType(ExpressionSyntax expr, string expectedNaturalType, string expectedConvertedType, ConversionKind expectedConversionKind)
             {
                 var typeInfo = model.GetTypeInfo(expr);
                 var conversion = model.GetConversion(expr);
-                if (expectedNaturalType is null)
-                    Assert.Null(typeInfo.Type);
-                else
-                    Assert.Equal(expectedNaturalType, typeInfo.Type.ToTestDisplayString());
-                if (expectedConvertedType is null)
-                    Assert.Null(typeInfo.ConvertedType);
-                else
-                    Assert.Equal(expectedConvertedType, typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(expectedNaturalType, typeInfo.Type?.ToTestDisplayString());
+                Assert.Equal(expectedConvertedType, typeInfo.ConvertedType?.ToTestDisplayString());
                 Assert.Equal(expectedConversionKind, conversion.Kind);
             }
 
