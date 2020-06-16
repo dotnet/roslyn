@@ -3061,10 +3061,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
-                    var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
-                    _ = memberSignatures.TryGetValue(property, out var existingMember);
-                    existingMember ??= getInheritedMember(property, this);
+                    bool isInherited = false;
+                    var property = new SynthesizedRecordPropertySymbol(this, param, isOverride: false, diagnostics);
+                    if (!memberSignatures.TryGetValue(property, out var existingMember))
+                    {
+                        existingMember = getInheritedMember(property, this);
+                        isInherited = true;
+                    }
                     if (existingMember is null)
+                    {
+                        addProperty(property);
+                    }
+                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
+                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        // There already exists a member corresponding to the candidate synthesized property.
+                        if (isInherited && existingMember.IsAbstract)
+                        {
+                            addProperty(new SynthesizedRecordPropertySymbol(this, param, isOverride: true, diagnostics));
+                        }
+                        else
+                        {
+                            // Deconstruct() is specified to simply assign from this property to the corresponding out parameter.
+                            existingOrAddedMembers.Add(prop);
+                        }
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
+                            param.Locations[0],
+                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
+                            param.TypeWithAnnotations,
+                            param.Name);
+                    }
+
+                    void addProperty(SynthesizedRecordPropertySymbol property)
                     {
                         existingOrAddedMembers.Add(property);
                         members.Add(property);
@@ -3074,21 +3105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
-                    }
-                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
-                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        // There already exists a member corresponding to the candidate synthesized property.
-                        // The deconstructor is specified to simply assign from this property to the corresponding out parameter.
-                        existingOrAddedMembers.Add(prop);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
-                            param.Locations[0],
-                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
-                            param.TypeWithAnnotations,
-                            param.Name);
                     }
                 }
 

@@ -16,15 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordPropertySymbol : SourceOrRecordPropertySymbol
     {
         private readonly ParameterSymbol _backingParameter;
+
         internal override SynthesizedBackingFieldSymbol BackingField { get; }
         public override MethodSymbol GetMethod { get; }
         public override MethodSymbol SetMethod { get; }
         public override NamedTypeSymbol ContainingType { get; }
 
-        public SynthesizedRecordPropertySymbol(
-            NamedTypeSymbol containingType,
-            ParameterSymbol backingParameter,
-            DiagnosticBag diagnostics)
+        public SynthesizedRecordPropertySymbol(NamedTypeSymbol containingType, ParameterSymbol backingParameter, bool isOverride, DiagnosticBag diagnostics)
             : base(backingParameter.Locations[0])
         {
             ContainingType = containingType;
@@ -38,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasInitializer: true);
             GetMethod = new GetAccessorSymbol(this, name);
             SetMethod = new InitAccessorSymbol(this, name, diagnostics);
+            IsOverride = isOverride;
         }
 
         public ParameterSymbol BackingParameter => _backingParameter;
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsVirtual => false;
 
-        public override bool IsOverride => false;
+        public override bool IsOverride { get; }
 
         public override bool IsAbstract => false;
 
@@ -98,38 +97,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => new SyntaxList<AttributeListSyntax>();
 
-        private sealed class GetAccessorSymbol : SynthesizedInstanceMethodSymbol
+        private abstract class AccessorSymbol : SynthesizedInstanceMethodSymbol
         {
-            private readonly SynthesizedRecordPropertySymbol _property;
+            protected readonly SynthesizedRecordPropertySymbol _property;
 
-            public override string Name { get; }
+            public abstract override string Name { get; }
 
-            public GetAccessorSymbol(SynthesizedRecordPropertySymbol property, string paramName)
+            protected AccessorSymbol(SynthesizedRecordPropertySymbol property)
             {
                 _property = property;
-                Name = SourcePropertyAccessorSymbol.GetAccessorName(
-                    paramName,
-                    getNotSet: true,
-                    isWinMdOutput: false /* unused for getters */);
             }
 
-            public override MethodKind MethodKind => MethodKind.PropertyGet;
+            public abstract override MethodKind MethodKind { get; }
 
             public override int Arity => 0;
 
             public override bool IsExtensionMethod => false;
 
-            public override bool HidesBaseMethodsByName => false;
+            public override bool HidesBaseMethodsByName => false; // PROTOTYPE: Should this be true if it hides?
 
             public override bool IsVararg => false;
 
-            public override bool ReturnsVoid => false;
+            public override bool ReturnsVoid => ReturnType.SpecialType == SpecialType.System_Void;
 
             public override bool IsAsync => false;
 
             public override RefKind RefKind => RefKind.None;
 
-            public override TypeWithAnnotations ReturnTypeWithAnnotations => _property.TypeWithAnnotations;
+            public abstract override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
 
             public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
@@ -137,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
-            public override ImmutableArray<ParameterSymbol> Parameters => _property.Parameters;
+            public abstract override ImmutableArray<ParameterSymbol> Parameters { get; }
 
             public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
@@ -187,11 +182,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
                 => Array.Empty<SecurityAttribute>();
 
-            internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+            internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => !this.IsOverride;
 
-            internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
+            internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => this.IsOverride;
 
             internal override bool SynthesizesLoweredBoundBody => true;
+
+            internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics);
+        }
+
+        private sealed class GetAccessorSymbol : AccessorSymbol
+        {
+            public override string Name { get; }
+
+            public GetAccessorSymbol(SynthesizedRecordPropertySymbol property, string paramName) : base(property)
+            {
+                Name = SourcePropertyAccessorSymbol.GetAccessorName(
+                    paramName,
+                    getNotSet: true,
+                    isWinMdOutput: false /* unused for getters */);
+            }
+
+            public override MethodKind MethodKind => MethodKind.PropertyGet;
+
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => _property.TypeWithAnnotations;
+
+            public override ImmutableArray<ParameterSymbol> Parameters => _property.Parameters; // PROTOTYPE: Shouldn't the parameters be owned by this symbol?
 
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
@@ -208,19 +224,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private sealed class InitAccessorSymbol : SynthesizedInstanceMethodSymbol
+        private sealed class InitAccessorSymbol : AccessorSymbol
         {
-            private readonly SynthesizedRecordPropertySymbol _property;
-
             public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
             public override string Name { get; }
 
             public InitAccessorSymbol(
                 SynthesizedRecordPropertySymbol property,
                 string paramName,
-                DiagnosticBag diagnostics)
+                DiagnosticBag diagnostics) :
+                base(property)
             {
-                _property = property;
                 Name = SourcePropertyAccessorSymbol.GetAccessorName(
                     paramName,
                     getNotSet: false,
@@ -243,86 +257,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override MethodKind MethodKind => MethodKind.PropertySet;
 
-            public override int Arity => 0;
-
-            public override bool IsExtensionMethod => false;
-
-            public override bool HidesBaseMethodsByName => false;
-
-            public override bool IsVararg => false;
-
-            public override bool ReturnsVoid => true;
-
-            public override bool IsAsync => false;
-
-            public override RefKind RefKind => RefKind.None;
-
-            public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-            public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
-
-            public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
-
             public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray.Create(SynthesizedParameterSymbol.Create(
                 this,
                 _property.TypeWithAnnotations,
                 ordinal: 0,
                 RefKind.None,
                 name: ParameterSymbol.ValueParameterName));
-
-            public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
-
-            public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
-
-            public override Symbol AssociatedSymbol => _property;
-
-            public override Symbol ContainingSymbol => _property.ContainingSymbol;
-
-            public override ImmutableArray<Location> Locations => _property.Locations;
-
-            public override Accessibility DeclaredAccessibility => _property.DeclaredAccessibility;
-
-            public override bool IsStatic => _property.IsStatic;
-
-            public override bool IsVirtual => _property.IsVirtual;
-
-            public override bool IsOverride => _property.IsOverride;
-
-            public override bool IsAbstract => _property.IsAbstract;
-
-            public override bool IsSealed => _property.IsSealed;
-
-            public override bool IsExtern => _property.IsExtern;
-
-            public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
-
-            internal override bool HasSpecialName => _property.HasSpecialName;
-
-            internal override MethodImplAttributes ImplementationAttributes => MethodImplAttributes.Managed;
-
-            internal override bool HasDeclarativeSecurity => false;
-
-            internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
-
-            internal override bool RequiresSecurityObject => false;
-
-            internal override CallingConvention CallingConvention => CallingConvention.HasThis;
-
-            internal override bool GenerateDebugInfo => false;
-
-            public override DllImportData? GetDllImportData() => null;
-
-            internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-                => ImmutableArray<string>.Empty;
-
-            internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
-                => Array.Empty<SecurityAttribute>();
-
-            internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
-
-            internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
-
-            internal override bool SynthesizesLoweredBoundBody => true;
 
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
