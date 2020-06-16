@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public class EndToEndTests : EmitMetadataTestBase
     {
         /// <summary>
-        /// These tests are very sensitive to stack size hence we use a fresh thread to ensure there 
-        /// is a consistent stack size for them to execute in. 
+        /// These tests are very sensitive to stack size hence we use a fresh thread to ensure there
+        /// is a consistent stack size for them to execute in.
         /// </summary>
         /// <param name="action"></param>
         private static void RunInThread(Action action)
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
-        // the compiler can handle. 
+        // This test is a canary attempting to make sure that we don't regress the # of fluent calls that
+        // the compiler can handle.
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
         [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
         public void OverflowOnFluentCall()
@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 520, // 100
                 _ when ExecutionConditionUtil.IsCoreClrUnix => 1200, // 1200
                 _ when ExecutionConditionUtil.IsMonoDesktop => 730, // 730
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 460, // 270
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 450, // 270
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1350, // 1290
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 260, // 170
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 250, // 170
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 750, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
@@ -220,7 +220,7 @@ public class Test
                     var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
                     compilation.VerifyDiagnostics();
 
-                    // PEVerify is skipped here as it doesn't scale to this level of nested generics. After 
+                    // PEVerify is skipped here as it doesn't scale to this level of nested generics. After
                     // about 600 levels of nesting it will not return in any reasonable amount of time.
                     CompileAndVerify(compilation, expectedOutput: "Pass", verify: Verification.Skipped);
                 });
