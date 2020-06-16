@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static MethodSymbol? FindCopyConstructor(NamedTypeSymbol containingType, NamedTypeSymbol within, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             MethodSymbol? bestCandidate = null;
-            int bestModifierCountSoFar = -1;
+            int bestModifierCountSoFar = -1; // stays as -1 unless we hit an ambiguity
             foreach (var member in containingType.InstanceConstructors)
             {
                 if (HasCopyConstructorSignature(member) &&
@@ -68,6 +68,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // If one has fewer custom modifiers, that is better
                     // (see OverloadResolution.BetterFunctionMember)
+
+                    if (bestCandidate is null && bestModifierCountSoFar < 0)
+                    {
+                        bestCandidate = member;
+                        continue;
+                    }
+
+                    if (bestModifierCountSoFar < 0)
+                    {
+                        bestModifierCountSoFar = bestCandidate.CustomModifierCount();
+                    }
+
                     var memberModCount = member.CustomModifierCount();
                     if (bestModifierCountSoFar >= 0 && memberModCount > bestModifierCountSoFar)
                     {
