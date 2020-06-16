@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntaxTree _syntaxTree;
 
         /// <summary>
-        /// Note, the name of this field could be somewhat confusing because it is also 
+        /// Note, the name of this field could be somewhat confusing because it is also
         /// used to store models for attributes and default parameter values, which are
         /// not members.
         /// </summary>
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 return InitializerSemanticModel.Create(
                                     this,
-                                    variableDecl,   //pass in the entire field initializer to permit region analysis. 
+                                    variableDecl,   //pass in the entire field initializer to permit region analysis.
                                     fieldSymbol,
                                     //if we're in regular C#, then insert an extra binder to perform field initialization checks
                                     GetFieldOrPropertyInitializerBinder(fieldSymbol, defaultOuter(), variableDecl.Initializer));
@@ -1124,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.DataPropertyDeclaration:
                             {
                                 var propertyDecl = (DataPropertyDeclarationSyntax)node.Parent;
-                                var propertySymbol = GetDeclaredSymbol(propertyDecl).GetSymbol<DataPropertySymbol>();
+                                var propertySymbol = (DataPropertySymbol)GetDeclaredMemberSymbol(propertyDecl);
                                 return InitializerSemanticModel.Create(
                                     this,
                                     propertyDecl,
@@ -1583,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerDeclaration:
                 case SyntaxKind.EventDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
-                    // NOTE: it's an error for field-like events to have accessors, 
+                    // NOTE: it's an error for field-like events to have accessors,
                     // but we want to bind them anyway for error tolerance reasons.
                     var container = GetDeclaredTypeMemberContainer(propertyOrEventDecl);
                     Debug.Assert((object)container != null);
@@ -1889,7 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given a using declaration get the corresponding symbol for the using alias that was introduced.  
+        /// Given a using declaration get the corresponding symbol for the using alias that was introduced.
         /// </summary>
         /// <param name="declarationSyntax"></param>
         /// <param name="cancellationToken">The cancellation token.</param>
