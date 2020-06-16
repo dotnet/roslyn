@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -7,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
@@ -20,14 +21,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             public INamedTypeSymbol ContainingType { get; private set; }
 
             public static async Task<State> GenerateAsync(
-                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
                 if (!await state.TryInitializeAsync(
-                    service, selectedMembers, document, cancellationToken).ConfigureAwait(false))
+                    selectedMembers, document, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -36,15 +36,14 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
 
             private async Task<bool> TryInitializeAsync(
-                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
                 CancellationToken cancellationToken)
             {
                 ContainingType = selectedMembers[0].ContainingType;
 
-                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
-                var parametersForSelectedMembers = service.DetermineParameters(selectedMembers, rules);
+                var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+                var parametersForSelectedMembers = DetermineParameters(selectedMembers, rules);
 
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty) ||
                     ContainingType == null ||
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 }
 
                 ConstructorCandidates = await GetConstructorCandidatesInfoAsync(
-                    ContainingType, service, selectedMembers, document, parametersForSelectedMembers, cancellationToken).ConfigureAwait(false);
+                    ContainingType, selectedMembers, document, parametersForSelectedMembers, cancellationToken).ConfigureAwait(false);
 
                 return !ConstructorCandidates.IsEmpty;
             }
@@ -69,9 +68,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             ///  - deserialization constructor
             ///  - implicit default constructor
             /// </summary>
-            private async Task<ImmutableArray<ConstructorCandidate>> GetConstructorCandidatesInfoAsync(
+            private static async Task<ImmutableArray<ConstructorCandidate>> GetConstructorCandidatesInfoAsync(
                 INamedTypeSymbol containingType,
-                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
                 ImmutableArray<IParameterSymbol> parametersForSelectedMembers,

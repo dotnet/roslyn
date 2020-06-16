@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -19,8 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
                     AnalyzerResult analyzerResult,
+                    OptionSet options,
                     bool localFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, localFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
                 {
                 }
 
@@ -41,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return false;
                 }
 
-                protected override SyntaxToken CreateMethodName(bool localFunction) => CreateMethodNameForStatementGenerators(localFunction);
+                protected override SyntaxToken CreateMethodName() => GenerateMethodNameForStatementGenerators();
 
                 protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
                     var firstSeen = false;
-                    var firstStatementUnderContainer = this.CSharpSelectionResult.GetFirstStatementUnderContainer();
-                    var lastStatementUnderContainer = this.CSharpSelectionResult.GetLastStatementUnderContainer();
+                    var firstStatementUnderContainer = CSharpSelectionResult.GetFirstStatementUnderContainer();
+                    var lastStatementUnderContainer = CSharpSelectionResult.GetLastStatementUnderContainer();
 
                     var list = new List<StatementSyntax>();
                     foreach (var statement in GetStatementsFromContainer(firstStatementUnderContainer.Parent))
@@ -85,12 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                     else
                     {
-                        var firstStatement = this.CSharpSelectionResult.GetFirstStatementUnderContainer();
+                        var firstStatement = CSharpSelectionResult.GetFirstStatementUnderContainer();
                         return firstStatement.Parent;
                     }
                 }
 
-                private SyntaxList<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
+                private static SyntaxList<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
                 {
                     Contract.ThrowIfNull(node);
                     Contract.ThrowIfFalse(node.IsStatementContainerNode());
@@ -99,19 +103,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     {
                         BlockSyntax blockNode => blockNode.Statements,
                         SwitchSectionSyntax switchSectionNode => switchSectionNode.Statements,
-                        _ => Contract.FailWithReturn<SyntaxList<StatementSyntax>>("unknown statements container!"),
+                        _ => throw ExceptionUtilities.UnexpectedValue(node),
                     };
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
-                {
-                    return this.CSharpSelectionResult.GetFirstStatementUnderContainer();
-                }
+                    => CSharpSelectionResult.GetFirstStatementUnderContainer();
 
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
-                {
-                    return this.CSharpSelectionResult.GetLastStatementUnderContainer();
-                }
+                    => CSharpSelectionResult.GetLastStatementUnderContainer();
 
                 protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(
                     SyntaxAnnotation callSiteAnnotation, CancellationToken cancellationToken)

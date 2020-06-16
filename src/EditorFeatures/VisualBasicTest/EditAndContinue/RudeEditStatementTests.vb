@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -6009,7 +6011,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 editScript:=edits,
                 activeStatements:=ActiveStatementsDescription.Empty,
                 additionalOldSources:=Nothing,
@@ -6040,7 +6042,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 editScript:=edits,
                 activeStatements:=ActiveStatementsDescription.Empty,
                 additionalOldSources:=Nothing,
@@ -6127,7 +6129,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
+            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics(
                 editScript:=edits,
                 activeStatements:=ActiveStatementsDescription.Empty,
                 additionalOldSources:=Nothing,
@@ -6159,7 +6161,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
+            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 Nothing,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return root.ReplaceTokens(map.Keys, (o, n) => map[o]);
             }
 
-            private Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
+            private static Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
                 Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
                 Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
             {
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return GetTrailingAndLeadingTrivia(trivia);
             }
 
-            private IEnumerable<Tuple<PreviousNextTokenPair, LeadingTrailingTriviaPair>> CreateUniqueTokenTriviaPairs(
+            private static IEnumerable<Tuple<PreviousNextTokenPair, LeadingTrailingTriviaPair>> CreateUniqueTokenTriviaPairs(
                 Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
                 Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
             {
@@ -214,7 +216,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return map;
             }
 
-            private Dictionary<TriviaLocation, PreviousNextTokenPair> CreatePreviousNextTokenPairs(
+            private static Dictionary<TriviaLocation, PreviousNextTokenPair> CreatePreviousNextTokenPairs(
                 Dictionary<TriviaLocation, SyntaxToken> tokens)
             {
                 var tokenPairs = new Dictionary<TriviaLocation, PreviousNextTokenPair>();
@@ -246,7 +248,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return tokenPairs;
             }
 
-            private IEnumerable<SyntaxTrivia> CreateTriviaListFromTo(
+            private static IEnumerable<SyntaxTrivia> CreateTriviaListFromTo(
                 List<SyntaxTrivia> list,
                 int startIndex,
                 int endIndex)

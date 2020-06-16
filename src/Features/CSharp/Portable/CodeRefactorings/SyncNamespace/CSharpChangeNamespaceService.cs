@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         AbstractChangeNamespaceService<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpChangeNamespaceService()
         {
         }
@@ -70,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
         protected override string GetDeclaredNamespace(SyntaxNode container)
         {
-            if (container is CompilationUnitSyntax compilationUnit)
+            if (container is CompilationUnitSyntax)
             {
                 return string.Empty;
             }
@@ -99,11 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         }
 
         /// <summary>
-        /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the namespce to be changed.
+        /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the namespace to be changed.
         /// If this reference is the right side of a qualified name, the new node returned would be the entire qualified name. Depends on 
         /// whether <paramref name="newNamespaceParts"/> is provided, the name in the new node might be qualified with this new namespace instead.
         /// </summary>
-        /// <param name="reference">A reference to a type declared inside the namespce to be changed, which is calculated based on results from 
+        /// <param name="reference">A reference to a type declared inside the namespace to be changed, which is calculated based on results from 
         /// `SymbolFinder.FindReferencesAsync`.</param>
         /// <param name="newNamespaceParts">If specified, and the reference is qualified with namespace, the namespace part of original reference 
         /// will be replaced with given namespace in the new node.</param>
@@ -141,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
             if (syntaxFacts.IsRightSideOfQualifiedName(nameRef))
             {
+                RoslynDebug.Assert(nameRef.Parent is object);
                 oldNode = nameRef.Parent;
                 var aliasQualifier = GetAliasQualifier(oldNode);
 
@@ -156,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             }
             else if (syntaxFacts.IsNameOfMemberAccessExpression(nameRef))
             {
+                RoslynDebug.Assert(nameRef.Parent is object);
                 oldNode = nameRef.Parent;
                 var aliasQualifier = GetAliasQualifier(oldNode);
 
@@ -275,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             var eofToken = root.EndOfFileToken
                 .WithAdditionalAnnotations(WarningAnnotation);
 
-            // Try to preserve trivia from original namesapce declaration.
+            // Try to preserve trivia from original namespace declaration.
             // If there's any member inside the declaration, we attach them to the 
             // first and last member, otherwise, simply attach all to the EOF token.
             if (members.Count > 0)
@@ -362,6 +368,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             {
                 // Otherwise, the span should contain a namespace declaration node, which must be the only one
                 // in the entire syntax spine to enable the change namespace operation.
+                if (!compilationUnit.Span.Contains(span))
+                {
+                    return null;
+                }
+
                 var node = compilationUnit.FindNode(span, getInnermostNodeForTie: true);
 
                 var namespaceDecl = node.AncestorsAndSelf().OfType<NamespaceDeclarationSyntax>().SingleOrDefault();
@@ -398,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 .OfType<NamespaceDeclarationSyntax>().Any();
         }
 
-        private static string? GetAliasQualifier(SyntaxNode name)
+        private static string? GetAliasQualifier(SyntaxNode? name)
         {
             while (true)
             {

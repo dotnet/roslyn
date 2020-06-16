@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -7,11 +9,15 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
     Public Class DocumentationCommentTests
         Inherits AbstractDocumentationCommentTests
+
+        Private Shared ReadOnly s_catalog As ComposableCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))
+        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_catalog)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestTypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
@@ -1206,7 +1212,7 @@ End Class
         End Function
 
         Protected Overrides Function CreateTestWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code, exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
+            Return TestWorkspace.CreateVisualBasic(code, exportProvider:=s_exportProviderFactory.CreateExportProvider())
         End Function
 
         Protected Overrides ReadOnly Property DocumentationCommentCharacter As Char

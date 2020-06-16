@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -53,9 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             internal void OnDebugModeChanged(DebugMode debugMode)
-            {
-                _cachedProximityExpressionsGetter.OnDebugModeChanged(debugMode);
-            }
+                => _cachedProximityExpressionsGetter.OnDebugModeChanged(debugMode);
 
             public int GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
             {
@@ -179,9 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             public int IsMappedLocation(IVsTextBuffer pBuffer, int iLine, int iCol)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             public int ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName ppNames)
             {

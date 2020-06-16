@@ -2,6 +2,9 @@
 
 ## TOC
  * [Dev16](#prod-16)
+   * [Dev 16.6](#prod-16-6)
+   * [Dev 16.5](#prod-16-5)
+   * [Dev 16.4](#prod-16-4)
    * [Dev 16.3](#prod-16-3)
    * [Dev 16.2](#prod-16-2)
    * [Dev 16.1](#prod-16-1)
@@ -16,7 +19,30 @@
 
 ## <a id="prod-16"></a> dev16
 
-### <a id="prod-16-3"></a> 16.3 Preview ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-preview) )
+### <a id="prod-16-6"></a> 16.6 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes))
+* Add explicit cast code fix
+* Simplify conditional expressions refactoring
+* Convert regular string literals to verbatim string literals (and back) refactoring
+* Bulk configure the severity level of analyzer categories directly through the editor
+* Quick Info style support for XML comments that contain returns and value tags
+* Add file headers to existing files, projects, and solutions with EditorConfig
+* [Microsoft Fakes support for .NET Core](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes#microsoft-fakes-for-net-core-and-sdk-style-projects) and SDK-style projects
+
+### <a id="prod-16-5"></a> 16.5 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-archive-v16.5))
+* You can now use System.HashCode to implement the GetHashCode method when System.HashCode is available.
+* Refactoring to convert if statements to switch statements or switch expressions.
+* IntelliSense completion for unimported extension methods. You will first need to turn this option on in **Tools > Options > Text Editor > C# > Intellisense > and select Show items from unimported namespaces**.
+
+### <a id="prod-16-4"></a> 16.4 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.4))
+* You can now configure the severity level of a code style rule directly through the editor (through the **Ctrl+.** menu) or the error list (right-click on the error, warning, or message). This will also update EditorConfig and works for 3rd party analyzers.
+* Find All References now allows you to group by type and member.
+* Refactoring make local function static
+* Code fix to pass variable explicitly in local static function.
+* The Go To Base command can navigate up the inheritance chain. Available in the context (right-click) menu or you can type (Alt+Home).
+* Refactoring to add null checks for all parameters.
+* Methods that have no XML documentation can now automatically inherit XML documentation from the method it is overriding. Place your cursor over the undocumented method that implements a documented interface method. Quick Info will then display the XML documentation from the interface method.
+
+### <a id="prod-16-3"></a> 16.3 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.3))
 * Wrap chains of fluent calls with a refactoring
 * Introduce a local variable immediately after writing its initializer
 * Code Analysis page now in project properties. Right click on the project name within the solution explorer and select properties. Select Code Analysis to install analyzer packages and configure when to run code analysis.
@@ -25,7 +51,7 @@
 * Rename a file when renaming an interface, enum, or class. Place the cursor in the class name and type (Ctrl + R,R) to open the Rename dialogue and check the ‘Rename file’ box.
 * There is now Edit and Continue support for multi-targeted projects which includes modules loaded multiple times in the same process on different domains or load contexts. In addition, developers can edit source files even when the containing project is not loaded or the application is running.
 
-### <a id="prod-16-2"></a> 16.2 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.2) )
+### <a id="prod-16-2"></a> 16.2 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.2))
 * Bring back Sort Usings as a separate command from Remove Usings. Available under Edit > IntelliSense.
 * Convert a switch statement to a [switch expression](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-8#switch-expressions) (verify you are using C# 8 to get the switch expression feature)
 * Generate a parameter 

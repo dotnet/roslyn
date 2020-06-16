@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using RunTests.Cache;
 using System;
@@ -24,7 +26,6 @@ namespace RunTests
         {
             Options = options;
         }
-
 
         public string GetCommandLine(AssemblyInfo assemblyInfo)
         {
@@ -98,7 +99,7 @@ namespace RunTests
                 var environmentVariables = new Dictionary<string, string>();
                 Options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
 
-                if (retry)
+                if (retry && File.Exists(resultsFilePath))
                 {
                     // Copy the results file path, since the new xunit run will overwrite it
                     var backupResultsFilePath = Path.ChangeExtension(resultsFilePath, ".old");

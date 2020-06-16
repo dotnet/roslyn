@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -30,14 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
             }
 
             protected override Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap)
-            {
-                return Colors.Black;
-            }
+                => Colors.Black;
 
             public override GraphicsResult GetGraphics(IWpfTextView textView, Geometry bounds)
-            {
-                return new GraphicsResult(null, null);
-            }
+                => new GraphicsResult(null, null);
         }
 
         private class AdornmentManagerTester
@@ -63,10 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
             {
                 _subjectBuffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, "Hi There");
 
-                _textView = new Mock<IWpfTextView>();
-                var aggregatorService = new Mock<IViewTagAggregatorFactoryService>();
-                _adornmentLayer = new Mock<IAdornmentLayer>();
-                _aggregator = new Mock<ITagAggregator<Tag>>();
+                _textView = new Mock<IWpfTextView>(MockBehavior.Strict);
+                var aggregatorService = new Mock<IViewTagAggregatorFactoryService>(MockBehavior.Strict);
+                _adornmentLayer = new Mock<IAdornmentLayer>(MockBehavior.Strict);
+                _aggregator = new Mock<ITagAggregator<Tag>>(MockBehavior.Strict);
 
                 var layerName = "LayerName";
 
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
 
                 aggregatorService.Setup(a => a.CreateTagAggregator<Tag>(_textView.Object)).Returns(_aggregator.Object);
 
-                var textViewModel = new Mock<ITextViewModel>();
+                var textViewModel = new Mock<ITextViewModel>(MockBehavior.Strict);
                 textViewModel.Setup(tvm => tvm.VisualBuffer).Returns(_subjectBuffer);
                 _textView.Setup(tv => tv.TextViewModel).Returns(textViewModel.Object);
 
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
             {
                 Setup_UpdateSpans_CallOnlyOnUIThread();
 
-                var newLine = new Mock<ITextViewLine>();
+                var newLine = new Mock<ITextViewLine>(MockBehavior.Strict);
                 newLine.SetupGet(line => line.ExtentIncludingLineBreak).Returns(_subjectBuffer.CurrentSnapshot.Lines.First().Extent);
                 var viewState = new ViewState(_textView.Object);
                 _textView.Raise(tv => tv.LayoutChanged += null,
@@ -120,9 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
 
             private void Setup_UpdateSpans_CallOnlyOnUIThread()
             {
-                var textViewLineCollection = new Mock<IWpfTextViewLineCollection>();
-                var mappingTagSpan = new Mock<IMappingTagSpan<Tag>>();
-                _mappingSpan = new Mock<IMappingSpan>();
+                var textViewLineCollection = new Mock<IWpfTextViewLineCollection>(MockBehavior.Strict);
+                var mappingTagSpan = new Mock<IMappingTagSpan<Tag>>(MockBehavior.Strict);
+                _mappingSpan = new Mock<IMappingSpan>(MockBehavior.Strict);
 
                 _textView.SetupGet(tv => tv.TextViewLines).Returns(textViewLineCollection.Object);
                 textViewLineCollection.SetupGet(tvlc => tvlc.Count).Returns(1);

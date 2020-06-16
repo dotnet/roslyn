@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -18,7 +20,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using RemoteHostClientService = Microsoft.VisualStudio.LanguageServices.Remote.RemoteHostClientServiceFactory.RemoteHostClientService;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const long MemoryThreshold = 200 * 1024 * 1024;
 
         // low vm more info page link
-        private const string LowVMMoreInfoLink = "http://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
+        private const string LowVMMoreInfoLink = "https://docs.microsoft.com/visualstudio/code-quality/automatic-feature-suspension";
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService _workspaceCacheService;
@@ -153,7 +154,8 @@ namespace Microsoft.VisualStudio.LanguageServices
                         () => BrowserHelper.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
 
             // Update info bar shown state.
-            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, true);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, true)));
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -164,7 +166,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             // For newly opened solution, reset the info bar state.
-            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, false);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, false)));
         }
     }
 }

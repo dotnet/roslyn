@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -9,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Friend Partial Class VisualBasicIntroduceVariableService
+    Partial Friend Class VisualBasicIntroduceVariableService
         Protected Overrides Async Function IntroduceFieldAsync(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
@@ -214,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         End Function
 
-        Private Function MakeFieldModifiers(expressions As IEnumerable(Of ExpressionSyntax),
+        Private Shared Function MakeFieldModifiers(expressions As IEnumerable(Of ExpressionSyntax),
                                             isConstant As Boolean,
                                             inScript As Boolean,
                                             inModule As Boolean) As SyntaxTokenList

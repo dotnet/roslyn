@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -2411,6 +2413,113 @@ class C
         }
 
         [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionAttributes()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    static void M1()
+    {
+        L1();
+
+        [ExcludeFromCodeCoverage]
+        void L1() { new Action(() => { Console.WriteLine(1); }).Invoke(); }
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.RegularPreview);
+
+            AssertInstrumented(verifier, "C.M1");
+            AssertNotInstrumented(verifier, "C.<M1>g__L1|0_0()");
+            AssertNotInstrumented(verifier, "C.<>c.<M1>b__0_1()");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionAttributes_Multiple()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    static void M1()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        void L1() { Console.WriteLine(1); }
+
+        [ExcludeFromCodeCoverage]
+        void L2() { Console.WriteLine(2); }
+
+        void L3() { Console.WriteLine(3); }
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.RegularPreview);
+
+            AssertInstrumented(verifier, "C.M1");
+            AssertInstrumented(verifier, "C.<M1>g__L1|0_0(ref C.<>c__DisplayClass0_0)");
+            AssertNotInstrumented(verifier, "C.<M1>g__L2|0_1()");
+            AssertInstrumented(verifier, "C.<M1>g__L3|0_2(ref C.<>c__DisplayClass0_0)");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionAttributes_Nested()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    static void M1()
+    {
+        L1();
+
+        void L1()
+        {
+            new Action(() =>
+            {
+                L2();
+
+                [ExcludeFromCodeCoverage]
+                void L2()
+                {
+                    new Action(() =>
+                    {
+                        L3();
+
+                        void L3()
+                        {
+                            Console.WriteLine(1);
+                        }
+                    }).Invoke();
+                }
+            }).Invoke();
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.RegularPreview);
+
+            AssertInstrumented(verifier, "C.M1");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass0_0.<M1>g__L1|0()");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass0_0.<M1>b__1()");
+            AssertNotInstrumented(verifier, "C.<M1>g__L2|0_2()");
+            AssertNotInstrumented(verifier, "C.<>c.<M1>b__0_3");
+            AssertNotInstrumented(verifier, "C.<M1>g__L3|0_4()");
+        }
+
+        [Fact]
         public void ExcludeFromCodeCoverageAttribute_LocalFunctionsAndLambdas_InInitializers()
         {
             string source = @"
@@ -2622,6 +2731,32 @@ class C
             AssertInstrumented(verifier, "C.P2.set");
             AssertInstrumented(verifier, "C.E2.add");
             AssertInstrumented(verifier, "C.E2.remove");
+        }
+
+        [CompilerTrait(CompilerFeature.InitOnlySetters)]
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_Accessors_Init()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    [ExcludeFromCodeCoverage]
+    int P1 { get => 1; init {} }
+
+    int P2 { get => 1; init {} }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource + IsExternalInitTypeDefinition,
+                options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            AssertNotInstrumented(verifier, "C.P1.get");
+            AssertNotInstrumented(verifier, "C.P1.init");
+
+            AssertInstrumented(verifier, "C.P2.get");
+            AssertInstrumented(verifier, "C.P2.init");
         }
 
         [Fact]
@@ -3198,6 +3333,57 @@ True
             verifier.VerifyDiagnostics();
         }
 
+        [Fact]
+        [CompilerTrait(CompilerFeature.TopLevelStatements)]
+        public void TopLevelStatements_01()
+        {
+            var source = @"
+using System;
+
+Test();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+static void Test()
+{
+    Console.WriteLine(""Test"");
+}
+
+" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, snippet: "", expectBodySpan: false)
+                .True("Test();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();")
+                .True(@"Console.WriteLine(""Test"");");
+            checker.Method(4, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+        }
+
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
             => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
 
@@ -3212,9 +3398,15 @@ True
             Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = Verification.Passes)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)), verify: verify);
+            return base.CompileAndVerify(
+                source,
+                expectedOutput: expectedOutput,
+                options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true),
+                parseOptions: parseOptions,
+                emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)),
+                verify: verify);
         }
 
         private CompilationVerifier CompileAndVerify((string Path, string Content)[] sources, string expectedOutput = null, CSharpCompilationOptions options = null)

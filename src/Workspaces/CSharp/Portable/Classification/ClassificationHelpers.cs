@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -14,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal static class ClassificationHelpers
     {
         private const string FromKeyword = "from";
-        private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
         private const string UnmanagedKeyword = "unmanaged";
         private const string NotNullKeyword = "notnull";
@@ -176,7 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             return false;
                         }
 
-
                         return interpolatedStringText.Parent is InterpolatedStringExpressionSyntax interpolatedString
                             && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
                     }
@@ -191,11 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
             }
-            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration) && ((DelegateDeclarationSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax? delegateDecl) && delegateDecl.Identifier == token)
             {
                 return ClassificationTypeNames.DelegateName;
             }
-            else if (token.Parent.IsKind(SyntaxKind.TypeParameter) && ((TypeParameterSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.TypeParameter, out TypeParameterSyntax? typeParameter) && typeParameter.Identifier == token)
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 {
                     FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName,
                     LocalDeclarationStatementSyntax localDeclarationStatement => localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName,
-                    EventFieldDeclarationSyntax aventFieldDeclarationSyntax => ClassificationTypeNames.EventName,
+                    EventFieldDeclarationSyntax _ => ClassificationTypeNames.EventName,
                     _ => ClassificationTypeNames.LocalName,
                 };
             }
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 // The parent of a VariableDeclarator is a VariableDeclarationSyntax node.
                 // It's parent will be the declaration syntax node.
-                parentNode = parentNode.Parent.Parent;
+                parentNode = parentNode!.Parent!.Parent;
 
                 // Check if this is a field constant declaration 
                 if (parentNode.GetModifiers().Any(SyntaxKind.ConstKeyword))
@@ -341,12 +341,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
-        {
-            return methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
-        }
+            => methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
 
         private static string? GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
-            => identifier.Parent.Kind() switch
+            => identifier.Parent!.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
                 SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
@@ -451,13 +449,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool IsActualContextualKeyword(SyntaxToken token)
         {
-            if (token.Parent.IsKind(SyntaxKind.LabeledStatement))
+            if (token.Parent.IsKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax? statement) &&
+                statement.Identifier == token)
             {
-                var statement = (LabeledStatementSyntax)token.Parent;
-                if (statement.Identifier == token)
-                {
-                    return false;
-                }
+                return false;
             }
 
             // Ensure that the text and value text are the same. Otherwise, the identifier might

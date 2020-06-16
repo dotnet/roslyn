@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
@@ -643,14 +645,12 @@ End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBa
         [|Await Task.Delay(duration).ConfigureAwait(False)|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Delay(duration).ConfigureAwait(False)
     End Function
 End Class")
@@ -664,14 +664,12 @@ End Class")
         [|Await Task.Delay(duration).ConfigureAwait(True)|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await {|Rename:NewMethod|}(duration)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Delay(duration).ConfigureAwait(True)
     End Function
 End Class")
@@ -685,14 +683,12 @@ End Class")
         [|Await Task.Delay(duration).ConfigureAwait(M())|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await {|Rename:NewMethod|}(duration)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Delay(duration).ConfigureAwait(M())
     End Function
 End Class")
@@ -706,14 +702,12 @@ End Class")
         [|Await Task.Delay(duration)|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await {|Rename:NewMethod|}(duration)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Delay(duration)
     End Function
 End Class")
@@ -727,14 +721,12 @@ End Class")
         [|Await Task.Run(Async Function () Await Task.Delay(duration).ConfigureAwait(False))|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await {|Rename:NewMethod|}(duration)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Run(Async Function() Await Task.Delay(duration).ConfigureAwait(False))
     End Function
 End Class")
@@ -748,14 +740,12 @@ End Class")
         [|Await Task.Delay(duration).configureawait(False)|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Delay(duration).configureawait(False)
     End Function
 End Class")
@@ -770,14 +760,12 @@ End Class")
         Await Task.Delay(duration).ConfigureAwait(True)|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Delay(duration).ConfigureAwait(False)
         Await Task.Delay(duration).ConfigureAwait(True)
     End Function
@@ -793,14 +781,12 @@ End Class")
         Await Task.Delay(duration).ConfigureAwait(False)|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Delay(duration).ConfigureAwait(True)
         Await Task.Delay(duration).ConfigureAwait(False)
     End Function
@@ -816,14 +802,12 @@ End Class")
         Await Task.Delay(duration).ConfigureAwait(False)|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await {|Rename:NewMethod|}(duration).ConfigureAwait(False)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Delay(duration).ConfigureAwait(M())
         Await Task.Delay(duration).ConfigureAwait(False)
     End Function
@@ -839,15 +823,13 @@ End Class")
         [|Await Task.Delay(duration).ConfigureAwait(True)|]
     End Function
 End Class",
-"Imports System.Threading.Tasks
-
-Class C
+"Class C
     Private Async Function MyDelay(duration As TimeSpan) As Task
         Await Task.Delay(duration).ConfigureAwait(False)
         Await {|Rename:NewMethod|}(duration)
     End Function
 
-    Private Shared Async Function NewMethod(duration As TimeSpan) As Task
+    Private Shared Async Function NewMethod(duration As TimeSpan) As System.Threading.Tasks.Task
         Await Task.Delay(duration).ConfigureAwait(True)
     End Function
 End Class")

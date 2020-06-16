@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Test
         private DocumentId _activeDocumentId;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestDocumentTrackingService()
         {
         }
@@ -51,13 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.Test
         }
 
         public DocumentId TryGetActiveDocument()
-        {
-            return _activeDocumentId;
-        }
+            => _activeDocumentId;
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()
-        {
-            return _activeDocumentId != null ? ImmutableArray.Create(_activeDocumentId) : ImmutableArray<DocumentId>.Empty;
-        }
+            => _activeDocumentId != null ? ImmutableArray.Create(_activeDocumentId) : ImmutableArray<DocumentId>.Empty;
     }
 }

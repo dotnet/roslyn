@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -76,7 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             var hierarchyToProjectMap = _workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(context.OperationContext.UserCancellationToken);
-            context.OperationContext.UserCancellationToken.ThrowIfCancellationRequested();
 
             ProjectId projectId = null;
             if (ErrorHandler.Succeeded(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject))
@@ -222,7 +223,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 var solution = await applyFixAsync(progressTracker, cancellationToken).ConfigureAwait(true);
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
 
                 return workspace.TryApplyChanges(solution, progressTracker);
             }

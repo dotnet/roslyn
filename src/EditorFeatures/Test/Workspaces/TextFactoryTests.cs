@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -102,26 +104,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private EditorTextFactoryService CreateMockTextFactoryService()
         {
-            var mockTextBufferFactoryService = new Mock<ITextBufferFactoryService>();
+            var mockTextBufferFactoryService = new Mock<ITextBufferFactoryService>(MockBehavior.Strict);
             mockTextBufferFactoryService
                 .Setup(t => t.CreateTextBuffer(It.IsAny<TextReader>(), It.IsAny<IContentType>()))
                 .Returns<TextReader, IContentType>((reader, contentType) =>
                 {
                     var text = reader.ReadToEnd();
 
-                    var mockImage = new Mock<ITextImage>();
+                    var mockImage = new Mock<ITextImage>(MockBehavior.Strict);
                     mockImage.Setup(i => i.GetText(It.IsAny<Span>())).Returns(text);
+                    mockImage.Setup(i => i.Length).Returns(text.Length);
 
-                    var mockSnapshot = new Mock<ITextSnapshot2>();
+                    var mockSnapshot = new Mock<ITextSnapshot2>(MockBehavior.Strict);
                     mockSnapshot.Setup(s => s.TextImage).Returns(mockImage.Object);
                     mockSnapshot.Setup(s => s.GetText()).Returns(text);
 
-                    var mockTextBuffer = new Mock<ITextBuffer>();
+                    var mockTextBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
                     mockTextBuffer.Setup(b => b.CurrentSnapshot).Returns(mockSnapshot.Object);
                     return mockTextBuffer.Object;
                 });
 
-            return new EditorTextFactoryService(new FakeTextBufferCloneService(), mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
+            var mockUnknownContentType = new Mock<IContentType>(MockBehavior.Strict);
+            var mockContentTypeRegistryService = new Mock<IContentTypeRegistryService>(MockBehavior.Strict);
+            mockContentTypeRegistryService.Setup(r => r.UnknownContentType).Returns(mockUnknownContentType.Object);
+
+            return new EditorTextFactoryService(new FakeTextBufferCloneService(), mockTextBufferFactoryService.Object, mockContentTypeRegistryService.Object);
         }
 
         private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)

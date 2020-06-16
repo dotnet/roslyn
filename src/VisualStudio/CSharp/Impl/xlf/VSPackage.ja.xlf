@@ -78,7 +78,8 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
+Use enhanced colors;
+Editor Color Scheme;</source>
         <target state="translated">閉じているファイルの診断結果を表示する;
 正規表現をカラー化する;
 カーソルの下にある関連コンポーネントをハイライトする;
@@ -93,7 +94,7 @@ using を並べ替える際に、system ディレクティブを先頭に配置�
 NuGet パッケージの型に using を提案する;
 強調表示;
 カーソルの下にあるシンボルへの参照をハイライトする;
-カーソルの下にあるキーワードの関連キーワードをハイライトする;
+カーソルの下にある関連キーワードをハイライトする;
 アウトライン;
 ファイルを開くときにアウトライン モードに入る;
 プロシージャ行の区切り記号を表示する;
@@ -124,7 +125,8 @@ string.Format の呼び出しで無効なプレースホルダーをレポート
 自動プロパティを優先する;
 正規表現;
 正規表現;
-拡張された色を使用する;</target>
+拡張された色を使用する;
+エディターの配色;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -272,6 +274,7 @@ for ステートメントで、セミコロンの前にスペースを挿入す�
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
@@ -282,8 +285,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
 文字が入力された後に入力候補一覧を表示する;
 文字が削除された後に入力候補一覧を表示する;
 入力候補一覧の項目の一致している部分を強調表示する;

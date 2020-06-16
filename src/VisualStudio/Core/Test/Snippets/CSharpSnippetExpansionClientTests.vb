@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -165,6 +167,7 @@ using G=   H.I;
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")>
         Public Async Function TestAddImport_BadNamespaceGetsAdded() As Task
             Dim originalCode = ""
             Dim namespacesToAdd = {"$system"}
@@ -301,10 +304,10 @@ using G=   H.I;
             Using workspace = TestWorkspace.Create(workspaceXml, openDocuments:=False)
                 Dim document = workspace.Documents.Single()
 
-                workspace.Options = workspace.Options _
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True) _
                     .WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize) _
-                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
+                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)))
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),

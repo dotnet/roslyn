@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -53,12 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Type symbol being compiled, or null if we compile a synthesized type that doesn't have a symbol (e.g. PrivateImplementationDetails).
         /// </summary>
-        private readonly NamedTypeSymbol _typeOpt;
+        private readonly NamedTypeSymbol? _typeOpt;
 
         /// <summary>
         /// The builder for generating code, or null if not in emit phase.
         /// </summary>
-        public readonly PEModuleBuilder ModuleBuilderOpt;
+        public readonly PEModuleBuilder? ModuleBuilderOpt;
 
         /// <summary>
         /// Any generated methods that don't suppress debug info will use this
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private SmallDictionary<MethodSymbol, MethodSymbol>? _constructorInitializers;
 
-        public TypeCompilationState(NamedTypeSymbol typeOpt, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
+        public TypeCompilationState(NamedTypeSymbol? typeOpt, CSharpCompilation compilation, PEModuleBuilder? moduleBuilderOpt)
         {
             this.Compilation = compilation;
             _typeOpt = typeOpt;
@@ -90,8 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                // NOTE: currently it can be null if only private implementation type methods are compiled
-                RoslynDebug.Assert((object)_typeOpt != null);
+                // NOTE: currently it can be null if only private implementation type methods are compiled.
+                // There should be no caller of this method in that case.
+                Debug.Assert(_typeOpt is { });
                 return _typeOpt;
             }
         }
@@ -107,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // See https://github.com/dotnet/roslyn/issues/41964: Emitting returning true implies ModuleBuilderOpt is non-null.
         public bool Emitting
         {
             get { return ModuleBuilderOpt != null; }

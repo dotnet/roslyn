@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 {
@@ -20,31 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         public Project TriggeredProject { get; }
         public string TypeName { get; }
 
-        public static GenerateTypeTestState Create(
-            string initial,
+        public GenerateTypeTestState(
+            TestWorkspace workspace,
             string projectToBeModified,
             string typeName,
-            string existingFileName,
-            string languageName)
+            string existingFileName)
         {
-            var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? TestWorkspace.Create(initial)
-                : languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(initial)
-                  : TestWorkspace.CreateVisualBasic(initial);
-
-            return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
-        }
-
-        private GenerateTypeTestState(string projectToBeModified, string typeName, string existingFileName, TestWorkspace testWorkspace)
-        {
-            Workspace = testWorkspace;
+            Workspace = workspace;
             _testDocument = Workspace.Documents.SingleOrDefault(d => d.CursorPosition.HasValue);
-
-            if (_testDocument == null)
-            {
-                throw new ArgumentException("markup does not contain a cursor position", "workspace");
-            }
+            Contract.ThrowIfNull(_testDocument, "markup does not contain a cursor position");
 
             TriggeredProject = Workspace.CurrentSolution.GetProject(_testDocument.Project.Id);
 
@@ -56,10 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             else
             {
                 ProjectToBeModified = Workspace.CurrentSolution.Projects.FirstOrDefault(proj => proj.Name.Equals(projectToBeModified));
-                if (ProjectToBeModified == null)
-                {
-                    throw new ArgumentException("Project with the given name does not exist", "workspace");
-                }
+                Contract.ThrowIfNull(ProjectToBeModified, "Project with the given name does not exist");
             }
 
             InvocationDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);

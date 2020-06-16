@@ -376,6 +376,16 @@
 </target>
         <note />
       </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="new">There are no function pointer types in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="new">There are no native integer types in VB.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trees0">
         <source>trees({0})</source>
         <target state="translated">树({0})</target>
@@ -774,6 +784,11 @@
       <trans-unit id="ERR_IllegalChar">
         <source>Character is not valid.</source>
         <target state="translated">字符无效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="translated">已指定 stdin 参数 "-"，但尚未从标准输入流重定向输入。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
@@ -1537,7 +1552,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
-        <target state="new">Failed to emit module '{0}': {1}</target>
+        <target state="translated">未能发出模块“{0}”: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
@@ -9141,12 +9156,12 @@
       </trans-unit>
       <trans-unit id="WRN_AttributeNotSupportedInVB">
         <source>'{0}' is not supported in VB.</source>
-        <target state="new">'{0}' is not supported in VB.</target>
+        <target state="translated">VB 中不支持“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
         <source>Attribute is not supported in VB</source>
-        <target state="new">Attribute is not supported in VB</target>
+        <target state="translated">VB 中不支持属性</target>
         <note />
       </trans-unit>
     </body>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
             var view = workspace.Documents.Single().GetTextView();
             var commandHandler = new FixInterpolatedVerbatimStringCommandHandler();
 
-            string quoteCharSnapshotText = default;
+            string quoteCharSnapshotText = null;
             int quoteCharCaretPosition = default;
 
             commandHandler.ExecuteCommand(new TypeCharCommandArgs(view, view.TextBuffer, '"'),
@@ -152,22 +154,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
-        {
-            TestNotHandled(@"@$[||]");
-        }
+            => TestHandled(@"@$[||]", @"$@""[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterDollarSign()
-        {
-            TestNotHandled(@"$[||]");
-        }
+            => TestNotHandled(@"$[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFile()
-        {
-            TestNotHandled(@"[||]");
-        }
+            => TestNotHandled(@"[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestAfterAtSignDollarSignEndOfFile()

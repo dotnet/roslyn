@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -257,9 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         ///     https://devdiv.visualstudio.com/DevDiv/_workitems?id=235409
         /// </summary>
         private static int GetPositionWithinDocumentBounds(int position, int documentLength)
-        {
-            return Math.Min(documentLength, Math.Max(position, 0));
-        }
+            => Math.Min(documentLength, Math.Max(position, 0));
 
         /// <summary>
         /// It is unclear why, but we are sometimes asked to navigate to a <see cref="TextSpan"/>
@@ -270,9 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// See https://github.com/dotnet/roslyn/issues/7660 for more details.
         /// </summary>
         private static TextSpan GetSpanWithinDocumentBounds(TextSpan span, int documentLength)
-        {
-            return TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
-        }
+            => TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
 
         private static Document OpenDocument(Workspace workspace, DocumentId documentId)
         {
@@ -339,9 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private bool CanMapFromSecondaryBufferToPrimaryBuffer(Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer)
-        {
-            return spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out var spanInPrimaryBuffer);
-        }
+            => spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out var spanInPrimaryBuffer);
 
         private IDisposable OpenNewDocumentStateScope(OptionSet options)
         {
@@ -350,10 +346,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return null;
             }
 
+            var state = __VSNEWDOCUMENTSTATE.NDS_Provisional;
+
             // If we're just opening the provisional tab, then do not "activate" the document
-            // (i.e. don't give it focus).  This way if a user is just arrowing through a set 
+            // (i.e. don't give it focus) unless specifically requested.  
+            // This way if a user is just arrowing through a set 
             // of FindAllReferences results, they don't have their cursor placed into the document.
-            var state = __VSNEWDOCUMENTSTATE.NDS_Provisional | __VSNEWDOCUMENTSTATE.NDS_NoActivate;
+            if (!options.GetOption(NavigationOptions.ActivateProvisionalTab))
+            {
+                state |= __VSNEWDOCUMENTSTATE.NDS_NoActivate;
+            }
+
             return new NewDocumentStateScope(state, VSConstants.NewDocumentStateReason.Navigation);
         }
     }

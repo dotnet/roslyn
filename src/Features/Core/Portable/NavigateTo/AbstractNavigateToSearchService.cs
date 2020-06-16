@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -36,18 +38,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 var solution = document.Project.Solution;
 
-                var result = await client.TryRunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
                     solution,
                     new object[] { document.Id, searchPattern, kinds.ToArray() },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(r => r.Rehydrate(solution));
-                }
+                return result.SelectAsArray(r => r.Rehydrate(solution));
             }
 
             return await SearchDocumentInCurrentProcessAsync(
@@ -62,18 +61,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 var solution = project.Solution;
 
-                var result = await client.TryRunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                     solution,
                     new object[] { project.Id, priorityDocuments.Select(d => d.Id).ToArray(), searchPattern, kinds.ToArray() },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(r => r.Rehydrate(solution));
-                }
+                return result.SelectAsArray(r => r.Rehydrate(solution));
             }
 
             return await SearchProjectInCurrentProcessAsync(

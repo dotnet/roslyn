@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -275,6 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // operators are never 'readonly' because there is no 'this' parameter
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
@@ -488,6 +492,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<CustomModifier> RefCustomModifiers
             {
                 get { return ImmutableArray<CustomModifier>.Empty; }
+            }
+
+            internal override MarshalPseudoCustomAttributeData MarshallingInformation
+            {
+                get { return null; }
             }
         }
     }

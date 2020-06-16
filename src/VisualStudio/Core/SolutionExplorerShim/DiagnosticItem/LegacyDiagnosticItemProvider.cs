@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -7,6 +9,7 @@ using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -21,9 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LegacyDiagnosticItemProvider(
-            [Import(typeof(AnalyzersCommandHandler))]IAnalyzersCommandHandler commandHandler,
-            [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
+            [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _commandHandler = commandHandler;
             _serviceProvider = serviceProvider;

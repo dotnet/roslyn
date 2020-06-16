@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 9.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.ConvertIfToSwitch
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertIfToSwitchCodeRefactoringProvider)), [Shared]>
@@ -12,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
         Inherits AbstractConvertIfToSwitchCodeRefactoringProvider(Of ExecutableStatementSyntax, ExpressionSyntax, SyntaxNode, SyntaxNode)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -20,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
             Return VBFeaturesResources.Convert_to_Select_Case
         End Function
 
-        Public Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFactsService, options As ParseOptions) As Analyzer
-            Return New VisualBasicAnalyzer(syntaxFacts, Feature.RangePattern Or Feature.RelationalPattern)
+        Public Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFacts, options As ParseOptions) As Analyzer
+            Return New VisualBasicAnalyzer(syntaxFacts, Feature.RangePattern Or Feature.RelationalPattern Or Feature.InequalityPattern)
         End Function
     End Class
 End Namespace

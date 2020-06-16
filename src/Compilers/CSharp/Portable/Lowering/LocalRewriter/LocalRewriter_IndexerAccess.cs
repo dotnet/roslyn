@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -17,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression result;
 
-            string indexedPropertyName = indexerAccess.TryGetIndexedPropertyName();
+            string? indexedPropertyName = indexerAccess.TryGetIndexedPropertyName();
             if (indexedPropertyName != null)
             {
                 // Dev12 forces the receiver to be typed to dynamic to workaround a bug in the runtime binder.
@@ -38,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            Debug.Assert(node.ReceiverOpt != null);
-
-            var loweredReceiver = VisitExpression(node.ReceiverOpt);
+            var loweredReceiver = VisitExpression(node.Receiver);
             var loweredArguments = VisitList(node.Arguments);
 
             return MakeDynamicGetIndex(node, loweredReceiver, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt);
@@ -78,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
 
             // Rewrite the receiver.
-            BoundExpression rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            Debug.Assert(rewrittenReceiver is { });
 
             // Rewrite the arguments.
             // NOTE: We may need additional argument rewriting such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             TypeSymbol type,
-            BoundIndexerAccess oldNodeOpt,
+            BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
         {
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
@@ -209,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var F = _factory;
 
+            Debug.Assert(receiver.Type is { });
             var receiverLocal = F.StoreToTemp(
                 VisitExpression(receiver),
                 out var receiverStore,
@@ -286,16 +290,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the System.Index argument is `^index`, we can replace the
                 // `argument.GetOffset(length)` call with `length - index`
-                Debug.Assert(hatExpression.Operand.Type.SpecialType == SpecialType.System_Int32);
+                Debug.Assert(hatExpression.Operand is { Type: { SpecialType: SpecialType.System_Int32 } });
                 usedLength = true;
                 return F.IntSubtract(lengthAccess, VisitExpression(hatExpression.Operand));
             }
-            else if (unloweredExpr is BoundConversion conversion && conversion.Operand.Type.SpecialType == SpecialType.System_Int32)
+            else if (unloweredExpr is BoundConversion { Operand: { Type: { SpecialType: SpecialType.System_Int32 } } operand })
             {
                 // If the System.Index argument is a conversion from int to Index we
                 // can return the int directly
                 usedLength = false;
-                return VisitExpression(conversion.Operand);
+                return VisitExpression(operand);
             }
             else
             {

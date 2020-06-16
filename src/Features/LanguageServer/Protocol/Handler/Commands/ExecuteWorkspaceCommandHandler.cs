@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +10,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -18,10 +23,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ImmutableDictionary<string, Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> _executeCommandHandlers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ExecuteWorkspaceCommandHandler([ImportMany] IEnumerable<Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> executeCommandHandlers)
-        {
-            _executeCommandHandlers = CreateMap(executeCommandHandlers);
-        }
+            => _executeCommandHandlers = CreateMap(executeCommandHandlers);
 
         private static ImmutableDictionary<string, Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> CreateMap(
             IEnumerable<Lazy<IExecuteWorkspaceCommandHandler, IExecuteWorkspaceCommandHandlerMetadata>> requestHandlers)
@@ -39,8 +43,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Handles an <see cref="LSP.Methods.WorkspaceExecuteCommand"/>
         /// by delegating to a handler for the specific command requested.
         /// </summary>
-        public Task<object> HandleRequestAsync(Solution solution, LSP.ExecuteCommandParams request, LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken, bool keepThreadContext = false)
+        public Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, LSP.ClientCapabilities clientCapabilities, string? clientName,
+            CancellationToken cancellationToken)
         {
             var commandName = request.Command;
             if (string.IsNullOrEmpty(commandName) || !_executeCommandHandlers.TryGetValue(commandName, out var executeCommandHandler))
@@ -48,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 throw new ArgumentException(string.Format("Command name ({0}) is invalid", commandName));
             }
 
-            return executeCommandHandler.Value.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken, keepThreadContext);
+            return executeCommandHandler.Value.HandleRequestAsync(request, clientCapabilities, cancellationToken);
         }
     }
 }

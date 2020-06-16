@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -21,17 +23,19 @@ namespace Microsoft.CodeAnalysis.Operations
             IsNumeric = 1 << 2,
             IsReference = 1 << 3,
             IsImplicit = 1 << 4,
+            IsNullable = 1 << 5,
         }
 
         private readonly ConversionKind _conversionKind;
 
-        internal CommonConversion(bool exists, bool isIdentity, bool isNumeric, bool isReference, bool isImplicit, IMethodSymbol methodSymbol)
+        internal CommonConversion(bool exists, bool isIdentity, bool isNumeric, bool isReference, bool isImplicit, bool isNullable, IMethodSymbol methodSymbol)
         {
             _conversionKind = (exists ? ConversionKind.Exists : ConversionKind.None) |
                               (isIdentity ? ConversionKind.IsIdentity : ConversionKind.None) |
                               (isNumeric ? ConversionKind.IsNumeric : ConversionKind.None) |
                               (isReference ? ConversionKind.IsReference : ConversionKind.None) |
-                              (isImplicit ? ConversionKind.IsImplicit : ConversionKind.None);
+                              (isImplicit ? ConversionKind.IsImplicit : ConversionKind.None) |
+                              (isNullable ? ConversionKind.IsNullable : ConversionKind.None);
             MethodSymbol = methodSymbol;
         }
 
@@ -47,6 +51,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Returns true if the conversion is an identity conversion.
         /// </summary>
         public bool IsIdentity => (_conversionKind & ConversionKind.IsIdentity) == ConversionKind.IsIdentity;
+        /// <summary>
+        /// Returns true if the conversion is an nullable conversion.
+        /// </summary>
+        public bool IsNullable => (_conversionKind & ConversionKind.IsNullable) == ConversionKind.IsNullable;
         /// <summary>
         /// Returns true if the conversion is a numeric conversion.
         /// </summary>

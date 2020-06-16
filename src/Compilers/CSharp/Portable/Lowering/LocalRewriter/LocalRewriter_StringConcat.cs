@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -47,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             loweredLeft = ConvertConcatExprToString(syntax, loweredLeft);
             loweredRight = ConvertConcatExprToString(syntax, loweredRight);
 
-            Debug.Assert(loweredLeft.Type.IsStringType() || loweredLeft.ConstantValue?.IsNull == true || loweredLeft.Type.IsErrorType());
-            Debug.Assert(loweredRight.Type.IsStringType() || loweredRight.ConstantValue?.IsNull == true || loweredRight.Type.IsErrorType());
+            Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValue?.IsNull == true);
+            Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValue?.IsNull == true);
 
             // try fold two args without flattening.
             var folded = TryFoldTwoConcatOperands(syntax, loweredLeft, loweredRight);
@@ -193,7 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // attempting to access its value as a string.
 
                         var rightConstant = boundCoalesce.RightOperand.ConstantValue;
-                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
+                        // See https://github.com/dotnet/roslyn/issues/41964 for eliminating the !. below
+                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue!.Length == 0)
                         {
                             arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
                             return true;
@@ -210,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// folds two concat operands into one expression if possible
         /// otherwise returns null
         /// </summary>
-        private BoundExpression TryFoldTwoConcatOperands(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
+        private BoundExpression? TryFoldTwoConcatOperands(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
             // both left and right are constants
             var leftConst = loweredLeft.ConstantValue;
@@ -220,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // const concat may fail to fold if strings are huge. 
                 // This would be unusual.
-                ConstantValue concatenated = TryFoldTwoConcatConsts(leftConst, rightConst);
+                ConstantValue? concatenated = TryFoldTwoConcatConsts(leftConst, rightConst);
                 if (concatenated != null)
                 {
                     return _factory.StringLiteral(concatenated);
@@ -232,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsNullOrEmptyStringConstant(loweredRight))
                 {
-                    return _factory.Literal((string)null + (string)null);
+                    return _factory.Literal(string.Empty);
                 }
 
                 return RewriteStringConcatenationOneExpr(syntax, loweredRight);
@@ -256,13 +261,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// otherwise returns null.
         /// It is generally always possible to concat constants, unless resulting string would be too large.
         /// </summary>
-        private static ConstantValue TryFoldTwoConcatConsts(ConstantValue leftConst, ConstantValue rightConst)
+        private static ConstantValue? TryFoldTwoConcatConsts(ConstantValue leftConst, ConstantValue rightConst)
         {
             var leftVal = leftConst.StringValue;
             var rightVal = rightConst.StringValue;
 
             if (!leftConst.IsDefaultValue && !rightConst.IsDefaultValue)
             {
+                Debug.Assert(leftVal is { } && rightVal is { });
                 if (leftVal.Length + rightVal.Length < 0)
                 {
                     return null;
@@ -295,8 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
-            Debug.Assert(loweredLeft.HasAnyErrors || loweredLeft.Type.IsStringType());
-            Debug.Assert(loweredRight.HasAnyErrors || loweredRight.Type.IsStringType());
+            Debug.Assert(loweredLeft.HasAnyErrors || loweredLeft.Type is { } && loweredLeft.Type.IsStringType());
+            Debug.Assert(loweredRight.HasAnyErrors || loweredRight.Type is { } && loweredRight.Type.IsStringType());
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
             Debug.Assert((object)method != null);
@@ -306,9 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
         {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type.IsStringType());
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type.IsStringType());
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type.IsStringType());
+            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && loweredFirst.Type.IsStringType());
+            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && loweredSecond.Type.IsStringType());
+            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && loweredThird.Type.IsStringType());
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
             Debug.Assert((object)method != null);
@@ -318,10 +324,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
         {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type.IsStringType());
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type.IsStringType());
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type.IsStringType());
-            Debug.Assert(loweredFourth.HasAnyErrors || loweredFourth.Type.IsStringType());
+            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && loweredFirst.Type.IsStringType());
+            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && loweredSecond.Type.IsStringType());
+            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && loweredThird.Type.IsStringType());
+            Debug.Assert(loweredFourth.HasAnyErrors || loweredFourth.Type is { } && loweredFourth.Type.IsStringType());
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
             Debug.Assert((object)method != null);
@@ -332,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
         {
             Debug.Assert(loweredArgs.Length > 4);
-            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type.IsStringType()));
+            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type is { } && a.Type.IsStringType()));
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringArray);
             Debug.Assert((object)method != null);
@@ -355,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return new BoundBinaryOperator(syntax, operatorKind, default(ConstantValue), method, default(LookupResultKind), loweredLeft, loweredRight, type);
+            return new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, method, default(LookupResultKind), loweredLeft, loweredRight, type);
         }
 
         /// <summary>
@@ -375,23 +381,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Is the expression a literal char?  If so, we can
+            Debug.Assert(expr.Type is { });
+
+            // Is the expression a constant char?  If so, we can
             // simply make it a literal string instead and avoid any 
             // allocations for converting the char to a string at run time.
             // Similarly if it's a literal null, don't do anything special.
-            if (expr.Kind == BoundKind.Literal)
+            if (expr is { ConstantValue: { } cv })
             {
-                ConstantValue cv = ((BoundLiteral)expr).ConstantValue;
-                if (cv != null)
+                if (cv.SpecialType == SpecialType.System_Char)
                 {
-                    if (cv.SpecialType == SpecialType.System_Char)
-                    {
-                        return _factory.StringLiteral(cv.CharValue.ToString());
-                    }
-                    else if (cv.IsNull)
-                    {
-                        return expr;
-                    }
+                    return _factory.StringLiteral(cv.CharValue.ToString());
+                }
+                else if (cv.IsNull)
+                {
+                    return expr;
                 }
             }
 
@@ -407,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If it's a struct which has overridden ToString, find that method. Note that we might fail to
             // find it, e.g. if object.ToString is missing
-            MethodSymbol structToStringMethod = null;
+            MethodSymbol? structToStringMethod = null;
             if (expr.Type.IsValueType && !expr.Type.IsTypeParameter())
             {
                 var type = (NamedTypeSymbol)expr.Type;

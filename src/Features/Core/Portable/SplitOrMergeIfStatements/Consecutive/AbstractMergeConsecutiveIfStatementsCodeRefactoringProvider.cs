@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return editor.GetChangedRoot();
         }
 
-        private bool CanBeMergedWithParent(
+        private static bool CanBeMergedWithParent(
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
@@ -131,7 +134,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                    ContainEquivalentStatements(syntaxFacts, ifOrElseIf, parentIfOrElseIf, out _);
         }
 
-        private bool CanBeMergedWithElseIf(
+        private static bool CanBeMergedWithElseIf(
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
@@ -141,7 +144,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                    ContainEquivalentStatements(syntaxFacts, ifOrElseIf, elseIfClause, out _);
         }
 
-        private Task<bool> CanBeMergedWithPreviousStatementAsync(
+        private static Task<bool> CanBeMergedWithPreviousStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -154,7 +157,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 : Task.FromResult(false);
         }
 
-        private Task<bool> CanBeMergedWithNextStatementAsync(
+        private static Task<bool> CanBeMergedWithNextStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -167,7 +170,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 : Task.FromResult(false);
         }
 
-        private async Task<bool> CanStatementsBeMergedAsync(
+        private static async Task<bool> CanStatementsBeMergedAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -218,7 +221,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return statement != null;
             }
 
-            statement = default;
+            statement = null;
             return false;
         }
 

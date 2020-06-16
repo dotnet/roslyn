@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -25,17 +27,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool SupportGetDiagnostics => false;
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        {
-            return ImmutableArray<DiagnosticData>.Empty;
-        }
+            => ImmutableArray<DiagnosticData>.Empty;
 
         public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
-        {
-            DiagnosticsUpdated?.Invoke(this, args);
-        }
+            => DiagnosticsUpdated?.Invoke(this, args);
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, ProjectId? projectId)
         {
@@ -152,14 +150,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly AbstractHostDiagnosticUpdateSource _abstractHostDiagnosticUpdateSource;
 
             public TestAccessor(AbstractHostDiagnosticUpdateSource abstractHostDiagnosticUpdateSource)
-            {
-                _abstractHostDiagnosticUpdateSource = abstractHostDiagnosticUpdateSource;
-            }
+                => _abstractHostDiagnosticUpdateSource = abstractHostDiagnosticUpdateSource;
 
             internal ImmutableArray<DiagnosticData> GetReportedDiagnostics()
-            {
-                return _abstractHostDiagnosticUpdateSource._analyzerHostDiagnosticsMap.Values.Flatten().ToImmutableArray();
-            }
+                => _abstractHostDiagnosticUpdateSource._analyzerHostDiagnosticsMap.Values.Flatten().ToImmutableArray();
 
             internal ImmutableHashSet<DiagnosticData> GetReportedDiagnostics(DiagnosticAnalyzer analyzer)
             {
@@ -194,9 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectId == null ? 1 : _projectId.GetHashCode(), base.GetHashCode()));
-            }
+                => Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectId == null ? 1 : _projectId.GetHashCode(), base.GetHashCode()));
         }
     }
 }

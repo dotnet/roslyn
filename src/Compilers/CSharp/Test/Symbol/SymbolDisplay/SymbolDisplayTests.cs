@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -5287,8 +5289,8 @@ class B
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             var formatWithNonNullableModifier = formatWithoutNonNullableModifier
-                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
-                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
             var method = comp.GetMember<IMethodSymbol>("B.F1");
             Verify(
@@ -5359,7 +5361,8 @@ class B
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
             var formatWithNullableModifier = formatWithoutNullableModifier
-                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
             var method = comp.GetMember<IMethodSymbol>("B.F1");
             Verify(
@@ -5424,7 +5427,7 @@ class C
                 memberOptions: SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
             var formatWithNullableModifier = formatWithoutModifiers.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
-            var formatWithBothModifiers = formatWithNullableModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+            var formatWithBothModifiers = formatWithNullableModifier.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier);
 
             var member = comp.GetMember("C.F1");
             Verify(
@@ -7201,7 +7204,94 @@ class C
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.RangeVariableName);
+        }
 
+        [Fact]
+        public void NativeInt()
+        {
+            var source =
+@"using System;
+class A<T>
+{
+}
+class B
+{
+    static void F1(nint x, nuint y) { }
+    static void F2(nint x, IntPtr y) { }
+    static void F3(nint? x, UIntPtr? y) { }
+    static void F4(nint[] x, A<nuint> y) { }
+}";
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.RegularPreview);
+            var formatWithoutOptions = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+            var formatWithUnderlyingTypes = formatWithoutOptions.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
+
+            var method = comp.GetMember<MethodSymbol>("B.F1");
+            Verify(
+                method.ToDisplayParts(formatWithUnderlyingTypes),
+                "static void F1(IntPtr x, UIntPtr y)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions),
+                "static void F1(nint x, nuint y)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)),
+                "static void F1(nint x, nuint y)");
+
+            method = comp.GetMember<MethodSymbol>("B.F2");
+            Verify(
+                method.ToDisplayParts(formatWithUnderlyingTypes),
+                "static void F2(IntPtr x, IntPtr y)");
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions),
+                "static void F2(nint x, IntPtr y)");
+
+            method = comp.GetMember<MethodSymbol>("B.F3");
+            Verify(
+                method.ToDisplayParts(formatWithUnderlyingTypes),
+                "static void F3(IntPtr? x, UIntPtr? y)");
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions),
+                "static void F3(nint? x, UIntPtr? y)");
+
+            method = comp.GetMember<MethodSymbol>("B.F4");
+            Verify(
+                method.ToDisplayParts(formatWithUnderlyingTypes),
+                "static void F4(IntPtr[] x, A<UIntPtr> y)");
+            Verify(
+                method.ToDisplayParts(formatWithoutOptions),
+                "static void F4(nint[] x, A<nuint> y)");
         }
     }
 }

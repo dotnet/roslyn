@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -19,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Friend Module EndConstructTestingHelpers
 
         Private Function CreateMockIndentationService() As ISmartIndentationService
-            Dim mock As New Mock(Of ISmartIndentationService)
+            Dim mock As New Mock(Of ISmartIndentationService)(MockBehavior.Strict)
             mock.Setup(Function(service) service.GetDesiredIndentation(It.IsAny(Of ITextView), It.IsAny(Of ITextSnapshotLine))).Returns(0)
             Return mock.Object
         End Function
@@ -31,7 +33,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Property
 
         Private Sub DisableLineCommit(workspace As Workspace)
-            workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                .WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)))
         End Sub
 
         Private Sub VerifyTypedCharApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),

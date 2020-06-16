@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -104,6 +106,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Always returns false because the 'readonly members' feature is not available in VB.
         ''' </summary>
         Private ReadOnly Property IMethodSymbol_IsReadOnly As Boolean Implements IMethodSymbol.IsReadOnly
+            Get
+                Return False
+            End Get
+        End Property
+
+        ' https://github.com/dotnet/roslyn/issues/44870 VB will be able to consume 'init' set accessors
+        Private ReadOnly Property IMethodSymbol_IsInitOnly As Boolean Implements IMethodSymbol.IsInitOnly
             Get
                 Return False
             End Get
@@ -559,7 +568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             typeArguments.CheckTypeArguments(Me.Arity)
         End Sub
 
-        ' Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
+        ' Apply type substitution to a generic method to create a method symbol with the given type parameters supplied.
         Public Overridable Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As MethodSymbol
             CheckCanConstructAndTypeArguments(typeArguments)
 

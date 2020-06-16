@@ -1,10 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -25,13 +26,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Private Shared ReadOnly s_minimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstants _
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)
 
-            Public Sub New(displayService As ISymbolDisplayService,
-                           semanticModel As SemanticModel,
+            Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
                            workspace As Workspace,
                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                            cancellationToken As CancellationToken)
-                MyBase.New(displayService, semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                MyBase.New(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
             End Sub
 
             Protected Overrides Sub AddDeprecatedPrefix()

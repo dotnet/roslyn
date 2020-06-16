@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1066,13 +1069,13 @@ namespace X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!q").WithArguments("!", "object").WithLocation(9, 17),
                 // (12,26): error CS8310: Operator '-' cannot be applied to operand '<null>'
                 //             object obj = -null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(12, 26),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "-null").WithArguments("-", "<null>").WithLocation(12, 26),
                 // (13,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //             obj = !null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(13, 19),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "!null").WithArguments("!", "<null>").WithLocation(13, 19),
                 // (14,19): error CS8310: Operator '~' cannot be applied to operand '<null>'
                 //             obj = ~null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(14, 19),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "~null").WithArguments("~", "<null>").WithLocation(14, 19),
                 // (16,13): error CS0023: Operator '++' cannot be applied to operand of type 'object'
                 //             obj++; // CS0023
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "obj++").WithArguments("++", "object").WithLocation(16, 13),
@@ -1081,7 +1084,7 @@ namespace X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "--obj").WithArguments("--", "object").WithLocation(17, 13),
                 // (18,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
                 //             return +null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(18, 20)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "+null").WithArguments("+", "<null>").WithLocation(18, 20)
                 );
         }
 
@@ -1109,16 +1112,16 @@ public class Test
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //         bool? b = !null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "!null").WithArguments("!", "<null>").WithLocation(6, 19),
                 // (7,18): error CS8310: Operator '~' cannot be applied to operand '<null>'
                 //         int? n = ~null;    // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "~null").WithArguments("~", "<null>").WithLocation(7, 18),
                 // (8,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
                 //         float? f = +null;  // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "+null").WithArguments("+", "<null>").WithLocation(8, 20),
                 // (9,19): error CS8310: Operator '-' cannot be applied to operand '<null>'
                 //         long? u = -null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(9, 19)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "-null").WithArguments("-", "<null>").WithLocation(9, 19)
                 );
         }
 
@@ -2717,7 +2720,11 @@ enum F { W, X = Z, Y, Z }
             var test = @"
 int x;
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test, new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 2, Column = 5 });
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,5): warning CS0168: The variable 'x' is declared but never used
+                // int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(2, 5)
+                );
         }
 
         [Fact]
@@ -2777,9 +2784,14 @@ namespace ns1
 delegate int D();
 D d = null;
 ";
-            CreateCompilation(test).VerifyDiagnostics(
-                // (3,3): error CS0116: A namespace does not directly contain members such as fields or methods
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d"));
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                    // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                    // D d = null;
+                    Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = null;").WithLocation(3, 1),
+                    // (3,3): warning CS0219: The variable 'd' is assigned but its value is never used
+                    // D d = null;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "d").WithArguments("d").WithLocation(3, 3)
+                );
         }
 
         [WorkItem(540091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540091")]
@@ -2792,7 +2804,10 @@ D d = {;}
 ";
             // In this case, CS0116 is suppressed because of the syntax errors
 
-            CreateCompilation(test).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // D d = {;}
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = {;").WithLocation(3, 1),
                 // (3,8): error CS1513: } expected
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ";"),
                 // (3,9): error CS1022: Type or namespace definition, or end-of-file expected
@@ -3676,12 +3691,12 @@ namespace MyNamespace
 }";
             CreateCompilation(text).
                 VerifyDiagnostics(
-                    // (9,14): error CS0128: A local variable named 'i' is already defined in this scope
+                    // (9,14): error CS0128: A local variable or function named 'i' is already defined in this scope
                     //          int i = 2;   // CS0128
-                    Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i"),
+                    Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i").WithLocation(9, 14),
                     // (9,14): warning CS0219: The variable 'i' is assigned but its value is never used
                     //          int i = 2;   // CS0128
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i")
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(9, 14)
                 );
         }
 
@@ -7212,14 +7227,15 @@ class MyDerived : MyClass
     }
 }
 ";
+
             CreateCompilation(source).VerifyDiagnostics(
-                // (28,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (28,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         TestInt = 15; // CS0191 - not in declaring class
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(28, 9),
-                // (11,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (11,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         t.TestInt = 14; // CS0191 - we can't be sure that the receiver is this
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "t.TestInt").WithLocation(11, 9),
-                // (16,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (16,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         TestInt = 19;                  // CS0191
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(16, 9));
         }
@@ -11870,10 +11886,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
                 // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var v = M(); // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
-                // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
-                //         var p = null;//CS0815
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p"));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"));
         }
 
         [Fact]
@@ -16186,7 +16199,7 @@ public unsafe class C
                 // (19,9): error CS1650: Fields of static readonly field 'C._s1' cannot be assigned to (except in a static constructor or a variable initializer)
                 //         C._s1.name[3] = 'a';  // CS1648
                 Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "C._s1.name[3]").WithArguments("C._s1").WithLocation(19, 9),
-                // (20,9): error CS1648: Members of readonly field 'C._s2' cannot be modified (except in a constructor or a variable initializer)
+                // (20,9): error CS1648: Members of readonly field 'C._s2' cannot be modified (except in a constructor, an init-only member or a variable initializer)
                 //         myC._s2.name[3] = 'a';  // CS1648
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "myC._s2.name[3]").WithArguments("C._s2").WithLocation(20, 9)
                 );
@@ -17365,10 +17378,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,25): error CS1959: 'x' is of type 'T'. The type specified in a constant declaration must be sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, an enum-type, or a reference-type.
                 //             const T x = null; // CS1959
-                Diagnostic(ErrorCode.ERR_InvalidConstantDeclarationType, "null").WithArguments("x", "T"),
-                // (6,21): warning CS0219: The variable 'x' is assigned but its value is never used
-                //             const T x = null; // CS1959
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x")
+                Diagnostic(ErrorCode.ERR_InvalidConstantDeclarationType, "null").WithArguments("x", "T")
                 );
         }
 
@@ -24187,12 +24197,12 @@ class B : System.Attribute {
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (7,2): error CS8355: Cannot use attribute constructor 'B.B(in int)' because it is has 'in' parameters.
-                // [B()]
-                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2),
-                // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
+                // (2,2): error CS8358: Cannot use attribute constructor 'A.A(in int)' because it has 'in' parameters.
                 // [A(1)]
-                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2),
+                // (7,2): error CS8358: Cannot use attribute constructor 'B.B(in int)' because it has 'in' parameters.
+                // [B()]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2)
                 );
         }
 

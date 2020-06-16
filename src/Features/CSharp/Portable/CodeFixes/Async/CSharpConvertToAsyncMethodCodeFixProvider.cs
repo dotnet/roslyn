@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -9,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Async;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 {
@@ -21,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         private const string CS4008 = nameof(CS4008);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpConvertToAsyncMethodCodeFixProvider()
         {
         }
@@ -30,23 +36,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             get { return ImmutableArray.Create(CS4008); }
         }
 
-        protected override async Task<string> GetDescription(
+        protected override async Task<string> GetDescriptionAsync(
             Diagnostic diagnostic,
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var methodNode = await GetMethodDeclaration(node, semanticModel, cancellationToken).ConfigureAwait(false);
-            return string.Format(CSharpFeaturesResources.Make_0_return_Task_instead_of_void, methodNode.WithBody(null));
+            var methodNode = await GetMethodDeclarationAsync(node, semanticModel, cancellationToken).ConfigureAwait(false);
+
+            // We only call GetDescription when we already know that we succeeded (so it's safe to
+            // assume we have a methodNode here).
+            return string.Format(CSharpFeaturesResources.Make_0_return_Task_instead_of_void, methodNode!.WithBody(null));
         }
 
-        protected override async Task<Tuple<SyntaxTree, SyntaxNode>> GetRootInOtherSyntaxTree(
+        protected override async Task<Tuple<SyntaxTree, SyntaxNode>?> GetRootInOtherSyntaxTreeAsync(
             SyntaxNode node,
             SemanticModel semanticModel,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = await GetMethodDeclaration(node, semanticModel, cancellationToken).ConfigureAwait(false);
+            var methodDeclaration = await GetMethodDeclarationAsync(node, semanticModel, cancellationToken).ConfigureAwait(false);
             if (methodDeclaration == null)
             {
                 return null;
@@ -57,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return Tuple.Create(oldRoot.SyntaxTree, newRoot);
         }
 
-        private async Task<MethodDeclarationSyntax> GetMethodDeclaration(
+        private static async Task<MethodDeclarationSyntax?> GetMethodDeclarationAsync(
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -92,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return methodDeclaration;
         }
 
-        private MethodDeclarationSyntax ConvertToAsyncFunction(MethodDeclarationSyntax methodDeclaration)
+        private static MethodDeclarationSyntax ConvertToAsyncFunction(MethodDeclarationSyntax methodDeclaration)
         {
             return methodDeclaration.WithReturnType(
                 SyntaxFactory.ParseTypeName("Task")

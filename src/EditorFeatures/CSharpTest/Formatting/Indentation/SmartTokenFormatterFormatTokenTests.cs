@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,18 +10,24 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
     {
+        public SmartTokenFormatterFormatTokenTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task EmptyFile1()
         {
             var code = @"{";
 
-            await ExpectException_SmartTokenFormatterOpenBraceAsync(
+            await AssertSmartTokenFormatterOpenBraceAsync(
                 code,
                 indentationLine: 0,
                 expectedSpace: 0);
@@ -636,7 +644,8 @@ class Program
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
 
-            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
 
             var buffer = workspace.Documents.First().GetTextBuffer();
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Text.RegularExpressions;
@@ -10,7 +12,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 {
@@ -104,12 +105,12 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             void RegisterRefactoringWithResult(string text, string title)
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(title, c => ReplaceToken(document, root, numericToken, value, text, suffix)),
+                    new MyCodeAction(title, c => ReplaceTokenAsync(document, root, numericToken, value, text, suffix)),
                     numericToken.Span);
             }
         }
 
-        private static Task<Document> ReplaceToken(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
+        private static Task<Document> ReplaceTokenAsync(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)

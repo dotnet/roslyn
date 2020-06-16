@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -98,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // one.
 
             return AnalyzerReference.GetAnalyzers(language)
-                .SelectMany(a => _diagnosticAnalyzerService.GetDiagnosticDescriptors(a))
+                .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
                 .Select(g =>

@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private readonly Solution _solution;
         private readonly IStreamingFindLiteralReferencesProgress _progress;
-        private readonly StreamingProgressTracker _progressTracker;
+        private readonly IStreamingProgressTracker _progressTracker;
         private readonly CancellationToken _cancellationToken;
 
         private readonly object _value;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             _solution = solution;
             _progress = progress;
-            _progressTracker = new StreamingProgressTracker(_progress.ReportProgressAsync);
+            _progressTracker = progress.ProgressTracker;
             _value = value;
             _cancellationToken = cancellationToken;
 
@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _longValue = BitConverter.DoubleToInt64Bits(f);
                     _searchKind = SearchKind.NumericLiterals;
                     break;
-                case decimal d: // unsupported
+                case decimal _: // unsupported
                     _searchKind = SearchKind.None;
                     break;
-                case char c:
+                case char _:
                     _longValue = IntegerUtilities.ToInt64(value);
                     _searchKind = SearchKind.CharacterLiterals;
                     break;
@@ -75,17 +75,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public async Task FindReferencesAsync()
         {
-            await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
-            try
+            await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
+
+            if (_searchKind != SearchKind.None)
             {
-                if (_searchKind != SearchKind.None)
-                {
-                    await FindReferencesWorkerAsync().ConfigureAwait(false);
-                }
-            }
-            finally
-            {
-                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
+                await FindReferencesWorkerAsync().ConfigureAwait(false);
             }
         }
 

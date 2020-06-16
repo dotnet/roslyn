@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -42,9 +44,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public int WorkItemCount => _workItemQueue.WorkItemCount;
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
-                    {
-                        return _workItemQueue.WaitAsync(cancellationToken);
-                    }
+                        => _workItemQueue.WaitAsync(cancellationToken);
 
                     protected override async Task ExecuteAsync()
                     {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     SolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
 
-                                    RemoveProject(projectId);
+                                    await RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)
@@ -181,11 +181,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private void RemoveProject(ProjectId projectId)
+                    private async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
                     {
                         foreach (var analyzer in Analyzers)
                         {
-                            analyzer.RemoveProject(projectId);
+                            await analyzer.RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                         }
                     }
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // this shouldn't happen. would like to get some diagnostic
                         while (_workItemQueue.HasAnyWork)
                         {
-                            Environment.FailFast("How?");
+                            FailFast.Fail("How?");
                         }
                     }
                 }

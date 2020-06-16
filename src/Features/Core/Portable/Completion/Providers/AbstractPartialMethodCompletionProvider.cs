@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -94,12 +96,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var line = text.Lines.IndexOf(position);
             var lineSpan = text.Lines.GetLineFromPosition(position).Span;
-            return symbols.Select(s => CreateItem(s, line, lineSpan, span, semanticModel, modifiers, document, token));
+            return symbols.Select(s => CreateItem(s, line, span, semanticModel, modifiers, token));
         }
 
-        private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan lineSpan, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, Document document, SyntaxToken token)
+        private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, SyntaxToken token)
         {
-            modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.IsUnsafe(), isPartial: true, isAsync: modifiers.IsAsync);
+            modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.RequiresUnsafeModifier(), isPartial: true, isAsync: modifiers.IsAsync);
             var displayText = GetDisplayText(method, semanticModel, span.Start);
 
             return MemberInsertionCompletionItem.Create(

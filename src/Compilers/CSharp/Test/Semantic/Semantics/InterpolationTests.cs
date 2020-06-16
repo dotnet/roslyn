@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -149,14 +151,8 @@ class Program {
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (5,71): error CS8077: A single-line comment may not be used in an interpolated string.
-                //         Console.WriteLine("Jenny don\'t change your number \{ 8675309 // ");
-                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(5, 71),
-                // (5,77): error CS1026: ) expected
-                //         Console.WriteLine("Jenny don\'t change your number \{ 8675309 // ");
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 77),
-                // (5,77): error CS1002: ; expected
-                //         Console.WriteLine("Jenny don\'t change your number \{ 8675309 // ");
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 77)
+                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 // ");
+                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(5, 71)
                 );
         }
 

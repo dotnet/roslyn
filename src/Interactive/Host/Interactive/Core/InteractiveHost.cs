@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -22,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// <remarks>
     /// Handles spawning of the host process and communication between the local callers and the remote session.
     /// </remarks>
-    internal sealed partial class InteractiveHost : MarshalByRefObject
+    internal sealed partial class InteractiveHost
     {
         internal const bool DefaultIs64Bit = true;
 
@@ -33,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly int _millisecondsTimeout;
         private const int MaxAttemptsToCreateProcess = 2;
 
-        private LazyRemoteService _lazyRemoteService;
+        private LazyRemoteService? _lazyRemoteService;
         private int _remoteServiceInstanceId;
 
         // Remoting channel to communicate with the remote service.
-        private IpcServerChannel _serverChannel;
+        private IpcServerChannel? _serverChannel;
 
         private TextWriter _output;
         private TextWriter _errorOutput;
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         private readonly bool _joinOutputWritingThreadsOnDisposal;
 
-        internal event Action<bool> ProcessStarting;
+        internal event Action<bool>? ProcessStarting;
 
         public InteractiveHost(
             Type replServiceProviderType,
@@ -77,49 +81,39 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         #region Test hooks
 
-        internal event Action<char[], int> OutputReceived;
-        internal event Action<char[], int> ErrorOutputReceived;
+        internal event Action<char[], int>? OutputReceived;
+        internal event Action<char[], int>? ErrorOutputReceived;
 
-        internal Process TryGetProcess()
+        internal Process? TryGetProcess()
         {
-            InitializedRemoteService initializedService;
             var lazyRemoteService = _lazyRemoteService;
             return (lazyRemoteService?.InitializedService != null &&
-                    lazyRemoteService.InitializedService.TryGetValue(out initializedService)) ? initializedService.ServiceOpt.Process : null;
+                    lazyRemoteService.InitializedService.TryGetValue(out var initializedService)) ? initializedService.Service.Process : null;
         }
 
-        internal Service TryGetService()
+        internal Service? TryGetService()
         {
             var initializedService = TryGetOrCreateRemoteServiceAsync().Result;
-            return initializedService.ServiceOpt?.Service;
+            return initializedService.Service?.Service;
         }
 
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
-        internal event Action<Process> InteractiveHostProcessCreated;
+        internal event Action<Process>? InteractiveHostProcessCreated;
 
-        internal IpcServerChannel _ServerChannel
-        {
-            get { return _serverChannel; }
-        }
+        internal IpcServerChannel? Test_ServerChannel
+            => _serverChannel;
 
         #endregion
 
         private static string GenerateUniqueChannelLocalName()
-        {
-            return typeof(InteractiveHost).FullName + Guid.NewGuid();
-        }
+            => typeof(InteractiveHost).FullName + Guid.NewGuid();
 
-        public override object InitializeLifetimeService()
+        private RemoteService? TryStartProcess(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
         {
-            return null;
-        }
-
-        private RemoteService TryStartProcess(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
-        {
-            Process newProcess = null;
+            Process? newProcess = null;
             int newProcessId = -1;
-            Semaphore semaphore = null;
+            Semaphore? semaphore = null;
             try
             {
                 int currentProcessId = Process.GetCurrentProcess().Id;
@@ -307,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
-        private void WriteOutputInBackground(bool isError, string firstLine, string secondLine = null)
+        private void WriteOutputInBackground(bool isError, string firstLine, string? secondLine = null)
         {
             var writer = isError ? _errorOutput : _output;
             var guard = isError ? _errorOutputGuard : _outputGuard;
@@ -334,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             return new LazyRemoteService(this, options, Interlocked.Increment(ref _remoteServiceInstanceId), skipInitialization);
         }
 
-        private Task OnProcessExited(Process process)
+        private Task OnProcessExitedAsync(Process process)
         {
             ReportProcessExited(process);
             return TryGetOrCreateRemoteServiceAsync();
@@ -362,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             try
             {
-                LazyRemoteService currentRemoteService = _lazyRemoteService;
+                LazyRemoteService? currentRemoteService = _lazyRemoteService;
 
                 for (int attempt = 0; attempt < MaxAttemptsToCreateProcess; attempt++)
                 {
@@ -373,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
 
                     var initializedService = await currentRemoteService.InitializedService.GetValueAsync(currentRemoteService.CancellationSource.Token).ConfigureAwait(false);
-                    if (initializedService.ServiceOpt != null && initializedService.ServiceOpt.Process.IsAlive())
+                    if (initializedService.Service != null && initializedService.Service.Process.IsAlive())
                     {
                         return initializedService;
                     }
@@ -416,12 +410,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             try
             {
                 var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
-                if (initializedService.ServiceOpt == null)
+                if (initializedService.Service == null)
                 {
-                    return default;
+                    return default!;
                 }
 
-                return await new RemoteAsyncOperation<TResult>(initializedService.ServiceOpt).AsyncExecute(action).ConfigureAwait(false);
+                return await new RemoteAsyncOperation<TResult>(initializedService.Service).ExecuteAsync(action).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -433,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             try
             {
-                return await new RemoteAsyncOperation<TResult>(remoteService).AsyncExecute(action).ConfigureAwait(false);
+                return await new RemoteAsyncOperation<TResult>(remoteService).ExecuteAsync(action).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -443,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         #region Operations
 
-        public InteractiveHostOptions OptionsOpt
+        public InteractiveHostOptions? OptionsOpt
             => _lazyRemoteService?.Options;
 
         /// <summary>
@@ -452,8 +446,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <param name="options">The options to initialize the new process with.</param>
         public async Task<RemoteExecutionResult> ResetAsync(InteractiveHostOptions options)
         {
-            Debug.Assert(options != null);
-
             try
             {
                 // replace the existing service with a new one:
@@ -466,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
-                if (initializedService.ServiceOpt == null)
+                if (initializedService.Service == null)
                 {
                     return default;
                 }
@@ -489,8 +481,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
-            Debug.Assert(code != null);
-            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteAsync(operation, code));
+            Contract.ThrowIfNull(code);
+            return Async<RemoteExecutionResult>((service, operation) => service.Execute(operation, code));
         }
 
         /// <summary>
@@ -504,12 +496,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFileAsync(operation, path));
+            Contract.ThrowIfNull(path);
+            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFile(operation, path));
         }
 
         /// <summary>
@@ -522,8 +510,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         public Task<bool> AddReferenceAsync(string reference)
         {
-            Debug.Assert(reference != null);
-            return Async<bool>((service, operation) => service.AddReferenceAsync(operation, reference));
+            Contract.ThrowIfNull(reference);
+            return Async<bool>((service, operation) => service.AddReference(operation, reference));
         }
 
         /// <summary>
@@ -531,11 +519,11 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
         {
-            Debug.Assert(referenceSearchPaths != null);
-            Debug.Assert(sourceSearchPaths != null);
-            Debug.Assert(baseDirectory != null);
+            Contract.ThrowIfNull(referenceSearchPaths);
+            Contract.ThrowIfNull(sourceSearchPaths);
+            Contract.ThrowIfNull(baseDirectory);
 
-            return Async<RemoteExecutionResult>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
+            return Async<RemoteExecutionResult>((service, operation) => service.SetPaths(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
         }
 
         #endregion

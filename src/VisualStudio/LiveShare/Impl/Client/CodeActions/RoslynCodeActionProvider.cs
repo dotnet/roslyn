@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -46,15 +48,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
                 Range = ProtocolConversions.TextSpanToRange(span, text)
             };
 
-            var commands = await lspClient.RequestAsync(LSP.Methods.TextDocumentCodeAction.ToLSRequest(), codeActionParams, cancellationToken).ConfigureAwait(false);
-            if (commands == null)
+            var results = await lspClient.RequestAsync(LSP.Methods.TextDocumentCodeAction.ToLSRequest(), codeActionParams, cancellationToken).ConfigureAwait(false);
+            if (results == null)
             {
                 return;
             }
 
-            foreach (var command in commands)
+            foreach (var result in results)
             {
-                if (LanguageServicesUtils.TryParseJson(command, out LSP.Command lspCommand))
+                if (result.Value is LSP.Command lspCommand)
                 {
                     // The command can either wrap a Command or a CodeAction.
                     // If a Command, leave it unchanged; we want to dispatch it to the host to execute.

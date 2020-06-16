@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -48,7 +50,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         InlineData("testfield", false, WorkspaceKind.SingleClassWithSingleField, new string[0]),
         InlineData("TestField", true, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
         InlineData("TestField", false, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
-
 
         InlineData("testcase", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases.TestCase" }),
         InlineData("testcase", false, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new string[0]),
@@ -214,7 +215,6 @@ Inner i;
          InlineData("TestField", true, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
          InlineData("TestField", false, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
 
-
          InlineData("testcase", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases.TestCase" }),
          InlineData("testcase", false, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new string[0]),
          InlineData("testcases", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases" }),
@@ -321,7 +321,6 @@ Inner i;
          InlineData("testfield", false, WorkspaceKind.SingleClassWithSingleField, new string[0]),
          InlineData("TestField", true, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
          InlineData("TestField", false, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
-
 
          InlineData("testcase", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases.TestCase", "TestCases.TestCase" }),
          InlineData("testcase", false, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new string[0]),
@@ -679,7 +678,7 @@ Inner i;
                 project, Checksum.Null, cancellationToken: CancellationToken.None);
 
             using var writerStream = new MemoryStream();
-            using (var writer = new ObjectWriter(writerStream))
+            using (var writer = new ObjectWriter(writerStream, leaveOpen: true))
             {
                 info.WriteTo(writer);
             }

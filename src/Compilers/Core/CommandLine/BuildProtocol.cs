@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Roslyn.Utilities;
 using System;
@@ -73,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                           string tempDirectory,
                                           string compilerHash,
                                           IList<string> args,
-                                          string keepAlive = null,
-                                          string libDirectory = null)
+                                          string? keepAlive = null,
+                                          string? libDirectory = null)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(compilerHash), "CompilerHash is required to send request to the build server");
 
@@ -123,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// The total request size must be less than 1MB.
         /// </summary>
         /// <returns>null if the Request was too large, the Request otherwise.</returns>
-        public static async Task<BuildRequest> ReadAsync(Stream inStream, CancellationToken cancellationToken)
+        public static async Task<BuildRequest?> ReadAsync(Stream inStream, CancellationToken cancellationToken)
         {
             // Read the length of the request
             var lengthBuffer = new byte[4];
@@ -232,11 +236,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             public readonly ArgumentId ArgumentId;
             public readonly int ArgumentIndex;
-            public readonly string Value;
+            public readonly string? Value;
 
             public Argument(ArgumentId argumentId,
                             int argumentIndex,
-                            string value)
+                            string? value)
             {
                 ArgumentId = argumentId;
                 ArgumentIndex = argumentIndex;
@@ -247,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var argId = (ArgumentId)reader.ReadInt32();
                 var argIndex = reader.ReadInt32();
-                string value = ReadLengthPrefixedString(reader);
+                string? value = ReadLengthPrefixedString(reader);
                 return new Argument(argId, argIndex, value);
             }
 
@@ -408,11 +412,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public CompletedBuildResponse(int returnCode,
                                       bool utf8output,
-                                      string output)
+                                      string? output)
         {
             ReturnCode = returnCode;
             Utf8Output = utf8output;
-            Output = output;
+            Output = output ?? string.Empty;
 
             // This field existed to support writing to Console.Error.  The compiler doesn't ever write to 
             // this field or Console.Error.  This field is only kept around in order to maintain the existing
@@ -555,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// as a length prefix (signed 32-bit integer) followed by
         /// a sequence of characters.
         /// </summary>
-        public static string ReadLengthPrefixedString(BinaryReader reader)
+        public static string? ReadLengthPrefixedString(BinaryReader reader)
         {
             var length = reader.ReadInt32();
             if (length < 0)
@@ -571,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// as a length prefix (signed 32-bit integer) follows by
         /// a sequence of characters.
         /// </summary>
-        public static void WriteLengthPrefixedString(BinaryWriter writer, string value)
+        public static void WriteLengthPrefixedString(BinaryWriter writer, string? value)
         {
             if (value is object)
             {

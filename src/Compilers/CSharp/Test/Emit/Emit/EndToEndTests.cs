@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Test.Utilities;
 using System;
@@ -6,6 +8,8 @@ using System.Text;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -150,13 +154,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                _ when ExecutionConditionUtil.IsMacOS => 100,
-                _ when ExecutionConditionUtil.IsCoreClrUnix => 1200,
-                _ when ExecutionConditionUtil.IsMonoDesktop => 730,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 270,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 170,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730,
+                // Legacy baselines are indicated by comments
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 200, // 100
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 520, // 100
+                _ when ExecutionConditionUtil.IsCoreClrUnix => 1200, // 1200
+                _ when ExecutionConditionUtil.IsMonoDesktop => 730, // 730
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 460, // 270
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1320, // 1290
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 260, // 170
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 750, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
@@ -262,6 +268,49 @@ $@"        if (F({i}))
                 {
                     var comp = CreateCompilation(source);
                     comp.VerifyDiagnostics();
+                });
+            }
+        }
+
+        [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void Constraints()
+        {
+            int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            {
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 420,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1100,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 200,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 520,
+                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+            };
+
+            RunTest(n, runTest);
+
+            static void runTest(int n)
+            {
+                // class C0<T> where T : C1<T> { }
+                // class C1<T> where T : C2<T> { }
+                // ...
+                // class CN<T> where T : C0<T> { }
+                var sourceBuilder = new StringBuilder();
+                var diagnosticsBuilder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+                for (int i = 0; i <= n; i++)
+                {
+                    int next = (i == n) ? 0 : i + 1;
+                    sourceBuilder.AppendLine($"class C{i}<T> where T : C{next}<T> {{ }}");
+                    diagnosticsBuilder.Add(Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "T").WithArguments($"C{i}<T>", $"C{next}<T>", "T", "T"));
+                }
+                var source = sourceBuilder.ToString();
+                var diagnostics = diagnosticsBuilder.ToArrayAndFree();
+
+                RunInThread(() =>
+                {
+                    var comp = CreateCompilation(source);
+                    var type = comp.GetMember<NamedTypeSymbol>("C0");
+                    var typeParameter = type.TypeParameters[0];
+                    Assert.True(typeParameter.IsReferenceType);
+                    comp.VerifyDiagnostics(diagnostics);
                 });
             }
         }

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable 
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UpgradeProject;
@@ -15,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
     internal class CSharpUpgradeProjectCodeFixProvider : AbstractUpgradeProjectCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUpgradeProjectCodeFixProvider()
         {
         }
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8107", // error CS8059: Feature is not available in C# 7.0. Please use language version X or greater.
                 "CS8302", // error CS8302: Feature is not available in C# 7.1. Please use language version X or greater.
                 "CS8306", // error CS8306: ... Please use language version 7.1 or greater to access a un-named element by its inferred name.
-                "CS8314", // error CS9003: An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.
+                "CS8314", // error CS8314: An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.
                 "CS8320", // error CS8320: Feature is not available in C# 7.2. Please use language version X or greater.
                 "CS1738", // error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 "CS8370", // error CS8370: Feature is not available in C# 7.3. Please use language version X or greater.
@@ -48,9 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;
 
         public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
-        {
-            return RequiredVersion(diagnostics).ToDisplayString();
-        }
+            => RequiredVersion(diagnostics).ToDisplayString();
 
         private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
         {

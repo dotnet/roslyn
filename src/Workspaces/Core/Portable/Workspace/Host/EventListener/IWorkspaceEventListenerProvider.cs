@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultWorkspaceEventListenerServiceFactory(
-            [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
+            [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             // we use this indirect abstraction to deliver IEventLister to workspace. 
             // otherwise, each Workspace implementation need to explicitly tell base event listeners either through

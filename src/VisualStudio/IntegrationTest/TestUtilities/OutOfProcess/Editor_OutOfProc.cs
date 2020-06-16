@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +14,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using UIAutomationClient;
+using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -62,6 +65,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public ImmutableArray<TextSpan> GetTagSpans(string tagId)
         {
+            if (tagId == _instance.InlineRenameDialog.ValidRenameTag)
+            {
+                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
+            }
+
             var tagInfo = _editorInProc.GetTagSpans(tagId).ToList();
 
             // The spans are returned in an array:
@@ -231,7 +239,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.IsUseSuggestionModeOn();
 
         public void SetUseSuggestionMode(bool value)
-            => _editorInProc.SetUseSuggestionMode(value);
+        {
+            Assert.False(IsCompletionActive());
+            _editorInProc.SetUseSuggestionMode(value);
+        }
 
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);

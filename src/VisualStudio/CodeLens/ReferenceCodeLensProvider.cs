@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -117,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             };
 
             private readonly ReferenceCodeLensProvider _owner;
-            private readonly JsonRpc _roslynRpc;
+            private readonly RemoteEndPoint _endPoint;
             private readonly ICodeLensCallbackService _callbackService;
 
             public DataPoint(
@@ -131,12 +133,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 Descriptor = descriptor;
 
-                _roslynRpc = stream.CreateStreamJsonRpc(
-                    target: new RoslynCallbackTarget(Invalidate),
-                    owner._client.Logger,
-                    SpecializedCollections.SingletonEnumerable(AggregateJsonConverter.Instance));
+                _endPoint = new RemoteEndPoint(stream, owner._client.Logger, new RoslynCallbackTarget(Invalidate));
+                _endPoint.StartListening();
+            }
 
-                _roslynRpc.StartListening();
+            public void Dispose()
+            {
+                _endPoint.Dispose();
             }
 
             public event AsyncEventHandler InvalidatedAsync;
@@ -197,7 +200,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     nameof(ICodeLensContext.FindReferenceLocationsAsync),
                     new object[] { Descriptor, descriptorContext },
                     cancellationToken).ConfigureAwait(false);
-
 
                 var details = new CodeLensDetailsDescriptor
                 {
@@ -273,17 +275,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 // this asks Roslyn OOP to start track workspace changes and call back Invalidate on this type when there is one.
                 // each data point owns 1 connection which is alive while data point is alive. and all communication is done through
                 // that connection
-                await _roslynRpc.InvokeWithCancellationAsync(
-                    nameof(IRemoteCodeLensReferencesService.TrackCodeLensAsync), new object[] { documentId }, cancellationToken).ConfigureAwait(false);
-            }
-
-            public void Dispose()
-            {
-                // done. let connection go
-                _roslynRpc.Dispose();
-
-                // vsCallbackRpc is shared and we don't own. it is owned by the code lens engine
-                // don't dispose it
+                await _endPoint.InvokeAsync(
+                    nameof(IRemoteCodeLensReferencesService.TrackCodeLensAsync),
+                    new object[] { documentId },
+                    cancellationToken).ConfigureAwait(false);
             }
 
             private class RoslynCallbackTarget : IRemoteCodeLensDataPoint

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Text;
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             private const string s_labelFormat = "{0}:";
             private static readonly string s_typeParameterHeader = FeaturesResources.Type_parameters_colon;
             private static readonly string s_returnsHeader = FeaturesResources.Returns_colon;
+            private static readonly string s_valueHeader = FeaturesResources.Value_colon;
             private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions_colon;
             private static readonly string s_remarksHeader = FeaturesResources.Remarks_colon;
 
@@ -95,6 +98,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     formattedCommentLinesBuilder.Add(string.Empty);
                     formattedCommentLinesBuilder.Add(s_returnsHeader);
                     formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedReturnsText));
+                }
+
+                var formattedValueText = docCommentFormattingService.Format(docComment.ValueText);
+                if (!string.IsNullOrWhiteSpace(formattedValueText))
+                {
+                    formattedCommentLinesBuilder.Add(string.Empty);
+                    formattedCommentLinesBuilder.Add(s_valueHeader);
+                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedValueText));
                 }
 
                 var exceptionTypes = docComment.ExceptionTypes;

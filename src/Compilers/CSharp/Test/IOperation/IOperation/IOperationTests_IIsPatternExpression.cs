@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -469,43 +472,39 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is /*</bind>*/')
-  Value: 
-    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
-  Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '') (InputType: System.Int32)
-      Value: 
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-          Children(0)
+    IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'x is /*</bind>*/')
+      Operand: 
+        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+      IsType: ?
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term 'const'
-                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(8, 39),
-                // CS1026: ) expected
-                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(8, 39),
-                // CS1023: Embedded statement cannot be a declaration or labeled statement
-                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int y").WithLocation(8, 39),
-                // CS0145: A const field requires a value to be provided
-                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                Diagnostic(ErrorCode.ERR_ConstValueRequired, "y").WithLocation(8, 49),
-                // CS1002: ; expected
-                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 50),
-                // CS1513: } expected
-                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 50),
-                // CS0103: The name 'y' does not exist in the current context
-                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(8, 70),
-                // CS0168: The variable 'y' is declared but never used
-                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(8, 49)
+                    // file.cs(8,39): error CS1525: Invalid expression term 'const'
+                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(8, 39),
+                    // file.cs(8,39): error CS1026: ) expected
+                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(8, 39),
+                    // file.cs(8,49): error CS0145: A const field requires a value to be provided
+                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                    Diagnostic(ErrorCode.ERR_ConstValueRequired, "y").WithLocation(8, 49),
+                    // file.cs(8,50): error CS1002: ; expected
+                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 50),
+                    // file.cs(8,50): error CS1513: } expected
+                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 50),
+                    // file.cs(8,39): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int y").WithLocation(8, 39),
+                    // file.cs(8,70): error CS0103: The name 'y' does not exist in the current context
+                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(8, 70),
+                    // file.cs(8,49): warning CS0168: The variable 'y' is declared but never used
+                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(8, 49)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
@@ -1087,12 +1086,18 @@ class C
 
             var compilation = CreateCompilation(source, new[] { vbCompilation.EmitToImageReference() });
             compilation.VerifyDiagnostics(
+                // (6,33): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop[1]").WithArguments("type pattern").WithLocation(6, 33),
                 // (6,33): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop[1] }'
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop[1]").WithArguments("Prop[1]").WithLocation(6, 33),
-                // (6,33): error CS0103: The name 'Prop' does not exist in the current context
+                // (6,33): error CS0246: The type or namespace name 'Prop' could not be found (are you missing a using directive or an assembly reference?)
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Prop").WithArguments("Prop").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Prop").WithArguments("Prop").WithLocation(6, 33),
+                // (6,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[1]").WithLocation(6, 37),
                 // (6,40): error CS1003: Syntax error, ',' expected
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(6, 40),
@@ -1101,31 +1106,25 @@ class C
                 Diagnostic(ErrorCode.ERR_SyntaxError, "var").WithArguments(",", "").WithLocation(6, 42));
 
             var expectedOperationTree = @"
-IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is C1 { P ... 1]: var x }')
-  Value: 
-    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
-  Pattern: 
-    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'C1 { Prop[1]: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: C1, DeconstructSymbol: null)
-      DeconstructionSubpatterns (0)
-      PropertySubpatterns (2):
-          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'Prop[1]')
-            Member: 
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
-                Children(0)
-            Pattern: 
-              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'Prop[1]') (InputType: ?)
-                Value: 
-                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Prop[1]')
-                    Children(2):
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Prop')
-                          Children(0)
-          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'var x')
-            Member: 
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var x')
-                Children(0)
-            Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is C1 { P ... 1]: var x }')
+      Value: 
+        IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+      Pattern: 
+        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'C1 { Prop[1]: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: C1, DeconstructSymbol: null)
+          DeconstructionSubpatterns (0)
+          PropertySubpatterns (2):
+              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'Prop[1]')
+                Member: 
+                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
+                    Children(0)
+                Pattern: 
+                  ITypePatternOperation (OperationKind.TypePattern, Type: null, IsInvalid) (Syntax: 'Prop[1]') (InputType: ?, MatchedType: Prop[])
+              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'var x')
+                Member: 
+                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var x')
+                    Children(0)
+                Pattern: 
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
 ";
 
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
@@ -1503,6 +1502,84 @@ Block[B9] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_PatternCombinatorsAndRelationalPatterns_01()
+        {
+            string source = @"
+class X
+{
+    void M(char c)
+    {
+        _ = /*<bind>*/c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z')/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'c is (>= 'A ... and <= 'z')')
+      Value: 
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Char) (Syntax: 'c')
+      Pattern: 
+        IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: '(>= 'A' and ... and <= 'z')') (InputType: System.Char)
+          LeftPattern: 
+            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'A' and <= 'Z'') (InputType: System.Char)
+              LeftPattern: 
+                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'A'') (InputType: System.Char)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: A) (Syntax: ''A'')
+              RightPattern: 
+                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'Z'') (InputType: System.Char)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: Z) (Syntax: ''Z'')
+          RightPattern: 
+            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'a' and <= 'z'') (InputType: System.Char)
+              LeftPattern: 
+                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'a'') (InputType: System.Char)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a) (Syntax: ''a'')
+              RightPattern: 
+                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'z'') (InputType: System.Char)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: z) (Syntax: ''z'')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithPatternCombinators);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIsPatternExpression_TypePatterns_01()
+        {
+            string source = @"
+class X
+{
+    void M(object o)
+    {
+        _ = /*<bind>*/o is int or long or bool/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int or long or bool')
+      Value: 
+        IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+      Pattern: 
+        IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long or bool') (InputType: System.Object)
+          LeftPattern: 
+            IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long') (InputType: System.Object)
+              LeftPattern: 
+                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, MatchedType: System.Int32)
+              RightPattern: 
+                ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, MatchedType: System.Int64)
+          RightPattern: 
+            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'bool') (InputType: System.Object, MatchedType: System.Boolean)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithPatternCombinators);
         }
     }
 }

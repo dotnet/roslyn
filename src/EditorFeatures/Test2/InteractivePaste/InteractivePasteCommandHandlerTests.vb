@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Text
 Imports System.Windows
@@ -36,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Dim handler = CreateCommandHandler(workspace)
                 Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
-
 
                 Dim json = "
                 [
@@ -238,7 +239,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End If
             clipboard.SetDataObject(data)
         End Sub
-
 
         Private Class MockClipboard
             Implements InteractivePasteCommandHandler.IRoslynClipboard

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -9,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.Options
 Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Partial Private MustInherit Class VisualBasicCodeGenerator
             Inherits CodeGenerator(Of StatementSyntax, ExpressionSyntax, StatementSyntax)
 
-            Private _methodName As SyntaxToken
+            Private ReadOnly _methodName As SyntaxToken
 
             Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
                 Dim generator = Create(insertionPoint, selectionResult, analyzerResult)
@@ -38,14 +39,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return New MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult)
                 End If
 
-                Return Contract.FailWithReturn(Of VisualBasicCodeGenerator)("Unknown selection")
+                throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
             Protected Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)
                 MyBase.New(insertionPoint, selectionResult, analyzerResult)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
-                Me._methodName = CreateMethodName(localFunction:=False).WithAdditionalAnnotations(MethodNameAnnotation)
+                Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)
             End Sub
 
             Private ReadOnly Property VBSelectionResult() As VisualBasicSelectionResult
@@ -103,9 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim semanticModel = SemanticDocument.SemanticModel
                 Dim context = InsertionPoint.GetContext()
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
-                Dim statements = SpecializedCollections.EmptyEnumerable(Of StatementSyntax)()
 
-                statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(statements, cancellationToken)
+                Dim statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken)
                 statements = postProcessor.MergeDeclarationStatements(statements)
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken)
                 statements = Await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return CheckActiveStatements(statements).With(statements)
             End Function
 
-            Private Function CheckActiveStatements(statements As IEnumerable(Of StatementSyntax)) As OperationStatus
+            Private Shared Function CheckActiveStatements(statements As IEnumerable(Of StatementSyntax)) As OperationStatus
                 Dim count = statements.Count()
                 If count = 0 Then
                     Return OperationStatus.NoActiveStatement
@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return invocation
             End Function
 
-            Private Function GetIdentifierName(name As String) As ExpressionSyntax
+            Private Shared Function GetIdentifierName(name As String) As ExpressionSyntax
                 Dim bracket = SyntaxFacts.MakeHalfWidthIdentifier(name.First) = "[" AndAlso SyntaxFacts.MakeHalfWidthIdentifier(name.Last) = "]"
                 If bracket Then
                     Dim unescaped = name.Substring(1, name.Length() - 2)

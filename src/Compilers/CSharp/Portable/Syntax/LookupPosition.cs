@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         internal static bool IsInBody(int position,
             PropertyDeclarationSyntax property)
-            => IsInBody(position, default(BlockSyntax), property.GetExpressionBodySyntax(), property.SemicolonToken);
+            => IsInBody(position, blockOpt: null, property.GetExpressionBodySyntax(), property.SemicolonToken);
 
         /// <summary>
         /// A position is inside a property body only if it is inside an expression body.
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         internal static bool IsInBody(int position,
             IndexerDeclarationSyntax indexer)
-            => IsInBody(position, default(BlockSyntax), indexer.GetExpressionBodySyntax(), indexer.SemicolonToken);
+            => IsInBody(position, blockOpt: null, indexer.GetExpressionBodySyntax(), indexer.SemicolonToken);
 
         /// <summary>
         /// A position is inside an accessor body if it is inside the block or expression
@@ -117,6 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var parameterList = methodDecl.ParameterList;
             return IsBeforeToken(position, parameterList, parameterList.CloseParenToken);
         }
+
+        internal static bool IsInParameterList(int position, ParameterListSyntax parameterList)
+            => parameterList != null && IsBeforeToken(position, parameterList, parameterList.CloseParenToken);
 
         internal static bool IsInMethodDeclaration(int position, BaseMethodDeclarationSyntax methodDecl)
         {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -73,6 +75,11 @@ namespace Microsoft.CodeAnalysis
             return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
         }
 
+        protected TypeSymbol MakeFunctionPointerTypeSymbol(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamInfos)
+        {
+            return _factory.MakeFunctionPointerTypeSymbol(callingConvention, retAndParamInfos);
+        }
+
         protected TypeSymbol GetSpecialType(SpecialType specialType)
         {
             return _factory.GetSpecialType(this.moduleSymbol, specialType);
@@ -98,9 +105,19 @@ namespace Microsoft.CodeAnalysis
             return _factory.IsAcceptedInAttributeModifierType(type);
         }
 
+        protected bool IsAcceptedOutAttributeModifierType(TypeSymbol type)
+        {
+            return _factory.IsAcceptedOutAttributeModifierType(type);
+        }
+
         protected bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type)
         {
             return _factory.IsAcceptedUnmanagedTypeModifierType(type);
+        }
+
+        protected bool IsAcceptedIsExternalInitModifierType(TypeSymbol type)
+        {
+            return _factory.IsAcceptedIsExternalInitModifierType(type);
         }
 
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -6,10 +8,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
@@ -90,7 +88,7 @@ namespace Roslyn.Utilities
         public bool Contains(T value) => _set?.Contains(value) ?? false;
 
         public IEnumerator<T> GetEnumerator()
-            => _elements?.GetEnumerator() ?? SpecializedCollections.EmptyEnumerator<T>();
+            => _elements is null ? SpecializedCollections.EmptyEnumerator<T>() : ((IEnumerable<T>)_elements).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
