@@ -402,12 +402,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (patternType.IsNullableType())
             {
                 // It is an error to use pattern-matching with a nullable type, because you'll never get null. Use the underlying type.
-                Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
+                Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType.GetNullableUnderlyingType());
                 return true;
             }
             else if (typeSyntax is NullableTypeSyntax)
             {
-                Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType.ToDisplayString(CodeAnalysis.NullableFlowState.MaybeNull), patternType);
+                Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType);
                 return true;
             }
             else if (patternType.IsStatic)
