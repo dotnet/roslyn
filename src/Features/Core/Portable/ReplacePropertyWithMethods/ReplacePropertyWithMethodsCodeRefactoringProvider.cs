@@ -268,6 +268,11 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         editor.ReplaceNode(parent, nameToken.Parent.WithAdditionalAnnotations(
                             ConflictAnnotation.Create(FeaturesResources.Property_referenced_implicitly)));
                     }
+                    else if (syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(parent))
+                    {
+                        editor.ReplaceNode(parent, nameToken.Parent.WithAdditionalAnnotations(
+                            ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
+                    }
                     else
                     {
                         var fieldSymbol = propertyToBackingField.GetValueOrDefault(tuple.property);
