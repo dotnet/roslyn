@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
         private sealed class FlightEnabledDataFlowOperationVisitor
             : AnalysisEntityDataFlowOperationVisitor<FlightEnabledAnalysisData, FlightEnabledAnalysisContext, FlightEnabledAnalysisResult, FlightEnabledAbstractValue>
         {
+            // This is the global entity storing CFG wide state, which gets updated for every visited operation in the visitor.
             private readonly AnalysisEntity _globalEntity;
 
             public FlightEnabledDataFlowOperationVisitor(FlightEnabledAnalysisContext analysisContext)
