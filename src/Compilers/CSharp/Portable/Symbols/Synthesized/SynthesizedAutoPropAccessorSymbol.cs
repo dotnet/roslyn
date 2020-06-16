@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly SourcePropertySymbolBase _property;
         private readonly AccessorKind _accessorKind;
-        private readonly StrongBox<TypeWithAnnotations>? _voidType;
+        private readonly TypeWithAnnotations.Boxed? _voidType;
 
         public override string Name { get; }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var modifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(initOnlyType));
                     type = type.WithModifiers(modifiers);
                 }
-                _voidType = new StrongBox<TypeWithAnnotations>(type);
+                _voidType = type;
             }
         }
 

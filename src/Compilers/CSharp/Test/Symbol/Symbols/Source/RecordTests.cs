@@ -1423,6 +1423,12 @@ unsafe class C
 
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
+            var p1 = (DataPropertySymbol)c.GetMember("P1");
+            Assert.False(p1.HasPointerType);
+
+            var p2 = (DataPropertySymbol)c.GetMember("P2");
+            Assert.False(p2.HasPointerType);
+
             var p3 = (DataPropertySymbol)c.GetMember("P3");
             Assert.True(p3.HasPointerType);
 
@@ -1744,7 +1750,19 @@ class C
         Console.WriteLine(c.X);
     }
 }";
-            CompileAndVerify(src, expectedOutput: "5");
+            var verifier = CompileAndVerify(src, expectedOutput: "5");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.5
+  IL_0007:  callvirt   ""void C.X.init""
+  IL_000c:  callvirt   ""int C.X.get""
+  IL_0011:  call       ""void System.Console.WriteLine(int)""
+  IL_0016:  ret
+}");
         }
 
         [Fact]
