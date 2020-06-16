@@ -969,5 +969,24 @@ class C
 }",
                 parameters: s_nullableFeature);
         }
+
+        [Fact]
+        public async Task FixFieldDeclaration_Unassigned()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+class C
+{
+    private string [|_value|];
+}",
+@"#nullable enable
+
+class C
+{
+    private string? _value;
+}",
+                parameters: s_nullableFeature);
+        }
     }
 }
