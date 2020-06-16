@@ -295,12 +295,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         {
             var definitionsByDocumentId = await GetDefinitionsByDocumentIdAsync(originalSolution, references, cancellationToken).ConfigureAwait(false);
 
-            foreach (var kvp in definitionsByDocumentId)
+            foreach (var (documentId, definitions) in definitionsByDocumentId)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                var documentId = kvp.Key;
-                var definitions = kvp.Value;
 
                 updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
                     updatedSolution, documentId, definitions, definitionToBackingField,
