@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
                 return await FindImplementationsAsync(
-                    namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
+                    namedTypeSymbol, solution, transitive: true, projects, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindMemberImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
