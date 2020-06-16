@@ -2903,5 +2903,37 @@ partial class C<T>
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_12()
+        {
+            var source = @"
+partial class C
+{
+    public partial (int x, int y) M1();
+    public partial (int x1, int y1) M1() => default; // 1
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,35): error CS8142: Both partial method declarations, 'C.M1()' and 'C.M1()', must use the same tuple element names.
+                //     public partial (int x, int y) M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1()", "C.M1()").WithLocation(4, 35));
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_13()
+        {
+            var source = @"
+partial class C
+{
+    public partial (int x, long y) M1();
+    public partial (long x, int y) M1() => default; // 1
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (5,36): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial (long x, int y) M1() => default; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(5, 36));
+        }
     }
 }
