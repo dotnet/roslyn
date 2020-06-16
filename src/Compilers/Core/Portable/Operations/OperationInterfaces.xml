@@ -2934,7 +2934,7 @@
         </para>
       </summary>
     </Comments>
-    <Property Name="NegatedPattern" Type="IPatternOperation">
+    <Property Name="Pattern" Type="IPatternOperation">
       <Comments>
         <summary>The negated pattern.</summary>
       </Comments>

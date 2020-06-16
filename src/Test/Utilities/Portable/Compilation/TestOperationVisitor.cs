@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.NegatedPattern, operation.Kind);
             VisitPatternCommon(operation);
-            Assert.Same(operation.NegatedPattern, operation.Children.Single());
+            Assert.Same(operation.Pattern, operation.Children.Single());
         }
 
         public override void VisitTypePattern(ITypePatternOperation operation)

@@ -6750,7 +6750,7 @@ oneMoreTime:
         public override IOperation VisitNegatedPattern(INegatedPatternOperation operation, int? argument)
         {
             return new NegatedPatternOperation(
-                negatedPattern: (IPatternOperation)Visit(operation.NegatedPattern),
+                pattern: (IPatternOperation)Visit(operation.Pattern),
                 inputType: operation.InputType,
                 semanticModel: null,
                 syntax: operation.Syntax,

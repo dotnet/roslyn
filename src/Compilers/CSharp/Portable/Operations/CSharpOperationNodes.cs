@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _operationFactory = operationFactory;
             _boundNegatedPattern = boundNegatedPattern;
         }
-        protected override IPatternOperation CreateNegatedPattern()
+        protected override IPatternOperation CreatePattern()
         {
             return (IPatternOperation)_operationFactory.Create(_boundNegatedPattern.Negated);
         }

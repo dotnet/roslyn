@@ -2808,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// The negated pattern.
         /// </summary>
-        IPatternOperation NegatedPattern { get; }
+        IPatternOperation Pattern { get; }
     }
     /// <summary>
     /// Represents a binary ("and" or "or") pattern.
@@ -8388,12 +8388,12 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         internal BaseNegatedPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(inputType, OperationKind.NegatedPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
-        public abstract IPatternOperation NegatedPattern { get; }
+        public abstract IPatternOperation Pattern { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (NegatedPattern is object) yield return NegatedPattern;
+                if (Pattern is object) yield return Pattern;
             }
         }
         public override void Accept(OperationVisitor visitor) => visitor.VisitNegatedPattern(this);
@@ -8401,30 +8401,30 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class NegatedPatternOperation : BaseNegatedPatternOperation, INegatedPatternOperation
     {
-        internal NegatedPatternOperation(IPatternOperation negatedPattern, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal NegatedPatternOperation(IPatternOperation pattern, ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(inputType, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            NegatedPattern = SetParentOperation(negatedPattern, this);
+            Pattern = SetParentOperation(pattern, this);
         }
-        public override IPatternOperation NegatedPattern { get; }
+        public override IPatternOperation Pattern { get; }
     }
     internal abstract partial class LazyNegatedPatternOperation : BaseNegatedPatternOperation, INegatedPatternOperation
     {
-        private IPatternOperation _lazyNegatedPattern = s_unsetPattern;
+        private IPatternOperation _lazyPattern = s_unsetPattern;
         internal LazyNegatedPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(inputType, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IPatternOperation CreateNegatedPattern();
-        public override IPatternOperation NegatedPattern
+        protected abstract IPatternOperation CreatePattern();
+        public override IPatternOperation Pattern
         {
             get
             {
-                if (_lazyNegatedPattern == s_unsetPattern)
+                if (_lazyPattern == s_unsetPattern)
                 {
-                    IPatternOperation negatedPattern = CreateNegatedPattern();
-                    SetParentOperation(negatedPattern, this);
-                    Interlocked.CompareExchange(ref _lazyNegatedPattern, negatedPattern, s_unsetPattern);
+                    IPatternOperation pattern = CreatePattern();
+                    SetParentOperation(pattern, this);
+                    Interlocked.CompareExchange(ref _lazyPattern, pattern, s_unsetPattern);
                 }
-                return _lazyNegatedPattern;
+                return _lazyPattern;
             }
         }
     }

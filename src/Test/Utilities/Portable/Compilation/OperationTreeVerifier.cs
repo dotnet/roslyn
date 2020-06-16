@@ -1785,8 +1785,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitNegatedPattern(INegatedPatternOperation operation)
         {
             LogString(nameof(INegatedPatternOperation));
-            Visit(operation.NegatedPattern, "NegatedPattern");
             LogPatternPropertiesAndNewLine(operation);
+            Visit(operation.Pattern, "Pattern");
         }
 
         public override void VisitBinaryPattern(IBinaryPatternOperation operation)
