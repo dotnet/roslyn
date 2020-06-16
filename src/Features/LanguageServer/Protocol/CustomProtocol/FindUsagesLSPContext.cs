@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     internal class FindUsagesLSPContext : FindUsagesContext
     {
+        private readonly IProgress<object[]> _progress;
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// <summary>
         /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently.
         /// We need this sempahore to ensure that we aren't making concurrent
-        /// modifications to data such as _id, _definitionToId, and _resultsChunk.
+        /// modifications to data such as _id and _definitionToId.
         /// </summary>
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
@@ -47,8 +49,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference =
             new Dictionary<int, VSReferenceItem>();
 
-        private readonly List<VSReferenceItem> _resultsChunk =
-            new List<VSReferenceItem>();
+        /// <summary>
+        /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue<VSReferenceItem> _workQueue;
 
         // Unique identifier given to each definition and reference.
         private int _id = 0;
@@ -56,19 +60,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         public override CancellationToken CancellationToken { get; }
 
         public FindUsagesLSPContext(
+            IProgress<object[]> progress,
             Document document,
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             CancellationToken cancellationToken)
         {
+            _progress = progress;
             _document = document;
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _workQueue = new AsyncBatchingWorkQueue<VSReferenceItem>(
+                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, cancellationToken);
 
             CancellationToken = cancellationToken;
         }
 
-        public List<VSReferenceItem> GetReferences() => _resultsChunk;
+        // After all definitions/references have been found, wait here until all results have been reported.
+        public override Task OnCompletedAsync() => _workQueue.WaitUntilCurrentBatchCompletesAsync();
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
@@ -95,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     // have to hold off on reporting it until later when we do find a reference.
                     if (definition.DisplayIfNoReferences)
                     {
-                        AddToReferencesToReport_MustBeCalledUnderLock(definitionItem);
+                        _workQueue.AddWork(definitionItem);
                     }
                     else
                     {
@@ -119,7 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 // If the definition hasn't been reported yet, add it to our list of references to report.
                 if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(definition);
+                    _workQueue.AddWork(definition);
                     _definitionsWithoutReference.Remove(definitionId);
                 }
 
@@ -133,15 +142,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 if (referenceItem != null)
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(referenceItem);
+                    _workQueue.AddWork(referenceItem);
                 }
             }
-        }
-
-        private void AddToReferencesToReport_MustBeCalledUnderLock(VSReferenceItem item)
-        {
-            Debug.Assert(_semaphore.CurrentCount == 0);
-            _resultsChunk.Add(item);
         }
 
         private static async Task<LSP.VSReferenceItem?> GenerateVSReferenceItemAsync(
@@ -183,7 +186,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 DisplayPath = location.Uri.LocalPath,
                 DocumentName = documentSpan == default ? null : documentSpan.Document.Name,
                 Id = id,
-                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : new ReferenceKind[] { },
+                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<ReferenceKind>(),
                 Location = location,
                 ProjectName = documentSpan == default ? null : documentSpan.Document.Project.Name,
                 ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
@@ -261,6 +264,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 return null;
             }
+        }
+
+        private Task ReportReferencesAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
+        {
+            // We can report outside of the lock here since _progress is thread-safe.
+            _progress.Report(referencesToReport.ToArray());
+            return Task.CompletedTask;
         }
     }
 }
