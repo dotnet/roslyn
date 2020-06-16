@@ -55,9 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly EventHandler<ContentTypeChangedEventArgs> _contentTypeChangedHandler;
 
         // InteractiveHost state:
-        private MetadataReferenceResolver _metadataReferenceResolver;
-        private SourceReferenceResolver _sourceReferenceResolver;
         private RemoteInitializationResult _initializationResult;
+        private InteractiveHostPlatformInfo _platformInfo;
         public ImmutableArray<string> ReferenceSearchPaths { get; private set; }
         public ImmutableArray<string> SourceSearchPaths { get; private set; }
         public string WorkingDirectory { get; private set; }
@@ -113,9 +112,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             ReferenceSearchPaths = ImmutableArray<string>.Empty;
             SourceSearchPaths = ImmutableArray<string>.Empty;
             WorkingDirectory = initialWorkingDirectory;
-            var metadataService = _workspace.CurrentSolution.Services.MetadataService;
-            _metadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, _initialWorkingDirectory);
-            _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, _initialWorkingDirectory);
 
             _interactiveHost = new InteractiveHost(replType, initialWorkingDirectory);
             _interactiveHost.ProcessInitialized += ProcessInitialized;
@@ -192,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>
         /// Invoked by <see cref="InteractiveHost"/> when a new process initialization completes.
         /// </summary>
-        private void ProcessInitialized(InteractiveHostOptions options, RemoteExecutionResult result)
+        private void ProcessInitialized(InteractiveHostPlatformInfo platformInfo, InteractiveHostOptions options, RemoteExecutionResult result)
         {
             Contract.ThrowIfFalse(result.InitializationResult != null);
 
@@ -201,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    ProcessInitialized(options, result);
+                    ProcessInitialized(platformInfo, options, result);
                 });
 
                 return;
@@ -225,14 +221,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _previousSubmissionProjectId = null;
 
             // update host state:
+            _platformInfo = platformInfo;
             _initializationResult = result.InitializationResult;
-            ReferenceSearchPaths = result.ChangedReferencePaths.ToImmutableArrayOrEmpty();
-            SourceSearchPaths = result.ChangedSourcePaths.ToImmutableArrayOrEmpty();
-            WorkingDirectory = result.ChangedWorkingDirectory ?? _initialWorkingDirectory;
-
-            var metadataService = _workspace.Services.GetRequiredService<IMetadataService>();
-            _metadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, WorkingDirectory);
-            _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory);
+            UpdatePaths(result);
 
             // If the current buffer has not been submitted, create and add a submission project for it to the workspace.
             // It it has been submitted then a new buffer and its corresponding submission project will be added later.
@@ -243,15 +234,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
         }
 
-        private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, ImmutableArray<string> searchPaths, string baseDirectory)
+        private static RuntimeMetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, InteractiveHostPlatformInfo platformInfo, ImmutableArray<string> searchPaths, string baseDirectory)
         {
-            // TODO: To support CoreCLR we need to query the remote process for TPA list and pass it to the resolver.
-            // https://github.com/dotnet/roslyn/issues/4788
             return new RuntimeMetadataReferenceResolver(
-                new RelativePathResolver(searchPaths, baseDirectory),
-                packageResolver: null,
-                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                useCoreResolver: false,
+                searchPaths,
+                baseDirectory,
+                gacFileResolver: platformInfo.HasGlobalAssemblyCache ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                platformAssemblyPaths: platformInfo.PlatformAssemblyPaths,
                 fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
         }
 
@@ -391,11 +380,34 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             var name = "Submission#" + _submissionCount++;
 
-            // Grab a local copy so we aren't closing over the field that might change. The
-            // collection itself is an immutable collection.
-            var localCompilationOptions = GetSubmissionCompilationOptions(name, _metadataReferenceResolver, _sourceReferenceResolver, imports);
+            CompilationOptions compilationOptions;
+            if (_previousSubmissionProjectId != null)
+            {
+                compilationOptions = solution.GetProjectState(_previousSubmissionProjectId).CompilationOptions;
 
-            var localParseOptions = ParseOptions;
+                var metadataResolver = (RuntimeMetadataReferenceResolver)compilationOptions.MetadataReferenceResolver;
+                if (metadataResolver.PathResolver.BaseDirectory != WorkingDirectory ||
+                    !metadataResolver.PathResolver.SearchPaths.SequenceEqual(ReferenceSearchPaths))
+                {
+                    compilationOptions = compilationOptions.WithMetadataReferenceResolver(metadataResolver.WithRelativePathResolver(new RelativePathResolver(ReferenceSearchPaths, WorkingDirectory)));
+                }
+
+                var sourceResolver = (SourceFileResolver)compilationOptions.SourceReferenceResolver;
+                if (sourceResolver.BaseDirectory != WorkingDirectory ||
+                    !sourceResolver.SearchPaths.SequenceEqual(SourceSearchPaths))
+                {
+                    compilationOptions = compilationOptions.WithSourceReferenceResolver(CreateSourceReferenceResolver(sourceResolver.SearchPaths, WorkingDirectory));
+                }
+            }
+            else
+            {
+                var metadataService = _workspace.Services.GetRequiredService<IMetadataService>();
+                compilationOptions = GetSubmissionCompilationOptions(
+                    name,
+                    CreateMetadataReferenceResolver(metadataService, _platformInfo, SourceSearchPaths, WorkingDirectory),
+                    CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory),
+                    imports);
+            }
 
             var projectId = ProjectId.CreateNewId(debugName: name);
 
@@ -406,8 +418,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     name: name,
                     assemblyName: name,
                     language: languageName,
-                    compilationOptions: localCompilationOptions,
-                    parseOptions: localParseOptions,
+                    compilationOptions: compilationOptions,
+                    parseOptions: ParseOptions,
                     documents: null,
                     projectReferences: null,
                     metadataReferences: references,
@@ -487,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 var result = await _interactiveHost.ResetAsync(options).ConfigureAwait(true);
                 if (result.Success)
                 {
-                    UpdateResolvers(result);
+                    UpdatePaths(result);
                 }
 
                 return new ExecutionResult(result.Success);
@@ -533,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     _previousSubmissionProjectId = _currentSubmissionProjectId;
 
                     // update local search paths - remote paths has already been updated
-                    UpdateResolvers(result);
+                    UpdatePaths(result);
                 }
 
                 return new ExecutionResult(result.Success);
@@ -557,54 +569,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #endregion
 
-        #region Paths, Resolvers
-
-        private void UpdateResolvers(RemoteExecutionResult result)
-            => UpdateResolvers(result.ChangedReferencePaths, result.ChangedSourcePaths, result.ChangedWorkingDirectory);
-
-        private void UpdateResolvers(ImmutableArray<string> changedReferenceSearchPaths, ImmutableArray<string> changedSourceSearchPaths, string changedWorkingDirectory)
+        private void UpdatePaths(RemoteExecutionResult result)
         {
-            if (changedReferenceSearchPaths.IsDefault && changedSourceSearchPaths.IsDefault && changedWorkingDirectory == null)
-            {
-                return;
-            }
-
-            var solution = _workspace.CurrentSolution;
-
-            // Maybe called after reset, when no submissions are available.
-            var options = (_currentSubmissionProjectId != null) ? solution.GetProjectState(_currentSubmissionProjectId).CompilationOptions : null;
-
-            if (changedWorkingDirectory != null)
-            {
-                WorkingDirectory = changedWorkingDirectory;
-            }
-
-            if (!changedReferenceSearchPaths.IsDefault)
-            {
-                ReferenceSearchPaths = changedReferenceSearchPaths;
-            }
-
-            if (!changedSourceSearchPaths.IsDefault)
-            {
-                SourceSearchPaths = changedSourceSearchPaths;
-            }
-
-            if (!changedReferenceSearchPaths.IsDefault || changedWorkingDirectory != null)
-            {
-                _metadataReferenceResolver = CreateMetadataReferenceResolver(_workspace.CurrentSolution.Services.MetadataService, ReferenceSearchPaths, WorkingDirectory);
-                options = options?.WithMetadataReferenceResolver(_metadataReferenceResolver);
-            }
-
-            if (!changedSourceSearchPaths.IsDefault || changedWorkingDirectory != null)
-            {
-                _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory);
-                options = options?.WithSourceReferenceResolver(_sourceReferenceResolver);
-            }
-
-            if (options != null)
-            {
-                _workspace.SetCurrentSolution(solution.WithProjectCompilationOptions(_currentSubmissionProjectId, options));
-            }
+            WorkingDirectory = result.WorkingDirectory;
+            ReferenceSearchPaths = result.ReferencePaths;
+            SourceSearchPaths = result.SourcePaths;
         }
 
         public async Task SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string workingDirectory)
@@ -612,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             try
             {
                 var result = await _interactiveHost.SetPathsAsync(referenceSearchPaths.ToArray(), sourceSearchPaths.ToArray(), workingDirectory).ConfigureAwait(false);
-                UpdateResolvers(result);
+                UpdatePaths(result);
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -627,7 +596,5 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 ? ". "
                 : "> ";
         }
-
-        #endregion
     }
 }

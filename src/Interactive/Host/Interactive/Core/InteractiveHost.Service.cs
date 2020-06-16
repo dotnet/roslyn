@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -67,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             private readonly struct EvaluationState
             {
                 internal readonly ImmutableArray<string> SourceSearchPaths;
-                internal readonly ImmutableArray<string> ReferenceSearchPaths;
                 internal readonly string WorkingDirectory;
                 internal readonly ScriptState<object>? ScriptState;
                 internal readonly ScriptOptions ScriptOptions;
@@ -76,18 +74,19 @@ namespace Microsoft.CodeAnalysis.Interactive
                     ScriptState<object>? scriptState,
                     ScriptOptions scriptOptions,
                     ImmutableArray<string> sourceSearchPaths,
-                    ImmutableArray<string> referenceSearchPaths,
                     string workingDirectory)
                 {
                     Debug.Assert(!sourceSearchPaths.IsDefault);
-                    Debug.Assert(!referenceSearchPaths.IsDefault);
+                    Debug.Assert(scriptOptions.MetadataResolver is ScriptMetadataResolver);
 
                     ScriptState = scriptState;
                     ScriptOptions = scriptOptions;
                     SourceSearchPaths = sourceSearchPaths;
-                    ReferenceSearchPaths = referenceSearchPaths;
                     WorkingDirectory = workingDirectory;
                 }
+
+                public ScriptMetadataResolver MetadataReferenceResolver
+                    => (ScriptMetadataResolver)ScriptOptions.MetadataResolver;
 
                 internal EvaluationState WithScriptState(ScriptState<object> state)
                 {
@@ -95,7 +94,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                         state,
                         ScriptOptions,
                         SourceSearchPaths,
-                        ReferenceSearchPaths,
                         WorkingDirectory);
                 }
 
@@ -105,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                         ScriptState,
                         options,
                         SourceSearchPaths,
-                        ReferenceSearchPaths,
                         WorkingDirectory);
                 }
             }
@@ -120,15 +117,21 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private Service(Func<Func<object>, object> invokeOnMainThread)
             {
+                _invokeOnMainThread = invokeOnMainThread;
+
+                // The initial working directory is set when the process is created.
+                var workingDirectory = Directory.GetCurrentDirectory();
+
                 var initialState = new EvaluationState(
                     scriptState: null,
-                    scriptOptions: ScriptOptions.Default,
-                    sourceSearchPaths: ImmutableArray<string>.Empty,
-                    referenceSearchPaths: ImmutableArray<string>.Empty,
-                    workingDirectory: Directory.GetCurrentDirectory());
+                    scriptOptions: ScriptOptions.Default.WithMetadataResolver(new ScriptMetadataResolver(
+                        searchPaths: ImmutableArray<string>.Empty,
+                        baseDirectory: workingDirectory,
+                        (path, properties) => new ShadowCopyReference(GetServiceState().MetadataFileProvider, path, properties))),
+                    ImmutableArray<string>.Empty,
+                    workingDirectory);
 
                 _lastTask = Task.FromResult(initialState);
-                _invokeOnMainThread = invokeOnMainThread;
 
                 Console.OutputEncoding = Encoding.UTF8;
 
@@ -151,10 +154,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _serviceState = null;
             }
 
-            public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)
+            public Task<InteractiveHostPlatformInfo.Data> InitializeAsync(string replServiceProviderTypeName, string cultureName)
             {
-                Debug.Assert(cultureName != null);
-
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
@@ -168,22 +169,13 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 _serviceState = new ServiceState(assemblyLoader, metadataFileProvider, replServiceProvider, globals);
 
-                return Task.CompletedTask;
+                return Task.FromResult(InteractiveHostPlatformInfo.Current.Serialize());
             }
+
             private ServiceState GetServiceState()
             {
                 Contract.ThrowIfNull(_serviceState, "Service not initialized");
                 return _serviceState;
-            }
-
-            private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
-            {
-                return new RuntimeMetadataReferenceResolver(
-                    new RelativePathResolver(searchPaths, baseDirectory),
-                    packageResolver: null,
-                    gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                    useCoreResolver: !GacFileResolver.IsAvailable,
-                    fileReferenceProvider: (path, properties) => new ShadowCopyReference(GetServiceState().MetadataFileProvider, path, properties));
             }
 
             private SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
@@ -255,9 +247,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 string[] sourceSearchPaths,
                 string? baseDirectory)
             {
-                Debug.Assert(referenceSearchPaths != null);
-                Debug.Assert(sourceSearchPaths != null);
-                Debug.Assert(baseDirectory != null);
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
                 {
@@ -351,6 +340,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     completionSource.SetResult(success);
                 }
+
                 return state;
             }
 
@@ -364,6 +354,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     _lastTask = ExecuteAsync(completionSource, _lastTask, text);
                 }
+
                 return (await completionSource.Task.ConfigureAwait(false)).Serialize();
             }
 
@@ -434,25 +425,36 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var newReferencePaths = globals.ReferencePaths.ToImmutableArray();
                 var newWorkingDirectory = Directory.GetCurrentDirectory();
 
-                var changedSourcePaths = newSourcePaths.SequenceEqual(state.SourceSearchPaths) ? default : newSourcePaths;
-                var changedReferencePaths = newReferencePaths.SequenceEqual(state.ReferenceSearchPaths) ? default : newReferencePaths;
-                var changedWorkingDirectory = (newWorkingDirectory == state.WorkingDirectory) ? null : newWorkingDirectory;
+                completionSource.TrySetResult(new RemoteExecutionResult(success, newSourcePaths, newReferencePaths, newWorkingDirectory, initResult));
 
-                completionSource.TrySetResult(new RemoteExecutionResult(success, changedSourcePaths, changedReferencePaths, changedWorkingDirectory, initResult));
+                var metadataResolver = state.MetadataReferenceResolver;
+                var sourcePathsChanged = !newSourcePaths.SequenceEqual(state.SourceSearchPaths);
+                var referencePathsChanged = !newReferencePaths.SequenceEqual(metadataResolver.SearchPaths);
+                var workingDirectoryChanged = newWorkingDirectory != state.WorkingDirectory;
 
                 // no changes in resolvers:
-                if (changedReferencePaths.IsDefault && changedSourcePaths.IsDefault && changedWorkingDirectory == null)
+                if (!sourcePathsChanged && !referencePathsChanged && !workingDirectoryChanged)
                 {
                     return state;
                 }
 
                 var newOptions = state.ScriptOptions;
-                if (!changedReferencePaths.IsDefault || changedWorkingDirectory != null)
+                if (referencePathsChanged || workingDirectoryChanged)
                 {
-                    newOptions = newOptions.WithMetadataResolver(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
+                    if (referencePathsChanged)
+                    {
+                        metadataResolver = metadataResolver.WithSearchPaths(newReferencePaths);
+                    }
+
+                    if (workingDirectoryChanged)
+                    {
+                        metadataResolver = metadataResolver.WithBaseDirectory(newWorkingDirectory);
+                    }
+
+                    newOptions = newOptions.WithMetadataResolver(metadataResolver);
                 }
 
-                if (!changedSourcePaths.IsDefault || changedWorkingDirectory != null)
+                if (sourcePathsChanged || workingDirectoryChanged)
                 {
                     newOptions = newOptions.WithSourceResolver(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
                 }
@@ -461,7 +463,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                     state.ScriptState,
                     newOptions,
                     newSourcePaths,
-                    newReferencePaths,
                     newWorkingDirectory);
             }
 
@@ -536,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                         if (args.Errors.Length == 0)
                         {
-                            var metadataResolver = CreateMetadataReferenceResolver(args.ReferencePaths, rspDirectory);
+                            var metadataResolver = state.MetadataReferenceResolver.WithSearchPaths(args.ReferencePaths).WithBaseDirectory(rspDirectory);
                             var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, rspDirectory);
 
                             var metadataReferences = new List<PortableExecutableReference>();
@@ -565,7 +566,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                                     WithMetadataResolver(metadataResolver).
                                     WithSourceResolver(sourceResolver),
                                 args.SourcePaths,
-                                args.ReferencePaths,
                                 rspDirectory);
 
                             var globals = serviceState.Globals;
