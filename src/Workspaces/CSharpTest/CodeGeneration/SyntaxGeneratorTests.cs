@@ -34,21 +34,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private SyntaxGenerator Generator
             => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
-        public Compilation Compile(string code)
+        public static Compilation Compile(string code)
         {
             return CSharpCompilation.Create("test")
                 .AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib)
                 .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code));
         }
 
-        private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private static void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.NormalizeWhitespace().ToFullString();
             Assert.Equal(expectedText, normalized);
         }
 
-        private void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private static void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.ToFullString();
@@ -223,7 +223,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             Assert.True(attributes.Count == 1);
         }
 
-        private AttributeData GetAttributeData(string decl, string use)
+        private static AttributeData GetAttributeData(string decl, string use)
         {
             var compilation = Compile(decl + "\r\n" + use + "\r\nclass C { }");
             var typeC = compilation.GlobalNamespace.GetMembers("C").First() as INamedTypeSymbol;
@@ -2416,7 +2416,6 @@ public class C
                     Generator.GetAccessorDeclaration(Accessibility.NotApplicable, new[] { Generator.ReturnStatement() })),
                 "x p\r\n{\r\n    get\r\n    {\r\n        return;\r\n    }\r\n}");
 
-
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(
                     Generator.PropertyDeclaration("p", Generator.IdentifierName("x")),
@@ -3467,7 +3466,7 @@ class C
 }");
         }
 
-        private void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
+        private static void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
         {
             MarkupTestFile.GetSpan(markup, out var code, out var span);
 

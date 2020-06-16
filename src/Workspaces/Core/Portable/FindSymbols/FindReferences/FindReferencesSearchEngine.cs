@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -25,7 +27,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IStreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
-        private readonly ProjectDependencyGraph _dependencyGraph;
         private readonly FindReferencesSearchOptions _options;
 
         public FindReferencesSearchEngine(
@@ -41,7 +42,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _finders = finders;
             _progress = progress;
             _cancellationToken = cancellationToken;
-            _dependencyGraph = solution.GetProjectDependencyGraph();
             _options = options;
 
             _progressTracker = progress.ProgressTracker;
@@ -78,33 +78,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return;
                 }
 
-                // Get the connected components of the dependency graph and process each individually.
-                // That way once a component is done we can throw away all the memory associated with
-                // it.
-                // For each connected component, we'll process the individual projects from bottom to
-                // top.  i.e. we'll first process the projects with no dependencies.  Then the projects
-                // that depend on those projects, and so on.  This way we always have created the 
-                // dependent compilations when they're needed by later projects.  If we went the other
-                // way (i.e. processed the projects with lots of project dependencies first), then we'd
-                // have to create all their dependent compilations in order to get their compilation.
-                // This would be very expensive and would take a lot of time before we got our first
-                // result.
-                var connectedProjects = _dependencyGraph.GetDependencySets(_cancellationToken);
-
                 // Add a progress item for each (document, symbol, finder) set that we will execute.
                 // We'll mark the item as completed in "ProcessDocumentAsync".
                 var totalFindCount = projectToDocumentMap.Sum(
                     kvp1 => kvp1.Value.Sum(kvp2 => kvp2.Value.Count));
                 await _progressTracker.AddItemsAsync(totalFindCount).ConfigureAwait(false);
 
-                // Now, go through each connected project set and process it independently.
-                foreach (var connectedProjectSet in connectedProjects)
-                {
-                    _cancellationToken.ThrowIfCancellationRequested();
+                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-                    await ProcessProjectsAsync(
-                        connectedProjectSet, projectToDocumentMap).ConfigureAwait(false);
-                }
+                foreach (var (project, documentMap) in projectToDocumentMap)
+                    tasks.Add(Task.Run(() => ProcessProjectAsync(project, documentMap), _cancellationToken));
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
         }
 

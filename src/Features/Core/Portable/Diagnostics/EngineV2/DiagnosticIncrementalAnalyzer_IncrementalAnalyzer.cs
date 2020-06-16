@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var documentHadDiagnostics = _stateManager.OnDocumentReset(stateSets, document);
+                var documentHadDiagnostics = StateManager.OnDocumentReset(stateSets, document);
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var changed = _stateManager.OnDocumentRemoved(stateSets, documentId);
+                var changed = StateManager.OnDocumentRemoved(stateSets, documentId);
 
                 // if there was no diagnostic reported for this document, nothing to clean up
                 // this is Perf to reduce raising events unnecessarily.
@@ -545,8 +545,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                _ = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                     solution: null,
                     new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(DiagnosticAnalyzerInfoCache), /* unit count */ 1 },

@@ -1326,7 +1326,7 @@ End Class")
 
         <WorkItem(539821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539821")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Async Function TestEscapeParametername() As Task
+        Public Async Function TestEscapeParameterName() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -1334,16 +1334,14 @@ End Class")
  [|[Me]|]([string])
     End Sub
 End Module",
-"Imports System
-
-Module Program
+"Module Program
     Sub Main(args As String())
         Dim [string] As String = ""hello"" 
  [Me]([string])
     End Sub
 
     Private Sub [Me]([string] As String)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Module")
         End Function
@@ -2396,8 +2394,6 @@ Class Program
 End Class
 </text>.Value.Replace(vbLf, vbCrLf),
 <text>
-Imports System
-
 Class Program
     Sub Main(args As String())
         Goo()
@@ -2405,7 +2401,7 @@ Class Program
     End Sub
 
     Private Sub Goo(Of T)()
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Private Sub Goo()

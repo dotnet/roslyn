@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, CancellationToken.None);
         }
 
-        private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
+        private static RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
             => SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
     }
 }

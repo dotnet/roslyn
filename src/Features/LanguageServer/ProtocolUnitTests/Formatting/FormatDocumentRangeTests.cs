@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var rangeToFormat = locations["format"].Single();
-            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(rangeToFormat.Uri).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
 
             var results = await RunFormatDocumentRangeAsync(workspace.CurrentSolution, rangeToFormat);
             var actualText = ApplyTextEdits(results, documentText);
@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         }
 
         private static async Task<LSP.TextEdit[]> RunFormatDocumentRangeAsync(Solution solution, LSP.Location location)
-            => await GetLanguageServer(solution).FormatDocumentRangeAsync(solution, CreateDocumentRangeFormattingParams(location), new LSP.ClientCapabilities(), CancellationToken.None);
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentRangeFormattingName,
+                CreateDocumentRangeFormattingParams(location), new LSP.ClientCapabilities(), null, CancellationToken.None);
 
         private static LSP.DocumentRangeFormattingParams CreateDocumentRangeFormattingParams(LSP.Location location)
             => new LSP.DocumentRangeFormattingParams()

@@ -24,12 +24,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// </summary>
     internal abstract class AbstractClassificationsHandler : ILspRequestHandler<ClassificationParams, object[], Solution>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
+
+        protected AbstractClassificationsHandler(ILspSolutionProvider solutionProvider)
+        {
+            _solutionProvider = solutionProvider;
+        }
+
         protected abstract Task AddClassificationsAsync(IClassificationService classificationService, Document document, TextSpan textSpan, List<ClassifiedSpan> spans, CancellationToken cancellationToken);
 
         public async Task<object[]> HandleAsync(ClassificationParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var actualDocumentURI = requestContext.ProtocolConverter.FromProtocolUri(request.TextDocument.Uri);
-            var document = requestContext.Context.GetDocumentFromURI(actualDocumentURI);
+            request.TextDocument.Uri = requestContext.ProtocolConverter.FromProtocolUri(request.TextDocument.Uri);
+            var document = _solutionProvider.GetDocument(request.TextDocument);
             var classificationService = document?.Project.LanguageServices.GetService<IClassificationService>();
 
             if (document == null || classificationService == null)

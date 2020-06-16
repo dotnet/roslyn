@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// Our connections to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private KeepAliveSession? _keepAliveSession;
+        private RemoteServiceConnection? _connection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
@@ -105,17 +105,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            _keepAliveSession = await client.TryCreateKeepAliveSessionAsync(
-                WellKnownServiceHubServices.RemoteTodoCommentsService,
+            _connection = await client.CreateConnectionAsync(
+                WellKnownServiceHubService.RemoteTodoCommentsService,
                 callbackTarget: this, cancellationToken).ConfigureAwait(false);
-            if (_keepAliveSession == null)
-                return;
 
             // Now that we've started, let the VS todo list know to start listening to us
             _eventListenerTracker.EnsureEventListener(_workspace, this);
 
             // Now kick off scanning in the OOP process.
-            await _keepAliveSession.RunRemoteAsync(
+            await _connection.RunRemoteAsync(
                 nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
@@ -127,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _ = ArrayBuilder<DocumentAndComments>.GetInstance(out var filteredArray);
+            using var _1 = ArrayBuilder<DocumentAndComments>.GetInstance(out var filteredArray);
             AddFilteredInfos(docAndCommentsArray, filteredArray);
 
             foreach (var docAndComments in filteredArray)
@@ -141,7 +139,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
-                _documentToInfos[documentId] = newComments;
+                if (newComments.IsEmpty)
+                {
+                    _documentToInfos.TryRemove(documentId, out _);
+                }
+                else
+                {
+                    _documentToInfos[documentId] = newComments;
+                }
 
                 // If we have someone listening for updates, and our new items are different from
                 // our old ones, then notify them of the change.
@@ -186,15 +191,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         {
             // Don't need to implement this.  OOP pushes all items over to VS.  So there's no need
             return SpecializedCollections.EmptyEnumerable<UpdatedEventArgs>();
-        }
-
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        public Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            _documentToInfos.TryRemove(documentId, out _);
-            return Task.CompletedTask;
         }
 
         /// <summary>

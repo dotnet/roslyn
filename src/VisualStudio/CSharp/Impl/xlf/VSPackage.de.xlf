@@ -80,18 +80,18 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Diagnoseinformationen für geschlossene Dateien anzeigen;
+        <target state="translated">Diagnoseinformationen für geschlossene Dateien anzeigen;
 Reguläre Ausdrücke farbig hervorheben; 
 Zugehörige Komponenten unter dem Cursor markieren; 
 Ungültige reguläre Ausdrücke melden;
 Vollständige Lösungsanalyse aktivieren;
 Editor-Funktionsanalyse in externem Prozess ausführen ;
 Navigation zu dekompilierten Quellen aktivieren;
-Using-Anweisungen;
-Systemanweisungen beim Sortieren von Using-Anweisungen an erster Stelle platzieren;
-Using-Anweisungsgruppen trennen;
-Using-Anweisungen für Typen in Verweisassemblys vorschlagen;
-Using-Anweisungen für Typen in NuGet-Paketen vorschlagen;
+using-Direktiven;
+Systemanweisungen beim Sortieren von using-Direktiven an erster Stelle platzieren;
+Gruppen von using-Direktiven trennen;
+using-Direktiven für Typen in Verweisassemblys vorschlagen;
+using-Direktiven für Typen in NuGet-Paketen vorschlagen;
 Hervorhebung;
 Verweise auf Symbol unter Cursor hervorheben;
 Verwandte Schlüsselbegriffe unter Cursor anzeigen;
@@ -103,7 +103,7 @@ Gliederung für Konstrukte auf Codeebene anzeigen;
 Gliederung für Kommentare und Präprozessorregionen anzeigen;
 #regions beim Reduzieren auf Definitionen zuklappen;
 Ausblenden;
-Nicht verwendete Using-Anweisungen ausblenden;
+Nicht verwendete using-Direktiven ausblenden;
 Unerreichbaren Code ausblenden;
 Führungslinien für Blockstruktur;
 Führungslinien für Konstrukte auf Deklarationsebene anzeigen;
@@ -125,7 +125,8 @@ ausgelöste Eigenschaften bevorzugen;
 automatische Eigenschaften bevorzugen;
 regex;
 regulärer Ausdruck;
-Erweiterte Farben verwenden;</target>
+Erweiterte Farben verwenden;
+Editor-Farbschema;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

@@ -59,11 +59,9 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Assert.Equal(referencePath, DirectCast(metadataReference, PortableExecutableReference).FilePath)
         End Sub
 
-#Disable Warning IDE0060 ' Remove unused parameter - https://github.com/dotnet/roslyn/issues/44224
         <Theory>
         <CombinatorialData>
-        Public Async Sub TestSourceFilePathMappingWithDriveLetters(<CombinatorialValues("F:", "F:\")> from As String, <CombinatorialValues("F:", "F:\")> [to] As String)
-#Enable Warning IDE0060 ' Remove unused parameter
+        Public Async Sub TestSourceFilePathMappingWithDriveLetters(<CombinatorialValues("F:", "F:\")> from As String, <CombinatorialValues("T:", "T:\")> [to] As String)
             Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
@@ -72,28 +70,8 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                     ""sourceRootPath"": ""F:\\"",
                     ""pathMappings"": [
                          {
-                             ""from"": ""F:\\"",
-                             ""to"": ""T:\\""
-                         }]
-                }")
-
-            Dim syntaxTree = Assert.Single(compilerInvocation.Compilation.SyntaxTrees)
-
-            Assert.Equal("T:\SourceFile.cs", syntaxTree.FilePath)
-        End Sub
-
-        <Fact>
-        Public Async Sub TestSourceFilePathMappingWithDriveLetterOnly()
-            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
-                {
-                    ""tool"": ""csc"",
-                    ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG F:\\SourceFile.cs /target:library /out:F:\\Output.dll"",
-                    ""projectFilePath"": ""F:\\Project.csproj"",
-                    ""sourceRootPath"": ""F:\\"",
-                    ""pathMappings"": [
-                         {
-                             ""from"": ""F:\\"",
-                             ""to"": ""T:""
+                             ""from"": """ + from.Replace("\", "\\") + """,
+                             ""to"": """ + [to].Replace("\", "\\") + """
                          }]
                 }")
 

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
         }
 
-        private bool CouldBeGenericType(SyntaxToken identifier)
+        private static bool CouldBeGenericType(SyntaxToken identifier)
         {
             // Look for patterns that indicate that this could never be a partially written 
             // generic *Type* (although it could be a partially written generic method).

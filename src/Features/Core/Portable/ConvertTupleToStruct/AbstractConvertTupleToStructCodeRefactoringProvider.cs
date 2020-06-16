@@ -167,8 +167,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var resultOpt = await client.TryRunRemoteAsync<SerializableConvertTupleToStructResult>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                    var result = await client.RunRemoteAsync<SerializableConvertTupleToStructResult>(
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteConvertTupleToStructCodeRefactoringProvider.ConvertToStructAsync),
                         solution,
                         new object[]
@@ -180,14 +180,11 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
-                    if (resultOpt.HasValue)
-                    {
-                        var result = resultOpt.Value;
-                        var resultSolution = await RemoteUtilities.UpdateSolutionAsync(
-                            solution, result.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
-                        return await AddRenameTokenAsync(
-                            resultSolution, result.RenamedToken, cancellationToken).ConfigureAwait(false);
-                    }
+                    var resultSolution = await RemoteUtilities.UpdateSolutionAsync(
+                        solution, result.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
+
+                    return await AddRenameTokenAsync(
+                        resultSolution, result.RenamedToken, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -195,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 document, span, scope, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> AddRenameTokenAsync(
+        private static async Task<Solution> AddRenameTokenAsync(
             Solution solution,
             (DocumentId documentId, TextSpan span) renamedToken,
             CancellationToken cancellationToken)
@@ -747,7 +744,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // help create members like Equals/GetHashCode.  Then, once we have all the members we
             // create the final type.
             var namedTypeWithoutMembers = CreateNamedType(
-                scope, structName, typeParameters, members: default);
+                semanticModel.Compilation.Assembly, scope, structName, typeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var constructor = CreateConstructor(semanticModel, structName, fields, generator);
@@ -771,7 +768,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
             AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
 
-            var namedTypeSymbol = CreateNamedType(scope, structName, typeParameters, members.ToImmutableAndFree());
+            var namedTypeSymbol = CreateNamedType(semanticModel.Compilation.Assembly, scope, structName, typeParameters, members.ToImmutableAndFree());
             return namedTypeSymbol;
         }
 
@@ -837,6 +834,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static INamedTypeSymbol CreateNamedType(
+            IAssemblySymbol containingAssembly,
             Scope scope, string structName,
             ImmutableArray<ITypeParameterSymbol> typeParameters, ImmutableArray<ISymbol> members)
         {
@@ -845,7 +843,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 : Accessibility.Internal;
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 attributes: default, accessibility, modifiers: default,
-                TypeKind.Struct, structName, typeParameters, members: members);
+                TypeKind.Struct, structName, typeParameters, members: members, containingAssembly: containingAssembly);
         }
 
         private static IMethodSymbol CreateConstructor(

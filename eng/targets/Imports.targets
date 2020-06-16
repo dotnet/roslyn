@@ -4,6 +4,18 @@
   <Import Project="VisualStudio.targets"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
+  <!--
+    Work around .editorconfig evaluation bugs in command line builds.
+    https://github.com/dotnet/roslyn/issues/43371
+  -->
+  <Target Name="MapToAbsoluteFilePaths" BeforeTargets="CoreCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <_AbsoluteCompile Include="@(Compile->'%(FullPath)')" />
+      <Compile Remove="@(Compile)" />
+      <Compile Include="@(_AbsoluteCompile)" />
+    </ItemGroup>
+  </Target>
+
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
 

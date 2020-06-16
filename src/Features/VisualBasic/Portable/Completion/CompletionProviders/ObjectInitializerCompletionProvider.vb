@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return symbol.Name.EscapeIdentifier()
         End Function
 
-        Private Function IsValidProperty(member As ISymbol) As Boolean
+        Private Shared Function IsValidProperty(member As ISymbol) As Boolean
             Dim [property] = TryCast(member, IPropertySymbol)
             If [property] IsNot Nothing Then
                 Return [property].Parameters.IsDefaultOrEmpty OrElse [property].Parameters.All(Function(p) p.IsOptional OrElse p.IsParams)

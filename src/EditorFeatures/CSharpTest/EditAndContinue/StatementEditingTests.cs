@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -2615,7 +2614,6 @@ class C
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", CSharpFeaturesResources.lambda, "x1", "x0")
                 );
         }
-
 
         [Fact]
         public void Lambdas_Update_CeaseCapture_This()
@@ -8379,7 +8377,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 null,
@@ -8419,7 +8417,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 null,
@@ -9769,39 +9767,39 @@ int G1(int[] p) { return p[2]; }
         [Fact]
         public void TupleElementName()
         {
-            var src1 = @"(int a, int b) F();";
-            var src2 = @"(int x, int b) F();";
+            var src1 = @"class C { (int a, int b) F(); }";
+            var src2 = @"class C { (int x, int b) F(); }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [(int a, int b) F();]@0 -> [(int x, int b) F();]@0");
+                "Update [(int a, int b) F();]@10 -> [(int x, int b) F();]@10");
         }
 
         [Fact]
         public void TupleInField()
         {
-            var src1 = @"private (int, int) _x = (1, 2);";
-            var src2 = @"private (int, string) _y = (1, 2);";
+            var src1 = @"class C { private (int, int) _x = (1, 2); }";
+            var src2 = @"class C { private (int, string) _y = (1, 2); }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [(int, int) _x = (1, 2)]@8 -> [(int, string) _y = (1, 2)]@8",
-                "Update [_x = (1, 2)]@19 -> [_y = (1, 2)]@22");
+                "Update [(int, int) _x = (1, 2)]@18 -> [(int, string) _y = (1, 2)]@18",
+                "Update [_x = (1, 2)]@29 -> [_y = (1, 2)]@32");
         }
 
         [Fact]
         public void TupleInProperty()
         {
-            var src1 = @"public (int, int) Property1 { get { return (1, 2); } }";
-            var src2 = @"public (int, string) Property2 { get { return (1, string.Empty); } }";
+            var src1 = @"class C { public (int, int) Property1 { get { return (1, 2); } } }";
+            var src2 = @"class C { public (int, string) Property2 { get { return (1, string.Empty); } } }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [public (int, int) Property1 { get { return (1, 2); } }]@0 -> [public (int, string) Property2 { get { return (1, string.Empty); } }]@0",
-                "Update [get { return (1, 2); }]@30 -> [get { return (1, string.Empty); }]@33");
+                "Update [public (int, int) Property1 { get { return (1, 2); } }]@10 -> [public (int, string) Property2 { get { return (1, string.Empty); } }]@10",
+                "Update [get { return (1, 2); }]@40 -> [get { return (1, string.Empty); }]@43");
         }
 
         [Fact]

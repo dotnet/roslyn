@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 context.Diagnostics);
         }
 
-        private string GetEquivalenceKey(SyntaxNode node, SemanticModel model)
+        private static string GetEquivalenceKey(SyntaxNode node, SemanticModel model)
         {
             return IsRemoteApiUsage(node, model) ? AssigningNullLiteralRemotelyEquivalenceKey :
                 node.IsKind(SyntaxKind.ConditionalAccessExpression) ? ConditionalOperatorEquivalenceKey :

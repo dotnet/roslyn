@@ -8,8 +8,7 @@ resources:
 #  SignType: real
 #  SkipTests: false
 #  SkipApplyOptimizationData: false
-#  IbcSourceBranchName: 'default'
-#  IbcDropId: 'default'
+#  IbcDrop: 'default'
 #  PRNumber: 'default'
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
@@ -101,8 +100,7 @@ stages:
                 -officialSkipTests $(SkipTests)
                 -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
                 -officialSourceBranchName $(SourceBranchName)
-                -officialIbcSourceBranchName $(IbcSourceBranchName)
-                -officialIbcDropId $(IbcDropId)
+                -officialIbcDrop $(IbcDrop)
                 /p:RepositoryName=$(Build.Repository.Name)
                 /p:VisualStudioDropAccessToken=$(System.AccessToken)
                 /p:VisualStudioDropName=$(VisualStudio.DropName)
@@ -289,7 +287,11 @@ stages:
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
       enableSourceLinkValidation: false
+      # It's important that post-build stages are depends on 'SetValidateDependency' stage instead of 'build', 
+      # since we don't want to publish validation build. 
       validateDependsOn:
+        - SetValidateDependency
+      dependsOn:
         - SetValidateDependency
       # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
       SDLValidationParameters:

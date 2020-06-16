@@ -29,21 +29,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // the 'progress' parameter which will then update the UI.
                     var serverCallback = new FindLiteralsServerCallback(solution, progress);
 
-                    var success = await client.TryRunRemoteAsync(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                    await client.RunRemoteAsync(
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
                         solution,
                         new object[] { value, typeCode },
                         serverCallback,
                         cancellationToken).ConfigureAwait(false);
-
-                    if (success)
-                    {
-                        return;
-                    }
                 }
-
-                await FindLiteralReferencesInCurrentProcessAsync(value, solution, progress, cancellationToken).ConfigureAwait(false);
+                else
+                {
+                    await FindLiteralReferencesInCurrentProcessAsync(value, solution, progress, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
