@@ -4443,6 +4443,11 @@ record C(int X, int Y) : Base(X, Y)
             Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
+
+            var baseWithargs = tree.GetRoot().DescendantNodes().OfType<SimpleBaseTypeSyntax>().Single();
+            Assert.Equal("Base(X, Y)", baseWithargs.ToString());
+            Assert.Null(model.GetTypeInfo(baseWithargs).Type);
+            Assert.Null(model.GetSymbolInfo(baseWithargs).Symbol);
         }
 
         [Fact]
