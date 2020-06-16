@@ -2991,5 +2991,38 @@ partial class C
                 //     public partial ref int M2() => throw null!; // 2
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28));
         }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_17()
+        {
+            var source = @"
+partial class C
+{
+#nullable enable
+    public partial string M1();
+    public partial string? M1() => null; // 1
+    
+    public partial string? M2();
+    public partial string M2() => ""hello"";
+    
+#nullable disable
+    public partial string M3();
+    public partial string? M3() => null; // 2
+    
+    public partial string? M4(); // 3
+    public partial string M4() => ""hello"";
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
+                //     public partial string? M1() => null; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(6, 28),
+                // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M3() => null; // 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
+                // (15,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M4(); // 3
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26));
+        }
     }
 }
