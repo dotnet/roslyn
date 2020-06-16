@@ -1232,21 +1232,20 @@ Target->Ultimate
     }
 }";
             CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (6,29): error CS8521: Pattern-matching is not permitted for pointer types.
+                // (6,29): error CS8370: Feature 'null pointer constant pattern' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     bool M1(int* p) => p is null; // 1
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(6, 29),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "null").WithArguments("null pointer constant pattern", "8.0").WithLocation(6, 29),
                 // (7,29): error CS8521: Pattern-matching is not permitted for pointer types.
                 //     bool M2(int* p) => p is var _; // 2
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(7, 29),
-                // (12,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                // (12,18): error CS8370: Feature 'null pointer constant pattern' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //             case null: // 3
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(12, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "null").WithArguments("null pointer constant pattern", "8.0").WithLocation(12, 18),
                 // (20,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //             case var _: // 4
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var _").WithLocation(20, 18)
-                );
-            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                );
+            );
+            CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]

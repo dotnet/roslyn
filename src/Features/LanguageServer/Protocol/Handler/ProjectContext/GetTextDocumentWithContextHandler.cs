@@ -18,22 +18,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(MSLSPMethods.ProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    internal class GetTextDocumentWithContextHandler : AbstractRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GetTextDocumentWithContextHandler()
+        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public Task<ActiveProjectContexts?> HandleRequestAsync(
-            Solution solution,
+        public override Task<ActiveProjectContexts?> HandleRequestAsync(
             GetTextDocumentWithContextParams request,
             ClientCapabilities clientCapabilities,
             string? clientName,
             CancellationToken cancellationToken)
         {
-            var documents = solution.GetDocuments(request.TextDocument.Uri, clientName);
+            var documents = SolutionProvider.GetDocuments(request.TextDocument.Uri, clientName);
 
             if (!documents.Any())
             {
@@ -68,7 +67,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // GetDocumentIdInCurrentContext will just return the same ID back, which means we're going to pick the first
             // ID in GetDocumentIdsWithFilePath, but there's really nothing we can do since we don't have contexts for
             // close documents anyways.
-            var currentContextDocumentId = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
+            var openDocument = documents.First();
+            var currentContextDocumentId = openDocument.Project.Solution.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
 
             return Task.FromResult<ActiveProjectContexts?>(new ActiveProjectContexts
             {

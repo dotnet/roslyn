@@ -15,18 +15,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentRangeFormattingName)]
-    internal class FormatDocumentRangeHandler : FormatDocumentHandlerBase, IRequestHandler<DocumentRangeFormattingParams, TextEdit[]>
+    internal class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentRangeHandler()
+        public FormatDocumentRangeHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
-        {
-            return await GetTextEditsAsync(solution, request.TextDocument, clientName, cancellationToken, range: request.Range).ConfigureAwait(false);
-        }
+        public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities, string? clientName,
+            CancellationToken cancellationToken)
+            => GetTextEditsAsync(request.TextDocument, clientName, cancellationToken, range: request.Range);
     }
 }

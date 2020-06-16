@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
@@ -59,7 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
                 .WithPart(typeof(MockDocumentNavigationServiceFactory))
                 .WithParts(liveShareRequestHelperTypes)
                 .WithParts(roslynRequestHelperTypes)
-                .WithParts(executeCommandHandlerTypes));
+                .WithParts(executeCommandHandlerTypes)
+                .WithPart(typeof(TestLspSolutionProvider)));
             return exportProviderFactory.CreateExportProvider();
         }
 

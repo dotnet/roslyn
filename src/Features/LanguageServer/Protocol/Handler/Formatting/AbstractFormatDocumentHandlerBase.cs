@@ -15,12 +15,16 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class FormatDocumentHandlerBase
+    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : AbstractRequestHandler<RequestType, ResponseType>
     {
-        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(Solution solution, LSP.TextDocumentIdentifier documentIdentifier, string? clientName, CancellationToken cancellationToken, LSP.Range? range = null)
+        protected AbstractFormatDocumentHandlerBase(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        {
+        }
+
+        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.TextDocumentIdentifier documentIdentifier, string? clientName, CancellationToken cancellationToken, LSP.Range? range = null)
         {
             var edits = new ArrayBuilder<LSP.TextEdit>();
-            var document = solution.GetDocument(documentIdentifier, clientName);
+            var document = SolutionProvider.GetDocument(documentIdentifier, clientName);
 
             if (document != null)
             {
