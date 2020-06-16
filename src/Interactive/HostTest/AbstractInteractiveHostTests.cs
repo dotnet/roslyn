@@ -5,12 +5,11 @@
 #nullable enable
 
 extern alias InteractiveHost;
-
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -18,14 +17,13 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
-    using System.Collections.Generic;
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-    using Roslyn.Test.Utilities;
 
     public abstract class AbstractInteractiveHostTests : CSharpTestBase, IAsyncLifetime
     {
@@ -150,12 +148,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public async Task<string> ReadOutputToEnd(bool isError = false)
         {
+            // writes mark to the STDOUT/STDERR pipe in the remote process:
+            var remoteService = await Host.TryGetServiceAsync().ConfigureAwait(false);
+            if (remoteService == null)
+            {
+                return string.Empty;
+            }
+
             var writer = isError ? _synchronizedErrorOutput : _synchronizedOutput;
             var markPrefix = '\uFFFF';
             var mark = markPrefix + Guid.NewGuid().ToString();
 
-            // writes mark to the STDOUT/STDERR pipe in the remote process:
-            var remoteService = await Host.TryGetServiceAsync().ConfigureAwait(false);
             await remoteService.JsonRpc.InvokeAsync<Task>(nameof(InteractiveHost.Service.RemoteConsoleWriteAsync), Encoding.UTF8.GetBytes(mark), isError).ConfigureAwait(false);
             while (true)
             {
