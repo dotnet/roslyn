@@ -2935,5 +2935,61 @@ partial class C
                 //     public partial (long x, int y) M1() => default; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(5, 36));
         }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_14()
+        {
+            var source = @"
+partial class C
+{
+    public partial object M1();
+    public partial dynamic M1() => null;
+    
+    public partial dynamic M2();
+    public partial object M2() => null;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_15()
+        {
+            var source = @"
+using System;
+
+partial class C
+{
+    public partial IntPtr M1();
+    public partial nint M1() => 0;
+    
+    public partial nint M2();
+    public partial IntPtr M2() => default;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
+        public void DifferentReturnTypes_16()
+        {
+            var source = @"
+partial class C
+{
+    public partial ref int M1();
+    public partial ref readonly int M1() => throw null!; // 1
+
+    public partial ref readonly int M2();
+    public partial ref int M2() => throw null!; // 2
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (5,37): error CS8818: Both partial method declarations must return by reference or neither may return by reference.
+                //     public partial ref readonly int M1() => throw null!; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 37),
+                // (8,28): error CS8818: Both partial method declarations must return by reference or neither may return by reference.
+                //     public partial ref int M2() => throw null!; // 2
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28));
+        }
     }
 }
