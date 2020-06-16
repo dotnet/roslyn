@@ -158,18 +158,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            if (_simpleTypeNameToExtensionMethodMap == null)
+            if (SimpleTypeNameToExtensionMethodMap == null)
             {
                 writer.WriteInt32(0);
             }
             else
             {
-                writer.WriteInt32(_simpleTypeNameToExtensionMethodMap.Count);
-                foreach (var key in _simpleTypeNameToExtensionMethodMap.Keys)
+                writer.WriteInt32(SimpleTypeNameToExtensionMethodMap.Count);
+                foreach (var key in SimpleTypeNameToExtensionMethodMap.Keys)
                 {
                     writer.WriteString(key);
 
-                    var values = _simpleTypeNameToExtensionMethodMap[key];
+                    var values = SimpleTypeNameToExtensionMethodMap[key];
                     writer.WriteInt32(values.Count);
 
                     foreach (var value in values)
@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            writer.WriteInt32(_extensionMethodOfComplexType.Length);
-            foreach (var methodInfo in _extensionMethodOfComplexType)
+            writer.WriteInt32(ExtensionMethodOfComplexType.Length);
+            foreach (var methodInfo in ExtensionMethodOfComplexType)
             {
                 writer.WriteString(methodInfo.FullyQualifiedContainerName);
                 writer.WriteString(methodInfo.Name);

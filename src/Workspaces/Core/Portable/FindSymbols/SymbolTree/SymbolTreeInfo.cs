@@ -57,34 +57,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Maps the name of target type name of simple extension methods to its <see cref="ExtensionMethodInfo" />.
         /// <see cref="ParameterTypeInfo"/> for the definition of simple/complex methods.
         /// </summary>
-        private readonly MultiDictionary<string, ExtensionMethodInfo>? _simpleTypeNameToExtensionMethodMap;
+        public MultiDictionary<string, ExtensionMethodInfo>? SimpleTypeNameToExtensionMethodMap { get; }
 
         /// <summary>
         /// A list of <see cref="ExtensionMethodInfo" /> for complex extension methods.
         /// <see cref="ParameterTypeInfo"/> for the definition of simple/complex methods.
         /// </summary>
-        private readonly ImmutableArray<ExtensionMethodInfo> _extensionMethodOfComplexType;
+        public ImmutableArray<ExtensionMethodInfo> ExtensionMethodOfComplexType { get; }
 
-        public bool ContainsExtensionMethod => _simpleTypeNameToExtensionMethodMap?.Count > 0 || _extensionMethodOfComplexType.Length > 0;
-
-        public ImmutableArray<ExtensionMethodInfo> GetMatchingExtensionMethodInfo(ImmutableArray<string> parameterTypeNames)
-        {
-            if (_simpleTypeNameToExtensionMethodMap == null)
-            {
-                return _extensionMethodOfComplexType;
-            }
-
-            var builder = ArrayBuilder<ExtensionMethodInfo>.GetInstance();
-            builder.AddRange(_extensionMethodOfComplexType);
-
-            foreach (var parameterTypeName in parameterTypeNames)
-            {
-                var simpleMethods = _simpleTypeNameToExtensionMethodMap[parameterTypeName];
-                builder.AddRange(simpleMethods);
-            }
-
-            return builder.ToImmutableAndFree();
-        }
+        public bool ContainsExtensionMethod => SimpleTypeNameToExtensionMethodMap?.Count > 0 || ExtensionMethodOfComplexType.Length > 0;
 
         /// <summary>
         /// The task that produces the spell checker we use for fuzzy match queries.
@@ -145,8 +126,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _nodes = sortedNodes;
             _spellCheckerTask = spellCheckerTask;
             _inheritanceMap = inheritanceMap;
-            _extensionMethodOfComplexType = extensionMethodOfComplexType;
-            _simpleTypeNameToExtensionMethodMap = simpleTypeNameToExtensionMethodMap;
+            ExtensionMethodOfComplexType = extensionMethodOfComplexType;
+            SimpleTypeNameToExtensionMethodMap = simpleTypeNameToExtensionMethodMap;
         }
 
         public static SymbolTreeInfo CreateEmpty(Checksum checksum)
@@ -164,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public SymbolTreeInfo WithChecksum(Checksum checksum)
         {
             return new SymbolTreeInfo(
-                checksum, _concatenatedNames, _nodes, _spellCheckerTask, _inheritanceMap, _extensionMethodOfComplexType, _simpleTypeNameToExtensionMethodMap);
+                checksum, _concatenatedNames, _nodes, _spellCheckerTask, _inheritanceMap, ExtensionMethodOfComplexType, SimpleTypeNameToExtensionMethodMap);
         }
 
         public Task<ImmutableArray<ISymbol>> FindAsync(

@@ -76,23 +76,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             using var _ = PooledHashSet<string>.GetInstance(out var allTypeNamesBuilder);
 
-            if (receiverTypeSymbol is IArrayTypeSymbol arrayTypeSymbol)
-            {
-                var elementTypeSymbol = arrayTypeSymbol.ElementType;
-                while (elementTypeSymbol is IArrayTypeSymbol symbol)
-                {
-                    elementTypeSymbol = symbol.ElementType;
-                }
-
-                // We do not differentiate array of different kinds sicne they are all represented in the indices as "NonArrayElementTypeName[]"
-                // e.g. int[], int[][], int[,], etc. are all represented as int[].
-                allTypeNamesBuilder.Add(elementTypeSymbol.MetadataName + "[]");
-            }
-            else
-            {
-                allTypeNamesBuilder.Add(receiverTypeSymbol.MetadataName);
-            }
-
+            allTypeNamesBuilder.Add(GetReceiverTypeName(receiverTypeSymbol));
             allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetBaseTypes().Select(t => t.MetadataName));
             allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetAllInterfacesIncludingThis().Select(t => t.MetadataName));
 
@@ -103,6 +87,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return allTypeNamesBuilder.ToImmutableArray();
+        }
+
+        private static string GetReceiverTypeName(ITypeSymbol receiverTypeSymbol)
+        {
+            if (receiverTypeSymbol is IArrayTypeSymbol arrayTypeSymbol)
+            {
+                var elementTypeSymbol = arrayTypeSymbol.ElementType;
+                while (elementTypeSymbol is IArrayTypeSymbol symbol)
+                {
+                    elementTypeSymbol = symbol.ElementType;
+                }
+
+                // We do not differentiate array of different kinds sicne they are all represented in the indices as "NonArrayElementTypeName[]"
+                // e.g. int[], int[][], int[,], etc. are all represented as int[].
+                return elementTypeSymbol.MetadataName + "[]";
+            }
+
+            return receiverTypeSymbol.MetadataName;
         }
 
         public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsInCurrentProcessAsync(
@@ -274,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static ImmutableArray<IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(
             IAssemblySymbol assembly,
-            MultiDictionary<string, string> extensionMethodFilter,
+            MultiDictionary<string, (string, string)> extensionMethodFilter,
             ISet<string> namespaceFilter,
             bool internalsVisible,
             StatisticCounter counter,
@@ -305,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
-                foreach (var methodName in methodNames)
+                foreach (var (methodName, targetTypeName) in methodNames)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -315,8 +317,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         counter.TotalExtensionMethodsChecked++;
 
-                        if (methodSymbol.IsExtensionMethod &&
-                            IsAccessible(methodSymbol, internalsVisible))
+                        if (MatchExtensionMethod(methodSymbol, targetTypeName, internalsVisible))
                         {
                             // Find a potential match.
                             builder.Add(methodSymbol);
@@ -326,6 +327,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return builder.ToImmutable();
+
+            static bool MatchExtensionMethod(IMethodSymbol method, string filterReceiverTypeName, bool internalsVisible)
+            {
+                if (!method.IsExtensionMethod || method.Parameters.Length == 0 || !IsAccessible(method, internalsVisible))
+                {
+                    return false;
+                }
+
+                var receiverTypeName = GetReceiverTypeName(method.Parameters[0].Type);
+                // We get a match if the receiver type name match or it's a complex type (receiver type name is empty)
+                return filterReceiverTypeName.Length == 0 || string.Equals(filterReceiverTypeName, receiverTypeName, StringComparison.Ordinal);
+            }
 
             // An quick accessibility check based on declared accessibility only, a semantic based check is still required later.
             // Since we are dealing with extension methods and their container (top level static class and modules), only public,
@@ -397,9 +410,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         // Create filter for extension methods from source.
-        private static MultiDictionary<string, string> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, CacheEntry syntaxIndex)
+        private static MultiDictionary<string, (string, string)> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, CacheEntry syntaxIndex)
         {
-            var results = new MultiDictionary<string, string>();
+            var results = new MultiDictionary<string, (string, string)>();
 
             // Add simple extension methods with matching target type name
             foreach (var targetTypeName in targetTypeNames)
@@ -412,27 +425,44 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var methodInfo in methodInfos)
                 {
-                    results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+                    results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, targetTypeName));
                 }
             }
 
             // Add all complex extension methods, we will need to completely rely on symbols to match them.
             foreach (var methodInfo in syntaxIndex.ComplexExtensionMethodInfo)
             {
-                results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+                results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, string.Empty));
             }
 
             return results;
         }
 
         // Create filter for extension methods from metadata
-        private static MultiDictionary<string, string> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, SymbolTreeInfo symbolInfo)
+        private static MultiDictionary<string, (string, string)> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, SymbolTreeInfo symbolInfo)
         {
-            var results = new MultiDictionary<string, string>();
+            var results = new MultiDictionary<string, (string, string)>();
 
-            foreach (var methodInfo in symbolInfo.GetMatchingExtensionMethodInfo(targetTypeNames))
+            if (symbolInfo.SimpleTypeNameToExtensionMethodMap != null)
             {
-                results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+                foreach (var targetTypeName in targetTypeNames)
+                {
+                    var methodInfos = symbolInfo.SimpleTypeNameToExtensionMethodMap[targetTypeName];
+                    if (methodInfos.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (var methodInfo in methodInfos)
+                    {
+                        results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, targetTypeName));
+                    }
+                }
+            }
+
+            foreach (var methodInfo in symbolInfo.ExtensionMethodOfComplexType)
+            {
+                results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, string.Empty));
             }
 
             return results;
