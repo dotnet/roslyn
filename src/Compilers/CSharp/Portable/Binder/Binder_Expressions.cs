@@ -5942,24 +5942,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options |= LookupOptions.MustBeInvocableIfMember;
                 }
 
-                ImmutableArray<TypeWithAnnotations> typeArguments = default;
-                SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax = default;
-                bool rightHasTypeArguments = false;
-                if (right is GenericNameSyntax genericName)
-                {
-                    typeArgumentsSyntax = genericName.TypeArgumentList.Arguments;
-                    if (typeArgumentsSyntax.Count > 0)
-                    {
-                        rightHasTypeArguments = true;
-                        typeArguments = BindTypeArguments(typeArgumentsSyntax, diagnostics);
-
-                        if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument) && !IsUnboundTypeAllowed(genericName))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedUnboundGenericName, genericName.Location);
-                            return BadExpression(node);
-                        }
-                    }
-                }
+                SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax = right is GenericNameSyntax genericName ? genericName.TypeArgumentList.Arguments : default;
+                bool rightHasTypeArguments = typeArgumentsSyntax.Count > 0;
+                ImmutableArray<TypeWithAnnotations> typeArguments = rightHasTypeArguments ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default;
 
                 // A member-access consists of a primary-expression, a predefined-type, or a 
                 // qualified-alias-member, followed by a "." token, followed by an identifier, 
@@ -6077,6 +6062,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     default:
                         {
+                            // Ensure that there is an error thrown when an Unbound Generic is found.
+                            if (right is GenericNameSyntax genericNameRight && rightHasTypeArguments && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument) && !IsUnboundTypeAllowed(genericNameRight))
+                            {
+                                diagnostics.Add(ErrorCode.ERR_UnexpectedUnboundGenericName, genericNameRight.Location);
+                            }
                             // Can't dot into the null literal
                             if (boundLeft.Kind == BoundKind.Literal && ((BoundLiteral)boundLeft).ConstantValueOpt == ConstantValue.Null)
                             {
