@@ -1387,7 +1387,7 @@ namespace Microsoft.CodeAnalysis
                         case SymbolKind.Discard:
                             s = ((IDiscardSymbol)s).Type;
                             continue;
-                        case SymbolKind.FunctionPointer:
+                        case SymbolKind.FunctionPointerType:
                             var funcPtr = (IFunctionPointerTypeSymbol)s;
                             if (!isContainingAssemblyInReferences(funcPtr.Signature.ReturnType))
                             {
