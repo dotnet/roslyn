@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         string.Format(InteractiveHostResources.Failed_to_create_a_remote_process_for_interactive_code_execution, hostPath),
                         e.Message);
 
+                    Host.InteractiveHostProcessCreationFailed?.Invoke(e);
                     return null;
                 }
 
@@ -195,6 +196,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     if (!CheckAlive(newProcess, hostPath))
                     {
+                        Host.InteractiveHostProcessCreationFailed?.Invoke(null);
                         return null;
                     }
 
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         new object[] { Host._replServiceProviderType.AssemblyQualifiedName, culture.Name },
                         cancellationToken).ConfigureAwait(false)).Deserialize();
                 }
-                catch
+                catch (Exception e)
                 {
                     if (CheckAlive(newProcess, hostPath))
                     {
@@ -214,6 +216,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
 
                     jsonRpc?.Dispose();
+
+                    Host.InteractiveHostProcessCreationFailed?.Invoke(e);
                     return null;
                 }
                 finally
@@ -223,6 +227,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return new RemoteService(Host, newProcess, newProcessId, jsonRpc, platformInfo);
             }
+
             private bool CheckAlive(Process process, string hostPath)
             {
                 bool alive = process.IsAlive();

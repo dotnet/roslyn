@@ -81,6 +81,9 @@ namespace Microsoft.CodeAnalysis.Interactive
         // The ProcessExited event is not hooked yet.
         internal event Action<Process>? InteractiveHostProcessCreated;
 
+        // Triggered whenever InteractiveHost process creation fails.
+        internal event Action<Exception?>? InteractiveHostProcessCreationFailed;
+
         #endregion
 
         ~InteractiveHost()
