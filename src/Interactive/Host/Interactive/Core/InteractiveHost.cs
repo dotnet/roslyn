@@ -23,15 +23,6 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : IDisposable
     {
-        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
-        {
-            // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
-            NotifyClientOfEvents = false,
-
-            // Only allow public methods (may be on internal types) to be invoked remotely.
-            AllowNonPublicInvocation = false
-        };
-
         internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
 
         private readonly Type _replServiceProviderType;

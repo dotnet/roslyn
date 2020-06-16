@@ -76,30 +76,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             ClearOutput();
         }
 
-        public Task DisposeAsync()
+        public async Task DisposeAsync()
         {
-            return Task.CompletedTask;
-        }
+            var service = await Host.TryGetServiceAsync();
+            Assert.NotNull(service);
 
-        public override void Dispose()
-        {
-            try
+            var process = service!.Process;
+
+            Host.Dispose();
+
+            // the process should be terminated
+            if (process != null && !process.HasExited)
             {
-                var process = Host.TryGetProcess();
-
-                Host.Dispose();
-
-                // the process should be terminated
-                if (process != null && !process.HasExited)
-                {
-                    process.WaitForExit();
-                }
-            }
-            finally
-            {
-                // Dispose temp files only after the InteractiveHost exits, 
-                // so that assemblies are unloaded.
-                base.Dispose();
+                process.WaitForExit();
             }
         }
 
@@ -150,16 +139,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             // writes mark to the STDOUT/STDERR pipe in the remote process:
             var remoteService = await Host.TryGetServiceAsync().ConfigureAwait(false);
-            if (remoteService == null)
-            {
-                return string.Empty;
-            }
+            Assert.NotNull(remoteService);
 
             var writer = isError ? _synchronizedErrorOutput : _synchronizedOutput;
             var markPrefix = '\uFFFF';
             var mark = markPrefix + Guid.NewGuid().ToString();
 
-            await remoteService.JsonRpc.InvokeAsync<Task>(nameof(InteractiveHost.Service.RemoteConsoleWriteAsync), Encoding.UTF8.GetBytes(mark), isError).ConfigureAwait(false);
+            await remoteService!.JsonRpc.InvokeAsync<Task>(nameof(InteractiveHost.Service.RemoteConsoleWriteAsync), Encoding.UTF8.GetBytes(mark), isError).ConfigureAwait(false);
             while (true)
             {
                 var data = writer.Prefix(mark, ref _outputReadPosition[isError ? 0 : 1]);
