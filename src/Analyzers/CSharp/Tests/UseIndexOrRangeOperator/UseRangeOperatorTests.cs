@@ -478,6 +478,7 @@ class C
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestWritableType()
         {
