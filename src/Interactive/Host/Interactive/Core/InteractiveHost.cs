@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         private readonly bool _joinOutputWritingThreadsOnDisposal;
 
-        internal event Action<InteractiveHostOptions, RemoteExecutionResult>? ProcessInitialized;
+        internal event Action<InteractiveHostPlatformInfo, InteractiveHostOptions, RemoteExecutionResult>? ProcessInitialized;
 
         public InteractiveHost(
             Type replServiceProviderType,
@@ -284,23 +284,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         }
 
         private static JsonRpc CreateRpc(Stream stream, object? incomingCallTarget)
-        {
-            //var formatter = new JsonMessageFormatter();
-
-            //var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, formatter))
-            //{
-            //    CancelLocallyInvokedMethodsWhenConnectionIsClosed = true
-            //};
-
-            //if (incomingCallTarget != null)
-            //{
-            //    jsonRpc.AddLocalRpcTarget(incomingCallTarget, s_jsonRpcTargetOptions);
-            //}
-
-            //jsonRpc.StartListening();
-
-            return JsonRpc.Attach(stream, incomingCallTarget);
-        }
+            => JsonRpc.Attach(stream, incomingCallTarget);
 
         #region Operations
 

@@ -17,13 +17,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// </summary>
     internal sealed class GacFileResolver : IEquatable<GacFileResolver>
     {
-        // Consider a better availability check (perhaps the presence of Assembly.GlobalAssemblyCache once CoreCLR mscorlib is cleaned up).
-        // https://github.com/dotnet/roslyn/issues/5538
-
         /// <summary>
-        /// Returns true if GAC is available on the platform.
+        /// Returns true if GAC is available on the current platform.
         /// </summary>
-        public static bool IsAvailable => CoreClrShim.AssemblyLoadContext.Type == null;
+        public static bool IsAvailable => typeof(object).Assembly.GlobalAssemblyCache;
 
         /// <summary>
         /// Architecture filter used when resolving assembly references.
@@ -43,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// among the set filtered by <paramref name="architectures"/></param>
         /// <exception cref="PlatformNotSupportedException">The platform doesn't support GAC.</exception>
         public GacFileResolver(
-            ImmutableArray<ProcessorArchitecture> architectures = default(ImmutableArray<ProcessorArchitecture>),
+            ImmutableArray<ProcessorArchitecture> architectures = default,
             CultureInfo preferredCulture = null)
         {
             if (!IsAvailable)

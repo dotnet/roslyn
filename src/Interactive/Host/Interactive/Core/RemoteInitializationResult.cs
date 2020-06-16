@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal sealed class Data
         {
             public string? ScriptPath;
-            public string[]? MetadataReferencePaths;
-            public string[]? Imports;
+            public string[] MetadataReferencePaths = null!;
+            public string[] Imports = null!;
 
             public RemoteInitializationResult Deserialize()
                 => new RemoteInitializationResult(
                     ScriptPath,
-                    ImmutableArray.Create(MetadataReferencePaths ?? Array.Empty<string>()),
-                    ImmutableArray.Create(Imports ?? Array.Empty<string>()));
+                    ImmutableArray.Create(MetadataReferencePaths),
+                    ImmutableArray.Create(Imports));
         }
 
         /// <summary>

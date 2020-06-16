@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             public readonly Process Process;
             public readonly JsonRpc JsonRpc;
+            public readonly InteractiveHostPlatformInfo PlatformInfo;
+
             private readonly int _processId;
             private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
             private readonly bool _joinOutputWritingThreadsOnDisposal;
@@ -31,10 +33,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             private Thread? _readErrorOutputThread;      // nulled on dispose
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
-            internal RemoteService(InteractiveHost host, Process process, int processId, JsonRpc jsonRpc)
+            internal RemoteService(InteractiveHost host, Process process, int processId, JsonRpc jsonRpc, InteractiveHostPlatformInfo platformInfo)
             {
                 Process = process;
                 JsonRpc = jsonRpc;
+                PlatformInfo = platformInfo;
 
                 _host = host;
                 _joinOutputWritingThreadsOnDisposal = _host._joinOutputWritingThreadsOnDisposal;
