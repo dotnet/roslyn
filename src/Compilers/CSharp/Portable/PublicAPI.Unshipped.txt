@@ -119,7 +119,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.UnaryPatternSyntax.WithPattern(Microsoft.Co
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.AddInitializerExpressions(params Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Receiver.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver, Microsoft.CodeAnalysis.SyntaxToken withKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.WithInitializer(Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.WithKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
