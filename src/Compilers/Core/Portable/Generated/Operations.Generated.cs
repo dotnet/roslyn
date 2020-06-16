@@ -2890,9 +2890,9 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IWithOperation : IOperation
     {
         /// <summary>
-        /// Value to be cloned.
+        /// Operand to be cloned.
         /// </summary>
-        IOperation Value { get; }
+        IOperation Operand { get; }
         /// <summary>
         /// Clone method to be invoked on the value.
         /// </summary>
@@ -8562,14 +8562,14 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             CloneMethod = cloneMethod;
         }
-        public abstract IOperation Value { get; }
+        public abstract IOperation Operand { get; }
         public IMethodSymbol CloneMethod { get; }
         public abstract IObjectOrCollectionInitializerOperation Initializer { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                if (Value is object) yield return Value;
+                if (Operand is object) yield return Operand;
                 if (Initializer is object) yield return Initializer;
             }
         }
@@ -8578,33 +8578,33 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class WithOperation : BaseWithOperation, IWithOperation
     {
-        internal WithOperation(IOperation value, IMethodSymbol cloneMethod, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal WithOperation(IOperation operand, IMethodSymbol cloneMethod, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(cloneMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = SetParentOperation(value, this);
+            Operand = SetParentOperation(operand, this);
             Initializer = SetParentOperation(initializer, this);
         }
-        public override IOperation Value { get; }
+        public override IOperation Operand { get; }
         public override IObjectOrCollectionInitializerOperation Initializer { get; }
     }
     internal abstract partial class LazyWithOperation : BaseWithOperation, IWithOperation
     {
-        private IOperation _lazyValue = s_unset;
+        private IOperation _lazyOperand = s_unset;
         private IObjectOrCollectionInitializerOperation _lazyInitializer = s_unsetObjectOrCollectionInitializer;
         internal LazyWithOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(cloneMethod, semanticModel, syntax, type, constantValue, isImplicit){ }
-        protected abstract IOperation CreateValue();
-        public override IOperation Value
+        protected abstract IOperation CreateOperand();
+        public override IOperation Operand
         {
             get
             {
-                if (_lazyValue == s_unset)
+                if (_lazyOperand == s_unset)
                 {
-                    IOperation value = CreateValue();
-                    SetParentOperation(value, this);
-                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
+                    IOperation operand = CreateOperand();
+                    SetParentOperation(operand, this);
+                    Interlocked.CompareExchange(ref _lazyOperand, operand, s_unset);
                 }
-                return _lazyValue;
+                return _lazyOperand;
             }
         }
         protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();

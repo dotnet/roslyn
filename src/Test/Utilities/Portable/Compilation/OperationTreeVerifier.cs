@@ -1977,7 +1977,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IWithOperation));
             LogCommonPropertiesAndNewLine(operation);
-            Visit(operation.Value, "Value");
+            Visit(operation.Operand, "Operand");
             Indent();
             LogSymbol(operation.CloneMethod, nameof(operation.CloneMethod));
             LogNewLine();

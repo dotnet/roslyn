@@ -6986,7 +6986,7 @@ oneMoreTime:
         {
             EvalStackFrame frame = PushStackFrame();
             // Initializer is removed from the tree and turned into a series of statements that assign to the cloned instance
-            IOperation visitedInstance = Visit(operation.Value);
+            IOperation visitedInstance = Visit(operation.Operand);
 
             IOperation cloned = operation.CloneMethod is null
                 ? MakeInvalidOperation(visitedInstance.Type, visitedInstance)

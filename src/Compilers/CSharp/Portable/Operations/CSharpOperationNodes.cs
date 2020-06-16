@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_withExpression.InitializerExpression);
         }
 
-        protected override IOperation CreateValue()
+        protected override IOperation CreateOperand()
         {
             return _operationFactory.Create(_withExpression.Receiver);
         }

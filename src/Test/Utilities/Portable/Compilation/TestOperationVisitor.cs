@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.With, operation.Kind);
             _ = operation.CloneMethod;
-            IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Value).Concat(operation.Initializer);
+            IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Initializer);
             AssertEx.Equal(children, operation.Children);
         }
     }

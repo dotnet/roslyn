@@ -1451,7 +1451,7 @@ X");
             var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
             comp.VerifyOperationTree(withExpr1, @"
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -1976,7 +1976,7 @@ record C(int X, string Y)
 
             comp.VerifyOperationTree(withExpr, @"
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { X = 2 }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -2081,7 +2081,7 @@ class C
 
             comp.VerifyOperationTree(withExpr, @"
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { X = 2 }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
   CloneMethod: null
   Initializer:
@@ -2204,7 +2204,7 @@ record C(int X, int Y)
             var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
             comp.VerifyOperationTree(withExpr1, @"
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -2217,7 +2217,7 @@ IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
             var withExpr2 = root.DescendantNodes().OfType<WithExpressionSyntax>().Skip(1).Single();
             comp.VerifyOperationTree(withExpr2, @"
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { ')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
