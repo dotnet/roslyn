@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             private static ParameterTypeInfo GetArrayTypeInfo(ParameterTypeInfo elementType)
                 => elementType.IsComplexType
-                    ? ComplexInfo
+                    ? new ParameterTypeInfo(string.Empty, isComplex: true, isArray: true)
                     : new ParameterTypeInfo(elementType.Name, isComplex: false, isArray: true);
 
             public ParameterTypeInfo GetFunctionPointerType(MethodSignature<ParameterTypeInfo> signature) => ComplexInfo;

@@ -306,12 +306,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var simpleMap = new MultiDictionary<string, ExtensionMethodInfo>();
-                var complexBuilder = ArrayBuilder<ExtensionMethodInfo>.GetInstance();
-                var unsortedNodes = GenerateUnsortedNodes(complexBuilder, simpleMap);
+                var extensionMethodsMap = new MultiDictionary<string, ExtensionMethodInfo>();
+                var unsortedNodes = GenerateUnsortedNodes(extensionMethodsMap);
 
                 return CreateSymbolTreeInfo(
-                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, simpleMap, complexBuilder.ToImmutableAndFree());
+                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, extensionMethodsMap);
             }
 
             public void Dispose()
@@ -701,18 +700,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return newChildNode;
             }
 
-            private ImmutableArray<BuilderNode> GenerateUnsortedNodes(ArrayBuilder<ExtensionMethodInfo> complexBuilder, MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToMethodMap)
+            private ImmutableArray<BuilderNode> GenerateUnsortedNodes(MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap)
             {
                 var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
                 unsortedNodes.Add(BuilderNode.RootNode);
 
-                AddUnsortedNodes(unsortedNodes, simpleTypeNameToMethodMap, complexBuilder, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
+                AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
                 return unsortedNodes.ToImmutableAndFree();
             }
 
             private void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
-                MultiDictionary<string, ExtensionMethodInfo> simpleBuilder,
-                ArrayBuilder<ExtensionMethodInfo> complexBuilder,
+                MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap,
                 MetadataNode parentNode,
                 int parentIndex,
                 string fullyQualifiedContainerName)
@@ -727,21 +725,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         foreach (var parameterTypeInfo in _extensionMethodToParameterTypeInfo[child])
                         {
-                            if (parameterTypeInfo.IsComplexType)
+                            // We do not differentiate array of different kinds for simplicity.
+                            // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
+                            // similar for complex receiver types, "[]" means it's an array type.
+                            var parameterTypeName = (parameterTypeInfo.IsComplexType, parameterTypeInfo.IsArray) switch
                             {
-                                complexBuilder.Add(new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
-                            }
-                            else
-                            {
-                                // We do not differentiate array of different kinds for simplicity.
-                                // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
-                                var parameterTypeName = parameterTypeInfo.IsArray ? parameterTypeInfo.Name + "[]" : parameterTypeInfo.Name;
-                                simpleBuilder.Add(parameterTypeName, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
-                            }
+                                (true, true) => "[]",
+                                (true, false) => string.Empty,
+                                (false, true) => parameterTypeInfo.Name + "[]",
+                                (false, false) => parameterTypeInfo.Name
+                            };
+
+                            receiverTypeNameToMethodMap.Add(parameterTypeName, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
                         }
                     }
 
-                    AddUnsortedNodes(unsortedNodes, simpleBuilder, complexBuilder, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
+                    AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
                 }
 
                 static string Concat(string containerName, string name)

@@ -89,22 +89,30 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return allTypeNamesBuilder.ToImmutableArray();
         }
 
-        private static string GetReceiverTypeName(ITypeSymbol receiverTypeSymbol)
+        private static string GetReceiverTypeName(ITypeSymbol typeSymbol)
         {
-            if (receiverTypeSymbol is IArrayTypeSymbol arrayTypeSymbol)
+            switch (typeSymbol)
             {
-                var elementTypeSymbol = arrayTypeSymbol.ElementType;
-                while (elementTypeSymbol is IArrayTypeSymbol symbol)
-                {
-                    elementTypeSymbol = symbol.ElementType;
-                }
+                case INamedTypeSymbol namedType:
+                    return namedType.IsTupleType ? string.Empty : namedType.MetadataName;
 
-                // We do not differentiate array of different kinds sicne they are all represented in the indices as "NonArrayElementTypeName[]"
-                // e.g. int[], int[][], int[,], etc. are all represented as int[].
-                return elementTypeSymbol.MetadataName + "[]";
+                case IArrayTypeSymbol arrayType:
+                    var elementType = arrayType.ElementType;
+                    while (elementType is IArrayTypeSymbol symbol)
+                    {
+                        elementType = symbol.ElementType;
+                    }
+
+                    var elementTypeName = GetReceiverTypeName(elementType);
+
+                    // We do not differentiate array of different kinds sicne they are all represented in the indices as "NonArrayElementTypeName[]"
+                    // e.g. int[], int[][], int[,], etc. are all represented as "int[]", whereas array of complex type such as T[] is "[]".
+                    return elementTypeName + "[]";
+
+                default:
+                    // Complex types are represented by "";
+                    return string.Empty;
             }
-
-            return receiverTypeSymbol.MetadataName;
         }
 
         public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsInCurrentProcessAsync(
@@ -330,14 +338,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             static bool MatchExtensionMethod(IMethodSymbol method, string filterReceiverTypeName, bool internalsVisible)
             {
-                if (!method.IsExtensionMethod || method.Parameters.Length == 0 || !IsAccessible(method, internalsVisible))
+                if (!method.IsExtensionMethod || method.Parameters.IsEmpty || !IsAccessible(method, internalsVisible))
                 {
                     return false;
                 }
 
-                var receiverTypeName = GetReceiverTypeName(method.Parameters[0].Type);
-                // We get a match if the receiver type name match or it's a complex type (receiver type name is empty)
-                return filterReceiverTypeName.Length == 0 || string.Equals(filterReceiverTypeName, receiverTypeName, StringComparison.Ordinal);
+                // We get a match if the receiver type name match. 
+                // For complex type, we would check if it matches with filter on whether it's an array.
+                return filterReceiverTypeName.Length == 0 ||
+                       string.Equals(filterReceiverTypeName, GetReceiverTypeName(method.Parameters[0].Type), StringComparison.Ordinal);
             }
 
             // An quick accessibility check based on declared accessibility only, a semantic based check is still required later.
@@ -442,27 +451,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static MultiDictionary<string, (string, string)> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, SymbolTreeInfo symbolInfo)
         {
             var results = new MultiDictionary<string, (string, string)>();
+            using var _ = ArrayBuilder<string>.GetInstance(targetTypeNames.Length + 2, out var builder);
 
-            if (symbolInfo.SimpleTypeNameToExtensionMethodMap != null)
+            builder.AddRange(targetTypeNames);
+            builder.Add(string.Empty);
+            builder.Add("[]");
+
+            foreach (var targetTypeName in builder)
             {
-                foreach (var targetTypeName in targetTypeNames)
+                var methodInfos = symbolInfo.GetExtensionMethodInfoForReceiverType(targetTypeName);
+                if (methodInfos.Count == 0)
                 {
-                    var methodInfos = symbolInfo.SimpleTypeNameToExtensionMethodMap[targetTypeName];
-                    if (methodInfos.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    foreach (var methodInfo in methodInfos)
-                    {
-                        results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, targetTypeName));
-                    }
+                    continue;
                 }
-            }
 
-            foreach (var methodInfo in symbolInfo.ExtensionMethodOfComplexType)
-            {
-                results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, string.Empty));
+                foreach (var methodInfo in methodInfos)
+                {
+                    results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, targetTypeName));
+                }
             }
 
             return results;
