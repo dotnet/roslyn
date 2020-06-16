@@ -1818,6 +1818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
 
+        ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,
         ERR_AssignmentInitOnly = 8852,
@@ -1833,6 +1834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRecordBase = 8864,
         ERR_BadInheritanceFromRecord = 8865,
         ERR_BadRecordMemberForPositionalParameter = 8866,
+        ERR_NoCopyConstructorInBaseType = 8867,
+        ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
 
         #endregion
 

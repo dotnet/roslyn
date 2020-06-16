@@ -8377,7 +8377,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 null,
@@ -8417,7 +8417,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 null,

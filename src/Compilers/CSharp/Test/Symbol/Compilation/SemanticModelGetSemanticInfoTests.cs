@@ -7952,7 +7952,7 @@ class Program
         [Fact]
         public void DelegateSignatureMismatch3()
         {
-            // This test and the DelgateSignatureMismatch4 should have identical results, as they are semantically identical
+            // This test and the DelegateSignatureMismatch4 should have identical results, as they are semantically identical
 
             string sourceCode = @"
 using System;
