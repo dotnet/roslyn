@@ -2772,6 +2772,7 @@ public class D
             Assert.False(property0.MustCallMethodsDirectly);
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
 
             var property1 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived.Property");
             Assert.Null(property1.GetMethod);
@@ -2862,6 +2863,7 @@ public class D
             Assert.Null(property0.GetMethod);
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
 
             var property1 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived.Property");
             Assert.False(property1.HasUseSiteError);
@@ -2977,6 +2979,7 @@ public class D
             Assert.Null(property0.GetMethod);
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
         }
 
         [Fact]
@@ -3069,6 +3072,7 @@ public class Derived2 : C
             Assert.Null(property0.GetMethod);
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[1].HasUnsupportedMetadata);
         }
 
         [Fact]
@@ -3170,6 +3174,7 @@ public class Derived : C
             var method0 = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
             Assert.True(method0.HasUseSiteError);
             Assert.True(method0.HasUnsupportedMetadata);
+            Assert.True(method0.Parameters[0].HasUnsupportedMetadata);
         }
 
         [Fact]
@@ -3245,6 +3250,7 @@ public class D
             Assert.True(property0.MustCallMethodsDirectly);
             Assert.False(property0.GetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
             Assert.False(property0.SetMethod.IsInitOnly);
             Assert.False(property0.GetPublicSymbol().SetMethod.IsInitOnly);
         }
@@ -3332,6 +3338,7 @@ public class D
 
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
             Assert.False(property0.SetMethod.IsInitOnly);
             Assert.False(property0.GetPublicSymbol().SetMethod.IsInitOnly);
         }
@@ -3420,6 +3427,7 @@ public class D
 
             Assert.True(property0.SetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
             Assert.False(property0.SetMethod.IsInitOnly);
             Assert.False(property0.GetPublicSymbol().SetMethod.IsInitOnly);
         }
