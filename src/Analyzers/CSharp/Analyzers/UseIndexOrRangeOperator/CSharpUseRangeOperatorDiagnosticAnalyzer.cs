@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
             // If the slice-like method is being written to and returns a reference, we need to make sure that
             // the range method to substitute also returns a reference that can be written to
-            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && invocation.TargetMethod.ReturnsByRef == true && theIndexer != null && theIndexer.ReturnsByRef == false)
+            if (indexer != null && indexer.ReturnsByRef !=invocation.TargetMethod.ReturnsByRef &&  invocation.Syntax.IsLeftSideOfAnyAssignExpression())
             {
                 return null;
             }
