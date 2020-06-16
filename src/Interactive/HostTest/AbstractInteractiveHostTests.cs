@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         protected AbstractInteractiveHostTests()
         {
             Host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
+            Host.InteractiveHostProcessCreationFailed += exception => Assert.False(true, exception?.Message ?? "Host process terminated unexpectedly");
 
             RedirectOutput();
         }
