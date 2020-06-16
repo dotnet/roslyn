@@ -20,6 +20,11 @@
     <ProjectReference Include="..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!--
+      Not using ProjectReference since it does not execute the specified targets when building in VS.
+      See https://github.com/microsoft/msbuild/issues/5434.
+    -->
+    
     <CopyPublishedOutputProjectReference Include="..\HostProcess\InteractiveHost32.csproj">
       <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
       <OutputItemType>InteractiveHostFiles_Desktop32</OutputItemType>
@@ -51,7 +56,6 @@
   -->
   <Target Name="_DeployInteractiveHosts" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
 
-    <!-- Not using ProjectReference since it does not execute the specified targets when building in VS -->
     <MSBuild
         Projects="@(CopyPublishedOutputProjectReference)"
         Targets="PublishProjectOutputGroup"

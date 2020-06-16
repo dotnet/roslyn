@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal event Action<char[], int>? ErrorOutputReceived;
 
         internal Process? TryGetProcess()
-            => _lazyRemoteService?.TryGetInitializedService()?.Service.Process;
+            => _lazyRemoteService?.TryGetInitializedService()?.Service?.Process;
 
-        internal async Task<RemoteService> TryGetServiceAsync()
+        internal async Task<RemoteService?> TryGetServiceAsync()
             => (await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false)).Service;
 
         // Triggered whenever we create a fresh process.
