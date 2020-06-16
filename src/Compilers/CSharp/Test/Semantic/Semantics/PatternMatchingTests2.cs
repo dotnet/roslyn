@@ -2596,5 +2596,217 @@ public class C
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "s is string or null").WithArguments("string").WithLocation(7, 13)
                 );
         }
+
+        [Fact]
+        public void SemanticModelForSwitchExpression()
+        {
+            var source =
+@"public class C
+{
+    void M(int i)
+    {
+        C x0 = i switch // 0
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        _ = i switch // 1
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        D x2 = i switch // 2
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        D x3 = i switch // 3
+        {
+            0 => new E(), // 3.1
+            1 => new F(), // 3.2
+            _ => throw null,
+        };
+        C x4 = i switch // 4
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        };
+        D x5 = i switch // 5
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        };
+        D x6 = i switch // 6
+        {
+            0 => 1,
+            1 => 2,
+            _ => throw null,
+        };
+        _ = (C)(i switch // 7
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 8
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 9
+        {
+            0 => new E(), // 9.1
+            1 => new F(), // 9.2
+            _ => throw null,
+        });
+        _ = (C)(i switch // 10
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 11
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 12
+        {
+            0 => 1,
+            1 => 2,
+            _ => throw null,
+        });
+    }
+}
+
+class A : C { }
+class B : C { }
+class D
+{
+    public static implicit operator D(C c) => throw null;
+    public static implicit operator D(short s) => throw null;
+}
+class E
+{
+    public static implicit operator C(E c) => throw null;
+}
+class F
+{
+    public static implicit operator C(F c) => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (11,15): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch // 1
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(11, 15),
+                // (25,18): error CS0029: Cannot implicitly convert type 'E' to 'D'
+                //             0 => new E(), // 3.1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new E()").WithArguments("E", "D").WithLocation(25, 18),
+                // (26,18): error CS0029: Cannot implicitly convert type 'F' to 'D'
+                //             1 => new F(), // 3.2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(26, 18),
+                // (63,18): error CS0029: Cannot implicitly convert type 'E' to 'D'
+                //             0 => new E(), // 9.1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new E()").WithArguments("E", "D").WithLocation(63, 18),
+                // (64,18): error CS0029: Cannot implicitly convert type 'F' to 'D'
+                //             1 => new F(), // 9.2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(64, 18)
+                );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            void checkType(ExpressionSyntax expr, string expectedNaturalType, string expectedConvertedType, ConversionKind expectedConversionKind)
+            {
+                var typeInfo = model.GetTypeInfo(expr);
+                var conversion = model.GetConversion(expr);
+                Assert.Equal(expectedNaturalType, typeInfo.Type?.ToTestDisplayString());
+                Assert.Equal(expectedConvertedType, typeInfo.ConvertedType?.ToTestDisplayString());
+                Assert.Equal(expectedConversionKind, conversion.Kind);
+            }
+
+            var switches = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().ToArray();
+            for (int i = 0; i < switches.Length; i++)
+            {
+                var expr = switches[i];
+                switch (i)
+                {
+                    case 0:
+                    case 7:
+                        checkType(expr, null, "C", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 1:
+                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "B", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        break;
+                    case 2:
+                    case 8:
+                        checkType(expr, null, "D", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "A", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "B", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        break;
+                    case 3:
+                        checkType(expr, "?", "D", ConversionKind.NoConversion);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        break;
+                    case 9:
+                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        break;
+                    case 4:
+                    case 10:
+                        checkType(expr, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 5:
+                        checkType(expr, "C", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 11:
+                        checkType(expr, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 6:
+                    case 12:
+                        checkType(expr, "System.Int32", "D", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        break;
+                    default:
+                        Assert.False(true);
+                        break;
+                }
+            }
+        }
     }
 }
