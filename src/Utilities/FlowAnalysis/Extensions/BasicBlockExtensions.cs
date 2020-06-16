@@ -166,23 +166,5 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         internal static int GetMaxSuccessorOrdinal(this BasicBlock basicBlock)
             => Math.Max(basicBlock.FallThroughSuccessor?.Destination?.Ordinal ?? -1,
                         basicBlock.ConditionalSuccessor?.Destination?.Ordinal ?? -1);
-
-        internal static IOperation? GetPreviousOperationInBlock(this BasicBlock basicBlock, IOperation operation)
-        {
-            Debug.Assert(operation != null);
-
-            IOperation? previousOperation = null;
-            foreach (var currentOperation in basicBlock.Operations)
-            {
-                if (operation == currentOperation)
-                {
-                    return previousOperation;
-                }
-
-                previousOperation = currentOperation;
-            }
-
-            return null;
-        }
     }
 }
