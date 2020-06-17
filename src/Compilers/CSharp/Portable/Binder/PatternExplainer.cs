@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (n)
                 {
                     case BoundEvaluationDecisionDagNode e:
-                        // evalations are free; we are more interested in decision nodes
+                        // evaluations are free; we are more interested in decision nodes
                         dist.Add(e, distance(e.Next));
                         break;
                     case BoundTestDecisionDagNode { Test: BoundDagNonNullTest _ } t when !nullPaths:
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundTestDecisionDagNode t:
                         {
                             BoundDecisionDagNode nextNode = (i < pathToNode.Length - 1) ? pathToNode[i + 1] : targetNode;
-                            bool sense = t.WhenTrue == nextNode || t.WhenFalse != nextNode && t.WhenTrue is BoundWhenDecisionDagNode;
+                            bool sense = t.WhenTrue == nextNode || (t.WhenFalse != nextNode && t.WhenTrue is BoundWhenDecisionDagNode);
                             BoundDagTest test = t.Test;
                             BoundDagTemp temp = t.Test.Input;
                             if (t.Test is BoundDagTypeTest && sense == false)

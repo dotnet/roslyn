@@ -36,12 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _hasLarge = hasLarge;
             }
 
-            bool IValueSet.IsEmpty => !_hasLarge && _values.IsEmpty;
+            public bool IsEmpty => !_hasLarge && _values.IsEmpty;
 
             ConstantValue? IValueSet.Sample
             {
                 get
                 {
+                    if (IsEmpty)
+                        throw new ArgumentException();
+
                     if (!_values.IsEmpty)
                         return _values.Sample;
 

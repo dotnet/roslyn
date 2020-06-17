@@ -48,12 +48,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     numbers: (IValueSet<TFloating>)NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Random(expectedSize, random), hasNaN: hasNan);
             }
 
-            bool IValueSet.IsEmpty => !_hasNaN && _numbers.IsEmpty;
+            public bool IsEmpty => !_hasNaN && _numbers.IsEmpty;
 
             ConstantValue IValueSet.Sample
             {
                 get
                 {
+                    if (IsEmpty)
+                        throw new ArgumentException();
+
                     if (!_numbers.IsEmpty)
                     {
                         var sample = _numbers.Sample;
