@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     this.AddEndOfLine(GetEndOfLine(trivia) ?? SyntaxFactory.CarriageReturnLineFeed);
                 }
 
-                _residualTrivia.Add(trivia);
+                _residualTrivia.Add(in trivia);
             }
 
             private void AddEndOfLine(SyntaxTrivia? eolTrivia)
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     if (alternate != null && visited.Kind() != SyntaxKind.None)
                     {
-                        alternate.Add(visited);
+                        alternate.Add(in visited);
                     }
                 }
 

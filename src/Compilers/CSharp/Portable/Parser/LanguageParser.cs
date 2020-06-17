@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             finally
             {
-                _pool.Free(attributes);
+                _pool.Free(in attributes);
             }
         }
 
@@ -982,7 +982,7 @@ tryAgain:
                 }
                 finally
                 {
-                    _pool.Free(argNodes);
+                    _pool.Free(in argNodes);
                 }
             }
 
@@ -1779,7 +1779,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(list);
+                _pool.Free(in list);
             }
         }
 
@@ -1861,7 +1861,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(bounds);
+                _pool.Free(in bounds);
             }
         }
 
@@ -3868,7 +3868,7 @@ parse_member_name:;
             }
             finally
             {
-                _pool.Free(parameters);
+                _pool.Free(in parameters);
             }
         }
 
@@ -3893,7 +3893,7 @@ parse_member_name:;
             }
             finally
             {
-                _pool.Free(parameters);
+                _pool.Free(in parameters);
             }
         }
 
@@ -4222,7 +4222,7 @@ tryAgain:
             finally
             {
                 _termState = saveTerm;
-                _pool.Free(variables);
+                _pool.Free(in variables);
             }
         }
 
@@ -4380,7 +4380,7 @@ tryAgain:
             finally
             {
                 _termState = saveTerm;
-                _pool.Free(variables);
+                _pool.Free(in variables);
             }
         }
 
@@ -4427,7 +4427,7 @@ tryAgain:
             finally
             {
                 _termState = saveTerm;
-                _pool.Free(variables);
+                _pool.Free(in variables);
             }
         }
 
@@ -4846,7 +4846,7 @@ tryAgain:
                     }
                     finally
                     {
-                        _pool.Free(args);
+                        _pool.Free(in args);
                     }
 
                     break;
@@ -4953,7 +4953,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(variables);
+                _pool.Free(in variables);
             }
         }
 
@@ -5015,7 +5015,7 @@ tryAgain:
                 var tmpList = _pool.AllocateSeparated<BaseTypeSyntax>();
                 tmpList.Add(_syntaxFactory.SimpleBaseType(type, argumentList: null));
                 baseList = _syntaxFactory.BaseList(colon, tmpList);
-                _pool.Free(tmpList);
+                _pool.Free(in tmpList);
             }
 
             var members = default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
@@ -5031,7 +5031,7 @@ tryAgain:
                 }
                 finally
                 {
-                    _pool.Free(builder);
+                    _pool.Free(in builder);
                 }
             }
 
@@ -5397,7 +5397,7 @@ tryAgain:
                     this.ParseTypeArgumentList(out open, types, out close);
                     name = _syntaxFactory.GenericName(id.Identifier,
                         _syntaxFactory.TypeArgumentList(open, types, close));
-                    _pool.Free(types);
+                    _pool.Free(in types);
                 }
             }
 
@@ -6766,7 +6766,7 @@ done:;
             }
             finally
             {
-                _pool.Free(list);
+                _pool.Free(in list);
             }
         }
 
@@ -6812,7 +6812,7 @@ done:;
             }
             finally
             {
-                _pool.Free(list);
+                _pool.Free(in list);
             }
         }
 
@@ -6895,7 +6895,7 @@ done:;
                 var greaterThanTokenError = TryEatToken(SyntaxKind.GreaterThanToken) ?? SyntaxFactory.MissingToken(SyntaxKind.GreaterThanToken);
 
                 var funcPtr = SyntaxFactory.FunctionPointerType(@delegate, asterisk, callingConvention, lessThanTokenError, missingTypes, greaterThanTokenError);
-                _pool.Free(missingTypes);
+                _pool.Free(in missingTypes);
                 return funcPtr;
             }
 
@@ -6947,7 +6947,7 @@ done:;
             finally
             {
                 _termState = saveTerm;
-                _pool.Free(types);
+                _pool.Free(in types);
             }
 
             PostSkipAction skipBadFunctionPointerParameterListTokens()
@@ -8336,8 +8336,8 @@ done:;
             {
                 _termState = saveTerm;
                 this.Release(ref resetPoint);
-                _pool.Free(incrementors);
-                _pool.Free(initializers);
+                _pool.Free(in incrementors);
+                _pool.Free(in initializers);
             }
         }
 
@@ -9095,7 +9095,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(variables);
+                _pool.Free(in variables);
                 _pool.Free(mods);
             }
         }
@@ -9141,7 +9141,7 @@ tryAgain:
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 result = _syntaxFactory.ParenthesizedVariableDesignation(openParen, listOfDesignations, closeParen);
-                _pool.Free(listOfDesignations);
+                _pool.Free(in listOfDesignations);
             }
             else
             {
@@ -9193,7 +9193,7 @@ tryAgain:
             ParseLocalDeclaration(variables, false, attributes: default, mods: default, out type, out localFunction);
             Debug.Assert(localFunction == null);
             var result = _syntaxFactory.VariableDeclaration(type, variables);
-            _pool.Free(variables);
+            _pool.Free(in variables);
             return result;
         }
 
@@ -10661,7 +10661,7 @@ tryAgain:
             {
                 if (!list.IsNull)
                 {
-                    _pool.Free(list);
+                    _pool.Free(in list);
                 }
             }
         }
@@ -11098,7 +11098,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(list);
+                _pool.Free(in list);
             }
         }
 
@@ -11306,7 +11306,7 @@ tryAgain:
             this.ParseAnonymousTypeMemberInitializers(ref openBrace, ref expressions);
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
             var result = _syntaxFactory.AnonymousObjectCreationExpression(@new, openBrace, expressions, closeBrace);
-            _pool.Free(expressions);
+            _pool.Free(in expressions);
 
             return result;
         }
@@ -11531,7 +11531,7 @@ tryAgain:
             var initializer = _syntaxFactory.InitializerExpression(
                 SyntaxKind.WithInitializerExpression,
                 openBrace,
-                _pool.ToListAndFree(list),
+                _pool.ToListAndFree(in list),
                 closeBrace);
 
             withKeyword = CheckFeatureAvailability(withKeyword, MessageID.IDS_FeatureRecords);
@@ -11570,7 +11570,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(initializers);
+                _pool.Free(in initializers);
             }
         }
 
@@ -11708,7 +11708,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(initializers);
+                _pool.Free(in initializers);
             }
         }
 
@@ -11864,7 +11864,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(list);
+                _pool.Free(in list);
             }
         }
 
@@ -12086,7 +12086,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(nodes);
+                _pool.Free(in nodes);
             }
         }
 
@@ -12509,7 +12509,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(list);
+                _pool.Free(in list);
             }
         }
 

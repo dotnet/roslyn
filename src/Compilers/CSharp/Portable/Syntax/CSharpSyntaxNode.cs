@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SyntaxToken nonTriviaToken = this.FindToken(position, findInsideTrivia: false);
 
-            SyntaxTrivia trivia = GetTriviaFromSyntaxToken(position, nonTriviaToken);
+            SyntaxTrivia trivia = GetTriviaFromSyntaxToken(position, in nonTriviaToken);
 
             if (!SyntaxFacts.IsDocumentationCommentTrivia(trivia.Kind()))
             {

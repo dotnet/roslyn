@@ -373,12 +373,12 @@ class C1
                 var document1 = solution1.GetDocument(document.Id);
                 var dversion1 = await document1.GetTextVersionAsync();
                 Assert.NotEqual(dversion, dversion1); // new document version
-                Assert.True(dversion1.GetTestAccessor().IsNewerThan(dversion));
+                Assert.True(dversion1.GetTestAccessor().IsNewerThan(in dversion));
                 Assert.Equal(solution.Version, solution1.Version); // updating document should not have changed solution version
                 Assert.Equal(project.Version, document1.Project.Version); // updating doc should not have changed project version
                 var latestDV1 = await document1.Project.GetLatestDocumentVersionAsync();
                 Assert.NotEqual(latestDV, latestDV1);
-                Assert.True(latestDV1.GetTestAccessor().IsNewerThan(latestDV));
+                Assert.True(latestDV1.GetTestAccessor().IsNewerThan(in latestDV));
                 Assert.Equal(latestDV1, await document1.GetTextVersionAsync()); // projects latest doc version should be this doc's version
 
                 // update project

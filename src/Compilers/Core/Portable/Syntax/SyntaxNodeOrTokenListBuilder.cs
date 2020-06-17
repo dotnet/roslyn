@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             foreach (var n in nodeOrTokens)
             {
-                this.Add(n);
+                this.Add(in n);
             }
         }
 

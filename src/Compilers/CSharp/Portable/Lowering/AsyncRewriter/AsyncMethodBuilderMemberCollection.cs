@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var descriptor = WellKnownMembers.GetDescriptor(memberValue);
                 var sym = CSharpCompilation.GetRuntimeMember(
                     builderType.OriginalDefinition,
-                    descriptor,
+                    in descriptor,
                     F.Compilation.WellKnownMemberSignatureComparer,
                     accessWithinOpt: null);
                 if ((object)sym != null)

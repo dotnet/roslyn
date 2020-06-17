@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             where TNode : GreenNode
         {
             var list = item.ToList();
-            Free(item);
+            Free(in item);
             return list;
         }
     }

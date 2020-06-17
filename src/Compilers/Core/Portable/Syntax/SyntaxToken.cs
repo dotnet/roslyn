@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            return SyntaxNavigator.Instance.GetNextToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetNextToken(in this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            return SyntaxNavigator.Instance.GetNextToken(this, predicate, stepInto);
+            return SyntaxNavigator.Instance.GetNextToken(in this, predicate, stepInto);
         }
 
         /// <summary>
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            return SyntaxNavigator.Instance.GetPreviousToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetPreviousToken(in this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis
         /// included in the search.</param>
         internal SyntaxToken GetPreviousToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto = null)
         {
-            return SyntaxNavigator.Instance.GetPreviousToken(this, predicate, stepInto);
+            return SyntaxNavigator.Instance.GetPreviousToken(in this, predicate, stepInto);
         }
 
         /// <summary>

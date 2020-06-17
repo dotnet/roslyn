@@ -571,7 +571,7 @@ tryAgain:
             }
             finally
             {
-                _pool.Free(list);
+                _pool.Free(in list);
             }
         }
 
@@ -664,7 +664,7 @@ tryAgain:
             }
 
             SeparatedSyntaxList<SwitchExpressionArmSyntax> result = arms;
-            _pool.Free(arms);
+            _pool.Free(in arms);
             return result;
         }
     }

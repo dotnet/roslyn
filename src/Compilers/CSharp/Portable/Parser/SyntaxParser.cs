@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (_currentNode.Token != null)
                     {
-                        this.AddToken(_currentNode);
+                        this.AddToken(in _currentNode);
                     }
                     else
                     {
