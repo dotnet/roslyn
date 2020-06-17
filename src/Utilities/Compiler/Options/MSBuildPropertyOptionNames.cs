@@ -8,5 +8,6 @@ namespace Analyzer.Utilities
     internal static partial class MSBuildPropertyOptionNames
     {
         public const string TargetFramework = "TargetFramework";
+        public const string TargetPlatformMinVersion = "TargetPlatformMinVersion";
     }
 }
