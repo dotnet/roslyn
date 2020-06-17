@@ -989,7 +989,6 @@ class C
 }",
                 parameters: s_nullableFeature);
         }
-    }
 
         [Fact]
         [WorkItem(44983, "https://github.com/dotnet/roslyn/issues/44983")]
