@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
             Project project, int maxResults, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
-            var allReferences = ArrayBuilder<Reference>.GetInstance();
+            using var _ = ArrayBuilder<Reference>.GetInstance(out var allReferences);
 
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            return allReferences.ToImmutableAndFree();
+            return allReferences.ToImmutable();
         }
 
         private static async Task FindResultsInAllSymbolsInStartingProjectAsync(
