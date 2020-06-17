@@ -125,19 +125,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Second arg needs to be a subtraction for: `end - e2`.  Once we've seen that we have
             // that, try to see if we're calling into some sort of Slice method with a matching
             // indexer or overload
+            var valid = infoCache.TryGetMemberInfo(targetMethod, out var memberInfo);
             if (!IsSubtraction(invocation.Arguments[1].Value, out var subtraction) ||
-                !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
+                !valid)
             {
                 return null;
             }
 
-            var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
-            // If the slice-like method is being written to and returns a reference, we need to make sure that
-            // the range method to substitute also returns a reference that can be written to
-            if (indexer != null && indexer.ReturnsByRef !=invocation.TargetMethod.ReturnsByRef &&  invocation.Syntax.IsLeftSideOfAnyAssignExpression())
+            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() &&
+                !valid)
             {
                 return null;
             }
+
+            //var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
+            // If the slice-like method is being written to and returns a reference, we need to make sure that
+            // the range method to substitute also returns a reference that can be written to
+            //if (indexer != null && indexer.ReturnsByRef !=invocation.TargetMethod.ReturnsByRef &&  invocation.Syntax.IsLeftSideOfAnyAssignExpression())
+            //{
+            //    return null;
+            //}
 
             // See if we have: (start, end - start).  Specifically where the start operation it the
             // same as the right side of the subtraction.
