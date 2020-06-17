@@ -36,7 +36,7 @@ Microsoft.CodeAnalysis.SourceGeneratorContext.AnalyzerConfigOptions.get -> Micro
 Microsoft.CodeAnalysis.Operations.IWithOperation
 Microsoft.CodeAnalysis.Operations.IWithOperation.CloneMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Operations.IWithOperation.Initializer.get -> Microsoft.CodeAnalysis.Operations.IObjectOrCollectionInitializerOperation
-Microsoft.CodeAnalysis.Operations.IWithOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IWithOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.SymbolKind.FunctionPointerType = 20 -> Microsoft.CodeAnalysis.SymbolKind
 Microsoft.CodeAnalysis.TypeKind.FunctionPointer = 13 -> Microsoft.CodeAnalysis.TypeKind
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
