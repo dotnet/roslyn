@@ -382,6 +382,9 @@ dotnet_diagnostic.IDE0076.severity = %value%
 # IDE0077
 dotnet_diagnostic.IDE0077.severity = %value%
 
+# IDE0078
+csharp_style_prefer_pattern_matching = true:silent
+
 # IDE0080
 dotnet_diagnostic.IDE0080.severity = %value%
 
@@ -905,6 +908,9 @@ No editorconfig based code style option
 
 # IDE0077
 No editorconfig based code style option
+
+# IDE0078, PreferPatternMatching
+csharp_style_prefer_pattern_matching = true:silent
 
 # IDE0080
 No editorconfig based code style option
