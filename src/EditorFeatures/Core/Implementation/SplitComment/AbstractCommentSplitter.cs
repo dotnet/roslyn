@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 {
     internal abstract class AbstractCommentSplitter
     {
-        protected Document _document;
-        protected int _cursorPosition;
-        protected SourceText _sourceText;
-        protected SyntaxNode _root;
-        protected int _tabSize;
-        protected bool _useTabs;
-        protected CancellationToken _cancellationToken;
-        protected SyntaxTrivia _trivia;
-        protected bool _hasSpaceAfterComment;
-        protected IndentStyle _indentStyle;
+        protected readonly Document _document;
+        protected readonly int _cursorPosition;
+        protected readonly SourceText _sourceText;
+        protected readonly SyntaxNode _root;
+        protected readonly int _tabSize;
+        protected readonly bool _useTabs;
+        protected readonly CancellationToken _cancellationToken;
+        protected readonly SyntaxTrivia _trivia;
+        protected readonly bool _hasSpaceAfterComment;
+        protected readonly IndentStyle _indentStyle;
 
         protected SyntaxNode GetNodeToReplace()
         {
