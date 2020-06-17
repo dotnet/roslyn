@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         private static ImmutableArray<ISymbol> CreateInterfaceMembers(IEnumerable<ISymbol> includedMembers)
         {
-            var interfaceMembers = ArrayBuilder<ISymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var interfaceMembers);
 
             foreach (var member in includedMembers)
             {
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 }
             }
 
-            return interfaceMembers.ToImmutableAndFree();
+            return interfaceMembers.ToImmutable();
         }
 
         internal virtual bool IsExtractableMember(ISymbol m)
