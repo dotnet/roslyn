@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 ImmutableArray<IParameterSymbol> parametersForSelectedMembers,
                 CancellationToken cancellationToken)
             {
-                var applicableConstructors = ArrayBuilder<ConstructorCandidate>.GetInstance();
+                using var _ = ArrayBuilder<ConstructorCandidate>.GetInstance(out var applicableConstructors);
 
                 foreach (var constructor in containingType.InstanceConstructors)
                 {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     }
                 }
 
-                return applicableConstructors.ToImmutableAndFree();
+                return applicableConstructors.ToImmutable();
             }
 
             private static async Task<bool> IsApplicableConstructorAsync(IMethodSymbol constructor, Document document, ImmutableArray<string> parameterNamesForSelectedMembers, CancellationToken cancellationToken)
