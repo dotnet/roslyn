@@ -72,7 +72,7 @@ build_metadata.Compile.ToRetrieve = abc123
         }
 
         [Fact]
-        public void MutlipleItemMetaDataCreatesSections()
+        public void MultipleItemMetaDataCreatesSections()
         {
             ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
             ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });

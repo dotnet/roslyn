@@ -877,5 +877,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitThrowExpression(node);
         }
+
+        public override BoundNode VisitWithExpression(BoundWithExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsWithExpression, node);
+            }
+
+            return base.VisitWithExpression(node);
+        }
     }
 }
