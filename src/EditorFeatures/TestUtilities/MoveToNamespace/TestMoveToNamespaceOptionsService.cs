@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         {
         }
 
-        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, ISyntaxFactsService syntaxFactsService)
+        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, ISyntaxFacts syntaxFactsService)
             => OptionsResult;
 
         internal void SetOptions(MoveToNamespaceOptionsResult moveToNamespaceOptions)

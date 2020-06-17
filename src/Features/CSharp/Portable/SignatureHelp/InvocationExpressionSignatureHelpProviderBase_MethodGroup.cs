@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             CancellationToken cancellationToken)
         {
             return Task.FromResult(
-                (accessibleMethods.SelectAsArray(m => ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel, cancellationToken)),
+                (accessibleMethods.SelectAsArray(m => ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel)),
                  TryGetSelectedIndex(accessibleMethods, currentSymbol)));
         }
 
-        private ImmutableArray<IMethodSymbol> GetAccessibleMethods(
+        private static ImmutableArray<IMethodSymbol> GetAccessibleMethods(
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             ISymbol within,
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToImmutableArrayOrEmpty();
         }
 
-        private bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)
+        private static bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)
         {
             foreach (var m in methodSet)
             {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return false;
         }
 
-        private bool IsHiddenBy(IMethodSymbol method1, IMethodSymbol method2)
+        private static bool IsHiddenBy(IMethodSymbol method1, IMethodSymbol method2)
         {
             // If they have the same parameter types and the same parameter names, then the 
             // constructed method is hidden by the unconstructed one.

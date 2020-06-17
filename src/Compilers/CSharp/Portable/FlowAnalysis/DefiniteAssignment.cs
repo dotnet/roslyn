@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value.ConstantValue != ConstantValue.Null;
             }
 
-            if ((object)type != null && type.IsPointerType())
+            if ((object)type != null && type.IsPointerOrFunctionPointer())
             {
                 // We always suppress the warning for pointer types. 
                 return true;
@@ -1879,6 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+#nullable enable
         protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)
         {
             if (refKind == RefKind.Ref)
@@ -1895,11 +1896,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we assume that external method may write and/or read all of its fields (recursively).
             // Strangely, the native compiler requires the "ref", even for reference types, to exhibit
             // this behavior.
-            if (refKind != RefKind.None && ((object)method == null || method.IsExtern))
+            if (refKind != RefKind.None && ((object)method == null || method.IsExtern) && arg.Type is TypeSymbol type)
             {
-                MarkFieldsUsed(arg.Type);
+                MarkFieldsUsed(type);
             }
         }
+#nullable restore
 
         protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
@@ -1936,6 +1938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private void MarkFieldsUsed(TypeSymbol type)
         {
             switch (type.TypeKind)
@@ -1951,9 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    var namedType = (NamedTypeSymbol)type;
-                    var assembly = type.ContainingAssembly as SourceAssemblySymbol;
-                    if ((object)assembly == null)
+                    if (!(type.ContainingAssembly is SourceAssemblySymbol assembly))
                     {
                         return; // could be retargeting assembly
                     }
@@ -1961,6 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var seen = assembly.TypesReferencedInExternalMethods;
                     if (seen.Add(type))
                     {
+                        var namedType = (NamedTypeSymbol)type;
                         foreach (var symbol in namedType.GetMembersUnordered())
                         {
                             if (symbol.Kind != SymbolKind.Field)
@@ -1976,6 +1978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
             }
         }
+#nullable restore
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {

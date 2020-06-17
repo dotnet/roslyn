@@ -31,10 +31,16 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
         protected override bool ReleaseHandle()
         {
-            using var _ = _lease;
-            var result = (Result)raw.sqlite3_finalize(_wrapper);
-            SetHandle(IntPtr.Zero);
-            return result == Result.OK;
+            try
+            {
+                var result = (Result)raw.sqlite3_finalize(_wrapper);
+                SetHandle(IntPtr.Zero);
+                return result == Result.OK;
+            }
+            finally
+            {
+                _lease.Dispose();
+            }
         }
     }
 }

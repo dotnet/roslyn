@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                                 new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
         }
 
-        private IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
+        private static IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
         {
             foreach (var provider in providers)
             {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
+        private static async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
             Document document,
             TextSpan state,
             CodeRefactoringProvider provider,

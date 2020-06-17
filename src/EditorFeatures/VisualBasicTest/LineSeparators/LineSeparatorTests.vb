@@ -194,7 +194,6 @@ End Class")
 End Class")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestProperty() As Task
             Await AssertTagsAsync({New TextSpan(164, 9)},
@@ -289,7 +288,8 @@ End Class")
         Private Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim spans = Await New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document,
+                Dim service = Assert.IsType(Of VisualBasicLineSeparatorService)(workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ILineSeparatorService)())
+                Dim spans = Await service.GetLineSeparatorsAsync(document,
                     (Await document.GetSyntaxRootAsync()).FullSpan)
                 Return spans.OrderBy(Function(span) span.Start)
             End Using

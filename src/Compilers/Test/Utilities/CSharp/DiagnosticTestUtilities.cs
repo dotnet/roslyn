@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string[] srcs, params ErrorDescription[] expectedErrorDesp)
         {
-            var comp = CSharpTestBase.CreateCompilation(srcs);
+            var comp = CSharpTestBase.CreateCompilation(srcs, parseOptions: TestOptions.RegularPreview);
             var actualErrors = comp.GetDiagnostics();
             VerifyErrorCodes(actualErrors, expectedErrorDesp);
             return comp;

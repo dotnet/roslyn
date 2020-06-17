@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
-                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, anonymousTypeDisplayService, type, cancellationToken)
+                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, anonymousTypeDisplayService, type)
                 : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
 
             return CreateSignatureHelpItems(items, textSpan,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,12 +12,15 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal readonly struct UnitTestingKeepAliveSessionWrapper
     {
-        internal UnitTestingKeepAliveSessionWrapper(KeepAliveSession underlyingObject)
-            => UnderlyingObject = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
+        internal RemoteServiceConnection UnderlyingObject { get; }
 
-        internal KeepAliveSession UnderlyingObject { get; }
+        internal UnitTestingKeepAliveSessionWrapper(RemoteServiceConnection underlyingObject)
+            => UnderlyingObject = underlyingObject;
+
+        public bool IsDefault => UnderlyingObject == null;
 
         public Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             => UnderlyingObject.RunRemoteAsync<T>(targetName, solution, arguments, cancellationToken);

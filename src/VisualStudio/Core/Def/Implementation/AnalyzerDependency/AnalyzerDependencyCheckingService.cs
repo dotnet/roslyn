@@ -63,7 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerDependencyCheckingService(

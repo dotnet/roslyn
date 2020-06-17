@@ -163,10 +163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
+            private static bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
                 => node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
 
-            private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
+            private static void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
                 if (!(node is SwitchSectionSyntax section) || section.Statements.Count == 0)
                 {
@@ -190,7 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             private static void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node)
             {
                 // only add indent block operation if the base token is the first token on line
-                var text = node.SyntaxTree.GetText();
                 var baseToken = node.Parent.GetFirstToken(includeZeroWidth: true);
 
                 list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(

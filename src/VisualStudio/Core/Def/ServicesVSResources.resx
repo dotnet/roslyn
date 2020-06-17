@@ -1344,6 +1344,12 @@ I agree to all of the foregoing:</value>
   <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
     <value>Code analysis completed for Solution.</value>
   </data>
+  <data name="Code_analysis_terminated_before_completion_for_0" xml:space="preserve">
+    <value>Code analysis terminated before completion for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
+    <value>Code analysis terminated before completion for Solution.</value>
+  </data>
   <data name="Background_analysis_scope_colon" xml:space="preserve">
     <value>Background analysis scope:</value>
   </data>
@@ -1453,6 +1459,39 @@ I agree to all of the foregoing:</value>
   <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
     <value>Razor C# Language Server Client</value>
   </data>
+  <data name="All_sources" xml:space="preserve">
+    <value>All sources</value>
+  </data>
+  <data name="Entire_repository" xml:space="preserve">
+    <value>Entire repository</value>
+  </data>
+  <data name="Indexed_in_organization" xml:space="preserve">
+    <value>Indexed in organization</value>
+  </data>
+  <data name="Indexed_in_repo" xml:space="preserve">
+    <value>Indexed in repo</value>
+  </data>
+  <data name="Item_origin" xml:space="preserve">
+    <value>Item origin</value>
+  </data>
+  <data name="Loaded_items" xml:space="preserve">
+    <value>Loaded items</value>
+  </data>
+  <data name="Loaded_solution" xml:space="preserve">
+    <value>Loaded solution</value>
+  </data>
+  <data name="Local" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="Local_metadata" xml:space="preserve">
+    <value>Local metadata</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Others</value>
+  </data>
+  <data name="Repository" xml:space="preserve">
+    <value>Repository</value>
+  </data>
   <data name="Type_name_has_a_syntax_error" xml:space="preserve">
     <value>Type name has a syntax error</value>
     <comment>"Type" is the programming language concept</comment>
@@ -1477,5 +1516,17 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Parameter_information" xml:space="preserve">
     <value>Parameter information</value>
+  </data>
+  <data name="Infer_from_context" xml:space="preserve">
+    <value>Infer from context</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Warning_colon_duplicate_parameter_name" xml:space="preserve">
+    <value>Warning: duplicate parameter name</value>
+  </data>
+  <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
+    <value>Warning: type does not bind</value>
   </data>
 </root>

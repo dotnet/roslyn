@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         Private Shared Function CreateGraphContext(direction As GraphContextDirection, linkCategories As IEnumerable(Of GraphCategory)) As IGraphContext
-            Dim context = New Mock(Of IGraphContext)()
+            Dim context = New Mock(Of IGraphContext)(MockBehavior.Strict)
             context.Setup(Function(x) x.Direction).Returns(direction)
             context.Setup(Function(x) x.LinkCategories).Returns(linkCategories)
             Return context.Object

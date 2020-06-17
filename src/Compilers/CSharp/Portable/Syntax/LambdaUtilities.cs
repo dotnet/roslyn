@@ -382,6 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind())
             {
+                case SyntaxKind.CompilationUnit:
                 case SyntaxKind.Block:
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.ArrowExpressionClause:  // expression-bodied member
@@ -412,6 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     // With dynamic analysis instrumentation, a type declaration can be the syntax associated
                     // with the analysis payload local of a synthesized constructor.
                     // If the synthesized constructor includes an initializer with a lambda,

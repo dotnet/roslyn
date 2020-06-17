@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName));
                 }
 
-                private string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
+                private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
                 {
                     if (expression.Parent != null &&
                         expression.Parent.Kind() == SyntaxKind.EqualsValueClause &&
@@ -95,12 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     Contract.ThrowIfFalse(IsExtractMethodOnExpression(CSharpSelectionResult));
 
-                    ExpressionSyntax expression = null;
-
                     // special case for array initializer
                     var returnType = AnalyzerResult.ReturnType;
                     var containingScope = CSharpSelectionResult.GetContainingScope();
 
+                    ExpressionSyntax expression;
                     if (returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax)
                     {
                         var typeSyntax = returnType.GenerateTypeSyntax();

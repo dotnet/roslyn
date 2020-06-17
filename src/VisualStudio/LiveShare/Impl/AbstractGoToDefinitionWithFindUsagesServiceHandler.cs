@@ -2,19 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Microsoft.VisualStudio.Shell;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
@@ -27,15 +29,17 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal abstract class AbstractGoToDefinitionWithFindUsagesServiceHandler : ILspRequestHandler<LSP.TextDocumentPositionParams, object, Solution>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
+        private readonly ILspSolutionProvider _solutionProvider;
 
-        public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService)
-            => this._metadataAsSourceService = metadataAsSourceService;
+        public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService, ILspSolutionProvider solutionProvider)
+        {
+            _metadataAsSourceService = metadataAsSourceService;
+            _solutionProvider = solutionProvider;
+        }
 
         public async Task<object> HandleAsync(LSP.TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var solution = requestContext.Context;
-
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = _solutionProvider.GetDocument(request.TextDocument);
             if (document == null)
             {
                 return Array.Empty<LSP.Location>();
@@ -70,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         /// </summary>
         private async Task<List<LSP.Location>> GetDefinitionsWithFindUsagesServiceAsync(Document document, int pos, CancellationToken cancellationToken)
         {
-            var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
+            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 

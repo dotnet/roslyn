@@ -293,6 +293,9 @@ namespace Microsoft.CodeAnalysis
             public WorkspaceAnalyzerConfigOptionsProvider(ProjectState projectState)
                 => _projectState = projectState;
 
+            public override AnalyzerConfigOptions GlobalOptions
+                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(string.Empty));
+
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
                 => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(tree.FilePath));
 
@@ -726,7 +729,7 @@ namespace Microsoft.CodeAnalysis
                 latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
         }
 
-        public ProjectState UpdateAnalyzerConfigDocument(AnalyzerConfigDocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
+        public ProjectState UpdateAnalyzerConfigDocument(AnalyzerConfigDocumentState newDocument)
         {
             Debug.Assert(this.ContainsAnalyzerConfigDocument(newDocument.Id));
 

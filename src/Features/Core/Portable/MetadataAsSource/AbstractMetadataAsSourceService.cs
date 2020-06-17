@@ -5,12 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -38,10 +36,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 document.Project.Solution,
                 rootNamespace,
                 CreateCodeGenerationSymbol(document, symbol),
-                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
+                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
                 cancellationToken).ConfigureAwait(false);
 
-            document = await RemoveSimplifierAnnotationsFromImportsAsync(document, cancellationToken).ConfigureAwait(false);
+            document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
 
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
@@ -55,26 +53,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// <see cref="ImportAdderService"/> adds <see cref="Simplifier.Annotation"/> to Import Directives it adds,
-        /// which causes the <see cref="Simplifier"/> to remove import directives when thety are only used by attributes.
-        /// Presumably this is because MetadataAsSource isn't actually semantically valid code.
-        /// 
-        /// To fix this we remove these annotations.
-        /// </summary>
-        private static async Task<Document> RemoveSimplifierAnnotationsFromImportsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            var importDirectives = (await document.GetSyntaxRootAsync().ConfigureAwait(false))
-                .DescendantNodesAndSelf()
-                .Where(syntaxFacts.IsUsingOrExternOrImport);
-
-            return await document.ReplaceNodesAsync(
-                importDirectives,
-                (o, c) => c.WithoutAnnotations(Simplifier.Annotation),
-                cancellationToken).ConfigureAwait(false);
-        }
+        protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);
 
         /// <summary>
         /// provide formatting rules to be used when formatting MAS file
@@ -118,7 +97,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     new[] { wrappedType });
         }
 
-        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation, ISymbol symbol)
+        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation)
         {
             return new CodeGenerationOptions(
                 contextLocation: contextLocation,

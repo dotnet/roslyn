@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 : NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
         }
 
-        private PatternMatch? FuzzyMatchPatternChunk(
+        private static PatternMatch? FuzzyMatchPatternChunk(
             string candidate,
             TextChunk patternChunk,
             bool punctuationStripped)

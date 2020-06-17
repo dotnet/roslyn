@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -59,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         when ConvertExpressionToType(expr, out var leftType):
                     type = _syntaxFactory.QualifiedName(leftType, dotToken, simpleName);
                     return true;
+                case AliasQualifiedNameSyntax a:
+                    type = a;
+                    return true;
                 default:
                     return false;
             };
@@ -85,12 +87,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Given tk, the type of the current token, does this look like the type of a pattern?
         /// </summary>
-        private bool LooksLikeTypeOfPattern(SyntaxKind tk)
+        private bool LooksLikeTypeOfPattern()
         {
-            return SyntaxFacts.IsPredefinedType(tk) ||
-                (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
-                  (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) ||
-                LooksLikeTupleArrayType();
+            var tk = CurrentToken.Kind;
+            if (SyntaxFacts.IsPredefinedType(tk))
+            {
+                return true;
+            }
+
+            if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
+                (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
+            {
+                return true;
+            }
+
+            if (LooksLikeTupleArrayType())
+            {
+                return true;
+            }
+
+            // We'll parse the function pointer, but issue an error in semantic analysis
+            if (IsFunctionPointerStart())
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private PatternSyntax ParseConjunctivePattern(Precedence precedence, bool afterIs, bool whenIsKeyword)
@@ -201,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             try
             {
                 TypeSyntax type = null;
-                if (LooksLikeTypeOfPattern(tk))
+                if (LooksLikeTypeOfPattern())
                 {
                     type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
                     if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
@@ -451,8 +473,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     expr = s;
                     return true;
                 case QualifiedNameSyntax { Left: var left, dotToken: var dotToken, Right: var right }
-                            when (permitTypeArguments || !(right is GenericNameSyntax)) && ConvertTypeToExpression(left, out var leftExpr, permitTypeArguments: true):
-                    expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, leftExpr, dotToken, right);
+                            when (permitTypeArguments || !(right is GenericNameSyntax)):
+                    var newLeft = ConvertTypeToExpression(left, out var leftExpr, permitTypeArguments: true) ? leftExpr : left;
+                    expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newLeft, dotToken, right);
                     return true;
                 default:
                     return false;

@@ -98,8 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
                         documentUpdateInfo.Destinations.Length > 1)
-
+                    {
                         documentUpdateInfo = new DocumentUpdateInfo(documentUpdateInfo.Source, SyntaxFactory.Block(documentUpdateInfo.Destinations));
+                    }
+
                     return true;
                 }
 
@@ -252,7 +254,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 SyntaxNode currentNode = _source;
                 while (currentNode != null)
                 {
-                    if (currentNode is StatementSyntax) { return true; }
+                    if (currentNode is StatementSyntax)
+                    {
+                        return true;
+                    }
                     if (currentNode is ExpressionSyntax ||
                         currentNode is ArgumentSyntax ||
                         currentNode is ArgumentListSyntax ||

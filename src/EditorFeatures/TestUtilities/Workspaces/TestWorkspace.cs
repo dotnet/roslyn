@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -252,6 +253,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public TServiceInterface GetService<TServiceInterface>()
             => ExportProvider.GetExportedValue<TServiceInterface>();
 
+        public TServiceInterface GetService<TServiceInterface>(string contentType)
+        {
+            var values = ExportProvider.GetExports<TServiceInterface, ContentTypeMetadata>();
+            return values.Single(value => value.Metadata.ContentTypes.Contains(contentType)).Value;
+        }
+
+        public TServiceInterface GetService<TServiceInterface>(string contentType, string name)
+        {
+            var values = ExportProvider.GetExports<TServiceInterface, OrderableContentTypeMetadata>();
+            return values.Single(value => value.Metadata.Name == name && value.Metadata.ContentTypes.Contains(contentType)).Value;
+        }
+
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
@@ -294,7 +307,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostProject = this.GetTestProject(info.Id.ProjectId);
             var hostDocument = new TestHostDocument(
                 text.ToString(), info.Name, info.SourceCodeKind,
-                info.Id, folders: info.Folders);
+                info.Id, folders: info.Folders,
+                exportProvider: ExportProvider);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
         }

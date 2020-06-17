@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             lock (_globalNotificationsGate)
             {
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
-                    SendStartNotificationAsync, _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                    SendStartNotificationAsync, _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
             }
         }
 
@@ -95,8 +95,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return previousTask.Result;
             }
 
-            _ = await client.TryRunRemoteAsync(
-                WellKnownServiceHubServices.CodeAnalysisService,
+            await client.RunRemoteAsync(
+                WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStarted),
                 solution: null,
                 Array.Empty<object>(),
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             lock (_globalNotificationsGate)
             {
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
-                    previous => SendStoppedNotificationAsync(previous, e), _cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                    previous => SendStoppedNotificationAsync(previous, e), _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
             }
         }
 
@@ -130,8 +130,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return previousTask.Result;
             }
 
-            _ = await client.TryRunRemoteAsync(
-                WellKnownServiceHubServices.CodeAnalysisService,
+            await client.RunRemoteAsync(
+                WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStopped),
                 solution: null,
                 new object[] { e.Operations, e.Cancelled },

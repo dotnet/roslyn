@@ -12,9 +12,11 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -24,6 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [UseExportProvider]
     public class CSharpEditAndContinueAnalyzerTests
     {
+        private static readonly IExportProviderFactory s_exportProviderFactoryWithTestActiveStatementSpanTracker =
+            ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
+                .WithPart(typeof(TestActiveStatementSpanTracker)));
+
         #region Helpers
 
         private static void TestSpans(string source, Func<SyntaxKind, bool> hasLabel)
@@ -262,7 +268,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using var workspace = TestWorkspace.CreateCSharp(source1);
+            using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             var oldSolution = workspace.CurrentSolution;
             var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
@@ -281,7 +287,9 @@ class C
             var oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan);
 
             var baseActiveStatements = ImmutableArray.Create(ActiveStatementsDescription.CreateActiveStatement(ActiveStatementFlags.IsLeafFrame, oldStatementSpan, DocumentId.CreateNewId(ProjectId.CreateNewId())));
-            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newDocument, trackingService: null, CancellationToken.None);
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newDocument, CancellationToken.None);
 
             Assert.True(result.HasChanges);
             Assert.True(result.SemanticEdits[0].PreserveLocalVariables);
@@ -318,7 +326,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using var workspace = TestWorkspace.CreateCSharp(source1);
+            using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             var oldSolution = workspace.CurrentSolution;
             var oldProject = oldSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
@@ -326,7 +334,9 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), trackingService: null, CancellationToken.None);
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
             Assert.True(result.HasChanges);
             Assert.True(result.HasChangesAndErrors);
@@ -347,11 +357,13 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using var workspace = TestWorkspace.CreateCSharp(source);
+            using var workspace = TestWorkspace.CreateCSharp(source, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             var oldProject = workspace.CurrentSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, trackingService: null, CancellationToken.None);
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, CancellationToken.None);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -381,7 +393,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using var workspace = TestWorkspace.CreateCSharp(source1);
+            using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
             var oldSolution = workspace.CurrentSolution;
             var oldProject = oldSolution.Projects.Single();
@@ -391,7 +403,9 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), trackingService: null, CancellationToken.None);
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -415,7 +429,7 @@ class C
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
 
             using var workspace = TestWorkspace.CreateCSharp(
-                source, parseOptions: experimental, compilationOptions: null, exportProvider: null);
+                source, parseOptions: experimental, compilationOptions: null, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
             var oldSolution = workspace.CurrentSolution;
             var oldProject = oldSolution.Projects.Single();
@@ -423,7 +437,9 @@ class C
             var documentId = oldDocument.Id;
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, trackingService: null, CancellationToken.None);
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, CancellationToken.None);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -473,7 +489,9 @@ class C
                 var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-                var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), trackingService: null, CancellationToken.None);
+                var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
+                var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
                 Assert.True(result.HasChanges);
                 Assert.True(result.HasChangesAndErrors);
@@ -497,7 +515,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using var workspace = TestWorkspace.CreateCSharp(source);
+            using var workspace = TestWorkspace.CreateCSharp(source, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
             var oldSolution = workspace.CurrentSolution;
             var oldProject = oldSolution.Projects.Single();
@@ -505,7 +523,9 @@ class C
             var documentId = oldDocument.Id;
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, trackingService: null, CancellationToken.None);
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, CancellationToken.None);
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
@@ -537,7 +557,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using var workspace = TestWorkspace.CreateCSharp(source1);
+            using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
             var oldSolution = workspace.CurrentSolution;
             var oldProject = oldSolution.Projects.Single();
@@ -547,7 +567,9 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), trackingService: null, CancellationToken.None);
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
             Assert.True(result.HasChanges);
 
@@ -579,7 +601,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using var workspace = TestWorkspace.CreateCSharp(source1);
+            using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
             var oldSolution = workspace.CurrentSolution;
             var oldProject = oldSolution.Projects.Single();
@@ -589,7 +611,9 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), trackingService: null, CancellationToken.None);
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
             Assert.True(result.HasChanges);
             Assert.True(result.HasChangesAndErrors);
@@ -620,7 +644,7 @@ namespace N
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using var workspace = TestWorkspace.CreateCSharp(source1);
+            using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             // fork the solution to introduce a change
             var oldProject = workspace.CurrentSolution.Projects.Single();
             var newDocId = DocumentId.CreateNewId(oldProject.Id);
@@ -640,9 +664,11 @@ namespace N
 
             var result = new List<DocumentAnalysisResults>();
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
             foreach (var changedDocumentId in changedDocuments)
             {
-                result.Add(await analyzer.AnalyzeDocumentAsync(oldProject.GetDocument(changedDocumentId), baseActiveStatements, newProject.GetDocument(changedDocumentId), trackingService: null, CancellationToken.None));
+                result.Add(await analyzer.AnalyzeDocumentAsync(oldProject.GetDocument(changedDocumentId), baseActiveStatements, newProject.GetDocument(changedDocumentId), CancellationToken.None));
             }
 
             Assert.True(result.IsSingle());
@@ -668,7 +694,7 @@ namespace N
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using var workspace = TestWorkspace.CreateCSharp(source1);
+            using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
             var oldProject = workspace.CurrentSolution.Projects.Single();
             var newDocId = DocumentId.CreateNewId(oldProject.Id);
@@ -688,9 +714,11 @@ namespace N
 
             var result = new List<DocumentAnalysisResults>();
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
             foreach (var changedDocumentId in changedDocuments)
             {
-                result.Add(await analyzer.AnalyzeDocumentAsync(oldProject.GetDocument(changedDocumentId), baseActiveStatements, newProject.GetDocument(changedDocumentId), trackingService: null, CancellationToken.None));
+                result.Add(await analyzer.AnalyzeDocumentAsync(oldProject.GetDocument(changedDocumentId), baseActiveStatements, newProject.GetDocument(changedDocumentId), CancellationToken.None));
             }
 
             Assert.True(result.IsSingle());

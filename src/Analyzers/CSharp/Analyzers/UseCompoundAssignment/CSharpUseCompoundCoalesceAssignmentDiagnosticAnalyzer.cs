@@ -36,6 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         {
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
+            var options = (CSharpParseOptions)semanticModel.SyntaxTree.Options;
+            if (options.LanguageVersion < LanguageVersion.CSharp8)
+                return;
+
             var coalesceExpression = (BinaryExpressionSyntax)context.Node;
 
             var option = context.GetOption(CodeStyleOptions2.PreferCompoundAssignment, coalesceExpression.Language);

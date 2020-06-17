@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
     internal static class PythiaSymbolSorting
     {
+#pragma warning disable IDE0060 // Remove unused parameter - Avoid breaking change for ExternalAccess API.
         public static ImmutableArray<TSymbol> Sort<TSymbol>(
             ImmutableArray<TSymbol> symbols,
             ISymbolDisplayService symbolDisplayService,
@@ -18,5 +19,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             int position)
             where TSymbol : ISymbol
             => Shared.Extensions.ISymbolExtensions2.Sort(symbols, semanticModel, position);
+#pragma warning restore IDE0060 // Remove unused parameter
     }
 }

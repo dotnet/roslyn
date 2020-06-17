@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = _arguments[arg];
                 TypeWithAnnotations target = _formalParameterTypes[arg];
-                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.Type.IsPointerType() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
+                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.Type.IsPointerOrFunctionPointer() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
 
                 MakeExplicitParameterTypeInferences(binder, argument, target, kind, ref useSiteDiagnostics);
             }
@@ -1613,6 +1613,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (source.TypeKind == TypeKind.Pointer && target.TypeKind == TypeKind.Pointer)
             {
                 ExactInference(((PointerTypeSymbol)source.Type).PointedAtTypeWithAnnotations, ((PointerTypeSymbol)target.Type).PointedAtTypeWithAnnotations, ref useSiteDiagnostics);
+                return true;
+            }
+            else if (source.Type is FunctionPointerTypeSymbol { Signature: { ParameterCount: int sourceParameterCount } sourceSignature } &&
+                     target.Type is FunctionPointerTypeSymbol { Signature: { ParameterCount: int targetParameterCount } targetSignature } &&
+                     sourceParameterCount == targetParameterCount)
+            {
+                for (int i = 0; i < sourceParameterCount; i++)
+                {
+                    ExactInference(sourceSignature.ParameterTypesWithAnnotations[i], targetSignature.ParameterTypesWithAnnotations[i], ref useSiteDiagnostics);
+                }
+
+                ExactInference(sourceSignature.ReturnTypeWithAnnotations, targetSignature.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
                 return true;
             }
 

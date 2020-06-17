@@ -317,6 +317,20 @@
          of unsafe code - such as fixed field indexing. -->
     <Field Name="IsManaged" Type="bool"/>  
   </Node>
+  <!-- Represents an AddressOf operator that has not yet been assigned to a
+       target-type. It has no natural type, and should not survive initial binding
+       except in error cases that are observable via the SemanticModel. -->
+  <Node Name="BoundUnconvertedAddressOfOperator" Base="BoundExpression">
+    <Field Name="Operand" Type="BoundMethodGroup"/>
+    <!-- Type is null. -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+  </Node>
+  <!-- Represents a resolved AddressOf function pointer. Not used in initial binding. -->
+  <Node Name="BoundFunctionPointerLoad" Base="BoundExpression">
+    <Field Name="TargetMethod" Type="MethodSymbol"/>
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
   <Node Name="BoundPointerIndirectionOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -330,7 +344,16 @@
     <Field Name="Index" Type="BoundExpression"/>
     <Field Name="Checked" Type="bool"/>
   </Node>
-  
+
+  <Node Name="BoundFunctionPointerInvocation" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="InvokedExpression" Type="BoundExpression"/>
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind" />
+  </Node>
+
   <Node Name="BoundRefTypeOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
@@ -1301,37 +1324,39 @@
     <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
     <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="WasTargetTyped" Type="bool" />
+    <!-- The conversion to Type. Either a switch expression conversion or an identity conversion -->
+    <Field Name="Conversion" Type="Conversion"/>
   </Node>
 
   <Node Name="BoundDecisionDag" Base="BoundNode">
     <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
 
-  <AbstractNode Name="BoundDecisionDagNode " Base="BoundNode">
+  <AbstractNode Name="BoundDecisionDagNode" Base="BoundNode">
   </AbstractNode>
   <!-- This node is used to indicate a point in the decision dag where an evaluation is performed, such as invoking Deconstruct. -->
-  <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Evaluation" Type="BoundDagEvaluation" Null="disallow"/>
-    <Field Name="Next" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="Next" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
   <!-- This node is used to indicate a point in the decision dag where a test may change the path of the decision dag. -->
-  <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Test" Type="BoundDagTest" Null="disallow"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
-  <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Bindings" Type="ImmutableArray&lt;BoundPatternBinding&gt;" Null="disallow"/>
     <!--
     WhenExpression is null when there was no when clause in source but there are bindings.
     In that case WhenFalse is null.
     -->
     <Field Name="WhenExpression" Type="BoundExpression?"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode ?"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode?"/>
   </Node>
   <!-- This node is used to indicate a point in the decision dag where the decision has been completed. -->
-  <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode ">
+  <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode">
     <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 
@@ -2123,4 +2148,15 @@
     <Field Name="Type" Type="TypeSymbol?" Override="true"/> <!-- We use null Type for placeholders representing out vars -->
     <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
   </Node>
+
+  <Node Name="BoundWithExpression" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Receiver" Type="BoundExpression" />
+    <!-- CloneMethod may be null in error scenarios-->
+    <Field Name="CloneMethod" Type="MethodSymbol?" />
+    <!-- Members and expressions passed as arguments to the With expression. -->
+    <Field Name="InitializerExpression" Type="BoundObjectInitializerExpressionBase" />
+  </Node>
+
 </Tree>
