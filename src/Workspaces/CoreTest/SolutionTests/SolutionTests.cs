@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void WithProjectCompilationOptions()
+        public void WithProjectCompilationOptionsExceptionHandling()
         {
             var projectId = ProjectId.CreateNewId();
 
@@ -649,13 +649,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
 
             var options = new CSharpCompilationOptions(OutputKind.NetModule);
-
-            SolutionTestHelpers.TestProperty(
-                solution,
-                (s, value) => s.WithProjectCompilationOptions(projectId, value),
-                s => s.GetProject(projectId)!.CompilationOptions!,
-                (CompilationOptions)options,
-                defaultThrows: true);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOptions(null!, options));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOptions(ProjectId.CreateNewId(), options));
@@ -1575,23 +1568,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, actualAnalyzerReferences.Count);
             Assert.Equal(analyzerReference, actualAnalyzerReferences[0]);
             Assert.Equal(secondAnalyzerReference, actualAnalyzerReferences[1]);
-        }
-
-        [Fact]
-        public void TestProjectCompilationOptions()
-        {
-            var solution = CreateSolution();
-            var project1 = ProjectId.CreateNewId();
-            solution = solution.AddProject(project1, "goo", "goo.dll", LanguageNames.CSharp);
-            solution = solution.AddMetadataReference(project1, s_mscorlib);
-
-            // Compilation Options
-            var oldCompOptions = solution.GetProject(project1).CompilationOptions;
-            var newCompOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, mainTypeName: "After");
-            solution = solution.WithProjectCompilationOptions(project1, newCompOptions);
-            var newUpdatedCompOptions = solution.GetProject(project1).CompilationOptions;
-            Assert.NotEqual(oldCompOptions, newUpdatedCompOptions);
-            Assert.Same(newCompOptions, newUpdatedCompOptions);
         }
 
         [Fact]
