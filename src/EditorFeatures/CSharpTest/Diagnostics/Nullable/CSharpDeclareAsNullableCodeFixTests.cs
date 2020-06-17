@@ -990,4 +990,17 @@ class C
                 parameters: s_nullableFeature);
         }
     }
+
+        [Fact]
+        [WorkItem(44983, "https://github.com/dotnet/roslyn/issues/44983")]
+        public async Task MultipleDeclarator_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Program
+{
+    string s, s2 = ""hello""
+}", parameters: s_nullableFeature);
+        }
+    }
 }
