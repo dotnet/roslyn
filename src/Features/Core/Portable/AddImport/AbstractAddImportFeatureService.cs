@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var node = root.FindToken(span.Start, findInsideTrivia: true)
                            .GetAncestor(n => n.Span.Contains(span) && n != root);
 
-            var result = ArrayBuilder<AddImportFixData>.GetInstance();
+            using var _ = ArrayBuilder<AddImportFixData>.GetInstance(out var result);
             if (node != null)
             {
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
