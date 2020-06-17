@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -11,7 +12,8 @@ namespace Analyzer.Utilities
 
     internal abstract class AbstractCategorizedAnalyzerConfigOptions : ICategorizedAnalyzerConfigOptions
     {
-        protected const string KeyPrefix = "dotnet_code_quality.";
+        private const string DotnetCodeQualityKeyPrefix = "dotnet_code_quality.";
+        private const string BuildPropertyKeyPrefix = "build_property.";
 
         private readonly ConcurrentDictionary<string, (bool found, object? value)> _computedOptionValuesMap;
 
@@ -23,9 +25,10 @@ namespace Analyzer.Utilities
         public abstract bool IsEmpty { get; }
         protected abstract bool TryGetOptionValue(string optionKeyPrefix, string? optionKeySuffix, string optionName, [NotNullWhen(returnValue: true)] out string? valueString);
 
-        public T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
+        [return: MaybeNull]
+        public T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
-            if (TryGetOptionValue(optionName, rule, tryParseValue, defaultValue, out var value))
+            if (TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out var value))
             {
                 return value;
             }
@@ -33,7 +36,33 @@ namespace Analyzer.Utilities
             return defaultValue;
         }
 
-        public bool TryGetOptionValue<T>(string optionName, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue, out T value)
+        private static string MapOptionKindToKeyPrefix(OptionKind optionKind)
+            => optionKind switch
+            {
+                OptionKind.DotnetCodeQuality => DotnetCodeQualityKeyPrefix,
+                OptionKind.BuildProperty => BuildPropertyKeyPrefix,
+                _ => throw new NotImplementedException()
+            };
+
+        protected static bool HasSupportedKeyPrefix(string key, [NotNullWhen(returnValue: true)] out string? keyPrefix)
+        {
+            if (key.StartsWith(DotnetCodeQualityKeyPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                keyPrefix = DotnetCodeQualityKeyPrefix;
+                return true;
+            }
+
+            if (key.StartsWith(BuildPropertyKeyPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                keyPrefix = BuildPropertyKeyPrefix;
+                return true;
+            }
+
+            keyPrefix = null;
+            return false;
+        }
+
+        public bool TryGetOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue, [MaybeNull] out T value)
         {
             if (this.IsEmpty)
             {
@@ -44,19 +73,20 @@ namespace Analyzer.Utilities
             var key = $"{rule.Id}.{optionName}";
             if (!_computedOptionValuesMap.TryGetValue(key, out var computedValue))
             {
-                computedValue = _computedOptionValuesMap.GetOrAdd(key, _ => ComputeOptionValue(optionName, rule, tryParseValue, defaultValue));
+                computedValue = _computedOptionValuesMap.GetOrAdd(key, _ => ComputeOptionValue(optionName, kind, rule, tryParseValue, defaultValue));
             }
 
-            value = (T)computedValue.value!;
+            value = (T)computedValue.value;
             return computedValue.found;
         }
 
-        private (bool found, object? value) ComputeOptionValue<T>(string optionName, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
+        private (bool found, object? value) ComputeOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue)
         {
-            if (TryGetSpecificOptionValue(rule.Id, out var optionValue) ||
-                TryGetSpecificOptionValue(rule.Category, out optionValue) ||
-                TryGetAnySpecificOptionValue(rule.CustomTags, out optionValue) ||
-                TryGetGeneralOptionValue(out optionValue))
+            var optionKeyPrefix = MapOptionKindToKeyPrefix(kind);
+            if (TryGetSpecificOptionValue(rule.Id, optionKeyPrefix, out var optionValue) ||
+                TryGetSpecificOptionValue(rule.Category, optionKeyPrefix, out optionValue) ||
+                TryGetAnySpecificOptionValue(rule.CustomTags, optionKeyPrefix, out optionValue) ||
+                TryGetGeneralOptionValue(optionKeyPrefix, out optionValue))
             {
                 return (true, optionValue);
             }
@@ -64,9 +94,9 @@ namespace Analyzer.Utilities
             return (false, defaultValue);
 
             // Local functions.
-            bool TryGetSpecificOptionValue(string specificOptionKey, out T specificOptionValue)
+            bool TryGetSpecificOptionValue(string specificOptionKey, string optionKeyPrefix, out T specificOptionValue)
             {
-                if (TryGetOptionValue(KeyPrefix, specificOptionKey, optionName, out var valueString))
+                if (TryGetOptionValue(optionKeyPrefix, specificOptionKey, optionName, out var valueString))
                 {
                     return tryParseValue(valueString, out specificOptionValue);
                 }
@@ -75,11 +105,11 @@ namespace Analyzer.Utilities
                 return false;
             }
 
-            bool TryGetAnySpecificOptionValue(IEnumerable<string> specificOptionKeys, out T specificOptionValue)
+            bool TryGetAnySpecificOptionValue(IEnumerable<string> specificOptionKeys, string optionKeyPrefix, out T specificOptionValue)
             {
                 foreach (var specificOptionKey in specificOptionKeys)
                 {
-                    if (TryGetSpecificOptionValue(specificOptionKey, out specificOptionValue))
+                    if (TryGetSpecificOptionValue(specificOptionKey, optionKeyPrefix, out specificOptionValue))
                     {
                         return true;
                     }
@@ -89,9 +119,9 @@ namespace Analyzer.Utilities
                 return false;
             }
 
-            bool TryGetGeneralOptionValue(out T generalOptionValue)
+            bool TryGetGeneralOptionValue(string optionKeyPrefix, out T generalOptionValue)
             {
-                if (TryGetOptionValue(KeyPrefix, optionKeySuffix: null, optionName, out var valueString))
+                if (TryGetOptionValue(optionKeyPrefix, optionKeySuffix: null, optionName, out var valueString))
                 {
                     return tryParseValue(valueString, out generalOptionValue);
                 }
