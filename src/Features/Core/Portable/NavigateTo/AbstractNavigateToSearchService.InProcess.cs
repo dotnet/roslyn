@@ -140,15 +140,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
-            var matchedSpans = ArrayBuilder<TextSpan>.GetInstance();
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchedSpans);
             foreach (var match in nameMatches)
-            {
                 matchedSpans.AddRange(match.MatchedSpans);
-            }
 
             return new SearchResult(
                 document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
-                matchedSpans.ToImmutableAndFree());
+                matchedSpans.ToImmutable());
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
