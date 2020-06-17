@@ -282,9 +282,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             // string x;
             // Unassigned value that's not marked as null
-            if (node is VariableDeclaratorSyntax && node.Parent is VariableDeclarationSyntax variableDeclarationSyntax)
+            if (node is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax _ } declarationSyntax } &&
+                declarationSyntax.Variables.Count == 1)
             {
-                return variableDeclarationSyntax.Type;
+                return declarationSyntax.Type;
             }
 
             // void M(string x = null) { }
