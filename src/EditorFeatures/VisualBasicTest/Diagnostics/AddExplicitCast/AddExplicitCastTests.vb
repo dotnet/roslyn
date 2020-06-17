@@ -237,15 +237,34 @@ End Module")
 "Option Strict On
 Module M1
     Sub Main()
-        Dim i As integer = 1
+        Dim i As Integer = 1
         Dim s As String = [|i|]
     End Sub
 End Module",
 "Option Strict On
 Module M1
     Sub Main()
-        Dim i As integer = 1
+        Dim i As Integer = 1
         Dim s As String = CStr(i)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentObjectToStringCStr() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim o As Object = 1.ToString()
+        Dim s As String = [|o|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim o As Object = 1.ToString()
+        Dim s As String = CStr(o)
     End Sub
 End Module")
         End Function
