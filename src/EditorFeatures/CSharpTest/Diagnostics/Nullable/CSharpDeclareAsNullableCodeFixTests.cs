@@ -970,8 +970,7 @@ class C
                 parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(44983, "https://github.com/dotnet/roslyn/issues/44983")]
+        [Fact, WorkItem(44983, "https://github.com/dotnet/roslyn/issues/44983")]
         public async Task FixFieldDeclaration_Unassigned()
         {
             await TestInRegularAndScript1Async(
