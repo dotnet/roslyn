@@ -195,6 +195,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 return false;
             }
 
+            // If it's a built-in operator, just skip it
+            if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator })
+            {
+                return false;
+            }
+
             return true;
         }
 
