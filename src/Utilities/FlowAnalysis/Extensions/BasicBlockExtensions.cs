@@ -165,5 +165,31 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         internal static int GetMaxSuccessorOrdinal(this BasicBlock basicBlock)
             => Math.Max(basicBlock.FallThroughSuccessor?.Destination?.Ordinal ?? -1,
                         basicBlock.ConditionalSuccessor?.Destination?.Ordinal ?? -1);
+
+        internal static bool DominatesPredecessors(this BasicBlock? basicBlock)
+        {
+            if (basicBlock == null ||
+                basicBlock.Predecessors.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (var predecessor in basicBlock.Predecessors)
+            {
+                if (!Dominates(predecessor.Source.ConditionalSuccessor, basicBlock) ||
+                    !Dominates(predecessor.Source.FallThroughSuccessor, basicBlock))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+
+            static bool Dominates(ControlFlowBranch? branch, BasicBlock basicBlock)
+            {
+                return branch?.Destination == null ||
+                    branch.Destination.Ordinal <= basicBlock.Ordinal;
+            }
+        }
     }
 }

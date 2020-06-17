@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly HashSet<IOperation> _visitedFlowBranchConditions;
         private readonly HashSet<IOperation>? _returnValueOperationsOpt;
         private ImmutableDictionary<IParameterSymbol, AnalysisEntity>? _lazyParameterEntities;
-        private ImmutableHashSet<IMethodSymbol>? _lazyContractCheckMethodsForPredicateAnalysis;
+        private ImmutableHashSet<IMethodSymbol>? _lazyContractCheckMethods;
         private TAnalysisData? _currentAnalysisData;
         private BasicBlock? _currentBasicBlock;
         private int _recursionDepth;
@@ -217,6 +217,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             GenericIEquatableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
             StringReaderType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOStringReader);
             CollectionNamedTypes = GetWellKnownCollectionTypes();
+            DebugAssertMethod = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticsDebug)?.GetMembers("Assert")
+                    .OfType<IMethodSymbol>().FirstOrDefault(HasDebugAssertSignature);
 
             _lValueFlowCaptures = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(analysisContext.ControlFlowGraph);
             _valueCacheBuilder = ImmutableDictionary.CreateBuilder<IOperation, TAbstractAnalysisValue>();
@@ -274,6 +276,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 interproceduralCapturedVariablesMapOpt: analysisContext.InterproceduralAnalysisDataOpt?.CapturedVariablesMap,
                 interproceduralGetAnalysisEntityForFlowCaptureOpt: analysisContext.InterproceduralAnalysisDataOpt?.GetAnalysisEntityForFlowCapture,
                 getInterproceduralCallStackForOwningSymbol: GetInterproceduralCallStackForOwningSymbol);
+
+            return;
+
+            static bool HasDebugAssertSignature(IMethodSymbol method)
+            {
+                return method.IsStatic &&
+                method.ReturnsVoid &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean;
+            }
         }
 
         protected CopyAbstractValue GetDefaultCopyValue(AnalysisEntity analysisEntity)
@@ -858,30 +870,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         private bool IsContractCheckArgument(IArgumentOperation operation)
-        {
-            Debug.Assert(PredicateAnalysis);
+            => operation.Parent is IInvocationOperation invocation &&
+               invocation.Arguments[0] == operation &&
+               (IsDebugAssertMethod(invocation.TargetMethod) || IsContractCheckMethod(invocation.TargetMethod));
 
-            if (ContractNamedType != null &&
-                operation.Parent is IInvocationOperation invocation &&
-                Equals(invocation.TargetMethod.ContainingType, ContractNamedType) &&
-                invocation.TargetMethod.IsStatic &&
-                invocation.Arguments[0] == operation)
+        private bool IsContractCheckMethod(IMethodSymbol method)
+        {
+            if (Equals(method.ContainingType, ContractNamedType) &&
+                method.IsStatic)
             {
-                if (_lazyContractCheckMethodsForPredicateAnalysis == null)
+                if (_lazyContractCheckMethods == null)
                 {
                     // Contract.Requires check.
                     var requiresMethods = ContractNamedType.GetMembers("Requires");
                     var assumeMethods = ContractNamedType.GetMembers("Assume");
                     var assertMethods = ContractNamedType.GetMembers("Assert");
                     var validationMethods = requiresMethods.Concat(assumeMethods).Concat(assertMethods).OfType<IMethodSymbol>().Where(m => m.IsStatic && m.ReturnsVoid && m.Parameters.Length >= 1 && (m.Parameters[0].Type.SpecialType == SpecialType.System_Boolean));
-                    _lazyContractCheckMethodsForPredicateAnalysis = ImmutableHashSet.CreateRange(validationMethods);
+                    _lazyContractCheckMethods = ImmutableHashSet.CreateRange(validationMethods);
                 }
 
-                return _lazyContractCheckMethodsForPredicateAnalysis.Contains(invocation.TargetMethod);
+                return _lazyContractCheckMethods.Contains(method);
             }
 
             return false;
         }
+
+        private bool IsDebugAssertMethod(IMethodSymbol method)
+            => Equals(method, DebugAssertMethod);
+
+        protected bool IsAnyAssertMethod(IMethodSymbol method)
+            => IsDebugAssertMethod(method) || IsContractCheckMethod(method);
 
         #region Helper methods to get or cache analysis data for visited operations.
 
@@ -1839,11 +1857,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #endregion
 
-        public TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2, bool forBackEdge)
-            => forBackEdge ? MergeAnalysisDataForBackEdge(value1, value2) : MergeAnalysisData(value1, value2);
+        public TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2, BasicBlock forBlock, bool forBackEdge)
+            => forBackEdge ? MergeAnalysisDataForBackEdge(value1, value2, forBlock) : MergeAnalysisData(value1, value2, forBlock);
         protected abstract TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2);
-        protected virtual TAnalysisData MergeAnalysisDataForBackEdge(TAnalysisData value1, TAnalysisData value2)
+        protected virtual TAnalysisData MergeAnalysisData(TAnalysisData value1, TAnalysisData value2, BasicBlock forBlock)
             => MergeAnalysisData(value1, value2);
+        protected virtual TAnalysisData MergeAnalysisDataForBackEdge(TAnalysisData value1, TAnalysisData value2, BasicBlock forBlock)
+            => MergeAnalysisData(value1, value2, forBlock);
         protected abstract TAnalysisData GetClonedAnalysisData(TAnalysisData analysisData);
         protected TAnalysisData GetClonedCurrentAnalysisData() => GetClonedAnalysisData(CurrentAnalysisData);
         public abstract TAnalysisData GetEmptyAnalysisData();
@@ -3655,6 +3675,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// 3. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Generic.IReadOnlyCollection{T}"/>
         /// </summary>
         protected ImmutableHashSet<INamedTypeSymbol> CollectionNamedTypes { get; }
+
+        private IMethodSymbol? DebugAssertMethod { get; }
 
         private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes()
         {
