@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// </remarks>
         private readonly List<ITextBuffer> _submittedBuffers = new List<ITextBuffer>();
 
+        /// <summary>
+        /// Buffers that need to be associated with a submission project once the process initialization completes.
+        /// </summary>
+        private readonly List<(ITextBuffer buffer, string name)> _pendingBuffers = new List<(ITextBuffer, string)>();
+
         private int _submissionCount = 0;
 
         internal InteractiveEvaluatorResetOptions ResetOptions { get; set; }
@@ -205,8 +210,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             var textView = GetCurrentWindowOrThrow().TextView;
 
-            var lastSubmittedBuffer = _submittedBuffers.LastOrDefault();
-
             // Freeze all existing classifications and then clear the list of submission buffers we have.
             foreach (var textBuffer in _submittedBuffers)
             {
@@ -225,13 +228,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _initializationResult = result.InitializationResult;
             UpdatePaths(result);
 
-            // If the current buffer has not been submitted, create and add a submission project for it to the workspace.
-            // It it has been submitted then a new buffer and its corresponding submission project will be added later.
-            var currentSubmissionBuffer = _currentWindow.CurrentLanguageBuffer;
-            if (currentSubmissionBuffer != lastSubmittedBuffer)
+            // Create submission projects for buffers that were added by the Interactive Window 
+            // before the process initialization completed.
+            foreach (var (buffer, languageName) in _pendingBuffers)
             {
-                AddSubmissionProject(currentSubmissionBuffer, LanguageName);
+                AddSubmissionProject(buffer, languageName);
             }
+
+            _pendingBuffers.Clear();
         }
 
         private static RuntimeMetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, InteractiveHostPlatformInfo platformInfo, ImmutableArray<string> searchPaths, string baseDirectory)
@@ -334,6 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 // for the buffer in such case. It will be created when the initialization completes.
                 if (_initializationResult == null)
                 {
+                    _pendingBuffers.Add((submissionBuffer, languageName));
                     return;
                 }
 
@@ -515,9 +520,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             try
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-
-                Contract.ThrowIfNull(_currentWindow, "current window is null");
-                Contract.ThrowIfNull(_interactiveCommands, "interactive commands is null");
 
                 var currentSubmissionBuffer = _currentWindow.CurrentLanguageBuffer;
                 Contract.ThrowIfNull(currentSubmissionBuffer);
