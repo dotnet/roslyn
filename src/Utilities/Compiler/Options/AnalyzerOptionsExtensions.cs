@@ -484,7 +484,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        public static string? GetMSBuildPropertyOptionValue(
+        public static string? GetMSBuildPropertyValue(
             this AnalyzerOptions options,
             string optionName,
             DiagnosticDescriptor rule,
@@ -492,10 +492,10 @@ namespace Analyzer.Utilities
             Compilation compilation,
             CancellationToken cancellationToken)
         => TryGetSyntaxTreeForOption(symbol, out var tree)
-            ? options.GetMSBuildPropertyOptionValue(optionName, rule, tree, compilation, cancellationToken)
+            ? options.GetMSBuildPropertyValue(optionName, rule, tree, compilation, cancellationToken)
             : null;
 
-        public static string? GetMSBuildPropertyOptionValue(
+        public static string? GetMSBuildPropertyValue(
             this AnalyzerOptions options,
             string optionName,
             DiagnosticDescriptor rule,
