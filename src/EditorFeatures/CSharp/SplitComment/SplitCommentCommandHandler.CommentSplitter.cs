@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
             internal const string CommentCharacter = "//";
 
             private CommentSplitter(
-               Document document, int position,
-               SyntaxNode root, SourceText sourceText,
-               bool useTabs, int tabSize, SyntaxTrivia trivia,
-               IndentStyle indentStyle, CancellationToken cancellationToken)
+                Document document, int position,
+                SyntaxNode root, SourceText sourceText,
+                bool useTabs, int tabSize, SyntaxTrivia trivia,
+                IndentStyle indentStyle, CancellationToken cancellationToken)
             {
                 _document = document;
                 _cursorPosition = position;
