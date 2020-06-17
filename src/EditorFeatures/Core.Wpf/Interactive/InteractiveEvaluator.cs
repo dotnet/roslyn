@@ -516,6 +516,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
+                Contract.ThrowIfNull(_currentWindow, "current window is null");
+                Contract.ThrowIfNull(_interactiveCommands, "interactive commands is null");
+
                 var currentSubmissionBuffer = _currentWindow.CurrentLanguageBuffer;
                 Contract.ThrowIfNull(currentSubmissionBuffer);
                 currentSubmissionBuffer.ContentTypeChanged -= _contentTypeChangedHandler;
@@ -538,7 +541,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 {
                     // We are not executing a command (the current content type is not "Interactive Command"),
                     // so the source document should not have been removed.
-                    Contract.ThrowIfFalse(_workspace.CurrentSolution.GetProject(_currentSubmissionProjectId).HasDocuments);
+                    var project = _workspace.CurrentSolution.GetProject(_currentSubmissionProjectId);
+                    Contract.ThrowIfNull(project, "project is null");
+                    Contract.ThrowIfFalse(project.HasDocuments);
 
                     // only remember the submission if we compiled successfully, otherwise we
                     // ignore it's id so we don't reference it in the next submission.
