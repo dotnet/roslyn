@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -108,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitComment
             TestHandled(
 "Module Program
     Sub Main(args As String())
-        '[||] Test Comment
+        '[||]Test Comment
     End Sub
 End Module
 ",
@@ -246,7 +248,7 @@ End Namespace
             TestHandled(
 "Module Program
     Sub Main(args As String())
-        Dim X As Integer _ ' Comment [||] is here
+        Dim X As Integer _ ' Comment [||]is here
                        = 4
     End Sub
 End Module

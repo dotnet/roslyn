@@ -1,4 +1,6 @@
-﻿' Copyright(c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt In the project root For license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -46,8 +48,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
             End Function
 
             Protected Overrides Function CreateSplitComment(indentString As String) As SyntaxTriviaList
-                Dim prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString().TrimStart(" "c)
-                Dim suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString().TrimEnd(" "c)
+                Dim prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString().TrimEnd()
+                Dim suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString()
 
                 Dim triviaList = New List(Of SyntaxTrivia)
                 triviaList.Add(SyntaxFactory.CommentTrivia(prefix))
@@ -58,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                     triviaList.Add(SyntaxFactory.LineContinuationTrivia("_"))
                 End If
 
-                triviaList.Add(SyntaxFactory.CommentTrivia(indentString + CommentCharacter + " " + suffix))
+                triviaList.Add(SyntaxFactory.CommentTrivia(indentString + CommentCharacter + SyntaxFactory.ElasticSpace.ToString() + suffix))
 
                 Return SyntaxFactory.TriviaList(triviaList)
             End Function

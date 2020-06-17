@@ -23,7 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         protected bool _hasSpaceAfterComment;
         protected IndentStyle _indentStyle;
 
-        protected SyntaxNode GetNodeToReplace() => _trivia.SyntaxTree.GetRoot();
+        protected SyntaxNode GetNodeToReplace()
+        {
+            if (_trivia.Token.Parent.Parent != null) // NOTE: Need to get the parent of the parent here to handle VB edge cases, although I'm not sure if this is correct
+                return _trivia.Token.Parent.Parent;
+            else
+                return _trivia.Token.Parent;
+        }
 
         protected abstract SyntaxTriviaList CreateSplitComment(string indentString);
         protected abstract string GetIndentString(SyntaxNode newRoot);
