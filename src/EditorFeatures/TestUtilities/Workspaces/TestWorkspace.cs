@@ -279,7 +279,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.RemoveAnalyzerReference:
                 case ApplyChangesKind.AddSolutionAnalyzerReference:
                 case ApplyChangesKind.RemoveSolutionAnalyzerReference:
-                case ApplyChangesKind.ChangeCompilationOptions:
                     return true;
 
                 case ApplyChangesKind.ChangeDocument:
@@ -703,9 +702,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
-            => true;
-
-        protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
             => true;
 
         internal ITextBuffer GetOrCreateBufferForPath(string? filePath, IContentType contentType, string languageName, string initialText)
