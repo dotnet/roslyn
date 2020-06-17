@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
@@ -23,12 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory() { }
 
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices services)
                 => new ActiveStatementSpanTracker(services);
         }
 
         private readonly IActiveStatementTrackingService _trackingService;
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ActiveStatementSpanTracker(HostWorkspaceServices services)
         {
             _trackingService = services.GetRequiredService<IActiveStatementTrackingService>();

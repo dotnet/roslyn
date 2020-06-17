@@ -30,9 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             string source,
             MetadataReference[]? references = null,
             Action<ModuleSymbol>? symbolValidator = null,
-            string? expectedOutput = null)
+            string? expectedOutput = null,
+            TargetFramework targetFramework = TargetFramework.Standard)
         {
-            return CompileAndVerify(source, references, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped);
+            return CompileAndVerify(source, references, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped, targetFramework: targetFramework);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
@@ -220,12 +221,18 @@ class D
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
 
             comp.VerifyDiagnostics(
-                // (6,28): error CS1955: Non-invocable member 'C.Field1' cannot be used like a method.
+                // (6,26): error CS0570: 'delegate*<int>' is not supported by the language
                 //         ref int i1 = ref c.Field1();
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field1").WithArguments("C.Field1").WithLocation(6, 28),
-                // (7,28): error CS1955: Non-invocable member 'C.Field2' cannot be used like a method.
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<int>").WithLocation(6, 26),
+                // (6,28): error CS0570: 'C.Field1' is not supported by the language
+                //         ref int i1 = ref c.Field1();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(6, 28),
+                // (7,26): error CS0570: 'delegate*<int>' is not supported by the language
                 //         ref int i2 = ref c.Field2();
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field2").WithArguments("C.Field2").WithLocation(7, 28),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<int>").WithLocation(7, 26),
+                // (7,28): error CS0570: 'C.Field2' is not supported by the language
+                //         ref int i2 = ref c.Field2();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(7, 28),
                 // (8,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 11),
@@ -245,7 +252,14 @@ class D
             for (int i = 1; i <= 9; i++)
             {
                 var field = c.GetField($"Field{i}");
-                Assert.True(field.Type is UnsupportedMetadataTypeSymbol);
+                Assert.True(field.HasUseSiteError);
+                Assert.True(field.HasUnsupportedMetadata);
+                Assert.Equal(TypeKind.FunctionPointer, field.Type.TypeKind);
+                var signature = ((FunctionPointerTypeSymbol)field.Type).Signature;
+                Assert.True(signature.HasUseSiteError);
+                Assert.True(signature.HasUnsupportedMetadata);
+                Assert.True(field.Type.HasUseSiteError);
+                Assert.True(field.Type.HasUnsupportedMetadata);
             }
         }
 
@@ -283,15 +297,24 @@ class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
             comp.VerifyDiagnostics(
-                // (7,11): error CS1955: Non-invocable member 'C.Field1' cannot be used like a method.
+                // (7,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
                 //         c.Field1(ref i);
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field1").WithArguments("C.Field1").WithLocation(7, 11),
-                // (8,11): error CS1955: Non-invocable member 'C.Field1' cannot be used like a method.
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(ref i)").WithArguments("delegate*<in int, void>").WithLocation(7, 9),
+                // (7,11): error CS0570: 'C.Field1' is not supported by the language
+                //         c.Field1(ref i);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(7, 11),
+                // (8,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
                 //         c.Field1(in i);
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field1").WithArguments("C.Field1").WithLocation(8, 11),
-                // (9,11): error CS1955: Non-invocable member 'C.Field1' cannot be used like a method.
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(in i)").WithArguments("delegate*<in int, void>").WithLocation(8, 9),
+                // (8,11): error CS0570: 'C.Field1' is not supported by the language
+                //         c.Field1(in i);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 11),
+                // (9,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
                 //         c.Field1(out i);
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field1").WithArguments("C.Field1").WithLocation(9, 11),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(out i)").WithArguments("delegate*<in int, void>").WithLocation(9, 9),
+                // (9,11): error CS0570: 'C.Field1' is not supported by the language
+                //         c.Field1(out i);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(9, 11),
                 // (10,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(10, 11),
@@ -305,7 +328,14 @@ class D
             for (int i = 1; i <= 9; i++)
             {
                 var field = c.GetField($"Field{i}");
-                Assert.True(field.Type is UnsupportedMetadataTypeSymbol);
+                Assert.True(field.HasUseSiteError);
+                Assert.True(field.HasUnsupportedMetadata);
+                Assert.Equal(TypeKind.FunctionPointer, field.Type.TypeKind);
+                var signature = ((FunctionPointerTypeSymbol)field.Type).Signature;
+                Assert.True(signature.HasUseSiteError);
+                Assert.True(signature.HasUnsupportedMetadata);
+                Assert.True(field.Type.HasUseSiteError);
+                Assert.True(field.Type.HasUnsupportedMetadata);
             }
         }
 
@@ -1125,7 +1155,7 @@ unsafe class Caller
         [InlineData("stdcall")]
         public void UnmanagedCallingConventions(string convention)
         {
-            // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelgate>(TDelegate delegate) to
+            // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelegate>(TDelegate delegate) to
             // get a function pointer around a native calling convention
             var ilStub = $@"
 .class public auto ansi beforefieldinit UnmanagedFunctionPointer
@@ -4114,7 +4144,7 @@ unsafe class C
         [Fact]
         public void MultipleApplicableMethods()
         {
-            // This is analgous to MethodBodyModelTests.MethodGroupToDelegate04, where both methods
+            // This is analogous to MethodBodyModelTests.MethodGroupToDelegate04, where both methods
             // are applicable even though D(delegate*<int, void>) is not compatible.
             var comp = CreateCompilationWithFunctionPointers(@"
 public unsafe class Program1
@@ -7031,6 +7061,44 @@ unsafe public class C
                 //         delegate*<ref string, ref string?> ptr3 = ptr1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string, string?>").WithLocation(20, 51)
             );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SpanInArgumentAndReturn()
+        {
+            var comp = CompileAndVerifyFunctionPointers(@"
+using System;
+public class C
+{
+    static char[] chars = new[] { '1', '2', '3', '4' };
+
+    static Span<char> ChopSpan(Span<char> span) => span[..^1];
+
+    public static unsafe void Main()
+    {
+        delegate*<Span<char>, Span<char>> ptr = &ChopSpan;
+        Console.Write(new string(ptr(chars)));
+    }
+}
+", targetFramework: TargetFramework.NetCoreApp30, expectedOutput: "123");
+
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (delegate*<System.Span<char>, System.Span<char>> V_0)
+  IL_0000:  ldftn      ""System.Span<char> C.ChopSpan(System.Span<char>)""
+  IL_0006:  stloc.0
+  IL_0007:  ldsfld     ""char[] C.chars""
+  IL_000c:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
+  IL_0011:  ldloc.0
+  IL_0012:  calli      ""delegate*<System.Span<char>, System.Span<char>>""
+  IL_0017:  call       ""System.ReadOnlySpan<char> System.Span<char>.op_Implicit(System.Span<char>)""
+  IL_001c:  newobj     ""string..ctor(System.ReadOnlySpan<char>)""
+  IL_0021:  call       ""void System.Console.Write(string)""
+  IL_0026:  ret
+}
+");
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

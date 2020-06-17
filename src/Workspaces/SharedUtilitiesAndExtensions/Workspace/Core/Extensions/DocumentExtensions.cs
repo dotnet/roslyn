@@ -184,12 +184,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 await generatedCodeRecognitionService.IsGeneratedCodeAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<SemanticModel> RequireSemanticModelAsync(this Document document, CancellationToken cancellationToken)
-        {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return model ?? throw new InvalidOperationException();
-        }
-
         public static IEnumerable<Document> GetLinkedDocuments(this Document document)
         {
             var solution = document.Project.Solution;

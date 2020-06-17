@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
+    <UseExportProvider>
     Public MustInherit Class EditingTestBase
         Inherits BasicTestBase
 

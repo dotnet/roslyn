@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).ParameterCount;
                 case SymbolKind.Event:
+                case SymbolKind.Field:
                     return 0;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);

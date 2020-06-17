@@ -264,9 +264,9 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-                // (3,9): error CS8050: Only auto-implemented properties can have initializers.
+                // (3,9): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     int P { get; } = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("I.P").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P").WithArguments("I.P").WithLocation(3, 9));
         }
 
         [Fact]
@@ -1485,9 +1485,9 @@ class C {
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,22): error CS1546: Property, indexer, or event 'Indexers.this[?]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(?)'
+                // (4,22): error CS1546: Property, indexer, or event 'Indexers.this[string]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(string)'
                 //         object goo = new Indexers()[null];
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[?]", "Indexers.get_Item(?)").WithLocation(4, 22));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[string]", "Indexers.get_Item(string)").WithLocation(4, 22));
         }
 
         [WorkItem(538791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538791")]

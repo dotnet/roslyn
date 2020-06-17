@@ -959,7 +959,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             VisitRvalue(node.Expression);
-            VisitPattern(node.Pattern);
+
+            var pattern = node.Pattern;
+            bool negated = false;
+            while (pattern is BoundNegatedPattern n)
+            {
+                negated = !negated;
+                pattern = n.Negated;
+            }
+
+            VisitPattern(pattern);
             var reachableLabels = node.DecisionDag.ReachableLabels;
             if (!reachableLabels.Contains(node.WhenTrueLabel))
             {
@@ -970,6 +979,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SetState(this.StateWhenTrue);
                 SetConditionalState(this.State, UnreachableState());
+            }
+
+            if (negated)
+            {
+                SetConditionalState(this.StateWhenFalse, this.StateWhenTrue);
             }
 
             return node;
@@ -2021,6 +2035,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ResolveContinues(node.ContinueLabel);
             LoopTail(node);
             ResolveBreaks(breakState, node.BreakLabel);
+            return null;
+        }
+
+        public override BoundNode VisitWithExpression(BoundWithExpression node)
+        {
+            VisitRvalue(node.Receiver);
+            VisitObjectOrCollectionInitializerExpression(node.InitializerExpression.Initializers);
             return null;
         }
 

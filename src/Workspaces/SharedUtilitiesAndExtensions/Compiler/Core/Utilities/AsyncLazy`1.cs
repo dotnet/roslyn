@@ -13,6 +13,12 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities
 {
+    internal static class AsyncLazy
+    {
+        public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
+            => new AsyncLazy<T>(asynchronousComputeFunction, cacheResult);
+    }
+
     /// <summary>
     /// Represents a value that can be retrieved synchronously or asynchronously by many clients.
     /// The value will be computed on-demand the moment the first client asks for it. While being

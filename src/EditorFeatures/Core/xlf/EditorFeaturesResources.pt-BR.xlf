@@ -112,11 +112,6 @@
         <target state="translated">Não há suporte para a remoção do documento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_file">
-        <source>Rename _file</source>
-        <target state="translated">Renomear _arquivo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Renomear _arquivo (o tipo não corresponde ao nome do arquivo)</target>
@@ -127,10 +122,17 @@
         <target state="translated">Renomear _arquivo (não permitido em tipos parciais)</target>
         <note>Disabled text status for file rename</note>
       </trans-unit>
+<<<<<<< HEAD
       <trans-unit id="Split_comment">
         <source>Split Comment</source>
         <target state="new">Split Comment</target>
         <note />
+=======
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="new">Rename symbol's _file</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
+>>>>>>> upstream/master
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>

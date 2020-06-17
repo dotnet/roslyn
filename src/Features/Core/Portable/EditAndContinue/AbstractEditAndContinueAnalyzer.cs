@@ -366,7 +366,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Document? oldDocument,
             ImmutableArray<ActiveStatement> baseActiveStatements,
             Document document,
-            IActiveStatementSpanTracker activeStatementSpanTracker,
             CancellationToken cancellationToken)
         {
             DocumentAnalysisResults.Log.Write("Analyzing document {0}", document.Name);
@@ -479,6 +478,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var topMatch = ComputeTopLevelMatch(oldRoot, newRoot);
                 var syntacticEdits = topMatch.GetTreeEdits();
                 var editMap = BuildEditMap(syntacticEdits);
+
+                var activeStatementSpanTracker = document.Project.Solution.Workspace.Services.GetRequiredService<IActiveStatementSpanTracker>();
 
                 AnalyzeSyntax(
                     syntacticEdits,

@@ -19,11 +19,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class FormattingEngineTests : CSharpFormattingEngineTestBase
     {
+        public FormattingEngineTests(ITestOutputHelper output) : base(output) { }
+
         private static Dictionary<OptionKey2, object> SmartIndentButDoNotFormatWhileTyping()
         {
             return new Dictionary<OptionKey2, object>
@@ -2048,6 +2051,100 @@ class MyClass
             && point is Point { x: 3, y: 4 } _)
         {
         }
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task WithExpression()
+        {
+            var code = @"[|
+record C(int Property)
+{
+    void M()
+    {
+        _ = this  with  {  Property  =  1  } ;
+    }
+}
+|]";
+            var expected = @"
+record C(int Property)
+{
+    void M()
+    {
+        _ = this with { Property = 1 };
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task WithExpression_MultiLine()
+        {
+            var code = @"[|
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this  with
+{
+Property  =  1,
+Property2  =  2
+} ;
+    }
+}
+|]";
+            var expected = @"
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this with
+        {
+            Property = 1,
+            Property2 = 2
+        };
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task WithExpression_MultiLine_UserPositionedBraces()
+        {
+            var code = @"[|
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this  with
+            {
+                Property  =  1,
+                Property2  =  2
+            } ;
+    }
+}
+|]";
+            var expected = @"
+record C(int Property, int Property2)
+{
+    void M()
+    {
+        _ = this with
+        {
+            Property = 1,
+            Property2 = 2
+        };
     }
 }
 ";

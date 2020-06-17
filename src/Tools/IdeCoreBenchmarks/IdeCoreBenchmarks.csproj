@@ -5,7 +5,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <!-- Automatically generate the necessary assembly binding redirects -->

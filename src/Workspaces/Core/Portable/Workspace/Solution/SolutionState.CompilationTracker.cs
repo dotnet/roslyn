@@ -700,6 +700,7 @@ namespace Microsoft.CodeAnalysis
                             compilationFactory.CreateGeneratorDriver(
                                 this.ProjectState.ParseOptions!,
                                 generators,
+                                this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                 additionalTexts));
                     }
 

@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -127,6 +128,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             _binderFactoryVisitorPool.Free(visitor);
 
             return result;
+        }
+
+        internal InMethodBinder GetRecordConstructorInMethodBinder(SynthesizedRecordConstructor constructor)
+        {
+            RecordDeclarationSyntax typeDecl = constructor.GetSyntax();
+
+            var extraInfo = NodeUsage.ConstructorBodyOrInitializer;
+            var key = BinderFactoryVisitor.CreateBinderCacheKey(typeDecl, extraInfo);
+
+            if (!_binderCache.TryGetValue(key, out Binder resultBinder))
+            {
+                // Ctors cannot be generic
+                Debug.Assert(constructor.Arity == 0, "Generic Ctor, What to do?");
+                resultBinder = new InMethodBinder(constructor, GetInRecordBodyBinder(typeDecl));
+
+                _binderCache.TryAdd(key, resultBinder);
+            }
+
+            return (InMethodBinder)resultBinder;
+        }
+
+        internal Binder GetInRecordBodyBinder(RecordDeclarationSyntax typeDecl)
+        {
+            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
+            visitor.Initialize(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
+            Binder resultBinder = visitor.VisitTypeDeclarationCore(typeDecl, NodeUsage.NamedTypeBodyOrTypeParameters);
+            _binderFactoryVisitorPool.Free(visitor);
+
+            return resultBinder;
         }
 
         /// <summary>
