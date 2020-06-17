@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     var memberModCount = member.CustomModifierCount();
-                    if (bestModifierCountSoFar >= 0 && memberModCount > bestModifierCountSoFar)
+                    if (memberModCount > bestModifierCountSoFar)
                     {
                         continue;
                     }
