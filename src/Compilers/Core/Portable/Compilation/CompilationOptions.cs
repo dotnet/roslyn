@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithSourceReferenceResolver(resolver);
         }
 
-        public CompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider)
+        public CompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider? provider)
         {
             return CommonWithSyntaxTreeOptionsProvider(provider);
         }
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);
         protected abstract CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver? resolver);
         protected abstract CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver? resolver);
-        protected abstract CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider resolver);
+        protected abstract CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider? resolver);
         protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver? resolver);
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer? comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider? provider);

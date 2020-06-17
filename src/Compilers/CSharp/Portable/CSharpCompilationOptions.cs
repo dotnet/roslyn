@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { SourceReferenceResolver = resolver };
         }
 
-        public new CSharpCompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider)
+        public new CSharpCompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider? provider)
         {
             if (ReferenceEquals(provider, this.SyntaxTreeOptionsProvider))
             {
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver? resolver) =>
             WithSourceReferenceResolver(resolver);
 
-        protected override CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider)
+        protected override CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider? provider)
             => WithSyntaxTreeOptionsProvider(provider);
 
         protected override CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver? resolver) =>
