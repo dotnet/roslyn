@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value.ConstantValue != ConstantValue.Null;
             }
 
-            if ((object)type != null && type.IsPointerType())
+            if ((object)type != null && type.IsPointerOrFunctionPointer())
             {
                 // We always suppress the warning for pointer types. 
                 return true;

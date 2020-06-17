@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
-                 location)
+                 location,
+                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
         {
             _name = name;
             _explicitInterfaceType = explicitInterfaceType;
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // Method or delegate cannot return type '{0}'
+                    // The return type of a method, delegate, or function pointer cannot be '{0}'
                     diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType.Type);
                 }
             }

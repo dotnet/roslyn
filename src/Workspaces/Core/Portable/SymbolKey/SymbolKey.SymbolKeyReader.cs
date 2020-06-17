@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _readString = ReadString;
                 _readBoolean = ReadBoolean;
-                _readRefKind = () => (RefKind)ReadInteger();
+                _readRefKind = ReadRefKind;
             }
 
             protected virtual void Initialize(string data, CancellationToken cancellationToken)
@@ -191,6 +191,11 @@ namespace Microsoft.CodeAnalysis
 
                 EatCloseParen();
                 return builder;
+            }
+
+            public RefKind ReadRefKind()
+            {
+                return (RefKind)ReadInteger();
             }
         }
 
@@ -418,6 +423,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolKeyType.NamedType => NamedTypeSymbolKey.Resolve(this),
                     SymbolKeyType.ErrorType => ErrorTypeSymbolKey.Resolve(this),
                     SymbolKeyType.Field => FieldSymbolKey.Resolve(this),
+                    SymbolKeyType.FunctionPointer => FunctionPointerTypeSymbolKey.Resolve(this),
                     SymbolKeyType.DynamicType => DynamicTypeSymbolKey.Resolve(this),
                     SymbolKeyType.Method => MethodSymbolKey.Resolve(this),
                     SymbolKeyType.Namespace => NamespaceSymbolKey.Resolve(this),
@@ -557,7 +563,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            private IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)
+            private static IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)
             {
                 foreach (var module in modules)
                 {

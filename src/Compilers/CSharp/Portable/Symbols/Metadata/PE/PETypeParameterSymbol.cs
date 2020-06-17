@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
@@ -255,21 +256,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private TypeWithAnnotations GetConstraintTypeOrDefault(PEModuleSymbol moduleSymbol, MetadataReader metadataReader, MetadataDecoder tokenDecoder, GenericParameterConstraintHandle constraintHandle, ref bool hasUnmanagedModreqPattern)
         {
             var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
-            var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out bool hasUnmanagedModreq);
+            var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out ImmutableArray<ModifierInfo<TypeSymbol>> modifiers);
 
-            if (typeSymbol.SpecialType == SpecialType.System_ValueType)
+            if (!modifiers.IsDefaultOrEmpty && modifiers.Length > 1)
+            {
+                typeSymbol = new UnsupportedMetadataTypeSymbol();
+            }
+            else if (typeSymbol.SpecialType == SpecialType.System_ValueType)
             {
                 // recognize "(class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType" pattern as "unmanaged"
-                if (hasUnmanagedModreq)
+                if (!modifiers.IsDefaultOrEmpty)
                 {
-                    hasUnmanagedModreqPattern = true;
+                    ModifierInfo<TypeSymbol> m = modifiers.Single();
+                    if (!m.IsOptional && m.Modifier.IsWellKnownTypeUnmanagedType())
+                    {
+                        hasUnmanagedModreqPattern = true;
+                    }
+                    else
+                    {
+                        // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                        typeSymbol = new UnsupportedMetadataTypeSymbol();
+                    }
                 }
 
                 // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
-                if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
+                if (typeSymbol.SpecialType == SpecialType.System_ValueType && ((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
                 {
                     return default;
                 }
+            }
+            else if (!modifiers.IsDefaultOrEmpty)
+            {
+                // Other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                typeSymbol = new UnsupportedMetadataTypeSymbol();
             }
 
             var type = TypeWithAnnotations.Create(typeSymbol);

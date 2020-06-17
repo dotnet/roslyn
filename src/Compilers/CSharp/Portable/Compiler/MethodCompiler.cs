@@ -207,10 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
-            if (entryPointAndDiagnostics == null)
-            {
-                return null;
-            }
 
             Debug.Assert(!entryPointAndDiagnostics.Diagnostics.IsDefault);
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
@@ -218,7 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)entryPoint == null)
             {
-                Debug.Assert(entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
                 return null;
             }
 
@@ -981,7 +976,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Do not emit initializers if we are invoking another constructor of this class.
                     includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
-                                                !HasThisConstructorInitializer(methodSymbol);
+                                                !HasThisConstructorInitializer(methodSymbol) &&
+                                                !(methodSymbol is SynthesizedRecordCopyCtor) &&
+                                                !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol); // A record copy constructor is special, regular initializers are not supposed to be executed by it.
 
                     body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested, out forSemanticModel);
                     if (diagsForCurrentMethod.HasAnyErrors() && body != null)
@@ -1003,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || _emitTestCoverageData))
+                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || methodSymbol is SynthesizedRecordConstructor || _emitTestCoverageData))
                         {
                             if (_emitTestCoverageData && methodSymbol.IsImplicitConstructor)
                             {
@@ -1154,7 +1151,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // don't emit if the resulting method would contain initializers with errors
                     if (!hasErrors && (hasBody || includeInitializersInBody))
                     {
-                        Debug.Assert(!methodSymbol.IsImplicitInstanceConstructor || !methodSymbol.ContainingType.IsStructType());
+                        Debug.Assert(!(methodSymbol.IsImplicitInstanceConstructor && methodSymbol.ParameterCount == 0) ||
+                                     !methodSymbol.ContainingType.IsStructType());
 
                         // Fields must be initialized before constructor initializer (which is the first statement of the analyzed body, if specified),
                         // so that the initialization occurs before any method overridden by the declaring class can be invoked from the base constructor
@@ -1645,11 +1643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method is SourceMemberMethodSymbol sourceMethod)
             {
                 CSharpSyntaxNode syntaxNode = sourceMethod.SyntaxNode;
-                var constructorSyntax = syntaxNode as ConstructorDeclarationSyntax;
 
                 // Static constructor can't have any this/base call
                 if (method.MethodKind == MethodKind.StaticConstructor &&
-                    constructorSyntax?.Initializer != null)
+                    syntaxNode is ConstructorDeclarationSyntax constructorSyntax &&
+                    constructorSyntax.Initializer != null)
                 {
                     diagnostics.Add(
                         ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall,
@@ -1667,7 +1665,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bodyBinder != null)
                 {
                     importChain = bodyBinder.ImportChain;
-                    bodyBinder.ValidateIteratorMethods(diagnostics);
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
                     BoundNode methodBodyForSemanticModel = methodBody;
@@ -1733,6 +1730,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return null;
                 }
+            }
+            else if (method is SynthesizedInstanceConstructor ctor)
+            {
+                // Synthesized instance constructors may partially synthesize
+                // their body
+                var node = ctor.GetNonNullSyntaxNode();
+                var factory = new SyntheticBoundNodeFactory(ctor, node, compilationState, diagnostics);
+                var stmts = ArrayBuilder<BoundStatement>.GetInstance();
+                ctor.GenerateMethodBodyStatements(factory, stmts, diagnostics);
+                body = BoundBlock.SynthesizedNoLocals(node, stmts.ToImmutableAndFree());
             }
             else
             {
@@ -1818,7 +1825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
-            Debug.Assert(((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
+            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
             // The common case is that the type inherits directly from object.
             // Also, we might be trying to generate a constructor for an entirely compiler-generated class such
@@ -1838,6 +1845,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We have no expressions we need to analyze to report errors on.
                     return null;
                 }
+            }
+
+            if (constructor is SynthesizedRecordCopyCtor copyCtor)
+            {
+                return GenerateBaseCopyConstructorInitializer(copyCtor, diagnostics);
             }
 
             // Now, in order to do overload resolution, we're going to need a binder. There are
@@ -1861,16 +1873,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The constructor is implicit. We need to get the binder for the body
                 // of the enclosing class. 
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
-                SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
-                outerBinder = compilation.GetBinderFactory(containerNode.SyntaxTree).GetBinder(containerNode, bodyToken.Position);
+                BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
+
+                if (containerNode is RecordDeclarationSyntax recordDecl)
+                {
+                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                }
+                else
+                {
+                    SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
+                    outerBinder = binderFactory.GetBinder(containerNode, bodyToken.Position);
+                }
             }
             else
             {
-                // We have a ctor in source but no explicit constructor initializer.  We can't just use the binder for the
-                // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list
-                // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
+                BinderFactory binderFactory = compilation.GetBinderFactory(sourceConstructor.SyntaxTree);
 
-                outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(((ConstructorDeclarationSyntax)sourceConstructor.SyntaxNode).ParameterList);
+                switch (sourceConstructor.SyntaxNode)
+                {
+                    case ConstructorDeclarationSyntax ctorDecl:
+                        // We have a ctor in source but no explicit constructor initializer.  We can't just use the binder for the
+                        // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list
+                        // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
+
+                        outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
+                        break;
+
+                    case RecordDeclarationSyntax recordDecl:
+                        outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
             }
 
             // wrap in ConstructorInitializerBinder for appropriate errors
@@ -1946,6 +1981,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binderOpt: null,
                 type: baseConstructor.ReturnType,
                 hasErrors: hasErrors)
+            { WasCompilerGenerated = true };
+        }
+
+        private static BoundCall GenerateBaseCopyConstructorInitializer(SynthesizedRecordCopyCtor constructor, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+            Location diagnosticsLocation = constructor.Locations.FirstOrNone();
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            MethodSymbol baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteDiagnostics);
+
+            if (baseConstructor is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
+                return null;
+            }
+
+            if (Binder.ReportUseSiteDiagnostics(baseConstructor, diagnostics, diagnosticsLocation))
+            {
+                return null;
+            }
+
+            if (!useSiteDiagnostics.IsNullOrEmpty())
+            {
+                diagnostics.Add(diagnosticsLocation, useSiteDiagnostics);
+            }
+
+            CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
+            BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
+            BoundExpression argument = new BoundParameter(syntax, constructor.Parameters[0]);
+
+            return new BoundCall(
+                syntax: syntax,
+                receiverOpt: receiver,
+                method: baseConstructor,
+                arguments: ImmutableArray.Create(argument),
+                argumentNamesOpt: default,
+                argumentRefKindsOpt: default,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default,
+                resultKind: LookupResultKind.Viable,
+                binderOpt: null,
+                type: baseConstructor.ReturnType,
+                hasErrors: false)
             { WasCompilerGenerated = true };
         }
 

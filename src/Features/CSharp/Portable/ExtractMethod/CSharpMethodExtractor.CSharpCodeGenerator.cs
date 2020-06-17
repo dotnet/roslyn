@@ -171,10 +171,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return statements;
             }
 
-            private bool IsExpressionBodiedMember(SyntaxNode node)
+            private static bool IsExpressionBodiedMember(SyntaxNode node)
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
 
-            private bool IsExpressionBodiedAccessor(SyntaxNode node)
+            private static bool IsExpressionBodiedAccessor(SyntaxNode node)
                 => node is AccessorDeclarationSyntax accessor && accessor.ExpressionBody != null;
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
@@ -279,20 +279,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SpecializedCollections.SingletonEnumerable<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements)));
             }
 
-            private IEnumerable<StatementSyntax> CleanupCode(IEnumerable<StatementSyntax> statements)
+            private static IEnumerable<StatementSyntax> CleanupCode(IEnumerable<StatementSyntax> statements)
             {
-                var semanticModel = SemanticDocument.SemanticModel;
-                var context = InsertionPoint.GetContext();
-                var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
-
-                statements = postProcessor.RemoveRedundantBlock(statements);
-                statements = postProcessor.RemoveDeclarationAssignmentPattern(statements);
-                statements = postProcessor.RemoveInitializedDeclarationAndReturnPattern(statements);
+                statements = PostProcessor.RemoveRedundantBlock(statements);
+                statements = PostProcessor.RemoveDeclarationAssignmentPattern(statements);
+                statements = PostProcessor.RemoveInitializedDeclarationAndReturnPattern(statements);
 
                 return statements;
             }
 
-            private OperationStatus CheckActiveStatements(IEnumerable<StatementSyntax> statements)
+            private static OperationStatus CheckActiveStatements(IEnumerable<StatementSyntax> statements)
             {
                 var count = statements.Count();
                 if (count == 0)
@@ -430,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             /// which needs to be removed, we will annotate it as a conflict, since we don't have
             /// a better refactoring.
             /// </summary>
-            private StatementSyntax FixDeclarationExpressionsAndDeclarationPatterns(StatementSyntax statement,
+            private static StatementSyntax FixDeclarationExpressionsAndDeclarationPatterns(StatementSyntax statement,
                 HashSet<SyntaxAnnotation> variablesToRemove)
             {
                 var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
@@ -530,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return declStatements.Concat(statements);
             }
 
-            private ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
+            private static ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
             {
                 return SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
@@ -647,7 +643,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var root = newDocument.Root;
                     var methodDefinition = root.GetAnnotatedNodes<SyntaxNode>(MethodDefinitionAnnotation).First();
 
+#pragma warning disable IDE0007 // Use implicit type (False positive: https://github.com/dotnet/roslyn/issues/44507)
                     SyntaxNode newMethodDefinition = methodDefinition switch
+#pragma warning restore IDE0007 // Use implicit type
                     {
                         MethodDeclarationSyntax method => TweakNewLinesInMethod(method),
                         LocalFunctionStatementSyntax localFunction => TweakNewLinesInMethod(localFunction),

@@ -1415,12 +1415,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return New EndOperation(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundWithStatementOperation(boundWithStatement As BoundWithStatement) As IWithOperation
+        Private Function CreateBoundWithStatementOperation(boundWithStatement As BoundWithStatement) As IWithStatementOperation
             Dim syntax As SyntaxNode = boundWithStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundWithStatement.WasCompilerGenerated
-            Return New VisualBasicLazyWithOperation(Me, boundWithStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New VisualBasicLazyWithStatementOperation(Me, boundWithStatement, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Friend Function CreateBoundUsingStatementResources(boundUsingStatement As BoundUsingStatement) As IOperation

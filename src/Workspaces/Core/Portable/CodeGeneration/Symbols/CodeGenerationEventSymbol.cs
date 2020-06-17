@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IMethodSymbol addMethod,
             IMethodSymbol removeMethod,
             IMethodSymbol raiseMethod)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
             this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
@@ -64,6 +64,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public IEventSymbol? OverriddenEvent => null;
 
-        public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
+        public static ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
     }
 }

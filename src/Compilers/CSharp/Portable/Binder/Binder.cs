@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
+        internal virtual Imports GetImports(ConsList<TypeSymbol>? basesBeingResolved)
         {
             RoslynDebug.Assert(Next is object);
             return Next.GetImports(basesBeingResolved);
@@ -561,6 +561,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, Location location, params object[] args)
         {
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(code, args), location));
+        }
+
+        /// <summary>
+        /// Issue an error or warning for a symbol if it is Obsolete. If there is not enough
+        /// information to report diagnostics, then store the symbols so that diagnostics
+        /// can be reported at a later stage.
+        /// </summary>
+        /// <remarks>
+        /// This method is introduced to move the implicit conversion operator call from the caller
+        /// so as to reduce the caller stack frame size
+        /// </remarks>
+        internal void ReportDiagnosticsIfObsolete(DiagnosticBag diagnostics, Symbol symbol, SyntaxNode node, bool hasBaseReceiver)
+        {
+            ReportDiagnosticsIfObsolete(diagnostics, symbol, (SyntaxNodeOrToken)node, hasBaseReceiver);
         }
 
         /// <summary>

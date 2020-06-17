@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private CodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind) =>
             new MoveTypeCodeAction((TService)this, state, operationKind, fileName);
 
-        private bool IsNestedType(TTypeDeclarationSyntax typeNode) =>
+        private static bool IsNestedType(TTypeDeclarationSyntax typeNode) =>
             typeNode.Parent is TTypeDeclarationSyntax;
 
         /// <summary>
@@ -161,14 +161,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// <remarks>
         /// optimized for perf, uses Skip(1).Any() instead of Count() > 1
         /// </remarks>
-        private bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root) =>
+        private static bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root) =>
             TopLevelTypeDeclarations(root).Skip(1).Any();
 
         private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root) =>
             root.DescendantNodes(n => n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax)
                 .OfType<TTypeDeclarationSyntax>();
 
-        private bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
+        private static bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
         {
             var root = state.SemanticDocument.Root;
             var semanticModel = state.SemanticDocument.SemanticModel;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return namesMatch;
         }
 
-        private IEnumerable<string> GetSuggestedFileNames(
+        private static IEnumerable<string> GetSuggestedFileNames(
             TTypeDeclarationSyntax typeNode,
             bool isNestedType,
             string typeName,

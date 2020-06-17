@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,
-            ISyntaxFactsService syntaxFactsService);
+            ISyntaxFacts syntaxFactsService);
     }
 }

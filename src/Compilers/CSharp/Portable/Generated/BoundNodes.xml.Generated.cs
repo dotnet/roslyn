@@ -8,18 +8,17 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Roslyn.Utilities;
-
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal enum BoundKind: byte
+    internal enum BoundKind : byte
     {
         FieldEqualsValue,
         PropertyEqualsValue,
@@ -41,8 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         UnaryOperator,
         IncrementOperator,
         AddressOfOperator,
+        UnconvertedAddressOfOperator,
+        FunctionPointerLoad,
         PointerIndirectionOperator,
         PointerElementAccess,
+        FunctionPointerInvocation,
         RefTypeOperator,
         MakeRefOperator,
         RefValueOperator,
@@ -217,6 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NonConstructorMethodBody,
         ConstructorMethodBody,
         ExpressionWithNullability,
+        WithExpression,
     }
 
 
@@ -665,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public ImmutableArray<Symbol?> Symbols { get; }
 
@@ -891,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol? MethodOpt { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
@@ -941,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Conversion ResultConversion { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
@@ -986,6 +989,77 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operand != this.Operand || isManaged != this.IsManaged || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAddressOfOperator(this.Syntax, operand, isManaged, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundUnconvertedAddressOfOperator : BoundExpression
+    {
+        public BoundUnconvertedAddressOfOperator(SyntaxNode syntax, BoundMethodGroup operand, bool hasErrors = false)
+            : base(BoundKind.UnconvertedAddressOfOperator, syntax, null, hasErrors || operand.HasErrors())
+        {
+
+            RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Operand = operand;
+        }
+
+
+        public BoundMethodGroup Operand { get; }
+
+        public new TypeSymbol? Type => base.Type!;
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedAddressOfOperator(this);
+
+        public BoundUnconvertedAddressOfOperator Update(BoundMethodGroup operand)
+        {
+            if (operand != this.Operand)
+            {
+                var result = new BoundUnconvertedAddressOfOperator(this.Syntax, operand, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundFunctionPointerLoad : BoundExpression
+    {
+        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.FunctionPointerLoad, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(targetMethod is object, "Field 'targetMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.TargetMethod = targetMethod;
+        }
+
+        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol type)
+            : base(BoundKind.FunctionPointerLoad, syntax, type)
+        {
+
+            RoslynDebug.Assert(targetMethod is object, "Field 'targetMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.TargetMethod = targetMethod;
+        }
+
+
+        public MethodSymbol TargetMethod { get; }
+
+        public new TypeSymbol Type => base.Type!;
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitFunctionPointerLoad(this);
+
+        public BoundFunctionPointerLoad Update(MethodSymbol targetMethod, TypeSymbol type)
+        {
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(targetMethod, this.TargetMethod) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundFunctionPointerLoad(this.Syntax, targetMethod, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1055,6 +1129,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression != this.Expression || index != this.Index || @checked != this.Checked || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundPointerElementAccess(this.Syntax, expression, index, @checked, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundFunctionPointerInvocation : BoundExpression
+    {
+        public BoundFunctionPointerInvocation(SyntaxNode syntax, BoundExpression invokedExpression, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.FunctionPointerInvocation, syntax, type, hasErrors || invokedExpression.HasErrors() || arguments.HasErrors())
+        {
+
+            RoslynDebug.Assert(invokedExpression is object, "Field 'invokedExpression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.InvokedExpression = invokedExpression;
+            this.Arguments = arguments;
+            this.ArgumentRefKindsOpt = argumentRefKindsOpt;
+            this._ResultKind = resultKind;
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
+
+        public BoundExpression InvokedExpression { get; }
+
+        public ImmutableArray<BoundExpression> Arguments { get; }
+
+        public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
+
+        private readonly LookupResultKind _ResultKind;
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitFunctionPointerInvocation(this);
+
+        public BoundFunctionPointerInvocation Update(BoundExpression invokedExpression, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, LookupResultKind resultKind, TypeSymbol type)
+        {
+            if (invokedExpression != this.InvokedExpression || arguments != this.Arguments || argumentRefKindsOpt != this.ArgumentRefKindsOpt || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundFunctionPointerInvocation(this.Syntax, invokedExpression, arguments, argumentRefKindsOpt, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1278,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol? MethodOpt { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
@@ -1369,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol FalseOperator { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
@@ -1420,7 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Conversion FinalConversion { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
         [DebuggerStepThrough]
@@ -4374,7 +4490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConvertedSwitchExpression : BoundSwitchExpression
     {
-        public BoundConvertedSwitchExpression(SyntaxNode syntax, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
+        public BoundConvertedSwitchExpression(SyntaxNode syntax, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, Conversion conversion, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ConvertedSwitchExpression, syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
         {
 
@@ -4385,6 +4501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.NaturalTypeOpt = naturalTypeOpt;
             this.WasTargetTyped = wasTargetTyped;
+            this.Conversion = conversion;
         }
 
 
@@ -4393,14 +4510,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeSymbol? NaturalTypeOpt { get; }
 
         public bool WasTargetTyped { get; }
+
+        public Conversion Conversion { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedSwitchExpression(this);
 
-        public BoundConvertedSwitchExpression Update(TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type)
+        public BoundConvertedSwitchExpression Update(TypeSymbol? naturalTypeOpt, bool wasTargetTyped, Conversion conversion, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type)
         {
-            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || conversion != this.Conversion || expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConvertedSwitchExpression(this.Syntax, naturalTypeOpt, wasTargetTyped, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
+                var result = new BoundConvertedSwitchExpression(this.Syntax, naturalTypeOpt, wasTargetTyped, conversion, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5028,7 +5147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression? ReceiverOpt { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
     }
 
     internal sealed partial class BoundSequencePointExpression : BoundExpression
@@ -5510,7 +5629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<int> ArgsToParamsOpt { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public ImmutableArray<MethodSymbol> OriginalMethodsOpt { get; }
 
@@ -5609,7 +5728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundExpression> NamedArguments { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitAttribute(this);
 
@@ -5973,7 +6092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<int> ArgsToParamsOpt { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public TypeSymbol ReceiverType { get; }
 
@@ -6103,7 +6222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool InvokedAsExtensionMethod { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public Binder? BinderOpt { get; }
         [DebuggerStepThrough]
@@ -6504,7 +6623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ConstantValue? ConstantValueOpt { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
 
         public bool IsByValue { get; }
 
@@ -6587,7 +6706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public PropertySymbol PropertySymbol { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPropertyAccess(this);
 
@@ -6628,7 +6747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsUsableAsField { get; }
 
         private readonly LookupResultKind _ResultKind;
-        public override LookupResultKind ResultKind { get { return _ResultKind;} }
+        public override LookupResultKind ResultKind { get { return _ResultKind; } }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitEventAccess(this);
 
@@ -7731,7 +7850,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal abstract partial class BoundTreeVisitor<A,R>
+    internal sealed partial class BoundWithExpression : BoundExpression
+    {
+        public BoundWithExpression(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? cloneMethod, BoundObjectInitializerExpressionBase initializerExpression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.WithExpression, syntax, type, hasErrors || receiver.HasErrors() || initializerExpression.HasErrors())
+        {
+
+            RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(initializerExpression is object, "Field 'initializerExpression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Receiver = receiver;
+            this.CloneMethod = cloneMethod;
+            this.InitializerExpression = initializerExpression;
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
+
+        public BoundExpression Receiver { get; }
+
+        public MethodSymbol? CloneMethod { get; }
+
+        public BoundObjectInitializerExpressionBase InitializerExpression { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitWithExpression(this);
+
+        public BoundWithExpression Update(BoundExpression receiver, MethodSymbol? cloneMethod, BoundObjectInitializerExpressionBase initializerExpression, TypeSymbol type)
+        {
+            if (receiver != this.Receiver || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(cloneMethod, this.CloneMethod) || initializerExpression != this.InitializerExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundWithExpression(this.Syntax, receiver, cloneMethod, initializerExpression, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal abstract partial class BoundTreeVisitor<A, R>
     {
 
         [MethodImpl(MethodImplOptions.NoInlining), DebuggerStepThrough]
@@ -7739,405 +7896,413 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind)
             {
-                case BoundKind.FieldEqualsValue: 
+                case BoundKind.FieldEqualsValue:
                     return VisitFieldEqualsValue((BoundFieldEqualsValue)node, arg);
-                case BoundKind.PropertyEqualsValue: 
+                case BoundKind.PropertyEqualsValue:
                     return VisitPropertyEqualsValue((BoundPropertyEqualsValue)node, arg);
-                case BoundKind.ParameterEqualsValue: 
+                case BoundKind.ParameterEqualsValue:
                     return VisitParameterEqualsValue((BoundParameterEqualsValue)node, arg);
-                case BoundKind.GlobalStatementInitializer: 
+                case BoundKind.GlobalStatementInitializer:
                     return VisitGlobalStatementInitializer((BoundGlobalStatementInitializer)node, arg);
-                case BoundKind.DeconstructValuePlaceholder: 
+                case BoundKind.DeconstructValuePlaceholder:
                     return VisitDeconstructValuePlaceholder((BoundDeconstructValuePlaceholder)node, arg);
-                case BoundKind.TupleOperandPlaceholder: 
+                case BoundKind.TupleOperandPlaceholder:
                     return VisitTupleOperandPlaceholder((BoundTupleOperandPlaceholder)node, arg);
-                case BoundKind.AwaitableValuePlaceholder: 
+                case BoundKind.AwaitableValuePlaceholder:
                     return VisitAwaitableValuePlaceholder((BoundAwaitableValuePlaceholder)node, arg);
-                case BoundKind.DisposableValuePlaceholder: 
+                case BoundKind.DisposableValuePlaceholder:
                     return VisitDisposableValuePlaceholder((BoundDisposableValuePlaceholder)node, arg);
-                case BoundKind.ObjectOrCollectionValuePlaceholder: 
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return VisitObjectOrCollectionValuePlaceholder((BoundObjectOrCollectionValuePlaceholder)node, arg);
-                case BoundKind.Dup: 
+                case BoundKind.Dup:
                     return VisitDup((BoundDup)node, arg);
-                case BoundKind.PassByCopy: 
+                case BoundKind.PassByCopy:
                     return VisitPassByCopy((BoundPassByCopy)node, arg);
-                case BoundKind.BadExpression: 
+                case BoundKind.BadExpression:
                     return VisitBadExpression((BoundBadExpression)node, arg);
-                case BoundKind.BadStatement: 
+                case BoundKind.BadStatement:
                     return VisitBadStatement((BoundBadStatement)node, arg);
-                case BoundKind.ExtractedFinallyBlock: 
+                case BoundKind.ExtractedFinallyBlock:
                     return VisitExtractedFinallyBlock((BoundExtractedFinallyBlock)node, arg);
-                case BoundKind.TypeExpression: 
+                case BoundKind.TypeExpression:
                     return VisitTypeExpression((BoundTypeExpression)node, arg);
-                case BoundKind.TypeOrValueExpression: 
+                case BoundKind.TypeOrValueExpression:
                     return VisitTypeOrValueExpression((BoundTypeOrValueExpression)node, arg);
-                case BoundKind.NamespaceExpression: 
+                case BoundKind.NamespaceExpression:
                     return VisitNamespaceExpression((BoundNamespaceExpression)node, arg);
-                case BoundKind.UnaryOperator: 
+                case BoundKind.UnaryOperator:
                     return VisitUnaryOperator((BoundUnaryOperator)node, arg);
-                case BoundKind.IncrementOperator: 
+                case BoundKind.IncrementOperator:
                     return VisitIncrementOperator((BoundIncrementOperator)node, arg);
-                case BoundKind.AddressOfOperator: 
+                case BoundKind.AddressOfOperator:
                     return VisitAddressOfOperator((BoundAddressOfOperator)node, arg);
-                case BoundKind.PointerIndirectionOperator: 
+                case BoundKind.UnconvertedAddressOfOperator:
+                    return VisitUnconvertedAddressOfOperator((BoundUnconvertedAddressOfOperator)node, arg);
+                case BoundKind.FunctionPointerLoad:
+                    return VisitFunctionPointerLoad((BoundFunctionPointerLoad)node, arg);
+                case BoundKind.PointerIndirectionOperator:
                     return VisitPointerIndirectionOperator((BoundPointerIndirectionOperator)node, arg);
-                case BoundKind.PointerElementAccess: 
+                case BoundKind.PointerElementAccess:
                     return VisitPointerElementAccess((BoundPointerElementAccess)node, arg);
-                case BoundKind.RefTypeOperator: 
+                case BoundKind.FunctionPointerInvocation:
+                    return VisitFunctionPointerInvocation((BoundFunctionPointerInvocation)node, arg);
+                case BoundKind.RefTypeOperator:
                     return VisitRefTypeOperator((BoundRefTypeOperator)node, arg);
-                case BoundKind.MakeRefOperator: 
+                case BoundKind.MakeRefOperator:
                     return VisitMakeRefOperator((BoundMakeRefOperator)node, arg);
-                case BoundKind.RefValueOperator: 
+                case BoundKind.RefValueOperator:
                     return VisitRefValueOperator((BoundRefValueOperator)node, arg);
-                case BoundKind.FromEndIndexExpression: 
+                case BoundKind.FromEndIndexExpression:
                     return VisitFromEndIndexExpression((BoundFromEndIndexExpression)node, arg);
-                case BoundKind.RangeExpression: 
+                case BoundKind.RangeExpression:
                     return VisitRangeExpression((BoundRangeExpression)node, arg);
-                case BoundKind.BinaryOperator: 
+                case BoundKind.BinaryOperator:
                     return VisitBinaryOperator((BoundBinaryOperator)node, arg);
-                case BoundKind.TupleBinaryOperator: 
+                case BoundKind.TupleBinaryOperator:
                     return VisitTupleBinaryOperator((BoundTupleBinaryOperator)node, arg);
-                case BoundKind.UserDefinedConditionalLogicalOperator: 
+                case BoundKind.UserDefinedConditionalLogicalOperator:
                     return VisitUserDefinedConditionalLogicalOperator((BoundUserDefinedConditionalLogicalOperator)node, arg);
-                case BoundKind.CompoundAssignmentOperator: 
+                case BoundKind.CompoundAssignmentOperator:
                     return VisitCompoundAssignmentOperator((BoundCompoundAssignmentOperator)node, arg);
-                case BoundKind.AssignmentOperator: 
+                case BoundKind.AssignmentOperator:
                     return VisitAssignmentOperator((BoundAssignmentOperator)node, arg);
-                case BoundKind.DeconstructionAssignmentOperator: 
+                case BoundKind.DeconstructionAssignmentOperator:
                     return VisitDeconstructionAssignmentOperator((BoundDeconstructionAssignmentOperator)node, arg);
-                case BoundKind.NullCoalescingOperator: 
+                case BoundKind.NullCoalescingOperator:
                     return VisitNullCoalescingOperator((BoundNullCoalescingOperator)node, arg);
-                case BoundKind.NullCoalescingAssignmentOperator: 
+                case BoundKind.NullCoalescingAssignmentOperator:
                     return VisitNullCoalescingAssignmentOperator((BoundNullCoalescingAssignmentOperator)node, arg);
-                case BoundKind.ConditionalOperator: 
+                case BoundKind.ConditionalOperator:
                     return VisitConditionalOperator((BoundConditionalOperator)node, arg);
-                case BoundKind.ArrayAccess: 
+                case BoundKind.ArrayAccess:
                     return VisitArrayAccess((BoundArrayAccess)node, arg);
-                case BoundKind.ArrayLength: 
+                case BoundKind.ArrayLength:
                     return VisitArrayLength((BoundArrayLength)node, arg);
-                case BoundKind.AwaitableInfo: 
+                case BoundKind.AwaitableInfo:
                     return VisitAwaitableInfo((BoundAwaitableInfo)node, arg);
-                case BoundKind.AwaitExpression: 
+                case BoundKind.AwaitExpression:
                     return VisitAwaitExpression((BoundAwaitExpression)node, arg);
-                case BoundKind.TypeOfOperator: 
+                case BoundKind.TypeOfOperator:
                     return VisitTypeOfOperator((BoundTypeOfOperator)node, arg);
-                case BoundKind.MethodDefIndex: 
+                case BoundKind.MethodDefIndex:
                     return VisitMethodDefIndex((BoundMethodDefIndex)node, arg);
-                case BoundKind.MaximumMethodDefIndex: 
+                case BoundKind.MaximumMethodDefIndex:
                     return VisitMaximumMethodDefIndex((BoundMaximumMethodDefIndex)node, arg);
-                case BoundKind.InstrumentationPayloadRoot: 
+                case BoundKind.InstrumentationPayloadRoot:
                     return VisitInstrumentationPayloadRoot((BoundInstrumentationPayloadRoot)node, arg);
-                case BoundKind.ModuleVersionId: 
+                case BoundKind.ModuleVersionId:
                     return VisitModuleVersionId((BoundModuleVersionId)node, arg);
-                case BoundKind.ModuleVersionIdString: 
+                case BoundKind.ModuleVersionIdString:
                     return VisitModuleVersionIdString((BoundModuleVersionIdString)node, arg);
-                case BoundKind.SourceDocumentIndex: 
+                case BoundKind.SourceDocumentIndex:
                     return VisitSourceDocumentIndex((BoundSourceDocumentIndex)node, arg);
-                case BoundKind.MethodInfo: 
+                case BoundKind.MethodInfo:
                     return VisitMethodInfo((BoundMethodInfo)node, arg);
-                case BoundKind.FieldInfo: 
+                case BoundKind.FieldInfo:
                     return VisitFieldInfo((BoundFieldInfo)node, arg);
-                case BoundKind.DefaultLiteral: 
+                case BoundKind.DefaultLiteral:
                     return VisitDefaultLiteral((BoundDefaultLiteral)node, arg);
-                case BoundKind.DefaultExpression: 
+                case BoundKind.DefaultExpression:
                     return VisitDefaultExpression((BoundDefaultExpression)node, arg);
-                case BoundKind.IsOperator: 
+                case BoundKind.IsOperator:
                     return VisitIsOperator((BoundIsOperator)node, arg);
-                case BoundKind.AsOperator: 
+                case BoundKind.AsOperator:
                     return VisitAsOperator((BoundAsOperator)node, arg);
-                case BoundKind.SizeOfOperator: 
+                case BoundKind.SizeOfOperator:
                     return VisitSizeOfOperator((BoundSizeOfOperator)node, arg);
-                case BoundKind.Conversion: 
+                case BoundKind.Conversion:
                     return VisitConversion((BoundConversion)node, arg);
-                case BoundKind.ReadOnlySpanFromArray: 
+                case BoundKind.ReadOnlySpanFromArray:
                     return VisitReadOnlySpanFromArray((BoundReadOnlySpanFromArray)node, arg);
-                case BoundKind.ArgList: 
+                case BoundKind.ArgList:
                     return VisitArgList((BoundArgList)node, arg);
-                case BoundKind.ArgListOperator: 
+                case BoundKind.ArgListOperator:
                     return VisitArgListOperator((BoundArgListOperator)node, arg);
-                case BoundKind.FixedLocalCollectionInitializer: 
+                case BoundKind.FixedLocalCollectionInitializer:
                     return VisitFixedLocalCollectionInitializer((BoundFixedLocalCollectionInitializer)node, arg);
-                case BoundKind.SequencePoint: 
+                case BoundKind.SequencePoint:
                     return VisitSequencePoint((BoundSequencePoint)node, arg);
-                case BoundKind.SequencePointWithSpan: 
+                case BoundKind.SequencePointWithSpan:
                     return VisitSequencePointWithSpan((BoundSequencePointWithSpan)node, arg);
-                case BoundKind.SavePreviousSequencePoint: 
+                case BoundKind.SavePreviousSequencePoint:
                     return VisitSavePreviousSequencePoint((BoundSavePreviousSequencePoint)node, arg);
-                case BoundKind.RestorePreviousSequencePoint: 
+                case BoundKind.RestorePreviousSequencePoint:
                     return VisitRestorePreviousSequencePoint((BoundRestorePreviousSequencePoint)node, arg);
-                case BoundKind.StepThroughSequencePoint: 
+                case BoundKind.StepThroughSequencePoint:
                     return VisitStepThroughSequencePoint((BoundStepThroughSequencePoint)node, arg);
-                case BoundKind.Block: 
+                case BoundKind.Block:
                     return VisitBlock((BoundBlock)node, arg);
-                case BoundKind.Scope: 
+                case BoundKind.Scope:
                     return VisitScope((BoundScope)node, arg);
-                case BoundKind.StateMachineScope: 
+                case BoundKind.StateMachineScope:
                     return VisitStateMachineScope((BoundStateMachineScope)node, arg);
-                case BoundKind.LocalDeclaration: 
+                case BoundKind.LocalDeclaration:
                     return VisitLocalDeclaration((BoundLocalDeclaration)node, arg);
-                case BoundKind.MultipleLocalDeclarations: 
+                case BoundKind.MultipleLocalDeclarations:
                     return VisitMultipleLocalDeclarations((BoundMultipleLocalDeclarations)node, arg);
-                case BoundKind.UsingLocalDeclarations: 
+                case BoundKind.UsingLocalDeclarations:
                     return VisitUsingLocalDeclarations((BoundUsingLocalDeclarations)node, arg);
-                case BoundKind.LocalFunctionStatement: 
+                case BoundKind.LocalFunctionStatement:
                     return VisitLocalFunctionStatement((BoundLocalFunctionStatement)node, arg);
-                case BoundKind.NoOpStatement: 
+                case BoundKind.NoOpStatement:
                     return VisitNoOpStatement((BoundNoOpStatement)node, arg);
-                case BoundKind.ReturnStatement: 
+                case BoundKind.ReturnStatement:
                     return VisitReturnStatement((BoundReturnStatement)node, arg);
-                case BoundKind.YieldReturnStatement: 
+                case BoundKind.YieldReturnStatement:
                     return VisitYieldReturnStatement((BoundYieldReturnStatement)node, arg);
-                case BoundKind.YieldBreakStatement: 
+                case BoundKind.YieldBreakStatement:
                     return VisitYieldBreakStatement((BoundYieldBreakStatement)node, arg);
-                case BoundKind.ThrowStatement: 
+                case BoundKind.ThrowStatement:
                     return VisitThrowStatement((BoundThrowStatement)node, arg);
-                case BoundKind.ExpressionStatement: 
+                case BoundKind.ExpressionStatement:
                     return VisitExpressionStatement((BoundExpressionStatement)node, arg);
-                case BoundKind.BreakStatement: 
+                case BoundKind.BreakStatement:
                     return VisitBreakStatement((BoundBreakStatement)node, arg);
-                case BoundKind.ContinueStatement: 
+                case BoundKind.ContinueStatement:
                     return VisitContinueStatement((BoundContinueStatement)node, arg);
-                case BoundKind.SwitchStatement: 
+                case BoundKind.SwitchStatement:
                     return VisitSwitchStatement((BoundSwitchStatement)node, arg);
-                case BoundKind.SwitchDispatch: 
+                case BoundKind.SwitchDispatch:
                     return VisitSwitchDispatch((BoundSwitchDispatch)node, arg);
-                case BoundKind.IfStatement: 
+                case BoundKind.IfStatement:
                     return VisitIfStatement((BoundIfStatement)node, arg);
-                case BoundKind.DoStatement: 
+                case BoundKind.DoStatement:
                     return VisitDoStatement((BoundDoStatement)node, arg);
-                case BoundKind.WhileStatement: 
+                case BoundKind.WhileStatement:
                     return VisitWhileStatement((BoundWhileStatement)node, arg);
-                case BoundKind.ForStatement: 
+                case BoundKind.ForStatement:
                     return VisitForStatement((BoundForStatement)node, arg);
-                case BoundKind.ForEachStatement: 
+                case BoundKind.ForEachStatement:
                     return VisitForEachStatement((BoundForEachStatement)node, arg);
-                case BoundKind.ForEachDeconstructStep: 
+                case BoundKind.ForEachDeconstructStep:
                     return VisitForEachDeconstructStep((BoundForEachDeconstructStep)node, arg);
-                case BoundKind.UsingStatement: 
+                case BoundKind.UsingStatement:
                     return VisitUsingStatement((BoundUsingStatement)node, arg);
-                case BoundKind.FixedStatement: 
+                case BoundKind.FixedStatement:
                     return VisitFixedStatement((BoundFixedStatement)node, arg);
-                case BoundKind.LockStatement: 
+                case BoundKind.LockStatement:
                     return VisitLockStatement((BoundLockStatement)node, arg);
-                case BoundKind.TryStatement: 
+                case BoundKind.TryStatement:
                     return VisitTryStatement((BoundTryStatement)node, arg);
-                case BoundKind.CatchBlock: 
+                case BoundKind.CatchBlock:
                     return VisitCatchBlock((BoundCatchBlock)node, arg);
-                case BoundKind.Literal: 
+                case BoundKind.Literal:
                     return VisitLiteral((BoundLiteral)node, arg);
-                case BoundKind.ThisReference: 
+                case BoundKind.ThisReference:
                     return VisitThisReference((BoundThisReference)node, arg);
-                case BoundKind.PreviousSubmissionReference: 
+                case BoundKind.PreviousSubmissionReference:
                     return VisitPreviousSubmissionReference((BoundPreviousSubmissionReference)node, arg);
-                case BoundKind.HostObjectMemberReference: 
+                case BoundKind.HostObjectMemberReference:
                     return VisitHostObjectMemberReference((BoundHostObjectMemberReference)node, arg);
-                case BoundKind.BaseReference: 
+                case BoundKind.BaseReference:
                     return VisitBaseReference((BoundBaseReference)node, arg);
-                case BoundKind.Local: 
+                case BoundKind.Local:
                     return VisitLocal((BoundLocal)node, arg);
-                case BoundKind.PseudoVariable: 
+                case BoundKind.PseudoVariable:
                     return VisitPseudoVariable((BoundPseudoVariable)node, arg);
-                case BoundKind.RangeVariable: 
+                case BoundKind.RangeVariable:
                     return VisitRangeVariable((BoundRangeVariable)node, arg);
-                case BoundKind.Parameter: 
+                case BoundKind.Parameter:
                     return VisitParameter((BoundParameter)node, arg);
-                case BoundKind.LabelStatement: 
+                case BoundKind.LabelStatement:
                     return VisitLabelStatement((BoundLabelStatement)node, arg);
-                case BoundKind.GotoStatement: 
+                case BoundKind.GotoStatement:
                     return VisitGotoStatement((BoundGotoStatement)node, arg);
-                case BoundKind.LabeledStatement: 
+                case BoundKind.LabeledStatement:
                     return VisitLabeledStatement((BoundLabeledStatement)node, arg);
-                case BoundKind.Label: 
+                case BoundKind.Label:
                     return VisitLabel((BoundLabel)node, arg);
-                case BoundKind.StatementList: 
+                case BoundKind.StatementList:
                     return VisitStatementList((BoundStatementList)node, arg);
-                case BoundKind.ConditionalGoto: 
+                case BoundKind.ConditionalGoto:
                     return VisitConditionalGoto((BoundConditionalGoto)node, arg);
-                case BoundKind.SwitchExpressionArm: 
+                case BoundKind.SwitchExpressionArm:
                     return VisitSwitchExpressionArm((BoundSwitchExpressionArm)node, arg);
-                case BoundKind.UnconvertedSwitchExpression: 
+                case BoundKind.UnconvertedSwitchExpression:
                     return VisitUnconvertedSwitchExpression((BoundUnconvertedSwitchExpression)node, arg);
-                case BoundKind.ConvertedSwitchExpression: 
+                case BoundKind.ConvertedSwitchExpression:
                     return VisitConvertedSwitchExpression((BoundConvertedSwitchExpression)node, arg);
-                case BoundKind.DecisionDag: 
+                case BoundKind.DecisionDag:
                     return VisitDecisionDag((BoundDecisionDag)node, arg);
-                case BoundKind.EvaluationDecisionDagNode: 
+                case BoundKind.EvaluationDecisionDagNode:
                     return VisitEvaluationDecisionDagNode((BoundEvaluationDecisionDagNode)node, arg);
-                case BoundKind.TestDecisionDagNode: 
+                case BoundKind.TestDecisionDagNode:
                     return VisitTestDecisionDagNode((BoundTestDecisionDagNode)node, arg);
-                case BoundKind.WhenDecisionDagNode: 
+                case BoundKind.WhenDecisionDagNode:
                     return VisitWhenDecisionDagNode((BoundWhenDecisionDagNode)node, arg);
-                case BoundKind.LeafDecisionDagNode: 
+                case BoundKind.LeafDecisionDagNode:
                     return VisitLeafDecisionDagNode((BoundLeafDecisionDagNode)node, arg);
-                case BoundKind.DagTemp: 
+                case BoundKind.DagTemp:
                     return VisitDagTemp((BoundDagTemp)node, arg);
-                case BoundKind.DagTypeTest: 
+                case BoundKind.DagTypeTest:
                     return VisitDagTypeTest((BoundDagTypeTest)node, arg);
-                case BoundKind.DagNonNullTest: 
+                case BoundKind.DagNonNullTest:
                     return VisitDagNonNullTest((BoundDagNonNullTest)node, arg);
-                case BoundKind.DagExplicitNullTest: 
+                case BoundKind.DagExplicitNullTest:
                     return VisitDagExplicitNullTest((BoundDagExplicitNullTest)node, arg);
-                case BoundKind.DagValueTest: 
+                case BoundKind.DagValueTest:
                     return VisitDagValueTest((BoundDagValueTest)node, arg);
-                case BoundKind.DagRelationalTest: 
+                case BoundKind.DagRelationalTest:
                     return VisitDagRelationalTest((BoundDagRelationalTest)node, arg);
-                case BoundKind.DagDeconstructEvaluation: 
+                case BoundKind.DagDeconstructEvaluation:
                     return VisitDagDeconstructEvaluation((BoundDagDeconstructEvaluation)node, arg);
-                case BoundKind.DagTypeEvaluation: 
+                case BoundKind.DagTypeEvaluation:
                     return VisitDagTypeEvaluation((BoundDagTypeEvaluation)node, arg);
-                case BoundKind.DagFieldEvaluation: 
+                case BoundKind.DagFieldEvaluation:
                     return VisitDagFieldEvaluation((BoundDagFieldEvaluation)node, arg);
-                case BoundKind.DagPropertyEvaluation: 
+                case BoundKind.DagPropertyEvaluation:
                     return VisitDagPropertyEvaluation((BoundDagPropertyEvaluation)node, arg);
-                case BoundKind.DagIndexEvaluation: 
+                case BoundKind.DagIndexEvaluation:
                     return VisitDagIndexEvaluation((BoundDagIndexEvaluation)node, arg);
-                case BoundKind.SwitchSection: 
+                case BoundKind.SwitchSection:
                     return VisitSwitchSection((BoundSwitchSection)node, arg);
-                case BoundKind.SwitchLabel: 
+                case BoundKind.SwitchLabel:
                     return VisitSwitchLabel((BoundSwitchLabel)node, arg);
-                case BoundKind.SequencePointExpression: 
+                case BoundKind.SequencePointExpression:
                     return VisitSequencePointExpression((BoundSequencePointExpression)node, arg);
-                case BoundKind.Sequence: 
+                case BoundKind.Sequence:
                     return VisitSequence((BoundSequence)node, arg);
-                case BoundKind.SpillSequence: 
+                case BoundKind.SpillSequence:
                     return VisitSpillSequence((BoundSpillSequence)node, arg);
-                case BoundKind.DynamicMemberAccess: 
+                case BoundKind.DynamicMemberAccess:
                     return VisitDynamicMemberAccess((BoundDynamicMemberAccess)node, arg);
-                case BoundKind.DynamicInvocation: 
+                case BoundKind.DynamicInvocation:
                     return VisitDynamicInvocation((BoundDynamicInvocation)node, arg);
-                case BoundKind.ConditionalAccess: 
+                case BoundKind.ConditionalAccess:
                     return VisitConditionalAccess((BoundConditionalAccess)node, arg);
-                case BoundKind.LoweredConditionalAccess: 
+                case BoundKind.LoweredConditionalAccess:
                     return VisitLoweredConditionalAccess((BoundLoweredConditionalAccess)node, arg);
-                case BoundKind.ConditionalReceiver: 
+                case BoundKind.ConditionalReceiver:
                     return VisitConditionalReceiver((BoundConditionalReceiver)node, arg);
-                case BoundKind.ComplexConditionalReceiver: 
+                case BoundKind.ComplexConditionalReceiver:
                     return VisitComplexConditionalReceiver((BoundComplexConditionalReceiver)node, arg);
-                case BoundKind.MethodGroup: 
+                case BoundKind.MethodGroup:
                     return VisitMethodGroup((BoundMethodGroup)node, arg);
-                case BoundKind.PropertyGroup: 
+                case BoundKind.PropertyGroup:
                     return VisitPropertyGroup((BoundPropertyGroup)node, arg);
-                case BoundKind.Call: 
+                case BoundKind.Call:
                     return VisitCall((BoundCall)node, arg);
-                case BoundKind.EventAssignmentOperator: 
+                case BoundKind.EventAssignmentOperator:
                     return VisitEventAssignmentOperator((BoundEventAssignmentOperator)node, arg);
-                case BoundKind.Attribute: 
+                case BoundKind.Attribute:
                     return VisitAttribute((BoundAttribute)node, arg);
-                case BoundKind.UnconvertedObjectCreationExpression: 
+                case BoundKind.UnconvertedObjectCreationExpression:
                     return VisitUnconvertedObjectCreationExpression((BoundUnconvertedObjectCreationExpression)node, arg);
-                case BoundKind.ObjectCreationExpression: 
+                case BoundKind.ObjectCreationExpression:
                     return VisitObjectCreationExpression((BoundObjectCreationExpression)node, arg);
-                case BoundKind.TupleLiteral: 
+                case BoundKind.TupleLiteral:
                     return VisitTupleLiteral((BoundTupleLiteral)node, arg);
-                case BoundKind.ConvertedTupleLiteral: 
+                case BoundKind.ConvertedTupleLiteral:
                     return VisitConvertedTupleLiteral((BoundConvertedTupleLiteral)node, arg);
-                case BoundKind.DynamicObjectCreationExpression: 
+                case BoundKind.DynamicObjectCreationExpression:
                     return VisitDynamicObjectCreationExpression((BoundDynamicObjectCreationExpression)node, arg);
-                case BoundKind.NoPiaObjectCreationExpression: 
+                case BoundKind.NoPiaObjectCreationExpression:
                     return VisitNoPiaObjectCreationExpression((BoundNoPiaObjectCreationExpression)node, arg);
-                case BoundKind.ObjectInitializerExpression: 
+                case BoundKind.ObjectInitializerExpression:
                     return VisitObjectInitializerExpression((BoundObjectInitializerExpression)node, arg);
-                case BoundKind.ObjectInitializerMember: 
+                case BoundKind.ObjectInitializerMember:
                     return VisitObjectInitializerMember((BoundObjectInitializerMember)node, arg);
-                case BoundKind.DynamicObjectInitializerMember: 
+                case BoundKind.DynamicObjectInitializerMember:
                     return VisitDynamicObjectInitializerMember((BoundDynamicObjectInitializerMember)node, arg);
-                case BoundKind.CollectionInitializerExpression: 
+                case BoundKind.CollectionInitializerExpression:
                     return VisitCollectionInitializerExpression((BoundCollectionInitializerExpression)node, arg);
-                case BoundKind.CollectionElementInitializer: 
+                case BoundKind.CollectionElementInitializer:
                     return VisitCollectionElementInitializer((BoundCollectionElementInitializer)node, arg);
-                case BoundKind.DynamicCollectionElementInitializer: 
+                case BoundKind.DynamicCollectionElementInitializer:
                     return VisitDynamicCollectionElementInitializer((BoundDynamicCollectionElementInitializer)node, arg);
-                case BoundKind.ImplicitReceiver: 
+                case BoundKind.ImplicitReceiver:
                     return VisitImplicitReceiver((BoundImplicitReceiver)node, arg);
-                case BoundKind.AnonymousObjectCreationExpression: 
+                case BoundKind.AnonymousObjectCreationExpression:
                     return VisitAnonymousObjectCreationExpression((BoundAnonymousObjectCreationExpression)node, arg);
-                case BoundKind.AnonymousPropertyDeclaration: 
+                case BoundKind.AnonymousPropertyDeclaration:
                     return VisitAnonymousPropertyDeclaration((BoundAnonymousPropertyDeclaration)node, arg);
-                case BoundKind.NewT: 
+                case BoundKind.NewT:
                     return VisitNewT((BoundNewT)node, arg);
-                case BoundKind.DelegateCreationExpression: 
+                case BoundKind.DelegateCreationExpression:
                     return VisitDelegateCreationExpression((BoundDelegateCreationExpression)node, arg);
-                case BoundKind.ArrayCreation: 
+                case BoundKind.ArrayCreation:
                     return VisitArrayCreation((BoundArrayCreation)node, arg);
-                case BoundKind.ArrayInitialization: 
+                case BoundKind.ArrayInitialization:
                     return VisitArrayInitialization((BoundArrayInitialization)node, arg);
-                case BoundKind.StackAllocArrayCreation: 
+                case BoundKind.StackAllocArrayCreation:
                     return VisitStackAllocArrayCreation((BoundStackAllocArrayCreation)node, arg);
-                case BoundKind.ConvertedStackAllocExpression: 
+                case BoundKind.ConvertedStackAllocExpression:
                     return VisitConvertedStackAllocExpression((BoundConvertedStackAllocExpression)node, arg);
-                case BoundKind.FieldAccess: 
+                case BoundKind.FieldAccess:
                     return VisitFieldAccess((BoundFieldAccess)node, arg);
-                case BoundKind.HoistedFieldAccess: 
+                case BoundKind.HoistedFieldAccess:
                     return VisitHoistedFieldAccess((BoundHoistedFieldAccess)node, arg);
-                case BoundKind.PropertyAccess: 
+                case BoundKind.PropertyAccess:
                     return VisitPropertyAccess((BoundPropertyAccess)node, arg);
-                case BoundKind.EventAccess: 
+                case BoundKind.EventAccess:
                     return VisitEventAccess((BoundEventAccess)node, arg);
-                case BoundKind.IndexerAccess: 
+                case BoundKind.IndexerAccess:
                     return VisitIndexerAccess((BoundIndexerAccess)node, arg);
-                case BoundKind.IndexOrRangePatternIndexerAccess: 
+                case BoundKind.IndexOrRangePatternIndexerAccess:
                     return VisitIndexOrRangePatternIndexerAccess((BoundIndexOrRangePatternIndexerAccess)node, arg);
-                case BoundKind.DynamicIndexerAccess: 
+                case BoundKind.DynamicIndexerAccess:
                     return VisitDynamicIndexerAccess((BoundDynamicIndexerAccess)node, arg);
-                case BoundKind.Lambda: 
+                case BoundKind.Lambda:
                     return VisitLambda((BoundLambda)node, arg);
-                case BoundKind.UnboundLambda: 
+                case BoundKind.UnboundLambda:
                     return VisitUnboundLambda((UnboundLambda)node, arg);
-                case BoundKind.QueryClause: 
+                case BoundKind.QueryClause:
                     return VisitQueryClause((BoundQueryClause)node, arg);
-                case BoundKind.TypeOrInstanceInitializers: 
+                case BoundKind.TypeOrInstanceInitializers:
                     return VisitTypeOrInstanceInitializers((BoundTypeOrInstanceInitializers)node, arg);
-                case BoundKind.NameOfOperator: 
+                case BoundKind.NameOfOperator:
                     return VisitNameOfOperator((BoundNameOfOperator)node, arg);
-                case BoundKind.InterpolatedString: 
+                case BoundKind.InterpolatedString:
                     return VisitInterpolatedString((BoundInterpolatedString)node, arg);
-                case BoundKind.StringInsert: 
+                case BoundKind.StringInsert:
                     return VisitStringInsert((BoundStringInsert)node, arg);
-                case BoundKind.IsPatternExpression: 
+                case BoundKind.IsPatternExpression:
                     return VisitIsPatternExpression((BoundIsPatternExpression)node, arg);
-                case BoundKind.ConstantPattern: 
+                case BoundKind.ConstantPattern:
                     return VisitConstantPattern((BoundConstantPattern)node, arg);
-                case BoundKind.DiscardPattern: 
+                case BoundKind.DiscardPattern:
                     return VisitDiscardPattern((BoundDiscardPattern)node, arg);
-                case BoundKind.DeclarationPattern: 
+                case BoundKind.DeclarationPattern:
                     return VisitDeclarationPattern((BoundDeclarationPattern)node, arg);
-                case BoundKind.RecursivePattern: 
+                case BoundKind.RecursivePattern:
                     return VisitRecursivePattern((BoundRecursivePattern)node, arg);
-                case BoundKind.ITuplePattern: 
+                case BoundKind.ITuplePattern:
                     return VisitITuplePattern((BoundITuplePattern)node, arg);
-                case BoundKind.Subpattern: 
+                case BoundKind.Subpattern:
                     return VisitSubpattern((BoundSubpattern)node, arg);
-                case BoundKind.TypePattern: 
+                case BoundKind.TypePattern:
                     return VisitTypePattern((BoundTypePattern)node, arg);
-                case BoundKind.BinaryPattern: 
+                case BoundKind.BinaryPattern:
                     return VisitBinaryPattern((BoundBinaryPattern)node, arg);
-                case BoundKind.NegatedPattern: 
+                case BoundKind.NegatedPattern:
                     return VisitNegatedPattern((BoundNegatedPattern)node, arg);
-                case BoundKind.RelationalPattern: 
+                case BoundKind.RelationalPattern:
                     return VisitRelationalPattern((BoundRelationalPattern)node, arg);
-                case BoundKind.DiscardExpression: 
+                case BoundKind.DiscardExpression:
                     return VisitDiscardExpression((BoundDiscardExpression)node, arg);
-                case BoundKind.ThrowExpression: 
+                case BoundKind.ThrowExpression:
                     return VisitThrowExpression((BoundThrowExpression)node, arg);
-                case BoundKind.OutVariablePendingInference: 
+                case BoundKind.OutVariablePendingInference:
                     return VisitOutVariablePendingInference((OutVariablePendingInference)node, arg);
-                case BoundKind.DeconstructionVariablePendingInference: 
+                case BoundKind.DeconstructionVariablePendingInference:
                     return VisitDeconstructionVariablePendingInference((DeconstructionVariablePendingInference)node, arg);
-                case BoundKind.OutDeconstructVarPendingInference: 
+                case BoundKind.OutDeconstructVarPendingInference:
                     return VisitOutDeconstructVarPendingInference((OutDeconstructVarPendingInference)node, arg);
-                case BoundKind.NonConstructorMethodBody: 
+                case BoundKind.NonConstructorMethodBody:
                     return VisitNonConstructorMethodBody((BoundNonConstructorMethodBody)node, arg);
-                case BoundKind.ConstructorMethodBody: 
+                case BoundKind.ConstructorMethodBody:
                     return VisitConstructorMethodBody((BoundConstructorMethodBody)node, arg);
-                case BoundKind.ExpressionWithNullability: 
+                case BoundKind.ExpressionWithNullability:
                     return VisitExpressionWithNullability((BoundExpressionWithNullability)node, arg);
+                case BoundKind.WithExpression:
+                    return VisitWithExpression((BoundWithExpression)node, arg);
             }
 
             return default(R)!;
         }
     }
 
-    internal abstract partial class BoundTreeVisitor<A,R>
+    internal abstract partial class BoundTreeVisitor<A, R>
     {
         public virtual R VisitFieldEqualsValue(BoundFieldEqualsValue node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPropertyEqualsValue(BoundPropertyEqualsValue node, A arg) => this.DefaultVisit(node, arg);
@@ -8159,8 +8324,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitUnaryOperator(BoundUnaryOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitIncrementOperator(BoundIncrementOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAddressOfOperator(BoundAddressOfOperator node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitFunctionPointerLoad(BoundFunctionPointerLoad node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPointerElementAccess(BoundPointerElementAccess node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitRefTypeOperator(BoundRefTypeOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitMakeRefOperator(BoundMakeRefOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitRefValueOperator(BoundRefValueOperator node, A arg) => this.DefaultVisit(node, arg);
@@ -8335,6 +8503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConstructorMethodBody(BoundConstructorMethodBody node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitExpressionWithNullability(BoundExpressionWithNullability node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitWithExpression(BoundWithExpression node, A arg) => this.DefaultVisit(node, arg);
     }
 
     internal abstract partial class BoundTreeVisitor
@@ -8359,8 +8528,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitUnaryOperator(BoundUnaryOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitIncrementOperator(BoundIncrementOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAddressOfOperator(BoundAddressOfOperator node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPointerElementAccess(BoundPointerElementAccess node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitRefTypeOperator(BoundRefTypeOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitMakeRefOperator(BoundMakeRefOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitRefValueOperator(BoundRefValueOperator node) => this.DefaultVisit(node);
@@ -8535,9 +8707,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConstructorMethodBody(BoundConstructorMethodBody node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitExpressionWithNullability(BoundExpressionWithNullability node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitWithExpression(BoundWithExpression node) => this.DefaultVisit(node);
     }
 
-    internal abstract partial class BoundTreeWalker: BoundTreeVisitor
+    internal abstract partial class BoundTreeWalker : BoundTreeVisitor
     {
         public override BoundNode? VisitFieldEqualsValue(BoundFieldEqualsValue node)
         {
@@ -8608,6 +8781,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Operand);
             return null;
         }
+        public override BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node)
+        {
+            this.Visit(node.Operand);
+            return null;
+        }
+        public override BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node) => null;
         public override BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             this.Visit(node.Operand);
@@ -8617,6 +8796,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             this.Visit(node.Index);
+            return null;
+        }
+        public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            this.Visit(node.InvokedExpression);
+            this.VisitList(node.Arguments);
             return null;
         }
         public override BoundNode? VisitRefTypeOperator(BoundRefTypeOperator node)
@@ -9427,6 +9612,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Expression);
             return null;
         }
+        public override BoundNode? VisitWithExpression(BoundWithExpression node)
+        {
+            this.Visit(node.Receiver);
+            this.Visit(node.InitializerExpression);
+            return null;
+        }
     }
 
     internal abstract partial class BoundTreeRewriter : BoundTreeVisitor
@@ -9538,6 +9729,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(operand, node.IsManaged, type);
         }
+        public override BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node)
+        {
+            BoundMethodGroup operand = (BoundMethodGroup)this.Visit(node.Operand);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(operand);
+        }
+        public override BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(node.TargetMethod, type);
+        }
         public override BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
@@ -9550,6 +9752,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression index = (BoundExpression)this.Visit(node.Index);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(expression, index, node.Checked, type);
+        }
+        public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            BoundExpression invokedExpression = (BoundExpression)this.Visit(node.InvokedExpression);
+            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, node.ResultKind, type);
         }
         public override BoundNode? VisitRefTypeOperator(BoundRefTypeOperator node)
         {
@@ -10041,7 +10250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag decisionDag = node.DecisionDag;
             TypeSymbol? naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
+            return node.Update(naturalTypeOpt, node.WasTargetTyped, node.Conversion, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
         }
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node)
         {
@@ -10587,6 +10796,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(expression, node.NullableAnnotation, type);
         }
+        public override BoundNode? VisitWithExpression(BoundWithExpression node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundObjectInitializerExpressionBase initializerExpression = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpression);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(receiver, node.CloneMethod, initializerExpression, type);
+        }
     }
 
     internal sealed partial class NullabilityRewriter : BoundTreeRewriter
@@ -10830,6 +11046,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node)
+        {
+            BoundMethodGroup operand = (BoundMethodGroup)this.Visit(node.Operand);
+            BoundUnconvertedAddressOfOperator updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(operand);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(operand);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            MethodSymbol targetMethod = GetUpdatedSymbol(node, node.TargetMethod);
+            BoundFunctionPointerLoad updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(targetMethod, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(targetMethod, node.Type);
+            }
+            return updatedNode;
+        }
+
         public override BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
@@ -10861,6 +11111,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(expression, index, node.Checked, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            BoundExpression invokedExpression = (BoundExpression)this.Visit(node.InvokedExpression);
+            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
+            BoundFunctionPointerInvocation updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, node.ResultKind, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(invokedExpression, arguments, node.ArgumentRefKindsOpt, node.ResultKind, node.Type);
             }
             return updatedNode;
         }
@@ -11753,12 +12021,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, infoAndType.Type);
+                updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, node.Conversion, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
+                updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, node.Conversion, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
             }
             return updatedNode;
         }
@@ -12871,6 +13139,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return updatedNode;
         }
+
+        public override BoundNode? VisitWithExpression(BoundWithExpression node)
+        {
+            MethodSymbol? cloneMethod = GetUpdatedSymbol(node, node.CloneMethod);
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundObjectInitializerExpressionBase initializerExpression = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpression);
+            BoundWithExpression updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(receiver, cloneMethod, initializerExpression, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(receiver, cloneMethod, initializerExpression, node.Type);
+            }
+            return updatedNode;
+        }
     }
 
     internal sealed class BoundTreeDumperNodeProducer : BoundTreeVisitor<object?, TreeDumperNode>
@@ -13048,6 +13335,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
+        public override TreeDumperNode VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node, object? arg) => new TreeDumperNode("unconvertedAddressOfOperator", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node, object? arg) => new TreeDumperNode("functionPointerLoad", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("targetMethod", node.TargetMethod, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
         public override TreeDumperNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node, object? arg) => new TreeDumperNode("pointerIndirectionOperator", null, new TreeDumperNode[]
         {
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
@@ -13061,6 +13364,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("index", null, new TreeDumperNode[] { Visit(node.Index, null) }),
             new TreeDumperNode("@checked", node.Checked, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node, object? arg) => new TreeDumperNode("functionPointerInvocation", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("invokedExpression", null, new TreeDumperNode[] { Visit(node.InvokedExpression, null) }),
+            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+            new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
+            new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -13828,6 +14142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, null),
             new TreeDumperNode("wasTargetTyped", node.WasTargetTyped, null),
+            new TreeDumperNode("conversion", node.Conversion, null),
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
             new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
@@ -14665,6 +14980,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("nullableAnnotation", node.NullableAnnotation, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitWithExpression(BoundWithExpression node, object? arg) => new TreeDumperNode("withExpression", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
+            new TreeDumperNode("cloneMethod", node.CloneMethod, null),
+            new TreeDumperNode("initializerExpression", null, new TreeDumperNode[] { Visit(node.InitializerExpression, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

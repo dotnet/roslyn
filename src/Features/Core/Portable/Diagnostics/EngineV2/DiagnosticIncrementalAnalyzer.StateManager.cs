@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return stateSets.ToImmutable();
             }
 
-            public bool OnDocumentReset(IEnumerable<StateSet> stateSets, Document document)
+            public static bool OnDocumentReset(IEnumerable<StateSet> stateSets, Document document)
             {
                 // can not be cancelled
                 var removed = false;
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return removed;
             }
 
-            public bool OnDocumentRemoved(IEnumerable<StateSet> stateSets, DocumentId documentId)
+            public static bool OnDocumentRemoved(IEnumerable<StateSet> stateSets, DocumentId documentId)
             {
                 var removed = false;
                 foreach (var stateSet in stateSets)

@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
         private bool IsDateTimeType(INamedTypeSymbol containingType)
             => _dateTimeType.Equals(containingType) || _dateTimeOffsetType.Equals(containingType);
 
-        private bool AnalyzeStringLiteral(IMethodSymbol method, string? argName, int? argIndex)
+        private static bool AnalyzeStringLiteral(IMethodSymbol method, string? argName, int? argIndex)
         {
             Debug.Assert(argName != null || argIndex != null);
 

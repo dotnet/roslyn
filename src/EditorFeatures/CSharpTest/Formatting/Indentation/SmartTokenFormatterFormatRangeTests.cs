@@ -2117,12 +2117,13 @@ class Class
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task CharLiterals1()
         {
-            var code = @"''';$$";
+            var code = @"';$$";
 
             var expected = string.Empty;
-            await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.EndOfFileToken, SyntaxKind.None);
+            await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
         }
 
         [Fact]

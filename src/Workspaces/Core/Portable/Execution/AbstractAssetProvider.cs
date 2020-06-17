@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
-            var info = SolutionInfo.Create(solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects, analyzerReferences);
+            var info = SolutionInfo.Create(solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects, analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
             var options = await GetAssetAsync<SerializableOptionSet>(solutionChecksums.Options, cancellationToken).ConfigureAwait(false);
             return (info, options);
         }
@@ -91,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Execution
                 .WithHasAllInformation(projectInfo.HasAllInformation)
                 .WithRunAnalyzers(projectInfo.RunAnalyzers)
                 .WithDefaultNamespace(projectInfo.DefaultNamespace)
-                .WithAnalyzerConfigDocuments(analyzerConfigDocumentInfos);
+                .WithAnalyzerConfigDocuments(analyzerConfigDocumentInfos)
+                .WithTelemetryId(projectInfo.TelemetryId);
         }
 
         public async Task<DocumentInfo> CreateDocumentInfoAsync(Checksum documentChecksum, CancellationToken cancellationToken)

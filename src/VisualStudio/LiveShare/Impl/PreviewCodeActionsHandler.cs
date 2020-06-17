@@ -13,24 +13,32 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    internal class PreviewCodeActionsHandler : CodeActionsHandlerBase, ILspRequestHandler<RunCodeActionParams, LSP.TextEdit[], Solution>
+    internal class PreviewCodeActionsHandler : ILspRequestHandler<RunCodeActionParams, LSP.TextEdit[], Solution>
     {
-        public PreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
-            : base(codeFixService, codeRefactoringService)
+        private readonly ICodeFixService _codeFixService;
+        private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly ILspSolutionProvider _solutionProvider;
+
+        public PreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, ILspSolutionProvider solutionProvider)
         {
+            _codeFixService = codeFixService;
+            _codeRefactoringService = codeRefactoringService;
+            _solutionProvider = solutionProvider;
         }
 
         public async Task<LSP.TextEdit[]> HandleAsync(RunCodeActionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var edits = ArrayBuilder<LSP.TextEdit>.GetInstance();
-            var solution = requestContext.Context;
-            var codeActions = await GetCodeActionsAsync(solution,
-                request.CodeActionParams.TextDocument.Uri,
+            var document = _solutionProvider.GetDocument(request.CodeActionParams.TextDocument);
+            var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document,
+                _codeFixService,
+                _codeRefactoringService,
                 request.CodeActionParams.Range,
                 cancellationToken).ConfigureAwait(false);
 
@@ -41,7 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 var operations = await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 var applyChangesOperation = operations.OfType<ApplyChangesOperation>().FirstOrDefault();
 
-                var document = solution.GetDocumentFromURI(request.CodeActionParams.TextDocument.Uri);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 if (applyChangesOperation != null && document != null)
