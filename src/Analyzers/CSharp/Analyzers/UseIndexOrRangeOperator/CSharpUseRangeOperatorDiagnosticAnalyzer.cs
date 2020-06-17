@@ -132,19 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
+            // Need to make sure that if we are assigning values to the slice that both the slice-like method and the
+            // indexer are references
             if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() &&
                 !valid)
             {
                 return null;
             }
 
-            //var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
-            // If the slice-like method is being written to and returns a reference, we need to make sure that
-            // the range method to substitute also returns a reference that can be written to
-            //if (indexer != null && indexer.ReturnsByRef !=invocation.TargetMethod.ReturnsByRef &&  invocation.Syntax.IsLeftSideOfAnyAssignExpression())
-            //{
-            //    return null;
-            //}
 
             // See if we have: (start, end - start).  Specifically where the start operation it the
             // same as the right side of the subtraction.
