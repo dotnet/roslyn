@@ -282,9 +282,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             // string x;
             // Unassigned value that's not marked as null
-            if (node is FieldDeclarationSyntax fieldDeclarationSyntax)
+            if (node is VariableDeclaratorSyntax && node.Parent is VariableDeclarationSyntax variableDeclarationSyntax)
             {
-                return fieldDeclarationSyntax.Declaration.Type;
+                return variableDeclarationSyntax.Type;
             }
 
             // void M(string x = null) { }
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 SyntaxKind.ConditionalExpression,
                 SyntaxKind.ConditionalAccessExpression,
                 SyntaxKind.PropertyDeclaration,
-                SyntaxKind.FieldDeclaration);
+                SyntaxKind.VariableDeclarator);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
