@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Linq
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
@@ -389,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Using
         End Function
 
-        Private Shared Function GetActualReferences(result As IEnumerable(Of ReferencedSymbol),
+        Private Shared Function GetActualReferences(result As ImmutableArray(Of ReferencedSymbol),
                                                     uiVisibleOnly As Boolean,
                                                     options As FindReferencesSearchOptions,
                                                     document As Document,
