@@ -448,8 +448,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
-                case ApplyChangesKind.ChangeCompilationOptions:
-                case ApplyChangesKind.ChangeParseOptions:
                 case ApplyChangesKind.ChangeDocumentInfo:
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
                 case ApplyChangesKind.RemoveAnalyzerConfigDocument:
