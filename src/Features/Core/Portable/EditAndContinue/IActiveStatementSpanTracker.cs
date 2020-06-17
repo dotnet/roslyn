@@ -4,11 +4,12 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal interface IActiveStatementSpanTracker
+    internal interface IActiveStatementSpanTracker : IWorkspaceService
     {
         bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span);
     }
