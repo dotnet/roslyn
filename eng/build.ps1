@@ -222,8 +222,6 @@ function BuildSolution() {
 
   # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
   # that MSBuild output as well as ones that custom tasks output.
-  #
-  # In all cases we pass /p:TreatWarningsAsErrors=true to promote compiler warnings to errors
   $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
 
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
@@ -255,7 +253,7 @@ function BuildSolution() {
       /p:UseRoslynAnalyzers=$runAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
       /p:TestTargetFrameworks=$testTargetFrameworks `
-      /p:TreatWarningsAsErrors=true `
+      /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
       $restoreUseStaticGraphEvaluation `
