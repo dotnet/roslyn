@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_TopLevelStatements:
                 case MessageID.IDS_FeatureInitOnlySetters: // semantic check
                 case MessageID.IDS_FeatureRecords:
-                case MessageID.IDS_FeatureTargetTypedConditional:  // changes semantics
+                case MessageID.IDS_FeatureTargetTypedConditional:  // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

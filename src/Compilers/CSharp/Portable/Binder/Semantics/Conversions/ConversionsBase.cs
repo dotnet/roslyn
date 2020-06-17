@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // unambiguous. The native compiler in this case prefers the explicit conversion,
             // and for backwards compatibility, we match it.
 
-            return implicitConversion.Exists ? implicitConversion : Conversion.NoConversion;
+            return implicitConversion;
         }
 
         /// <summary>
@@ -846,6 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitNullable:
+                case ConversionKind.ConditionalExpression:
                     return true;
 
                 default:

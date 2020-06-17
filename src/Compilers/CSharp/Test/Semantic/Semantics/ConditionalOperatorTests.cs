@@ -73,14 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestConditional("true ? T : U", null, parseOptions: TestOptions.Regular8,
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"),
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type"),
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? T : U").WithArguments("T", "U"));
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type"));
             TestConditional("true ? T : U", null, parseOptions: TestOptions.Regular8.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()),
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"),
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type"));
             TestConditional("false ? T : 1", null, parseOptions: TestOptions.Regular8,
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"),
-                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? T : 1").WithArguments("T", "int"));
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"));
             TestConditional("false ? T : 1", null, parseOptions: TestOptions.Regular8.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()),
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"));
             TestConditional("true ? GetUserGeneric<char>() : GetUserNonGeneric()", null,
@@ -197,8 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // CONSIDER: dev10 reports ERR_ConstOutOfRange
             TestConditional("1 ? null : null", null, parseOptions: TestOptions.Regular8,
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"),
-                Diagnostic(ErrorCode.ERR_InvalidQM, "1 ? null : null").WithArguments("<null>", "<null>")
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool")
                 );
             TestConditional("1 ? null : null", null, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()),
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool")
