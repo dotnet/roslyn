@@ -580,7 +580,10 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return With(projectInfo: ProjectInfo.WithCompilationOptions(options).WithVersion(Version.GetNewerVersion()));
+            var newProvider = new WorkspaceSyntaxTreeOptionsProvider(_lazyAnalyzerConfigSet);
+
+            return With(projectInfo: ProjectInfo.WithCompilationOptions(options.WithSyntaxTreeOptionsProvider(newProvider))
+                       .WithVersion(Version.GetNewerVersion()));
         }
 
         public ProjectState WithParseOptions(ParseOptions options)

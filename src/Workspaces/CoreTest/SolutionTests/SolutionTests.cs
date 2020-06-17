@@ -662,6 +662,30 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void WithProjectCompilationOptionsReplacesSyntaxTreeOptionProvider()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // We always have a non-null SyntaxTreeOptionsProvider for C# projects
+            var originalSyntaxTreeOptionsProvider = solution.Projects.Single().CompilationOptions!.SyntaxTreeOptionsProvider;
+            Assert.NotNull(originalSyntaxTreeOptionsProvider);
+
+            var options = new CSharpCompilationOptions(OutputKind.NetModule);
+            Assert.Null(options.SyntaxTreeOptionsProvider);
+
+            solution = solution.WithProjectCompilationOptions(projectId, options);
+
+            // The CSharpCompilationOptions we replaced with didn't have a SyntaxTreeOptionsProvider, but we should
+            // have put it back, and it should behave the same as the original.
+            var newSyntaxTreeOptionsProvider = solution.Projects.Single().CompilationOptions!.SyntaxTreeOptionsProvider;
+            Assert.NotNull(newSyntaxTreeOptionsProvider);
+            Assert.Equal(originalSyntaxTreeOptionsProvider, newSyntaxTreeOptionsProvider);
+        }
+
+        [Fact]
         public void WithProjectParseOptions()
         {
             var projectId = ProjectId.CreateNewId();
