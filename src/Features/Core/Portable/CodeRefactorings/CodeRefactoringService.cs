@@ -224,17 +224,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             ImmutableArray<CodeRefactoringProvider> ComputeProjectRefactorings(Project project)
             {
-                var builder = ArrayBuilder<CodeRefactoringProvider>.GetInstance();
+                using var _ = ArrayBuilder<CodeRefactoringProvider>.GetInstance(out var builder);
                 foreach (var reference in project.AnalyzerReferences)
                 {
                     var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, _createProjectCodeRefactoringsProvider);
                     foreach (var refactoring in projectCodeRefactoringProvider.GetExtensions(project.Language))
-                    {
                         builder.Add(refactoring);
-                    }
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
 
