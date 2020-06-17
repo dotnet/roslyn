@@ -2569,6 +2569,11 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.ConvertedSwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                    var switchExpr = (BoundSwitchExpression)expr;
+                    return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
+
                 default:
                     // in error situations some unexpected nodes could make here
                     // returning "scopeOfTheContainingExpression" seems safer than throwing.
