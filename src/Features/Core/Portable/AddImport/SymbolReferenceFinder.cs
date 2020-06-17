@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private ImmutableArray<SymbolReference> GetNamespaceSymbolReferences(
                 SearchScope scope, ImmutableArray<SymbolResult<INamespaceSymbol>> namespaces)
             {
-                var references = ArrayBuilder<SymbolReference>.GetInstance();
+                using var _ = ArrayBuilder<SymbolReference>.GetInstance(out var references);
 
                 foreach (var namespaceResult in namespaces)
                 {
@@ -558,12 +558,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     var mappedResult = namespaceResult.WithSymbol(MapToCompilationNamespaceIfPossible(namespaceResult.Symbol));
                     var namespaceIsInScope = _namespacesInScope.Contains(mappedResult.Symbol);
                     if (!symbol.IsGlobalNamespace && !namespaceIsInScope)
-                    {
                         references.Add(scope.CreateReference(mappedResult));
-                    }
                 }
 
-                return references.ToImmutableAndFree();
+                return references.ToImmutable();
             }
 
             private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
