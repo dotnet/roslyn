@@ -66,14 +66,14 @@ End Module")
 "Option Strict On
 Module M1
     Sub Main()
-        Dim s As String = 0.ToString
+        Dim s As String = 0.ToString()
         Dim ch As Char = [|s|]
     End Sub
 End Module",
 "Option Strict On
 Module M1
     Sub Main()
-        Dim s As String = 0.ToString
+        Dim s As String = 0.ToString()
         Dim ch As Char = CChar(s)
     End Sub
 End Module")
@@ -85,14 +85,14 @@ End Module")
 "Option Strict On
 Module M1
     Sub Main()
-        Dim s As String = #2006-06-13#.ToString
+        Dim s As String = #2006-06-13#.ToString()
         Dim dt As Date = [|s|]
     End Sub
 End Module",
 "Option Strict On
 Module M1
     Sub Main()
-        Dim s As String = #2006-06-13#.ToString
+        Dim s As String = #2006-06-13#.ToString()
         Dim dt As Date = CDate(s)
     End Sub
 End Module")
@@ -104,14 +104,14 @@ End Module")
 "Option Strict On
 Module M1
     Sub Main()
-        Dim s As String = 1.0R.ToString
+        Dim s As String = 1.0R.ToString()
         Dim db As Double = [|s|]
     End Sub
 End Module",
 "Option Strict On
 Module M1
     Sub Main()
-        Dim s As String = 1.0R.ToString
+        Dim s As String = 1.0R.ToString()
         Dim db As Double = CDbl(s)
     End Sub
 End Module")
