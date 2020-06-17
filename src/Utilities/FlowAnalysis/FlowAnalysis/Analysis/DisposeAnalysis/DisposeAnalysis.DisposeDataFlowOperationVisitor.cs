@@ -237,19 +237,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 var value = base.Visit(operation, argument);
                 HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
 
-                // HACK: Workaround for missing IOperation/CFG support for C# 'using' declarations
-                // https://github.com/dotnet/roslyn-analyzers/issues/2152
-                if (operation?.Kind == OperationKind.None &&
-                    operation.Syntax.GetFirstToken().ToString() == "using" &&
-                    operation.Language == LanguageNames.CSharp)
-                {
-                    var previousOperation = CurrentBasicBlock.GetPreviousOperationInBlock(operation);
-                    if (previousOperation is ISimpleAssignmentOperation simpleAssignment)
-                    {
-                        HandleDisposingOperation(disposingOperation: operation, disposedInstance: simpleAssignment.Value);
-                    }
-                }
-
                 return value;
             }
 
