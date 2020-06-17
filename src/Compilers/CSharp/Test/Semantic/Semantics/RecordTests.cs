@@ -4331,6 +4331,57 @@ public record C(object P1, object P2) : B(3, 4) { }
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_NotInRecordType()
+        {
+            var source =
+@"public class C
+{
+    public object Property { get; set; }
+    public int field = 42;
+
+    public C(C c)
+    {
+    }
+}
+public class D : C
+{
+    public int field2 = 43;
+    public D(D d) : base(d)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  stfld      ""int C.field""
+  IL_0008:  ldarg.0
+  IL_0009:  call       ""object..ctor()""
+  IL_000e:  ret
+}");
+
+            verifier.VerifyIL("D..ctor(D)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   43
+  IL_0003:  stfld      ""int D.field2""
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  call       ""C..ctor(C)""
+  IL_000f:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor()
         {
             var source =
@@ -5109,6 +5160,227 @@ public record C : B {
                 // public record C : B {
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 15)
                 );
+        }
+
+        [Fact, WorkItem(45077, "https://github.com/dotnet/roslyn/issues/45077")]
+        public void CopyCtor_AmbiguitiesInMetadata()
+        {
+            // IL for a minimal `public record B { }` with injected copy constructors
+            var ilSource_template = @"
+.class public auto ansi beforefieldinit B extends [mscorlib]System.Object
+{
+    INJECT
+
+    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: newobj instance void B::.ctor(class B)
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var source = @"
+public record C : B
+{
+    public static void Main()
+    {
+        var c = new C();
+        _ = c with { };
+    }
+}";
+
+            // We're going to inject various copy constructors into record B (at INJECT marker), and check which one is used
+            // by derived record C
+            // The RAN and THROW markers are shorthands for method bodies that print "RAN" and throw, respectively.
+
+            // .ctor(B) vs. .ctor(modopt B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+");
+
+            // .ctor(modopt B) alone
+            verify(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+RAN
+");
+
+            // .ctor(B) vs. .ctor(modreq B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modreq(int64) '' ) cil managed
+THROW
+");
+
+            // .ctor(modopt B) vs. .ctor(modreq B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modreq(int64) '' ) cil managed
+THROW
+");
+
+            // .ctor(B) vs. .ctor(modopt1 B) and .ctor(modopt2 B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int32) '' ) cil managed
+THROW
+");
+            // .ctor(B) vs. .ctor(modopt1 B) and .ctor(modreq B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modreq(int32) '' ) cil managed
+THROW
+");
+
+            // .ctor(modeopt1 B) vs. .ctor(modopt2 B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int32) '' ) cil managed
+THROW
+", isError: true);
+
+            // private .ctor(B) vs. .ctor(modopt1 B) and .ctor(modopt B)
+            verifyBoth(@"
+.method private hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int32) '' ) cil managed
+THROW
+", isError: true);
+
+            void verifyBoth(string inject1, string inject2, bool isError = false)
+            {
+                verify(inject1 + inject2, isError);
+                verify(inject2 + inject1, isError);
+            }
+
+            void verify(string inject, bool isError = false)
+            {
+                var ranBody = @"
+{
+    IL_0000:  ldstr      ""RAN""
+    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000a:  ret
+}
+";
+
+                var throwBody = @"
+{
+    IL_0000: ldnull
+    IL_0001: throw
+}
+";
+
+                var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
+                    ilSource: ilSource_template.Replace("INJECT", inject).Replace("RAN", ranBody).Replace("THROW", throwBody),
+                    parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+
+                var expectedDiagnostics = isError ? new[] {
+                    // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
+                    // public record C : B
+                    Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 15)
+                } : new DiagnosticDescription[] { };
+
+                comp.VerifyDiagnostics(expectedDiagnostics);
+                if (expectedDiagnostics is null)
+                {
+                    CompileAndVerify(comp, expectedOutput: "RAN");
+                }
+            }
+        }
+
+        [Fact, WorkItem(45077, "https://github.com/dotnet/roslyn/issues/45077")]
+        public void CopyCtor_AmbiguitiesInMetadata_GenericType()
+        {
+            // IL for a minimal `public record B<T> { }` with modopt in nested position of parameter type
+            var ilSource = @"
+.class public auto ansi beforefieldinit B`1<T> extends [mscorlib]System.Object implements class [mscorlib]System.IEquatable`1<class B`1<!T>>
+{
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class B`1<!T modopt(int64)> '' ) cil managed
+    {
+        IL_0000:  ldstr      ""RAN""
+        IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+        IL_000a:  ret
+    }
+
+    .method public hidebysig specialname newslot virtual instance class B`1<!T> '<>Clone' () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: newobj instance void class B`1<!T>::.ctor(class B`1<!0>)
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .method public newslot virtual instance bool Equals ( class B`1<!T> '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+
+            var source = @"
+public record C<T> : B<T> { }
+
+public class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>();
+        _ = c with { };
+    }
+}";
+
+
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
+                ilSource: ilSource,
+                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
         }
 
         [Fact]
