@@ -661,24 +661,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOptions(ProjectId.CreateNewId(), options));
         }
 
-        [Fact]
-        public void WithProjectCompilationOptionsReplacesSyntaxTreeOptionProvider()
+        [Theory]
+        [CombinatorialData]
+        public void WithProjectCompilationOptionsReplacesSyntaxTreeOptionProvider([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             var projectId = ProjectId.CreateNewId();
 
             var solution = CreateSolution()
-                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+                .AddProject(projectId, "proj1", "proj1.dll", languageName);
 
-            // We always have a non-null SyntaxTreeOptionsProvider for C# projects
+            // We always have a non-null SyntaxTreeOptionsProvider for C# and VB projects
             var originalSyntaxTreeOptionsProvider = solution.Projects.Single().CompilationOptions!.SyntaxTreeOptionsProvider;
             Assert.NotNull(originalSyntaxTreeOptionsProvider);
 
-            var options = new CSharpCompilationOptions(OutputKind.NetModule);
+            var options = solution.Projects.Single().LanguageServices.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions();
             Assert.Null(options.SyntaxTreeOptionsProvider);
 
             solution = solution.WithProjectCompilationOptions(projectId, options);
 
-            // The CSharpCompilationOptions we replaced with didn't have a SyntaxTreeOptionsProvider, but we should
+            // The CompilationOptions we replaced with didn't have a SyntaxTreeOptionsProvider, but we should
             // have put it back, and it should behave the same as the original.
             var newSyntaxTreeOptionsProvider = solution.Projects.Single().CompilationOptions!.SyntaxTreeOptionsProvider;
             Assert.NotNull(newSyntaxTreeOptionsProvider);
@@ -2748,9 +2749,9 @@ public class C : A {
 
         [Theory]
         [CombinatorialData]
-        public async Task TestAddingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
+        public async Task TestAddingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
-            var solution = useRecoverableTrees ? CreateNotKeptAliveSolution() : CreateSolution();
+            var solution = CreateSolution();
             var extension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
             var projectId = ProjectId.CreateNewId();
             var sourceDocumentId = DocumentId.CreateNewId(projectId);
@@ -2784,9 +2785,9 @@ public class C : A {
 
         [Theory]
         [CombinatorialData]
-        public async Task TestAddingAndRemovingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
+        public async Task TestAddingAndRemovingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
-            var solution = useRecoverableTrees ? CreateNotKeptAliveSolution() : CreateSolution();
+            var solution = CreateSolution();
             var extension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
             var projectId = ProjectId.CreateNewId();
             var sourceDocumentId = DocumentId.CreateNewId(projectId);
@@ -2865,50 +2866,6 @@ public class C : A {
             var finalCompilation = await project.GetCompilationAsync();
 
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterEditorConfigChange));
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public async Task TestUpdateRootStillCarriesDiagnosticData([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees, PreservationMode preservationMode)
-        {
-            var solution = useRecoverableTrees ? CreateNotKeptAliveSolution() : CreateSolution();
-            var extension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
-            var projectId = ProjectId.CreateNewId();
-            var sourceDocumentId = DocumentId.CreateNewId(projectId);
-
-            solution = solution.AddProject(projectId, "Test", "Test.dll", languageName);
-            solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: @"Z:\Test" + extension);
-
-            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
-            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
-                DocumentInfo.Create(
-                    editorConfigDocumentId,
-                    ".editorconfig",
-                    filePath: @"Z:\.editorconfig",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
-
-            var syntaxTreeBeforeUpdateRoot = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
-
-            var project = solution.GetProject(projectId);
-            var provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeUpdateRoot, "CA1234", out var severity));
-            Assert.Equal(ReportDiagnostic.Error, severity);
-
-            // We are adding a new line to the previously empty file
-            var newRoot = syntaxTreeBeforeUpdateRoot.WithChangedText(SourceText.From("\r\n"));
-
-            solution = solution.WithDocumentSyntaxRoot(sourceDocumentId, newRoot.GetRoot(), preservationMode);
-
-            var syntaxTreeAfterUpdateRoot = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
-
-            project = solution.GetProject(projectId);
-            provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeAfterUpdateRoot, "CA1234", out severity));
-            Assert.Equal(ReportDiagnostic.Error, severity);
-
-            var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
-
-            Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterUpdateRoot));
         }
 
         [Fact]
