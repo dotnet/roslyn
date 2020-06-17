@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             // We do not differentiate array of different kinds for simplicity.
                             // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
-                            // similar for complex receiver types, "[]" means it's an array type.
+                            // similar for complex receiver types, "[]" means it's an array type, "" otherwise.
                             var parameterTypeName = (parameterTypeInfo.IsComplexType, parameterTypeInfo.IsArray) switch
                             {
                                 (true, true) => "[]",

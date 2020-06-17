@@ -82,11 +82,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// <summary>
             /// This is the type name of the parameter when <see cref="IsComplexType"/> is false. 
             /// For array types, this is just the elemtent type name.
+            /// e.g. `int` for `int[][,]` 
             /// </summary>
             public readonly string Name;
 
             /// <summary>
-            /// Indicate if the type of parameter is any kind of array.
+            /// Indicate if the type of parameter is any kind of array (used for both simple and complex types)
             /// </summary>
 
             public readonly bool IsArray;
@@ -101,6 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// - Primitive types
             /// - Types which is not a generic method parameter
             /// - By reference type of any types above
+            /// - Array types of with element of any types above
             /// </summary>
             public readonly bool IsComplexType;
 

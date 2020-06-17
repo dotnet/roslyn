@@ -54,8 +54,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly OrderPreservingMultiDictionary<int, int> _inheritanceMap;
 
         /// <summary>
-        /// Maps the name of target type name to its <see cref="ExtensionMethodInfo" />.
+        /// Maps the name of receiver type name to its <see cref="ExtensionMethodInfo" />.
         /// <see cref="ParameterTypeInfo"/> for the definition of simple/complex methods.
+        /// For non-array simple types, the receiver type name would be its metadata name, e.g. "Int32".
+        /// For any array types with simple type as element, the receiver type name would be just "ElementTypeName[]", e.g. "Int32[]" for int[][,]
+        /// For non-array complex types, the receiver type name is "".
+        /// For any array types with complex type as element, the receier type name is "[]"
         /// </summary>
         private readonly MultiDictionary<string, ExtensionMethodInfo>? _receiverTypeNameToExtensionMethodMap;
 

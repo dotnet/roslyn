@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     GetExtensionMethodItemsWorker(
                         position, semanticModel, receiverTypeSymbol, matchingMethodSymbols,
-                        isSymbolFromCurrentCompilation: false, builder, namespaceNameCache, cancellationToken);
+                        isSymbolFromCurrentCompilation: true, builder, namespaceNameCache, cancellationToken);
                 }
             }
 
@@ -237,13 +237,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Symbols could be from a different compilation,
-                // because we retrieved them on a per-assembly basis.
+                // Symbols could be from a different compilation.
                 // Need to find the matching one in current compilation
                 // before any further checks is done.
                 var methodSymbolInCurrentCompilation = isSymbolFromCurrentCompilation
-                    ? methodSymbol
-                    : SymbolFinder.FindSimilarSymbols(methodSymbol, semanticModel.Compilation).FirstOrDefault();
+                                                        ? methodSymbol
+                                                        : SymbolFinder.FindSimilarSymbols(methodSymbol, semanticModel.Compilation).FirstOrDefault();
 
                 if (methodSymbolInCurrentCompilation == null
                     || !semanticModel.IsAccessible(position, methodSymbolInCurrentCompilation))
