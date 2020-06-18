@@ -2818,6 +2818,12 @@ partial class C
 
     public partial IEnumerable<ERROR> M6(); // 6
     public partial int M6() => throw null!;
+
+    public partial ERROR M7(); // 7
+    public partial ERROR M7() => throw null!; // 8
+
+    public partial IEnumerable<ERROR> M8(); // 9
+    public partial IEnumerable<ERROR> M8() => throw null!; // 10
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
@@ -2838,7 +2844,19 @@ partial class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(18, 32),
                 // (21,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M6(); // 6
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(21, 32));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(21, 32),
+                // (24,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial ERROR M7(); // 7
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(24, 20),
+                // (25,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial ERROR M7() => throw null!; // 8
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(25, 20),
+                // (27,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial IEnumerable<ERROR> M8(); // 9
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(27, 32),
+                // (28,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public partial IEnumerable<ERROR> M8() => throw null!; // 10
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(28, 32));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
