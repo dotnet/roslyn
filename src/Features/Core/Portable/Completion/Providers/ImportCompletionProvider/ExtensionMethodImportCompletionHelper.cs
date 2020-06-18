@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             switch (typeSymbol)
             {
                 case INamedTypeSymbol namedType:
-                    return namedType.IsTupleType ? string.Empty : namedType.MetadataName;
+                    return namedType.MetadataName;
 
                 case IArrayTypeSymbol arrayType:
                     var elementType = arrayType.ElementType;

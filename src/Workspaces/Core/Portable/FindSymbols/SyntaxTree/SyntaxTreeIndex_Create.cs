@@ -323,7 +323,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 }
             }
 
-            if (!extensionMethodsInfoBuilder.TryGetValue(string.Empty, out var arrayBuilder))
+            if (!extensionMethodsInfoBuilder.TryGetValue(receiverTypeName, out var arrayBuilder))
             {
                 arrayBuilder = ArrayBuilder<int>.GetInstance();
                 extensionMethodsInfoBuilder[receiverTypeName] = arrayBuilder;
