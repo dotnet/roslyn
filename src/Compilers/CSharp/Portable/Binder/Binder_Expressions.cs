@@ -5942,9 +5942,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options |= LookupOptions.MustBeInvocableIfMember;
                 }
 
-                SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax = right is GenericNameSyntax genericName ? genericName.TypeArgumentList.Arguments : default;
+                var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName ? ((GenericNameSyntax)right).TypeArgumentList.Arguments : default(SeparatedSyntaxList<TypeSyntax>);
                 bool rightHasTypeArguments = typeArgumentsSyntax.Count > 0;
-                ImmutableArray<TypeWithAnnotations> typeArguments = rightHasTypeArguments ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default;
+                var typeArguments = rightHasTypeArguments ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeWithAnnotations>);
 
                 // A member-access consists of a primary-expression, a predefined-type, or a 
                 // qualified-alias-member, followed by a "." token, followed by an identifier, 
@@ -6207,9 +6207,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult,
                         flags);
 
-                    if (!boundMethodGroup.HasErrors && (boundMethodGroup.ResultKind == LookupResultKind.Empty ||
-                        (right is GenericNameSyntax genericNameRight && !IsUnboundTypeAllowed(genericNameRight))) &&
-                        typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument) &&
+                        (boundMethodGroup.ResultKind == LookupResultKind.Empty || boundMethodGroup.ResultKind == LookupResultKind.WrongArity))
                     {
                         Error(diagnostics, ErrorCode.ERR_BadArity, node, rightName, MessageID.IDS_MethodGroup.Localize(), typeArgumentsSyntax.Count);
                     }

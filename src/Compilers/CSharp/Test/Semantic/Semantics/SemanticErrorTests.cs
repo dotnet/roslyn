@@ -22798,123 +22798,123 @@ class Program
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                    // (16,14): error CS0307: The variable 'l' cannot be used with type arguments
-                    //         Test(l<>);
-                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "l<>").WithArguments("l", "variable").WithLocation(16, 14),
-                    // (17,14): error CS0307: The variable 'object' cannot be used with type arguments
-                    //         Test(p<>);
-                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "p<>").WithArguments("object", "variable").WithLocation(17, 14),
-                    // (19,14): error CS0307: The field 'Program.f' cannot be used with type arguments
-                    //         Test(f<>);
-                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field").WithLocation(19, 14),
-                    // (20,14): error CS0307: The property 'Program.P' cannot be used with type arguments
-                    //         Test(P<>);
-                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<>").WithArguments("Program.P", "property").WithLocation(20, 14),
-                    // (21,14): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
-                    //         Test(M<>());
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(21, 14),
-                    // (23,19): error CS7003: Unexpected use of an unbound generic name
-                    //         Test(this.f<>);
-                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "f<>").WithLocation(23, 19),
-                    // (23,19): error CS0307: The field 'Program.f' cannot be used with type arguments
-                    //         Test(this.f<>);
-                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field").WithLocation(23, 19),
-                    // (24,19): error CS7003: Unexpected use of an unbound generic name
-                    //         Test(this.P<>);
-                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "P<>").WithLocation(24, 19),
-                    // (24,19): error CS0307: The property 'Program.P' cannot be used with type arguments
-                    //         Test(this.P<>);
-                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<>").WithArguments("Program.P", "property").WithLocation(24, 19),
-                    // (25,19): error CS7003: Unexpected use of an unbound generic name
-                    //         Test(this.M<>());
-                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "M<>").WithLocation(25, 19),
-                    // (25,19): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
-                    //         Test(this.M<>());
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(25, 19),
-                    // (29,13): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
-                    //         m = M<>;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(29, 13),
-                    // (30,18): error CS7003: Unexpected use of an unbound generic name
-                    //         m = this.M<>;
-                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "M<>").WithLocation(30, 18),
-                    // (30,18): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
-                    //         m = this.M<>;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(30, 18),
-                    // (32,9): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                    //         I<> i1 = null;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(32, 9),
-                    // (33,9): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                    //         C<> c1 = new C();
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(33, 9),
-                    // (34,20): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                    //         C c2 = new C<>();
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(34, 20),
-                    // (35,9): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                    //         S<> s1 = new S();
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(35, 9),
-                    // (36,20): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                    //         S s2 = new S<>();
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(36, 20),
-                    // (37,9): error CS0308: The non-generic type 'Program.D' cannot be used with type arguments
-                    //         D<> d1 = null;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "D<>").WithArguments("Program.D", "type").WithLocation(37, 9),
-                    // (39,17): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                    //         Program.I<> i2 = null;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(39, 17),
-                    // (40,17): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                    //         Program.C<> c3 = new Program.C();
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(40, 17),
-                    // (41,36): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                    //         Program.C c4 = new Program.C<>();
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(41, 36),
-                    // (42,17): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                    //         Program.S<> s3 = new Program.S();
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(42, 17),
-                    // (43,36): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                    //         Program.S s4 = new Program.S<>();
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(43, 36),
-                    // (44,17): error CS0308: The non-generic type 'Program.D' cannot be used with type arguments
-                    //         Program.D<> d2 = null;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "D<>").WithArguments("Program.D", "type").WithLocation(44, 17),
-                    // (46,22): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                    //         Test(default(I<>));
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(46, 22),
-                    // (47,22): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                    //         Test(default(C<>));
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(47, 22),
-                    // (48,22): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                    //         Test(default(S<>));
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(48, 22),
-                    // (50,30): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                    //         Test(default(Program.I<>));
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(50, 30),
-                    // (51,30): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                    //         Test(default(Program.C<>));
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(51, 30),
-                    // (52,30): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                    //         Test(default(Program.S<>));
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(52, 30),
-                    // (56,20): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                    //         s = typeof(I<>).Name;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(56, 20),
-                    // (57,20): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                    //         s = typeof(C<>).Name;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(57, 20),
-                    // (58,20): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                    //         s = typeof(S<>).Name;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(58, 20),
-                    // (60,28): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                    //         s = typeof(Program.I<>).Name;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(60, 28),
-                    // (61,28): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                    //         s = typeof(Program.C<>).Name;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(61, 28),
-                    // (62,28): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                    //         s = typeof(Program.S<>).Name;
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(62, 28),
-                    // (4,9): warning CS0649: Field 'Program.f' is never assigned to, and will always have its default value 0
-                    //     int f;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f").WithArguments("Program.f", "0").WithLocation(4, 9)
+                // (16,14): error CS0307: The variable 'l' cannot be used with type arguments
+                //         Test(l<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "l<>").WithArguments("l", "variable").WithLocation(16, 14),
+                // (17,14): error CS0307: The variable 'object' cannot be used with type arguments
+                //         Test(p<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "p<>").WithArguments("object", "variable").WithLocation(17, 14),
+                // (19,14): error CS0307: The field 'Program.f' cannot be used with type arguments
+                //         Test(f<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field").WithLocation(19, 14),
+                // (20,14): error CS0307: The property 'Program.P' cannot be used with type arguments
+                //         Test(P<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<>").WithArguments("Program.P", "property").WithLocation(20, 14),
+                // (21,14): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
+                //         Test(M<>());
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(21, 14),
+                // (23,14): error CS0305: Using the generic method group 'f' requires 1 type arguments
+                //         Test(this.f<>);
+                Diagnostic(ErrorCode.ERR_BadArity, "this.f<>").WithArguments("f", "method group", "1").WithLocation(23, 14),
+                // (23,19): error CS0307: The field 'Program.f' cannot be used with type arguments
+                //         Test(this.f<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field").WithLocation(23, 19),
+                // (24,14): error CS0305: Using the generic method group 'P' requires 1 type arguments
+                //         Test(this.P<>);
+                Diagnostic(ErrorCode.ERR_BadArity, "this.P<>").WithArguments("P", "method group", "1").WithLocation(24, 14),
+                // (24,19): error CS0307: The property 'Program.P' cannot be used with type arguments
+                //         Test(this.P<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<>").WithArguments("Program.P", "property").WithLocation(24, 19),
+                // (25,14): error CS0305: Using the generic method group 'M' requires 1 type arguments
+                //         Test(this.M<>());
+                Diagnostic(ErrorCode.ERR_BadArity, "this.M<>").WithArguments("M", "method group", "1").WithLocation(25, 14),
+                // (25,19): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
+                //         Test(this.M<>());
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(25, 19),
+                // (29,13): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
+                //         m = M<>;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(29, 13),
+                // (30,13): error CS0305: Using the generic method group 'M' requires 1 type arguments
+                //         m = this.M<>;
+                Diagnostic(ErrorCode.ERR_BadArity, "this.M<>").WithArguments("M", "method group", "1").WithLocation(30, 13),
+                // (30,18): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
+                //         m = this.M<>;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(30, 18),
+                // (32,9): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
+                //         I<> i1 = null;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(32, 9),
+                // (33,9): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
+                //         C<> c1 = new C();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(33, 9),
+                // (34,20): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
+                //         C c2 = new C<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(34, 20),
+                // (35,9): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
+                //         S<> s1 = new S();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(35, 9),
+                // (36,20): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
+                //         S s2 = new S<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(36, 20),
+                // (37,9): error CS0308: The non-generic type 'Program.D' cannot be used with type arguments
+                //         D<> d1 = null;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "D<>").WithArguments("Program.D", "type").WithLocation(37, 9),
+                // (39,17): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
+                //         Program.I<> i2 = null;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(39, 17),
+                // (40,17): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
+                //         Program.C<> c3 = new Program.C();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(40, 17),
+                // (41,36): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
+                //         Program.C c4 = new Program.C<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(41, 36),
+                // (42,17): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
+                //         Program.S<> s3 = new Program.S();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(42, 17),
+                // (43,36): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
+                //         Program.S s4 = new Program.S<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(43, 36),
+                // (44,17): error CS0308: The non-generic type 'Program.D' cannot be used with type arguments
+                //         Program.D<> d2 = null;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "D<>").WithArguments("Program.D", "type").WithLocation(44, 17),
+                // (46,22): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
+                //         Test(default(I<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(46, 22),
+                // (47,22): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
+                //         Test(default(C<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(47, 22),
+                // (48,22): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
+                //         Test(default(S<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(48, 22),
+                // (50,30): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
+                //         Test(default(Program.I<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(50, 30),
+                // (51,30): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
+                //         Test(default(Program.C<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(51, 30),
+                // (52,30): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
+                //         Test(default(Program.S<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(52, 30),
+                // (56,20): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
+                //         s = typeof(I<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(56, 20),
+                // (57,20): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
+                //         s = typeof(C<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(57, 20),
+                // (58,20): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
+                //         s = typeof(S<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(58, 20),
+                // (60,28): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
+                //         s = typeof(Program.I<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(60, 28),
+                // (61,28): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
+                //         s = typeof(Program.C<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(61, 28),
+                // (62,28): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
+                //         s = typeof(Program.S<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(62, 28),
+                // (4,9): warning CS0649: Field 'Program.f' is never assigned to, and will always have its default value 0
+                //     int f;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f").WithArguments("Program.f", "0").WithLocation(4, 9)
             );
         }
 
@@ -22969,6 +22969,7 @@ class Program
                 //         this.F<> += null; //parse error
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(16, 18),
 
+                // Binder
 
                 // (9,14): error CS0307: The event 'Program.E' cannot be used with type arguments
                 //         Test(E<>);
@@ -23060,8 +23061,7 @@ class A
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (8,15): error CS0305: Using the generic type 'A.C<T>' requires 1 type arguments
-                //             A.C<>.M();
-                Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("A.C<T>", "type", "1").WithLocation(8, 15));
+                Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("A.C<T>", "type", "1"));
         }
 
         [Fact, WorkItem(542796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542796")]
@@ -23078,8 +23078,7 @@ class C
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,9): error CS0305: Using the generic method group 'M' requires 1 type arguments
-                //         C.M<>();
-                Diagnostic(ErrorCode.ERR_BadArity, "C.M<>").WithArguments("M", "method group", "1").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_BadArity, "C.M<>").WithArguments("M", "method group", "1"));
         }
 
         [Fact]
