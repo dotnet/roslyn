@@ -115,7 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                     var methodBody = node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodBody);
                     var operationScope = semanticModel.GetOperation(methodBody, cancellationToken);
                     var declSymbol = semanticModel.GetDeclaredSymbol(variableIdentifier.Value.Parent);
-                    newTypeSymbol = NullabilityHelper.TryRemoveNullableAnnotationForScope(semanticModel, operationScope, declSymbol);
+                    if (NullableHelpers.IsSymbolAssignedMaybeNull(semanticModel, operationScope, declSymbol) == false)
+                    {
+                        // If the symbol is never assigned null we can update the type symbol to also be non-null
+                        newTypeSymbol = newTypeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                    }
                 }
 
                 // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
@@ -192,43 +196,5 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             {
             }
         }
-    }
-
-    internal static class NullabilityHelper
-    {
-        public static ITypeSymbol TryRemoveNullableAnnotationForScope(SemanticModel semanticModel, IOperation containingOperation, ISymbol symbol)
-        {
-            var typeSymbol = symbol switch
-            {
-                ILocalSymbol localSymbol => localSymbol.Type,
-                IParameterSymbol parameterSymbol => parameterSymbol.Type,
-                _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-            };
-
-            // For local symbols and parameters, we can check what the flow state 
-            // for refences to the symbols are and determine if we can change 
-            // the nullability to a less permissive state.
-            var references = containingOperation.DescendantsAndSelf()
-                .Where(o => IsSymbolReferencedByOperation(o, symbol));
-
-            if (AreAllReferencesNotNull(semanticModel, references))
-            {
-                return typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-            }
-
-            return typeSymbol;
-        }
-
-        private static bool AreAllReferencesNotNull(SemanticModel semanticModel, IEnumerable<IOperation> references)
-             => references.All(r => semanticModel.GetTypeInfo(r.Syntax).Nullability.FlowState == NullableFlowState.NotNull);
-
-        private static bool IsSymbolReferencedByOperation(IOperation operation, ISymbol symbol)
-            => operation switch
-            {
-                ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
-                IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
-                IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target, symbol),
-                _ => false
-            };
     }
 }

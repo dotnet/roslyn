@@ -527,6 +527,78 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
+        [Fact]
+        public async Task TestNullabilityAssignment4()
+        {
+            var code = @"
+#nullable enable
+
+import System.Collections;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var[||] item in new string?[] { """", null })
+        {
+        }
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+import System.Collections;
+
+class C
+{
+    static void Main()
+    {
+        foreach (string? item in new string?[] { """", null })
+        {
+        }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment5()
+        {
+            var code = @"
+#nullable enable
+
+import System.Collections;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var[||] item in new string[] { """" })
+        {
+        }
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+import System.Collections;
+
+class C
+{
+    static void Main()
+    {
+        foreach (string item in new string[] { """" })
+        {
+        }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
         [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
         public async Task TestRefLocal1()
         {

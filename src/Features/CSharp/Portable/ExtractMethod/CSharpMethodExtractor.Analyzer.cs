@@ -134,9 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
 
-                var typeSymbol = base.GetSymbolType(semanticModel, symbol);
+                // Check if null is possibly assigned to the symbol. If it is, leave nullable annotation as is, otherwise
+                // we can modify the annotation to be NotAnnotated to produce more accurate code
+                if (NullableHelpers.IsSymbolAssignedMaybeNull(semanticModel, selectionOperation, symbol) == false)
+                {
+                    return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                }
 
-                return NullabilityHelper.NullabilityHelper.TryRemoveNullableAnnotationForScope(semanticModel, selectionOperation, typeSymbol);
+                return base.GetSymbolType(semanticModel, symbol);
             }
         }
     }
