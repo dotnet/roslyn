@@ -98,7 +98,9 @@ namespace Analyzer.Utilities
             {
                 if (TryGetOptionValue(optionKeyPrefix, specificOptionKey, optionName, out var valueString))
                 {
+#pragma warning disable CS8601 // Possible null reference assignment - Once local function attributes are supported, add "[MaybeNull]" on 'specificOptionValue'.
                     return tryParseValue(valueString, out specificOptionValue);
+#pragma warning restore CS8601 // Possible null reference assignment.
                 }
 
                 specificOptionValue = defaultValue;
@@ -123,7 +125,9 @@ namespace Analyzer.Utilities
             {
                 if (TryGetOptionValue(optionKeyPrefix, optionKeySuffix: null, optionName, out var valueString))
                 {
+#pragma warning disable CS8601 // Possible null reference assignment - Once local function attributes are supported, add "[MaybeNull]" on 'specificOptionValue'.
                     return tryParseValue(valueString, out generalOptionValue);
+#pragma warning restore CS8601 // Possible null reference assignment.
                 }
 
                 generalOptionValue = defaultValue;
