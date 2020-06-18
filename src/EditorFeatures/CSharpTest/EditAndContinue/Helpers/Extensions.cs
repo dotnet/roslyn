@@ -9,18 +9,25 @@ using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     internal static class Extensions
     {
+        private static readonly IExportProviderFactory s_exportProviderFactoryWithTestActiveStatementSpanTracker =
+            ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
+                .WithPart(typeof(TestActiveStatementSpanTracker)));
+
         internal static void VerifyUnchangedDocument(
             string source,
             ActiveStatementsDescription description)
         {
-            CSharpEditAndContinueTestHelpers.CreateInstance().VerifyUnchangedDocument(
+            CSharpEditAndContinueTestHelpers.Instance.VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldStatements,
                 description.OldTrackingSpans,
@@ -41,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ActiveStatementsDescription description,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            CSharpEditAndContinueTestHelpers.CreateInstance().VerifyRudeDiagnostics(
+            CSharpEditAndContinueTestHelpers.Instance.VerifyRudeDiagnostics(
                 editScript,
                 description,
                 expectedDiagnostics);
@@ -53,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             IEnumerable<string> expectedNodeUpdates,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            CSharpEditAndContinueTestHelpers.CreateInstance().VerifyLineEdits(
+            CSharpEditAndContinueTestHelpers.Instance.VerifyLineEdits(
                 editScript,
                 expectedLineEdits,
                 expectedNodeUpdates,
@@ -113,9 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             DiagnosticDescription? expectedDeclarationError = null,
             RudeEditDiagnosticDescription[]? expectedDiagnostics = null)
         {
+            using var workspace = TestWorkspace.CreateCSharp("", exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp30 })
             {
                 new CSharpEditAndContinueTestHelpers(targetFramework).VerifySemantics(
+                    workspace,
                     editScript,
                     activeStatements,
                     additionalOldSources,

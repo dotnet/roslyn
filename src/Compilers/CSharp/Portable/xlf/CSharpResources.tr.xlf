@@ -9766,8 +9766,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
-        <source>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</source>
-        <target state="translated">Boş değer atanabilir '{0}' türünün bir desende kullanılması yasaktır; bunun yerine temel alınan '{1}' türünü kullanın.</target>
+        <source>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</source>
+        <target state="new">It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PeWritingFailure">

@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         protected static ImmutableArray<IParameterSymbol> DetermineParameters(
             ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
         {
-            var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
             foreach (var symbol in selectedMembers)
             {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     name: parameterName));
             }
 
-            return parameters.ToImmutableAndFree();
+            return parameters.ToImmutable();
         }
 
         protected static readonly SymbolDisplayFormat SimpleFormat =

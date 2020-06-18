@@ -3676,11 +3676,12 @@ public sealed class MyClass
                       Value: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
                       Pattern: 
-                        INegatedPatternOperationNegatedPattern: 
+                        INegatedPatternOperation (OperationKind.NegatedPattern, Type: null) (Syntax: 'not < (true ? 10 : 11)') (InputType: System.Int32)
+                          Pattern: 
                             IRelationalPatternOperation (BinaryOperatorKind.LessThan) (OperationKind.RelationalPattern, Type: null) (Syntax: '< (true ? 10 : 11)') (InputType: System.Int32)
                               Value: 
                                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 10, IsImplicit) (Syntax: 'true ? 10 : 11')
-                         (OperationKind.NegatedPattern, Type: null) (Syntax: 'not < (true ? 10 : 11)') (InputType: System.Int32)
+                         
                     Leaving: {R2} {R1}
                 Next (Regular) Block[B6]
                     Leaving: {R2}
