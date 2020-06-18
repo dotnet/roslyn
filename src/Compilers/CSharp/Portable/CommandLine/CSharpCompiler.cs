@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override DiagnosticFormatter DiagnosticFormatter { get { return _diagnosticFormatter; } }
         protected internal new CSharpCommandLineArguments Arguments { get { return (CSharpCommandLineArguments)base.Arguments; } }
 
-        public override Compilation CreateCompilation(
+        public override Compilation? CreateCompilation(
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLogger,
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hadErrors = false;
 
             var sourceFiles = Arguments.SourceFiles;
-            var trees = new SyntaxTree[sourceFiles.Length];
+            var trees = new SyntaxTree?[sourceFiles.Length];
             var normalizedFilePaths = new string[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
 
@@ -159,6 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
             var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions);
 
+            Debug.Assert(Arguments.CompilationName != null);
+
             return CSharpCompilation.Create(
                 Arguments.CompilationName,
                 trees.WhereNotNull(),
@@ -172,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .WithSyntaxTreeOptionsProvider(optionsProvider));
         }
 
-        private SyntaxTree ParseFile(
+        private SyntaxTree? ParseFile(
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
             ref bool addedDiagnostics,
@@ -243,26 +247,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var comp = (CSharpCompilation)compilation;
 
-                Symbol entryPoint = comp.ScriptClass;
-                if ((object)entryPoint == null)
+                Symbol? entryPoint = comp.ScriptClass;
+                if (entryPoint is null)
                 {
                     var method = comp.GetEntryPoint(cancellationToken);
-                    if ((object)method != null)
+                    if (method is object)
                     {
                         entryPoint = method.PartialImplementationPart ?? method;
                     }
+                    else
+                    {
+                        // no entrypoint found - an error will be reported and the compilation won't be emitted
+                        return "error";
+                    }
                 }
 
-                if ((object)entryPoint != null)
-                {
-                    string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree.FilePath);
-                    return Path.ChangeExtension(entryPointFileName, ".exe");
-                }
-                else
-                {
-                    // no entrypoint found - an error will be reported and the compilation won't be emitted
-                    return "error";
-                }
+                string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
+                return Path.ChangeExtension(entryPointFileName, ".exe");
             }
             else
             {
@@ -291,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LangVersions, Culture));
             var defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
             var latestVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion();
-            foreach (LanguageVersion v in Enum.GetValues(typeof(LanguageVersion)))
+            foreach (var v in (LanguageVersion[])Enum.GetValues(typeof(LanguageVersion)))
             {
                 if (v == defaultVersion)
                 {
@@ -355,13 +356,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (LineDirectiveTriviaSyntax directive in tree.GetRoot().GetDirectives(
                 d => d.IsActive && !d.HasErrors && d.Kind() == SyntaxKind.LineDirectiveTrivia))
             {
-                string path = (string)directive.File.Value;
+                var path = (string?)directive.File.Value;
                 if (path == null)
                 {
                     continue;
                 }
 
-                string resolvedPath = resolver.ResolveReference(path, tree.FilePath);
+                string? resolvedPath = resolver.ResolveReference(path, tree.FilePath);
                 if (resolvedPath == null)
                 {
                     diagnostics.Add(

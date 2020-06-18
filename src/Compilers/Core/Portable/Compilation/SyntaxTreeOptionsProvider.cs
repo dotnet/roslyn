@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis
 
     internal sealed class CompilerSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
     {
-        private struct Options
+        private readonly struct Options
         {
             public readonly bool? IsGenerated;
             public readonly ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions;
@@ -45,15 +44,18 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableDictionary<SyntaxTree, Options> _options;
 
         public CompilerSyntaxTreeOptionsProvider(
-            SyntaxTree[] trees,
+            SyntaxTree?[] trees,
             ImmutableArray<AnalyzerConfigOptionsResult> results)
         {
             var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, Options>();
             for (int i = 0; i < trees.Length; i++)
             {
-                builder.Add(
-                    trees[i],
-                    new Options(results.IsDefault ? null : (AnalyzerConfigOptionsResult?)results[i]));
+                if (trees[i] != null)
+                {
+                    builder.Add(
+                        trees[i]!,
+                        new Options(results.IsDefault ? null : (AnalyzerConfigOptionsResult?)results[i]));
+                }
             }
             _options = builder.ToImmutableDictionary();
         }
