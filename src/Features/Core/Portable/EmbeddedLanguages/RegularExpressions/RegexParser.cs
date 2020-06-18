@@ -1237,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // trivia is not allowed anywhere in a character class
             ConsumeCurrentToken(allowTrivia: false);
 
-            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
+            using var _1 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var builder);
             while (_currentToken.Kind != RegexKind.EndOfFile)
             {
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // We wil commonly get tons of text nodes in a row.  For example, the
             // regex `[abc]` will be three text nodes in a row.  To help save on memory
             // try to merge that into one single text node.
-            using var _ = ArrayBuilder<RegexExpressionNode>.GetInstance(out var contents);
+            using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var contents);
             MergeTextNodes(builder, contents);
 
             if (closeBracketToken.IsMissing)
