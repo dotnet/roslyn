@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-extern alias Scripting;
 extern alias InteractiveHost;
+extern alias Scripting;
 
 using System;
 using System.Collections.Generic;
@@ -12,15 +12,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Interactive;
-using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.InteractiveWindow;
@@ -32,8 +29,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
-    using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
     internal abstract class InteractiveEvaluator : IResettableInteractiveEvaluator
     {
@@ -44,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly InteractiveHost _interactiveHost;
 
         private readonly string _hostDirectory;
-        private readonly string _initialWorkingDirectory;
 
         private readonly IThreadingContext _threadingContext;
         private readonly IContentType _contentType;
@@ -52,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly IViewClassifierAggregatorService _classifierAggregator;
         private readonly IInteractiveWindowCommandsFactory _commandsFactory;
         private readonly ImmutableArray<IInteractiveWindowCommand> _commands;
-        private readonly EventHandler<ContentTypeChangedEventArgs> _contentTypeChangedHandler;
 
         // InteractiveHost state:
         private RemoteInitializationResult _initializationResult;
@@ -62,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         public string WorkingDirectory { get; private set; }
 
         // InteractiveWorkspace state:
-        private ProjectId _previousSubmissionProjectId;
+        private ProjectId _lastSuccessfulSubmissionProjectId;
         private ProjectId _currentSubmissionProjectId;
 
         // InteractiveWindow state:
@@ -105,9 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _contentType = contentType;
             _responseFileName = responseFileName;
             _workspace = new InteractiveWorkspace(hostServices, this);
-            _contentTypeChangedHandler = new EventHandler<ContentTypeChangedEventArgs>(LanguageBufferContentTypeChanged);
             _classifierAggregator = classifierAggregator;
-            _initialWorkingDirectory = initialWorkingDirectory;
             _commandsFactory = commandsFactory;
             _commands = commands;
             _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveEvaluator).Assembly.Location), "InteractiveHost");
@@ -221,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             // clear workspace state:
             _workspace.ClearSolution();
             _currentSubmissionProjectId = null;
-            _previousSubmissionProjectId = null;
+            _lastSuccessfulSubmissionProjectId = null;
 
             // update host state:
             _platformInfo = platformInfo;
@@ -262,66 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            args.NewBuffer.ContentTypeChanged += _contentTypeChangedHandler;
-
             AddSubmissionProject(args.NewBuffer, LanguageName);
-        }
-
-        // The REPL window might change content type to host command content type (when a host command is typed at the beginning of the buffer).
-        private void LanguageBufferContentTypeChanged(object sender, ContentTypeChangedEventArgs e)
-        {
-            // It's not clear whether this situation will ever happen, but just in case.
-            if (e.BeforeContentType == e.AfterContentType)
-            {
-                return;
-            }
-
-            var buffer = e.Before.TextBuffer;
-            var contentTypeName = this.ContentType.TypeName;
-
-            var afterIsLanguage = e.AfterContentType.IsOfType(contentTypeName);
-            var afterIsInteractiveCommand = e.AfterContentType.IsOfType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
-            var beforeIsLanguage = e.BeforeContentType.IsOfType(contentTypeName);
-            var beforeIsInteractiveCommand = e.BeforeContentType.IsOfType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
-
-            // Workaround for https://github.com/dotnet/interactive-window/issues/156
-            if ((beforeIsLanguage || beforeIsInteractiveCommand) && e.AfterContentType.TypeName == "inert" ||
-                (afterIsLanguage || afterIsInteractiveCommand) && e.BeforeContentType.TypeName == "inert")
-            {
-                return;
-            }
-
-            Debug.Assert(afterIsLanguage && beforeIsInteractiveCommand
-                      || beforeIsLanguage && afterIsInteractiveCommand);
-
-            // We're switching between the target language and the Interactive Command "language".
-            // First, remove the current submission from the solution.
-
-            var documentId = _workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer());
-            var oldSolution = _workspace.CurrentSolution;
-            var relatedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
-
-            var newSolution = oldSolution;
-
-            foreach (var relatedDocumentId in relatedDocumentIds)
-            {
-                Debug.Assert(relatedDocumentId != null);
-
-                newSolution = newSolution.RemoveDocument(relatedDocumentId);
-
-                // TODO (tomat): Is there a better way to remove mapping between buffer and document in REPL? 
-                // Perhaps TrackingWorkspace should implement RemoveDocumentAsync?
-                _workspace.ClearOpenDocument(relatedDocumentId);
-            }
-
-            // Next, remove the previous submission project and update the workspace.
-            newSolution = newSolution.RemoveProject(_currentSubmissionProjectId);
-            _workspace.SetCurrentSolution(newSolution);
-
-            // Add a new submission with the correct language for the current buffer.
-            var languageName = afterIsLanguage ? LanguageName : InteractiveLanguageNames.InteractiveCommand;
-
-            AddSubmissionProject(buffer, languageName);
         }
 
         private void AddSubmissionProject(ITextBuffer submissionBuffer, string languageName)
@@ -331,8 +265,10 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var imports = ImmutableArray<string>.Empty;
             var references = ImmutableArray<MetadataReference>.Empty;
 
-            if (_previousSubmissionProjectId == null)
+            if (_currentSubmissionProjectId == null)
             {
+                Debug.Assert(_lastSuccessfulSubmissionProjectId == null);
+
                 // The Interactive Window may have added the first language buffer before 
                 // the host initialization has completed. Do not create a submission project 
                 // for the buffer in such case. It will be created when the initialization completes.
@@ -355,11 +291,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 var scriptPath = initResult.ScriptPath;
                 if (scriptPath != null)
                 {
-                    project = CreateSubmissionProject(solution, languageName, imports, references);
+                    project = CreateSubmissionProject(solution, previousSubmissionProjectId: null, languageName, imports, references);
 
                     var initDocumentId = DocumentId.CreateNewId(project.Id, debugName: scriptPath);
                     solution = project.Solution.AddDocument(initDocumentId, Path.GetFileName(scriptPath), new FileTextLoader(scriptPath, defaultEncoding: null));
-                    _previousSubmissionProjectId = project.Id;
+                    _lastSuccessfulSubmissionProjectId = project.Id;
 
                     // imports and references will be inherited:
                     imports = ImmutableArray<string>.Empty;
@@ -367,8 +303,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 }
             }
 
-            // project for the new submission:
-            project = CreateSubmissionProject(solution, languageName, imports, references);
+            // Project for the new submission - chain to the last submission that successfully executed.
+            project = CreateSubmissionProject(solution, _lastSuccessfulSubmissionProjectId, languageName, imports, references);
 
             var documentId = DocumentId.CreateNewId(project.Id, debugName: project.Name);
             solution = project.Solution.AddDocument(documentId, project.Name, submissionBuffer.CurrentSnapshot.AsText());
@@ -381,14 +317,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _currentSubmissionProjectId = project.Id;
         }
 
-        private Project CreateSubmissionProject(Solution solution, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
+        private Project CreateSubmissionProject(Solution solution, ProjectId previousSubmissionProjectId, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
         {
             var name = "Submission#" + _submissionCount++;
 
             CompilationOptions compilationOptions;
-            if (_previousSubmissionProjectId != null)
+            if (previousSubmissionProjectId != null)
             {
-                compilationOptions = solution.GetProjectState(_previousSubmissionProjectId).CompilationOptions;
+                compilationOptions = solution.GetProjectState(previousSubmissionProjectId).CompilationOptions;
 
                 var metadataResolver = (RuntimeMetadataReferenceResolver)compilationOptions.MetadataReferenceResolver;
                 if (metadataResolver.PathResolver.BaseDirectory != WorkingDirectory ||
@@ -431,9 +367,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     hostObjectType: typeof(InteractiveScriptGlobals),
                     isSubmission: true));
 
-            if (_previousSubmissionProjectId != null)
+            if (previousSubmissionProjectId != null)
             {
-                solution = solution.AddProjectReference(projectId, new ProjectReference(_previousSubmissionProjectId));
+                solution = solution.AddProjectReference(projectId, new ProjectReference(previousSubmissionProjectId));
             }
 
             return solution.GetProject(projectId);
@@ -515,15 +451,19 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
         }
 
+        /// <summary>
+        /// Called on UI thread by the Interactive Window once a code snippet is submitted.
+        /// Followed on UI thread by creation of a new language buffer and call to <see cref="SubmissionBufferAdded"/>.
+        /// </summary>
         public async Task<ExecutionResult> ExecuteCodeAsync(string text)
         {
             try
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
+                var currentSubmissionProjectId = _currentSubmissionProjectId;
                 var currentSubmissionBuffer = _currentWindow.CurrentLanguageBuffer;
                 Contract.ThrowIfNull(currentSubmissionBuffer);
-                currentSubmissionBuffer.ContentTypeChanged -= _contentTypeChangedHandler;
                 _submittedBuffers.Add(currentSubmissionBuffer);
 
                 if (_interactiveCommands.InCommand)
@@ -541,15 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 var result = await _interactiveHost.ExecuteAsync(text).ConfigureAwait(true);
                 if (result.Success)
                 {
-                    // We are not executing a command (the current content type is not "Interactive Command"),
-                    // so the source document should not have been removed.
-                    var project = _workspace.CurrentSolution.GetProject(_currentSubmissionProjectId);
-                    Contract.ThrowIfNull(project, "project is null");
-                    Contract.ThrowIfFalse(project.HasDocuments);
-
-                    // only remember the submission if we compiled successfully, otherwise we
-                    // ignore it's id so we don't reference it in the next submission.
-                    _previousSubmissionProjectId = _currentSubmissionProjectId;
+                    _lastSuccessfulSubmissionProjectId = currentSubmissionProjectId;
 
                     // update local search paths - remote paths has already been updated
                     UpdatePaths(result);
