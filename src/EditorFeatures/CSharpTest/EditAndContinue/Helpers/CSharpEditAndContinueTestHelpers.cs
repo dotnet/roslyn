@@ -19,20 +19,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
 {
     internal sealed class CSharpEditAndContinueTestHelpers : EditAndContinueTestHelpers
     {
-        private readonly CSharpEditAndContinueAnalyzer _analyzer = new CSharpEditAndContinueAnalyzer(new TestActiveStatementSpanTracker());
-
         private readonly ImmutableArray<MetadataReference> _fxReferences;
 
-        internal static CSharpEditAndContinueTestHelpers CreateInstance()
+        internal static CSharpEditAndContinueTestHelpers Instance
             => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib46Extended);
 
-        internal static CSharpEditAndContinueTestHelpers CreateInstance40()
+        internal static CSharpEditAndContinueTestHelpers Instance40
             => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib40AndSystemCore);
+
+        private static readonly CSharpEditAndContinueAnalyzer s_analyzer = new CSharpEditAndContinueAnalyzer();
 
         public CSharpEditAndContinueTestHelpers(TargetFramework targetFramework)
             => _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
 
-        public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
+        public override AbstractEditAndContinueAnalyzer Analyzer => s_analyzer;
 
         public override Compilation CreateLibraryCompilation(string name, IEnumerable<SyntaxTree> trees)
             => CSharpCompilation.Create("New", trees, _fxReferences, TestOptions.UnsafeReleaseDll);

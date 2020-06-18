@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         private static readonly IExportProviderFactory s_exportProviderFactoryWithTestActiveStatementSpanTracker =
             ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(TestActiveStatementSpanTrackerFactory)));
+                .WithPart(typeof(TestActiveStatementSpanTracker)));
 
         private static readonly ActiveStatementProvider s_noActiveStatements =
             cancellationToken => Task.FromResult(ImmutableArray<ActiveStatementDebugInfo>.Empty);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private EditAndContinueWorkspaceService CreateEditAndContinueService(Workspace workspace)
         {
-            Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
 
             return new EditAndContinueWorkspaceService(
                 workspace,
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public async Task RunMode_ProjectThatDoesNotSupportEnC()
         {
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTrackerFactory)));
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTracker)));
 
             using var workspace = new TestWorkspace(exportProvider: exportProviderFactory.CreateExportProvider());
             var solution = workspace.CurrentSolution;
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public async Task BreakMode_ProjectThatDoesNotSupportEnC()
         {
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTrackerFactory)));
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTracker)));
 
             using (var workspace = new TestWorkspace(exportProvider: exportProviderFactory.CreateExportProvider()))
             {
@@ -2325,7 +2325,7 @@ class C1
             var activeLineSpan21 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan21);
             var activeLineSpan22 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan22);
 
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
             spanTracker.Spans = new Dictionary<DocumentId, TextSpan?[]>
             {
                 { documentId, new TextSpan?[] { activeSpan11, activeSpan12 } }
@@ -2442,7 +2442,7 @@ class C1
             var activeLineSpan21 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan21);
             var activeLineSpan22 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan22);
 
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
             spanTracker.Spans = new Dictionary<DocumentId, TextSpan?[]>
             {
                 { documentId, new TextSpan?[] { activeSpan11, activeSpan12 } }
@@ -2510,7 +2510,7 @@ class C1
         public async Task ActiveStatements_ForeignDocument()
         {
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTrackerFactory)));
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTracker)));
 
             using var workspace = new TestWorkspace(exportProvider: exportProviderFactory.CreateExportProvider());
             var solution = workspace.CurrentSolution;

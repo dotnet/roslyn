@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitWith(IWithOperation operation, object argument)
         {
-            return new WithOperation(Visit(operation.Value), operation.CloneMethod, Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new WithOperation(Visit(operation.Operand), operation.CloneMethod, Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

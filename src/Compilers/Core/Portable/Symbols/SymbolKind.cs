@@ -114,6 +114,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Symbol represents a function pointer type
         /// </summary>
-        FunctionPointer = 20,
+        FunctionPointerType = 20,
     }
 }

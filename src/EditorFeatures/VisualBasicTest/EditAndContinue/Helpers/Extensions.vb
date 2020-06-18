@@ -6,18 +6,24 @@ Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
     Friend Module Extensions
 
+        Private ReadOnly s_exportProviderFactoryWithTestActiveStatementSpanTracker As IExportProviderFactory =
+            ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic _
+                .WithPart(GetType(TestActiveStatementSpanTracker)))
+
         Friend Sub VerifyUnchangedDocument(
             source As String,
             description As ActiveStatementsDescription)
 
-            VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifyUnchangedDocument(
+            VisualBasicEditAndContinueTestHelpers.Instance.VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldStatements,
                 description.OldTrackingSpans,
@@ -36,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Friend Sub VerifyRudeDiagnostics(editScript As EditScript(Of SyntaxNode),
                                          description As ActiveStatementsDescription,
                                          ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifyRudeDiagnostics(editScript, description, expectedDiagnostics)
+            VisualBasicEditAndContinueTestHelpers.Instance.VerifyRudeDiagnostics(editScript, description, expectedDiagnostics)
         End Sub
 
         <Extension>
@@ -44,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                    expectedLineEdits As IEnumerable(Of LineChange),
                                    expectedNodeUpdates As IEnumerable(Of String),
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifyLineEdits(editScript, expectedLineEdits, expectedNodeUpdates, expectedDiagnostics)
+            VisualBasicEditAndContinueTestHelpers.Instance.VerifyLineEdits(editScript, expectedLineEdits, expectedNodeUpdates, expectedDiagnostics)
         End Sub
 
         <Extension>
@@ -95,14 +101,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                    expectedSemanticEdits As SemanticEditDescription(),
                                    expectedDeclarationError As DiagnosticDescription,
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifySemantics(
-                editScript,
-                activeStatements,
-                additionalOldSources,
-                additionalNewSources,
-                expectedSemanticEdits,
-                expectedDeclarationError,
-                expectedDiagnostics)
+            Using workspace = TestWorkspace.CreateVisualBasic("", exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+                VisualBasicEditAndContinueTestHelpers.Instance.VerifySemantics(
+                    workspace,
+                    editScript,
+                    activeStatements,
+                    additionalOldSources,
+                    additionalNewSources,
+                    expectedSemanticEdits,
+                    expectedDeclarationError,
+                    expectedDiagnostics)
+            End Using
         End Sub
     End Module
 End Namespace
