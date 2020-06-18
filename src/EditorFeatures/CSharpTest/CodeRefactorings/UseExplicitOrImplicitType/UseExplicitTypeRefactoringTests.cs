@@ -423,6 +423,110 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
+        [Fact]
+        public async Task TestNullabilityAssignment1()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        string v = s_data;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment2()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+        v = null;
+    }
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        string? v = s_data;
+        v = null;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment3()
+        {
+            var code = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        var[||] v = s_data;
+        v = GetNullableString();
+    }
+
+    static string? GetNullableString() => null;
+}";
+
+            var expected = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        string? v = s_data;
+        v = GetNullableString();
+    }
+
+    static string? GetNullableString() => null;
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
         [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
         public async Task TestRefLocal1()
         {

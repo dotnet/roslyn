@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -16,7 +17,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
@@ -66,6 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             TypeSyntax typeSyntax = null;
             ParenthesizedVariableDesignationSyntax parensDesignation = null;
+            SyntaxToken? variableIdentifier = null;
+
             if (declarationContext is RefTypeSyntax refType)
             {
                 declarationContext = declarationContext.Parent;
@@ -74,10 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             if (declarationContext is VariableDeclarationSyntax varDecl)
             {
                 typeSyntax = varDecl.Type;
+                variableIdentifier = varDecl.Variables.First().Identifier;
             }
             else if (declarationContext is ForEachStatementSyntax forEach)
             {
                 typeSyntax = forEach.Type;
+                variableIdentifier = forEach.Identifier;
             }
             else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
             {
@@ -96,12 +104,25 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             {
                 typeSyntax = typeSyntax.StripRefIfNeeded();
 
+                var newTypeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
+
+                if (newTypeSymbol.NullableAnnotation == NullableAnnotation.Annotated && variableIdentifier.HasValue)
+                {
+                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                    // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
+                    // determine if it needs to be null
+                    var methodBody = node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodBody);
+                    var operationScope = semanticModel.GetOperation(methodBody, cancellationToken);
+                    var declSymbol = semanticModel.GetDeclaredSymbol(variableIdentifier.Value.Parent);
+                    newTypeSymbol = NullabilityHelper.TryRemoveNullableAnnotationForScope(semanticModel, operationScope, declSymbol);
+                }
+
                 // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
                 // that would defeat the purpose of this refactoring entirely).
-                var newTypeSyntax =
-                    semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType
-                                 .GenerateTypeSyntax(allowVar: false)
-                                 .WithTriviaFrom(typeSyntax);
+                var newTypeSyntax = newTypeSymbol
+                             .GenerateTypeSyntax(allowVar: false)
+                             .WithTriviaFrom(typeSyntax);
 
                 Debug.Assert(!newTypeSyntax.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
 
@@ -171,5 +192,43 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             {
             }
         }
+    }
+
+    internal static class NullabilityHelper
+    {
+        public static ITypeSymbol TryRemoveNullableAnnotationForScope(SemanticModel semanticModel, IOperation containingOperation, ISymbol symbol)
+        {
+            var typeSymbol = symbol switch
+            {
+                ILocalSymbol localSymbol => localSymbol.Type,
+                IParameterSymbol parameterSymbol => parameterSymbol.Type,
+                _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+            };
+
+            // For local symbols and parameters, we can check what the flow state 
+            // for refences to the symbols are and determine if we can change 
+            // the nullability to a less permissive state.
+            var references = containingOperation.DescendantsAndSelf()
+                .Where(o => IsSymbolReferencedByOperation(o, symbol));
+
+            if (AreAllReferencesNotNull(semanticModel, references))
+            {
+                return typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+            }
+
+            return typeSymbol;
+        }
+
+        private static bool AreAllReferencesNotNull(SemanticModel semanticModel, IEnumerable<IOperation> references)
+             => references.All(r => semanticModel.GetTypeInfo(r.Syntax).Nullability.FlowState == NullableFlowState.NotNull);
+
+        private static bool IsSymbolReferencedByOperation(IOperation operation, ISymbol symbol)
+            => operation switch
+            {
+                ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
+                IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
+                IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target, symbol),
+                _ => false
+            };
     }
 }
