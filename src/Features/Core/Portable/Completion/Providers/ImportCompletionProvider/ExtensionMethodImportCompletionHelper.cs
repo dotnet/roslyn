@@ -75,18 +75,31 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static ImmutableArray<string> GetReceiverTypeNames(ITypeSymbol receiverTypeSymbol)
         {
             using var _ = PooledHashSet<string>.GetInstance(out var allTypeNamesBuilder);
-
-            allTypeNamesBuilder.Add(GetReceiverTypeName(receiverTypeSymbol));
-            allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetBaseTypes().Select(t => t.MetadataName));
-            allTypeNamesBuilder.AddRange(receiverTypeSymbol.GetAllInterfacesIncludingThis().Select(t => t.MetadataName));
-
-            // interface doesn't inherit from object, but is implicitly convertible to object type.
-            if (receiverTypeSymbol.IsInterfaceType())
-            {
-                allTypeNamesBuilder.Add(nameof(Object));
-            }
-
+            AddNamesForTypeWorker(receiverTypeSymbol, allTypeNamesBuilder);
             return allTypeNamesBuilder.ToImmutableArray();
+
+            static void AddNamesForTypeWorker(ITypeSymbol receiverTypeSymbol, PooledHashSet<string> builder)
+            {
+                if (receiverTypeSymbol is ITypeParameterSymbol typeParameter)
+                {
+                    foreach (var constraintType in typeParameter.ConstraintTypes)
+                    {
+                        AddNamesForTypeWorker(constraintType, builder);
+                    }
+                }
+                else
+                {
+                    builder.Add(GetReceiverTypeName(receiverTypeSymbol));
+                    builder.AddRange(receiverTypeSymbol.GetBaseTypes().Select(t => t.MetadataName));
+                    builder.AddRange(receiverTypeSymbol.GetAllInterfacesIncludingThis().Select(t => t.MetadataName));
+
+                    // interface doesn't inherit from object, but is implicitly convertible to object type.
+                    if (receiverTypeSymbol.IsInterfaceType())
+                    {
+                        builder.Add(nameof(Object));
+                    }
+                }
+            }
         }
 
         private static string GetReceiverTypeName(ITypeSymbol typeSymbol)
