@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private OverriddenOrHiddenMembersResult? _lazyOverriddenOrHiddenMembers;
         private CustomAttributesBag<CSharpAttributeData>? _lazyCustomAttributesBag;
         private SymbolCompletionState _state;
+        private string? _lazyDocComment;
+        private string? _lazyExpandedDocComment;
 
         internal SyntaxReference SyntaxReference { get; }
         public Location Location { get; }
@@ -573,6 +576,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return type;
+        }
+
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            Location location = TypeLocation;
+            var compilation = DeclaringCompilation;
+
+            Debug.Assert(location != null);
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+
+            if (Type.ContainsNativeInteger())
+            {
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+
+            if (compilation.ShouldEmitNullableAttributes(this) &&
+                this.TypeWithAnnotations.NeedsNullableAttribute())
+            {
+                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
         }
     }
 }

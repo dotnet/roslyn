@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
         /// <summary>
-        /// Condensed flags storing useful information about the <see cref="SourcePropertySymbol"/> 
+        /// Condensed flags storing useful information about the <see cref="SourcePropertySymbol"/>
         /// so that we do not have to go back to source to compute this data.
         /// </summary>
         [Flags]
@@ -55,8 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private readonly string _sourceName;
 
-        private string _lazyDocComment;
-        private string _lazyExpandedDocComment;
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
@@ -216,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // modifiers that are in the signatures of the overridden/implemented property accessors.
             // (From source, we know that there can only be one overridden/implemented property, so there
             // are no conflicts.)  This is unnecessary for implicit implementations because, if the custom
-            // modifiers don't match, we'll insert bridge methods for the accessors (explicit implementations 
+            // modifiers don't match, we'll insert bridge methods for the accessors (explicit implementations
             // that delegate to the implicit implementations) with the correct custom modifiers
             // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
@@ -737,12 +735,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
-            Location location = CSharpSyntaxNode.Type.Location;
+            Location location = TypeLocation;
             var compilation = DeclaringCompilation;
-
-            Debug.Assert(location != null);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // property name location for any such errors. We'll do the same for return
@@ -766,23 +763,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-
-            if (Type.ContainsNativeInteger())
-            {
-                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
-            }
-
-            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-
-            if (compilation.ShouldEmitNullableAttributes(this) &&
-                this.TypeWithAnnotations.NeedsNullableAttribute())
-            {
-                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
-            }
-
-            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
+
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
         {
@@ -856,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                         defaultInterfaceImplementationModifiers,
                                                                         location, diagnostics);
 
-            // Let's overwrite modifiers for interface properties with what they are supposed to be. 
+            // Let's overwrite modifiers for interface properties with what they are supposed to be.
             // Proper errors must have been reported by now.
             if (isInterface)
             {
@@ -1014,12 +997,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PrivateAbstractAccessor, accessor.Locations[0], accessor);
             }
-        }
-
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
         // Separate these checks out of FindExplicitlyImplementedProperty because they depend on the accessor symbols,

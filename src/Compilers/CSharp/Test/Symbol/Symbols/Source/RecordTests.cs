@@ -1540,6 +1540,42 @@ class C
         }
 
         [Fact]
+        public void DataProperties6()
+        {
+            var src = @"
+#nullable enable
+class C
+{
+    data nint P1;
+    data string? P2;
+}";
+            var comp = CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: m =>
+                {
+                    var c = m.GlobalNamespace.GetTypeMember("C");
+
+                    var p1 = c.GetMember<PropertySymbol>("P1");
+                    var nint = p1.TypeWithAnnotations;
+                    Assert.Equal(SpecialType.System_IntPtr, nint.Type.SpecialType);
+                    Assert.True(nint.Type.IsNativeIntegerType);
+
+                    // Assert that we synthesized the attribute in this assembly
+                    var nativeIntegerAttribute = m.ContainingAssembly.GetTypeByMetadataName(
+                        WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute.GetMetadataName());
+                    Assert.Equal(nativeIntegerAttribute, p1.GetAttributes().Single().AttributeClass);
+
+                    var p2 = c.GetMember<PropertySymbol>("P2");
+                    var nullableString = p2.TypeWithAnnotations;
+                    Assert.Equal(SpecialType.System_String, nullableString.SpecialType);
+                    Assert.True(NullableAnnotation.Annotated.IsAnnotated());
+                    var nullableAttribute = m.ContainingAssembly.GetTypeByMetadataName(
+                        WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute.GetMetadataName());
+                    Assert.NotNull(nullableAttribute);
+                });
+        }
+
+        [Fact]
         public void DataPropertiesInterface()
         {
             var src = @$"
