@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(2, worker.ProjectIds.Count);
         }
 
-        [InlineData(BackgroundAnalysisScope.ActiveFile, 1, 0)]
+        [InlineData(BackgroundAnalysisScope.ActiveFile, 0, 0)]
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, 5, 1)]
         [InlineData(BackgroundAnalysisScope.FullSolution, 5, 1)]
         [Theory]
