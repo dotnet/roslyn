@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1573,6 +1574,24 @@ class C
                         WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute.GetMetadataName());
                     Assert.NotNull(nullableAttribute);
                 });
+        }
+
+        [Fact]
+        public void DataProperties7()
+        {
+            var src = @"
+class C
+{
+    /// <summary>Property P1</summary>
+    data int P1;
+}";
+            var comp = CreateCompilation(src);
+            var p1 = comp.GlobalNamespace.GetTypeMember("C").GetMember("P1");
+            Assert.Equal(
+@"<member name=""P:C.P1"">
+    <summary>Property P1</summary>
+</member>
+", p1.GetDocumentationCommentXml(CultureInfo.InvariantCulture));
         }
 
         [Fact]
