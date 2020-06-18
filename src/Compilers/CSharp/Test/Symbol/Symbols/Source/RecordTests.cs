@@ -1597,6 +1597,37 @@ class C
         }
 
         [Fact]
+        public void DataProperties8()
+        {
+            var src = @"
+using System;
+class C
+{
+    data IntPtr P = (IntPtr)M();
+
+    static unsafe void* M() => null;
+}";
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     data IntPtr P = (IntPtr)M();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "M()").WithLocation(5, 29)
+            );
+
+            src = @"
+using System;
+unsafe class C
+{
+    data IntPtr P = (IntPtr)M();
+
+    static unsafe void* M() => null;
+}";
+            comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+            );
+        }
+
+        [Fact]
         public void DataPropertiesInterface()
         {
             var src = @$"
