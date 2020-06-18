@@ -6296,7 +6296,7 @@ public static class Extensions1
     public static C.Enumerator GetAsyncEnumerator(this I self) => throw null;
 }
 public static class Extensions2
-{
+{ 
     public static int GetAsyncEnumerator(this C self) => 42;
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
