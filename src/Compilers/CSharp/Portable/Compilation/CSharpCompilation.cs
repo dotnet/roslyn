@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
 
+        // The type of host object model if available.
+        private TypeSymbol? _lazyHostObjectTypeSymbol;
+
         // All imports (using directives and extern aliases) in syntax trees in this compilation.
         // NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
         // and re-created.
@@ -1461,8 +1464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        // The type of host object model if available.
-        private TypeSymbol? _lazyHostObjectTypeSymbol;
+        protected override ITypeSymbol? CommonScriptGlobalsType
+            => GetHostObjectTypeSymbol()?.GetPublicSymbol();
 
         internal TypeSymbol? GetHostObjectTypeSymbol()
         {
@@ -3586,13 +3589,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
         {
-            WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
-            WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
-            WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
-
             // LanguageVersion should already be mapped to a specific version
             Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
             WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+
+            if (Options.CheckOverflow)
+            {
+                WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+            }
+
+            if (Options.NullableContextOptions != NullableContextOptions.Disable)
+            {
+                WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+            }
+
+            if (Options.AllowUnsafe)
+            {
+                WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+            }
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())

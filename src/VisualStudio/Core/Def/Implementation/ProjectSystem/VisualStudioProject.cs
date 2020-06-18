@@ -264,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             set => ChangeProjectOutputPath(
                        ref _compilationOutputAssemblyFilePath,
                        value,
-                       s => s.WithProjectCompilationOutputFilePaths(Id, s.GetRequiredProject(Id).CompilationOutputFilePaths.WithAssemblyPath(value)));
+                       s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
         }
 
         public string? OutputFilePath

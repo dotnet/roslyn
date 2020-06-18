@@ -1448,7 +1448,8 @@ public sealed class MyClass
                       Value: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Char, IsImplicit) (Syntax: 'input')
                       Pattern: 
-                        INegatedPatternOperationNegatedPattern: 
+                        INegatedPatternOperation (OperationKind.NegatedPattern, Type: null) (Syntax: 'not (>= '0' and <= '9')') (InputType: System.Char)
+                          Pattern: 
                             IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= '0' and <= '9'') (InputType: System.Char)
                               LeftPattern: 
                                 IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= '0'') (InputType: System.Char)
@@ -1458,7 +1459,6 @@ public sealed class MyClass
                                 IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= '9'') (InputType: System.Char)
                                   Value: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: 9) (Syntax: ''9'')
-                         (OperationKind.NegatedPattern, Type: null) (Syntax: 'not (>= '0' and <= '9')') (InputType: System.Char)
                 Next (Regular) Block[B6]
             Block[B6] - Block
                 Predecessors: [B5]

@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void WithProjectCompilationOutputFilePaths()
+        public void WithProjectCompilationOutputInfo()
         {
             var projectId = ProjectId.CreateNewId();
 
@@ -564,13 +564,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             SolutionTestHelpers.TestProperty(
                 solution,
-                (s, value) => s.WithProjectCompilationOutputFilePaths(projectId, value),
-                s => s.GetProject(projectId)!.CompilationOutputFilePaths,
-                new CompilationOutputFilePaths(path),
+                (s, value) => s.WithProjectCompilationOutputInfo(projectId, value),
+                s => s.GetProject(projectId)!.CompilationOutputInfo,
+                new CompilationOutputInfo(path),
                 defaultThrows: false);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputFilePaths(null!, new CompilationOutputFilePaths("x.dll")));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputFilePaths(ProjectId.CreateNewId(), new CompilationOutputFilePaths("x.dll")));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputInfo(null!, new CompilationOutputInfo("x.dll")));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputInfo(ProjectId.CreateNewId(), new CompilationOutputInfo("x.dll")));
         }
 
         [Fact]
