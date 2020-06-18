@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(Analyzer.GetTestAccessor().ActiveStatementSpanTracker);
-            spanTracker.Spans = (trackingSpans != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, trackingSpans } } : null;
+            var spanTracker = new TestActiveStatementSpanTracker(
+                (trackingSpans != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, trackingSpans } } : null);
 
             var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(Analyzer.GetTestAccessor().ActiveStatementSpanTracker);
-            spanTracker.Spans = (description.OldTrackingSpans != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, description.OldTrackingSpans } } : null;
+            var spanTracker = new TestActiveStatementSpanTracker(
+                (description.OldTrackingSpans != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, description.OldTrackingSpans } } : null);
 
             Analyzer.GetTestAccessor().AnalyzeSyntax(
                 editScript,
@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 oldText,
                 newText,
                 documentId,
+                spanTracker,
                 oldActiveStatements.AsImmutable(),
                 actualNewActiveStatements,
                 actualNewExceptionRegions,
@@ -182,6 +183,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifySemantics(
+            Workspace workspace,
             EditScript<SyntaxNode> editScript,
             ActiveStatementsDescription? activeStatements = null,
             IEnumerable<string>? additionalOldSources = null,
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var actualLineEdits = new List<LineChange>();
             var actualSemanticEdits = new List<SemanticEdit>();
             var diagnostics = new List<RudeEditDiagnostic>();
-            Assert.IsType<TestActiveStatementSpanTracker>(Analyzer.GetTestAccessor().ActiveStatementSpanTracker);
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
             var actualNewActiveStatements = new ActiveStatement[activeStatements.OldStatements.Length];
@@ -240,6 +242,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 oldText,
                 newText,
                 documentId,
+                spanTracker,
                 oldActiveStatements,
                 actualNewActiveStatements,
                 actualNewExceptionRegions,
