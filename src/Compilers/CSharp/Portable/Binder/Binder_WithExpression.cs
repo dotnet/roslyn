@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindWithExpression(WithExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
-            var receiver = BindRValueWithoutTargetType(syntax.Receiver, diagnostics);
+            var receiver = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
             var receiverType = receiver.Type;
 
             var lookupResult = LookupResult.GetInstance();
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (receiverType is null || receiverType.IsVoidType())
             {
-                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Receiver.Location);
+                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Expression.Location);
                 receiverType = CreateErrorType();
             }
 
@@ -72,14 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     useSiteDiagnostics = null;
                     hasErrors = true;
-                    diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Receiver.Location, receiverType);
+                    diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
                 }
             }
 
             var initializer = BindInitializerExpression(
                 syntax.Initializer,
                 receiverType,
-                syntax.Receiver,
+                syntax.Expression,
                 diagnostics);
 
             // N.B. Since we only don't parse nested initializers in syntax there should be no extra
