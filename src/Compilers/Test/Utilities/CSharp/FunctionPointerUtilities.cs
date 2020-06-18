@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             static void verifyPointerType(FunctionPointerTypeSymbol symbol)
             {
-                Assert.Equal(SymbolKind.FunctionPointer, symbol.Kind);
+                Assert.Equal(SymbolKind.FunctionPointerType, symbol.Kind);
                 Assert.Equal(TypeKind.FunctionPointer, symbol.TypeKind);
 
                 Assert.False(symbol.IsReferenceType);
