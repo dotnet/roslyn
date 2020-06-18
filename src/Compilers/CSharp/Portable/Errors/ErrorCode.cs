@@ -1818,6 +1818,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
 
+        ERR_ModuleInitializerMethodMustBeOrdinary = 8813,
+        ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8814,
+        ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid = 8815,
+        ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8816,
+
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,
