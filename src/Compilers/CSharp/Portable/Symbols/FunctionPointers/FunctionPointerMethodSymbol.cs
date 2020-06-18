@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefCustomModifiers = CSharpCustomModifier.Convert(retInfo.RefCustomModifiers);
             CallingConvention = callingConvention;
             ReturnTypeWithAnnotations = returnType;
-            RefKind = getRefKind(retInfo, RefCustomModifiers, RefKind.RefReadOnly);
+            RefKind = getRefKind(retInfo, RefCustomModifiers, RefKind.RefReadOnly, RefKind.Ref);
             Debug.Assert(RefKind != RefKind.Out);
             _parameters = makeParametersFromMetadata(retAndParamTypes.AsSpan()[1..], this);
 
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ParamInfo<TypeSymbol> param = parameterTypes[i];
                         var paramRefCustomMods = CSharpCustomModifier.Convert(param.RefCustomModifiers);
                         var paramType = TypeWithAnnotations.Create(param.Type, customModifiers: CSharpCustomModifier.Convert(param.CustomModifiers));
-                        RefKind paramRefKind = getRefKind(param, paramRefCustomMods, RefKind.In);
+                        RefKind paramRefKind = getRefKind(param, paramRefCustomMods, RefKind.In, RefKind.Out);
                         paramsBuilder.Add(new FunctionPointerParameterSymbol(paramType, paramRefKind, i, parent, paramRefCustomMods));
                     }
 
@@ -369,13 +369,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static RefKind getRefKind(ParamInfo<TypeSymbol> param, ImmutableArray<CustomModifier> paramRefCustomMods, RefKind hasInRefKind)
+            static RefKind getRefKind(ParamInfo<TypeSymbol> param, ImmutableArray<CustomModifier> paramRefCustomMods, RefKind hasInRefKind, RefKind hasOutRefKind)
             {
                 return param.IsByRef switch
                 {
                     false => RefKind.None,
                     true when CustomModifierUtils.HasInAttributeModifier(paramRefCustomMods) => hasInRefKind,
-                    true when CustomModifierUtils.HasOutAttributeModifier(paramRefCustomMods) => RefKind.Out,
+                    true when CustomModifierUtils.HasOutAttributeModifier(paramRefCustomMods) => hasOutRefKind,
                     true => RefKind.Ref,
                 };
             }

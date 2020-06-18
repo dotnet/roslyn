@@ -137,7 +137,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
-            return Signature.GetUseSiteDiagnostic();
+            DiagnosticInfo? fromSignature = Signature.GetUseSiteDiagnostic();
+
+            if (fromSignature?.Code == (int)ErrorCode.ERR_BindToBogus && fromSignature.Arguments.AsSingleton() == (object)Signature)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+            }
+
+            return fromSignature;
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo? result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
