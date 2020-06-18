@@ -1087,7 +1087,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all structs, or all interfaces</value>
+    <value>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
@@ -5060,7 +5060,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</value>
   </data>
   <data name="ERR_PatternNullableType" xml:space="preserve">
-    <value>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</value>
+    <value>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</value>
   </data>
   <data name="ERR_IsNullableType" xml:space="preserve">
     <value>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</value>
@@ -5229,6 +5229,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeContainsThrowExpression" xml:space="preserve">
     <value>An expression tree may not contain a throw-expression.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsWithExpression" xml:space="preserve">
+    <value>An expression tree may not contain a with-expression.</value>
   </data>
   <data name="ERR_BadAssemblyName" xml:space="preserve">
     <value>Invalid assembly name: {0}</value>
@@ -6255,6 +6258,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadRecordMemberForPositionalParameter" xml:space="preserve">
     <value>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</value>
+  </data>
+  <data name="ERR_NoCopyConstructorInBaseType" xml:space="preserve">
+    <value>No accessible copy constructor found in base type '{0}'.</value>
+  </data>
+  <data name="ERR_CopyConstructorMustInvokeBaseCopyConstructor" xml:space="preserve">
+    <value>A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.</value>
   </data>
   <data name="IDS_FeatureModuleInitializers" xml:space="preserve">
     <value>module initializers</value>

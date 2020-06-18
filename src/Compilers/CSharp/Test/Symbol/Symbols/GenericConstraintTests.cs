@@ -3351,7 +3351,12 @@ class C2 : IT<A>
 class C<T> : IT<T>
 {
     void M<U>() where U : T { }
-}";
+}
+class C3 : I
+{
+    public virtual void M<T>() where T : A { }
+}
+";
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (3,14): error CS0648: '' is a type not supported by the language
@@ -3368,7 +3373,10 @@ class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "C").WithArguments("IT<T>", "?", "T", "T").WithLocation(8, 7),
                 // (8,7): error CS0648: '' is a type not supported by the language
                 // class C<T> : IT<T>
-                Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
+                Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7),
+                // (14,25): error CS0425: The constraints for type parameter 'T' of method 'C3.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                //     public virtual void M<T>() where T : A { }
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("T", "C3.M<T>()", "T", "I.M<T>()").WithLocation(14, 25));
 
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
             var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;

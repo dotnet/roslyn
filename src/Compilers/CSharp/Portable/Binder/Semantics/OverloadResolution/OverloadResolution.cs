@@ -1606,8 +1606,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // implicit conversion from EX to PX, and for at least one argument, the conversion from
             // EX to PX is better than the conversion from EX to QX.
 
-            var m1LeastOverridenParameters = m1.LeastOverriddenMember.GetParameters();
-            var m2LeastOverridenParameters = m2.LeastOverriddenMember.GetParameters();
+            var m1LeastOverriddenParameters = m1.LeastOverriddenMember.GetParameters();
+            var m2LeastOverriddenParameters = m2.LeastOverriddenMember.GetParameters();
 
             bool allSame = true; // Are all parameter types equivalent by identify conversions, ignoring Task-like differences?
             int i;
@@ -1624,10 +1624,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
                 var type1 = GetParameterType(parameter1, m1.Result);
 
-                var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
                 var type2 = GetParameterType(parameter2, m2.Result);
 
                 bool okToDowngradeToNeither;
@@ -1768,10 +1768,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
+                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
                     var type1 = GetParameterType(parameter1, m1.Result);
 
-                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
+                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
                     var type2 = GetParameterType(parameter2, m2.Result);
 
                     var type1Normalized = type1;
@@ -1836,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
+                return PreferValOverInParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
@@ -1977,7 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Otherwise, prefer methods with 'val' parameters over 'in' parameters.
-            return PreferValOverInParameters(arguments, m1, m1LeastOverridenParameters, m2, m2LeastOverridenParameters);
+            return PreferValOverInParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
         }
 
         private static BetterResult PreferValOverInParameters<TMember>(
