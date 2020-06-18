@@ -30,7 +30,7 @@ namespace Test.Utilities
                     var parseOptions = (CSharpParseOptions)project.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var compilationOptions = project!.CompilationOptions!;
+                    var compilationOptions = project.CompilationOptions!;
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(NullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
