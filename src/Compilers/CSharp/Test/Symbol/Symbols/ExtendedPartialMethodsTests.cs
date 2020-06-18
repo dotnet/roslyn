@@ -2707,10 +2707,10 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (8,28): error CS8818: Nullability of reference types in return type doesn't match partial method declaration.
+                // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial string? M1() => null; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(8, 28),
-                // (11,41): error CS8818: Nullability of reference types in return type doesn't match partial method declaration.
+                // (11,41): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial IEnumerable<string?> M2() => null!; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M2").WithLocation(11, 41));
         }

@@ -1149,12 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
 
-            MethodSymbol constructedDefinition = definition;
-            if (implementation.IsGenericMethod)
-            {
-                constructedDefinition = definition.Construct(implementation.TypeArgumentsWithAnnotations);
-            }
-
+            MethodSymbol constructedDefinition = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations);
             bool returnTypesEqual = constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
             if (!returnTypesEqual
                 && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(implementation.ReturnType)
@@ -1211,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 implementation.DeclaringCompilation,
-                definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations),
+                constructedDefinition,
                 implementation,
                 diagnostics,
                 (diagnostics, implementedMethod, implementingMethod, topLevel, returnTypesEqual) =>
