@@ -733,6 +733,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.
             if (collectionExprType.Kind == SymbolKind.ArrayType || collectionExprType.Kind == SymbolKind.DynamicType)
             {
+                if (reportConstantNullCollectionExpr(collectionExpr))
+                {
+                    return EnumeratorResult.FailedAndReported;
+                }
                 builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType);
                 return EnumeratorResult.Succeeded;
             }
@@ -743,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (SatisfiesGetEnumeratorPattern(ref builder, unwrappedCollectionExpr, isAsync, viaExtensionMethod: false, diagnostics))
             {
                 collectionExpr = unwrappedCollectionExpr;
-                if (reportConstantNullCollectionExpr())
+                if (reportConstantNullCollectionExpr(collectionExpr))
                 {
                     return EnumeratorResult.FailedAndReported;
                 }
@@ -768,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (AllInterfacesContainsIEnumerable(ref builder, unwrappedCollectionExprType, isAsync, diagnostics, out bool foundMultipleGenericIEnumerableInterfaces))
             {
                 collectionExpr = unwrappedCollectionExpr;
-                if (reportConstantNullCollectionExpr())
+                if (reportConstantNullCollectionExpr(collectionExpr))
                 {
                     return EnumeratorResult.FailedAndReported;
                 }
@@ -855,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Lowering will not use iterator info with strings, so it is ok.
             if (!isAsync && collectionExprType.SpecialType == SpecialType.System_String)
             {
-                if (reportConstantNullCollectionExpr())
+                if (reportConstantNullCollectionExpr(collectionExpr))
                 {
                     return EnumeratorResult.FailedAndReported;
                 }
@@ -895,9 +899,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return EnumeratorResult.FailedAndReported;
             }
 
-            bool reportConstantNullCollectionExpr()
+            bool reportConstantNullCollectionExpr(BoundExpression collectionExpr)
             {
-                if (unwrappedCollectionExpr.ConstantValue is { IsNull: true })
+                if (collectionExpr.ConstantValue is { IsNull: true })
                 {
                     // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
                     diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);

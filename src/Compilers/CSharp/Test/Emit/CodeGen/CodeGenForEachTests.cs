@@ -2440,6 +2440,29 @@ public class C
         }
 
         [Fact]
+        public void TestConstantNullArray()
+        {
+            var source = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in (int[])null)
+        {
+            Console.Write(i);
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,27): error CS0186: Use of null is not valid in this context
+                    //         foreach (var i in (int[])null)
+                    Diagnostic(ErrorCode.ERR_NullNotValid, "(int[])null").WithLocation(7, 27)
+                    );
+        }
+
+        [Fact]
         public void TestConstantNullableImplementingIEnumerable()
         {
             var source = @"

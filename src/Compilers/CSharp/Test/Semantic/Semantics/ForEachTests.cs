@@ -75,8 +75,10 @@ class C
 }";
 
             CreateCompilation(text).VerifyDiagnostics(
-            // (7,27): error CS0186: Use of null is not valid in this context
-                Diagnostic(ErrorCode.ERR_NullNotValid, "NULL"));
+                // (7,27): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach (int x in NULL)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "NULL").WithArguments("object", "GetEnumerator").WithLocation(7, 27)
+                );
         }
 
         [WorkItem(540957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540957")]
@@ -3532,7 +3534,7 @@ class C
         foreach(var item in nonsenseString) {}
 
         Nonsense? nullableNonsense = default;
-        //Should not have error
+        //Should have error
         foreach(var item in nullableNonsense) {}
 
         var nonsenseTuple = (new Nonsense(), 42);
@@ -3568,6 +3570,9 @@ class C
                 // (37,9): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
                 //         Nonsense? nullableNonsense = default;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(37, 9),
+                // (39,29): error CS1579: foreach statement cannot operate on variables of type 'Nonsense?' because 'Nonsense?' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach(var item in nullableNonsense) {}
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "nullableNonsense").WithArguments("Nonsense?", "GetEnumerator").WithLocation(39, 29),
                 // (41,34): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
                 //         var nonsenseTuple = (new Nonsense(), 42);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(41, 34),
