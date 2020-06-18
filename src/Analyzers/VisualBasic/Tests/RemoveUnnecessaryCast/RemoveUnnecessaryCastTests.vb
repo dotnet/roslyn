@@ -39,7 +39,7 @@ Option Strict On
 Imports System.Drawing
 Module M
     Sub Main()
-        Dim x As New Point([|CInt(System.Math.Floor(1.1))|], 1)
+        Dim x As New Point([|CInt((System.Math.Floor(1.1)))|], 1)
     End Sub
 End Module
 </File>
