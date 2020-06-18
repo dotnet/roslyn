@@ -1806,6 +1806,23 @@ class C
     }
 }";
             var verifier = CompileAndVerify(src, expectedOutput: "5");
+            verifier.VerifyIL("C.X.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<X>k__BackingField""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("C.X.init", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<X>k__BackingField""
+  IL_0007:  ret
+}");
             verifier.VerifyIL("C.Main", @"
 {
   // Code size       23 (0x17)
