@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -84,9 +85,10 @@ namespace Analyzer.Utilities
             }
         }
 
-        public T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
+        [return: MaybeNull]
+        public T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
-            if (TryGetOptionValue(optionName, tree, rule, tryParseValue, defaultValue, out var value))
+            if (TryGetOptionValue(optionName, kind, tree, rule, tryParseValue, defaultValue, out var value))
             {
                 return value;
             }
@@ -94,7 +96,7 @@ namespace Analyzer.Utilities
             return defaultValue;
         }
 
-        private bool TryGetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue, out T value)
+        private bool TryGetOptionValue<T>(string optionName, OptionKind kind, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue, [MaybeNull] out T value)
         {
             if (ReferenceEquals(this, Empty))
             {
@@ -103,13 +105,13 @@ namespace Analyzer.Utilities
             }
 
             // Prefer additional file based options for back compat.
-            if (_additionalFileBasedOptions.TryGetOptionValue(optionName, rule, tryParseValue, defaultValue, out value))
+            if (_additionalFileBasedOptions.TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out value))
             {
                 return true;
             }
 
             return _perTreeOptions.TryGetValue(tree, out var lazyTreeOptions) &&
-                lazyTreeOptions.Value.TryGetOptionValue(optionName, rule, tryParseValue, defaultValue, out value);
+                lazyTreeOptions.Value.TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out value);
         }
     }
 }

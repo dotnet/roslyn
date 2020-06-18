@@ -152,7 +152,7 @@ namespace Analyzer.Utilities
             where TEnum : struct
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation, cancellationToken);
-            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParseValue, defaultValue);
+            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParseValue, defaultValue)!;
             static bool TryParseValue(string value, out ImmutableHashSet<TEnum> result)
             {
                 var builder = ImmutableHashSet.CreateBuilder<TEnum>();
@@ -436,7 +436,7 @@ namespace Analyzer.Utilities
             where TValue : notnull
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation, cancellationToken);
-            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParse, defaultValue: GetDefaultValue());
+            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParse, defaultValue: GetDefaultValue())!;
 
             // Local functions.
             bool TryParse(string s, out SymbolNamesWithValueOption<TValue> option)
@@ -482,6 +482,31 @@ namespace Analyzer.Utilities
                     ? option
                     : SymbolNamesWithValueOption<TValue>.Empty;
             }
+        }
+
+        public static string? GetMSBuildPropertyValue(
+            this AnalyzerOptions options,
+            string optionName,
+            DiagnosticDescriptor rule,
+            ISymbol symbol,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        => TryGetSyntaxTreeForOption(symbol, out var tree)
+            ? options.GetMSBuildPropertyValue(optionName, rule, tree, compilation, cancellationToken)
+            : null;
+
+        public static string? GetMSBuildPropertyValue(
+            this AnalyzerOptions options,
+            string optionName,
+            DiagnosticDescriptor rule,
+            SyntaxTree tree,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation, cancellationToken);
+            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule,
+                tryParseValue: (string value, out string? result) => { result = value; return true; },
+                defaultValue: null, OptionKind.BuildProperty);
         }
 
 #pragma warning disable CA1801 // Review unused parameters - 'compilation' is used conditionally.

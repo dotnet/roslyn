@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -27,11 +28,13 @@ namespace Analyzer.Utilities
     internal interface ICategorizedAnalyzerConfigOptions
     {
         bool IsEmpty { get; }
-        T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue);
+
+        [return: MaybeNull]
+        T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality);
     }
 
     internal static class CategorizedAnalyzerConfigOptionsExtensions
     {
-        public delegate bool TryParseValue<T>(string value, out T parsedValue);
+        public delegate bool TryParseValue<T>(string value, [MaybeNull, NotNullWhen(returnValue: true)] out T parsedValue);
     }
 }
