@@ -1179,8 +1179,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType: null);
 
             diagnostics.AddRange(methodGroupResolutionResult.Diagnostics);
-            var overloadResolutionResult = methodGroupResolutionResult.OverloadResolutionResult;
 
+            var overloadResolutionResult = methodGroupResolutionResult.OverloadResolutionResult;
             if (overloadResolutionResult?.Succeeded ?? false)
             {
                 var result = overloadResolutionResult.ValidResult.Member;
@@ -1197,6 +1197,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, _syntax.Expression.Location, collectionExpr.Type, MessageID.IDS_Collection.Localize(),
                     applicableMembers[0], applicableMembers[1]);
+            }
+            else if (overloadResolutionResult != null)
+            {
+                overloadResolutionResult.ReportDiagnostics(
+                    binder: this,
+                    location: _syntax.Expression.Location,
+                    nodeOpt: _syntax.Expression,
+                    diagnostics: diagnostics,
+                    name: methodName,
+                    receiver: null,
+                    invokedExpression: _syntax.Expression,
+                    arguments: methodGroupResolutionResult.AnalyzedArguments,
+                    memberGroup: methodGroupResolutionResult.MethodGroup.Methods.ToImmutable(),
+                    typeContainingConstructor: null,
+                    delegateTypeBeingInvoked: null);
             }
 
             analyzedArguments.Free();
