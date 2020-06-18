@@ -1829,7 +1829,7 @@ public class Test2
             c.VerifyDiagnostics(
                 // (1,39): error CS8869: The 'unmanaged' constraint cannot be combined with the 'class' constraint
                 // public class Test<T> where T : class, unmanaged {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "class").WithLocation(1, 39));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 39));
 
             var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
@@ -1847,7 +1847,7 @@ public class Test2
             c.VerifyDiagnostics(
                 // (1,40): error CS8869: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
                 // public class Test<T> where T : struct, unmanaged {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "struct").WithLocation(1, 40));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 40));
 
             var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
@@ -1882,7 +1882,7 @@ public class Test2
             CreateCompilation("public class Test<T> where T : System.Exception, unmanaged { }").VerifyDiagnostics(
                 // (1,50): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : System.Exception, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 50));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 50));
         }
 
         [Fact]
@@ -1891,7 +1891,7 @@ public class Test2
             CreateCompilation("public class Test<T> where T : System.Enum, System.IDisposable, unmanaged { }").VerifyDiagnostics(
                 // (1,65): error CS8376: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : System.Enum, System.IDisposable, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 65));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 65));
         }
 
         [Fact]
@@ -1917,7 +1917,7 @@ public class Test2
             CreateCompilation("public class Test<T, U> where T : U, unmanaged { }").VerifyDiagnostics(
                 // (1,38): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T, U> where T : U, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 38));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(1, 38));
         }
 
         [Fact]
@@ -4165,89 +4165,55 @@ class C2<T1> where T1 : struct, class, unmanaged, notnull
 {
     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
 }
-class C3<T1> where T1 : unmanaged, struct, class, notnull
+class C3<T1> where T1 : class, class
 {
-    void M3<T2>() where T2 : unmanaged, struct, class, notnull {}
-}
-class C4<T1> where T1 : notnull, struct, unmanaged, class
-{
-    void M4<T2>() where T2 : notnull, struct, unmanaged, class {}
+    void M3<T2>() where T2 : class, class {}
 }
 ");
 
             comp.VerifyDiagnostics(
-                // (2,32): error CS8869: The 'struct' constraint cannot be combined with the 'class' constraint
+                // (2,32): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C1<T1> where T1 : class, struct, unmanaged, notnull
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "class").WithLocation(2, 32),
-                // (2,40): error CS8869: The 'unmanaged' constraint cannot be combined with the 'class' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(2, 32),
+                // (2,40): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C1<T1> where T1 : class, struct, unmanaged, notnull
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "class").WithLocation(2, 40),
-                // (2,51): error CS8869: The 'notnull' constraint cannot be combined with the 'class' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(2, 40),
+                // (2,51): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C1<T1> where T1 : class, struct, unmanaged, notnull
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "class").WithLocation(2, 51),
-                // (4,37): error CS8869: The 'struct' constraint cannot be combined with the 'class' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(2, 51),
+                // (4,37): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "class").WithLocation(4, 37),
-                // (4,45): error CS8869: The 'unmanaged' constraint cannot be combined with the 'class' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(4, 37),
+                // (4,45): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "class").WithLocation(4, 45),
-                // (4,56): error CS8869: The 'notnull' constraint cannot be combined with the 'class' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(4, 45),
+                // (4,56): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M1<T2>() where T2 : class, struct, unmanaged, notnull {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "class").WithLocation(4, 56),
-                // (6,33): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(4, 56),
+                // (6,33): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C2<T1> where T1 : struct, class, unmanaged, notnull
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(6, 33),
-                // (6,40): error CS8869: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(6, 33),
+                // (6,40): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C2<T1> where T1 : struct, class, unmanaged, notnull
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "struct").WithLocation(6, 40),
-                // (6,51): error CS8869: The 'notnull' constraint cannot be combined with the 'struct' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(6, 40),
+                // (6,51): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 // class C2<T1> where T1 : struct, class, unmanaged, notnull
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "struct").WithLocation(6, 51),
-                // (8,38): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(6, 51),
+                // (8,38): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(8, 38),
-                // (8,45): error CS8869: The 'unmanaged' constraint cannot be combined with the 'struct' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(8, 38),
+                // (8,45): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "struct").WithLocation(8, 45),
-                // (8,56): error CS8869: The 'notnull' constraint cannot be combined with the 'struct' constraint
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(8, 45),
+                // (8,56): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
                 //     void M2<T2>() where T2 : struct, class, unmanaged, notnull {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "struct").WithLocation(8, 56),
-                // (10,36): error CS8869: The 'struct' constraint cannot be combined with the 'unmanaged' constraint
-                // class C3<T1> where T1 : unmanaged, struct, class, notnull
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "unmanaged").WithLocation(10, 36),
-                // (10,44): error CS8869: The 'class' constraint cannot be combined with the 'unmanaged' constraint
-                // class C3<T1> where T1 : unmanaged, struct, class, notnull
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "unmanaged").WithLocation(10, 44),
-                // (10,51): error CS8869: The 'notnull' constraint cannot be combined with the 'unmanaged' constraint
-                // class C3<T1> where T1 : unmanaged, struct, class, notnull
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "unmanaged").WithLocation(10, 51),
-                // (12,41): error CS8869: The 'struct' constraint cannot be combined with the 'unmanaged' constraint
-                //     void M3<T2>() where T2 : unmanaged, struct, class, notnull {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "unmanaged").WithLocation(12, 41),
-                // (12,49): error CS8869: The 'class' constraint cannot be combined with the 'unmanaged' constraint
-                //     void M3<T2>() where T2 : unmanaged, struct, class, notnull {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "unmanaged").WithLocation(12, 49),
-                // (12,56): error CS8869: The 'notnull' constraint cannot be combined with the 'unmanaged' constraint
-                //     void M3<T2>() where T2 : unmanaged, struct, class, notnull {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "notnull").WithArguments("notnull", "unmanaged").WithLocation(12, 56),
-                // (14,34): error CS8869: The 'struct' constraint cannot be combined with the 'notnull' constraint
-                // class C4<T1> where T1 : notnull, struct, unmanaged, class
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "notnull").WithLocation(14, 34),
-                // (14,42): error CS8869: The 'unmanaged' constraint cannot be combined with the 'notnull' constraint
-                // class C4<T1> where T1 : notnull, struct, unmanaged, class
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "notnull").WithLocation(14, 42),
-                // (14,53): error CS8869: The 'class' constraint cannot be combined with the 'notnull' constraint
-                // class C4<T1> where T1 : notnull, struct, unmanaged, class
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "notnull").WithLocation(14, 53),
-                // (16,39): error CS8869: The 'struct' constraint cannot be combined with the 'notnull' constraint
-                //     void M4<T2>() where T2 : notnull, struct, unmanaged, class {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "notnull").WithLocation(16, 39),
-                // (16,47): error CS8869: The 'unmanaged' constraint cannot be combined with the 'notnull' constraint
-                //     void M4<T2>() where T2 : notnull, struct, unmanaged, class {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "unmanaged").WithArguments("unmanaged", "notnull").WithLocation(16, 47),
-                // (16,58): error CS8869: The 'class' constraint cannot be combined with the 'notnull' constraint
-                //     void M4<T2>() where T2 : notnull, struct, unmanaged, class {}
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "notnull").WithLocation(16, 58)
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(8, 56),
+                // (10,32): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                // class C3<T1> where T1 : class, class
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(10, 32),
+                // (12,37): error CS0449: The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void M3<T2>() where T2 : class, class {}
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(12, 37)
             );
         }
 

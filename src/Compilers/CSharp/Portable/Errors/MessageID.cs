@@ -206,10 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInitOnlySetters = MessageBase + 12781,
         IDS_FeatureRecords = MessageBase + 12782,
         IDS_FeatureNullPointerConstantPattern = MessageBase + 12783,
-        IDS_Class = MessageBase + 12784,
-        IDS_Struct = MessageBase + 12785,
-        IDS_Unmanaged = MessageBase + 12786,
-        IDS_Notnull = MessageBase + 12787,
     }
 
     // Message IDs may refer to strings that need to be localized.

@@ -9024,7 +9024,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Goo").WithArguments("Derived.Goo<T>(T)").WithLocation(8, 26),
                 // (8,60): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
                 //     public override void Goo<T>(T value) where T : struct, class { }
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(8, 60));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst).WithLocation(8, 60));
         }
 
         [Fact]
@@ -9046,7 +9046,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Goo").WithArguments("Derived.Goo<T>(T)").WithLocation(8, 26),
                 // (8,59): error CS8869: The 'struct' constraint cannot be combined with the 'class' constraint
                 //     public override void Goo<T>(T value) where T : class, struct { }
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "class").WithLocation(8, 59));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst).WithLocation(8, 59));
         }
 
         [Fact]
@@ -9066,7 +9066,7 @@ class Derived : Base
             var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (9,60): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
                 //     public override void Goo<T>(T value) where T : struct, class { }
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(9, 60));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst).WithLocation(9, 60));
         }
 
         [Fact]
@@ -9088,7 +9088,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C.Goo<T>(T)").WithLocation(8, 12),
                 // (8,46): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
                 //     void I.Goo<T>(T value) where T : struct, class { }
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(8, 46)
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst).WithLocation(8, 46)
                 );
         }
 
@@ -9111,7 +9111,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C.Goo<T>(T)").WithLocation(8, 12),
                 // (8,45): error CS8869: The 'struct' constraint cannot be combined with the 'class' constraint
                 //     void I.Goo<T>(T value) where T : class, struct { }
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "struct").WithArguments("struct", "class").WithLocation(8, 45));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst).WithLocation(8, 45));
         }
 
         [Fact]
@@ -9131,7 +9131,7 @@ class C : I
             var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (9,46): error CS8869: The 'class' constraint cannot be combined with the 'struct' constraint
                 //     void I.Goo<T>(T value) where T : struct, class { }
-                Diagnostic(ErrorCode.ERR_CannotCombineTypeConstraints, "class").WithArguments("class", "struct").WithLocation(9, 46));
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst).WithLocation(9, 46));
         }
 
         [Fact]
