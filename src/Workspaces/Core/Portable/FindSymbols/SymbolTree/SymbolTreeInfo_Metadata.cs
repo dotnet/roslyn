@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly List<MetadataDefinition> _allTypeDefinitions;
 
             // Map from node represents extension method to list of possible parameter type info.
-            // We can have more than one if there's multiple methods with same name but different target type.
+            // We can have more than one if there's multiple methods with same name but different receiver type.
             // e.g.
             //
             //      public static bool AnotherExtensionMethod1(this int x);
@@ -371,8 +371,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (definition.Kind == MetadataDefinitionKind.Member)
                         {
-                            // We need to support having multiple methods with same name but different target type.
-                            _extensionMethodToParameterTypeInfo.Add(childNode, definition.TargetTypeInfo);
+                            // We need to support having multiple methods with same name but different receiver type.
+                            _extensionMethodToParameterTypeInfo.Add(childNode, definition.ReceiverTypeInfo);
                         }
 
                         LookupMetadataDefinitions(definition, definitionMap);
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             method.GetParameters().Count > 0 &&
                             method.GetCustomAttributes().Count > 0)
                         {
-                            // Decode method signature to get the target type name (i.e. type name for the first parameter)
+                            // Decode method signature to get the receiver type name (i.e. type name for the first parameter)
                             var blob = _metadataReader.GetBlobReader(method.Signature);
                             var decoder = new SignatureDecoder<ParameterTypeInfo, object>(ParameterTypeInfoProvider.Instance, _metadataReader, genericContext: null);
                             var signature = decoder.DecodeMethodSignature(ref blob);
@@ -797,17 +797,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// <summary>
             /// Only applies to member kind. Represents the type info of the first parameter.
             /// </summary>
-            public ParameterTypeInfo TargetTypeInfo { get; }
+            public ParameterTypeInfo ReceiverTypeInfo { get; }
 
             public NamespaceDefinition Namespace { get; private set; }
             public TypeDefinition Type { get; private set; }
 
-            public MetadataDefinition(MetadataDefinitionKind kind, string name, ParameterTypeInfo targetTypeInfo = default)
+            public MetadataDefinition(MetadataDefinitionKind kind, string name, ParameterTypeInfo receiverTypeInfo = default)
                 : this()
             {
                 Kind = kind;
                 Name = name;
-                TargetTypeInfo = targetTypeInfo;
+                ReceiverTypeInfo = receiverTypeInfo;
             }
 
             public static MetadataDefinition Create(

@@ -506,8 +506,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
             if (node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null)
             {
-                if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName) &&
-                    TryGetSimpleTypeName(usingDirectiveNode.Name, typeParameterNames: null, out var name))
+                if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName, out _) &&
+                    TryGetSimpleTypeName(usingDirectiveNode.Name, typeParameterNames: null, out var name, out _))
                 {
                     aliases = ImmutableArray.Create<(string, string)>((aliasName, name));
                     return true;
@@ -518,18 +518,20 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return false;
         }
 
-        public override string GetTargetTypeName(SyntaxNode node)
+        public override string GetReceiverTypeName(SyntaxNode node)
         {
             var methodDeclaration = (MethodDeclarationSyntax)node;
             Debug.Assert(IsExtensionMethod(methodDeclaration));
 
             var typeParameterNames = methodDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);
-            TryGetSimpleTypeName(methodDeclaration.ParameterList.Parameters[0].Type, typeParameterNames, out var targetTypeName);
-            return targetTypeName;
+            TryGetSimpleTypeName(methodDeclaration.ParameterList.Parameters[0].Type, typeParameterNames, out var targetTypeName, out var isArray);
+            return CreateReceiverTypeString(targetTypeName, isArray);
         }
 
-        private static bool TryGetSimpleTypeName(SyntaxNode node, ImmutableArray<string>? typeParameterNames, out string simpleTypeName)
+        private static bool TryGetSimpleTypeName(SyntaxNode node, ImmutableArray<string>? typeParameterNames, out string simpleTypeName, out bool isArray)
         {
+            isArray = false;
+
             if (node is TypeSyntax typeNode)
             {
                 switch (typeNode)
@@ -541,12 +543,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         return simpleTypeName != null;
 
                     case ArrayTypeSyntax arrayTypeNode:
-                        // We do not differentiate array of different kinds for simplicity.
-                        // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
-                        simpleTypeName = TryGetSimpleTypeName(arrayTypeNode.ElementType, typeParameterNames, out var elementTypeName)
-                            ? CreateTargetTypeStringForArray(elementTypeName)
-                            : null;
-                        return simpleTypeName != null;
+                        isArray = true;
+                        return TryGetSimpleTypeName(arrayTypeNode.ElementType, typeParameterNames, out simpleTypeName, out _);
 
                     case GenericNameSyntax genericNameNode:
                         var name = genericNameNode.Identifier.Text;
@@ -559,17 +557,17 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         return simpleTypeName != null;
 
                     case AliasQualifiedNameSyntax aliasQualifiedNameNode:
-                        return TryGetSimpleTypeName(aliasQualifiedNameNode.Name, typeParameterNames, out simpleTypeName);
+                        return TryGetSimpleTypeName(aliasQualifiedNameNode.Name, typeParameterNames, out simpleTypeName, out _);
 
                     case QualifiedNameSyntax qualifiedNameNode:
                         // For an identifier to the right of a '.', it can't be a type parameter,
                         // so we don't need to check for it further.
-                        return TryGetSimpleTypeName(qualifiedNameNode.Right, typeParameterNames: null, out simpleTypeName);
+                        return TryGetSimpleTypeName(qualifiedNameNode.Right, typeParameterNames: null, out simpleTypeName, out _);
 
                     case NullableTypeSyntax nullableNode:
                         // Ignore nullability, becase nullable reference type might not be enabled universally.
                         // In the worst case we just include more methods to check in out filter.
-                        return TryGetSimpleTypeName(nullableNode.ElementType, typeParameterNames, out simpleTypeName);
+                        return TryGetSimpleTypeName(nullableNode.ElementType, typeParameterNames, out simpleTypeName, out isArray);
                 }
             }
 

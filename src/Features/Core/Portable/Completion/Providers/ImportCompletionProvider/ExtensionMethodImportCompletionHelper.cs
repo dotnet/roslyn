@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static async Task<ImmutableArray<SerializableImportCompletionItem>> GetExtensionMethodItemsAsync(
             Document document,
             ITypeSymbol receiverTypeSymbol,
-            ImmutableArray<string> targetTypeNames,
+            ImmutableArray<string> receiverTypeNames,
             GetIndicesResult indices,
             int position,
             ISet<string> namespaceFilter,
@@ -180,13 +180,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var currentCompilation = semanticModel.Compilation;
             var currentAssembly = currentCompilation.Assembly;
 
-            using var _1 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var builder);
+            using var _1 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var completionItemsbuilder);
             using var _2 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
+
+            receiverTypeNames = AttachComplexTypes(receiverTypeNames);
 
             // Get extension method items from source
             foreach (var (project, syntaxIndex) in indices.SyntaxIndices!)
             {
-                var filter = CreateAggregatedFilter(targetTypeNames, syntaxIndex);
+                var filter = CreateAggregatedFilter(receiverTypeNames, syntaxIndex);
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var assembly = compilation.Assembly;
 
@@ -199,13 +201,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var isSymbolFromCurrentCompilation = project == currentProject;
                 GetExtensionMethodItemsWorker(
                     position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation,
-                    builder, namespaceNameCache, cancellationToken);
+                    completionItemsbuilder, namespaceNameCache, cancellationToken);
             }
 
             // Get extension method items from PE
             foreach (var (peReference, symbolInfo) in indices.SymbolInfos!)
             {
-                var filter = CreateAggregatedFilter(targetTypeNames, symbolInfo);
+                var filter = CreateAggregatedFilter(receiverTypeNames, symbolInfo);
                 if (currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly)
                 {
                     var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
@@ -216,11 +218,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     GetExtensionMethodItemsWorker(
                         position, semanticModel, receiverTypeSymbol, matchingMethodSymbols,
-                        isSymbolFromCurrentCompilation: true, builder, namespaceNameCache, cancellationToken);
+                        isSymbolFromCurrentCompilation: true, completionItemsbuilder, namespaceNameCache, cancellationToken);
                 }
             }
 
-            return builder.ToImmutable();
+            return completionItemsbuilder.ToImmutable();
+
+            // Add string represent complex types (i.e. "" and "[]") to the receiver type, so we would include in the filter
+            // info about extension methods with complex receiver type.
+            static ImmutableArray<string> AttachComplexTypes(ImmutableArray<string> receiverTypeNames)
+            {
+                using var _ = ArrayBuilder<string>.GetInstance(receiverTypeNames.Length + 2, out var receiverTypeNamesBuilder);
+                receiverTypeNamesBuilder.AddRange(receiverTypeNames);
+                receiverTypeNamesBuilder.Add(string.Empty);
+                receiverTypeNamesBuilder.Add("[]");
+
+                return receiverTypeNamesBuilder.ToImmutable();
+            }
         }
 
         private static void GetExtensionMethodItemsWorker(
@@ -314,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
-                foreach (var (methodName, targetTypeName) in methodNames)
+                foreach (var (methodName, receiverTypeName) in methodNames)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -324,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         counter.TotalExtensionMethodsChecked++;
 
-                        if (MatchExtensionMethod(methodSymbol, targetTypeName, internalsVisible))
+                        if (MatchExtensionMethod(methodSymbol, receiverTypeName, internalsVisible))
                         {
                             // Find a potential match.
                             builder.Add(methodSymbol);
@@ -418,14 +432,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         // Create filter for extension methods from source.
-        private static MultiDictionary<string, (string, string)> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, CacheEntry syntaxIndex)
+        private static MultiDictionary<string, (string, string)> CreateAggregatedFilter(ImmutableArray<string> receiverTypeNames, CacheEntry syntaxIndex)
         {
             var results = new MultiDictionary<string, (string, string)>();
 
-            // Add simple extension methods with matching target type name
-            foreach (var targetTypeName in targetTypeNames)
+            foreach (var receiverTypeName in receiverTypeNames)
             {
-                var methodInfos = syntaxIndex.SimpleExtensionMethodInfo[targetTypeName];
+                var methodInfos = syntaxIndex.ReceiverTypeNameToExtensionMethodMap[receiverTypeName];
                 if (methodInfos.Count == 0)
                 {
                     continue;
@@ -433,32 +446,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var methodInfo in methodInfos)
                 {
-                    results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, targetTypeName));
+                    results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, receiverTypeName));
                 }
-            }
-
-            // Add all complex extension methods, we will need to completely rely on symbols to match them.
-            foreach (var methodInfo in syntaxIndex.ComplexExtensionMethodInfo)
-            {
-                results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, string.Empty));
             }
 
             return results;
         }
 
         // Create filter for extension methods from metadata
-        private static MultiDictionary<string, (string, string)> CreateAggregatedFilter(ImmutableArray<string> targetTypeNames, SymbolTreeInfo symbolInfo)
+        private static MultiDictionary<string, (string, string)> CreateAggregatedFilter(ImmutableArray<string> receiverTypeNames, SymbolTreeInfo symbolInfo)
         {
             var results = new MultiDictionary<string, (string, string)>();
-            using var _ = ArrayBuilder<string>.GetInstance(targetTypeNames.Length + 2, out var builder);
 
-            builder.AddRange(targetTypeNames);
-            builder.Add(string.Empty);
-            builder.Add("[]");
-
-            foreach (var targetTypeName in builder)
+            foreach (var receiverTypeName in receiverTypeNames)
             {
-                var methodInfos = symbolInfo.GetExtensionMethodInfoForReceiverType(targetTypeName);
+                var methodInfos = symbolInfo.GetExtensionMethodInfoForReceiverType(receiverTypeName);
                 if (methodInfos.Count == 0)
                 {
                     continue;
@@ -466,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var methodInfo in methodInfos)
                 {
-                    results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, targetTypeName));
+                    results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, receiverTypeName));
                 }
             }
 

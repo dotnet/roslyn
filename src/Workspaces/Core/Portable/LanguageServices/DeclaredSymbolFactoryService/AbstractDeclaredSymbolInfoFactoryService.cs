@@ -32,8 +32,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected static List<Dictionary<string, string>> AllocateAliasMapList()
             => s_aliasMapListPool.Allocate();
 
-        protected static string CreateTargetTypeStringForArray(string elementTypeName)
-            => elementTypeName + "[]";
+        // We do not differentiate arrays of different kinds for simplicity.
+        // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
+        protected static string CreateReceiverTypeString(string typeName, bool isArray)
+        {
+            if (typeName == null)
+            {
+                return isArray ? "[]" : string.Empty;
+            }
+            else
+            {
+                return isArray ? typeName + "[]" : typeName;
+            }
+        }
 
         protected static void FreeAliasMapList(List<Dictionary<string, string>> list)
         {
@@ -98,7 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// on `node` should return a `DeclaredSymbolInfo` of kind `ExtensionMethod`. 
         /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
-        public abstract string GetTargetTypeName(SyntaxNode node);
+        public abstract string GetReceiverTypeName(SyntaxNode node);
 
         public abstract bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
 

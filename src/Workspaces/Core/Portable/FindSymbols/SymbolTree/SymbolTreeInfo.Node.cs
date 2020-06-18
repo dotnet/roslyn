@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// <summary>
             /// Similar to <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>, we divide extension methods into simple 
             /// and complex categories for filtering purpose. Whether a method is simple is determined based on if we 
-            /// can determine it's target type easily with a pure text matching. For complex methods, we will need to
+            /// can determine it's receiver type easily with a pure text matching. For complex methods, we will need to
             /// rely on symbol to decide if it's feasible.
             /// 
             /// Simple types include:

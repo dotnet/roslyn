@@ -1379,7 +1379,7 @@ namespace Baz
         [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
         [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestExtensionMethodsForArrayType(ReferenceType refType, string rank, string expectedName)
+        public async Task TestExtensionMethodsForSimpleArrayType(ReferenceType refType, string rank, string expectedName)
         {
             var refDoc = $@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
@@ -1429,6 +1429,68 @@ namespace Baz
                  glyph: (int)Glyph.ExtensionMethodPublic,
                  inlineDescription: "Foo");
         }
+
+        [InlineData(ReferenceType.Project, "[]", "ExtentionMethod2")]
+        [InlineData(ReferenceType.Project, "[][]", "ExtentionMethod3")]
+        [InlineData(ReferenceType.Project, "[,]", "ExtentionMethod4")]
+        [InlineData(ReferenceType.Project, "[][,]", "ExtentionMethod5")]
+        [InlineData(ReferenceType.Metadata, "[]", "ExtentionMethod2")]
+        [InlineData(ReferenceType.Metadata, "[][]", "ExtentionMethod3")]
+        [InlineData(ReferenceType.Metadata, "[,]", "ExtentionMethod4")]
+        [InlineData(ReferenceType.Metadata, "[][,]", "ExtentionMethod5")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestExtensionMethodsForGenericArrayType(ReferenceType refType, string rank, string expectedName)
+        {
+            var refDoc = $@"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod1<T>(this T x)
+            => true;
+
+        public static bool ExtentionMethod2<T>(this T[] x)
+            => true;
+
+        public static bool ExtentionMethod3<T>(this T[][] x)
+            => true;
+
+        public static bool ExtentionMethod4<T>(this T[,] x)
+            => true;
+
+        public static bool ExtentionMethod5<T>(this T[][,] x)
+            => true;
+    }}
+}}";
+            var srcDoc = $@"
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int{rank} x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                 markup,
+                 expectedName,
+                 displayTextSuffix: "<>",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
 
