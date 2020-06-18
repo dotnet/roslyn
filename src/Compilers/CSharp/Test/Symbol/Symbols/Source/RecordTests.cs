@@ -1550,7 +1550,8 @@ class C
     data nint P1;
     data string? P2;
 }";
-            var comp = CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
+            var comp = CompileAndVerify(
+                new[] { src, IsExternalInitTypeDefinition },
                 parseOptions: TestOptions.RegularPreview,
                 symbolValidator: m =>
                 {
@@ -1573,7 +1574,8 @@ class C
                     var nullableAttribute = m.ContainingAssembly.GetTypeByMetadataName(
                         WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute.GetMetadataName());
                     Assert.NotNull(nullableAttribute);
-                });
+                },
+                verify: Verification.Fails /* init-only */);
         }
 
         [Fact]
