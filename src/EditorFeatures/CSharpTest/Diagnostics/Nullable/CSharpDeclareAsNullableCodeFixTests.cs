@@ -997,7 +997,7 @@ class C
 @"#nullable enable
 class Program
 {
-    string s, s2 = ""hello""
+    string s, s2 = ""hello"";
 }", parameters: s_nullableFeature);
         }
     }
