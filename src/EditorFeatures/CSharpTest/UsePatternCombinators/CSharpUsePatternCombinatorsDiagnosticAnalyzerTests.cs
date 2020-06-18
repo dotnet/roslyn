@@ -30,7 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
             => (new CSharpUsePatternCombinatorsDiagnosticAnalyzer(), new CSharpUsePatternCombinatorsCodeFixProvider());
 
         private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions parseOptions = null, bool enabled = true)
-            => TestMissingAsync(FromExpression(expression), new TestParameters(
+            => TestMissingAsync(FromExpression(expression), parseOptions, enabled);
+
+        private Task TestMissingAsync(string initialMarkup, ParseOptions parseOptions = null, bool enabled = true)
+            => TestMissingAsync(initialMarkup, new TestParameters(
                 parseOptions: parseOptions ?? CSharp9, options: enabled ? null : s_disabled));
 
         private Task TestAllAsync(string initialMarkup, string expectedMarkup)
@@ -82,6 +85,7 @@ class C
         [InlineData("o != null")]
         [InlineData("!(o is null)")]
         [InlineData("o is int ii || o is long jj")]
+        [InlineData("i == default || i > default(int)")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestMissingOnExpression(string expression)
         {
@@ -216,6 +220,20 @@ class C
     bool M1(int v)
     {
         return v is 0 or 1 or 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestMissingInExpressionTree()
+        {
+            await TestMissingAsync(
+@"using System.Linq;
+class C
+{
+    void M0(IQueryable<int> q)
+    {
+        q.Where(item => item == 1 [||]|| item == 2);
     }
 }");
         }
