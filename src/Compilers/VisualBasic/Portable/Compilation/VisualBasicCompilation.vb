@@ -804,6 +804,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Nothing)
         End Function
 
+        Protected Overrides ReadOnly Property CommonScriptGlobalsType As ITypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
 #End Region
 
 #Region "Syntax Trees"
