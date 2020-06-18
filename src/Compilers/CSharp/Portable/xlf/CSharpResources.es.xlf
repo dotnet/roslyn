@@ -573,8 +573,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodRefReturnDifference">
-        <source>Both partial method declarations must return by reference or neither may return by reference.</source>
-        <target state="new">Both partial method declarations must return by reference or neither may return by reference.</target>
+        <source>Partial method declarations must have matching ref return values.</source>
+        <target state="new">Partial method declarations must have matching ref return values.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">

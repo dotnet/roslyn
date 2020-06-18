@@ -2873,10 +2873,10 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,24): error CS8818: Both partial method declarations must return by reference or neither may return by reference.
+                // (5,24): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 24),
-                // (8,28): error CS8818: Both partial method declarations must return by reference or neither may return by reference.
+                // (8,28): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref int M2() => throw null!; // 2
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28));
         }
@@ -3002,10 +3002,10 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,37): error CS8818: Both partial method declarations must return by reference or neither may return by reference.
+                // (5,37): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref readonly int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 37),
-                // (8,28): error CS8818: Both partial method declarations must return by reference or neither may return by reference.
+                // (8,28): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref int M2() => throw null!; // 2
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28));
         }
