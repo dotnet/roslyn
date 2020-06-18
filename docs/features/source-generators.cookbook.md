@@ -341,7 +341,7 @@ public class SerializingGenerator : ISourceGenerator
     public void Execute(SourceGeneratorContext context)
     {
         // check that the users compilation references the expected library 
-        if(!context.Compilation.ReferencedAssemblyNames.Any(ai => ai.Name.StartsWith("Newtonsoft.Json")))
+        if (!context.Compilation.ReferencedAssemblyNames.Any(ai => ai.Name.Equals("Newtonsoft.Json", StringComparison.OrdinalIgnoreCase)))
         {
             context.ReportDiagnostic(/*error or warning*/);
         }
@@ -353,7 +353,7 @@ public class SerializingGenerator : ISourceGenerator
 }
 ```
 
-However, any *compile-time* dependencies, that is, used by the generator while it is is running, must be packaged directly alongside the generator assembly inside the generator NuGet package. There are no automatic facilities for this, and you will need to manually specify the dependencies to include.
+However, any *generation-time* dependencies, that is, used by the generator while it is is running and generating code, must be packaged directly alongside the generator assembly inside the generator NuGet package. There are no automatic facilities for this, and you will need to manually specify the dependencies to include.
 
 Consider a generator that uses `Newtonsoft.Json` to encode something to json during the generation pass, but does not emit any code the relies on it being present at runtime. The author would add a reference to `Newtonsoft.Json` but make all of its assets *private*; this ensures the consumer of the generator does not inherit a dependency on the library.
 
