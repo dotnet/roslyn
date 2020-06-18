@@ -3011,6 +3011,26 @@ partial class C
     
     public partial string? M4(); // 3
     public partial string M4() => ""hello"";
+
+#nullable enable
+    public partial string M5();
+    public partial string M6() => null!;
+    public partial string M7();
+    public partial string M8() => null!;
+    public partial string? M9();
+    public partial string? M10() => null;
+    public partial string? M11();
+    public partial string? M12() => null;
+
+#nullable disable
+    public partial string M5() => null;
+    public partial string M6();
+    public partial string? M7() => null; // 4
+    public partial string? M8(); // 5
+    public partial string M9() => null;
+    public partial string M10();
+    public partial string? M11() => null; // 6
+    public partial string? M12(); // 7
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
@@ -3022,7 +3042,19 @@ partial class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
                 // (15,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public partial string? M4(); // 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26),
+                // (31,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M7() => null; // 4
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(31, 26),
+                // (32,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M8(); // 5
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(32, 26),
+                // (35,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M11() => null; // 6
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(35, 26),
+                // (36,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M12(); // 7
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
         }
     }
 }
