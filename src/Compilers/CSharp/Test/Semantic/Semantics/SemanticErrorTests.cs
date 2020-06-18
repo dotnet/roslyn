@@ -22973,9 +22973,9 @@ class Program
                 // (9,14): error CS0307: The event 'Program.E' cannot be used with type arguments
                 //         Test(E<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(9, 14),
-                // (10,19): error CS7003: Unexpected use of an unbound generic name
+                // (10,14): error CS0305: Using the generic method group 'E' requires 1 type arguments
                 //         Test(this.E<>);
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "E<>").WithLocation(10, 19),
+                Diagnostic(ErrorCode.ERR_BadArity, "this.E<>").WithArguments("E", "method group", "1").WithLocation(10, 14),
                 // (10,19): error CS0307: The event 'Program.E' cannot be used with type arguments
                 //         Test(this.E<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(10, 19),

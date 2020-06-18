@@ -6864,7 +6864,8 @@ class Program
         }
 
         [Fact]
-        public void Bug41779()
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Original()
         {
             var source =
 @"interface I
@@ -6884,15 +6885,166 @@ static class Program
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,18): error CS7003: Unexpected use of an unbound generic name
+                // (12,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
                 //         provider.GetService<>();
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "GetService<>").WithLocation(12, 18),
-                // (13,18): error CS7003: Unexpected use of an unbound generic name
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(12, 9),
+                // (13,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
                 //         provider.GetService<>().ToString();
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "GetService<>").WithLocation(13, 18),
-                // (14,18): error CS7003: Unexpected use of an unbound generic name
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(13, 9),
+                // (14,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
                 //         provider.GetService<>();
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "GetService<>").WithLocation(14, 18)
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(14, 9)
+            );
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Static()
+        {
+            var source =
+@"interface I
+{
+    static object GetService(){ throw null; }
+}
+
+static class Program
+{
+    static T GetService<T>(this I obj) => default;
+    
+    static void M(I provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,19): error CS8701: Target runtime doesn't support default interface implementation.
+                //     static object GetService(){ throw null; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "GetService").WithLocation(3, 19),
+                // (12,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(12, 9),
+                // (13,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(13, 9),
+                // (14,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(14, 9)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_NonGeneric()
+        {
+            var source =
+@"interface I
+{
+    object GetService();
+}
+
+static class Program
+{
+    static void GetService(this I obj){}
+    
+    static void M(I provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(12, 9),
+                // (12,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(12, 18),
+                // (13,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(13, 9),
+                // (13,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(13, 18),
+                // (14,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(14, 9),
+                // (14,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(14, 18)
+            );
+        }
+
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Class()
+        {
+            var source =
+@"using System;
+class C
+{
+    String GetService(){ return String.Empty; }
+}
+
+static class Program
+{
+    static T GetService<T>(this C obj) => default;
+    
+    static void M(C provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (13,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(13, 9),
+                // (14,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(14, 9),
+                // (15,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(15, 9)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_ClassAbstract()
+        {
+            var source =
+@"using System;
+abstract class C
+{
+    String GetService(){ return String.Empty; }
+}
+
+static class Program
+{
+    static T GetService<T>(this C obj) => default;
+    
+    static void M(C provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (13,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(13, 9),
+                // (14,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(14, 9),
+                // (15,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(15, 9)
             );
         }
     }

@@ -289,6 +289,51 @@ End Class
             Assert.True(DirectCast(c3c6s, INamedTypeSymbol).IsSerializable)
         End Sub
 
+        <Fact>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
+        Public Sub UnboundGenericType_Bug41779()
+
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Interface I
+    Function GetService() As Object
+End Interface
+
+Module Program
+    <Extension()>
+    Private Function GetService(Of T)(ByVal obj As I) As T
+        Return "default"
+    End Function
+
+    Private Sub M(ByVal provider As I)
+        provider.GetService(Of)()
+        provider.GetService(Of)().ToString()
+        provider.GetService(Of)()
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30311: Value of type 'String' cannot be converted to 'T'.
+        Return "default"
+               ~~~~~~~~~
+BC30182: Type expected.
+        provider.GetService(Of)()
+                              ~
+BC30182: Type expected.
+        provider.GetService(Of)().ToString()
+                              ~
+BC30182: Type expected.
+        provider.GetService(Of)()
+                              ~
+                </expected>)
+
+        End Sub
+
     End Class
 
 End Namespace

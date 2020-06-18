@@ -1221,7 +1221,7 @@
   <data name="ERR_AttributeCantBeGeneric" xml:space="preserve">
     <value>Cannot apply attribute class '{0}' because it is generic</value>
   </data>
-  <data name="ERR_DuplicateBound" xml:space="preserve">
+  <data name="ERR_DuplicateBound" xml:space="preserve">                                
     <value>Duplicate constraint '{0}' for type parameter '{1}'</value>
   </data>
   <data name="ERR_ClassBoundNotFirst" xml:space="preserve">
