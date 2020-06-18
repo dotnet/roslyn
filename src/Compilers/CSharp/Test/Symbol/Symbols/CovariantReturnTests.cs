@@ -3468,7 +3468,8 @@ public class Program
                 var derivedMethod = derivedClass.GetMember<MethodSymbol>("M3");
                 var overrideMethod = overrideClass.GetMember<MethodSymbol>("M3");
 
-                Assert.False(derivedMethod.IsOverride);
+                // Note that the following values are inconsistent. That is "legacy" (early Roslyn) behavior that we preserve.
+                Assert.True(derivedMethod.IsOverride);
                 Assert.Null(derivedMethod.OverriddenMethod);
 
                 Assert.True(overrideMethod.IsOverride);

@@ -205,26 +205,90 @@ abstract class Derived2 : Base<int, long>
             // in the case where ambiguous signatures differ by just ref / out
             // NOTE: we no longer warn as we produce a methodimpl record to disambiguate for the runtime.
 
+            var method1 = @"public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine(""Base<T, U>.Method(ref List<T> x, out List<U> y)""); }";
+            var method2 = @"public virtual void Method(out List<U> y, ref List<T> x) { y = null; Console.WriteLine(""Base<T, U>.Method(out List<U> y, ref List<T> x)""); }";
             var source = @"
+using System;
 using System.Collections.Generic;
 abstract class Base<T, U>
 {
-    public virtual void Method(ref List<T> x, out List<U> y) { y = null; }
-    public virtual void Method(out List<U> y, ref List<T> x) { y = null; }
-    public virtual void Method(ref List<U> x) { }  
+    METHOD1
+    METHOD2
+    public virtual void Method(ref List<U> x) { Console.WriteLine(""Base<T, U>.Method(ref List<U> x)""); }  
 }
 class Base2<A, B> : Base<A, B>
 {
-    public virtual void Method(out List<A> x) { x = null; }
+    public virtual void Method(out List<A> x)
+    {
+        x = null;
+        Console.WriteLine(""Base2<A, B>.Method(out List<A> x)"");
+    }
 }
 class Derived : Base2<int, int>
 {
-    public override void Method(ref List<int> a, out List<int> b) { b = null; } // No warning - the compiler produces a methodimpl record to disambiguate
-    public override void Method(ref List<int> a) { } // No warning when ambiguous signatures are spread across multiple base types
-}";
+    public override void Method(ref List<int> a, out List<int> b) // No warning - the compiler produces a methodimpl record to disambiguate
+    {
+        b = null;
+        Console.WriteLine(""Derived.Method(ref List<int> a, out List<int> b)"");
+    }
+    public override void Method(ref List<int> a) // No warning when ambiguous signatures are spread across multiple base types
+    {
+        Console.WriteLine(""Derived.Method(ref List<int> a)"");
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        List<int> t = null;
+        Derived d = new Derived();
+        d.Method(ref t, out t);
+        d.Method(out t, ref t);
+        d.Method(ref t);
+        d.Method(out t);
+        Console.WriteLine();
+        Base2<int, int> b2 = d;
+        b2.Method(ref t, out t);
+        b2.Method(out t, ref t);
+        b2.Method(ref t);
+        b2.Method(out t);
+        Console.WriteLine();
+        Base<int, int> b1 = d;
+        b1.Method(ref t, out t);
+        b1.Method(out t, ref t);
+        b1.Method(ref t);
+    }
+}
+";
+            var expectedOutput = @"
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(ref List<int> a)
+Base2<A, B>.Method(out List<A> x)
 
-            CreateCompilation(source).VerifyDiagnostics(
-                );
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(ref List<int> a)
+Base2<A, B>.Method(out List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(ref List<int> a)";
+            for (int i = 0; i < 2; i++)
+            {
+                if (i == 1)
+                {
+                    // This case is not working due to https://github.com/dotnet/runtime/issues/38119
+                    continue;
+                }
+                var substitutedSource = i switch
+                {
+                    0 => source.Replace("METHOD1", method1).Replace("METHOD2", method2),
+                    _ => source.Replace("METHOD2", method1).Replace("METHOD1", method2),
+                };
+                var verifier = CompileAndVerify(substitutedSource, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [Fact]

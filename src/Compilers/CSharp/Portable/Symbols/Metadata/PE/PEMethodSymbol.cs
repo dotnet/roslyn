@@ -1213,7 +1213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 explicitInterfaceImplementations = explicitlyOverriddenMethods;
 
-                bool hasUniqueClassOverride = false;
                 if (anyToRemove)
                 {
                     var explicitInterfaceImplementationsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -1245,7 +1244,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (uniqueClassOverride is { })
                     {
-                        hasUniqueClassOverride = true;
                         Interlocked.CompareExchange(ref AccessUncommonFields()._lazyExplicitClassOverride, uniqueClassOverride, null);
                     }
                 }
@@ -1254,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // overridden method matches the method that will be returned by MethodSymbol.OverriddenMethod.
                 // Unfortunately, this MethodSymbol will not be sufficiently constructed (need IsOverride and MethodKind,
                 // which depend on this property) to determine which method OverriddenMethod will return.
-                _packedFlags.InitializeIsExplicitOverride(isExplicitFinalizerOverride: sawObjectFinalize, isExplicitClassOverride: hasUniqueClassOverride);
+                _packedFlags.InitializeIsExplicitOverride(isExplicitFinalizerOverride: sawObjectFinalize, isExplicitClassOverride: anyToRemove);
 
                 return InterlockedOperations.Initialize(ref _lazyExplicitMethodImplementations, explicitInterfaceImplementations);
             }
