@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_withExpression.InitializerExpression);
         }
 
-        protected override IOperation CreateValue()
+        protected override IOperation CreateOperand()
         {
             return _operationFactory.Create(_withExpression.Receiver);
         }
@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _operationFactory = operationFactory;
             _boundNegatedPattern = boundNegatedPattern;
         }
-        protected override IPatternOperation CreateNegatedPattern()
+        protected override IPatternOperation CreatePattern()
         {
             return (IPatternOperation)_operationFactory.Create(_boundNegatedPattern.Negated);
         }
