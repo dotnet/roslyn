@@ -334,15 +334,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (eval)
                     {
                         case BoundDagDeconstructEvaluation e:
-                            int count = e.DeconstructMethod.Parameters.Length;
+                            var method = e.DeconstructMethod;
+                            int extensionExtra = method.RequiresInstanceReceiver ? 0 : 1;
+                            int count = method.Parameters.Length - extensionExtra;
                             var subpatterns = new ArrayBuilder<string>(count);
                             for (int j = 0; j < count; j++)
                             {
-                                var elementTemp = new BoundDagTemp(e.Syntax, e.DeconstructMethod.Parameters[j].Type, e, j);
+                                var elementTemp = new BoundDagTemp(e.Syntax, method.Parameters[j + extensionExtra].Type, e, j);
                                 var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false);
                                 subpatterns.Add(newPattern);
                             }
                             var result = "(" + string.Join(", ", subpatterns) + ")";
+                            if (deconstruction != null && needsPropertyString)
+                            {
+                                deconstruction = deconstruction + " { }";
+                                needsPropertyString = properties.Count != 0;
+                            }
+
                             deconstruction = (deconstruction is null) ? result : deconstruction + " and " + result;
                             needsPropertyString |= count == 1;
                             break;
@@ -351,7 +359,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var subInput = new BoundDagTemp(e.Syntax, e.Field.Type, e);
                                 var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false);
                                 properties.Add(e.Field, subPattern);
-                                needsPropertyString = true;
                             }
                             break;
                         case BoundDagPropertyEvaluation e:
@@ -359,7 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var subInput = new BoundDagTemp(e.Syntax, e.Property.Type, e);
                                 var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false);
                                 properties.Add(e.Property, subPattern);
-                                needsPropertyString = true;
                             }
                             break;
                         default:
@@ -367,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                needsPropertyString |= deconstruction == null && typeName == null;
+                needsPropertyString |= deconstruction == null && typeName == null || properties.Count != 0;
                 var propertyString = needsPropertyString ? (deconstruction != null ? " {" : "{") + string.Join(", ", properties.Select(kvp => $" {kvp.Key.Name}: {kvp.Value}")) + " }" : null;
                 Debug.Assert(typeName != null || deconstruction != null || propertyString != null);
                 return typeName + deconstruction + propertyString;

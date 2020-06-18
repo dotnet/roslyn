@@ -6428,5 +6428,65 @@ class Q
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ A: false,  D: true,  B: true,  C: false }").WithLocation(4, 21)
                 );
         }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_23()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    int M(Q t) => t switch
+    {
+        (0, """") => 0,
+        (1, ""A"") => 1,
+    };
+}
+class Q
+{
+}
+static class Extensions
+{
+    public static void Deconstruct(this Q q, out int X, out string Y)
+    {
+        X = 2;
+        Y = ""Y"";
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, "A")' is not covered.
+                //     int M(Q t) => t switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments(@"(0, ""A"")").WithLocation(4, 21)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_24()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    int M1(Q o) => o switch { not ((1) { } and (2, 3)) => 0 };
+    int M2(Q o) => o switch { not ((2, 3) and (1) { }) => 0 };
+}
+class Q
+{
+    public void Deconstruct(out object o1) => throw null!;
+    public void Deconstruct(out object o1, out object o2) => throw null!;
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (4,22): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(1) { } and (2, 3)' is not covered.
+                //     int M1(Q o) => o switch { not ((1) { } and (2, 3)) => 0 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(1) { } and (2, 3)").WithLocation(4, 22),
+                // (5,22): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(2, 3) and (1) { }' is not covered.
+                //     int M2(Q o) => o switch { not ((2, 3) and (1) { }) => 0 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(2, 3) and (1) { }").WithLocation(5, 22)
+                );
+        }
     }
 }
