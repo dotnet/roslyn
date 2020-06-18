@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return;
 
             var semanticModel = context.SemanticModel;
-            var expressionTypeOpt = context.Compilation!.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+            var expressionTypeOpt = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
             if (expression.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken))
                 return;
 
