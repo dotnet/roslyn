@@ -29,6 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
+    using System.Runtime.CompilerServices;
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
@@ -113,6 +114,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _interactiveHost = new InteractiveHost(replType, initialWorkingDirectory);
             _interactiveHost.ProcessInitialized += ProcessInitialized;
+        }
+
+        private void LogState([CallerMemberName] string member = null, [CallerLineNumber] int line = 0)
+        {
+            Debug.WriteLine($"{member} ({line}): current={_currentSubmissionProjectId.DebugName}, last={_lastSuccessfulSubmissionProjectId.DebugName}");
         }
 
         public int SubmissionCount => _submissionCount;
@@ -201,6 +207,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 return;
             }
 
+            _threadingContext.ThrowIfNotOnUIThread();
+
             var textView = GetCurrentWindowOrThrow().TextView;
 
             // Freeze all existing classifications and then clear the list of submission buffers we have.
@@ -215,6 +223,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _workspace.ClearSolution();
             _currentSubmissionProjectId = null;
             _lastSuccessfulSubmissionProjectId = null;
+
+            LogState();
 
             // update host state:
             _platformInfo = platformInfo;
@@ -260,10 +270,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private void AddSubmissionProject(ITextBuffer submissionBuffer, string languageName)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+           
             var solution = _workspace.CurrentSolution;
             Project project;
             var imports = ImmutableArray<string>.Empty;
             var references = ImmutableArray<MetadataReference>.Empty;
+
+            LogState();
 
             if (_currentSubmissionProjectId == null)
             {
@@ -315,6 +329,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _workspace.OpenDocument(documentId, submissionBuffer.AsTextContainer());
 
             _currentSubmissionProjectId = project.Id;
+
+            LogState();
         }
 
         private Project CreateSubmissionProject(Solution solution, ProjectId previousSubmissionProjectId, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
@@ -461,6 +477,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
+                LogState();
+
                 var currentSubmissionProjectId = _currentSubmissionProjectId;
                 var currentSubmissionBuffer = _currentWindow.CurrentLanguageBuffer;
                 Contract.ThrowIfNull(currentSubmissionBuffer);
@@ -479,9 +497,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 // Execute code and return to the UI thread to update state.
                 var result = await _interactiveHost.ExecuteAsync(text).ConfigureAwait(true);
+                _threadingContext.ThrowIfNotOnUIThread();
+
                 if (result.Success)
                 {
                     _lastSuccessfulSubmissionProjectId = currentSubmissionProjectId;
+                    LogState();
 
                     // update local search paths - remote paths has already been updated
                     UpdatePaths(result);
