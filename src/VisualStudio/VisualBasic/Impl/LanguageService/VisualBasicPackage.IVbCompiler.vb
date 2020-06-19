@@ -25,6 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 wszName,
                 pVbCompilerHost,
                 pProjHier,
+                TypeOf punkProject Is IVsIntellisenseProject,
                 Me,
                 ComponentModel.GetService(Of IThreadingContext))
         End Function

@@ -53,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             : base(projectSystemName,
                    hierarchy,
                    LanguageNames.CSharp,
+                   isVsIntellisenseProject: projectRoot is IVsIntellisenseProject,
                    serviceProvider,
                    threadingContext,
                    externalErrorReportingPrefix: "CS")

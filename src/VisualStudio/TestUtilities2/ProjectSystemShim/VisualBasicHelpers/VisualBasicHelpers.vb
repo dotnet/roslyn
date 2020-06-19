@@ -14,6 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
             Return New VisualBasicProject(projectName,
                                           If(compilerHost, MockCompilerHost.FullFrameworkCompilerHost),
                                           environment.CreateHierarchy(projectName, projectBinPath, projectRefPath:=Nothing, "VB"),
+                                          isIntellisenseProject:=False,
                                           environment.ServiceProvider,
                                           environment.ThreadingContext)
         End Function

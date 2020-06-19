@@ -39,9 +39,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Friend Sub New(projectSystemName As String,
                        compilerHost As IVbCompilerHost,
                        hierarchy As IVsHierarchy,
+                       isIntellisenseProject As Boolean,
                        serviceProvider As IServiceProvider,
                        threadingContext As IThreadingContext)
-            MyBase.New(projectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, threadingContext, "VB")
+            MyBase.New(projectSystemName, hierarchy, LanguageNames.VisualBasic, isIntellisenseProject, serviceProvider, threadingContext, "VB")
 
             _compilerHost = compilerHost
 
