@@ -40,11 +40,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        compilerHost As IVbCompilerHost,
                        hierarchy As IVsHierarchy,
                        serviceProvider As IServiceProvider,
-                       threadingContext As IThreadingContext,
-                       Optional hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource = Nothing,
-                       Optional commandLineParserServiceOpt As ICommandLineParserService = Nothing)
-            MyBase.New(projectSystemName, hierarchy, LanguageNames.VisualBasic,
-                       serviceProvider, threadingContext, "VB", hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
+                       threadingContext As IThreadingContext)
+            MyBase.New(projectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, threadingContext, "VB")
 
             _compilerHost = compilerHost
 

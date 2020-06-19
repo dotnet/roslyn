@@ -9,10 +9,8 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
-using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
@@ -56,9 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             string language,
             IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
-            string externalErrorReportingPrefix,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-            ICommandLineParserService commandLineParserServiceOpt)
+            string externalErrorReportingPrefix)
             : base(threadingContext, assertIsForeground: true)
         {
             Contract.ThrowIfNull(hierarchy);
