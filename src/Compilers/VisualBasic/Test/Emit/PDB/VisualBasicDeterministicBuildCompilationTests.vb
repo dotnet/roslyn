@@ -24,20 +24,16 @@ Public Class VisualBasicDeterministicBuildCompilationTests
         DeterministicBuildCompilationTestHelpers.AssertCommonOptions(emitOptions, originalOptions, compilation, pdbOptions)
 
         ' See VisualBasicCompilation.SerializeForPdb for options that are added
-        Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
-        Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("strict"))
+        pdbOptions.VerifyPdbOption("checked", originalOptions.CheckOverflow)
+        pdbOptions.VerifyPdbOption("strict", originalOptions.OptionStrict)
+
         Assert.Equal(originalOptions.ParseOptions.LanguageVersion.MapSpecifiedToEffectiveVersion().ToDisplayString(), pdbOptions("language-version"))
 
-
-        Dim preprocessorStrings = originalOptions.ParseOptions.PreprocessorSymbols.Select(Function(p)
-                                                                                              If (p.Value Is Nothing) Then
-                                                                                                  Return p.Key
-                                                                                              End If
-
-                                                                                              Return p.Key + "=" + p.Value.ToString()
-                                                                                          End Function)
-        Assert.Equal(String.Join(",", preprocessorStrings), pdbOptions("define"))
-
+        pdbOptions.VerifyPdbOption(
+            "define",
+            originalOptions.ParseOptions.PreprocessorSymbols,
+            isDefault:=Function(v) v.IsEmpty,
+            toString:=Function(v) String.Join(",", v.Select(Function(p) If(p.Value IsNot Nothing, $"{p.Key}={p.Value}", p.Key))))
     End Sub
 
     Private Sub TestDeterministicCompilationVB(syntaxTrees As SyntaxTree(), compilationOptions As VisualBasicCompilationOptions, emitOptions As EmitOptions, ParamArray metadataReferences() As TestMetadataReferenceInfo)
