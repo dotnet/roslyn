@@ -312,6 +312,11 @@
         <target state="translated">Un albero delle espressioni non può contenere un operatore == o != di tupla</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
+        <source>An expression tree may not contain a with-expression.</source>
+        <target state="new">An expression tree may not contain a with-expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': l'evento extern non può avere inizializzatori</target>
@@ -565,6 +570,16 @@
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">Nessuna o entrambe le dichiarazioni di metodi parziali devono essere di tipo readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodRefReturnDifference">
+        <source>Partial method declarations must have matching ref return values.</source>
+        <target state="new">Partial method declarations must have matching ref return values.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodReturnTypeDifference">
+        <source>Both partial method declarations must have the same return type.</source>
+        <target state="new">Both partial method declarations must have the same return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
@@ -2157,6 +2172,16 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">Il supporto dei valori Null dei tipi riferimento nel tipo restituito non corrisponde al membro di cui è stato eseguito l'override.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -9761,8 +9786,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
-        <source>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</source>
-        <target state="translated">Non è consentito usare il tipo nullable '{0}' in un criterio. Usare il tipo sottostante '{1}'.</target>
+        <source>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</source>
+        <target state="new">It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PeWritingFailure">

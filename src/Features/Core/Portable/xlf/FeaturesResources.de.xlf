@@ -620,6 +620,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Not enough )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Property_reference_cannot_be_updated">
+        <source>Property reference cannot be updated</source>
+        <target state="new">Property reference cannot be updated</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pull_0_up">
         <source>Pull '{0}' up</source>
         <target state="translated">"{0}" nach oben ziehen</target>

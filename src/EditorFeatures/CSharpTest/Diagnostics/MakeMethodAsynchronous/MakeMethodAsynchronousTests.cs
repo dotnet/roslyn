@@ -960,6 +960,47 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task AwaitInValueTaskWithoutGenericMethod()
+        {
+            var initial =
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
+class Program 
+{
+    ValueTask Test() 
+    {
+        [|await Task.Delay(1);|]
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
+class Program 
+{
+    async ValueTask Test() 
+    {
+        await Task.Delay(1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
         public async Task AddAsyncInLocalFunction()
         {

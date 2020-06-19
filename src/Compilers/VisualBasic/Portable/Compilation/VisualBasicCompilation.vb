@@ -709,13 +709,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
-            WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
-
             ' LanguageVersion should already be mapped to an effective version at this point
             Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
             WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
 
-            WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
+            If Options.CheckOverflow Then
+                WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            End If
+
+            If Options.OptionStrict <> OptionStrict.Off Then
+                WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
+            End If
 
             If Options.ParseOptions IsNot Nothing Then
                 Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
@@ -803,6 +807,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ScriptClass.GetScriptInitializer(),
                 Nothing)
         End Function
+
+        Protected Overrides ReadOnly Property CommonScriptGlobalsType As ITypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
 
 #End Region
 

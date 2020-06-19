@@ -312,6 +312,11 @@
         <target state="translated">식 트리에는 튜플 == 또는 != 연산자를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
+        <source>An expression tree may not contain a with-expression.</source>
+        <target state="new">An expression tree may not contain a with-expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': extern 이벤트에는 이니셜라이저를 사용할 수 없습니다.</target>
@@ -565,6 +570,16 @@
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">두 부분 메서드(Partial method) 선언 모두 readonly이거나 readonly가 아니어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodRefReturnDifference">
+        <source>Partial method declarations must have matching ref return values.</source>
+        <target state="new">Partial method declarations must have matching ref return values.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodReturnTypeDifference">
+        <source>Both partial method declarations must have the same return type.</source>
+        <target state="new">Both partial method declarations must have the same return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
@@ -2157,6 +2172,16 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">반환 형식에 있는 참조 형식 Null 허용 여부가 재정의된 멤버와 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -9761,8 +9786,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
-        <source>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</source>
-        <target state="translated">패턴에 nullable 형식 '{0}'을(를) 사용하는 것은 올바르지 않습니다. 대신 기본 형식 '{1}'을(를) 사용하세요.</target>
+        <source>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</source>
+        <target state="new">It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PeWritingFailure">

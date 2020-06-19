@@ -44,15 +44,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
             }
 
-            var request = data.CompletionParams;
-
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(data.TextDocument, clientName);
             if (document == null)
             {
                 return completionItem;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);

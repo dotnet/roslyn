@@ -146,6 +146,27 @@ record Point(int x, int y);
         }
 
         [Fact]
+        public void TestInExpressionTree()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+public record C(int i)
+{
+    public static void M()
+    {
+        Expression<Func<C, C>> expr = c => c with { i = 5 };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,44): error CS8849: An expression tree may not contain a with-expression.
+                //         Expression<Func<C, C>> expr = c => c with { i = 5 };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsWithExpression, "c with { i = 5 }").WithLocation(8, 44)
+                );
+        }
+
+        [Fact]
         public void PartialRecordMixedWithClass()
         {
             var src = @"
@@ -1430,7 +1451,7 @@ X");
             var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
             comp.VerifyOperationTree(withExpr1, @"
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -1955,7 +1976,7 @@ record C(int X, string Y)
 
             comp.VerifyOperationTree(withExpr, @"
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { X = 2 }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -2060,7 +2081,7 @@ class C
 
             comp.VerifyOperationTree(withExpr, @"
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { X = 2 }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
   CloneMethod: null
   Initializer:
@@ -2183,7 +2204,7 @@ record C(int X, int Y)
             var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
             comp.VerifyOperationTree(withExpr1, @"
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -2196,7 +2217,7 @@ IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
             var withExpr2 = root.DescendantNodes().OfType<WithExpressionSyntax>().Skip(1).Single();
             comp.VerifyOperationTree(withExpr2, @"
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { ')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -3668,6 +3689,434 @@ class Program
 }");
         }
 
+        [Fact]
+        public void Inheritance_22()
+        {
+            var source =
+@"record A
+{
+    public ref object P1 => throw null;
+    public object P2 => throw null;
+}
+record B : A
+{
+    public new object P1 => throw null;
+    public new ref object P2 => throw null;
+}
+record C(object P1, object P2) : B
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_23()
+        {
+            var source =
+@"record A
+{
+    public static object P1 { get; }
+    public object P2 { get; }
+}
+record B : A
+{
+    public new object P1 { get; }
+    public new static object P2 { get; }
+}
+record C(object P1, object P2) : B
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,28): error CS8866: Record member 'B.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // record C(object P1, object P2) : B
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "object", "P2").WithLocation(11, 28));
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_24()
+        {
+            var source =
+@"record A
+{
+    public object get_P() => null;
+    public object set_Q() => null;
+}
+record B(object P, object Q) : A
+{
+}
+record C(object P)
+{
+    public object get_P() => null;
+    public object set_Q() => null;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
+                // record C(object P)
+                Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(9, 17));
+
+            var expectedMembers = new[]
+            {
+                "A B.<>Clone()",
+                "System.Type B.EqualityContract.get",
+                "System.Type B.EqualityContract { get; }",
+                "B..ctor(System.Object P, System.Object Q)",
+                "System.Object B.<P>k__BackingField",
+                "System.Object B.P.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.P.init",
+                "System.Object B.P { get; init; }",
+                "System.Object B.<Q>k__BackingField",
+                "System.Object B.Q.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Q.init",
+                "System.Object B.Q { get; init; }",
+                "System.Int32 B.GetHashCode()",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(A? )",
+                "System.Boolean B.Equals(B? )",
+                "B..ctor(B )",
+                "void B.Deconstruct(out System.Object P, out System.Object Q)"
+            };
+            AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings());
+
+            expectedMembers = new[]
+            {
+                "C C.<>Clone()",
+                "System.Type C.EqualityContract.get",
+                "System.Type C.EqualityContract { get; }",
+                "C..ctor(System.Object P)",
+                "System.Object C.<P>k__BackingField",
+                "System.Object C.P.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.P.init",
+                "System.Object C.P { get; init; }",
+                "System.Object C.get_P()",
+                "System.Object C.set_Q()",
+                "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(C? )",
+                "C..ctor(C )",
+                "void C.Deconstruct(out System.Object P)"
+            };
+            AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_25()
+        {
+            var sourceA =
+@"public record A
+{
+    public class P1 { }
+    internal object P2 = 2;
+    public int P3(object o) => 3;
+    internal int P4<T>(T t) => 4;
+}";
+            var sourceB =
+@"record B(object P1, object P2, object P3, object P4) : A
+{
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
+                // (1,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(1, 28),
+                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type B.EqualityContract { get; }",
+                "System.Object B.P4 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+            comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
+                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // record B(object P1, object P2, object P3, object P4) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
+            actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            expectedMembers = new[]
+            {
+                "System.Type B.EqualityContract { get; }",
+                "System.Object B.P2 { get; init; }",
+                "System.Object B.P4 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_26()
+        {
+            var sourceA =
+@"public record A
+{
+    internal const int P = 4;
+}";
+            var sourceB =
+@"record B(object P) : A
+{
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (1,17): error CS8866: Record member 'A.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
+                // record B(object P) : A
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("A.P", "object", "P").WithLocation(1, 17));
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+
+            comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }", "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_27()
+        {
+            var source =
+@"record A
+{
+    public object P { get; }
+    public object Q { get; set; }
+}
+record B(object get_P, object set_Q) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type B.EqualityContract { get; }",
+                "System.Object B.get_P { get; init; }",
+                "System.Object B.set_Q { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_28()
+        {
+            var source =
+@"interface I
+{
+    object P { get; }
+}
+record A : I
+{
+    object I.P => null;
+}
+record B(object P) : A
+{
+}
+record C(object P) : I
+{
+    object I.P => null;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }", "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", "System.Object C.P { get; init; }", "System.Object C.I.P { get; }" }, GetProperties(comp, "C").ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_29()
+        {
+            var sourceA =
+@"Public Class A
+    Public Property P(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property Q(x As Object, y As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+";
+            var compA = CreateVisualBasicCompilation(sourceA);
+            compA.VerifyDiagnostics();
+            var refA = compA.EmitToImageReference();
+
+            var sourceB =
+@"record B(object P, object Q) : A
+{
+    object P { get; }
+}";
+            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compB.VerifyDiagnostics(
+                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
+                // (1,32): error CS8864: Records may only inherit from object or another record
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
+            );
+
+            var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type B.EqualityContract { get; }",
+                "System.Object B.Q { get; init; }",
+                "System.Object B.P { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_30()
+        {
+            var sourceA =
+@"Public Class A
+    Public ReadOnly Overloads Property P() As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public ReadOnly Overloads Property P(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public Overloads Property Q(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Overloads Property Q() As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+";
+            var compA = CreateVisualBasicCompilation(sourceA);
+            compA.VerifyDiagnostics();
+            var refA = compA.EmitToImageReference();
+
+            var sourceB =
+@"record B(object P, object Q) : A
+{
+}";
+            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compB.VerifyDiagnostics(
+                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
+                // (1,32): error CS8864: Records may only inherit from object or another record
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
+            );
+
+            var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_31()
+        {
+            var sourceA =
+@"Public Class A
+    Public ReadOnly Property P() As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public Property Q(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property R(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Sub New(a as A)
+    End Sub
+End Class
+Public Class B
+    Inherits A
+    Public ReadOnly Overloads Property P(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public Overloads Property Q() As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Overloads Property R(x As Object, y As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Sub New(b as B)
+        MyBase.New(b)
+    End Sub
+End Class
+";
+            var compA = CreateVisualBasicCompilation(sourceA);
+            compA.VerifyDiagnostics();
+            var refA = compA.EmitToImageReference();
+
+            var sourceB =
+@"record C(object P, object Q, object R) : B
+{
+}";
+            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compB.VerifyDiagnostics(
+                // (1,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(object P, object Q, object R)").WithArguments("b", "B.B(B)").WithLocation(1, 9),
+                // (1,42): error CS8864: Records may only inherit from object or another record
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(1, 42)
+            );
+
+            var actualMembers = GetProperties(compB, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C.EqualityContract { get; }",
+                "System.Object C.R { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [InlineData(false)]
         [InlineData(true)]
@@ -3878,6 +4327,57 @@ public record C(object P1, object P2) : B(3, 4) { }
   IL_002c:  ldfld      ""int C.Property""
   IL_0031:  stfld      ""int C.Property""
   IL_0036:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_NotInRecordType()
+        {
+            var source =
+@"public class C
+{
+    public object Property { get; set; }
+    public int field = 42;
+
+    public C(C c)
+    {
+    }
+}
+public class D : C
+{
+    public int field2 = 43;
+    public D(D d) : base(d)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  stfld      ""int C.field""
+  IL_0008:  ldarg.0
+  IL_0009:  call       ""object..ctor()""
+  IL_000e:  ret
+}");
+
+            verifier.VerifyIL("D..ctor(D)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   43
+  IL_0003:  stfld      ""int D.field2""
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  call       ""C..ctor(C)""
+  IL_000f:  ret
 }");
         }
 
@@ -4662,432 +5162,225 @@ public record C : B {
                 );
         }
 
-        [Fact]
-        public void Inheritance_22()
+        [Fact, WorkItem(45077, "https://github.com/dotnet/roslyn/issues/45077")]
+        public void CopyCtor_AmbiguitiesInMetadata()
         {
-            var source =
-@"record A
+            // IL for a minimal `public record B { }` with injected copy constructors
+            var ilSource_template = @"
+.class public auto ansi beforefieldinit B extends [mscorlib]System.Object
 {
-    public ref object P1 => throw null;
-    public object P2 => throw null;
+    INJECT
+
+    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: newobj instance void B::.ctor(class B)
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
 }
-record B : A
-{
-    public new object P1 => throw null;
-    public new ref object P2 => throw null;
-}
-record C(object P1, object P2) : B
-{
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
-        }
-
-        [Fact]
-        public void Inheritance_23()
-        {
-            var source =
-@"record A
-{
-    public static object P1 { get; }
-    public object P2 { get; }
-}
-record B : A
-{
-    public new object P1 { get; }
-    public new static object P2 { get; }
-}
-record C(object P1, object P2) : B
-{
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (11,28): error CS8866: Record member 'B.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
-                // record C(object P1, object P2) : B
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "object", "P2").WithLocation(11, 28));
-            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
-        }
-
-        [Fact]
-        public void Inheritance_24()
-        {
-            var source =
-@"record A
-{
-    public object get_P() => null;
-    public object set_Q() => null;
-}
-record B(object P, object Q) : A
-{
-}
-record C(object P)
-{
-    public object get_P() => null;
-    public object set_Q() => null;
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
-                // record C(object P)
-                Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(9, 17));
-
-            var expectedMembers = new[]
-            {
-                "A B.<>Clone()",
-                "System.Type B.EqualityContract.get",
-                "System.Type B.EqualityContract { get; }",
-                "B..ctor(System.Object P, System.Object Q)",
-                "System.Object B.<P>k__BackingField",
-                "System.Object B.P.get",
-                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.P.init",
-                "System.Object B.P { get; init; }",
-                "System.Object B.<Q>k__BackingField",
-                "System.Object B.Q.get",
-                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Q.init",
-                "System.Object B.Q { get; init; }",
-                "System.Int32 B.GetHashCode()",
-                "System.Boolean B.Equals(System.Object? )",
-                "System.Boolean B.Equals(A? )",
-                "System.Boolean B.Equals(B? )",
-                "B..ctor(B )",
-                "void B.Deconstruct(out System.Object P, out System.Object Q)"
-            };
-            AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings());
-
-            expectedMembers = new[]
-            {
-                "C C.<>Clone()",
-                "System.Type C.EqualityContract.get",
-                "System.Type C.EqualityContract { get; }",
-                "C..ctor(System.Object P)",
-                "System.Object C.<P>k__BackingField",
-                "System.Object C.P.get",
-                "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.P.init",
-                "System.Object C.P { get; init; }",
-                "System.Object C.get_P()",
-                "System.Object C.set_Q()",
-                "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object? )",
-                "System.Boolean C.Equals(C? )",
-                "C..ctor(C )",
-                "void C.Deconstruct(out System.Object P)"
-            };
-            AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
-        }
-
-        [Fact]
-        public void Inheritance_25()
-        {
-            var sourceA =
-@"public record A
-{
-    public class P1 { }
-    internal object P2 = 2;
-    public int P3(object o) => 3;
-    internal int P4<T>(T t) => 4;
-}";
-            var sourceB =
-@"record B(object P1, object P2, object P3, object P4) : A
-{
-}";
-            var comp = CreateCompilation(new[] { sourceA, sourceB });
-            comp.VerifyDiagnostics(
-                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
-                // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
-                // (1,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
-                // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(1, 28),
-                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
-                // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
-            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Type B.EqualityContract { get; }",
-                "System.Object B.P4 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
-
-            comp = CreateCompilation(sourceA);
-            var refA = comp.EmitToImageReference();
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
-                // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
-                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
-                // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
-            actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            expectedMembers = new[]
-            {
-                "System.Type B.EqualityContract { get; }",
-                "System.Object B.P2 { get; init; }",
-                "System.Object B.P4 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
-        }
-
-        [Fact]
-        public void Inheritance_26()
-        {
-            var sourceA =
-@"public record A
-{
-    internal const int P = 4;
-}";
-            var sourceB =
-@"record B(object P) : A
-{
-}";
-            var comp = CreateCompilation(new[] { sourceA, sourceB });
-            comp.VerifyDiagnostics(
-                // (1,17): error CS8866: Record member 'A.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
-                // record B(object P) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("A.P", "object", "P").WithLocation(1, 17));
-            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
-
-            comp = CreateCompilation(sourceA);
-            var refA = comp.EmitToImageReference();
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
-            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }", "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
-        }
-
-        [Fact]
-        public void Inheritance_27()
-        {
-            var source =
-@"record A
-{
-    public object P { get; }
-    public object Q { get; set; }
-}
-record B(object get_P, object set_Q) : A
-{
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Type B.EqualityContract { get; }",
-                "System.Object B.get_P { get; init; }",
-                "System.Object B.set_Q { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
-        }
-
-        [Fact]
-        public void Inheritance_28()
-        {
-            var source =
-@"interface I
-{
-    object P { get; }
-}
-record A : I
-{
-    object I.P => null;
-}
-record B(object P) : A
-{
-}
-record C(object P) : I
-{
-    object I.P => null;
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }", "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
-            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", "System.Object C.P { get; init; }", "System.Object C.I.P { get; }" }, GetProperties(comp, "C").ToTestDisplayStrings());
-        }
-
-        [Fact]
-        public void Inheritance_29()
-        {
-            var sourceA =
-@"Public Class A
-    Public Property P(o As Object) As Object
-        Get
-            Return Nothing
-        End Get
-        Set
-        End Set
-    End Property
-    Public Property Q(x As Object, y As Object) As Object
-        Get
-            Return Nothing
-        End Get
-        Set
-        End Set
-    End Property
-End Class
 ";
-            var compA = CreateVisualBasicCompilation(sourceA);
-            compA.VerifyDiagnostics();
-            var refA = compA.EmitToImageReference();
 
-            var sourceB =
-@"record B(object P, object Q) : A
+            var source = @"
+public record C : B
 {
-    object P { get; }
+    public static void Main()
+    {
+        var c = new C();
+        _ = c with { };
+    }
 }";
-            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            compB.VerifyDiagnostics(
-                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
-                // (1,32): error CS8864: Records may only inherit from object or another record
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
-            );
 
-            var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
-            var expectedMembers = new[]
+            // We're going to inject various copy constructors into record B (at INJECT marker), and check which one is used
+            // by derived record C
+            // The RAN and THROW markers are shorthands for method bodies that print "RAN" and throw, respectively.
+
+            // .ctor(B) vs. .ctor(modopt B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+");
+
+            // .ctor(modopt B) alone
+            verify(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+RAN
+");
+
+            // .ctor(B) vs. .ctor(modreq B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modreq(int64) '' ) cil managed
+THROW
+");
+
+            // .ctor(modopt B) vs. .ctor(modreq B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modreq(int64) '' ) cil managed
+THROW
+");
+
+            // .ctor(B) vs. .ctor(modopt1 B) and .ctor(modopt2 B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int32) '' ) cil managed
+THROW
+");
+            // .ctor(B) vs. .ctor(modopt1 B) and .ctor(modreq B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modreq(int32) '' ) cil managed
+THROW
+");
+
+            // .ctor(modeopt1 B) vs. .ctor(modopt2 B)
+            verifyBoth(@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int32) '' ) cil managed
+THROW
+", isError: true);
+
+            // private .ctor(B) vs. .ctor(modopt1 B) and .ctor(modopt B)
+            verifyBoth(@"
+.method private hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+RAN
+",
+@"
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int64) '' ) cil managed
+THROW
+
+.method public hidebysig specialname rtspecialname instance void .ctor ( class B modopt(int32) '' ) cil managed
+THROW
+", isError: true);
+
+            void verifyBoth(string inject1, string inject2, bool isError = false)
             {
-                "System.Type B.EqualityContract { get; }",
-                "System.Object B.Q { get; init; }",
-                "System.Object B.P { get; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+                verify(inject1 + inject2, isError);
+                verify(inject2 + inject1, isError);
+            }
+
+            void verify(string inject, bool isError = false)
+            {
+                var ranBody = @"
+{
+    IL_0000:  ldstr      ""RAN""
+    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000a:  ret
+}
+";
+
+                var throwBody = @"
+{
+    IL_0000: ldnull
+    IL_0001: throw
+}
+";
+
+                var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
+                    ilSource: ilSource_template.Replace("INJECT", inject).Replace("RAN", ranBody).Replace("THROW", throwBody),
+                    parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+
+                var expectedDiagnostics = isError ? new[] {
+                    // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
+                    // public record C : B
+                    Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 15)
+                } : new DiagnosticDescription[] { };
+
+                comp.VerifyDiagnostics(expectedDiagnostics);
+                if (expectedDiagnostics is null)
+                {
+                    CompileAndVerify(comp, expectedOutput: "RAN");
+                }
+            }
         }
 
-        [Fact]
-        public void Inheritance_30()
+        [Fact, WorkItem(45077, "https://github.com/dotnet/roslyn/issues/45077")]
+        public void CopyCtor_AmbiguitiesInMetadata_GenericType()
         {
-            var sourceA =
-@"Public Class A
-    Public ReadOnly Overloads Property P() As Object
-        Get
-            Return Nothing
-        End Get
-    End Property
-    Public ReadOnly Overloads Property P(o As Object) As Object
-        Get
-            Return Nothing
-        End Get
-    End Property
-    Public Overloads Property Q(o As Object) As Object
-        Get
-            Return Nothing
-        End Get
-        Set
-        End Set
-    End Property
-    Public Overloads Property Q() As Object
-        Get
-            Return Nothing
-        End Get
-        Set
-        End Set
-    End Property
-End Class
-";
-            var compA = CreateVisualBasicCompilation(sourceA);
-            compA.VerifyDiagnostics();
-            var refA = compA.EmitToImageReference();
-
-            var sourceB =
-@"record B(object P, object Q) : A
+            // IL for a minimal `public record B<T> { }` with modopt in nested position of parameter type
+            var ilSource = @"
+.class public auto ansi beforefieldinit B`1<T> extends [mscorlib]System.Object implements class [mscorlib]System.IEquatable`1<class B`1<!T>>
 {
-}";
-            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            compB.VerifyDiagnostics(
-                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
-                // (1,32): error CS8864: Records may only inherit from object or another record
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
-            );
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class B`1<!T modopt(int64)> '' ) cil managed
+    {
+        IL_0000:  ldstr      ""RAN""
+        IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+        IL_000a:  ret
+    }
 
-            var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
-            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
-        }
+    .method public hidebysig specialname newslot virtual instance class B`1<!T> '<>Clone' () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: newobj instance void class B`1<!T>::.ctor(class B`1<!0>)
+        IL_0006: ret
+    }
 
-        [Fact]
-        public void Inheritance_31()
-        {
-            var sourceA =
-@"Public Class A
-    Public ReadOnly Property P() As Object
-        Get
-            Return Nothing
-        End Get
-    End Property
-    Public Property Q(o As Object) As Object
-        Get
-            Return Nothing
-        End Get
-        Set
-        End Set
-    End Property
-    Public Property R(o As Object) As Object
-        Get
-            Return Nothing
-        End Get
-        Set
-        End Set
-    End Property
-    Public Sub New(a as A)
-    End Sub
-End Class
-Public Class B
-    Inherits A
-    Public ReadOnly Overloads Property P(o As Object) As Object
-        Get
-            Return Nothing
-        End Get
-    End Property
-    Public Overloads Property Q() As Object
-        Get
-            Return Nothing
-        End Get
-        Set
-        End Set
-    End Property
-    Public Overloads Property R(x As Object, y As Object) As Object
-        Get
-            Return Nothing
-        End Get
-        Set
-        End Set
-    End Property
-    Public Sub New(b as B)
-        MyBase.New(b)
-    End Sub
-End Class
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .method public newslot virtual instance bool Equals ( class B`1<!T> '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
 ";
-            var compA = CreateVisualBasicCompilation(sourceA);
-            compA.VerifyDiagnostics();
-            var refA = compA.EmitToImageReference();
 
-            var sourceB =
-@"record C(object P, object Q, object R) : B
+            var source = @"
+public record C<T> : B<T> { }
+
+public class Program
 {
+    public static void Main()
+    {
+        var c = new C<string>();
+        _ = c with { };
+    }
 }";
-            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            compB.VerifyDiagnostics(
-                // (1,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(object P, object Q, object R)").WithArguments("b", "B.B(B)").WithLocation(1, 9),
-                // (1,42): error CS8864: Records may only inherit from object or another record
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(1, 42)
-            );
 
-            var actualMembers = GetProperties(compB, "C").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Type C.EqualityContract { get; }",
-                "System.Object C.R { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
+                ilSource: ilSource,
+                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
         }
 
         [Fact]
@@ -6783,6 +7076,11 @@ record C(int X, int Y) : Base(X, Y)
             Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
+
+            var baseWithargs = tree.GetRoot().DescendantNodes().OfType<SimpleBaseTypeSyntax>().Single();
+            Assert.Equal("Base(X, Y)", baseWithargs.ToString());
+            Assert.Null(model.GetTypeInfo(baseWithargs).Type);
+            Assert.Null(model.GetSymbolInfo(baseWithargs).Symbol);
         }
 
         [Fact]

@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type = pointerType;
                         return changed;
                     }
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                     {
                         var functionPointerType = (FunctionPointerTypeSymbol)type;
                         var changed = NormalizeTaskTypesInFunctionPointer(compilation, ref functionPointerType);

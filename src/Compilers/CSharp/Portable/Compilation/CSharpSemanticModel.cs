@@ -2115,6 +2115,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = null;
                     nullability = new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull);
                 }
+                else if (highestBoundExpr is BoundConvertedSwitchExpression e)
+                {
+                    Debug.Assert(boundExpr == highestBoundExpr);
+                    type = e.NaturalTypeOpt;
+                    convertedType = e.Type;
+                    convertedNullability = e.TopLevelNullability;
+                    conversion = e.Conversion.IsValid ? e.Conversion : Conversion.NoConversion;
+                }
                 else
                 {
                     convertedType = type;
