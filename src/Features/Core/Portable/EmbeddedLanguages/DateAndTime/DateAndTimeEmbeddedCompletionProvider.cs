@@ -44,7 +44,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                // We only trigger on typing if it's the first character in a sequence.
+                if (trigger.Character == '"')
+                {
+                    return true;
+                }
+
+                // Only trigger if it's the first character of a sequence
                 return char.IsLetter(trigger.Character) &&
                        caretPosition >= 2 &&
                        !char.IsLetter(text[caretPosition - 2]);
