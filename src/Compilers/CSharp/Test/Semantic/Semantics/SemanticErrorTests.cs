@@ -22813,30 +22813,30 @@ class Program
                 // (21,14): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
                 //         Test(M<>());
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(21, 14),
-                // (23,14): error CS0305: Using the generic method group 'f' requires 1 type arguments
+                // (23,14): error CS8389: Omitting the type argument is not allowed in the current context
                 //         Test(this.f<>);
-                Diagnostic(ErrorCode.ERR_BadArity, "this.f<>").WithArguments("f", "method group", "1").WithLocation(23, 14),
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.f<>").WithLocation(23, 14),
                 // (23,19): error CS0307: The field 'Program.f' cannot be used with type arguments
                 //         Test(this.f<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field").WithLocation(23, 19),
-                // (24,14): error CS0305: Using the generic method group 'P' requires 1 type arguments
+                // (24,14): error CS8389: Omitting the type argument is not allowed in the current context
                 //         Test(this.P<>);
-                Diagnostic(ErrorCode.ERR_BadArity, "this.P<>").WithArguments("P", "method group", "1").WithLocation(24, 14),
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.P<>").WithLocation(24, 14),
                 // (24,19): error CS0307: The property 'Program.P' cannot be used with type arguments
                 //         Test(this.P<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<>").WithArguments("Program.P", "property").WithLocation(24, 19),
-                // (25,14): error CS0305: Using the generic method group 'M' requires 1 type arguments
+                // (25,14): error CS8389: Omitting the type argument is not allowed in the current context
                 //         Test(this.M<>());
-                Diagnostic(ErrorCode.ERR_BadArity, "this.M<>").WithArguments("M", "method group", "1").WithLocation(25, 14),
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.M<>").WithLocation(25, 14),
                 // (25,19): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
                 //         Test(this.M<>());
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(25, 19),
                 // (29,13): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
                 //         m = M<>;
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(29, 13),
-                // (30,13): error CS0305: Using the generic method group 'M' requires 1 type arguments
+                // (30,13): error CS8389: Omitting the type argument is not allowed in the current context
                 //         m = this.M<>;
-                Diagnostic(ErrorCode.ERR_BadArity, "this.M<>").WithArguments("M", "method group", "1").WithLocation(30, 13),
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.M<>").WithLocation(30, 13),
                 // (30,18): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
                 //         m = this.M<>;
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(30, 18),
@@ -22974,9 +22974,9 @@ class Program
                 // (9,14): error CS0307: The event 'Program.E' cannot be used with type arguments
                 //         Test(E<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(9, 14),
-                // (10,14): error CS0305: Using the generic method group 'E' requires 1 type arguments
+                // (10,14): error CS8389: Omitting the type argument is not allowed in the current context
                 //         Test(this.E<>);
-                Diagnostic(ErrorCode.ERR_BadArity, "this.E<>").WithArguments("E", "method group", "1").WithLocation(10, 14),
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.E<>").WithLocation(10, 14),
                 // (10,19): error CS0307: The event 'Program.E' cannot be used with type arguments
                 //         Test(this.E<>);
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(10, 19),

@@ -1581,6 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
+        ERR_OmittedTypeArgument = 8389,
 
         #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8 = 8400,

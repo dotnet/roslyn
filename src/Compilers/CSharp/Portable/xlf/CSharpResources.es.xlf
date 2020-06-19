@@ -522,6 +522,11 @@
         <target state="translated">Debe saberse si un parámetro de tipo que acepta valores NULL es un tipo de valor o un tipo de referencia que no admite valores NULL. Considere agregar "class", "struct" o una restricción de tipo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OmittedTypeArgument">
+        <source>Omitting the type argument is not allowed in the current context</source>
+        <target state="new">Omitting the type argument is not allowed in the current context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Una variable out no se puede declarar como ref local</target>

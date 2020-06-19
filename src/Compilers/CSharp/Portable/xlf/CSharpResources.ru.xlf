@@ -522,6 +522,11 @@
         <target state="translated">Параметр типа, допускающего значение NULL, должен быть известен как тип значения или ссылочный тип, не допускающий значение NULL. Рекомендуется добавить "class", "struct" или ограничение типа.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OmittedTypeArgument">
+        <source>Omitting the type argument is not allowed in the current context</source>
+        <target state="new">Omitting the type argument is not allowed in the current context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Выходная переменная не может быть объявлена как локальная переменная ref</target>

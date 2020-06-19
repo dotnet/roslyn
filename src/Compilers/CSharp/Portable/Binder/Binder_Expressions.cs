@@ -6207,10 +6207,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult,
                         flags);
 
-                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument) &&
-                        (boundMethodGroup.ResultKind == LookupResultKind.Empty || boundMethodGroup.ResultKind == LookupResultKind.WrongArity))
+                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadArity, node, rightName, MessageID.IDS_MethodGroup.Localize(), typeArgumentsSyntax.Count);
+                        Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
                     }
 
                     return boundMethodGroup;

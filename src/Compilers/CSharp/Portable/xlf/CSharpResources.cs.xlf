@@ -522,6 +522,11 @@
         <target state="translated">Parametr typu s možnou hodnotou null musí být známou hodnotou nebo musí jít o typ odkazu, který nemůže mít hodnotu null. Zvažte přidání 'class', 'struct' nebo omezení typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OmittedTypeArgument">
+        <source>Omitting the type argument is not allowed in the current context</source>
+        <target state="new">Omitting the type argument is not allowed in the current context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Výstupní proměnná nemůže být deklarovaná jako lokální proměnná podle odkazu.</target>

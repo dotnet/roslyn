@@ -522,6 +522,11 @@
         <target state="translated">Boş değer atanabilir bir tür parametresi bilinen bir değer türü veya boş değer atanamayan bir başvuru türü olmalıdır. Bir 'class', 'struct' veya tür kısıtlaması eklemeyi düşünün.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OmittedTypeArgument">
+        <source>Omitting the type argument is not allowed in the current context</source>
+        <target state="new">Omitting the type argument is not allowed in the current context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Bir out değişkeni ref yerel değeri olarak bildirilemez</target>

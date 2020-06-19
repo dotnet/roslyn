@@ -522,6 +522,11 @@
         <target state="translated">Un paramètre de type nullable doit être connu pour pouvoir être un type valeur ou un type référence non-nullable. Ajoutez une contrainte 'class', 'struct' ou une contrainte de type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OmittedTypeArgument">
+        <source>Omitting the type argument is not allowed in the current context</source>
+        <target state="new">Omitting the type argument is not allowed in the current context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Impossible de déclarer une variable out en tant que variable locale ref</target>
