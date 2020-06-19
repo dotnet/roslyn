@@ -591,142 +591,146 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RoslynDebug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
-            // or int*****************...* we implement manual tail recursion rather than 
+            // or int*****************...* we implement manual stack management
             // doing the natural recursion.
+            var stack = ArrayBuilder<(TypeWithAnnotations, TypeSymbol)>.GetInstance();
 
-            while (true)
+            try
             {
-                TypeSymbol current = type ?? (useDefaultType ? typeWithAnnotationsOpt.DefaultType : typeWithAnnotationsOpt.Type);
-                bool isNestedNamedType = false;
 
-                // Visit containing types from outer-most to inner-most.
-                switch (current.TypeKind)
+                TypeSymbol current = getTypeSymbolForInput((typeWithAnnotationsOpt, type), useDefaultType);
+                stack.Push((typeWithAnnotationsOpt, current));
+                pushContainingTypes(current, stack);
+
+                // VisitType visits all components in metadata-order. We walk up the top type (the type with
+                // no ContainingType), and then visit it and any of its nested types such as type arguments,
+                // pointer underlying types, and similar. Each of these types is visited in a similar fashion,
+                // by walking up to their top types and working downward. At any point in this recursion, the
+                // visitor predicate can indicate that recursion should stop, at the type that the predicate
+                // indicated is returned at that point.
+
+                while (stack.TryPop(out (TypeWithAnnotations, TypeSymbol) currentPair))
                 {
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                    case TypeKind.Interface:
-                    case TypeKind.Enum:
-                    case TypeKind.Delegate:
+                    TypeWithAnnotations currentWithAnnotations;
+                    (currentWithAnnotations, current) = currentPair;
+                    bool isNestedNamedType = isTypeNested(current);
+
+                    if (currentWithAnnotations.HasType && typeWithAnnotationsPredicate != null)
+                    {
+                        if (typeWithAnnotationsPredicate(currentWithAnnotations, arg, isNestedNamedType))
                         {
-                            var containingType = current.ContainingType;
-                            if ((object)containingType != null)
-                            {
-                                isNestedNamedType = true;
-                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType);
-                                if (result is object)
-                                {
-                                    return result;
-                                }
-                            }
+                            return current;
                         }
-                        break;
-
-                    case TypeKind.Submission:
-                        RoslynDebug.Assert((object)current.ContainingType == null);
-                        break;
-                }
-
-                if (typeWithAnnotationsOpt.HasType && typeWithAnnotationsPredicate != null)
-                {
-                    if (typeWithAnnotationsPredicate(typeWithAnnotationsOpt, arg, isNestedNamedType))
-                    {
-                        return current;
                     }
-                }
-                else if (typePredicate != null)
-                {
-                    if (typePredicate(current, arg, isNestedNamedType))
+                    else if (typePredicate != null)
                     {
-                        return current;
-                    }
-                }
-
-                TypeWithAnnotations next;
-
-                switch (current.TypeKind)
-                {
-                    case TypeKind.Dynamic:
-                    case TypeKind.TypeParameter:
-                    case TypeKind.Submission:
-                    case TypeKind.Enum:
-                        return null;
-
-                    case TypeKind.Error:
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                    case TypeKind.Interface:
-                    case TypeKind.Delegate:
-                        foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+                        if (typePredicate(current, arg, isNestedNamedType))
                         {
-                            // Let's try to avoid early resolution of nullable types
-                            var result = VisitType(
-                                typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
-                                type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
-                                typeWithAnnotationsPredicate,
-                                typePredicate,
-                                arg,
-                                canDigThroughNullable,
-                                useDefaultType);
-                            if (result is object)
-                            {
-                                return result;
-                            }
+                            return current;
                         }
-                        return null;
+                    }
 
-                    case TypeKind.Array:
-                        next = ((ArrayTypeSymbol)current).ElementTypeWithAnnotations;
-                        break;
-
-                    case TypeKind.Pointer:
-                        next = ((PointerTypeSymbol)current).PointedAtTypeWithAnnotations;
-                        break;
-
-                    case TypeKind.FunctionPointer:
-                        return visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
-                }
-
-                // Let's try to avoid early resolution of nullable types
-                typeWithAnnotationsOpt = canDigThroughNullable ? default : next;
-                type = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
-            }
-
-            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable)
-            {
-                MethodSymbol currentPointer = type.Signature;
-                var result = VisitType(
-                    typeWithAnnotationsOpt: canDigThroughNullable ? default : currentPointer.ReturnTypeWithAnnotations,
-                    type: canDigThroughNullable ? currentPointer.ReturnTypeWithAnnotations.NullableUnderlyingTypeOrSelf : null,
-                    typeWithAnnotationsPredicate,
-                    typePredicate,
-                    arg,
-                    canDigThroughNullable,
-                    useDefaultType);
-                if (result is object)
-                {
-                    return result;
-                }
-
-                foreach (var parameter in currentPointer.Parameters)
-                {
-                    result = VisitType(
-                        typeWithAnnotationsOpt: canDigThroughNullable ? default : parameter.TypeWithAnnotations,
-                        type: canDigThroughNullable ? parameter.TypeWithAnnotations.NullableUnderlyingTypeOrSelf : null,
-                        typeWithAnnotationsPredicate,
-                        typePredicate,
-                        arg,
-                        canDigThroughNullable,
-                        useDefaultType);
-                    if (result is object)
+                    switch (current.TypeKind)
                     {
-                        return result;
+                        case TypeKind.Dynamic:
+                        case TypeKind.TypeParameter:
+                        case TypeKind.Submission:
+                        case TypeKind.Enum:
+                            continue;
+
+                        case TypeKind.Error:
+                        case TypeKind.Class:
+                        case TypeKind.Struct:
+                        case TypeKind.Interface:
+                        case TypeKind.Delegate:
+                            ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotationsNoUseSiteDiagnostics = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                            for (int i = typeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length - 1; i >= 0; i--)
+                            {
+                                pushNestedTypeWithAnnotations(typeArgumentsWithAnnotationsNoUseSiteDiagnostics[i], canDigThroughNullable, useDefaultType, stack);
+                            }
+                            continue;
+
+                        case TypeKind.Array:
+                            pushNestedTypeWithAnnotations(((ArrayTypeSymbol)current).ElementTypeWithAnnotations, canDigThroughNullable, useDefaultType, stack);
+                            continue;
+
+                        case TypeKind.Pointer:
+                            pushNestedTypeWithAnnotations(((PointerTypeSymbol)current).PointedAtTypeWithAnnotations, canDigThroughNullable, useDefaultType, stack);
+                            continue;
+
+                        case TypeKind.FunctionPointer:
+                            var functionPointerSignature = ((FunctionPointerTypeSymbol)current).Signature;
+                            for (int i = functionPointerSignature.ParameterCount - 1; i >= 0; i--)
+                            {
+                                pushNestedTypeWithAnnotations(functionPointerSignature.Parameters[i].TypeWithAnnotations, canDigThroughNullable, useDefaultType, stack);
+                            }
+
+                            pushNestedTypeWithAnnotations(functionPointerSignature.ReturnTypeWithAnnotations, canDigThroughNullable, useDefaultType, stack);
+                            continue;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
                     }
                 }
 
                 return null;
+            }
+            finally
+            {
+                stack.Free();
+            }
+
+            static TypeSymbol getTypeSymbolForInput((TypeWithAnnotations TypeWithAnnotationsOpt, TypeSymbol? Type) types, bool useDefaultType)
+            {
+                return types.Type ?? (useDefaultType ? types.TypeWithAnnotationsOpt.DefaultType : types.TypeWithAnnotationsOpt.Type);
+            }
+
+            static void pushContainingTypes(TypeSymbol type, ArrayBuilder<(TypeWithAnnotations, TypeSymbol)> stack)
+            {
+                while (isTypeNested(type) && type.ContainingType is TypeSymbol containingType)
+                {
+                    stack.Push((default, containingType));
+                    type = containingType;
+                }
+            }
+
+            static bool isTypeNested(TypeSymbol type)
+            {
+                switch (type.TypeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                    case TypeKind.Interface:
+                    case TypeKind.Enum:
+                    case TypeKind.Delegate:
+                        var containingType = type.ContainingType;
+                        return containingType is object;
+
+                    case TypeKind.Submission:
+                        RoslynDebug.Assert((object)type.ContainingType == null);
+                        return false;
+
+                    default:
+                        return false;
+                }
+            }
+
+            static void pushNestedTypeWithAnnotations(
+                TypeWithAnnotations typeWithAnnotations,
+                bool canDigThroughNullable,
+                bool useDefaultType,
+                ArrayBuilder<(TypeWithAnnotations, TypeSymbol)> stack)
+            {
+                (TypeWithAnnotations, TypeSymbol Type) nextElements = getNextIterationElements(typeWithAnnotations, canDigThroughNullable, useDefaultType);
+                stack.Push(nextElements);
+                pushContainingTypes(nextElements.Type, stack);
+
+                static (TypeWithAnnotations, TypeSymbol) getNextIterationElements(TypeWithAnnotations typeWithAnnotations, bool canDigThroughNullable, bool useDefaultType)
+                {
+                    TypeSymbol? type;
+                    (typeWithAnnotations, type) = canDigThroughNullable ? (default(TypeWithAnnotations), typeWithAnnotations.NullableUnderlyingTypeOrSelf) : (typeWithAnnotations, null);
+                    return (typeWithAnnotations, getTypeSymbolForInput((typeWithAnnotations, type), useDefaultType));
+                }
             }
         }
 
