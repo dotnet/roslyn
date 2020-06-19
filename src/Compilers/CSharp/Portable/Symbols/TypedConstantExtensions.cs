@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (constant.Kind == TypedConstantKind.Type || constant.TypeInternal.SpecialType == SpecialType.System_Object)
             {
-                return "typeof(" + constant.Value!.ToString() + ")";
+                Debug.Assert(constant.Value is object);
+                return "typeof(" + constant.Value.ToString() + ")";
             }
 
             if (constant.Kind == TypedConstantKind.Enum)
@@ -41,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return DisplayEnumConstant(constant);
             }
 
-            return SymbolDisplay.FormatPrimitive(constant.ValueInternal!, quoteStrings: true, useHexadecimalNumbers: false);
+            Debug.Assert(constant.ValueInternal is object);
+            return SymbolDisplay.FormatPrimitive(constant.ValueInternal, quoteStrings: true, useHexadecimalNumbers: false);
         }
 
         // Decode the value of enum constant
