@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// Returns the System.String that represents the current TypedConstant.
+        /// For testing and debugging only
         /// </summary>
         /// <returns>A System.String that represents the current TypedConstant.</returns>
         public static string ToCSharpString(this TypedConstant constant)
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (constant.Kind == TypedConstantKind.Type || constant.TypeInternal.SpecialType == SpecialType.System_Object)
             {
-                return "typeof(" + constant.Value.ToString() + ")";
+                return "typeof(" + constant.Value!.ToString() + ")";
             }
 
             if (constant.Kind == TypedConstantKind.Enum)
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return DisplayEnumConstant(constant);
             }
 
-            return SymbolDisplay.FormatPrimitive(constant.ValueInternal, quoteStrings: true, useHexadecimalNumbers: false);
+            return SymbolDisplay.FormatPrimitive(constant.ValueInternal!, quoteStrings: true, useHexadecimalNumbers: false);
         }
 
         // Decode the value of enum constant
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create a ConstantValue of enum underlying type
             SpecialType splType = ((INamedTypeSymbol)constant.Type).EnumUnderlyingType!.SpecialType;
+            Debug.Assert(constant.ValueInternal is object);
             ConstantValue valueConstant = ConstantValue.Create(constant.ValueInternal, splType);
 
             string typeName = constant.Type.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
@@ -134,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Unable to decode the enum constant, just display the integral value
+            Debug.Assert(constant.ValueInternal is object);
             var result = constant.ValueInternal.ToString();
             Debug.Assert(result is object);
             return result;
@@ -209,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Unable to decode the enum constant, just display the integral value
+            Debug.Assert(constant.ValueInternal is object);
             var result = constant.ValueInternal.ToString();
             Debug.Assert(result is object);
             return result;

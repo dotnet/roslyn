@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         }
                         else
                         {
-                            visited = this.VisitListElement((TNode?)item.AsNode());
+                            visited = this.VisitListElement(node);
                         }
                     }
 

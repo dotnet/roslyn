@@ -387,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)targetSymbol != null);
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
+            Debug.Assert(typedValue.ValueInternal is object);
 
             int securityAction = (int)typedValue.ValueInternal;
             bool isPermissionRequestAction;
@@ -527,6 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     PermissionSetAttributeTypeHasRequiredProperty(attrType, filePropName))
                 {
                     // resolve file prop path
+                    Debug.Assert(namedArg.Value.ValueInternal is object);
                     var fileName = (string)namedArg.Value.ValueInternal;
                     var resolver = compilation.Options.XmlReferenceResolver;
 
@@ -629,7 +631,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!this.HasErrors);
 
-            var guidString = (string)this.CommonConstructorArguments[0].ValueInternal;
+            Debug.Assert(this.CommonConstructorArguments[0].ValueInternal is object);
+            var guidString = (string)this.CommonConstructorArguments[0].ValueInternal!;
 
             // Native compiler allows only a specific GUID format: "D" format (32 digits separated by hyphens)
             Guid guid;

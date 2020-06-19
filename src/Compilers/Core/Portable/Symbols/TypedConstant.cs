@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(kind == TypedConstantKind.Array || !(value is ImmutableArray<TypedConstant>));
             Debug.Assert(!(value is ISymbol) || value is ISymbolInternal);
+            Debug.Assert(type is object);
             _kind = kind;
             _type = type;
             _value = value;
@@ -72,11 +73,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The value for a non-array constant.
         /// </summary>
-        public object Value
+        public object? Value
         {
             get
             {
-                object result = ValueInternal;
+                object? result = ValueInternal;
 
                 if (result is ISymbolInternal symbol)
                 {
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Unlike <see cref="Value"/> returns <see cref="ISymbolInternal"/> when the value is a symbol.
         /// </summary>
-        internal object ValueInternal
+        internal object? ValueInternal
         {
             get
             {
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException("TypedConstant is an array. Use Values property.");
                 }
 
-                return _value!;
+                return _value;
             }
         }
 
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull][NotNullWhen(returnValue: true)] out T value)
+        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull][NotNullWhen(true)] out T value)
         {
             if (_kind == TypedConstantKind.Error)
             {
@@ -141,7 +142,8 @@ namespace Microsoft.CodeAnalysis
 
             if (_type.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
-                value = (T)_value!;
+                Debug.Assert(_value is object);
+                value = (T)_value;
                 return true;
             }
 
