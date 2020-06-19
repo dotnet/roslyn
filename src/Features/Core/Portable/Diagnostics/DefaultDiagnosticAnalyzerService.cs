@@ -159,12 +159,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                var executor = new DocumentAnalysisExecutor(document, span: null, kind, compilationWithAnalyzers, _service._analyzerInfoCache);
 
                 var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 foreach (var analyzer in analyzers)
                 {
-                    builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
-                        document, kind, _service._analyzerInfoCache, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
+                    builder.AddRange(await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();

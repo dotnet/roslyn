@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -43,33 +44,56 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
+                // First attempt to fetch diagnostics from the cache, while computing the state sets for analyzers that are not cached.
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
-                var compilation = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
-
+                using var _ = ArrayBuilder<StateSet>.GetInstance(out var nonCachedStateSets);
                 foreach (var stateSet in stateSets)
                 {
-                    var analyzer = stateSet.Analyzer;
-
-                    var result = await GetDocumentAnalysisDataAsync(compilation, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
-                    if (result.FromCache)
+                    var data = await TryGetCachedDocumentAnalysisDataAsync(document, stateSet, kind, cancellationToken).ConfigureAwait(false);
+                    if (data.HasValue)
                     {
-                        RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.Items);
-                        continue;
+                        // We need to persist and raise diagnostics for suppressed analyzer.
+                        PersistAndRaiseDiagnosticsIfNeeded(data.Value, stateSet);
                     }
-
-                    // no cancellation after this point.
-                    var state = stateSet.GetOrCreateActiveFileState(document.Id);
-                    state.Save(kind, result.ToPersistData());
-
-                    RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
+                    else
+                    {
+                        nonCachedStateSets.Add(stateSet);
+                    }
                 }
 
-                var asyncToken = AnalyzerService.Listener.BeginAsyncOperation(nameof(AnalyzeDocumentForKindAsync));
-                var _ = ReportAnalyzerPerformanceAsync(document, compilation, cancellationToken).CompletesAsyncOperation(asyncToken);
+                // Then, compute the diagnostics for non-cached state sets.
+                if (nonCachedStateSets.Count > 0)
+                {
+                    var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, nonCachedStateSets, cancellationToken).ConfigureAwait(false);
+                    var executor = new DocumentAnalysisExecutor(document, span: null, kind, compilationWithAnalyzers, DiagnosticAnalyzerInfoCache);
+                    foreach (var stateSet in nonCachedStateSets)
+                    {
+                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, cancellationToken).ConfigureAwait(false);
+                        PersistAndRaiseDiagnosticsIfNeeded(computedData, stateSet);
+                    }
+
+                    var asyncToken = AnalyzerService.Listener.BeginAsyncOperation(nameof(AnalyzeDocumentForKindAsync));
+                    var _2 = ReportAnalyzerPerformanceAsync(document, compilationWithAnalyzers, cancellationToken).CompletesAsyncOperation(asyncToken);
+                }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            void PersistAndRaiseDiagnosticsIfNeeded(DocumentAnalysisData result, StateSet stateSet)
+            {
+                if (result.FromCache == true)
+                {
+                    RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.Items);
+                    return;
+                }
+
+                // no cancellation after this point.
+                var state = stateSet.GetOrCreateActiveFileState(document.Id);
+                state.Save(kind, result.ToPersistData());
+
+                RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
             }
         }
 
