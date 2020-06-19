@@ -6750,7 +6750,7 @@ oneMoreTime:
         public override IOperation VisitNegatedPattern(INegatedPatternOperation operation, int? argument)
         {
             return new NegatedPatternOperation(
-                negatedPattern: (IPatternOperation)Visit(operation.NegatedPattern),
+                pattern: (IPatternOperation)Visit(operation.Pattern),
                 inputType: operation.InputType,
                 semanticModel: null,
                 syntax: operation.Syntax,
@@ -6986,7 +6986,7 @@ oneMoreTime:
         {
             EvalStackFrame frame = PushStackFrame();
             // Initializer is removed from the tree and turned into a series of statements that assign to the cloned instance
-            IOperation visitedInstance = Visit(operation.Value);
+            IOperation visitedInstance = Visit(operation.Operand);
 
             IOperation cloned = operation.CloneMethod is null
                 ? MakeInvalidOperation(visitedInstance.Type, visitedInstance)
