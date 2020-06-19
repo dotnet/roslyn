@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -42,11 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 request.CodeActionParams.Range,
                 cancellationToken).ConfigureAwait(false);
 
-            var actionToRun = codeActions?.FirstOrDefault(a => a.Title == request.Title);
+            var actionToRun = codeActions?.FirstOrDefault(a => a.Key.Title == request.Title);
 
             if (actionToRun != null)
             {
-                var operations = await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                // add check here
+                var operations = await actionToRun.Value.Key.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 var applyChangesOperation = operations.OfType<ApplyChangesOperation>().FirstOrDefault();
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

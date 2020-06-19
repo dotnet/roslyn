@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -15,8 +16,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -24,9 +26,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Handles the get code actions command.
     /// </summary>
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandler : AbstractRequestHandler<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>
+    [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName), Shared]
+    internal class CodeActionsHandler : AbstractRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
@@ -35,15 +36,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, ILspSolutionProvider solutionProvider)
+        public CodeActionsHandler(
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            ILspSolutionProvider solutionProvider)
             : base(solutionProvider)
         {
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public override async Task<LSP.SumType<LSP.Command, LSP.CodeAction>[]> HandleRequestAsync(LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.VSCodeAction[]> HandleRequestAsync(
+            LSP.CodeActionParams request,
+            LSP.ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken)
         {
             var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             var codeActions = await GetCodeActionsAsync(document,
@@ -53,47 +60,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 cancellationToken).ConfigureAwait(false);
 
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-            codeActions = codeActions.Where(c => !(c is CodeActionWithOptions));
+            codeActions = codeActions.Where(c => !(c.Key is CodeActionWithOptions));
 
-            var result = new ArrayBuilder<LSP.SumType<LSP.Command, LSP.CodeAction>>();
+            var results = new List<VSCodeAction>();
             foreach (var codeAction in codeActions)
             {
-                // Always return the Command instead of a precalculated set of workspace edits. 
-                // The edits will be calculated when the code action is either previewed or 
-                // invoked.
-
-                // It's safe for the client to pass back the range/filename in the command to run
-                // on the server because the client will always re-issue a get code actions request
-                // before invoking a preview or running the command on the server.
-
-                result.Add(
-                    new LSP.Command
-                    {
-                        CommandIdentifier = RunCodeActionCommandName,
-                        Title = codeAction.Title,
-                        Arguments = new object[]
-                        {
-                                new RunCodeActionParams
-                                {
-                                    CodeActionParams = request,
-                                    Title = codeAction.Title
-                                }
-                        }
-                    });
+                results.Add(GenerateVSCodeAction(request, codeAction.Key, codeAction.Value));
             }
 
-            return result.ToArrayAndFree();
+            return results.ToArray();
+
+            static VSCodeAction GenerateVSCodeAction(
+                CodeActionParams request,
+                CodeAnalysis.CodeActions.CodeAction codeAction,
+                CodeActionKind codeActionKind)
+            {
+                var nestedActions = new List<VSCodeAction>();
+                foreach (var action in codeAction.NestedCodeActions)
+                {
+                    nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind));
+                }
+
+                return new VSCodeAction
+                {
+                    Title = codeAction.Title,
+                    Kind = codeActionKind,
+                    Diagnostics = request.Context.Diagnostics,
+                    Children = nestedActions.ToArray(),
+                    Data = new CodeActionResolveData { CodeActionParams = request }
+                };
+            }
         }
 
-        internal static async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document? document,
+        internal static async Task<IEnumerable<KeyValuePair<CodeAnalysis.CodeActions.CodeAction, CodeActionKind>>> GetCodeActionsAsync(
+            Document? document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
+            var actions = new Dictionary<CodeAnalysis.CodeActions.CodeAction, CodeActionKind>();
             if (document == null)
             {
-                return ImmutableArray<CodeAction>.Empty;
+                return actions;
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -102,14 +111,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var codeFixCollections = await codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).ConfigureAwait(false);
             var codeRefactorings = await codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
-            var codeActions = codeFixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).Concat(
-                                codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));
+            foreach (var fix in codeFixCollections.SelectMany(codeFix => codeFix.Fixes))
+            {
+                actions.Add(fix.Action, CodeActionKind.QuickFix);
+            }
 
-            // Flatten out the nested codeactions.
-            var nestedCodeActions = codeActions.Where(c => c is CodeAction.CodeActionWithNestedActions nc && nc.IsInlinable).SelectMany(nc => nc.NestedCodeActions);
-            codeActions = codeActions.Where(c => !(c is CodeAction.CodeActionWithNestedActions)).Concat(nestedCodeActions);
+            foreach (var (action, _) in codeRefactorings.SelectMany(codeRefactoring => codeRefactoring.CodeActions))
+            {
+                actions.Add(action, CodeActionKind.Refactor);
+            }
 
-            return codeActions;
+            return actions;
         }
     }
 }

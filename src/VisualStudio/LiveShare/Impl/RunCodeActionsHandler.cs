@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         public async Task<object> HandleAsync(LSP.ExecuteCommandParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             // Unwrap the command to get the RunCodeActions command.
-            if (request.Command.StartsWith(CodeActionsHandlerShim.RemoteCommandNamePrefix))
+            if (request.Command.StartsWith("_liveshare.remotecommand"))
             {
                 var command = ((JObject)request.Arguments[0]).ToObject<LSP.Command>();
                 request.Command = command.CommandIdentifier;
@@ -58,11 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document, _codeFixService, _codeRefactoringService,
                     runRequest.CodeActionParams.Range, cancellationToken).ConfigureAwait(false);
 
-                var actionToRun = codeActions?.FirstOrDefault(a => a.Title == runRequest.Title);
+                var actionToRun = codeActions?.FirstOrDefault(a => a.Key.Title == runRequest.Title);
 
                 if (actionToRun != null)
                 {
-                    foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
+                    // add check here
+                    foreach (var operation in await actionToRun.Value.Key.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
                     {
                         // TODO - This UI thread dependency should be removed.
                         // https://github.com/dotnet/roslyn/projects/45#card-20619668
