@@ -25,18 +25,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
+    internal class CompletionHandler : AbstractRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionHandler()
+        public CompletionHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<LSP.CompletionItem[]> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.CompletionItem[]> HandleRequestAsync(LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, string? clientName,
+            CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<LSP.CompletionItem>();
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText },
+                    Data = new CompletionResolveData { TextDocument = request.TextDocument, Position = request.Position, DisplayText = item.DisplayText }
                 };
 
                 // We only set the commit characters if they differ from the default.

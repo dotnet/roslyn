@@ -7,18 +7,17 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
-using Roslyn.Utilities;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
@@ -63,14 +62,19 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
         }
 
-        private readonly IManagedModuleInfoProvider _managedModuleInfoProvider;
         private readonly DebuggeeModuleInfoCache _baselineMetadata;
+        private readonly IComponentModel _componentModel;
+        private IManagedModuleInfoProvider? _managedModuleInfoProvider;
+
+        // Lazily initialized to avoid loading debugger related assemblies during MEF composition.
+        private IManagedModuleInfoProvider ManagedModuleInfoProvider
+            => _managedModuleInfoProvider ??= _componentModel.GetService<IManagedModuleInfoProvider>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioDebuggeeModuleMetadataProvider(IManagedModuleInfoProvider managedModuleInfoProvider)
+        public VisualStudioDebuggeeModuleMetadataProvider(Shell.SVsServiceProvider serviceProvider)
         {
-            _managedModuleInfoProvider = managedModuleInfoProvider;
+            _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             _baselineMetadata = new DebuggeeModuleInfoCache();
         }
 
@@ -125,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         public async Task<(int errorCode, string? errorMessage)?> GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
         {
-            var availability = await _managedModuleInfoProvider.GetEncAvailability(mvid, cancellationToken).ConfigureAwait(false);
+            var availability = await ManagedModuleInfoProvider.GetEncAvailability(mvid, cancellationToken).ConfigureAwait(false);
             return availability.Status switch
             {
                 DkmEncAvailableStatus.Available => (0, null),
@@ -157,6 +161,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         public Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
-            => _managedModuleInfoProvider.PrepareModuleForUpdate(mvid, cancellationToken);
+            => ManagedModuleInfoProvider.PrepareModuleForUpdate(mvid, cancellationToken);
     }
 }

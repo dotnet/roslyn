@@ -2959,9 +2959,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < sourceSig.ParameterCount; i++)
             {
                 var sourceParam = sourceSig.Parameters[i];
-                var destintationParam = destinationSig.Parameters[i];
+                var destinationParam = destinationSig.Parameters[i];
 
-                if (sourceParam.RefKind != destintationParam.RefKind)
+                if (sourceParam.RefKind != destinationParam.RefKind)
                 {
                     return false;
                 }

@@ -1324,6 +1324,8 @@
     <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
     <Field Name="NaturalTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="WasTargetTyped" Type="bool" />
+    <!-- The conversion to Type. Either a switch expression conversion or an identity conversion -->
+    <Field Name="Conversion" Type="Conversion"/>
   </Node>
 
   <Node Name="BoundDecisionDag" Base="BoundNode">

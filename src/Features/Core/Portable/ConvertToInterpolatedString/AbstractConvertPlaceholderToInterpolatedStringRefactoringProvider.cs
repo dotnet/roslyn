@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             SyntaxGenerator syntaxGenerator,
             ISyntaxFacts syntaxFacts)
         {
-            var builder = ArrayBuilder<TExpressionSyntax>.GetInstance();
+            using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var builder);
             for (var i = 1; i < arguments.Count; i++)
             {
                 var argumentExpression = syntaxFacts.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFacts));
@@ -222,8 +222,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 }
             }
 
-            var expandedArguments = builder.ToImmutableAndFree();
-            return expandedArguments;
+            return builder.ToImmutable();
         }
 
         private static SyntaxNode VisitArguments(
