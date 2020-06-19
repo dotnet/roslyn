@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis
                 if (reference is IForEachLoopOperation forEachLoop)
                 {
                     var foreachInfo = semanticModel.GetForEachStatementInfo((ForEachStatementSyntax)forEachLoop.Syntax);
-                    if (foreachInfo.ElementType.NullableAnnotation == NullableAnnotation.Annotated)
+
+                    // Use NotAnnotated here to keep both Annotated and Oblivious treated the same, since
+                    // this is directly looking at the annotation and not the flow state
+                    if (foreachInfo.ElementType.NullableAnnotation != NullableAnnotation.NotAnnotated)
                     {
                         return true;
                     }
