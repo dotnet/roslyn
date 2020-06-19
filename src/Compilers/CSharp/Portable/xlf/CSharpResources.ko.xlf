@@ -572,6 +572,16 @@
         <target state="translated">두 부분 메서드(Partial method) 선언 모두 readonly이거나 readonly가 아니어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodRefReturnDifference">
+        <source>Partial method declarations must have matching ref return values.</source>
+        <target state="new">Partial method declarations must have matching ref return values.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodReturnTypeDifference">
+        <source>Both partial method declarations must have the same return type.</source>
+        <target state="new">Both partial method declarations must have the same return type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
         <source>Partial method '{0}' must have an implementation part because it has accessibility modifiers.</source>
         <target state="new">Partial method '{0}' must have an implementation part because it has accessibility modifiers.</target>
@@ -2162,6 +2172,16 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">반환 형식에 있는 참조 형식 Null 허용 여부가 재정의된 멤버와 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
+        <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in return type doesn't match partial method declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
