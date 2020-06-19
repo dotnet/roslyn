@@ -60,17 +60,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 switch (member)
                 {
                     case RetargetingMethodSymbol m:
-                        Assert.Equal(!binaryCompat, overriddenMember.Equals(m.RetargetOverriddenMethod));
+                        {
+                            MethodSymbol explicitlyOverriddenClassMethod = m.ExplicitlyOverriddenClassMethod;
+                            if (isCovariant)
+                            {
+                                Assert.Equal(!binaryCompat, overriddenMember.Equals(explicitlyOverriddenClassMethod));
+                            }
+                            else if (!binaryCompat)
+                            {
+                                Assert.Null(explicitlyOverriddenClassMethod);
+                            }
+                        }
                         break;
                     case PEMethodSymbol m:
-                        MethodSymbol explicitlyOverriddenClassMethod = m.ExplicitlyOverriddenClassMethod;
-                        if (isCovariant)
                         {
-                            Assert.Equal(!binaryCompat, overriddenMember.Equals(explicitlyOverriddenClassMethod));
-                        }
-                        else if (!binaryCompat)
-                        {
-                            Assert.Null(explicitlyOverriddenClassMethod);
+                            MethodSymbol explicitlyOverriddenClassMethod = m.ExplicitlyOverriddenClassMethod;
+                            if (isCovariant)
+                            {
+                                Assert.Equal(!binaryCompat, overriddenMember.Equals(explicitlyOverriddenClassMethod));
+                            }
+                            else if (!binaryCompat)
+                            {
+                                Assert.Null(explicitlyOverriddenClassMethod);
+                            }
                         }
                         break;
                 }
@@ -93,10 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     Assert.False(setMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
                     Assert.False(setMethod.RequiresExplicitOverride());
                     Assert.Equal(!isCovariant, overriddenSetMethod.Equals(setMethod.GetOverriddenMember(), TypeCompareKind.AllIgnoreOptions));
-                }
-                if (member is RetargetingPropertySymbol p)
-                {
-                    Assert.Equal(!binaryCompat, overriddenMember.Equals(p.RetargetOverriddenProperty));
                 }
             }
             else if (member is EventSymbol eventSymbol && overriddenMember is EventSymbol overriddenEvent)

@@ -187,19 +187,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
-        /// <summary>
-        /// Retarget the underlying property's overridden property.
-        /// </summary>
-        internal PropertySymbol RetargetOverriddenProperty
-        {
-            get
-            {
-                return _underlyingProperty.OverriddenProperty is PropertySymbol overridden
-                    ? this.RetargetingTranslator.Retarget(overridden, MemberSignatureComparer.RetargetedExplicitImplementationComparer)
-                    : null;
-            }
-        }
-
         public override Symbol ContainingSymbol
         {
             get

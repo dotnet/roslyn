@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MethodSymbol method => KnownOverriddenClassMethod(method),
                 PEPropertySymbol { GetMethod: PEMethodSymbol { ExplicitlyOverriddenClassMethod: { AssociatedSymbol: PropertySymbol overriddenProperty } } } => overriddenProperty,
-                RetargetingPropertySymbol property => property.RetargetOverriddenProperty,
+                RetargetingPropertySymbol { GetMethod: RetargetingMethodSymbol { ExplicitlyOverriddenClassMethod: { AssociatedSymbol: PropertySymbol overriddenProperty } } } => overriddenProperty,
                 _ => null
             };
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static MethodSymbol KnownOverriddenClassMethod(MethodSymbol method) => method switch
         {
             PEMethodSymbol m => m.ExplicitlyOverriddenClassMethod,
-            RetargetingMethodSymbol m => m.RetargetOverriddenMethod,
+            RetargetingMethodSymbol m => m.ExplicitlyOverriddenClassMethod,
             _ => null
         };
 

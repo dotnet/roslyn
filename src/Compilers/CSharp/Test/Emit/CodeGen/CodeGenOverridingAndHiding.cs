@@ -1112,63 +1112,112 @@ class Test
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "Test of execution of explicitly ambiguous IL")]
-
-        private void TestAmbiguousOverridesWarningCase()
+        [Fact]
+        public void TestAmbiguousOverridesRefOut()
         {
-            // Tests:
-            // Test that we no longer report  warnings even when ambiguous base methods that we are trying to
-            // override only differ by ref / out because the compiler now produces a methodimpl record to disambiguate.
+            // NOTE: we no longer warn as we produce a methodimpl record to disambiguate for the runtime.
+            // However, due to https://github.com/dotnet/runtime/issues/38119 the runtime does not always obey the metadata
 
+            var method1 = @"public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine(""Base<T, U>.Method(ref List<T> x, out List<U> y)""); }";
+            var method2 = @"public virtual void Method(out List<U> y, ref List<T> x) { y = null; Console.WriteLine(""Base<T, U>.Method(out List<U> y, ref List<T> x)""); }";
             var source = @"
 using System;
 using System.Collections.Generic;
 abstract class Base<T, U>
 {
-    public virtual void Method(ref List<T> x, out List<U> y) { Console.WriteLine(""Base.Method(ref, out)""); y = null; }
-    public virtual void Method(out List<U> y, ref List<T> x) { Console.WriteLine(""Base.Method(out, ref)""); y = null; }
-    public virtual void Method(ref List<U> x) { Console.WriteLine(""Base.Method(ref)""); }
+    METHOD1
+    METHOD2
+    public virtual void Method(BASEREF List<U> x) { x = null; Console.WriteLine(""Base<T, U>.Method(ref List<U> x)""); }  
 }
 class Base2<A, B> : Base<A, B>
 {
-    public virtual void Method(out List<A> x) { Console.WriteLine(""Base2.Method(out)""); x = null; }
+    public virtual void Method(BASE2REF List<A> x)
+    {
+        x = null;
+        Console.WriteLine(""Base2<A, B>.Method(BASE2REF List<A> x)"");
+    }
 }
 class Derived : Base2<int, int>
 {
-    // No longer reports warning about runtime ambiguity because compiler produces a methodimpl record to disambiguate
-    public override void Method(ref List<int> a, out List<int> b) { Console.WriteLine(""Derived.Method(ref, out)""); b = null; }
-
-    // No warning when ambiguous signatures are spread across multiple base types
-    public override void Method(ref List<int> a) { Console.WriteLine(""Derived.Method(ref)""); }
-}
-class Test
-{
-    public static void Main()
+    public override void Method(ref List<int> a, out List<int> b) // No warning - the compiler produces a methodimpl record to disambiguate
     {
-        Base2<int, int> b2 = new Derived();
-        Base<int, int> b = b2;
-        List<int> arg = new List<int>();
-        b.Method(out arg, ref arg);
-        b.Method(ref arg, out arg);
-        b.Method(ref arg);
-        b2.Method(out arg);
+        b = null;
+        Console.WriteLine(""Derived.Method(ref List<int> a, out List<int> b)"");
+    }
+    public override void Method(BASEREF List<int> a) // No warning when ambiguous signatures are spread across multiple base types
+    {
+        a = null;
+        Console.WriteLine(""Derived.Method(ref List<int> a)"");
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        List<int> t = null;
+        Derived d = new Derived();
+        d.Method(ref t, out t);
+        d.Method(out t, ref t);
+        d.Method(BASEREF t);
+        d.Method(BASE2REF t);
+        Console.WriteLine();
+        Base2<int, int> b2 = d;
+        b2.Method(ref t, out t);
+        b2.Method(out t, ref t);
+        b2.Method(BASEREF t);
+        b2.Method(BASE2REF t);
+        Console.WriteLine();
+        Base<int, int> b1 = d;
+        b1.Method(ref t, out t);
+        b1.Method(out t, ref t);
+        b1.Method(BASEREF t);
     }
 }
 ";
-            // Note: This test is exercising a case that is 'Runtime Ambiguous'. In the generated IL, it is ambiguous which
-            // method is being overridden. As far as I can tell, the output won't change from build to build / machine to machine
-            // although it may change from one version of the CLR to another (not sure). If it turns out that this makes
-            // the test flaky, we can delete this test.
+            var expectedOutput = @"
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
 
-            // Note: When implementing covariant return types, we caused the compiler to insert a methodimpl for the
-            // override that forces the runtime to agree with the compile-time override behavior.  It is therefore no
-            // longer ambiguous from the runtime's perspective.  The output of this test is therefore correct from a
-            // language perspective and there is no ambiguity.
-            var comp = CompileAndVerify(source, expectedOutput: @"
-Base.Method(out, ref)
-Derived.Method(ref, out)
-Derived.Method(ref)
-Base2.Method(out)");
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)";
+            for (int i = 0; i < 2; i++)
+            {
+                if (i == 1)
+                {
+                    // This case is not working due to https://github.com/dotnet/runtime/issues/38119
+                    continue;
+                }
+                var substitutedSource0 = i switch
+                {
+                    0 => source.Replace("METHOD1", method1).Replace("METHOD2", method2),
+                    _ => source.Replace("METHOD2", method1).Replace("METHOD1", method2),
+                };
+                for (int j = 0; j < 2; j++)
+                {
+                    if (j == 1)
+                    {
+                        // This case is not working due to https://github.com/dotnet/runtime/issues/38119
+                        continue;
+                    }
+                    string subst(string s) => j switch
+                    {
+                        0 => s.Replace("BASEREF", "ref").Replace("BASE2REF", "out"),
+                        _ => s.Replace("BASEREF", "out").Replace("BASE2REF", "ref"),
+                    };
+                    var substitutedSource = subst(substitutedSource0);
+                    var substitutedExpected = subst(expectedOutput);
+                    var verifier = CompileAndVerify(substitutedSource, options: TestOptions.ReleaseExe, expectedOutput: substitutedExpected);
+                    verifier.VerifyDiagnostics();
+                }
+            }
         }
 
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]

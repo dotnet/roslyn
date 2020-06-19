@@ -7336,8 +7336,7 @@ End Class
             Dim references = cSharpCompilation.References.Append(reference)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, references, TestOptions.ReleaseDll)
-            compilation.AssertTheseDiagnostics(<expected>
-                                               </expected>)
+            compilation.AssertNoDiagnostics()
             CompileAndVerify(compilation, verify:=Verification.Skipped).VerifyIL("Derived2.Test",
             <![CDATA[
 {

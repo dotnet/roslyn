@@ -281,15 +281,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         /// <summary>
-        /// Retarget the underlying method's overridden method.
+        /// The explicitly overridden method (e.g. as would be declared in the PE method in covariant return scenarios).
         /// </summary>
-        internal MethodSymbol RetargetOverriddenMethod
+        internal MethodSymbol ExplicitlyOverriddenClassMethod
         {
             get
             {
-                return _underlyingMethod.OverriddenMethod is MethodSymbol overridden
-                    ? this.RetargetingTranslator.Retarget(overridden, MemberSignatureComparer.RetargetedExplicitImplementationComparer)
-                    : null;
+                return
+                    _underlyingMethod.RequiresExplicitOverride()
+                        ? this.RetargetingTranslator.Retarget(_underlyingMethod.OverriddenMethod, MemberSignatureComparer.RetargetedExplicitImplementationComparer)
+                        : null;
             }
         }
 
