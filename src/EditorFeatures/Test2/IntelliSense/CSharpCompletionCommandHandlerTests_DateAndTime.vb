@@ -63,10 +63,10 @@ class c
 ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("d", inlineDescription:=FeaturesResources.short_date)
+                Await state.AssertSelectedCompletionItem("G", inlineDescription:=FeaturesResources.general_long_date_time)
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("d.ToString(""d"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("d.ToString(""G"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
