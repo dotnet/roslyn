@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                 case SymbolKind.PointerType:
-                case SymbolKind.FunctionPointer:
+                case SymbolKind.FunctionPointerType:
                 case SymbolKind.TypeParameter:
                     return true;
                 case SymbolKind.Alias:

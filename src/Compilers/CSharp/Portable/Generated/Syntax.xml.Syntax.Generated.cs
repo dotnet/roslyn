@@ -2996,7 +2996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class WithExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax? receiver;
+        private ExpressionSyntax? expression;
         private InitializerExpressionSyntax? initializer;
 
         internal WithExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -3004,7 +3004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public ExpressionSyntax Receiver => GetRedAtZero(ref this.receiver)!;
+        public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
         public SyntaxToken WithKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
 
@@ -3014,7 +3014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.receiver)!,
+                0 => GetRedAtZero(ref this.expression)!,
                 2 => GetRed(ref this.initializer, 2)!,
                 _ => null,
             };
@@ -3022,7 +3022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index)
             => index switch
             {
-                0 => this.receiver,
+                0 => this.expression,
                 2 => this.initializer,
                 _ => null,
             };
@@ -3031,11 +3031,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWithExpression(this);
 
-        public WithExpressionSyntax Update(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        public WithExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
         {
-            if (receiver != this.Receiver || withKeyword != this.WithKeyword || initializer != this.Initializer)
+            if (expression != this.Expression || withKeyword != this.WithKeyword || initializer != this.Initializer)
             {
-                var newNode = SyntaxFactory.WithExpression(receiver, withKeyword, initializer);
+                var newNode = SyntaxFactory.WithExpression(expression, withKeyword, initializer);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -3043,9 +3043,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public WithExpressionSyntax WithReceiver(ExpressionSyntax receiver) => Update(receiver, this.WithKeyword, this.Initializer);
-        public WithExpressionSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(this.Receiver, withKeyword, this.Initializer);
-        public WithExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.Receiver, this.WithKeyword, initializer);
+        public WithExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.WithKeyword, this.Initializer);
+        public WithExpressionSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(this.Expression, withKeyword, this.Initializer);
+        public WithExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.Expression, this.WithKeyword, initializer);
 
         public WithExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items) => WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
     }

@@ -1523,7 +1523,7 @@
   </Node>
   <Node Name="WithExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="WithExpression"/>
-    <Field Name="Receiver" Type="ExpressionSyntax" />
+    <Field Name="Expression" Type="ExpressionSyntax" />
     <Field Name="WithKeyword" Type="SyntaxToken">
       <Kind Name="WithKeyword" />
     </Field>
