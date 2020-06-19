@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 extern alias InteractiveHost;
 extern alias Scripting;
 
@@ -12,6 +14,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -19,6 +23,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -29,7 +34,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
-    using System.Runtime.CompilerServices;
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
     {
         private const string CommandPrefix = "#";
 
-        private readonly string _responseFileName;
+        private readonly string? _responseFileName;
 
         private readonly InteractiveHost _interactiveHost;
 
@@ -45,25 +49,16 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private readonly IThreadingContext _threadingContext;
         private readonly IContentType _contentType;
-        private readonly InteractiveWorkspace _workspace;
         private readonly IViewClassifierAggregatorService _classifierAggregator;
         private readonly IInteractiveWindowCommandsFactory _commandsFactory;
         private readonly ImmutableArray<IInteractiveWindowCommand> _commands;
+        private readonly CancellationTokenSource _shutdownCancellationSource;
+        private readonly CancellationToken _shutdownCancellationToken;
 
-        // InteractiveHost state:
-        private RemoteInitializationResult _initializationResult;
-        private InteractiveHostPlatformInfo _platformInfo;
-        public ImmutableArray<string> ReferenceSearchPaths { get; private set; }
-        public ImmutableArray<string> SourceSearchPaths { get; private set; }
-        public string WorkingDirectory { get; private set; }
+        private IInteractiveWindow? _lazyInteractiveWindow;
+        private IInteractiveWindowCommands? _lazyInteractiveCommands;
 
-        // InteractiveWorkspace state:
-        private ProjectId _lastSuccessfulSubmissionProjectId;
-        private ProjectId _currentSubmissionProjectId;
-
-        // InteractiveWindow state:
-        private IInteractiveWindow _currentWindow;
-        private IInteractiveWindowCommands _interactiveCommands;
+        #region UI Thread only
 
         /// <remarks>
         /// Submission buffers in the order they were submitted. 
@@ -72,12 +67,35 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// </remarks>
         private readonly List<ITextBuffer> _submittedBuffers = new List<ITextBuffer>();
 
+        #endregion
+
+        #region State only accessible by queued tasks
+
+        // Use to serialize InteractiveHost process initialization and code execution.
+        // The process may restart any time and we need to react to that by clearing 
+        // the current solution and setting up the first submission project. 
+        // At the same time a code submission might be in progress.
+        // If we left these operations run in parallel we might get into a state
+        // inconsistent with the state of the host.
+        private readonly TaskQueue _taskQueue;
+
+        private readonly InteractiveWorkspace _workspace;
+        private ProjectId? _lastSuccessfulSubmissionProjectId;
+        private ProjectId? _currentSubmissionProjectId;
+        public int SubmissionCount { get; private set; }
+
+        private RemoteInitializationResult? _initializationResult;
+        private InteractiveHostPlatformInfo _platformInfo;
+        public ImmutableArray<string> ReferenceSearchPaths { get; private set; }
+        public ImmutableArray<string> SourceSearchPaths { get; private set; }
+        public string WorkingDirectory { get; private set; }
+
         /// <summary>
         /// Buffers that need to be associated with a submission project once the process initialization completes.
         /// </summary>
         private readonly List<(ITextBuffer buffer, string name)> _pendingBuffers = new List<(ITextBuffer, string)>();
 
-        private int _submissionCount = 0;
+        #endregion
 
         internal InteractiveEvaluatorResetOptions ResetOptions { get; set; }
             = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
@@ -86,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         internal InteractiveEvaluator(
             IThreadingContext threadingContext,
+            IAsynchronousOperationListener listener,
             IContentType contentType,
             HostServices hostServices,
             IViewClassifierAggregatorService classifierAggregator,
@@ -98,6 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             Debug.Assert(responseFileName == null || responseFileName.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) == -1);
 
             _threadingContext = threadingContext;
+            _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
+            _shutdownCancellationSource = new CancellationTokenSource();
             _contentType = contentType;
             _responseFileName = responseFileName;
             _workspace = new InteractiveWorkspace(hostServices, this);
@@ -116,42 +137,33 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _interactiveHost.ProcessInitialized += ProcessInitialized;
         }
 
-        private void LogState([CallerMemberName] string member = null, [CallerLineNumber] int line = 0)
+        private void LogState([CallerMemberName] string? member = null, [CallerLineNumber] int line = 0)
         {
-            Debug.WriteLine($"{member} ({line}): current={_currentSubmissionProjectId.DebugName}, last={_lastSuccessfulSubmissionProjectId.DebugName}");
+            Debug.WriteLine($"{member} ({line}): current={_currentSubmissionProjectId?.DebugName}, last={_lastSuccessfulSubmissionProjectId?.DebugName}");
         }
 
-        public int SubmissionCount => _submissionCount;
+        public IContentType ContentType => _contentType;
 
-        public IContentType ContentType
+        public IInteractiveWindow? CurrentWindow
         {
-            get
-            {
-                return _contentType;
-            }
-        }
-
-        public IInteractiveWindow CurrentWindow
-        {
-            get
-            {
-                return _currentWindow;
-            }
+            get => _lazyInteractiveWindow;
 
             set
             {
-                if (_currentWindow != null)
+                _threadingContext.ThrowIfNotOnUIThread();
+
+                if (_lazyInteractiveWindow != null)
                 {
                     throw new NotSupportedException(InteractiveEditorFeaturesResources.The_CurrentWindow_property_may_only_be_assigned_once);
                 }
 
-                _currentWindow = value ?? throw new ArgumentNullException();
+                _lazyInteractiveWindow = value ?? throw new ArgumentNullException(nameof(value));
                 _workspace.Window = value;
 
-                Task.Run(() => _interactiveHost.SetOutputs(_currentWindow.OutputWriter, _currentWindow.ErrorOutputWriter));
+                Task.Run(() => _interactiveHost.SetOutputs(value.OutputWriter, value.ErrorOutputWriter));
 
-                _currentWindow.SubmissionBufferAdded += SubmissionBufferAdded;
-                _interactiveCommands = _commandsFactory.CreateInteractiveCommands(_currentWindow, CommandPrefix, _commands);
+                value.SubmissionBufferAdded += SubmissionBufferAdded;
+                _lazyInteractiveCommands = _commandsFactory.CreateInteractiveCommands(value, CommandPrefix, _commands);
             }
         }
 
@@ -163,30 +175,44 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>
         /// Invoked before the process is reset. The argument is the value of <see cref="InteractiveHostOptions.Platform"/>.
         /// </summary>
-        public event Action<InteractiveHostPlatform> OnBeforeReset;
+        public event Action<InteractiveHostPlatform>? OnBeforeReset;
 
         #region Initialization
 
-        private IInteractiveWindow GetCurrentWindowOrThrow()
-        {
-            var window = _currentWindow;
-            if (window == null)
-            {
-                throw new InvalidOperationException(EditorFeaturesResources.Engine_must_be_attached_to_an_Interactive_Window);
-            }
+        private IInteractiveWindow GetInteractiveWindow()
+            => _lazyInteractiveWindow ?? throw new InvalidOperationException(EditorFeaturesResources.Engine_must_be_attached_to_an_Interactive_Window);
 
-            return window;
-        }
+        private IInteractiveWindowCommands GetInteractiveCommands()
+            => _lazyInteractiveCommands ?? throw new InvalidOperationException(EditorFeaturesResources.Engine_must_be_attached_to_an_Interactive_Window);
 
         public void Dispose()
         {
+            _shutdownCancellationSource.Cancel();
+            _shutdownCancellationSource.Dispose();
+
             _workspace.Dispose();
             _interactiveHost.Dispose();
 
-            if (_currentWindow != null)
+            var interactiveWindow = _lazyInteractiveWindow;
+            if (interactiveWindow != null)
             {
-                _currentWindow.SubmissionBufferAdded -= SubmissionBufferAdded;
+                interactiveWindow.SubmissionBufferAdded -= SubmissionBufferAdded;
             }
+        }
+
+        private void CaptureClassificationSpans()
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            var textView = GetInteractiveWindow().TextView;
+
+            // Freeze all existing classifications and then clear the list of submission buffers we have.
+            foreach (var textBuffer in _submittedBuffers)
+            {
+                InertClassifierProvider.CaptureExistingClassificationSpans(_classifierAggregator, textView, textBuffer);
+            }
+
+            _submittedBuffers.Clear();
         }
 
         /// <summary>
@@ -196,49 +222,37 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             Contract.ThrowIfFalse(result.InitializationResult != null);
 
-            if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
+            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                CaptureClassificationSpans();
+            });
+
+            _taskQueue.ScheduleTask(nameof(ProcessInitialized), () =>
+            {
+                LogState();
+
+                // clear workspace state:
+                _workspace.ClearSolution();
+                _currentSubmissionProjectId = null;
+                _lastSuccessfulSubmissionProjectId = null;
+
+                // update host state:
+                _platformInfo = platformInfo;
+                _initializationResult = result.InitializationResult;
+                UpdatePathsNoLock(result);
+
+                // Create submission projects for buffers that were added by the Interactive Window 
+                // before the process initialization completed.
+                foreach (var (buffer, languageName) in _pendingBuffers)
                 {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    ProcessInitialized(platformInfo, options, result);
-                });
+                    AddSubmissionProjectNoLock(buffer, languageName);
+                }
 
-                return;
-            }
+                _pendingBuffers.Clear();
 
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            var textView = GetCurrentWindowOrThrow().TextView;
-
-            // Freeze all existing classifications and then clear the list of submission buffers we have.
-            foreach (var textBuffer in _submittedBuffers)
-            {
-                InertClassifierProvider.CaptureExistingClassificationSpans(_classifierAggregator, textView, textBuffer);
-            }
-
-            _submittedBuffers.Clear();
-
-            // clear workspace state:
-            _workspace.ClearSolution();
-            _currentSubmissionProjectId = null;
-            _lastSuccessfulSubmissionProjectId = null;
-
-            LogState();
-
-            // update host state:
-            _platformInfo = platformInfo;
-            _initializationResult = result.InitializationResult;
-            UpdatePaths(result);
-
-            // Create submission projects for buffers that were added by the Interactive Window 
-            // before the process initialization completed.
-            foreach (var (buffer, languageName) in _pendingBuffers)
-            {
-                AddSubmissionProject(buffer, languageName);
-            }
-
-            _pendingBuffers.Clear();
+                LogState();
+            }, _shutdownCancellationToken);
         }
 
         private static RuntimeMetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, InteractiveHostPlatformInfo platformInfo, ImmutableArray<string> searchPaths, string baseDirectory)
@@ -265,19 +279,15 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            AddSubmissionProject(args.NewBuffer, LanguageName);
+            _taskQueue.ScheduleTask(nameof(SubmissionBufferAdded), () => AddSubmissionProjectNoLock(args.NewBuffer, LanguageName), _shutdownCancellationToken);
         }
 
-        private void AddSubmissionProject(ITextBuffer submissionBuffer, string languageName)
+        private void AddSubmissionProjectNoLock(ITextBuffer submissionBuffer, string languageName)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
-           
             var solution = _workspace.CurrentSolution;
             Project project;
             var imports = ImmutableArray<string>.Empty;
             var references = ImmutableArray<MetadataReference>.Empty;
-
-            LogState();
 
             if (_currentSubmissionProjectId == null)
             {
@@ -305,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 var scriptPath = initResult.ScriptPath;
                 if (scriptPath != null)
                 {
-                    project = CreateSubmissionProject(solution, previousSubmissionProjectId: null, languageName, imports, references);
+                    project = CreateSubmissionProjectNoLock(solution, previousSubmissionProjectId: null, languageName, imports, references);
 
                     var initDocumentId = DocumentId.CreateNewId(project.Id, debugName: scriptPath);
                     solution = project.Solution.AddDocument(initDocumentId, Path.GetFileName(scriptPath), new FileTextLoader(scriptPath, defaultEncoding: null));
@@ -318,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
 
             // Project for the new submission - chain to the last submission that successfully executed.
-            project = CreateSubmissionProject(solution, _lastSuccessfulSubmissionProjectId, languageName, imports, references);
+            project = CreateSubmissionProjectNoLock(solution, _lastSuccessfulSubmissionProjectId, languageName, imports, references);
 
             var documentId = DocumentId.CreateNewId(project.Id, debugName: project.Name);
             solution = project.Solution.AddDocument(documentId, project.Name, submissionBuffer.CurrentSnapshot.AsText());
@@ -329,27 +339,25 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _workspace.OpenDocument(documentId, submissionBuffer.AsTextContainer());
 
             _currentSubmissionProjectId = project.Id;
-
-            LogState();
         }
 
-        private Project CreateSubmissionProject(Solution solution, ProjectId previousSubmissionProjectId, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
+        private Project CreateSubmissionProjectNoLock(Solution solution, ProjectId? previousSubmissionProjectId, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
         {
-            var name = "Submission#" + _submissionCount++;
+            var name = "Submission#" + SubmissionCount++;
 
             CompilationOptions compilationOptions;
             if (previousSubmissionProjectId != null)
             {
-                compilationOptions = solution.GetProjectState(previousSubmissionProjectId).CompilationOptions;
+                compilationOptions = solution.GetProjectState(previousSubmissionProjectId)!.CompilationOptions!;
 
-                var metadataResolver = (RuntimeMetadataReferenceResolver)compilationOptions.MetadataReferenceResolver;
+                var metadataResolver = (RuntimeMetadataReferenceResolver)compilationOptions.MetadataReferenceResolver!;
                 if (metadataResolver.PathResolver.BaseDirectory != WorkingDirectory ||
                     !metadataResolver.PathResolver.SearchPaths.SequenceEqual(ReferenceSearchPaths))
                 {
                     compilationOptions = compilationOptions.WithMetadataReferenceResolver(metadataResolver.WithRelativePathResolver(new RelativePathResolver(ReferenceSearchPaths, WorkingDirectory)));
                 }
 
-                var sourceResolver = (SourceFileResolver)compilationOptions.SourceReferenceResolver;
+                var sourceResolver = (SourceFileResolver)compilationOptions.SourceReferenceResolver!;
                 if (sourceResolver.BaseDirectory != WorkingDirectory ||
                     !sourceResolver.SearchPaths.SequenceEqual(SourceSearchPaths))
                 {
@@ -388,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 solution = solution.AddProjectReference(projectId, new ProjectReference(previousSubmissionProjectId));
             }
 
-            return solution.GetProject(projectId);
+            return solution.GetProject(projectId)!;
         }
 
         #endregion
@@ -397,11 +405,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         public virtual bool CanExecuteCode(string text)
         {
-            if (_interactiveCommands != null && _interactiveCommands.InCommand)
-            {
-                return true;
-            }
-            return false;
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            return _lazyInteractiveCommands?.InCommand == true;
         }
 
         /// <summary>
@@ -411,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            var window = GetCurrentWindowOrThrow();
+            var window = GetInteractiveWindow();
             var resetOptions = ResetOptions;
 
             _interactiveHost.SetOutputs(window.OutputWriter, window.ErrorOutputWriter);
@@ -426,10 +432,10 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            var window = GetCurrentWindowOrThrow();
+            var window = GetInteractiveWindow();
 
             var resetOptions = ResetOptions;
-            Debug.Assert(_interactiveCommands.CommandPrefix == CommandPrefix);
+            Debug.Assert(GetInteractiveCommands().CommandPrefix == CommandPrefix);
             window.AddInput(CommandPrefix + ResetCommand.GetCommandLine(initialize, resetOptions.Platform));
             window.WriteLine(InteractiveEditorFeaturesResources.Resetting_execution_engine);
             window.FlushOutput();
@@ -450,14 +456,16 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
-                OnBeforeReset(options.Platform);
+                OnBeforeReset?.Invoke(options.Platform);
 
-                // Initiate reset and return to the UI thread to update state.
-                var result = await _interactiveHost.ResetAsync(options).ConfigureAwait(true);
-                if (result.Success)
-                {
-                    UpdatePaths(result);
-                }
+                // Do not queue reset operation - invoke it directly.
+                // Code execution might be in progress when the user requests reset (via a reset button, or process terminating on its own).
+                // We need the execution to be interrupted and the process restarted, not wait for it to complete.
+
+                var result = await _interactiveHost.ResetAsync(options).ConfigureAwait(false);
+
+                // Note: Not calling UpdatePathsNoLock here. The paths will be updated by ProcessInitialized 
+                // which is executed once the new host process finishes its initialization.
 
                 return new ExecutionResult(result.Success);
             }
@@ -477,38 +485,44 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
-                LogState();
+                var window = GetInteractiveWindow();
+                var commands = GetInteractiveCommands();
 
-                var currentSubmissionProjectId = _currentSubmissionProjectId;
-                var currentSubmissionBuffer = _currentWindow.CurrentLanguageBuffer;
+                var currentSubmissionBuffer = window.CurrentLanguageBuffer;
                 Contract.ThrowIfNull(currentSubmissionBuffer);
                 _submittedBuffers.Add(currentSubmissionBuffer);
 
-                if (_interactiveCommands.InCommand)
+                if (commands.InCommand)
                 {
                     // Takes the content of the current language buffer, parses it as a command
                     // and returns a task that execute the command, or null if the text doesn't parse.
-                    var commandTask = _interactiveCommands.TryExecuteCommand();
+                    var commandTask = commands.TryExecuteCommand();
                     if (commandTask != null)
                     {
                         return await commandTask.ConfigureAwait(false);
                     }
                 }
 
-                // Execute code and return to the UI thread to update state.
-                var result = await _interactiveHost.ExecuteAsync(text).ConfigureAwait(true);
-                _threadingContext.ThrowIfNotOnUIThread();
+                // If process initialization is in progress we will wait with code 
+                // execution after the initialization is completed.
 
-                if (result.Success)
+                return await _taskQueue.ScheduleTask(nameof(ExecuteCodeAsync), async () =>
                 {
-                    _lastSuccessfulSubmissionProjectId = currentSubmissionProjectId;
-                    LogState();
+                    var result = await _interactiveHost.ExecuteAsync(text).ConfigureAwait(false);
+                    if (result.Success)
+                    {
+                        LogState();
 
-                    // update local search paths - remote paths has already been updated
-                    UpdatePaths(result);
-                }
+                        _lastSuccessfulSubmissionProjectId = _currentSubmissionProjectId;
 
-                return new ExecutionResult(result.Success);
+                        // update local search paths - remote paths has already been updated
+                        UpdatePathsNoLock(result);
+
+                        LogState();
+                    }
+
+                    return new ExecutionResult(result.Success);
+                }, _shutdownCancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -521,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             // TODO (https://github.com/dotnet/roslyn/issues/4725)
         }
 
-        public string FormatClipboard()
+        public string? FormatClipboard()
         {
             // keep the clipboard content as is
             return null;
@@ -529,7 +543,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #endregion
 
-        private void UpdatePaths(RemoteExecutionResult result)
+        private void UpdatePathsNoLock(RemoteExecutionResult result)
         {
             WorkingDirectory = result.WorkingDirectory;
             ReferenceSearchPaths = result.ReferencePaths;
@@ -541,7 +555,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             try
             {
                 var result = await _interactiveHost.SetPathsAsync(referenceSearchPaths.ToArray(), sourceSearchPaths.ToArray(), workingDirectory).ConfigureAwait(false);
-                UpdatePaths(result);
+                UpdatePathsNoLock(result);
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -551,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         public string GetPrompt()
         {
-            var buffer = GetCurrentWindowOrThrow().CurrentLanguageBuffer;
+            var buffer = GetInteractiveWindow().CurrentLanguageBuffer;
             return buffer != null && buffer.CurrentSnapshot.LineCount > 1
                 ? ". "
                 : "> ";
