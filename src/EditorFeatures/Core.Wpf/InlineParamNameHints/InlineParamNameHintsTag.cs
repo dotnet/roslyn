@@ -9,10 +9,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineParamNameHints
     class InlineParamHintsTag : IntraTextAdornmentTag
     {
         public readonly int TagLength;
+        public readonly string TagName;
+
         public InlineParamHintsTag(string text, int tagLength, TextFormattingRunProperties format)
             : base(CreateElement(text, format), null, (tagLength == 0) ? ((PositionAffinity?)PositionAffinity.Predecessor) : null)
         {
             TagLength = tagLength;
+            TagName = text;
         }
 
         private static UIElement CreateElement(string text, TextFormattingRunProperties format)

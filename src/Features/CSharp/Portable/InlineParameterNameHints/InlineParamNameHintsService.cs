@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
     internal class InlineParamNameHintsService : IInlineParamNameHintsService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineParamNameHintsService()
         {
         }
@@ -30,17 +33,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var invocations = node.Traverse<SyntaxNode>(textSpan, IsInvocationExpression);
-            // var invocation = node.DescendantNodes()
-            foreach (var invocationNode in invocations)
+            var invocations = node.DescendantNodes().OfType<InvocationExpressionSyntax>();
+            foreach (var invo in invocations)
             {
-                var invo = (InvocationExpressionSyntax)invocationNode;
+                // var invo = (InvocationExpressionSyntax)invocationNode;
                 foreach (var argument in invo.ArgumentList.Arguments)
                 {
                     if (argument.NameColon == null && IsLiteralOrNoNamedExpression(argument))
                     {
-                        var param = argument.DetermineParameter(semanticModel, cancellationToken);
-                        spans.Add(param.Name, argument.Span);
+                        var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                        spans.Add((param.Name, argument.Span));
                     }
                 }
             }
@@ -58,30 +60,31 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
             {
                 return true;
             }
-            if (arg.Expression is CastExpressionSyntax)
+            if (arg.Expression is CastExpressionSyntax cast)
             {
-                var cast = (CastExpressionSyntax)arg.Expression;
-                if (cast.Expression is LiteralExpressionSyntax)
+                var literal = arg.DescendantNodes().OfType<LiteralExpressionSyntax>();
+                foreach (var l in literal)
                 {
-                    return true;
+                    if (l is LiteralExpressionSyntax)
+                    {
+                        return true;
+                    }
                 }
                 return false;
             }
-            if (arg.Expression is PrefixUnaryExpressionSyntax)
+            if (arg.Expression is PrefixUnaryExpressionSyntax negation)
             {
-                var negation = (PrefixUnaryExpressionSyntax)arg.Expression;
-                if (negation.Operand is LiteralExpressionSyntax)
+                var literal = arg.DescendantNodes().OfType<LiteralExpressionSyntax>();
+                foreach (var l in literal)
                 {
-                    return true;
+                    if (l is LiteralExpressionSyntax)
+                    {
+                        return true;
+                    }
                 }
                 return false;
             }
             return false;
-        }
-
-        private static bool IsInvocationExpression(SyntaxNode node)
-        {
-            return node is InvocationExpressionSyntax;
         }
     }
 }

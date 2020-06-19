@@ -1,6 +1,7 @@
 ﻿
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.InlineParamNameHints;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -16,13 +17,14 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineParamNameHints
 {
-    [Export(typeof(IViewTaggerProvider))]
+    [Export(typeof(ITaggerProvider))]
     [ContentType("csharp")]
-    [TagType(typeof(IntraTextAdornmentTag))]
+    [TagType(typeof(InlineParamNameHintDataTag))]
     [Name("InlineParamNameHintsTaggerProvider")]
-    internal class InlineParamNameHintsTaggerProvider : AsynchronousTaggerProvider<InlineParamHintsTag>
+    internal class InlineParamNameHintsTaggerProvider : AsynchronousTaggerProvider<InlineParamNameHintDataTag>
     {
         private TextFormattingRunProperties _format;
+        // private readonly IClassificationFormatMap _formatMap;
 
         [ImportingConstructor]
         public InlineParamNameHintsTaggerProvider(
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineParamNameHints
             return TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<InlineParamHintsTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(TaggerContext<InlineParamNameHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
@@ -49,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineParamNameHints
             cancellationToken.ThrowIfCancellationRequested();
 
             foreach (var span in paramNameHintSpans)
-            { 
-                context.AddTag(new TagSpan<InlineParamHintsTag>(span.Item2.ToSnapshotSpan(snapshotSpan.Snapshot), new InlineParamHintsTag(span.Item1, span.Item1.Length + 1, _format)));
+            {
+                context.AddTag(new TagSpan<InlineParamNameHintDataTag>(span.Item2.ToSnapshotSpan(snapshotSpan.Snapshot), new InlineParamNameHintDataTag(span.Item1))); //span.Item1.Length + 1, _format); //));
             }
         }
     }
