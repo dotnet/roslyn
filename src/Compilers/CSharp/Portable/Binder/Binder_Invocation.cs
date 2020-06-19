@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 result = BindDelegateInvocation(node, expression, methodName, boundExpression, analyzedArguments, diagnostics, queryClause, delegateType);
             }
-            else if (boundExpression.Type?.Kind == SymbolKind.FunctionPointer)
+            else if (boundExpression.Type?.Kind == SymbolKind.FunctionPointerType)
             {
                 ReportSuppressionIfNeeded(boundExpression, diagnostics);
                 result = BindFunctionPointerInvocation(node, boundExpression, analyzedArguments, diagnostics);

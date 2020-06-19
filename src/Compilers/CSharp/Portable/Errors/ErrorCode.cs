@@ -1823,6 +1823,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid = 8815,
         ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8816,
 
+        ERR_PartialMethodReturnTypeDifference = 8817,
+        ERR_PartialMethodRefReturnDifference = 8818,
+        WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
+
+        // Codes 8820, 8821 used by features/static-lambdas
+
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,
