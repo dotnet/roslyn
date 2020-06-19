@@ -1818,6 +1818,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
 
+        // Codes 8813, 8814, 8815, 8816 used by features/module-initializers
+
+        ERR_PartialMethodReturnTypeDifference = 8817,
+        ERR_PartialMethodRefReturnDifference = 8818,
+        WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
+
         ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
 

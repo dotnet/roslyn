@@ -1752,7 +1752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.NewKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ArgumentListSyntax?)Visit(node.ArgumentList), (InitializerExpressionSyntax?)Visit(node.Initializer));
 
         public override SyntaxNode? VisitWithExpression(WithExpressionSyntax node)
-            => node.Update((ExpressionSyntax?)Visit(node.Receiver) ?? throw new ArgumentNullException("receiver"), VisitToken(node.WithKeyword), (InitializerExpressionSyntax?)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
+            => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.WithKeyword), (InitializerExpressionSyntax?)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
 
         public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             => node.Update((NameEqualsSyntax?)Visit(node.NameEquals), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
@@ -3266,17 +3266,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.ObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), type, default, default);
 
         /// <summary>Creates a new WithExpressionSyntax instance.</summary>
-        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
         {
-            if (receiver == null) throw new ArgumentNullException(nameof(receiver));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
-            return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)receiver.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
+            return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
         /// <summary>Creates a new WithExpressionSyntax instance.</summary>
-        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, InitializerExpressionSyntax initializer)
-            => SyntaxFactory.WithExpression(receiver, SyntaxFactory.Token(SyntaxKind.WithKeyword), initializer);
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax expression, InitializerExpressionSyntax initializer)
+            => SyntaxFactory.WithExpression(expression, SyntaxFactory.Token(SyntaxKind.WithKeyword), initializer);
 
         /// <summary>Creates a new AnonymousObjectMemberDeclaratorSyntax instance.</summary>
         public static AnonymousObjectMemberDeclaratorSyntax AnonymousObjectMemberDeclarator(NameEqualsSyntax? nameEquals, ExpressionSyntax expression)

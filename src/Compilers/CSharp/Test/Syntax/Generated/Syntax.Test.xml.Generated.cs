@@ -1329,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateWithExpression();
 
-            Assert.NotNull(node.Receiver);
+            Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.WithKeyword, node.WithKeyword.Kind);
             Assert.NotNull(node.Initializer);
 
@@ -10714,10 +10714,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateWithExpression();
 
-            Assert.NotNull(node.Receiver);
+            Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.WithKeyword, node.WithKeyword.Kind());
             Assert.NotNull(node.Initializer);
-            var newNode = node.WithReceiver(node.Receiver).WithWithKeyword(node.WithKeyword).WithInitializer(node.Initializer);
+            var newNode = node.WithExpression(node.Expression).WithWithKeyword(node.WithKeyword).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
         }
 

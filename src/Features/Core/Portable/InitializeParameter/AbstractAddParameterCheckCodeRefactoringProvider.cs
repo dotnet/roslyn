@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             // Great.  There was no null check.  Offer to add one.
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
                 c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c)));
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c)));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private async Task<Document> UpdateDocumentForRefactoringAsync(
