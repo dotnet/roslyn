@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Paths of files produced by the compilation.
     /// </summary>
-    public readonly struct CompilationOutputFilePaths : IEquatable<CompilationOutputFilePaths>, IObjectWritable
+    public readonly struct CompilationOutputInfo : IEquatable<CompilationOutputInfo>, IObjectWritable
     {
         /// <summary>
         /// Full path to the assembly or module produced by the compilation, or <see langword="null"/> if unknown.
@@ -26,29 +26,29 @@ namespace Microsoft.CodeAnalysis
         // public readonly string? PdbPath { get; }
         // public readonly string? DocumentationCommentsPath { get; }
 
-        internal CompilationOutputFilePaths(string? assemblyPath)
+        internal CompilationOutputInfo(string? assemblyPath)
         {
             AssemblyPath = assemblyPath;
         }
 
 #pragma warning disable CA1822 // Mark members as static - unshipped public API which will use instance members in future https://github.com/dotnet/roslyn/issues/35065
-        public CompilationOutputFilePaths WithAssemblyPath(string? path)
+        public CompilationOutputInfo WithAssemblyPath(string? path)
 #pragma warning restore CA1822 // Mark members as static
-            => new CompilationOutputFilePaths(assemblyPath: path);
+            => new CompilationOutputInfo(assemblyPath: path);
 
         public override bool Equals(object? obj)
-            => obj is CompilationOutputFilePaths paths && Equals(paths);
+            => obj is CompilationOutputInfo info && Equals(info);
 
-        public bool Equals(CompilationOutputFilePaths other)
+        public bool Equals(CompilationOutputInfo other)
             => AssemblyPath == other.AssemblyPath;
 
         public override int GetHashCode()
             => AssemblyPath?.GetHashCode() ?? 0;
 
-        public static bool operator ==(in CompilationOutputFilePaths left, in CompilationOutputFilePaths right)
+        public static bool operator ==(in CompilationOutputInfo left, in CompilationOutputInfo right)
             => left.Equals(right);
 
-        public static bool operator !=(in CompilationOutputFilePaths left, in CompilationOutputFilePaths right)
+        public static bool operator !=(in CompilationOutputInfo left, in CompilationOutputInfo right)
             => !left.Equals(right);
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis
             writer.WriteString(AssemblyPath);
         }
 
-        internal static CompilationOutputFilePaths ReadFrom(ObjectReader reader)
+        internal static CompilationOutputInfo ReadFrom(ObjectReader reader)
         {
             var assemblyPath = reader.ReadString();
-            return new CompilationOutputFilePaths(assemblyPath);
+            return new CompilationOutputInfo(assemblyPath);
         }
     }
 }
