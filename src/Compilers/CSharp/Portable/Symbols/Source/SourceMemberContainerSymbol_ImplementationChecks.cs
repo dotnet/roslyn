@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             foreach (var parameterType in parameterTypes)
                             {
-                                if (isOrContainsErrorType(parameterType.Type))
+                                if (IsOrContainsErrorType(parameterType.Type))
                                 {
                                     suppressError = true; // The parameter type must be fixed before the override can be found, so suppress error
                                     break;
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                         {
                             // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
-                            if (!isOrContainsErrorType(overridingMemberType.Type))
+                            if (!IsOrContainsErrorType(overridingMemberType.Type))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
                             }
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (!IsValidOverrideReturnType(overridingMethod, overridingMethod.ReturnTypeWithAnnotations, overriddenMethod.ReturnTypeWithAnnotations, diagnostics))
                         {
                             // if the Return type is or contains an error type, the return type must be fixed before the override can be found, so suppress error
-                            if (!isOrContainsErrorType(overridingMethod.ReturnType))
+                            if (!IsOrContainsErrorType(overridingMethod.ReturnType))
                             {
                                 // If the return type would be a valid covariant return, suggest using covariant return feature.
                                 HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         !overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                     {
                         // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
-                        if (!isOrContainsErrorType(overridingMemberType.Type))
+                        if (!IsOrContainsErrorType(overridingMemberType.Type))
                         {
                             // If the type would be a valid covariant return, suggest using covariant return feature.
                             HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
@@ -1115,11 +1115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                  checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
             }
+        }
 
-            static bool isOrContainsErrorType(TypeSymbol typeSymbol)
-            {
-                return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
-            }
+        internal static bool IsOrContainsErrorType(TypeSymbol typeSymbol)
+        {
+            return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
         }
 
         /// <summary>
