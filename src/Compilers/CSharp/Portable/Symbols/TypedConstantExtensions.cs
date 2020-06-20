@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// Returns the System.String that represents the current TypedConstant.
-        /// For testing and debugging only
         /// </summary>
         /// <returns>A System.String that represents the current TypedConstant.</returns>
         public static string ToCSharpString(this TypedConstant constant)

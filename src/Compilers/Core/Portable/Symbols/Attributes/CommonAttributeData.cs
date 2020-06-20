@@ -285,8 +285,7 @@ namespace Microsoft.CodeAnalysis
                 // ObsoleteAttribute(string, bool)
 
                 Debug.Assert(args.Length <= 2);
-                Debug.Assert(args[0].ValueInternal is object);
-                message = (string)args[0].ValueInternal!;
+                message = (string?)args[0].ValueInternal;
 
                 if (args.Length == 2)
                 {
@@ -343,9 +342,8 @@ namespace Microsoft.CodeAnalysis
                 // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
                 // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
 
-                Debug.Assert(args[0].ValueInternal is object);
                 Debug.Assert(args[1].ValueInternal is object);
-                message = (string)args[0].ValueInternal!;
+                message = (string?)args[0].ValueInternal!;
                 isError = ((int)args[1].ValueInternal! == 1);
             }
 

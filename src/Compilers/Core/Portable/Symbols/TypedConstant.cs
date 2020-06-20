@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull][NotNullWhen(true)] out T value)
+        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull] out T value)
         {
             if (_kind == TypedConstantKind.Error)
             {
@@ -142,7 +142,6 @@ namespace Microsoft.CodeAnalysis
 
             if (_type.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
-                Debug.Assert(_value is object);
                 value = (T)_value;
                 return true;
             }
