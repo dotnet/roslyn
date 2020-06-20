@@ -88,7 +88,6 @@ namespace BuildBoss
                     textWriter.WriteLine($"\tDo not use {propertyName}");
                     return false;
                 }
-
             }
 
             return true;
@@ -333,7 +332,6 @@ namespace BuildBoss
                     case "net20":
                     case "net472":
                     case "netcoreapp3.1":
-                    case "$(RoslynPortableTargetFrameworks)":
                         continue;
                 }
 

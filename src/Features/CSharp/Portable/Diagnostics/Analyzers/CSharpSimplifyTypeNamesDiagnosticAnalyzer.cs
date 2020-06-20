@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return codeBlock.IsKind(
                 SyntaxKind.CompilationUnit,
                 SyntaxKind.ClassDeclaration,
+                SyntaxKind.RecordDeclaration,
                 SyntaxKind.StructDeclaration,
                 SyntaxKind.InterfaceDeclaration,
                 SyntaxKind.DelegateDeclaration,

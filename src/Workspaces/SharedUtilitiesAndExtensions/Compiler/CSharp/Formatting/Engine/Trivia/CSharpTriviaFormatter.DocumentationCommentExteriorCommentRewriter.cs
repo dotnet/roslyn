@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return base.VisitTrivia(trivia);
             }
 
-            private bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
+            private static bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
             {
                 var currentParent = trivia.Token.Parent;
 

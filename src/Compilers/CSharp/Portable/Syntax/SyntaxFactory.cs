@@ -1693,9 +1693,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Parse a TypeNameSyntax node using the grammar rule for type names.
         /// </summary>
-        public static TypeSyntax ParseTypeName(string text, int offset = 0, bool consumeFullText = true)
+        // Backcompat overload, do not remove
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static TypeSyntax ParseTypeName(string text, int offset, bool consumeFullText)
         {
-            using (var lexer = MakeLexer(text, offset))
+            return ParseTypeName(text, offset, options: null, consumeFullText);
+        }
+
+        /// <summary>
+        /// Parse a TypeNameSyntax node using the grammar rule for type names.
+        /// </summary>
+        public static TypeSyntax ParseTypeName(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
+        {
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseTypeName();

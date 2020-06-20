@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3341,6 +3342,26 @@ public class A
                 );
         }
 
+        [Fact]
+        public void IsPatternOnPointerTypeIn7_3()
+        {
+            var source = @"
+unsafe class C
+{
+    static void Main()
+    {
+        int* ptr = null;
+        _ = ptr is var v;
+    }
+}";
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (7,20): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = ptr is var v;
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var v").WithLocation(7, 20)
+            );
+        }
+
         [Fact, WorkItem(43960, "https://github.com/dotnet/roslyn/issues/43960")]
         public void NamespaceQualifiedEnumConstantInSwitchCase()
         {
@@ -3364,8 +3385,7 @@ class Class1
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
-            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]

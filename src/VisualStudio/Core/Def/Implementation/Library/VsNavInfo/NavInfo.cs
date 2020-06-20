@@ -109,7 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 nodes = builder.ToImmutable();
             }
 
-
             return new NavInfoNodeEnum(nodes);
         }
 

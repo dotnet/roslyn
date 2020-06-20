@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return WithAnnotations(AddMembers(destination, members, GetAvailableInsertionIndices(destination, cancellationToken), options ?? CodeGenerationOptions.Default, cancellationToken), options);
         }
 
-        private TNode WithAnnotations<TNode>(TNode node, CodeGenerationOptions options) where TNode : SyntaxNode
+        private static TNode WithAnnotations<TNode>(TNode node, CodeGenerationOptions options) where TNode : SyntaxNode
         {
             return options?.AddImports ?? true
                 ? node.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
                     newDocument,
-                    safe: true,
                     await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
                     cancellationToken).ConfigureAwait(false);
             }
@@ -307,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             };
         }
 
-        private bool GeneratingEnum(IEnumerable<ISymbol> members)
+        private static bool GeneratingEnum(IEnumerable<ISymbol> members)
         {
             var field = members.OfType<IFieldSymbol>().FirstOrDefault();
             return field != null && field.ContainingType.IsEnumType();

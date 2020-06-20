@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
             root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
             Debug.Assert(root is object); // we didn't remove the root
-            root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
+            root = root.ReplaceNode(root.FindNode(ifSpan, getInnermostNodeForTie: true), @switch);
             return document.WithSyntaxRoot(root);
         }
 

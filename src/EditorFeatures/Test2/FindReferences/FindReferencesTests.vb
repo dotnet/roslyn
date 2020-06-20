@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         Private Const DefinitionKey As String = "Definition"
         Private Const ValueUsageInfoKey As String = "ValueUsageInfo."
         Private Const TypeOrNamespaceUsageInfoKey As String = "TypeOrNamespaceUsageInfo."
+        Private Const AdditionalPropertyKey As String = "AdditionalProperty."
 
         Private ReadOnly _outputHelper As ITestOutputHelper
 
@@ -129,8 +130,51 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                         Assert.Equal(expected, actual)
                     Next
+
+                    Dim additionalPropertiesMap = GetExpectedAdditionalPropertiesMap(workspace)
+                    For Each kvp In additionalPropertiesMap
+                        Dim propertyName = kvp.Key
+                        For Each propertyValue In kvp.Value
+                            Dim annotationKey = AdditionalPropertyKey + propertyName + "." + propertyValue
+                            Dim expected =
+                                workspace.Documents.Where(Function(d) d.AnnotatedSpans.ContainsKey(annotationKey) AndAlso d.AnnotatedSpans(annotationKey).Any()).
+                                                OrderBy(Function(d) d.Name).
+                                                Select(Function(d) New FileNameAndSpans(
+                                                       d.Name, d.AnnotatedSpans(annotationKey).ToList())).ToList()
+                            Dim actual = GetFileNamesAndSpans(
+                                context.References.Where(Function(r)
+                                                             Dim actualValue As String = Nothing
+                                                             If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
+                                                                 Return actualValue = propertyValue
+                                                             End If
+
+                                                             Return propertyValue.Length = 0
+                                                         End Function).Select(Function(r) r.SourceSpan))
+
+                            Assert.Equal(expected, actual)
+                        Next
+                    Next
                 Next
             End Using
+        End Function
+
+        Private Shared Function GetExpectedAdditionalPropertiesMap(workspace As TestWorkspace) As Dictionary(Of String, HashSet(Of String))
+            Dim additionalPropertyKeys = workspace.Documents.SelectMany(Function(d) d.AnnotatedSpans.Keys.Where(Function(key) key.StartsWith(AdditionalPropertyKey)).Select(Function(key) key.Substring(AdditionalPropertyKey.Length)))
+            Dim additionalPropertiesMap As New Dictionary(Of String, HashSet(Of String))
+            For Each key In additionalPropertyKeys
+                Dim index = key.IndexOf(".")
+                Assert.True(index > 0)
+                Dim propertyName = key.Substring(0, index)
+                Dim propertyValue = key.Substring(index + 1)
+                Dim propertyValues As HashSet(Of String) = Nothing
+                If Not additionalPropertiesMap.TryGetValue(propertyName, propertyValues) Then
+                    propertyValues = New HashSet(Of String)()
+                    additionalPropertiesMap.Add(propertyName, propertyValues)
+                End If
+                propertyValues.Add(propertyValue)
+            Next
+
+            Return additionalPropertiesMap
         End Function
 
         Private Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentSpan)) As List(Of FileNameAndSpans)
@@ -233,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Assert.NotNull(document)
 
                     Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition)
-                    Dim result = SpecializedCollections.EmptyEnumerable(Of ReferencedSymbol)()
+                    Dim result = ImmutableArray(Of ReferencedSymbol).Empty
                     If symbol IsNot Nothing Then
 
                         Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(Of Document)(document), Nothing)
@@ -314,11 +358,37 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                             End If
                         Next
                     Next
+
+                    Dim additionalPropertiesMap = GetExpectedAdditionalPropertiesMap(workspace)
+                    For Each kvp In additionalPropertiesMap
+                        Dim propertyName = kvp.Key
+                        For Each propertyValue In kvp.Value
+                            Dim annotationKey = AdditionalPropertyKey + propertyName + "." + propertyValue
+                            For Each doc In documentsWithAnnotatedSpans.Where(Function(d) d.AnnotatedSpans.ContainsKey(annotationKey))
+
+                                Dim expectedSpans = doc.AnnotatedSpans(annotationKey).Order()
+
+                                actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, workspace, Function(r)
+                                                                                                                                Dim actualValue As String = Nothing
+                                                                                                                                If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
+                                                                                                                                    Return actualValue = propertyValue
+                                                                                                                                End If
+
+                                                                                                                                Return propertyValue.Length = 0
+                                                                                                                            End Function)
+                                Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(workspace, doc)).Order()
+
+                                If Not TextSpansMatch(expectedSpans, actualSpans) Then
+                                    Assert.True(False, PrintSpans(expectedSpans, actualSpans, workspace.CurrentSolution.GetDocument(doc.Id), $"{{|{annotationKey}:", "|}"))
+                                End If
+                            Next
+                        Next
+                    Next
                 Next
             End Using
         End Function
 
-        Private Shared Function GetActualReferences(result As IEnumerable(Of ReferencedSymbol),
+        Private Shared Function GetActualReferences(result As ImmutableArray(Of ReferencedSymbol),
                                                     uiVisibleOnly As Boolean,
                                                     options As FindReferencesSearchOptions,
                                                     document As Document,

@@ -62,7 +62,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
         Public Async Function TestVBOperator() As Tasks.Task
             Dim workspaceDefinition =
 <Workspace>
-
     <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
         <Document>
 ''' &lt;summary&gt;

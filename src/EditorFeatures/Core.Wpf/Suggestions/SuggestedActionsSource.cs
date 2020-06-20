@@ -426,17 +426,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return action.IsApplicable(workspace);
             }
 
-            private ImmutableArray<CodeRefactoring> FilterOnUIThread(ImmutableArray<CodeRefactoring> refactorings, Workspace workspace)
-                => refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToImmutableArray();
+            private ImmutableArray<CodeRefactoring> FilterOnUIThread(ImmutableArray<CodeRefactoring> refactorings, TextSpan selection, bool filterOutsideSelection, Workspace workspace)
+                => refactorings.Select(r => FilterOnUIThread(r, selection, filterOutsideSelection, workspace)).WhereNotNull().ToImmutableArray();
 
-            private CodeRefactoring? FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
+            private CodeRefactoring? FilterOnUIThread(CodeRefactoring refactoring, TextSpan selection, bool filterOutsideSelection, Workspace workspace)
             {
-                var actions = refactoring.CodeActions.WhereAsArray(a => IsApplicable(a.action, workspace));
+                var actions = refactoring.CodeActions.WhereAsArray(IsActionAndSpanApplicable);
                 return actions.Length == 0
                     ? null
                     : actions.Length == refactoring.CodeActions.Length
                         ? refactoring
                         : new CodeRefactoring(refactoring.Provider, actions);
+
+                bool IsActionAndSpanApplicable((CodeAction action, TextSpan? applicableSpan) actionAndSpan)
+                {
+                    if (!IsApplicable(actionAndSpan.action, workspace))
+                    {
+                        return false;
+                    }
+
+                    if (filterOutsideSelection)
+                    {
+                        // Filter out refactorings with applicable span outside the selection span.
+                        if (!actionAndSpan.applicableSpan.HasValue ||
+                            !selection.IntersectsWith(actionAndSpan.applicableSpan.Value))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
             }
 
             /// <summary>
@@ -752,7 +772,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return PredefinedSuggestedActionCategoryNames.ErrorFix;
                     default:
                         throw ExceptionUtilities.Unreachable;
-                };
+                }
             }
 
             private static SuggestedActionSetPriority GetSuggestedActionSetPriority(CodeActionPriority key)
@@ -787,8 +807,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     _owner._codeRefactoringService != null &&
-                    supportsFeatureService.SupportsRefactorings(_subjectBuffer) &&
-                    requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
+                    supportsFeatureService.SupportsRefactorings(_subjectBuffer))
                 {
                     // It may seem strange that we kick off a task, but then immediately 'Wait' on 
                     // it. However, it's deliberate.  We want to make sure that the code runs on 
@@ -799,7 +818,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             document, selection, isBlocking: true, addOperationScope, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
-                    var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
+                    // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
+                    // then we want to filter out refactorings outside the selection span.
+                    var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
+
+                    var filteredRefactorings = FilterOnUIThread(refactorings, selection, filterOutsideSelection, workspace);
 
                     return filteredRefactorings.SelectAsArray(
                         r => OrganizeRefactorings(workspace, r));
@@ -1144,7 +1167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var selection = await GetSpanAsync(range, linkedToken).ConfigureAwait(false);
 
                 var refactoringTask = SpecializedTasks.Null<string>();
-                if (selection != null && requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
+                if (selection != null)
                 {
                     refactoringTask = Task.Run(
                         () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken), linkedToken);

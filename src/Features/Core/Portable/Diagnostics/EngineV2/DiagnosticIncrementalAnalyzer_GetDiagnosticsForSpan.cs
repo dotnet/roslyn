@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -23,18 +24,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
+        public async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, ArrayBuilder<DiagnosticData> result, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, includeSuppressedDiagnostics, diagnosticId, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, addOperationScope, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
-            var list = new List<DiagnosticData>();
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
             var result = await TryAppendDiagnosticsForSpanAsync(document, range, list, diagnosticId, includeSuppressedDiagnostics, blockForData, addOperationScope, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
-            return list;
+            return list.ToImmutable();
         }
 
         /// <summary>
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
             }
 
-            public async Task<bool> TryGetAsync(List<DiagnosticData> list, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
+            public async Task<bool> TryGetAsync(ArrayBuilder<DiagnosticData> list, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private async Task<bool> TryGetSyntaxAndSemanticDiagnosticsAsync(StateSet stateSet, List<DiagnosticData> list, CancellationToken cancellationToken)
+            private async Task<bool> TryGetSyntaxAndSemanticDiagnosticsAsync(StateSet stateSet, ArrayBuilder<DiagnosticData> list, CancellationToken cancellationToken)
             {
                 // unfortunately, we need to special case compiler diagnostic analyzer so that
                 // we can do span based analysis even though we implemented it as semantic model analysis
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return fullResult;
             }
 
-            private async Task<bool> TryGetSyntaxAndSemanticCompilerDiagnosticsAsync(StateSet stateSet, List<DiagnosticData> list, CancellationToken cancellationToken)
+            private async Task<bool> TryGetSyntaxAndSemanticCompilerDiagnosticsAsync(StateSet stateSet, ArrayBuilder<DiagnosticData> list, CancellationToken cancellationToken)
             {
                 // First, get syntax errors and semantic errors
                 var fullResult = true;
@@ -199,7 +200,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                 }
 
+#if DEBUG
                 VerifyDiagnostics(model);
+#endif
 
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 if (root == null)
@@ -241,10 +244,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return ImmutableArray<DiagnosticData>.Empty;
             }
 
-            [Conditional("DEBUG")]
+#if DEBUG
             private void VerifyDiagnostics(SemanticModel model)
             {
-#if DEBUG
                 // Exclude unused import diagnostics since they are never reported when a span is passed.
                 // (See CSharp/VisualBasicCompilation.GetDiagnosticsForMethodBodiesInTree.)
                 bool shouldInclude(Diagnostic d) => _range.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
@@ -284,8 +286,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             return false;
                     }
                 }
-#endif
             }
+#endif
 
             private static TextSpan AdjustSpan(Document document, SyntaxNode root, TextSpan span)
             {
@@ -318,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 StateSet stateSet,
                 AnalysisKind kind,
                 DiagnosticsGetterAsync diagnosticGetterAsync,
-                List<DiagnosticData> list,
+                ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
                 if (!stateSet.Analyzer.SupportAnalysisKind(kind))
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private async Task<bool> TryGetProjectDiagnosticsAsync(
                 StateSet stateSet,
-                List<DiagnosticData> list,
+                ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
                 if (!stateSet.Analyzer.SupportsProjectDiagnosticAnalysis())

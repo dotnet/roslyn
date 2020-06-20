@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -22,18 +24,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, object>
+    internal class CompletionHandler : AbstractRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionHandler()
+        public CompletionHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<object> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
+        public override async Task<LSP.CompletionItem[]> HandleRequestAsync(LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, string? clientName,
             CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<LSP.CompletionItem>();
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false);
 
-            var completionService = document.Project.LanguageServices.GetService<CompletionService>();
+            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var list = await completionService.GetCompletionsAsync(document, position, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText }
+                    Data = new CompletionResolveData { TextDocument = request.TextDocument, Position = request.Position, DisplayText = item.DisplayText }
                 };
         }
 

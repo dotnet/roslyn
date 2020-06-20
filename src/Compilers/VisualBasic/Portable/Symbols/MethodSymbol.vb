@@ -111,6 +111,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ' https://github.com/dotnet/roslyn/issues/44870 VB will be able to consume 'init' set accessors
+        Private ReadOnly Property IMethodSymbol_IsInitOnly As Boolean Implements IMethodSymbol.IsInitOnly
+            Get
+                Return False
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns true if this method has no return type; i.e., is a Sub instead of a Function.
         ''' </summary>

@@ -121,6 +121,58 @@ class Derived : Base
 }", new[] { "X", "Y", "this[]" });
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestInitOnlyProperty()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Base
+{
+    public virtual int Property { init => throw new NotImplementedException(); }
+}
+
+class Derived : Base
+{
+     [||]
+}",
+@"
+class Base
+{
+    public virtual int Property { init => throw new NotImplementedException(); }
+}
+
+class Derived : Base
+{
+    public override int Property { init => base.Property = value; }
+}", new[] { "Property" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestInitOnlyIndexer()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Base
+{
+    public virtual int this[int i] { init => throw new NotImplementedException(); }
+}
+
+class Derived : Base
+{
+     [||]
+}",
+@"
+class Base
+{
+    public virtual int this[int i] { init => throw new NotImplementedException(); }
+}
+
+class Derived : Base
+{
+    public override int this[int i] { init => base[i] = value; }
+}", new[] { "this[]" });
+        }
+
         [WorkItem(21601, "https://github.com/dotnet/roslyn/issues/21601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
         public async Task TestMissingInStaticClass1()

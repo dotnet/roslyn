@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -12,10 +16,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -30,6 +36,36 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract class AbstractLanguageServerProtocolTests
     {
+        [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
+        internal class TestLspSolutionProvider : ILspSolutionProvider
+        {
+            [DisallowNull]
+            private Solution? _currentSolution;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public TestLspSolutionProvider()
+            {
+            }
+
+            public void UpdateSolution(Solution solution)
+            {
+                _currentSolution = solution;
+            }
+
+            public Solution GetCurrentSolutionForMainWorkspace()
+            {
+                Contract.ThrowIfNull(_currentSolution);
+                return _currentSolution;
+            }
+
+            public ImmutableArray<Document> GetDocuments(Uri documentUri)
+            {
+                Contract.ThrowIfNull(_currentSolution);
+                return _currentSolution.GetDocuments(documentUri);
+            }
+        }
+
         protected virtual ExportProvider GetExportProvider()
         {
             var requestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
@@ -40,7 +76,8 @@ namespace Roslyn.Test.Utilities
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(LanguageServerProtocol))
                 .WithParts(requestHelperTypes)
-                .WithParts(executeCommandHandlerTypes));
+                .WithParts(executeCommandHandlerTypes)
+                .WithPart(typeof(TestLspSolutionProvider)));
             return exportProviderFactory.CreateExportProvider();
         }
 
@@ -105,7 +142,7 @@ namespace Roslyn.Test.Utilities
             return text.ToString();
         }
 
-        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string containerName = null)
+        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string? containerName = null)
             => new LSP.SymbolInformation()
             {
                 Kind = kind,
@@ -114,16 +151,23 @@ namespace Roslyn.Test.Utilities
                 ContainerName = containerName
             };
 
-        protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri)
-            => new LSP.TextDocumentIdentifier()
-            {
-                Uri = uri
-            };
+        protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
+        {
+            var documentIdentifier = new LSP.VSTextDocumentIdentifier() { Uri = uri };
 
-        protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret)
+            if (projectContext != null)
+            {
+                documentIdentifier.ProjectContext =
+                    new LSP.ProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
+            }
+
+            return documentIdentifier;
+        }
+
+        protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId? projectContext = null)
             => new LSP.TextDocumentPositionParams()
             {
-                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+                TextDocument = CreateTextDocumentIdentifier(caret.Uri, projectContext),
                 Position = caret.Range.Start
             };
 
@@ -157,7 +201,8 @@ namespace Roslyn.Test.Utilities
                 Data = new CompletionResolveData()
                 {
                     DisplayText = text,
-                    CompletionParams = requestParameters
+                    TextDocument = requestParameters.TextDocument,
+                    Position = requestParameters.Position
                 },
                 Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null
             };
@@ -200,14 +245,23 @@ namespace Roslyn.Test.Utilities
             workspace.ChangeSolution(solution);
 
             locations = GetAnnotatedLocations(workspace, solution);
+
+            UpdateSolutionProvider(workspace, solution);
             return workspace;
         }
 
-        protected Workspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
+        protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
             var workspace = TestWorkspace.Create(xmlContent, exportProvider: GetExportProvider());
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
+            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             return workspace;
+        }
+
+        private void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
+        {
+            var provider = (TestLspSolutionProvider)workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
+            provider.UpdateSolution(solution);
         }
 
         private Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
@@ -215,7 +269,7 @@ namespace Roslyn.Test.Utilities
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
             {
-                var document = solution.GetDocument(testDocument.Id);
+                var document = solution.GetRequiredDocument(testDocument.Id);
                 var text = document.GetTextSynchronously(CancellationToken.None);
                 foreach (var (name, spans) in testDocument.AnnotatedSpans)
                 {
