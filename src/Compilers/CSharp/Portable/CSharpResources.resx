@@ -1359,8 +1359,8 @@
   <data name="ERR_BadIncDecRetType" xml:space="preserve">
     <value>The return type for ++ or -- operator must match the parameter type or be derived from the parameter type</value>
   </data>
-  <data name="ERR_RefValBoundMustBeFirst" xml:space="preserve">
-    <value>The 'class' or 'struct' constraint must come before any other constraints</value>
+  <data name="ERR_TypeConstraintsMustBeUniqueAndFirst" xml:space="preserve">
+    <value>The 'class', 'struct', 'unmanaged', and 'notnull' constraints cannot be combined or duplicated, and must be specified first in the constraints list.</value>
   </data>
   <data name="ERR_RefValBoundWithClass" xml:space="preserve">
     <value>'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint</value>
@@ -5389,6 +5389,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInParameterTypeOnPartial_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match partial method declaration.</value>
   </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnPartial" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match partial method declaration.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnPartial_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match partial method declaration.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInTypeOnImplicitImplementation" xml:space="preserve">
     <value>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</value>
   </data>
@@ -5697,9 +5703,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NewBoundWithUnmanaged" xml:space="preserve">
     <value>The 'new()' constraint cannot be used with the 'unmanaged' constraint</value>
-  </data>
-  <data name="ERR_UnmanagedConstraintMustBeFirst" xml:space="preserve">
-    <value>The 'unmanaged' constraint must come before any other constraints</value>
   </data>
   <data name="ERR_UnmanagedConstraintNotSatisfied" xml:space="preserve">
     <value>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
@@ -6022,9 +6025,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNestedStackalloc" xml:space="preserve">
     <value>stackalloc in nested expressions</value>
   </data>
-  <data name="ERR_NotNullConstraintMustBeFirst" xml:space="preserve">
-    <value>The 'notnull' constraint must come before any other constraints</value>
-  </data>
   <data name="WRN_NullabilityMismatchInTypeParameterNotNullConstraint" xml:space="preserve">
     <value>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</value>
   </data>
@@ -6171,6 +6171,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialMethodExtendedModDifference" xml:space="preserve">
     <value>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</value>
+  </data>
+  <data name="ERR_PartialMethodReturnTypeDifference" xml:space="preserve">
+    <value>Both partial method declarations must have the same return type.</value>
+  </data>
+  <data name="ERR_PartialMethodRefReturnDifference" xml:space="preserve">
+    <value>Partial method declarations must have matching ref return values.</value>
   </data>
   <data name="IDS_TopLevelStatements" xml:space="preserve">
     <value>top-level statements</value>

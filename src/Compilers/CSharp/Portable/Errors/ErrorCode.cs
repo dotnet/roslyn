@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AnonMethGrpInForEach = 446,
         //ERR_AttrOnTypeArg = 447,      unused in Roslyn. The scenario for which this error exists should, and does generate a parse error.
         ERR_BadIncDecRetType = 448,
-        ERR_RefValBoundMustBeFirst = 449,
+        ERR_TypeConstraintsMustBeUniqueAndFirst = 449,
         ERR_RefValBoundWithClass = 450,
         ERR_NewBoundWithVal = 451,
         ERR_RefConstraintNotSatisfied = 452,
@@ -1564,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignNarrower = 8374,
 
         ERR_NewBoundWithUnmanaged = 8375,
-        ERR_UnmanagedConstraintMustBeFirst = 8376,
+        //ERR_UnmanagedConstraintMustBeFirst = 8376,
         ERR_UnmanagedConstraintNotSatisfied = 8377,
         ERR_CantUseInOrOutInArglist = 8378,
         ERR_ConWithUnmanagedCon = 8379,
@@ -1729,7 +1729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
         ERR_AbstractEventHasAccessors = 8712,
-        ERR_NotNullConstraintMustBeFirst = 8713,
+        //ERR_NotNullConstraintMustBeFirst = 8713,
         WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
 
         ERR_DuplicateNullSuppression = 8715,
@@ -1817,6 +1817,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AddressOfMethodGroupInExpressionTree = 8810,
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
+
+        // Codes 8813, 8814, 8815, 8816 used by features/module-initializers
+
+        ERR_PartialMethodReturnTypeDifference = 8817,
+        ERR_PartialMethodRefReturnDifference = 8818,
+        WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
+
+        // Codes 8820, 8821 used by features/static-lambdas
 
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
