@@ -19,14 +19,15 @@ namespace Microsoft.CodeAnalysis
     public struct TypedConstant : IEquatable<TypedConstant>
     {
         private readonly TypedConstantKind _kind;
-        private readonly ITypeSymbolInternal _type;
+        private readonly ITypeSymbolInternal? _type;
         private readonly object? _value;
 
-        internal TypedConstant(ITypeSymbolInternal type, TypedConstantKind kind, object? value)
+        internal TypedConstant(ITypeSymbolInternal? type, TypedConstantKind kind, object? value)
         {
             Debug.Assert(kind == TypedConstantKind.Array || !(value is ImmutableArray<TypedConstant>));
             Debug.Assert(!(value is ISymbol) || value is ISymbolInternal);
-            Debug.Assert(type is object);
+            Debug.Assert(type is object || kind == TypedConstantKind.Error);
+
             _kind = kind;
             _type = type;
             _value = value;
@@ -49,12 +50,12 @@ namespace Microsoft.CodeAnalysis
         /// Returns the <see cref="ITypeSymbol"/> of the constant, 
         /// or null if the type can't be determined (error).
         /// </summary>
-        public ITypeSymbol Type
+        public ITypeSymbol? Type
         {
-            get { return _type.GetITypeSymbol(); }
+            get { return _type?.GetITypeSymbol(); }
         }
 
-        internal ITypeSymbolInternal TypeInternal
+        internal ITypeSymbolInternal? TypeInternal
         {
             get { return _type; }
         }
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            if (_type.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
+            if (_type!.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
                 value = (T)_value;
                 return true;

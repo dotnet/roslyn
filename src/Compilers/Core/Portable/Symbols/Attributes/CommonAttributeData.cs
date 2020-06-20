@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis
                 // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
 
                 Debug.Assert(args[1].ValueInternal is object);
-                message = (string?)args[0].ValueInternal!;
+                message = (string?)args[0].ValueInternal;
                 isError = ((int)args[1].ValueInternal! == 1);
             }
 

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return "{" + string.Join(", ", constant.Values.Select(v => v.ToCSharpString())) + "}";
             }
 
-            if (constant.Kind == TypedConstantKind.Type || constant.TypeInternal.SpecialType == SpecialType.System_Object)
+            if (constant.Kind == TypedConstantKind.Type || constant.TypeInternal!.SpecialType == SpecialType.System_Object)
             {
                 Debug.Assert(constant.Value is object);
                 return "typeof(" + constant.Value.ToString() + ")";
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(constant.Kind == TypedConstantKind.Enum);
 
             // Create a ConstantValue of enum underlying type
-            SpecialType splType = ((INamedTypeSymbol)constant.Type).EnumUnderlyingType!.SpecialType;
+            SpecialType splType = ((INamedTypeSymbol)constant.Type!).EnumUnderlyingType!.SpecialType;
             Debug.Assert(constant.ValueInternal is object);
             ConstantValue valueConstant = ConstantValue.Create(constant.ValueInternal, splType);
 
@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string DisplayUnsignedEnumConstant(TypedConstant constant, SpecialType specialType, ulong constantToDecode, string typeName)
         {
+            Debug.Assert(constant.Kind == TypedConstantKind.Enum);
+
             // Specified valueConstant might have an exact matching enum field
             // or it might be a bitwise Or of multiple enum fields.
             // For the later case, we keep track of the current value of
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             StringBuilder? valueStringBuilder = null;
 
             // Iterate through all the constant members in the enum type
-            var members = constant.Type.GetMembers();
+            var members = constant.Type!.GetMembers();
             foreach (var member in members)
             {
                 var field = member as IFieldSymbol;
@@ -145,6 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string DisplaySignedEnumConstant(TypedConstant constant, SpecialType specialType, long constantToDecode, string typeName)
         {
+            Debug.Assert(constant.Kind == TypedConstantKind.Enum);
+
             // Specified valueConstant might have an exact matching enum field
             // or it might be a bitwise Or of multiple enum fields.
             // For the later case, we keep track of the current value of
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             StringBuilder? valueStringBuilder = null;
 
             // Iterate through all the constant members in the enum type
-            var members = constant.Type.GetMembers();
+            var members = constant.Type!.GetMembers();
             foreach (var member in members)
             {
                 var field = member as IFieldSymbol;

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// If <paramref name="baseFilePath"/> is relative <see cref="BaseDirectory"/> is used as the base path of <paramref name="baseFilePath"/>.
         /// </param>
         /// <returns>Normalized XML document file path or null if not found.</returns>
-        public override string? ResolveReference(string path, string? baseFilePath)
+        public override string? ResolveReference(string? path, string? baseFilePath)
         {
             // Dev11: first look relative to the directory containing the file with the <include> element (baseFilepath)
             // and then look in the base directory (i.e. current working directory of the compiler).
