@@ -11283,5 +11283,62 @@ string NewMethod()
 }";
             await TestExtractMethodAsync(code, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(4950, "https://github.com/dotnet/roslyn/issues/4950")]
+        public async Task ExtractMethodInvolvingUnsafeBlock()
+        {
+            foreach (string keyword in new[] { "unsafe", "checked", "unchecked" })
+            {
+                var code = @"
+using System;
+
+class Program {
+    static void Main(string[] args)
+    {
+        object value = args;
+
+        [|
+        IntPtr p;
+        unsafe
+        {
+            object t = value;
+            p = IntPtr.Zero;
+        }
+        |]
+
+        Console.WriteLine(p);
+    }
+}
+";
+                var expected = @"
+using System;
+
+class Program {
+    static void Main(string[] args)
+    {
+        object value = args;
+
+        IntPtr p = NewMethod(value);
+
+        Console.WriteLine(p);
+    }
+
+    private static IntPtr NewMethod(object value)
+    {
+        IntPtr p;
+        unsafe
+        {
+            object t = value;
+            p = IntPtr.Zero;
+        }
+
+        return p;
+    }
+}
+";
+                await TestExtractMethodAsync(code.Replace("unsafe", keyword), expected.Replace("unsafe", keyword));
+            }
+        }
     }
 }

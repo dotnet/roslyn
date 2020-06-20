@@ -1474,6 +1474,13 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IBlockOperation CreateBoundBlockOperation(BoundBlock boundBlock)
         {
+            // The C# binder produces an extra block for checked, unchecked, and unsafe statements, but they have no semantics of their own
+            boundBlock = boundBlock switch
+            {
+                { Syntax: CheckedStatementSyntax _, Locals: { IsDefaultOrEmpty: true }, Statements: { Length: 1 } s } => (BoundBlock)s[0],
+                { Syntax: UnsafeStatementSyntax _, Locals: { IsDefaultOrEmpty: true }, Statements: { Length: 1 } s } => (BoundBlock)s[0],
+                _ => boundBlock,
+            };
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.GetPublicSymbols();
             SyntaxNode syntax = boundBlock.Syntax;
             ITypeSymbol type = null;
