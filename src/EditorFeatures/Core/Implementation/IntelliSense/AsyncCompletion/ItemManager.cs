@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -8,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -66,8 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 AsyncCompletionLogger.LogSessionWithTypeImportCompletionEnabled();
             }
 
-
-            return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
+            // Sort by default comparer of Roslyn CompletionItem
+            var sortedItems = data.InitialList.OrderBy(GetOrAddRoslynCompletionItem).ToImmutableArray();
+            return Task.FromResult(sortedItems);
         }
 
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
@@ -206,16 +210,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
             }
 
-            var experimentationService = document?.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
-
-            if (experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SortCompletionListByMatch) == true)
-            {
-                // Sort the items by pattern matching results.
-                // Note that we want to preserve the original alphabetical order for items with same pattern match score,
-                // but `ArrayBuilder.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
-                // to `MatchResult` to archieve this.
-                builder.Sort(MatchResult.SortingComparer);
-            }
+            // Sort the items by pattern matching results.
+            // Note that we want to preserve the original alphabetical order for items with same pattern match score,
+            // but `ArrayBuilder.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
+            // to `MatchResult` to achieve this.
+            builder.Sort(MatchResult.SortingComparer);
 
             var initialListOfItemsToBeIncluded = builder.ToImmutableAndFree();
 
@@ -382,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 // The user has typed something, but nothing in the actual list matched what
                 // they were typing.  In this case, we want to dismiss completion entirely.
-                // The thought process is as follows: we aggressively brough up completion
+                // The thought process is as follows: we aggressively brought up completion
                 // to help them when they typed delete (in case they wanted to pick another
                 // item).  However, they're typing something that doesn't seem to match at all
                 // The completion list is just distracting at this point.
@@ -441,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 GetHighlightedList(matchResults), index, filters,
                 hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
                 centerSelection: true,
-                uniqueItem: moreThanOneMatchWithSamePriority ? default : bestMatchResult.GetValueOrDefault().VSCompletionItem);
+                uniqueItem: moreThanOneMatchWithSamePriority ? null : bestMatchResult.GetValueOrDefault().VSCompletionItem);
         }
 
         private static ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(ImmutableArray<MatchResult> matchResults)
@@ -475,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             return new FilteredCompletionModel(
                 ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex: 0,
-                filters, selection, centerSelection: true, uniqueItem: default);
+                filters, selection, centerSelection: true, uniqueItem: null);
         }
 
         private static ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
@@ -543,6 +542,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return -index;
         }
 
+        private static RoslynCompletionItem GetOrAddRoslynCompletionItem(VSCompletionItem vsItem)
+        {
+            if (!vsItem.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
+            {
+                roslynItem = RoslynCompletionItem.Create(
+                    displayText: vsItem.DisplayText,
+                    filterText: vsItem.FilterText,
+                    sortText: vsItem.SortText,
+                    displayTextSuffix: vsItem.Suffix);
+
+                vsItem.Properties.AddProperty(CompletionSource.RoslynItem, roslynItem);
+            }
+
+            return roslynItem;
+        }
+
         private static bool TryCreateMatchResult(
             CompletionHelper completionHelper,
             VSCompletionItem item,
@@ -554,14 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ref int currentIndex,
             out MatchResult matchResult)
         {
-            if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
-            {
-                roslynItem = RoslynCompletionItem.Create(
-                    displayText: item.DisplayText,
-                    filterText: item.FilterText,
-                    sortText: item.SortText,
-                    displayTextSuffix: item.Suffix);
-            }
+            var roslynItem = GetOrAddRoslynCompletionItem(item);
 
             // Get the match of the given completion item for the pattern provided so far. 
             // A completion item is checked against the pattern by see if it's 
@@ -588,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             //     have just typed the character to get completion.  Filtering out items
             //     here is not desirable.
             //
-            //  2. They brough up completion with ctrl-j or through deletion.  In these
+            //  2. They brought up completion with ctrl-j or through deletion.  In these
             //     cases we just always keep all the items in the list.
             if (matchedFilterText ||
                 initialTriggerKind == CompletionTriggerKind.Deletion ||
@@ -699,7 +707,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
             // not want 'space' to commit this.
 
-            // If all that has been typed is puntuation, then don't hard select anything.
+            // If all that has been typed is punctuation, then don't hard select anything.
             // It's possible the user is just typing language punctuation and selecting
             // anything in the list will interfere.  We only allow this if the filter text
             // exactly matches something in the list already. 
@@ -762,7 +770,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// </summary>
         private static bool IsPotentialFilterCharacter(char c)
         {
-            // TODO(cyrusn): Actually use the right unicode categories here.
+            // TODO(cyrusn): Actually use the right Unicode categories here.
             return char.IsLetter(c)
                 || char.IsNumber(c)
                 || c == '_';

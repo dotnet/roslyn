@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Internal.Log;
 
@@ -13,7 +15,6 @@ namespace Microsoft.CodeAnalysis
             // For type import completion
             SessionWithTypeImportCompletionEnabled,
             CommitWithTypeImportCompletionEnabled,
-            CommitsOfTypeImportCompletionItem,
 
             // For targeted type completion
             SessionHasTargetTypeFilterEnabled,
@@ -35,9 +36,6 @@ namespace Microsoft.CodeAnalysis
 
         internal static void LogCommitWithTypeImportCompletionEnabled() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTypeImportCompletionEnabled);
-
-        internal static void LogCommitOfTypeImportCompletionItem() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
 
         internal static void LogCommitWithTargetTypeCompletionExperimentEnabled() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTargetTypeCompletionExperimentEnabled);

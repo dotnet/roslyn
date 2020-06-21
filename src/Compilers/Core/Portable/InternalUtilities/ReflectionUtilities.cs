@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -129,6 +131,7 @@ namespace Roslyn.Utilities
             }
             catch (TargetInvocationException e)
             {
+                Debug.Assert(e.InnerException is object);
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                 Debug.Assert(false, "Unreachable");
                 return default!;
@@ -140,9 +143,10 @@ namespace Roslyn.Utilities
             return constructorInfo.InvokeConstructor<object?>(args);
         }
 
+        [return: MaybeNull]
         public static T Invoke<T>(this MethodInfo methodInfo, object obj, params object[] args)
         {
-            return (T)methodInfo.Invoke(obj, args);
+            return (T)methodInfo.Invoke(obj, args)!;
         }
     }
 }

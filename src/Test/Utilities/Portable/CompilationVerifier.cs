@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public ImmutableArray<byte> EmittedAssemblyData;
         public ImmutableArray<byte> EmittedAssemblyPdb;
 
-        private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, string> _visualizeRealIL;
+        private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, bool, string> _visualizeRealIL;
 
         internal CompilationVerifier(
             Compilation compilation,
-            Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, string> visualizeRealIL = null,
+            Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, bool, string> visualizeRealIL = null,
             IEnumerable<ModuleData> dependencies = null)
         {
             _compilation = compilation;
@@ -245,8 +247,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             XCData expectedIL,
             bool realIL = false,
             string sequencePoints = null,
-            [CallerFilePath]string callerPath = null,
-            [CallerLineNumber]int callerLine = 0)
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0)
         {
             return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false);
         }
@@ -256,8 +258,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedIL,
             bool realIL = false,
             string sequencePoints = null,
-            [CallerFilePath]string callerPath = null,
-            [CallerLineNumber]int callerLine = 0,
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0,
             string source = null)
         {
             return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true, source: source);
@@ -266,14 +268,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifyLocalSignature(
             string qualifiedMethodName,
             string expectedSignature,
-            [CallerLineNumber]int callerLine = 0,
-            [CallerFilePath]string callerPath = null)
+            [CallerLineNumber] int callerLine = 0,
+            [CallerFilePath] string callerPath = null)
         {
             var ilBuilder = _testData.GetMethodData(qualifiedMethodName).ILBuilder;
             string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
+        /// <summary>
+        /// Visualizes the IL for a given method, and ensures that it matches the expected IL.
+        /// </summary>
+        /// <param name="realIL">Controls whether the IL stream contains pseudo-tokens or real tokens.</param>
         private CompilationVerifier VerifyILImpl(
             string qualifiedMethodName,
             string expectedIL,
@@ -349,8 +355,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new InvalidOperationException("IL visualization function is not set");
                 }
 
-
-                return _visualizeRealIL(_lazyModuleSymbol, methodData, markers);
+                return _visualizeRealIL(_lazyModuleSymbol, methodData, markers, _testData.Module.GetMethodBody(methodData.Method).AreLocalsZeroed);
             }
 
             return null;
@@ -427,8 +432,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 .Where(e => e.Key.ToString() == containingTypeName)
                 .Single()
                 .Value
-                .OfType<IFieldSymbol>()
-                .Select(f => $"{f.Type.ToString()} {f.Name}")
+                .Where(s => s.Kind == SymbolKind.Field)
+                .Select(f => $"{((IFieldSymbol)f.GetISymbol()).Type.ToString()} {f.Name}")
                 .ToList();
             AssertEx.SetEqual(expectedFields, members);
         }

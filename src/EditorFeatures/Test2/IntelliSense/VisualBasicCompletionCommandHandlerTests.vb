@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
@@ -10,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Utilities
 
@@ -221,7 +223,7 @@ End Class
                 Await state.AssertSelectedCompletionItem("Equals", isSoftSelected:=True)
                 Dim caretPos = state.GetCaretPoint().BufferPosition.Position
                 state.SendReturn()
-                state.Workspace.Documents.First().GetTextView().Caret.MoveTo(New SnapshotPoint(state.Workspace.Documents.First().TextBuffer.CurrentSnapshot, caretPos))
+                state.Workspace.Documents.First().GetTextView().Caret.MoveTo(New SnapshotPoint(state.Workspace.Documents.First().GetTextBuffer().CurrentSnapshot, caretPos))
                 Assert.Contains("Program." + vbCrLf, state.GetLineFromCurrentCaretPosition().GetTextIncludingLineBreak(), StringComparison.Ordinal)
             End Using
         End Function
@@ -392,9 +394,6 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
-            Dim e = New ManualResetEvent(False)
-            Dim provider = CreateTriggeredCompletionProvider(e)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
                                 Class Program
@@ -402,7 +401,11 @@ End Class
                                         Program$$
                                     End Sub
                                 End Class
-                              </document>, extraCompletionProviders:={provider})
+                              </document>,
+                              extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".M")
@@ -415,7 +418,7 @@ End Class
                 state.SendBackspace()
 
                 ' allow the provider to continue
-                e.Set()
+                provider.e.Set()
 
                 ' At this point, completionImplementation will be available since the caret is still within the model's span.
                 Await state.AssertCompletionSession()
@@ -429,9 +432,6 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
-            Dim e = New ManualResetEvent(False)
-            Dim provider = CreateTriggeredCompletionProvider(e)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
                                 Class Program
@@ -439,7 +439,11 @@ End Class
                                         Program$$
                                     End Sub
                                 End Class
-                              </document>, extraCompletionProviders:={provider})
+                              </document>,
+                              extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
@@ -452,7 +456,7 @@ End Class
                 state.SendMoveToPreviousCharacter()
 
                 ' allow the provider to continue
-                e.Set()
+                provider.e.Set()
 
                 ' Async provider can handle keys pressed while waiting for providers.
                 Await state.AssertCompletionSession()
@@ -462,9 +466,6 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationOutBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
-            Dim e = New ManualResetEvent(False)
-            Dim provider = CreateTriggeredCompletionProvider(e)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
                                 Class Program
@@ -472,7 +473,11 @@ End Class
                                         Program$$
                                     End Sub
                                 End Class
-                              </document>, extraCompletionProviders:={provider})
+                              </document>,
+                              extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
@@ -485,7 +490,7 @@ End Class
                 state.SendDownKey()
 
                 ' allow the provider to continue
-                e.Set()
+                provider.e.Set()
 
                 ' Caret was intended to be moved out of the span. 
                 ' Therefore, we should cancel the completion And move the caret.
@@ -970,13 +975,28 @@ End Class
             End Using
         End Function
 
-        Private Function CreateTriggeredCompletionProvider(e As ManualResetEvent) As CompletionProvider
-            Return New MockCompletionProvider(getItems:=Function(t, p, c)
-                                                            e.WaitOne()
-                                                            Return Nothing
-                                                        End Function,
-                                              isTriggerCharacter:=Function(t, p) True)
-        End Function
+        <ExportCompletionProvider(NameOf(TriggeredCompletionProvider), LanguageNames.VisualBasic)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Friend Class TriggeredCompletionProvider
+            Inherits MockCompletionProvider
+
+            Public ReadOnly e As ManualResetEvent = New ManualResetEvent(False)
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyBase.New(getItems:=Function(t, p, c)
+                                         Return Nothing
+                                     End Function,
+                       isTriggerCharacter:=Function(t, p) True)
+            End Sub
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                e.WaitOne()
+                Return MyBase.ProvideCompletionsAsync(context)
+            End Function
+        End Class
 
         <WorkItem(544297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544297")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1204,13 +1224,13 @@ End Module|}          </Document>)
 {|S1:|}
 {|S2: some text that's mapped to the surface buffer |}
 
-                           </Document>.NormalizedValue, {subjectDocument}, LanguageNames.VisualBasic, options:=ProjectionBufferOptions.WritableLiteralSpans)
+                           </Document>.NormalizedValue, {subjectDocument}, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim topProjectionBuffer = state.Workspace.CreateProjectionBufferDocument(
                 <Document>
 {|S1:|}
 {|S2:|}
-                              </Document>.NormalizedValue, {firstProjection}, LanguageNames.VisualBasic, options:=ProjectionBufferOptions.WritableLiteralSpans)
+                              </Document>.NormalizedValue, {firstProjection}, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 ' Test a view that has a subject buffer with multiple projection buffers in between
                 Dim view = topProjectionBuffer.GetTextView()
@@ -1222,7 +1242,7 @@ End Module|}          </Document>)
                 Await state.AssertSelectedCompletionItem(displayText:="arg", projectionsView:=view)
 
                 Dim text = view.TextSnapshot.GetText()
-                Dim projection = DirectCast(topProjectionBuffer.TextBuffer, IProjectionBuffer)
+                Dim projection = DirectCast(topProjectionBuffer.GetTextBuffer(), IProjectionBuffer)
                 Dim sourceSpans = projection.CurrentSnapshot.GetSourceSpans()
 
                 ' unmap our source spans without changing the top buffer
@@ -1234,8 +1254,8 @@ End Module|}          </Document>)
                 Await state.AssertSelectedCompletionItem(displayText:="bbb")
 
                 ' prepare to remap our subject buffer
-                Dim subjectBufferText = subjectDocument.TextBuffer.CurrentSnapshot.GetText()
-                Using edit = subjectDocument.TextBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber:=Nothing, editTag:=Nothing)
+                Dim subjectBufferText = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText()
+                Using edit = subjectDocument.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber:=Nothing, editTag:=Nothing)
                     edit.Replace(New Span(0, subjectBufferText.Length), subjectBufferText.Replace("Console.WriteLine(a", "Console.WriteLine(b"))
                     edit.Apply()
                 End Using
@@ -1257,7 +1277,7 @@ End Module|}          </Document>)
 
                 ' verify we can commit even when unmapped
                 projection.ReplaceSpans(0, projection.CurrentSnapshot.GetSourceSpans.Count, {projection.CurrentSnapshot.GetText()}, EditOptions.DefaultMinimalChange, editTag:=Nothing)
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Assert.Contains(<text>
 Imports System
 Module Program
@@ -1806,8 +1826,9 @@ Class Class1
 End Class
 </Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
                 state.SendTypeChars("System.TimeSpan.FromMin")
                 state.SendReturn()
                 Assert.Equal(<text>
@@ -1831,8 +1852,9 @@ Class Class1
 End Class
 </Document>)
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
 
                 state.SendTypeChars("System.TimeSpan.FromMinutes")
                 state.SendReturn()
@@ -2135,7 +2157,10 @@ Class G
     Public Re$$
 End Class
             ]]></Document>)
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTyping, LanguageNames.VisualBasic, False)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnTyping, LanguageNames.VisualBasic, False)))
                 state.SendBackspace()
                 Await state.AssertNoCompletionSession()
             End Using
@@ -2624,9 +2649,9 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
-                                                                                    LanguageNames.VisualBasic,
-                                                                                    SnippetsRule.AlwaysInclude)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2647,9 +2672,9 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
-                                                                                    LanguageNames.VisualBasic,
-                                                                                    SnippetsRule.AlwaysInclude)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2671,9 +2696,9 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
-                                                                                    LanguageNames.VisualBasic,
-                                                                                    SnippetsRule.AlwaysInclude)
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("x", "Shortcut")
@@ -3008,11 +3033,241 @@ End Class
             End Using
         End Function
 
+        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround1() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class C
+    Sub goo(x As Integer)
+        String.$$
+]]></Document>)
+                    state.SendTypeChars("is")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("IsInterned")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround2() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class C
+    Sub goo(x As Integer)
+        String.$$]]></Document>)
+                    state.SendTypeChars("ı")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem()
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround3() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class TARIFE
+
+End Class
+Class C
+    Sub goo(x As Integer)
+        Dim t As $$
+]]></Document>)
+                    state.SendTypeChars("tarif")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("TARIFE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround4() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class IFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim ifade As IFADE
+        $$]]></Document>)
+                    state.SendTypeChars("if")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("If")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround5() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class İFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim ifade As İFADE
+        $$
+]]></Document>)
+                    state.SendTypeChars("if")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("If")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround6() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class TARİFE
+
+End Class
+Class C
+    Sub goo(x As Integer)
+        Dim obj As $$
+]]></Document>)
+                    state.SendTypeChars("tarif")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("TARİFE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround7() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class İFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim obj As $$
+]]></Document>)
+                    state.SendTypeChars("ifad")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("İFADE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround8() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class IFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim obj As $$
+]]></Document>)
+                    state.SendTypeChars("ifad")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("IFADE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround9() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class IFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim ifade_ As İFADE
+        $$]]></Document>)
+                    state.SendTypeChars("IF")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("If")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround10() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class İFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim ifade As İFADE
+        $$
+]]></Document>)
+                    state.SendTypeChars("IF")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("If")
+                End Using
+            End Using
+
+        End Function
+
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
         Friend Class MockSnippetInfoService
             Implements ISnippetInfoService
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -365,7 +367,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.BodyEnd
 
-
                 Case SyntaxKind.SimpleDoLoopBlock,
                      SyntaxKind.DoWhileLoopBlock,
                      SyntaxKind.DoUntilLoopBlock,
@@ -386,7 +387,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.EndWhileStatement
                     Return Label.EndLoop
 
-
                 Case SyntaxKind.ForBlock
                     Return Label.ForBlock
 
@@ -406,7 +406,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.NextStatement
 
-
                 Case SyntaxKind.UsingBlock
                     Return Label.UsingBlock
 
@@ -416,7 +415,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.EndUsingStatement
                     isLeaf = True
                     Return Label.EndUsingStatement
-
 
                 Case SyntaxKind.SyncLockBlock
                     Return Label.SyncLockBlock
@@ -428,7 +426,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.EndSyncLockStatement
 
-
                 Case SyntaxKind.WithBlock
                     Return Label.WithBlock
 
@@ -439,7 +436,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.EndWithStatement
 
-
                 Case SyntaxKind.LocalDeclarationStatement
                     Return Label.LocalDeclarationStatement
 
@@ -448,7 +444,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.ModifiedIdentifier
                     Return Label.LocalVariableName
-
 
                 Case SyntaxKind.MultiLineIfBlock,
                      SyntaxKind.SingleLineIfStatement
@@ -479,7 +474,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.EndIfStatement
 
-
                 Case SyntaxKind.TryBlock
                     Return Label.TryBlock
 
@@ -507,7 +501,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.EndTryStatement
                     isLeaf = True
                     Return Label.EndTryStatement
-
 
                 Case SyntaxKind.ErrorStatement
                     isLeaf = True
@@ -556,7 +549,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = True
                     Return Label.EndSelectStatement
 
-
                 Case SyntaxKind.ExitForStatement,
                      SyntaxKind.ExitDoStatement,
                      SyntaxKind.ExitWhileStatement,
@@ -577,7 +569,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.ReturnStatement
                     Return Label.ReturnStatement
-
 
                 Case SyntaxKind.GoToStatement,
                      SyntaxKind.StopStatement,

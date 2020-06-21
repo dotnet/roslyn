@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
             => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
@@ -105,7 +107,7 @@ dotnet_style_object_initializer = true:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
             public async Task ConfigureEditorconfig_RuleExists_True()
             {
                 var input = @"
@@ -254,7 +256,7 @@ dotnet_style_object_initializer = true:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
             public async Task ConfigureEditorconfig_MaintainSeverity_True()
             {
                 var input = @"

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |  q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |  r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -63,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // o = NullableContext. 3 bits.
             // p = DoesNotReturn. 1 bit.
             // q = DoesNotReturnPopulated. 1 bit.
+            // r = MemberNotNullPopulated. 1 bit.
             // 9 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
@@ -84,7 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int NullableContextOffset = 18;
             private const int NullableContextMask = 0x7;
             private const int DoesNotReturnBit = 0x1 << 21;
-            private const int DoesNotReturnPopulatedBit = 0x1 << 22;
+            private const int IsDoesNotReturnPopulatedBit = 0x1 << 22;
+            private const int IsMemberNotNullPopulatedBit = 0x1 << 23;
+            private const int IsInitOnlyBit = 0x1 << 24;
+            private const int IsInitOnlyPopulatedBit = 0x1 << 25;
 
             private int _bits;
 
@@ -116,7 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsReadOnly => (_bits & IsReadOnlyBit) != 0;
             public bool IsReadOnlyPopulated => (_bits & IsReadOnlyPopulatedBit) != 0;
             public bool DoesNotReturn => (_bits & DoesNotReturnBit) != 0;
-            public bool DoesNotReturnPopulated => (_bits & DoesNotReturnPopulatedBit) != 0;
+            public bool IsDoesNotReturnPopulated => (_bits & IsDoesNotReturnPopulatedBit) != 0;
+            public bool IsMemberNotNullPopulated => (_bits & IsMemberNotNullPopulatedBit) != 0;
+            public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
+            public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -201,10 +210,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public bool InitializeDoesNotReturn(bool value)
             {
-                int bitsToSet = DoesNotReturnPopulatedBit;
+                int bitsToSet = IsDoesNotReturnPopulatedBit;
                 if (value) bitsToSet |= DoesNotReturnBit;
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public void SetIsMemberNotNullPopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsMemberNotNullPopulatedBit);
+            }
+
+            public void InitializeIsInitOnly(bool isInitOnly)
+            {
+                int bitsToSet = (isInitOnly ? IsInitOnlyBit : 0) | IsInitOnlyPopulatedBit;
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
         }
 
@@ -220,6 +241,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<string> _lazyConditionalAttributeSymbols;
             public ObsoleteAttributeData _lazyObsoleteAttributeData;
             public DiagnosticInfo _lazyUseSiteDiagnostic;
+            public ImmutableArray<string> _lazyNotNullMembers;
+            public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
+            public ImmutableArray<string> _lazyNotNullMembersWhenFalse;
         }
 
         private UncommonFields CreateUncommonFields()
@@ -254,6 +278,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_packedFlags.IsOverriddenOrHiddenMembersPopulated)
             {
                 retVal._lazyOverriddenOrHiddenMembersResult = OverriddenOrHiddenMembersResult.Empty;
+            }
+
+            if (_packedFlags.IsMemberNotNullPopulated)
+            {
+                retVal._lazyNotNullMembers = ImmutableArray<string>.Empty;
+                retVal._lazyNotNullMembersWhenTrue = ImmutableArray<string>.Empty;
+                retVal._lazyNotNullMembersWhenFalse = ImmutableArray<string>.Empty;
             }
 
             return retVal;
@@ -557,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (!_packedFlags.DoesNotReturnPopulated)
+                if (!_packedFlags.IsDoesNotReturnPopulated)
                 {
                     var moduleSymbol = _containingType.ContainingPEModule;
                     bool doesNotReturn = moduleSymbol.Module.HasDoesNotReturnAttribute(_handle);
@@ -565,6 +596,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return _packedFlags.DoesNotReturn ? FlowAnalysisAnnotations.DoesNotReturn : FlowAnalysisAnnotations.None;
+            }
+        }
+
+        internal override ImmutableArray<string> NotNullMembers
+        {
+            get
+            {
+                if (!_packedFlags.IsMemberNotNullPopulated)
+                {
+                    PopulateMemberNotNullData();
+                }
+
+                var uncommonFields = _uncommonFields;
+                if (uncommonFields == null)
+                {
+                    return ImmutableArray<string>.Empty;
+                }
+                else
+                {
+                    var result = uncommonFields._lazyNotNullMembers;
+                    return result.IsDefault ? ImmutableArray<string>.Empty : result;
+                }
+            }
+        }
+
+        private void PopulateMemberNotNullData()
+        {
+            var module = _containingType.ContainingPEModule.Module;
+            var memberNotNull = module.GetMemberNotNullAttributeValues(_handle);
+            Debug.Assert(!memberNotNull.IsDefault);
+            if (!memberNotNull.IsEmpty)
+            {
+                InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyNotNullMembers, memberNotNull);
+            }
+
+            var (memberNotNullWhenTrue, memberNotNullWhenFalse) = module.GetMemberNotNullWhenAttributeValues(_handle);
+
+            Debug.Assert(!memberNotNullWhenTrue.IsDefault);
+            if (!memberNotNullWhenTrue.IsEmpty)
+            {
+                InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyNotNullMembersWhenTrue, memberNotNullWhenTrue);
+            }
+
+            Debug.Assert(!memberNotNullWhenFalse.IsDefault);
+            if (!memberNotNullWhenFalse.IsEmpty)
+            {
+                InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyNotNullMembersWhenFalse, memberNotNullWhenFalse);
+            }
+
+            _packedFlags.SetIsMemberNotNullPopulated();
+        }
+
+        internal override ImmutableArray<string> NotNullWhenTrueMembers
+        {
+            get
+            {
+                if (!_packedFlags.IsMemberNotNullPopulated)
+                {
+                    PopulateMemberNotNullData();
+                }
+
+                var uncommonFields = _uncommonFields;
+                if (uncommonFields is null)
+                {
+                    return ImmutableArray<string>.Empty;
+                }
+                else
+                {
+                    var result = uncommonFields._lazyNotNullMembersWhenTrue;
+                    return result.IsDefault ? ImmutableArray<string>.Empty : result;
+                }
+            }
+        }
+
+        internal override ImmutableArray<string> NotNullWhenFalseMembers
+        {
+            get
+            {
+                if (!_packedFlags.IsMemberNotNullPopulated)
+                {
+                    PopulateMemberNotNullData();
+                }
+
+                var uncommonFields = _uncommonFields;
+                if (uncommonFields is null)
+                {
+                    return ImmutableArray<string>.Empty;
+                }
+                else
+                {
+                    var result = uncommonFields._lazyNotNullMembersWhenFalse;
+                    return result.IsDefault ? ImmutableArray<string>.Empty : result;
+                }
             }
         }
 
@@ -1126,6 +1250,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool IsInitOnly
+        {
+            get
+            {
+                if (!_packedFlags.IsInitOnlyPopulated)
+                {
+                    bool isInitOnly = !this.IsStatic &&
+                        this.MethodKind == MethodKind.PropertySet &&
+                        ReturnTypeWithAnnotations.CustomModifiers.HasIsExternalInitModifier();
+                    _packedFlags.InitializeIsInitOnly(isInitOnly);
+                }
+                return _packedFlags.IsInitOnly;
+            }
+        }
+
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref AccessUncommonFields()._lazyDocComment);
@@ -1263,6 +1402,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         // perf, not correctness

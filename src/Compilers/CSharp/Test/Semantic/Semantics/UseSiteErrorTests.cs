@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -1186,15 +1188,12 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
             var main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             main.VerifyDiagnostics(
-    // (2,49): error CS0648: '' is a type not supported by the language
+    // (2,7): error CS0570: 'ModReqInterfaceEvents.Event1.remove' is not supported by the language
     // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-    Diagnostic(ErrorCode.ERR_BogusType, "ILErrors.ModReqInterfaceEvents").WithArguments("").WithLocation(2, 49),
-    // (2,49): error CS0570: 'ModReqInterfaceEvents.remove_Event1(?)' is not supported by the language
+    Diagnostic(ErrorCode.ERR_BindToBogus, "B").WithArguments("ILErrors.ModReqInterfaceEvents.Event1.remove").WithLocation(2, 7),
+    // (2,7): error CS0570: 'ModReqInterfaceEvents.Event1.add' is not supported by the language
     // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-    Diagnostic(ErrorCode.ERR_BindToBogus, "ILErrors.ModReqInterfaceEvents").WithArguments("ILErrors.ModReqInterfaceEvents.remove_Event1(?)").WithLocation(2, 49),
-    // (2,49): error CS0570: 'ModReqInterfaceEvents.add_Event1(?)' is not supported by the language
-    // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-    Diagnostic(ErrorCode.ERR_BindToBogus, "ILErrors.ModReqInterfaceEvents").WithArguments("ILErrors.ModReqInterfaceEvents.add_Event1(?)").WithLocation(2, 49)
+    Diagnostic(ErrorCode.ERR_BindToBogus, "B").WithArguments("ILErrors.ModReqInterfaceEvents.Event1.add").WithLocation(2, 7)
             );
         }
 
@@ -2150,18 +2149,18 @@ class C
 }
 ";
             CreateCompilationWithILAndMscorlib40(source, il).VerifyDiagnostics(
-                // (8,22): error CS0570: 'Constructors.Constructors(?)' is not supported by the language
+                // (8,22): error CS0570: 'Constructors.Constructors(string)' is not supported by the language
                 //         var c2 = new Constructors(null);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Constructors").WithArguments("Constructors.Constructors(?)"),
-                // (10,9): error CS0570: 'Methods.M(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Constructors").WithArguments("Constructors.Constructors(string)").WithLocation(8, 22),
+                // (10,17): error CS0570: 'Methods.M(string)' is not supported by the language
                 //         Methods.M(null);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Methods.M(?)"),
-                // (12,29): error CS0570: 'Methods.M(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Methods.M(string)").WithLocation(10, 17),
+                // (12,29): error CS0570: 'Methods.M(string)' is not supported by the language
                 //         Action<string> a2 = Methods.M;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Methods.M").WithArguments("Methods.M(?)"),
-                // (14,18): error CS1546: Property, indexer, or event 'Indexers.this[?]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(?)'
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Methods.M").WithArguments("Methods.M(string)").WithLocation(12, 29),
+                // (14,18): error CS1546: Property, indexer, or event 'Indexers.this[string]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(string)'
                 //         var i2 = new Indexers()[null];
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[?]", "Indexers.get_Item(?)"));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[string]", "Indexers.get_Item(string)").WithLocation(14, 18));
         }
 
         [WorkItem(939928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939928")]

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -70,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             get;
         }
 
-        internal static SynchronizationContext GetEffectiveSynchronizationContext()
+        internal static SynchronizationContext? GetEffectiveSynchronizationContext()
         {
             if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
             {
-                SynchronizationContext innerSynchronizationContext = null;
+                SynchronizationContext? innerSynchronizationContext = null;
                 asyncTestSyncContext.Send(
                     _ =>
                     {
@@ -121,13 +125,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             private readonly JoinableTaskFactory _joinableTaskFactory;
 
             public JoinableTaskFactoryTaskScheduler(JoinableTaskFactory joinableTaskFactory)
-            {
-                _joinableTaskFactory = joinableTaskFactory;
-            }
+                => _joinableTaskFactory = joinableTaskFactory;
 
             public override int MaximumConcurrencyLevel => 1;
 
-            protected override IEnumerable<Task> GetScheduledTasks() => null;
+            protected override IEnumerable<Task>? GetScheduledTasks() => null;
 
             protected override void QueueTask(Task task)
             {

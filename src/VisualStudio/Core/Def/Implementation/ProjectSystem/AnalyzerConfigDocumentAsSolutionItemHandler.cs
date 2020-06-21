@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -32,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IThreadingContext _threadingContext;
 
         private DTE? _dte;
+        private bool _infoBarShownForCurrentSolution;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,20 +49,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void Initialize(IServiceProvider serviceProvider)
-        {
-            _dte = (DTE)serviceProvider.GetService(typeof(DTE));
-        }
+            => _dte = (DTE)serviceProvider.GetService(typeof(DTE));
 
         void IDisposable.Dispose()
-        {
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-        }
+            => _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            // Check if a new analyzer config document was added and we have a non-null DTE instance.
-            if (e.Kind != WorkspaceChangeKind.AnalyzerConfigDocumentAdded ||
-                _dte == null)
+            switch (e.Kind)
+            {
+                case WorkspaceChangeKind.SolutionAdded:
+                    _infoBarShownForCurrentSolution = false;
+                    return;
+
+                // Check if a new analyzer config document was added
+                case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                    break;
+
+                default:
+                    return;
+            }
+
+            // Bail out if we have a null DTE instance or we have already shown the info bar for current solution.
+            if (_dte == null ||
+                _infoBarShownForCurrentSolution)
             {
                 return;
             }
@@ -93,10 +106,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
-                infoBarService.ShowInfoBarInGlobalView(
-                    ServicesVSResources.A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item,
-                    GetInfoBarUIItems().ToArray());
+                if (!_infoBarShownForCurrentSolution)
+                {
+                    _infoBarShownForCurrentSolution = true;
+                    var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
+                    infoBarService.ShowInfoBarInGlobalView(
+                        ServicesVSResources.A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item,
+                        GetInfoBarUIItems().ToArray());
+                }
             });
 
             return;
@@ -121,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Don't show the InfoBar again link
                 yield return new InfoBarUI(title: ServicesVSResources.Never_show_this_again,
                     kind: InfoBarUI.UIKind.Button,
-                    action: () => _workspace.Options = _workspace.Options.WithChangedOption(NeverShowAgain, true),
+                    action: () => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options.WithChangedOption(NeverShowAgain, true))),
                     closeAfterAction: true);
             }
 

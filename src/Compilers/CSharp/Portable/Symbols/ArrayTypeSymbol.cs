@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -13,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// An ArrayTypeSymbol represents an array type, such as int[] or object[,].
     /// </summary>
-    internal abstract partial class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
+    internal abstract partial class ArrayTypeSymbol : TypeSymbol
     {
         private readonly TypeWithAnnotations _elementTypeWithAnnotations;
         private readonly NamedTypeSymbol _baseType;
@@ -23,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol array)
         {
             Debug.Assert(elementTypeWithAnnotations.HasType);
-            Debug.Assert((object)array != null);
+            RoslynDebug.Assert((object)array != null);
 
             _elementTypeWithAnnotations = elementTypeWithAnnotations;
             _baseType = array;
@@ -249,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -295,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -334,19 +339,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitArrayType(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
             return this.Equals(t2 as ArrayTypeSymbol, comparison, isValueTypeOverrideOpt);
         }
 
-        private bool Equals(ArrayTypeSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool Equals(ArrayTypeSymbol? other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other.HasSameShapeAs(this) ||
+            if ((object?)other == null || !other.HasSameShapeAs(this) ||
                 !other.ElementTypeWithAnnotations.Equals(ElementTypeWithAnnotations, comparison, isValueTypeOverrideOpt))
             {
                 return false;
@@ -445,13 +450,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
-            DiagnosticInfo result = null;
+            DiagnosticInfo? result = null;
 
             // check element type
             // check custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.ElementTypeWithAnnotations))
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.ElementTypeWithAnnotations, AllowedRequiredModifierType.None))
             {
                 return result;
             }
@@ -468,43 +473,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        #region IArrayTypeSymbol Members
-
-        ITypeSymbol IArrayTypeSymbol.ElementType
+        protected sealed override ISymbol CreateISymbol()
         {
-            get { return this.ElementType; }
+            return new PublicModel.ArrayTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        CodeAnalysis.NullableAnnotation IArrayTypeSymbol.ElementNullableAnnotation
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get => ElementTypeWithAnnotations.ToPublicAnnotation();
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.ArrayTypeSymbol(this, nullableAnnotation);
         }
-
-        ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers
-        {
-            get { return this.ElementTypeWithAnnotations.CustomModifiers; }
-        }
-
-        bool IArrayTypeSymbol.Equals(IArrayTypeSymbol symbol)
-        {
-            return this.Equals(symbol as ArrayTypeSymbol, SymbolEqualityComparer.Default.CompareKind);
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitArrayType(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitArrayType(this);
-        }
-
-        #endregion
 
         /// <summary>
         /// Represents SZARRAY - zero-based one-dimensional array 
@@ -550,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null)
+            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null)
             {
                 return _interfaces;
             }
@@ -597,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null)
+            internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }

@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -16,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, bool outOfProcess)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, options);
+            using var workspace = CreateWorkspace(code, span, options, outOfProcess);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
             return GetAllClassificationsAsync(document, span);
@@ -1785,6 +1786,190 @@ class X
                 TypeParameter("T"),
                 Punctuation.Colon,
                 Keyword("notnull"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [WorkItem(10174, "https://github.com/dotnet/roslyn/issues/10174")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task VarInPropertyPattern()
+        {
+            await TestAsync(
+@"
+using System;
+
+class Person { public string Name; }
+
+class Program
+{
+    void Goo(object o)
+    {
+        if (o is Person { Name: var n })
+        {
+            Console.WriteLine(n);
+        }
+    }
+}",
+                Keyword("using"),
+                Namespace("System"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("string"),
+                Field("Name"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("Program"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Field("Name"),
+                Punctuation.Colon,
+                Keyword("var"),
+                Identifier("n"),
+                Punctuation.CloseCurly,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Class("Console"),
+                Static("Console"),
+                Operators.Dot,
+                Method("WriteLine"),
+                Static("WriteLine"),
+                Punctuation.OpenParen,
+                Local("n"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NotPattern()
+        {
+            await TestAsync(
+@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is not Person p)
+        {
+        }
+    }
+}",
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Keyword("not"),
+                Class("Person"),
+                Local("p"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task OrPattern()
+        {
+            await TestAsync(
+@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is Person or int)
+        {
+        }
+    }
+}",
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Class("Person"),
+                Keyword("or"),
+                Keyword("int"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task RelationalPattern()
+        {
+            await TestAsync(
+@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is >= 0)
+        {
+        }
+    }
+}",
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Operators.GreaterThanEquals,
+                NumericLiteral("0"),
+                Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -270,17 +272,13 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Not used anymore.  CompletionList.Span is used to control the span used for filtering.", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public CompletionItem WithSpan(TextSpan span)
-        {
-            return this;
-        }
+            => this;
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="DisplayText"/> property changed.
         /// </summary>
         public CompletionItem WithDisplayText(string text)
-        {
-            return With(displayText: text);
-        }
+            => With(displayText: text);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="DisplayTextPrefix"/> property changed.
@@ -298,41 +296,31 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="FilterText"/> property changed.
         /// </summary>
         public CompletionItem WithFilterText(string text)
-        {
-            return With(filterText: text);
-        }
+            => With(filterText: text);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="SortText"/> property changed.
         /// </summary>
         public CompletionItem WithSortText(string text)
-        {
-            return With(sortText: text);
-        }
+            => With(sortText: text);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Properties"/> property changed.
         /// </summary>
         public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
-        {
-            return With(properties: properties);
-        }
+            => With(properties: properties);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with a property added to the <see cref="Properties"/> collection.
         /// </summary>
         public CompletionItem AddProperty(string name, string value)
-        {
-            return With(properties: Properties.Add(name, value));
-        }
+            => With(properties: Properties.Add(name, value));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.
         /// </summary>
         public CompletionItem WithTags(ImmutableArray<string> tags)
-        {
-            return With(tags: tags);
-        }
+            => With(tags: tags);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with a tag added to the <see cref="Tags"/> collection.
@@ -358,21 +346,34 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Rules"/> property changed.
         /// </summary>
         public CompletionItem WithRules(CompletionItemRules rules)
-        {
-            return With(rules: rules);
-        }
+            => With(rules: rules);
 
         private string _entireDisplayText;
 
         int IComparable<CompletionItem>.CompareTo(CompletionItem other)
         {
-            var result = StringComparer.OrdinalIgnoreCase.Compare(SortText, other.SortText);
-            if (result == 0)
-            {
-                result = StringComparer.OrdinalIgnoreCase.Compare(GetEntireDisplayText(), other.GetEntireDisplayText());
-            }
+            // Make sure expanded items are listed after non-expanded ones
+            var thisIsExpandItem = Flags.IsExpanded();
+            var otherIsExpandItem = other.Flags.IsExpanded();
 
-            return result;
+            if (thisIsExpandItem == otherIsExpandItem)
+            {
+                var result = StringComparer.OrdinalIgnoreCase.Compare(SortText, other.SortText);
+                if (result == 0)
+                {
+                    result = StringComparer.OrdinalIgnoreCase.Compare(GetEntireDisplayText(), other.GetEntireDisplayText());
+                }
+
+                return result;
+            }
+            else if (thisIsExpandItem)
+            {
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
         }
 
         internal string GetEntireDisplayText()

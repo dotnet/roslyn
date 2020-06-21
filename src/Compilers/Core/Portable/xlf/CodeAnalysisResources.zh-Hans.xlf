@@ -12,11 +12,31 @@
         <target state="translated">必须为此选项指定语言名称。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">调试过程中不允许更改程序集引用的版本:“{0}”版本改为“{1}”。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
         <target state="translated">分析器“{0}”引发了以下异常:
 “{1}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="translated">取消以下诊断以禁用此分析器: {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName contains an invalid character '{0}' at position {1}.</source>
+        <target state="new">The hintName contains an invalid character '{0}' at position {1}.</target>
+        <note>{0}: the invalid character, {1} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName of the added source file must be unique within a generator.</source>
+        <target state="new">The hintName of the added source file must be unique within a generator.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -37,6 +57,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">参数“{0}”必须是此编译或某些引用程序集的符号。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">模块具有无效属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -79,6 +104,11 @@
         <target state="translated">模块复制不能用于创建程序集元数据。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="needs-review-translation">每个生成器仅可注册一个 {0}。</target>
+        <note>{0}: type name</note>
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">分析器“{0}”在其 "SupportedDiagnostics" 中包含 null 描述符。</target>
@@ -91,7 +121,7 @@
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
         <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
-        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</target>
+        <target state="translated">具有禁止显示 ID {2} 和理由“{3}”的 DiagnosticSuppressor 已以编程方式禁止显示诊断“{0}: {1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">
@@ -107,6 +137,11 @@
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">如果已指定元组元素可以为 null 的注释，则注释的数量必须与元组基数相匹配。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">无法确定失败的具体原因。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -529,6 +564,16 @@
         <target state="translated">分析器配置文件中的严重性无效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">WindowsRuntime 标识不可重定目标</target>
@@ -562,11 +607,16 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">分析器故障</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">分析器“{0}”抛出类型为“{1}”的异常，并显示消息“{2}”。</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">分析器“{0}”引发类型为“{1}”的异常，并显示消息“{2}”。
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">

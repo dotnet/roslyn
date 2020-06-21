@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExplicitOrImplicitType
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-    public class UseImplicitTypeRefactoringTests : AbstractUseTypeRefactoringTests
+    public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseImplicitTypeCodeRefactoringProvider();
@@ -89,7 +92,6 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-
         [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
@@ -166,7 +168,6 @@ class C
         int[||] i = 0, j = j;
     }
 }";
-
 
             await TestMissingInRegularAndScriptAsync(code);
         }
@@ -421,39 +422,178 @@ class C
             await TestMissingInRegularAndScriptAsync(code);
         }
 
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal1()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        [||]ref string rStr1 = ref str;
+    }
+}";
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref [||]string rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal3()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref string [||]rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefReadonlyLocal1()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly [||]string rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefReadonlyLocal2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly string[||] rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
         private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)
         {
             // Enabled because the diagnostic is disabled
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferImplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferImplicitTypeWithNone());
 
             // Enabled because the diagnostic is checking for the other direction
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferExplicitTypeWithNone());
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferExplicitTypeWithSilent());
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferExplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithSilent());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithInfo());
 
             // Disabled because the diagnostic will report it instead
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithSilent()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithInfo()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithWarning()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithError()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithSilent()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithInfo()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithWarning()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithError()));
 
             // Currently this refactoring is still enabled in cases where it would cause a warning or error
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferExplicitTypeWithWarning());
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: PreferExplicitTypeWithError());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithWarning());
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: this.PreferExplicitTypeWithError());
         }
 
         private async Task TestMissingInRegularAndScriptAsync(string initialMarkup)
         {
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithNone()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithNone()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithSilent()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithSilent()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithInfo()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithInfo()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithWarning()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithWarning()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferImplicitTypeWithError()));
-            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: PreferExplicitTypeWithError()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithNone()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithNone()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithSilent()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithSilent()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithInfo()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithInfo()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithWarning()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithWarning()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferImplicitTypeWithError()));
+            await TestMissingInRegularAndScriptAsync(initialMarkup, parameters: new TestParameters(options: this.PreferExplicitTypeWithError()));
         }
     }
 }

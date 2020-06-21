@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -216,6 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsDeclaredReadOnly => false;
 
+        internal sealed override bool IsInitOnly => false;
+
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
@@ -242,6 +246,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override DllImportData GetDllImportData()
         {
             return null;
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return ContainingType.AreLocalsZeroed; }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
@@ -349,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // The diagnostics that would be produced here will already have been captured and returned.
                 var droppedBag = DiagnosticBag.GetInstance();
-                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, droppedBag);
+                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall!, _userMainReturnTypeSyntax, droppedBag);
                 droppedBag.Free();
 
                 Debug.Assert(
@@ -464,6 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _containingType)
                 { WasCompilerGenerated = true };
 
+                Debug.Assert(!initializer.ReturnType.IsDynamic());
                 var initializeCall = CreateParameterlessCall(syntax, scriptLocal, initializer);
                 BoundExpression getAwaiterGetResultCall;
                 if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, syntax, diagnostics))

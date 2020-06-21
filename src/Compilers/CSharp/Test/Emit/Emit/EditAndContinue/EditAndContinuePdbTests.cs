@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -144,8 +146,8 @@ public class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -264,10 +266,10 @@ public class C
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, g1, g2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, a1, a2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Insert, null, b2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, g1, g2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, a1, a2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, b2)));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",

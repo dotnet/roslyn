@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(
             value: null, inputType: null, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
         protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(
-            declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, declarationKind: VariableDeclarationKind.Default, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+            declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
         protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(
             locals: ImmutableArray<ILocalSymbol>.Empty, value: null, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         private readonly SemanticModel _owningSemanticModelOpt;

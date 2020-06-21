@@ -1,32 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    /// <summary>
-    /// A class that reports the current progress made when finding references to symbols.  
-    /// </summary>
-    internal class StreamingFindReferencesProgress : IStreamingFindReferencesProgress
-    {
-        public static readonly IStreamingFindReferencesProgress Instance =
-            new StreamingFindReferencesProgress();
-
-        private StreamingFindReferencesProgress()
-        {
-        }
-
-        public Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
-
-        public Task OnCompletedAsync() => Task.CompletedTask;
-        public Task OnStartedAsync() => Task.CompletedTask;
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbol) => Task.CompletedTask;
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbol, ReferenceLocation location) => Task.CompletedTask;
-        public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
-        public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
-    }
-
     /// <summary>
     /// Wraps an <see cref="IFindReferencesProgress"/> into an <see cref="IStreamingFindReferencesProgress"/>
     /// so it can be used from the new streaming find references APIs.
@@ -35,9 +15,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private readonly IFindReferencesProgress _progress;
 
+        public IStreamingProgressTracker ProgressTracker { get; }
+
         public StreamingFindReferencesProgressAdapter(IFindReferencesProgress progress)
         {
             _progress = progress;
+            this.ProgressTracker = new StreamingProgressTracker((current, max) =>
+            {
+                _progress.ReportProgress(current, max);
+                return Task.CompletedTask;
+            });
         }
 
         public Task OnCompletedAsync()
@@ -46,9 +33,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return Task.CompletedTask;
         }
 
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId)
+        public Task OnDefinitionFoundAsync(ISymbol symbol)
         {
-            _progress.OnDefinitionFound(symbolAndProjectId.Symbol);
+            _progress.OnDefinitionFound(symbol);
             return Task.CompletedTask;
         }
 
@@ -64,21 +51,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return Task.CompletedTask;
         }
 
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
+        public Task OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
         {
-            _progress.OnReferenceFound(symbolAndProjectId.Symbol, location);
+            _progress.OnReferenceFound(symbol, location);
             return Task.CompletedTask;
         }
 
         public Task OnStartedAsync()
         {
             _progress.OnStarted();
-            return Task.CompletedTask;
-        }
-
-        public Task ReportProgressAsync(int current, int maximum)
-        {
-            _progress.ReportProgress(current, maximum);
             return Task.CompletedTask;
         }
     }

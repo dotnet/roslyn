@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -24,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                       sourceContext As EmitContext,
                       otherAssembly As SourceAssemblySymbol,
                       otherContext As EmitContext,
-                      otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbol, ImmutableArray(Of ISymbol)))
+                      otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
 
             _defs = New MatchDefsToSource(sourceContext, otherContext)
             _symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
@@ -61,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Nothing
         End Function
 
-        Friend Overrides Function TryGetAnonymousTypeName(template As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
+        Friend Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Return _symbols.TryGetAnonymousTypeName(template, name, index)
         End Function
 
@@ -227,18 +229,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private ReadOnly _sourceAssembly As SourceAssemblySymbol
             Private ReadOnly _otherAssembly As AssemblySymbol
-            Private ReadOnly _otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbol, ImmutableArray(Of ISymbol))
+            Private ReadOnly _otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
 
             ' A cache of members per type, populated when the first member for a given
             ' type Is needed. Within each type, members are indexed by name. The reason
             ' for caching, And indexing by name, Is to avoid searching sequentially
             ' through all members of a given kind each time a member Is matched.
-            Private ReadOnly _otherMembers As ConcurrentDictionary(Of ISymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of ISymbol)))
+            Private ReadOnly _otherMembers As ConcurrentDictionary(Of ISymbolInternal, IReadOnlyDictionary(Of String, ImmutableArray(Of ISymbolInternal)))
 
             Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
                            sourceAssembly As SourceAssemblySymbol,
                            otherAssembly As AssemblySymbol,
-                           otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbol, ImmutableArray(Of ISymbol)),
+                           otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
                            deepTranslatorOpt As DeepTranslator)
 
                 _anonymousTypeMap = anonymousTypeMap
@@ -247,10 +249,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 _otherSynthesizedMembersOpt = otherSynthesizedMembersOpt
                 _comparer = New SymbolComparer(Me, deepTranslatorOpt)
                 _matches = New ConcurrentDictionary(Of Symbol, Symbol)(ReferenceEqualityComparer.Instance)
-                _otherMembers = New ConcurrentDictionary(Of ISymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of ISymbol)))(ReferenceEqualityComparer.Instance)
+                _otherMembers = New ConcurrentDictionary(Of ISymbolInternal, IReadOnlyDictionary(Of String, ImmutableArray(Of ISymbolInternal)))(ReferenceEqualityComparer.Instance)
             End Sub
 
-            Friend Function TryGetAnonymousTypeName(type As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
+            Friend Function TryGetAnonymousTypeName(type As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
                 Dim otherType As AnonymousTypeValue = Nothing
                 If TryFindAnonymousType(type, otherType) Then
                     name = otherType.Name
@@ -428,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 Select Case otherContainer.Kind
                     Case SymbolKind.Namespace
-                        Dim template = TryCast(type, IAnonymousTypeTemplateSymbolInternal)
+                        Dim template = TryCast(type, AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol)
                         If template IsNot Nothing Then
                             Debug.Assert(otherContainer Is _otherAssembly.GlobalNamespace)
                             Dim value As AnonymousTypeValue = Nothing
@@ -496,7 +498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     VisualBasicCustomModifier.CreateRequired(type))
             End Function
 
-            Friend Function TryFindAnonymousType(type As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef otherType As AnonymousTypeValue) As Boolean
+            Friend Function TryFindAnonymousType(type As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef otherType As AnonymousTypeValue) As Boolean
                 Debug.Assert(type.ContainingSymbol Is _sourceAssembly.GlobalNamespace)
 
                 Return _anonymousTypeMap.TryGetValue(type.GetAnonymousTypeKey(), otherType)
@@ -510,10 +512,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return FindMatchingMember(otherType, member, predicate)
             End Function
 
-            Private Function FindMatchingMember(Of T As Symbol)(otherTypeOrNamespace As ISymbol, sourceMember As T, predicate As Func(Of T, T, Boolean)) As T
+            Private Function FindMatchingMember(Of T As Symbol)(otherTypeOrNamespace As ISymbolInternal, sourceMember As T, predicate As Func(Of T, T, Boolean)) As T
                 Dim otherMembersByName = _otherMembers.GetOrAdd(otherTypeOrNamespace, AddressOf GetAllEmittedMembers)
 
-                Dim otherMembers As ImmutableArray(Of ISymbol) = Nothing
+                Dim otherMembers As ImmutableArray(Of ISymbolInternal) = Nothing
                 If otherMembersByName.TryGetValue(sourceMember.Name, otherMembers) Then
                     For Each otherMember In otherMembers
                         Dim other = TryCast(otherMember, T)
@@ -627,8 +629,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End Select
             End Function
 
-            Private Function GetAllEmittedMembers(symbol As ISymbol) As IReadOnlyDictionary(Of String, ImmutableArray(Of ISymbol))
-                Dim members = ArrayBuilder(Of ISymbol).GetInstance()
+            Private Function GetAllEmittedMembers(symbol As ISymbolInternal) As IReadOnlyDictionary(Of String, ImmutableArray(Of ISymbolInternal))
+                Dim members = ArrayBuilder(Of ISymbolInternal).GetInstance()
 
                 If symbol.Kind = SymbolKind.NamedType Then
                     Dim type = CType(symbol, NamedTypeSymbol)
@@ -641,7 +643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     members.AddRange(CType(symbol, NamespaceSymbol).GetMembers())
                 End If
 
-                Dim synthesizedMembers As ImmutableArray(Of ISymbol) = Nothing
+                Dim synthesizedMembers As ImmutableArray(Of ISymbolInternal) = Nothing
                 If _otherSynthesizedMembersOpt IsNot Nothing AndAlso _otherSynthesizedMembersOpt.TryGetValue(symbol, synthesizedMembers) Then
                     members.AddRange(synthesizedMembers)
                 End If

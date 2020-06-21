@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -262,9 +264,9 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-                // (3,9): error CS8050: Only auto-implemented properties can have initializers.
+                // (3,9): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     int P { get; } = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("I.P").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P").WithArguments("I.P").WithLocation(3, 9));
         }
 
         [Fact]
@@ -706,7 +708,7 @@ class Program
   IL_001a:  ret       
 }
 ");
-            var type = (PENamedTypeSymbol)verifier.Compilation.GlobalNamespace.GetMembers("Signatures").Single();
+            var type = (PENamedTypeSymbol)verifier.Compilation.GlobalNamespace.GetMembers("Signatures").Single().GetSymbol();
 
             // Valid static property, property with signature that does not match accessors,
             // and property with accessors that do not match each other.
@@ -1449,36 +1451,43 @@ class B {
         public void CanNotReadPropertyOfUnsupportedType()
         {
             const string ilSource = @"
-.class public B
+.class public auto ansi beforefieldinit Indexers
+       extends [mscorlib]System.Object
 {
-  .method public instance void .ctor()
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string)
+           = {string('Item')}
+  .method public hidebysig specialname instance int32 
+          get_Item(string modreq(int16) x) cil managed
+  {
+    ldc.i4.0
+    ret
+  }
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
   {
     ldarg.0
-    call instance void class System.Object::.ctor()
+    call       instance void [mscorlib]System.Object::.ctor()
     ret
   }
-  .method public static method void*()[] get_Goo()
+
+  .property instance int32 Item(string modreq(int16))
   {
-    ldnull
-    ret
+    .get instance int32 Indexers::get_Item(string modreq(int16))
   }
-  .property method void*()[] Goo()
-  {
-    .get method void*()[] B::get_Goo()
-  }
-}
+} // end of class Indexers
 ";
             const string cSharpSource = @"
 class C {
     static void Main() {
-        object goo = B.Goo;
+        object goo = new Indexers()[null];
     }
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,24): error CS1546: Property, indexer, or event 'B.Goo' is not supported by the language; try directly calling accessor method 'B.get_Goo()'
-                //         object goo = B.Goo;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("B.Goo", "B.get_Goo()"));
+                // (4,22): error CS1546: Property, indexer, or event 'Indexers.this[string]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(string)'
+                //         object goo = new Indexers()[null];
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[string]", "Indexers.get_Item(string)").WithLocation(4, 22));
         }
 
         [WorkItem(538791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538791")]
@@ -1559,6 +1568,11 @@ class B {
         public void CanNotReadPropertyFromAmbiguousGenericClass()
         {
             const string ilSource = @"
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '09f9df97-a228-4ca4-9b71-151909f205e6'
+{
+}
+
 .class public A`1<T> {
   .method public static int32 get_Goo() { ldnull throw }
   .property int32 Goo() { .get int32 A`1::get_Goo() }
@@ -1569,6 +1583,8 @@ class B {
   .property int32 Goo() { .get int32 A::get_Goo() }
 }
 ";
+            var ref0 = CompileIL(ilSource, prependDefaultHeader: false);
+
             const string cSharpSource = @"
 class B {
   static void Main() {
@@ -1576,10 +1592,10 @@ class B {
   }
 }
 ";
-            CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,16): error CS0104: 'A<>' is an ambiguous reference between 'A<T>' and 'A<T>'
+            CreateCompilation(cSharpSource, references: new[] { ref0 }).VerifyDiagnostics(
+                // (4,16): error CS0433: The type 'A<T>' exists in both '09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and '09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //     object x = A<int>.Goo;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "A<int>").WithArguments("A<>", "A<T>", "A<T>").WithLocation(4, 16));
+                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "A<int>").WithArguments("09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A<T>", "09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 16));
         }
 
         [WorkItem(538789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538789")]

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -319,7 +321,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim operatorResultType As TypeSymbol = operandType
 
             Dim forceToBooleanType As TypeSymbol = Nothing
-            Dim applyIsTrue As Boolean = False
 
             Select Case preliminaryOperatorKind
 
@@ -352,13 +353,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  ErrorFactory.ErrorInfo(
                                                      If(preliminaryOperatorKind = BinaryOperatorKind.Equals,
                                                         ERRID.WRN_EqualToLiteralNothing, ERRID.WRN_NotEqualToLiteralNothing)))
-                            End If
-
-                            If isOperandOfConditionalBranch Then
-                                ' TODO: I believe the IsTrue is just an optimization to prevent Nullable from unnecessary bubbling up the tree.
-                                ' Perhaps we can do this optimization as a rewrite.
-                                applyIsTrue = True
-                                forceToBooleanType = booleanType
                             End If
                         Else
                             If Not operatorResultType.IsObjectType() Then
@@ -524,16 +518,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Dim result As BoundExpression = New BoundBinaryOperator(node, operatorKind, left, right, CheckOverflow, value, operatorResultType, hasError)
-
-            Debug.Assert(Not applyIsTrue OrElse forceToBooleanType IsNot Nothing)
+            Dim result As BoundExpression = New BoundBinaryOperator(node, operatorKind Or If(isOperandOfConditionalBranch, BinaryOperatorKind.IsOperandOfConditionalBranch, Nothing),
+                                                                    left, right, CheckOverflow, value, operatorResultType, hasError)
 
             If forceToBooleanType IsNot Nothing Then
                 Debug.Assert(forceToBooleanType.IsBooleanType())
-
-                If applyIsTrue Then
-                    Return ApplyNullableIsTrueOperator(result, forceToBooleanType)
-                End If
 
                 result = ApplyConversion(node, forceToBooleanType, result, isExplicit:=True, diagnostics:=diagnostics)
             End If

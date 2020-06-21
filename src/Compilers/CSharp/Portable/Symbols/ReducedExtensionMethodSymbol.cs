@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -196,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var success = method.CheckConstraints(conversions, includeNullability: false, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder,
+            var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder,
                                                   ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
             diagnosticsBuilder.Free();
             notInferredTypeParameters.Free();
@@ -245,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
+        internal override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
             _reducedFrom.Parameters[0].TypeWithAnnotations.ToPublicAnnotation();
 
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
@@ -320,6 +322,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override DllImportData GetDllImportData()
         {
             return _reducedFrom.GetDllImportData();
+        }
+
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
@@ -519,6 +526,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
 
         internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0].RefKind == RefKind.In;
 

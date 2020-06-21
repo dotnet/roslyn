@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -195,13 +197,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        // Assigning to an non ref return indexer needs to set 'useSetterForDefaultArgumentGeneration' to true. 
+                        // Assigning to a non ref return indexer needs to set 'useSetterForDefaultArgumentGeneration' to true. 
                         // This is for IOperation purpose.
                         var indexerAccess = (BoundIndexerAccess)expr;
                         if (valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef)
                         {
                             expr = indexerAccess.Update(useSetterForDefaultArgumentGeneration: true);
                         }
+                    }
+                    break;
+
+                case BoundKind.UnconvertedObjectCreationExpression:
+                    if (valueKind == BindValueKind.RValue)
+                    {
+                        return expr;
                     }
                     break;
             }
@@ -361,10 +370,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;
 
+                case BoundKind.UnconvertedAddressOfOperator:
+                    var unconvertedAddressOf = (BoundUnconvertedAddressOfOperator)expr;
+                    Error(diagnostics, GetMethodGroupOrFunctionPointerLvalueError(valueKind), node, unconvertedAddressOf.Operand.Name, MessageID.IDS_AddressOfMethodGroup.Localize());
+                    return false;
+
+                case BoundKind.MethodGroup when valueKind == BindValueKind.AddressOf:
+                    // If the addressof operator is used not as an rvalue, that will get flagged when CheckValue
+                    // is called on the parent BoundUnconvertedAddressOf node.
+                    return true;
+
                 case BoundKind.MethodGroup:
-                    // method groups can only be used as RValues
+                    // method groups can only be used as RValues except when taking the address of one
                     var methodGroup = (BoundMethodGroup)expr;
-                    Error(diagnostics, GetMethodGroupLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
+                    Error(diagnostics, GetMethodGroupOrFunctionPointerLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
                     return false;
 
                 case BoundKind.RangeVariable:
@@ -486,9 +505,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var call = (BoundCall)expr;
                     return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);
 
+                case BoundKind.FunctionPointerInvocation:
+                    return CheckMethodReturnValueKind(((BoundFunctionPointerInvocation)expr).FunctionPointer.Signature,
+                        expr.Syntax,
+                        node,
+                        valueKind,
+                        checkingReceiver,
+                        diagnostics);
+
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    // If we got here this should be a pttern indexer taking a Range,
+                    // If we got here this should be a pattern indexer taking a Range,
                     // meaning that the pattern symbol must be a method (either Slice or Substring)
                     return CheckMethodReturnValueKind(
                         (MethodSymbol)patternIndexer.PatternSymbol,
@@ -707,7 +734,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             MethodSymbol containingMethod = (MethodSymbol)containing;
                             MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
-                            canModifyReadonly = containingMethod.MethodKind == desiredMethodKind;
+                            canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
+                                isAssignedFromInitOnlySetterOnThis(fieldAccess.ReceiverOpt);
                         }
                         else if (containing.Kind == SymbolKind.Field)
                         {
@@ -743,6 +771,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+
+            bool isAssignedFromInitOnlySetterOnThis(BoundExpression receiver)
+            {
+                // bad: other.readonlyField = ...
+                // bad: base.readonlyField = ...
+                if (!(receiver is BoundThisReference))
+                {
+                    return false;
+                }
+
+                if (!(ContainingMemberOrLambda is MethodSymbol method))
+                {
+                    return false;
+                }
+
+                return method.IsInitOnly;
+            }
         }
 
         private bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, DiagnosticBag diagnostics)
@@ -968,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
 
-                if ((object)setMethod == null)
+                if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
                     if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing))
@@ -979,6 +1024,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    if (setMethod.IsInitOnly &&
+                        !isAllowedInitOnlySet(receiver))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
+                        return false;
+                    }
+
                     var accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1067,6 +1119,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+
+            bool isAllowedInitOnlySet(BoundExpression receiver)
+            {
+                // ok: new C() { InitOnlyProperty = ... }
+                if (receiver is BoundObjectOrCollectionValuePlaceholder)
+                {
+                    return true;
+                }
+
+                // bad: other.InitOnlyProperty = ...
+                if (!(receiver is BoundThisReference || receiver is BoundBaseReference))
+                {
+                    return false;
+                }
+
+                var containingMember = ContainingMemberOrLambda;
+                if (!(containingMember is MethodSymbol method))
+                {
+                    return false;
+                }
+
+                if (method.MethodKind == MethodKind.Constructor || method.IsInitOnly)
+                {
+                    // ok: setting on `this` or `base` from an instance constructor or init-only setter
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, DiagnosticBag diagnostics,
@@ -1625,13 +1706,8 @@ moreArguments:
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        private static ErrorCode GetMethodGroupLvalueError(BindValueKind valueKind)
+        private static ErrorCode GetMethodGroupOrFunctionPointerLvalueError(BindValueKind valueKind)
         {
-            if (valueKind == BindValueKind.AddressOf)
-            {
-                return ErrorCode.ERR_InvalidAddrOp;
-            }
-
             if (RequiresReferenceToLocation(valueKind))
             {
                 return ErrorCode.ERR_RefReadonlyLocalCause;
@@ -2493,6 +2569,11 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.ConvertedSwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                    var switchExpr = (BoundSwitchExpression)expr;
+                    return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
+
                 default:
                     // in error situations some unexpected nodes could make here
                     // returning "scopeOfTheContainingExpression" seems safer than throwing.
@@ -3245,7 +3326,7 @@ moreArguments:
             if (!field.IsReadOnly)
             {
                 // in a case if we have a writeable struct field with a receiver that only has a readable home we would need to pass it via a temp.
-                // it would be advantageous to make a temp for the field, not for the the outer struct, since the field is smaller and we can get to is by fetching references.
+                // it would be advantageous to make a temp for the field, not for the outer struct, since the field is smaller and we can get to is by fetching references.
                 // NOTE: this would not be profitable if we have to satisfy verifier, since for verifiability 
                 //       we would not be able to dig for the inner field using references and the outer struct will have to be copied to a temp anyways.
                 if (!peVerifyCompatEnabled)

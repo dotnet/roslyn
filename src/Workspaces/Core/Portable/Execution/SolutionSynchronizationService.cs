@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -17,21 +22,20 @@ namespace Microsoft.CodeAnalysis.Execution
         private readonly AssetStorages _assetStorages = new AssetStorages();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RemotableDataServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service(workspaceServices, _assetStorages);
-        }
+            => new Service(workspaceServices, _assetStorages);
 
         internal class Service : IRemotableDataService
         {
             private readonly HostWorkspaceServices _workspaceServices;
             private readonly AssetStorages _assetStorages;
 
-            public ISerializerService Serializer_TestOnly => _workspaceServices.GetService<ISerializerService>();
+            public ISerializerService Serializer_TestOnly => _workspaceServices.GetRequiredService<ISerializerService>();
 
             public Service(HostWorkspaceServices workspaceServices, AssetStorages storages)
             {
@@ -39,53 +43,35 @@ namespace Microsoft.CodeAnalysis.Execution
                 _assetStorages = storages;
             }
 
-            public void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken)
-            {
-                _assetStorages.AddGlobalAsset(value, asset, cancellationToken);
-            }
-
-            public CustomAsset GetGlobalAsset(object value, CancellationToken cancellationToken)
-            {
-                return _assetStorages.GetGlobalAsset(value, cancellationToken);
-            }
-
-            public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
-            {
-                _assetStorages.RemoveGlobalAsset(value, cancellationToken);
-            }
-
-            public async Task<PinnedRemotableDataScope> CreatePinnedRemotableDataScopeAsync(Solution solution, CancellationToken cancellationToken)
+            public async ValueTask<PinnedRemotableDataScope> CreatePinnedRemotableDataScopeAsync(Solution solution, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync, cancellationToken))
                 {
-                    var storage = _assetStorages.CreateStorage(solution.State);
+                    var storage = AssetStorages.CreateStorage(solution.State);
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                    var snapshot = new PinnedRemotableDataScope(_assetStorages, storage, checksum);
-                    return snapshot;
+                    return PinnedRemotableDataScope.Create(_assetStorages, storage, checksum);
                 }
             }
 
-            public RemotableData GetRemotableData(int scopeId, Checksum checksum, CancellationToken cancellationToken)
+            public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationService_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
-                    return _assetStorages.GetRemotableData(scopeId, checksum, cancellationToken);
+                    return await _assetStorages.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+            public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationService_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
-                    return _assetStorages.GetRemotableData(scopeId, checksums, cancellationToken);
+                    return await _assetStorages.GetRemotableDataAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            public RemotableData GetRemotableData_TestOnly(Checksum checksum, CancellationToken cancellationToken)
-            {
-                return _assetStorages.GetRemotableData_TestOnly(checksum, cancellationToken);
-            }
+            public async ValueTask<RemotableData?> TestOnly_GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
+                => await _assetStorages.TestOnly_GetRemotableDataAsync(checksum, cancellationToken).ConfigureAwait(false);
         }
     }
 }

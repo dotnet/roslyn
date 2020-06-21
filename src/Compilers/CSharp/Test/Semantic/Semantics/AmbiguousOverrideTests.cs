@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -349,9 +351,9 @@ class CBar : IFoo // CS0535 * 2
     // (7,14): error CS0535: 'CBar' does not implement interface member 'IFoo.M<T>(T)'
     // class CBar : IFoo // CS0535 * 2
     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)").WithLocation(7, 14),
-    // (2,21): error CS0570: 'IFooAmbiguous<T, R>.M(?)' is not supported by the language
-    // public class CFoo : IFooAmbiguous<string, long> // CS0535
-    Diagnostic(ErrorCode.ERR_BindToBogus, "IFooAmbiguous<string, long>").WithArguments("Metadata.IFooAmbiguous<T, R>.M(?)").WithLocation(2, 21)
+    // (4,17): error CS0570: 'IFooAmbiguous<T, R>.M(T)' is not supported by the language
+    //     public long M(string t) { return 127; } 
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.IFooAmbiguous<T, R>.M(T)").WithLocation(4, 17)
             );
         }
 
@@ -371,12 +373,18 @@ public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
     // (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
     //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
     Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
+    // (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+    //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
+    Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
     // (2,21): error CS0535: 'CFoo' does not implement interface member 'IFooAmbiguous<string, long>.M(string)'
     // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
-    // (2,21): error CS0570: 'IFooAmbiguous<T, R>.M(?)' is not supported by the language
+    // (2,21): error CS0535: 'CFoo' does not implement interface member 'IFooAmbiguous<string, long>.M(string)'
     // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
-    Diagnostic(ErrorCode.ERR_BindToBogus, "IFooAmbiguous<string, long>").WithArguments("Metadata.IFooAmbiguous<T, R>.M(?)").WithLocation(2, 21)
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
+    // (4,38): error CS0570: 'IFooAmbiguous<T, R>.M(T)' is not supported by the language
+    //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.IFooAmbiguous<T, R>.M(T)").WithLocation(4, 38)
                 );
         }
 
@@ -399,9 +407,9 @@ class Test
 ";
             var asm = MetadataReference.CreateFromImage(TestResources.SymbolsTests.CustomModifiers.ModoptTests.AsImmutableOrNull());
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-    // (11,9): error CS0570: 'Metadata.Modreq.M(?)' is not supported by the language
+    // (11,17): error CS0570: 'Modreq.M(uint)' is not supported by the language
     //         new D().M(11); // Dev10: error CS0570: 'M' is not supported by the language
-    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(?)")
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(uint)").WithLocation(11, 17)
                 );
         }
 
@@ -427,7 +435,9 @@ class Test
             var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("Test.D.M(uint)"));
+                // (8,30): error CS0570: 'Modreq.M(uint)' is not supported by the language
+                //         public override void M(uint x) { Console.Write(x + 1); } // CS0115
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(uint)").WithLocation(8, 30));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

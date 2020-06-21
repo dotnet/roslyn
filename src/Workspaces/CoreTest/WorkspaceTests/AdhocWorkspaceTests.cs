@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -390,10 +391,11 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
         }
 
-        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
+        private static AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
         {
             var ws = new AdhocWorkspace(hostServices, workspaceKind: "NotKeptAlive");
-            ws.Options = ws.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
+            ws.TryApplyChanges(ws.CurrentSolution.WithOptions(ws.CurrentSolution.Options
+                .WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return ws;
         }
 
@@ -405,7 +407,7 @@ language: LanguageNames.CSharp);
             await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees(hostServices));
         }
 
-        private async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
+        private static async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
         {
             var pid = ProjectId.CreateNewId();
             var text = SourceText.From("public class C { }");
@@ -473,9 +475,7 @@ language: LanguageNames.CSharp);
             }
 
             public void SetParseOptions(ProjectId id, ParseOptions options)
-            {
-                base.OnParseOptionsChanged(id, options);
-            }
+                => base.OnParseOptionsChanged(id, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

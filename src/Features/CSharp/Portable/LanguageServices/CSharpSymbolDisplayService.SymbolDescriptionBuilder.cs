@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,13 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers);
 
             public SymbolDescriptionBuilder(
-                ISymbolDisplayService displayService,
                 SemanticModel semanticModel,
                 int position,
                 Workspace workspace,
                 IAnonymousTypeDisplayService anonymousTypeDisplayService,
                 CancellationToken cancellationToken)
-                : base(displayService, semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                : base(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
             {
             }
 
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 EqualsValueClauseSyntax initializer = null;
 
-                var variableDeclarator = await this.GetFirstDeclaration<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
+                var variableDeclarator = await GetFirstDeclarationAsync<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
                 if (variableDeclarator != null)
                 {
                     initializer = variableDeclarator.Initializer;
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 
                 if (initializer == null)
                 {
-                    var enumMemberDeclaration = await this.GetFirstDeclaration<EnumMemberDeclarationSyntax>(symbol).ConfigureAwait(false);
+                    var enumMemberDeclaration = await GetFirstDeclarationAsync<EnumMemberDeclarationSyntax>(symbol).ConfigureAwait(false);
                     if (enumMemberDeclaration != null)
                     {
                         initializer = enumMemberDeclaration.EqualsValue;
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 ILocalSymbol symbol)
             {
-                var syntax = await this.GetFirstDeclaration<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
+                var syntax = await GetFirstDeclarationAsync<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
                 if (syntax != null)
                 {
                     return await GetInitializerSourcePartsAsync(syntax.Initializer).ConfigureAwait(false);
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 IParameterSymbol symbol)
             {
-                var syntax = await this.GetFirstDeclaration<ParameterSyntax>(symbol).ConfigureAwait(false);
+                var syntax = await GetFirstDeclarationAsync<ParameterSyntax>(symbol).ConfigureAwait(false);
                 if (syntax != null)
                 {
                     return await GetInitializerSourcePartsAsync(syntax.Default).ConfigureAwait(false);
@@ -150,11 +151,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return ImmutableArray<SymbolDisplayPart>.Empty;
             }
 
-            private async Task<T> GetFirstDeclaration<T>(ISymbol symbol) where T : SyntaxNode
+            private async Task<T> GetFirstDeclarationAsync<T>(ISymbol symbol) where T : SyntaxNode
             {
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
-                    var syntax = await syntaxRef.GetSyntaxAsync(this.CancellationToken).ConfigureAwait(false);
+                    var syntax = await syntaxRef.GetSyntaxAsync(CancellationToken).ConfigureAwait(false);
                     if (syntax is T tSyntax)
                     {
                         return tSyntax;
@@ -174,17 +175,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     {
                         return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
                             semanticModel, equalsValue.Value.Span,
-                            this.Workspace, cancellationToken: this.CancellationToken).ConfigureAwait(false);
+                            Workspace, cancellationToken: CancellationToken).ConfigureAwait(false);
                     }
                 }
 
                 return ImmutableArray<SymbolDisplayPart>.Empty;
-            }
-
-            protected override void AddAwaitableUsageText(IMethodSymbol method, SemanticModel semanticModel, int position)
-            {
-                AddToGroup(SymbolDescriptionGroups.AwaitableUsageText,
-                    method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position));
             }
 
             protected override void AddCaptures(ISymbol symbol)

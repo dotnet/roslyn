@@ -1,12 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Packaging;
@@ -20,14 +20,18 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class AggregateJsonConverter : JsonConverter
     {
+#pragma warning disable CA1822 // Mark members as static
+        // this type is shared by multiple teams such as Razor, LUT and etc which have either 
+        // separated/shared/shim repo so some types might not available to those context. this 
+        // partial method let us add Roslyn specific types without breaking them
         partial void AppendRoslynSpecificJsonConverters(ImmutableDictionary<Type, JsonConverter>.Builder builder)
+#pragma warning restore CA1822 // Mark members as static
         {
             Add(builder, new HighlightSpanJsonConverter());
             Add(builder, new TaggedTextJsonConverter());
 
             Add(builder, new TodoCommentDescriptorJsonConverter());
             Add(builder, new TodoCommentJsonConverter());
-            Add(builder, new DesignerAttributeResultJsonConverter());
 
             Add(builder, new PackageSourceJsonConverter());
             Add(builder, new PackageWithTypeResultJsonConverter());
@@ -98,39 +102,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName(nameof(TodoComment.Position));
                 writer.WriteValue(todoComment.Position);
-
-                writer.WriteEndObject();
-            }
-        }
-
-        private class DesignerAttributeResultJsonConverter : BaseJsonConverter<DesignerAttributeResult>
-        {
-            protected override DesignerAttributeResult ReadValue(JsonReader reader, JsonSerializer serializer)
-            {
-                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
-
-                var designerAttributeArgument = ReadProperty<string>(reader);
-                var containsErrors = ReadProperty<bool>(reader);
-                var applicable = ReadProperty<bool>(reader);
-
-                Contract.ThrowIfFalse(reader.Read());
-                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
-
-                return new DesignerAttributeResult(designerAttributeArgument, containsErrors, applicable);
-            }
-
-            protected override void WriteValue(JsonWriter writer, DesignerAttributeResult result, JsonSerializer serializer)
-            {
-                writer.WriteStartObject();
-
-                writer.WritePropertyName(nameof(DesignerAttributeResult.DesignerAttributeArgument));
-                writer.WriteValue(result.DesignerAttributeArgument);
-
-                writer.WritePropertyName(nameof(DesignerAttributeResult.ContainsErrors));
-                writer.WriteValue(result.ContainsErrors);
-
-                writer.WritePropertyName(nameof(DesignerAttributeResult.Applicable));
-                writer.WriteValue(result.Applicable);
 
                 writer.WriteEndObject();
             }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
-            BoundExpression rewrittenLeft = (BoundExpression)Visit(node.LeftOperand);
-            BoundExpression rewrittenRight = (BoundExpression)Visit(node.RightOperand);
-            TypeSymbol rewrittenResultType = VisitType(node.Type);
+            BoundExpression rewrittenLeft = VisitExpression(node.LeftOperand);
+            BoundExpression rewrittenRight = VisitExpression(node.RightOperand);
+            TypeSymbol? rewrittenResultType = VisitType(node.Type);
 
             return MakeNullCoalescingOperator(node.Syntax, rewrittenLeft, rewrittenRight, node.LeftConversion, node.OperatorResultKind, rewrittenResultType);
         }
@@ -25,16 +29,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenRight,
             Conversion leftConversion,
             BoundNullCoalescingOperatorResultKind resultKind,
-            TypeSymbol rewrittenResultType)
+            TypeSymbol? rewrittenResultType)
         {
             Debug.Assert(rewrittenLeft != null);
             Debug.Assert(rewrittenRight != null);
             Debug.Assert(leftConversion.IsValid);
-            Debug.Assert((object)rewrittenResultType != null);
+            Debug.Assert(rewrittenResultType is { });
+            Debug.Assert(rewrittenRight.Type is { });
             Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             if (_inExpressionLambda)
             {
+                // Because of Error CS0845 (An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side)
+                // we know that the left-hand-side has a type.
+                Debug.Assert(rewrittenLeft.Type is { });
                 TypeSymbol strippedLeftType = rewrittenLeft.Type.StrippedType();
                 Conversion rewrittenConversion = TryMakeConversion(syntax, leftConversion, strippedLeftType, rewrittenResultType);
                 if (!rewrittenConversion.Exists)
@@ -45,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, resultKind, rewrittenResultType);
             }
 
-            var isUnconstrainedTypeParameter = (object)rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
+            var isUnconstrainedTypeParameter = rewrittenLeft.Type is { IsReferenceType: false, IsValueType: false };
 
             // first we can make a small optimization:
             // If left is a constant then we already know whether it is null or not. If it is null then we
@@ -76,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // if left conversion is intrinsic implicit (always succeeds) and results in a reference type
             // we can apply conversion before doing the null check that allows for a more efficient IL emit.
+            Debug.Assert(rewrittenLeft.Type is { });
             if (rewrittenLeft.Type.IsReferenceType &&
                 leftConversion.IsImplicit &&
                 !leftConversion.IsUserDefined)
@@ -96,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var notNullAccess = NullableAlwaysHasValue(conditionalAccess.WhenNotNull);
                     if (notNullAccess != null)
                     {
-                        var whenNullOpt = rewrittenRight;
+                        BoundExpression? whenNullOpt = rewrittenRight;
 
                         if (whenNullOpt.Type.IsNullableType())
                         {
@@ -143,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // MakeConversion(temp, rewrittenResultType)
             BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftConversion, rewrittenResultType);
-            Debug.Assert(convertedLeft.HasErrors || convertedLeft.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Debug.Assert(convertedLeft.HasErrors || convertedLeft.Type!.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             // (temp != null) ? MakeConversion(temp, LeftConversion) : RightOperand
             BoundExpression conditionalExpression = RewriteConditionalOperator(
@@ -156,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isRef: false);
 
             Debug.Assert(conditionalExpression.ConstantValue == null); // we shouldn't have hit this else case otherwise
-            Debug.Assert(conditionalExpression.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Debug.Assert(conditionalExpression.Type!.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             return new BoundSequence(
                 syntax: syntax,
@@ -214,8 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GetConvertedLeftForNullCoalescingOperator(BoundExpression rewrittenLeft, Conversion leftConversion, TypeSymbol rewrittenResultType)
         {
             Debug.Assert(rewrittenLeft != null);
-            Debug.Assert((object)rewrittenLeft.Type != null);
-            Debug.Assert((object)rewrittenResultType != null);
+            Debug.Assert(rewrittenLeft.Type is { });
+            Debug.Assert(rewrittenResultType is { });
             Debug.Assert(leftConversion.IsValid);
 
             TypeSymbol rewrittenLeftType = rewrittenLeft.Type;

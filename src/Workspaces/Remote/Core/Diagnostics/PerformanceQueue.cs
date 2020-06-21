@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
         }
 
-        private (double average, double stddev) GetAverageAndAdjustedStandardDeviation(List<double> data)
+        private static (double average, double stddev) GetAverageAndAdjustedStandardDeviation(List<double> data)
         {
             var average = data.Average();
             var stddev = Math.Sqrt(data.Select(ms => Math.Pow(ms - average, 2)).Average());
@@ -134,14 +136,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
 
             public void Update(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData, int unitCount)
-            {
-                Reset(_performanceMap, Convert(rawData), unitCount);
-            }
+                => Reset(_performanceMap, Convert(rawData), unitCount);
 
             public void AppendAnalyzers(HashSet<int> analyzerSet)
-            {
-                analyzerSet.UnionWith(_performanceMap.Keys);
-            }
+                => analyzerSet.UnionWith(_performanceMap.Keys);
 
             public double? GetTimeSpanInMillisecond(int assignedAnalyzerNumber)
             {
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return value;
             }
 
-            private void Reset(
+            private static void Reset(
                 Dictionary<int, double> map, IEnumerable<(int assignedAnalyzerNumber, TimeSpan timeSpan)> rawData, int fileCount)
             {
                 // get smallest timespan in the snapshot
@@ -172,9 +170,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
 
             private static IEnumerable<(int assignedAnalyzerNumber, TimeSpan timeSpan)> Convert(IEnumerable<(string analyzerId, TimeSpan timeSpan)> rawData)
-            {
-                return rawData.Select(kv => (AnalyzerNumberAssigner.Instance.GetUniqueNumber(kv.analyzerId), kv.timeSpan));
-            }
+                => rawData.Select(kv => (AnalyzerNumberAssigner.Instance.GetUniqueNumber(kv.analyzerId), kv.timeSpan));
         }
 
         /// <summary>
@@ -197,9 +193,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
 
             public int GetUniqueNumber(DiagnosticAnalyzer analyzer)
-            {
-                return GetUniqueNumber(analyzer.GetAnalyzerId());
-            }
+                => GetUniqueNumber(analyzer.GetAnalyzerId());
 
             public int GetUniqueNumber(string analyzerName)
             {

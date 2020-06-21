@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -577,9 +579,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.Unboxing:
                 case ConversionKind.ExplicitDynamic:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
+                case ConversionKind.ExplicitPointerToPointer:
+                case ConversionKind.ExplicitPointerToInteger:
+                case ConversionKind.ExplicitIntegerToPointer:
                 case ConversionKind.IntPtr:
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
@@ -592,11 +594,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
-                case ConversionKind.PointerToVoid:
+                case ConversionKind.ImplicitPointerToVoid:
 
                 // Added to spec in Roslyn timeframe.
                 case ConversionKind.NullLiteral:
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ImplicitNullToPointer:
 
                 // Added for C# 7.
                 case ConversionKind.ImplicitTupleLiteral:

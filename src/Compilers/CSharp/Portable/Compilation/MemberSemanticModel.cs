@@ -1,12 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
@@ -157,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ImmutableDictionary<Symbol, Symbol> GetRemappedSymbols()
         {
             EnsureNullabilityAnalysisPerformedIfNecessary();
-            Debug.Assert(_lazyRemappedSymbols is object || !Compilation.NullableSemanticAnalysisEnabled);
+            Debug.Assert(_lazyRemappedSymbols is object || this is AttributeSemanticModel || !Compilation.NullableSemanticAnalysisEnabled);
             return _lazyRemappedSymbols;
         }
 
@@ -198,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             crefSymbols = default;
             position = CheckAndAdjustPosition(position);
             expression = SyntaxFactory.GetStandaloneExpression(expression);
-            binder = GetEnclosingBinder(position);
+            binder = GetSpeculativeBinder(position, expression, bindingOption);
             var boundRoot = binder.BindExpression(expression, _ignoredDiagnostics);
             ImmutableDictionary<Symbol, Symbol> ignored = null;
             return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, GetSnapshotManager(), newSnapshots: out _, remappedSymbols: ref ignored);
@@ -312,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (kind == SyntaxKind.ThisConstructorInitializer || kind == SyntaxKind.BaseConstructorInitializer)
+                else if (kind == SyntaxKind.ThisConstructorInitializer || kind == SyntaxKind.BaseConstructorInitializer || kind == SyntaxKind.SimpleBaseType)
                 {
                     binder = rootBinder.GetBinder(current);
                 }
@@ -419,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(destination));
+            TypeSymbol csdestination = destination.EnsureCSharpSymbolOrNull(nameof(destination));
 
             if (expression.Kind() == SyntaxKind.DeclarationExpression)
             {
@@ -596,12 +601,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
-            return GetDeclaredLocalFunction(declarationSyntax);
+            return GetDeclaredLocalFunction(declarationSyntax).GetPublicSymbol();
         }
 
         public override ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define member inside member.
+            return null;
+        }
+
+        public override IMethodSymbol GetDeclaredSymbol(CompilationUnitSyntax declarationSyntax, CancellationToken cancellationToken = default)
+        {
             return null;
         }
 
@@ -650,13 +660,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
-            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier).GetPublicSymbol();
         }
 
         public override ISymbol GetDeclaredSymbol(SingleVariableDesignationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
-            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
+            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier).GetPublicSymbol();
         }
 
         private LocalSymbol GetDeclaredLocal(CSharpSyntaxNode declarationSyntax, SyntaxToken declaredIdentifier)
@@ -696,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol remappedSymbol))
             {
-                Debug.Assert(remappedSymbol is object);
+                RoslynDebug.Assert(remappedSymbol is object);
                 return (T)remappedSymbol;
             }
 
@@ -738,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (label.IdentifierNodeOrToken.IsToken &&
                         label.IdentifierNodeOrToken.AsToken() == declarationSyntax.Identifier)
                     {
-                        return label;
+                        return label.GetPublicSymbol();
                     }
                 }
             }
@@ -763,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (label.IdentifierNodeOrToken.IsNode &&
                         label.IdentifierNodeOrToken.AsNode() == declarationSyntax)
                     {
-                        return label;
+                        return label.GetPublicSymbol();
                     }
                 }
             }
@@ -788,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Could be parameter of a lambda or a local function.
             CheckSyntaxNode(declarationSyntax);
 
-            return GetLambdaOrLocalFunctionParameterSymbol(declarationSyntax, cancellationToken);
+            return GetLambdaOrLocalFunctionParameterSymbol(declarationSyntax, cancellationToken).GetPublicSymbol();
         }
 
         internal override ImmutableArray<ISymbol> GetDeclaredSymbols(BaseFieldDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -821,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (paramList.Parent.Kind() == SyntaxKind.LocalFunctionStatement)
             {
-                var localFunction = (MethodSymbol)GetDeclaredSymbol((LocalFunctionStatementSyntax)paramList.Parent, cancellationToken);
+                var localFunction = GetDeclaredSymbol((LocalFunctionStatementSyntax)paramList.Parent, cancellationToken).GetSymbol<MethodSymbol>();
                 if ((object)localFunction != null)
                 {
                     return GetParameterSymbol(localFunction.Parameters, parameter, cancellationToken);
@@ -846,11 +856,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             LambdaSymbol lambdaSymbol;
             if ((object)symbolInfo.Symbol != null)
             {
-                lambdaSymbol = (LambdaSymbol)symbolInfo.Symbol;
+                lambdaSymbol = symbolInfo.Symbol.GetSymbol<LambdaSymbol>();
             }
             else if (symbolInfo.CandidateSymbols.Length == 1)
             {
-                lambdaSymbol = (LambdaSymbol)symbolInfo.CandidateSymbols.Single();
+                lambdaSymbol = symbolInfo.CandidateSymbols.Single().GetSymbol<LambdaSymbol>();
             }
             else
             {
@@ -869,19 +879,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override IRangeVariableSymbol GetDeclaredSymbol(JoinIntoClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var bound = GetBoundQueryClause(node);
-            return bound == null ? null : bound.DefinedSymbol;
+            return bound == null ? null : bound.DefinedSymbol.GetPublicSymbol();
         }
 
         public override IRangeVariableSymbol GetDeclaredSymbol(QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))
         {
             var bound = GetBoundQueryClause(queryClause);
-            return bound == null ? null : bound.DefinedSymbol;
+            return bound == null ? null : bound.DefinedSymbol.GetPublicSymbol();
         }
 
         public override IRangeVariableSymbol GetDeclaredSymbol(QueryContinuationSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var bound = GetBoundQueryClause(node);
-            return bound == null ? null : bound.DefinedSymbol;
+            return bound == null ? null : bound.DefinedSymbol.GetPublicSymbol();
         }
 
         public override AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node)
@@ -899,9 +909,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new AwaitExpressionInfo(
-                getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol,
-                isCompleted: awaitableInfo.IsCompleted,
-                getResult: awaitableInfo.GetResult,
+                getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol.GetPublicSymbol(),
+                isCompleted: awaitableInfo.IsCompleted.GetPublicSymbol(),
+                getResult: awaitableInfo.GetResult.GetPublicSymbol(),
                 isDynamic: awaitableInfo.IsDynamic);
         }
 
@@ -958,11 +968,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new ForEachStatementInfo(
                 enumeratorInfoOpt.IsAsync,
-                enumeratorInfoOpt.GetEnumeratorMethod,
-                enumeratorInfoOpt.MoveNextMethod,
-                currentProperty: (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,
-                disposeMethod,
-                enumeratorInfoOpt.ElementType,
+                enumeratorInfoOpt.GetEnumeratorMethod.GetPublicSymbol(),
+                enumeratorInfoOpt.MoveNextMethod.GetPublicSymbol(),
+                currentProperty: ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol).GetPublicSymbol(),
+                disposeMethod.GetPublicSymbol(),
+                enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                 boundForEach.ElementConversion,
                 enumeratorInfoOpt.CurrentConversion);
         }
@@ -1066,20 +1076,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             int index = anonymousObjectCreation.Initializers.IndexOf(declaratorSyntax);
             Debug.Assert(index >= 0);
             Debug.Assert(index < anonymousObjectCreation.Initializers.Count);
-            return AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, index);
+            return AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, index).GetPublicSymbol();
         }
 
         public override INamedTypeSymbol GetDeclaredSymbol(AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declaratorSyntax);
             var bound = this.GetLowerBoundNode(declaratorSyntax) as BoundAnonymousObjectCreationExpression;
-            return (bound == null) ? null : bound.Type as NamedTypeSymbol;
+            return (bound == null) ? null : (bound.Type as NamedTypeSymbol).GetPublicSymbol();
         }
 
         public override INamedTypeSymbol GetDeclaredSymbol(TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declaratorSyntax);
-            return GetTypeOfTupleLiteral(declaratorSyntax);
+            return GetTypeOfTupleLiteral(declaratorSyntax).GetPublicSymbol();
         }
 
         public override ISymbol GetDeclaredSymbol(ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -1103,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!elements.IsDefault)
                 {
                     var idx = tupleLiteral.Arguments.IndexOf(declaratorSyntax);
-                    return elements[idx];
+                    return elements[idx].GetPublicSymbol();
                 }
             }
 
@@ -1234,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetMemberGroupForNode(options, lowestBoundNode, boundParent, binderOpt: null);
         }
 
-        internal override ImmutableArray<PropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        internal override ImmutableArray<IPropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             CSharpSyntaxNode bindableNode;
             BoundNode lowestBoundNode;
@@ -1455,7 +1465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // this may happen if we have races and in such case we are no longer interested in adding
             if (!alreadyInTree)
             {
-                NodeMapBuilder.AddToMap(bound, _guardedNodeMap);
+                NodeMapBuilder.AddToMap(bound, _guardedNodeMap, SyntaxTree);
+                Debug.Assert(syntax != _root || _guardedNodeMap.ContainsKey(bound.Syntax));
             }
 
             ImmutableArray<BoundNode> result;
@@ -1490,12 +1501,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If syntax is a statement, we need to add all its children.
                     // Node cache assumes that if statement is cached, then all 
                     // its children are cached too.
-                    NodeMapBuilder.AddToMap(bound, _guardedNodeMap);
+                    NodeMapBuilder.AddToMap(bound, _guardedNodeMap, SyntaxTree);
+                    Debug.Assert(syntax != _root || _guardedNodeMap.ContainsKey(bound.Syntax));
                 }
                 else
                 {
                     // expressions can be added individually.
-                    NodeMapBuilder.AddToMap(bound, _guardedNodeMap, syntax);
+                    NodeMapBuilder.AddToMap(bound, _guardedNodeMap, SyntaxTree, syntax);
                 }
 
                 Debug.Assert((manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root || syntax is TypeSyntax ||
@@ -1901,19 +1913,13 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-            // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
-            // that can't produce any observable side effects
-            DiagnosticBag diagnostics = _ignoredDiagnostics;
-
             // If we're in DEBUG mode, always enable the analysis, but throw away the results
+#if !DEBUG
             if (!Compilation.NullableSemanticAnalysisEnabled)
             {
-#if DEBUG
-                diagnostics = new DiagnosticBag();
-#else
                 return;
-#endif
             }
+#endif
 
             // If we have a snapshot manager, then we've already done
             // all the work necessary and we should avoid taking an
@@ -1938,46 +1944,70 @@ done:
                 return;
             }
 
+            Debug.Assert(_guardedNodeMap.Count == 0);
+
             upgradeableLock.EnterWrite();
 
-            Debug.Assert(Root == GetBindableSyntaxNode(Root));
+            Debug.Assert(Root == bindableRoot);
 
-            var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
-            var boundRoot = Bind(binder, bindableRoot, diagnostics);
+            NullableWalker.SnapshotManager snapshotManager;
+            var remappedSymbols = _parentRemappedSymbolsOpt;
+            BoundNode boundRoot;
+            Binder binder;
+
+            bind(bindableRoot, out binder, out boundRoot);
+
             if (IsSpeculativeSemanticModel)
-            {
-                ensureSpeculativeNodeBound();
-            }
-            else
-            {
-                bindAndRewrite();
-            }
-
-            void ensureSpeculativeNodeBound()
             {
                 // Not all speculative models are created with existing snapshots. Attributes,
                 // TypeSyntaxes, and MethodBodies do not depend on existing state in a member,
                 // and so the SnapshotManager can be null in these cases.
                 if (_parentSnapshotManagerOpt is null)
                 {
-                    bindAndRewrite();
+                    rewriteAndCache();
                     return;
                 }
 
-                var remappedSymbols = _parentRemappedSymbolsOpt;
                 boundRoot = NullableWalker.AnalyzeAndRewriteSpeculation(_speculatedPosition, boundRoot, binder, _parentSnapshotManagerOpt, out var newSnapshots, ref remappedSymbols);
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, newSnapshots, remappedSymbols);
             }
-
-            void bindAndRewrite()
+            else
             {
-                var remappedSymbols = _parentRemappedSymbolsOpt;
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, takeSnapshots: true, out var snapshotManager, ref remappedSymbols);
+                rewriteAndCache();
+            }
+
+            void bind(CSharpSyntaxNode bindableRoot, out Binder binder, out BoundNode boundRoot)
+            {
+                binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
+                boundRoot = Bind(binder, bindableRoot, getDiagnosticBag());
+            }
+
+            void rewriteAndCache()
+            {
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, getDiagnosticBag(), takeSnapshots: true, out snapshotManager, ref remappedSymbols);
+                cache(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
+            }
+
+            void cache(CSharpSyntaxNode bindableRoot, BoundNode boundRoot, NullableWalker.SnapshotManager snapshotManager, ImmutableDictionary<Symbol, Symbol> remappedSymbols)
+            {
 #if DEBUG
                 // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
                 if (!Compilation.NullableSemanticAnalysisEnabled) return;
 #endif
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
+            }
+
+            DiagnosticBag getDiagnosticBag()
+            {
+                // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
+                // that can't produce any observable side effects
+#if DEBUG
+                if (!Compilation.NullableSemanticAnalysisEnabled)
+                {
+                    return new DiagnosticBag();
+                }
+#endif
+                return _ignoredDiagnostics;
             }
         }
 
@@ -2060,6 +2090,7 @@ done:
             // to avoid duplicates in the map if a parent of this node comes through this code path also.
 
             var binder = GetEnclosingBinder(GetAdjustedNodePosition(node));
+            incrementalBinder = new IncrementalBinder(this, binder);
 
             using (_nodeMapLock.DisposableRead())
             {
@@ -2071,7 +2102,7 @@ done:
                 // https://github.com/dotnet/roslyn/issues/35038: We have to run analysis on this node in some manner
                 using (_nodeMapLock.DisposableWrite())
                 {
-                    var boundNode = this.Bind(binder, node, _ignoredDiagnostics);
+                    var boundNode = this.Bind(incrementalBinder, node, _ignoredDiagnostics);
                     GuardedAddBoundTreeForStandaloneSyntax(node, boundNode);
                     results = GuardedGetBoundNodesFromMap(node);
                 }
@@ -2096,6 +2127,7 @@ done:
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.MethodDeclaration:
@@ -2322,48 +2354,61 @@ foundParent:;
             public override BoundStatement BindStatement(StatementSyntax node, DiagnosticBag diagnostics)
             {
                 // Check the bound node cache to see if the statement was already bound.
-                BoundStatement synthesizedStatement = _semanticModel.GuardedGetSynthesizedStatementFromMap(node);
-
-                if (synthesizedStatement != null)
+                if (node.SyntaxTree == _semanticModel.SyntaxTree)
                 {
-                    return synthesizedStatement;
-                }
+                    BoundStatement synthesizedStatement = _semanticModel.GuardedGetSynthesizedStatementFromMap(node);
 
-                BoundNode boundNode = TryGetBoundNodeFromMap(node);
-
-                if (boundNode == null)
-                {
-                    // Not bound already. Bind it. It will get added to the cache later by a MemberSemanticModel.NodeMapBuilder.
-                    var statement = base.BindStatement(node, diagnostics);
-
-                    // Synthesized statements are not added to the _guardedNodeMap, we cache them explicitly here in  
-                    // _lazyGuardedSynthesizedStatementsMap
-                    if (statement.WasCompilerGenerated)
+                    if (synthesizedStatement != null)
                     {
-                        _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement);
+                        return synthesizedStatement;
                     }
 
-                    return statement;
+                    BoundNode boundNode = TryGetBoundNodeFromMap(node);
+
+                    if (boundNode != null)
+                    {
+                        return (BoundStatement)boundNode;
+                    }
                 }
 
-                return (BoundStatement)boundNode;
+                BoundStatement statement = base.BindStatement(node, diagnostics);
+
+                // Synthesized statements are not added to the _guardedNodeMap, we cache them explicitly here in  
+                // _lazyGuardedSynthesizedStatementsMap
+                if (statement.WasCompilerGenerated && node.SyntaxTree == _semanticModel.SyntaxTree)
+                {
+                    _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement);
+                }
+
+                return statement;
             }
 
             internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
             {
-                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindEmbeddedBlock(node, diagnostics);
+                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node);
+
+                if (block is object)
+                {
+                    return block;
+                }
+
+                block = base.BindEmbeddedBlock(node, diagnostics);
+
                 Debug.Assert(!block.WasCompilerGenerated);
                 return block;
             }
 
             private BoundNode TryGetBoundNodeFromMap(CSharpSyntaxNode node)
             {
-                ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
-
-                if (!boundNodes.IsDefaultOrEmpty)
+                if (node.SyntaxTree == _semanticModel.SyntaxTree)
                 {
-                    // Already bound. Return the top-most bound node associated with the statement. 
-                    return boundNodes[0];
+                    ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
+
+                    if (!boundNodes.IsDefaultOrEmpty)
+                    {
+                        // Already bound. Return the top-most bound node associated with the statement. 
+                        return boundNodes[0];
+                    }
                 }
 
                 return null;
@@ -2371,7 +2416,16 @@ foundParent:;
 
             public override BoundNode BindMethodBody(CSharpSyntaxNode node, DiagnosticBag diagnostics)
             {
-                return TryGetBoundNodeFromMap(node) ?? base.BindMethodBody(node, diagnostics);
+                BoundNode boundNode = TryGetBoundNodeFromMap(node);
+
+                if (boundNode is object)
+                {
+                    return boundNode;
+                }
+
+                boundNode = base.BindMethodBody(node, diagnostics);
+
+                return boundNode;
             }
 
             internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, DiagnosticBag diagnostics)
@@ -2381,8 +2435,18 @@ foundParent:;
 
             internal override BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax node, DiagnosticBag diagnostics)
             {
-                return (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindExpressionBodyAsBlock(node, diagnostics);
+                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node);
+
+                if (block is object)
+                {
+                    return block;
+                }
+
+                block = base.BindExpressionBodyAsBlock(node, diagnostics);
+
+                return block;
             }
         }
+
     }
 }

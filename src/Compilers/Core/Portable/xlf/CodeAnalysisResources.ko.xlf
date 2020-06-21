@@ -12,11 +12,31 @@
         <target state="translated">이 옵션에 대한 언어 이름을 지정해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">디버깅 중에는 어셈블리 참조의 버전 변경이 허용되지 않습니다. '{0}'이(가) 버전을 '{1}'(으)로 변경했습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
         <target state="translated">{0}' 분석기에서 다음 예외를 throw했습니다.
 '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="translated">이 분석기를 사용하지 않도록 설정하려면 다음 진단이 표시되지 않도록 설정하세요. {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName contains an invalid character '{0}' at position {1}.</source>
+        <target state="new">The hintName contains an invalid character '{0}' at position {1}.</target>
+        <note>{0}: the invalid character, {1} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName of the added source file must be unique within a generator.</source>
+        <target state="new">The hintName of the added source file must be unique within a generator.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -37,6 +57,11 @@
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
         <target state="translated">'{0}' 매개 변수는 이 컴파일 또는 일부 참조된 어셈블리의 기호여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">모듈에 잘못된 특성이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -79,6 +104,11 @@
         <target state="translated">모듈 복사본은 어셈블리 메타데이터를 만드는 데 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="needs-review-translation">생성기당 하나의 {0}만 등록할 수 있습니다.</target>
+        <note>{0}: type name</note>
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">'{0}' 분석기의 'SupportedDiagnostics'에 null 설명자가 포함되어 있습니다.</target>
@@ -91,7 +121,7 @@
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
         <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
-        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</target>
+        <target state="translated">진단 '{0}:{1}'은(는) 비표시 ID가 '{2}'이고 근거가 '{3}'인 DiagnosticSuppressor에서 프로그래밍 방식으로 표시되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">
@@ -107,6 +137,11 @@
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">튜플 요소 nullable 주석이 지정된 경우, 주석 수는 튜플의 카디널리티와 일치해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">오류의 특정 원인을 확인할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -529,6 +564,16 @@
         <target state="translated">분석기 구성 파일의 심각도가 잘못되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">WindowsRuntime ID는 대상으로 다시 지정할 수 없습니다.</target>
@@ -562,11 +607,16 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">분석기 오류</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">분석기 '{0}'에서 '{2}' 메시지와 함께 '{1}' 형식의 예외를 throw했습니다.</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">분석기 '{0}'에서 '{2}' 메시지와 함께 '{1}' 형식의 예외를 throw했습니다.
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">

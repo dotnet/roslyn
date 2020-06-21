@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,17 +8,20 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal class BackgroundCompiler : IDisposable
+    internal sealed class BackgroundCompiler : IDisposable
     {
         private Workspace _workspace;
-        private readonly IWorkspaceTaskScheduler _compilationScheduler;
+        private readonly TaskQueue _taskQueue;
 
+#pragma warning disable IDE0052 // Remove unread private members
         // Used to keep a strong reference to the built compilations so they are not GC'd
         private Compilation[] _mostRecentCompilations;
+#pragma warning restore IDE0052 // Remove unread private members
 
         private readonly object _buildGate = new object();
         private CancellationTokenSource _cancellationSource;
@@ -26,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Host
             _workspace = workspace;
 
             // make a scheduler that runs on the thread pool
-            var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _compilationScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
+            var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
             _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -50,14 +55,10 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
-        {
-            Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
-        }
+            => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
         private void OnDocumentClosed(object sender, DocumentEventArgs args)
-        {
-            Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
-        }
+            => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
         {
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Host
                 // don't even get started if there is nothing to do
                 if (allProjects.Count > 0)
                 {
-                    BuildCompilationsAsync(solution, initialProject, allProjects);
+                    _ = BuildCompilationsAsync(solution, initialProject, allProjects);
                 }
             }
         }
@@ -121,15 +122,15 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private void BuildCompilationsAsync(
+        private Task BuildCompilationsAsync(
             Solution solution,
             ProjectId initialProject,
             ISet<ProjectId> allProjects)
         {
             var cancellationToken = _cancellationSource.Token;
-            _compilationScheduler.ScheduleTask(
-                () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
+            return _taskQueue.ScheduleTask(
                 "BackgroundCompiler.BuildCompilationsAsync",
+                () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
                 cancellationToken);
         }
 
@@ -149,7 +150,13 @@ namespace Microsoft.CodeAnalysis.Host
 
             var logger = Logger.LogBlock(FunctionId.BackgroundCompiler_BuildCompilationsAsync, cancellationToken);
 
-            var compilationTasks = allProjectIds.Select(solution.GetProject).Where(p => p != null).Select(p => p.GetCompilationAsync(cancellationToken)).ToArray();
+            // Skip performing any background compilation for projects where user has explicitly
+            // set the background analysis scope to only analyze active files.
+            var compilationTasks = allProjectIds
+                .Select(solution.GetProject)
+                .Where(p => p != null && SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) != BackgroundAnalysisScope.ActiveFile)
+                .Select(p => p.GetCompilationAsync(cancellationToken))
+                .ToArray();
             return Task.WhenAll(compilationTasks).SafeContinueWith(t =>
                 {
                     logger.Dispose();

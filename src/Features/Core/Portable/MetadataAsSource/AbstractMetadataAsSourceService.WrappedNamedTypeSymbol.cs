@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -34,32 +36,19 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                             m.Kind == SymbolKind.Property
                                       select WrapMember(m, canImplementImplicitly, docCommentFormattingService);
 
-                _members = ImmutableArray.CreateRange<ISymbol>(filteredMembers);
+                _members = ImmutableArray.CreateRange(filteredMembers);
             }
 
             private static ISymbol WrapMember(ISymbol m, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
-            {
-                switch (m.Kind)
+                => m.Kind switch
                 {
-                    case SymbolKind.Field:
-                        return new WrappedFieldSymbol((IFieldSymbol)m, docCommentFormattingService);
-
-                    case SymbolKind.Event:
-                        return new WrappedEventSymbol((IEventSymbol)m, canImplementImplicitly, docCommentFormattingService);
-
-                    case SymbolKind.Method:
-                        return new WrappedMethodSymbol((IMethodSymbol)m, canImplementImplicitly, docCommentFormattingService);
-
-                    case SymbolKind.NamedType:
-                        return new WrappedNamedTypeSymbol((INamedTypeSymbol)m, canImplementImplicitly, docCommentFormattingService);
-
-                    case SymbolKind.Property:
-                        return new WrappedPropertySymbol((IPropertySymbol)m, canImplementImplicitly, docCommentFormattingService);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(m.Kind);
-                }
-            }
+                    SymbolKind.Field => new WrappedFieldSymbol((IFieldSymbol)m, docCommentFormattingService),
+                    SymbolKind.Event => new WrappedEventSymbol((IEventSymbol)m, canImplementImplicitly, docCommentFormattingService),
+                    SymbolKind.Method => new WrappedMethodSymbol((IMethodSymbol)m, canImplementImplicitly, docCommentFormattingService),
+                    SymbolKind.NamedType => new WrappedNamedTypeSymbol((INamedTypeSymbol)m, canImplementImplicitly, docCommentFormattingService),
+                    SymbolKind.Property => new WrappedPropertySymbol((IPropertySymbol)m, canImplementImplicitly, docCommentFormattingService),
+                    _ => throw ExceptionUtilities.UnexpectedValue(m.Kind),
+                };
 
             public bool IsAnonymousType => _symbol.IsAnonymousType;
             public bool IsComImport => _symbol.IsComImport;
@@ -95,76 +84,48 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ImmutableArray<IFieldSymbol> TupleElements => _symbol.TupleElements;
 
             public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-            {
-                return _symbol.GetTypeArgumentCustomModifiers(ordinal);
-            }
+                => _symbol.GetTypeArgumentCustomModifiers(ordinal);
 
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
-            {
-                return _symbol.Construct(typeArguments);
-            }
+                => _symbol.Construct(typeArguments);
 
             public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
-            {
-                return _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
-            }
+                => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public INamedTypeSymbol ConstructUnboundGenericType()
-            {
-                return _symbol.ConstructUnboundGenericType();
-            }
+                => _symbol.ConstructUnboundGenericType();
 
             public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
-            {
-                return _symbol.FindImplementationForInterfaceMember(interfaceMember);
-            }
+                => _symbol.FindImplementationForInterfaceMember(interfaceMember);
 
             public override ImmutableArray<ISymbol> GetMembers()
-            {
-                return _members;
-            }
+                => _members;
 
             public IEnumerable<string> MemberNames => throw new NotImplementedException();
 
             public override ImmutableArray<ISymbol> GetMembers(string name)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             ITypeSymbol ITypeSymbol.OriginalDefinition => _symbol.OriginalDefinition;
             public new INamedTypeSymbol OriginalDefinition => this;
@@ -176,6 +137,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsUnmanagedType => throw new NotImplementedException();
 
             public bool IsReadOnly => _symbol.IsReadOnly;
+
+            public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
+
+            public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;
+
+            NullableAnnotation ITypeSymbol.NullableAnnotation => throw new NotImplementedException();
+
+            ITypeSymbol ITypeSymbol.WithNullableAnnotation(NullableAnnotation nullableAnnotation)
+                => throw new NotImplementedException();
         }
     }
 }

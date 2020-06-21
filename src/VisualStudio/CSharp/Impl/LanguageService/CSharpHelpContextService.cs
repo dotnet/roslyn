@@ -1,5 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -21,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     internal class CSharpHelpContextService : AbstractHelpContextService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpHelpContextService()
         {
         }
@@ -42,9 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         }
 
         private static string Keyword(string text)
-        {
-            return text + "_CSharpKeyword";
-        }
+            => text + "_CSharpKeyword";
 
         public override async Task<string> GetHelpTermAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
@@ -143,8 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 if (symbol == null)
                 {
-                    var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
-                    var overloads = semanticModel.GetMemberGroup(bindableParent);
+                    var bindableParent = document.GetLanguageService<ISyntaxFactsService>().TryGetBindableParent(token);
+                    var overloads = bindableParent != null ? semanticModel.GetMemberGroup(bindableParent) : ImmutableArray<ISymbol>.Empty;
                     symbol = overloads.FirstOrDefault();
                 }
             }
@@ -242,6 +245,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private bool TryGetTextForContextualKeyword(SyntaxToken token, out string text)
         {
+            if (token.Text == "nameof")
+            {
+                text = Keyword("nameof");
+                return true;
+            }
+
             if (token.IsContextualKeyword())
             {
                 switch (token.Kind())

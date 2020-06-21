@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
@@ -63,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "stylized text", style),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Sub
     End Class
 End Namespace

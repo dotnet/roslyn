@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,9 +9,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using SymbolExtensions = Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -896,18 +900,18 @@ class B<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             var crefs = GetCrefSyntaxes(compilation);
 
-            var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var typeA = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
             var ctorA = typeA.InstanceConstructors.Single();
 
-            var typeB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+            var typeB = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("B");
             var ctorB = typeB.InstanceConstructors.Single();
 
-            var expected = new Symbol[]
+            var expected = new ISymbol[]
             {
                 typeA,
                 ctorA,
@@ -992,18 +996,18 @@ class Other
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             var crefs = GetCrefSyntaxes(compilation);
 
-            var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var typeA = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
             var ctorA = typeA.InstanceConstructors.Single();
 
-            var typeB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+            var typeB = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("B");
             var ctorB = typeB.InstanceConstructors.Single();
 
-            var expected = new Symbol[]
+            var expected = new ISymbol[]
             {
                 typeA,
                 ctorA,
@@ -1091,18 +1095,18 @@ class B<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             var crefs = GetCrefSyntaxes(compilation);
 
-            var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            var typeA = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
             var ctorA = typeA.InstanceConstructors.Single();
 
-            var typeB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+            var typeB = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("B");
             var ctorB = typeB.InstanceConstructors.Single();
 
-            var expected = new Symbol[]
+            var expected = new ISymbol[]
             {
                 typeA,
                 ctorA,
@@ -1809,7 +1813,7 @@ class C
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var info = model.GetSymbolInfo(crefSyntax);
             Assert.Equal(CandidateReason.None, info.CandidateReason);
-            Assert.Equal(info.Symbol, actualSymbol);
+            Assert.Equal(info.Symbol, actualSymbol.ISymbol);
         }
 
         [Fact]
@@ -2913,7 +2917,7 @@ class C
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
             var actualSymbol = model.GetSymbolInfo(crefSyntax).Symbol;
 
-            Assert.Equal(expectedSymbol, actualSymbol);
+            Assert.Equal(expectedSymbol.ISymbol, actualSymbol);
         }
 
         [Fact]
@@ -2932,8 +2936,8 @@ class C
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntax = (QualifiedCrefSyntax)GetCrefSyntaxes(compilation).Single();
 
-            var expectedTypeSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var expectedMethodSymbol = expectedTypeSymbol.GetMember<MethodSymbol>("M");
+            var expectedTypeSymbol = ((Compilation)compilation).GlobalNamespace.GetMember<INamedTypeSymbol>("C");
+            var expectedMethodSymbol = expectedTypeSymbol.GetMember<IMethodSymbol>("M");
 
             var actualTypeSymbol = model.GetSymbolInfo(crefSyntax.Container).Symbol;
             Assert.Equal(expectedTypeSymbol, actualTypeSymbol);
@@ -2967,19 +2971,19 @@ class A<T>
             var nameMemberSyntax = (NameMemberCrefSyntax)crefSyntax.Member;
             var containingTypeSyntax = (QualifiedNameSyntax)crefSyntax.Container;
 
-            var typeA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var typeB = typeA.GetMember<NamedTypeSymbol>("B");
-            var method = typeB.GetMember<MethodSymbol>("M");
+            var typeA = ((Compilation)compilation).GlobalNamespace.GetMember<INamedTypeSymbol>("A");
+            var typeB = typeA.GetMember<INamedTypeSymbol>("B");
+            var method = typeB.GetMember<IMethodSymbol>("M");
 
-            var typeInt = compilation.GetSpecialType(SpecialType.System_Int32);
+            var typeInt = ((Compilation)compilation).GetSpecialType(SpecialType.System_Int32);
 
             // A{J}
-            CrefTypeParameterSymbol actualJ;
+            ITypeParameterSymbol actualJ;
             {
                 var left = (GenericNameSyntax)containingTypeSyntax.Left;
-                var actualTypeA = (Symbol)model.GetSymbolInfo(left).Symbol;
+                var actualTypeA = (INamedTypeSymbol)model.GetSymbolInfo(left).Symbol;
                 Assert.False(actualTypeA.IsDefinition);
-                actualJ = (CrefTypeParameterSymbol)actualTypeA.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
+                actualJ = (ITypeParameterSymbol)actualTypeA.TypeArguments.Single();
                 Assert.Equal(typeA, actualTypeA.OriginalDefinition);
 
                 var actualTypeArgument = model.GetSymbolInfo(left.TypeArgumentList.Arguments.Single()).Symbol;
@@ -2987,11 +2991,11 @@ class A<T>
             }
 
             // B{K}
-            CrefTypeParameterSymbol actualK;
+            ITypeParameterSymbol actualK;
             {
-                var actualTypeB = (Symbol)model.GetSymbolInfo(containingTypeSyntax).Symbol;
+                var actualTypeB = (INamedTypeSymbol)model.GetSymbolInfo(containingTypeSyntax).Symbol;
                 Assert.False(actualTypeB.IsDefinition);
-                actualK = (CrefTypeParameterSymbol)actualTypeB.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
+                actualK = (ITypeParameterSymbol)actualTypeB.TypeArguments.Single();
                 Assert.Equal(typeB, actualTypeB.OriginalDefinition);
 
                 var right = (GenericNameSyntax)containingTypeSyntax.Right;
@@ -3002,11 +3006,11 @@ class A<T>
             }
 
             // M{L}
-            CrefTypeParameterSymbol actualL;
+            ITypeParameterSymbol actualL;
             {
-                var actualMethod = (Symbol)model.GetSymbolInfo(crefSyntax).Symbol;
+                var actualMethod = (IMethodSymbol)model.GetSymbolInfo(crefSyntax).Symbol;
                 Assert.False(actualMethod.IsDefinition);
-                actualL = (CrefTypeParameterSymbol)actualMethod.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
+                actualL = (ITypeParameterSymbol)actualMethod.TypeArguments.Single();
                 Assert.Equal(method, actualMethod.OriginalDefinition);
 
                 Assert.Equal(actualMethod, model.GetSymbolInfo(crefSyntax.Member).Symbol);
@@ -3019,7 +3023,7 @@ class A<T>
                 Assert.Equal(actualK, actualParameterTypes[2]);
                 Assert.Equal(actualL, actualParameterTypes[3]);
                 Assert.Equal(typeA.Construct(actualL), actualParameterTypes[4]);
-                Assert.Equal(typeA.Construct(typeInt).GetMember<NamedTypeSymbol>("B").Construct(actualK), actualParameterTypes[5]);
+                Assert.Equal(typeA.Construct(typeInt).GetMember<INamedTypeSymbol>("B").Construct(actualK), actualParameterTypes[5]);
             }
         }
 
@@ -3039,11 +3043,11 @@ class C
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntax = (IndexerMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
 
-            var expectedIndexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+            var expectedIndexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single().ISymbol;
             var actualIndexer = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedIndexer, actualIndexer);
 
-            var expectedParameterType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var expectedParameterType = compilation.GetSpecialType(SpecialType.System_Int32).ISymbol;
             var actualParameterType = model.GetSymbolInfo(crefSyntax.Parameters.Parameters.Single().Type).Symbol;
             Assert.Equal(expectedParameterType, actualParameterType);
         }
@@ -3066,11 +3070,11 @@ class C
 
             var typeC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var expectedOperator = typeC.GetMember<MethodSymbol>(WellKnownMemberNames.UnaryPlusOperatorName);
+            var expectedOperator = typeC.GetMember<MethodSymbol>(WellKnownMemberNames.UnaryPlusOperatorName).ISymbol;
             var actualOperator = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedOperator, actualOperator);
 
-            var expectedParameterType = typeC;
+            var expectedParameterType = typeC.ISymbol;
             var actualParameterType = model.GetSymbolInfo(crefSyntax.Parameters.Parameters.Single().Type).Symbol;
             Assert.Equal(expectedParameterType, actualParameterType);
         }
@@ -3093,15 +3097,15 @@ class C
 
             var typeC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var expectedOperator = typeC.GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
+            var expectedOperator = typeC.GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName).ISymbol;
             var actualOperator = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedOperator, actualOperator);
 
-            var expectedParameterType = typeC;
+            var expectedParameterType = typeC.ISymbol;
             var actualParameterType = model.GetSymbolInfo(crefSyntax.Parameters.Parameters.Single().Type).Symbol;
             Assert.Equal(expectedParameterType, actualParameterType);
 
-            var expectedReturnType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var expectedReturnType = compilation.GetSpecialType(SpecialType.System_Int32).ISymbol;
             var actualReturnType = model.GetSymbolInfo(crefSyntax.Type).Symbol;
             Assert.Equal(expectedReturnType, actualReturnType);
         }
@@ -3195,7 +3199,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.Equal(MethodKind.Ordinary, ((MethodSymbol)info.CandidateSymbols[0]).MethodKind);
+            Assert.Equal(MethodKind.Ordinary, ((IMethodSymbol)info.CandidateSymbols[0]).MethodKind);
         }
 
         [Fact]
@@ -3219,7 +3223,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.True(((PropertySymbol)info.CandidateSymbols[0]).IsIndexer);
+            Assert.True(((IPropertySymbol)info.CandidateSymbols[0]).IsIndexer);
         }
 
         [Fact]
@@ -3243,7 +3247,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.Equal(MethodKind.Conversion, ((MethodSymbol)info.CandidateSymbols[0]).MethodKind);
+            Assert.Equal(MethodKind.Conversion, ((IMethodSymbol)info.CandidateSymbols[0]).MethodKind);
         }
 
         [Fact]
@@ -3267,7 +3271,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.Equal(MethodKind.UserDefinedOperator, ((MethodSymbol)info.CandidateSymbols[0]).MethodKind);
+            Assert.Equal(MethodKind.UserDefinedOperator, ((IMethodSymbol)info.CandidateSymbols[0]).MethodKind);
         }
 
         [Fact]
@@ -3291,7 +3295,7 @@ class C<T, U>
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            Assert.Equal(MethodKind.Constructor, ((MethodSymbol)info.CandidateSymbols[0]).MethodKind);
+            Assert.Equal(MethodKind.Constructor, ((IMethodSymbol)info.CandidateSymbols[0]).MethodKind);
         }
 
         [Fact]
@@ -3345,7 +3349,7 @@ class Outer
 
             int position = source.IndexOf("{U}", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolUtilities.ToTestDisplayString),
+            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolExtensions.ToTestDisplayString),
                 // Implicit type parameter
                 "U",
 
@@ -3366,7 +3370,7 @@ class Outer
                 "SRETW");
 
             // Consider inaccessible symbols, as in Dev11
-            Assert.Equal(typeInner, model.LookupSymbols(position, typeOuter, typeInner.Name).Single());
+            Assert.Equal(typeInner.GetPublicSymbol(), model.LookupSymbols(position, typeOuter.GetPublicSymbol(), typeInner.Name).Single());
         }
 
         [Fact]
@@ -4734,13 +4738,13 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var overridingMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            var overridingMethod = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M");
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -4796,13 +4800,13 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var overridingMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            var overridingMethod = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M");
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -4823,13 +4827,13 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var overridingMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            var overridingMethod = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M");
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -4884,13 +4888,13 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var overridingMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
+            var overridingMethod = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M");
             Assert.Equal(overridingMethod, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -4920,7 +4924,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularWithDocumentationComments);
             compilation.VerifyDiagnostics(
                 // (15,16): warning CS1574: XML comment has cref attribute 'Derived.M2' that could not be resolved
                 // /// <see cref="Derived.M2" />
@@ -4933,8 +4937,8 @@ class Derived : Base
             var crefs = GetCrefSyntaxes(compilation).ToArray();
 
             var global = compilation.GlobalNamespace;
-            var derivedM1 = global.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M1");
-            var baseM2 = global.GetMember<NamedTypeSymbol>("Base").GetMember<MethodSymbol>("M2");
+            var derivedM1 = global.GetMember<INamedTypeSymbol>("Derived").GetMember<IMethodSymbol>("M1");
+            var baseM2 = global.GetMember<INamedTypeSymbol>("Base").GetMember<IMethodSymbol>("M2");
 
             Assert.Equal(derivedM1, model.GetSymbolInfo(crefs[0]).Symbol);
             Assert.Null(model.GetSymbolInfo(crefs[1]).Symbol);
@@ -4955,7 +4959,7 @@ class G<T> { }
 class Other { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, new[] { SystemCoreRef });
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source, new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (6,22): warning CS1574: XML comment has cref attribute 'G()' that could not be resolved
                 // /// Error <see cref="G()"/>.
@@ -4964,7 +4968,7 @@ class Other { }
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();
 
-            var constructor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("G").InstanceConstructors.Single();
+            var constructor = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("G").InstanceConstructors.Single();
 
             Assert.Equal(constructor, model.GetSymbolInfo(crefs[0]).Symbol.OriginalDefinition);
             Assert.Equal(constructor, model.GetSymbolInfo(crefs[1]).Symbol.OriginalDefinition);
@@ -5027,7 +5031,7 @@ class Outer<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, new[] { SystemCoreRef });
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source, new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1574: XML comment has cref attribute 'Outer{T}.Outer' that could not be resolved
                 // /// <see cref="Outer{T}.Outer"/>
@@ -5036,11 +5040,11 @@ class Outer<T>
                 //     /// <see cref="Outer{T}.Outer"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer{T}.Outer").WithArguments("Outer"));
 
-            var outerCtor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer").InstanceConstructors.Single();
+            var outerCtor = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Outer").InstanceConstructors.Single();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation);
-            var expectedSymbols = new Symbol[] { null, null, outerCtor, outerCtor };
+            var expectedSymbols = new ISymbol[] { null, null, outerCtor, outerCtor };
             var actualSymbols = GetCrefOriginalDefinitions(model, crefs);
             AssertEx.Equal(expectedSymbols, actualSymbols);
         }
@@ -5075,7 +5079,7 @@ class SomeOtherClass
 }
 ";
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             compilation.VerifyDiagnostics(
                 // (15,34): warning CS1574: XML comment has cref attribute 'GenericClass' that could not be resolved
                 // /// You may also like <see cref="GenericClass"/>. <see cref="GenericClass{T}"/> provides you some interesting methods.
@@ -5093,9 +5097,9 @@ class SomeOtherClass
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();
 
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("GenericClass");
-            var nonGenericMethod = type.GetMember<MethodSymbol>("NormalSub");
-            var genericMethod = type.GetMember<MethodSymbol>("GenericSub");
+            var type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("GenericClass");
+            var nonGenericMethod = type.GetMember<IMethodSymbol>("NormalSub");
+            var genericMethod = type.GetMember<IMethodSymbol>("GenericSub");
 
             Assert.Null(model.GetSymbolInfo(crefs[0]).Symbol);
             Assert.Null(model.GetSymbolInfo(crefs[3]).Symbol);
@@ -5181,10 +5185,10 @@ class C<T>
 ";
 
             SyntaxTree tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
 
             //NOTE: deterministic, since GetMembers respects syntax order.
             var m1a = type.GetMembers("M1").First();
@@ -5346,7 +5350,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (2,20): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'cref' attribute'
                 // /// <see cref="int" cref="long"/>
@@ -5392,13 +5396,13 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
         }
 
         [WorkItem(531162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531162")]
@@ -5418,13 +5422,13 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("Goo");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("Goo");
             Assert.Equal(expectedSymbol, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -5440,13 +5444,13 @@ class Outer<T> where T: System.IFormattable
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer").GetMember<NamedTypeSymbol>("Inner");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Outer").GetMember<INamedTypeSymbol>("Inner");
             Assert.Equal(expectedSymbol, model.GetSymbolInfo(cref).Symbol.OriginalDefinition);
         }
 
@@ -5468,7 +5472,7 @@ class C<T>
 
             Func<Symbol> lookupSymbol = () =>
             {
-                var factory = new BinderFactory(compilation, tree);
+                var factory = new BinderFactory(compilation, tree, ignoreAccessibility: false);
                 var binder = factory.GetBinder(cref);
                 var lookupResult = LookupResult.GetInstance();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -5512,14 +5516,14 @@ class C<T>
             var cref = GetCrefSyntaxes(compilation).Single();
             var model = compilation.GetSemanticModel(tree);
 
-            NamedTypeSymbol referencedType = (NamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            var referencedType = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
             Assert.NotNull(referencedType);
 
-            var crefTypeParam = referencedType.TypeArguments().Single();
-            Assert.IsType<CrefTypeParameterSymbol>(crefTypeParam);
+            var crefTypeParam = referencedType.TypeArguments.Single();
+            Assert.IsType<CrefTypeParameterSymbol>(crefTypeParam.GetSymbol());
 
             var sourceTypeParam = referencedType.TypeParameters.Single();
-            Assert.IsType<SourceTypeParameterSymbol>(sourceTypeParam);
+            Assert.IsType<SourceTypeParameterSymbol>(sourceTypeParam.GetSymbol());
 
             Assert.NotEqual(crefTypeParam, sourceTypeParam);
             Assert.NotEqual(sourceTypeParam, crefTypeParam);
@@ -5539,7 +5543,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (6,9): warning CS1587: XML comment is not placed on a valid language element
                 //         /// <see cref="C"/>
@@ -5549,7 +5553,7 @@ class C
             var cref = GetCrefSyntaxes(compilation).Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
             var actualSymbol = model.GetSymbolInfo(cref).Symbol;
             Assert.Equal(expectedSymbol, actualSymbol);
         }
@@ -5569,7 +5573,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (6,9): warning CS1587: XML comment is not placed on a valid language element
                 //         /// <see cref="C"/>
@@ -5579,7 +5583,7 @@ class C
             var cref = GetCrefSyntaxes(compilation).Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
             var actualSymbol = model.GetSymbolInfo(cref).Symbol;
             Assert.Equal(expectedSymbol, actualSymbol);
         }
@@ -5670,7 +5674,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetSymbolInfo(cref).Symbol;
             Assert.NotNull(symbol);
-            Assert.Equal(MethodKind.UserDefinedOperator, ((MethodSymbol)symbol).MethodKind);
+            Assert.Equal(MethodKind.UserDefinedOperator, ((IMethodSymbol)symbol).MethodKind);
             Assert.Equal(WellKnownMemberNames.AdditionOperatorName, symbol.Name);
             Assert.Equal(SpecialType.System_Decimal, symbol.ContainingType.SpecialType);
         }
@@ -5707,7 +5711,7 @@ class C
 
             var parameterTypeContainingType = parameterType.DescendantNodes().OfType<SimpleNameSyntax>().First();
             var containingTypeInfo = model.GetSymbolInfo(parameterTypeContainingType);
-            Assert.IsType<CrefTypeParameterSymbol>(containingTypeInfo.Symbol);
+            Assert.IsType<CrefTypeParameterSymbol>(containingTypeInfo.Symbol.GetSymbol());
         }
 
         [WorkItem(551354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551354")]
@@ -5757,7 +5761,7 @@ class C
                 }
                 else
                 {
-                    Assert.IsType<CrefTypeParameterSymbol>(typeSymbol);
+                    Assert.IsType<CrefTypeParameterSymbol>(typeSymbol.GetSymbol());
                 }
             }
         }
@@ -5795,11 +5799,11 @@ using System;
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var delegateConstructor = compilation.GlobalNamespace.
-                GetMember<NamespaceSymbol>("System").GetMembers("Action").OfType<NamedTypeSymbol>().
+                GetMember<INamespaceSymbol>("System").GetMembers("Action").OfType<INamedTypeSymbol>().
                 Single(t => t.Arity == 1).
                 InstanceConstructors.Single();
 
@@ -5847,10 +5851,10 @@ class GetEnumerator
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("GetEnumerator");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("GetEnumerator");
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -5870,11 +5874,11 @@ class GetEnumerator
 enum E { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var expectedSymbol = compilation.GetSpecialType(SpecialType.System_String).
-                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.GetParameterType(0).IsArray());
+                InstanceConstructors.Single(ctor => ctor.Parameters.Length == 1 && ctor.GetParameterType(0).Kind == SymbolKind.ArrayType);
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -5920,10 +5924,10 @@ enum E { }
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single();
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -5972,10 +5976,10 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
-            var expectedSymbolOriginalDefinition = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+            var expectedSymbolOriginalDefinition = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single();
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -6003,9 +6007,9 @@ class C<U> { }
 
             var model = compilation.GetSemanticModel(typeParameterSyntax.SyntaxTree);
             var typeParameterSymbol = model.GetSymbolInfo(typeParameterSyntax).Symbol;
-            Assert.IsType<CrefTypeParameterSymbol>(typeParameterSymbol);
+            Assert.IsType<CrefTypeParameterSymbol>(((CSharp.Symbols.PublicModel.Symbol)typeParameterSymbol).UnderlyingSymbol);
 
-            var members = model.LookupSymbols(typeParameterSyntax.SpanStart, (TypeSymbol)typeParameterSymbol);
+            var members = model.LookupSymbols(typeParameterSyntax.SpanStart, (ITypeSymbol)typeParameterSymbol);
             Assert.Equal(0, members.Length);
         }
 
@@ -6029,7 +6033,7 @@ enum E { }
             var methodSymbol = model.GetSymbolInfo(methodNameSyntax).Symbol;
             Assert.Equal(SymbolKind.Method, methodSymbol.Kind);
 
-            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((MethodSymbol)methodSymbol).ReturnType);
+            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((IMethodSymbol)methodSymbol).ReturnType);
             Assert.Equal(0, members.Length);
         }
 
@@ -6053,7 +6057,7 @@ class X
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -6062,11 +6066,11 @@ class X
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var returnTypeSyntax = ((ConversionOperatorMemberCrefSyntax)(((QualifiedCrefSyntax)crefSyntax).Member)).Type;
-            var expectedReturnTypeSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("X").GetMember<NamedTypeSymbol>("Y");
+            var expectedReturnTypeSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("X").GetMember<INamedTypeSymbol>("Y");
             var actualReturnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol;
             Assert.Equal(expectedReturnTypeSymbol, actualReturnTypeSymbol);
 
-            var expectedCrefSymbol = expectedReturnTypeSymbol.GetMember<MethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
+            var expectedCrefSymbol = expectedReturnTypeSymbol.GetMember<IMethodSymbol>(WellKnownMemberNames.ImplicitConversionName);
             var actualCrefSymbol = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedCrefSymbol, actualCrefSymbol);
         }
@@ -6088,23 +6092,23 @@ class A<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var classB = classA.GetMember<NamedTypeSymbol>("B");
+            var classA = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
+            var classB = classA.GetMember<INamedTypeSymbol>("B");
 
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var parameterTypeSyntax = ((NameMemberCrefSyntax)crefSyntax).Parameters.Parameters[0].Type;
-            var expectedParameterTypeSymbol = classA.Construct(classB).GetMember<NamedTypeSymbol>("B");
+            var expectedParameterTypeSymbol = classA.Construct(classB).GetMember<INamedTypeSymbol>("B");
             var actualParameterTypeSymbol = model.GetSymbolInfo(parameterTypeSyntax).Symbol;
             Assert.Equal(expectedParameterTypeSymbol, actualParameterTypeSymbol);
 
-            var expectedCrefSymbol = classB.GetMember<MethodSymbol>("Goo");
+            var expectedCrefSymbol = classB.GetMember<IMethodSymbol>("Goo");
             var actualCrefSymbol = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedCrefSymbol, actualCrefSymbol);
         }
@@ -6125,7 +6129,7 @@ class Outer<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (6,31): warning CS8018: Within cref attributes, nested types of generic types should be qualified.
                 //     /// <see cref='Outer{Q}.M(Inner)'/>
@@ -6137,8 +6141,8 @@ class Outer<T>
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var outer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
-            var inner = outer.GetMember<NamedTypeSymbol>("Inner");
+            var outer = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Outer");
+            var inner = outer.GetMember<INamedTypeSymbol>("Inner");
 
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
@@ -6159,7 +6163,7 @@ using A = System.Int32;
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -6189,7 +6193,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -6258,7 +6262,7 @@ class P
         [WorkItem(760850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760850")]
         public void TestGetSpeculativeSymbolInfoInsideCrefParameterOrReturnType()
         {
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(@"
 class Base
 {
     class Inherited { }
@@ -6277,7 +6281,7 @@ class Outer
     }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
+            var tree = compilation.SyntaxTrees.First();
             var cref = (ConversionOperatorMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
             var crefReturnType = cref.Type;
             var crefParameterType = cref.Parameters.Parameters.Single().Type;
@@ -6287,8 +6291,8 @@ class Outer
             var crefParameterTypePosition = crefParameterType.SpanStart;
             var nonCrefPosition = tree.GetRoot().DescendantTrivia().Single(t => t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)).SpanStart;
 
-            var accessor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer").GetMember<NamedTypeSymbol>("Inner").GetMember<PropertySymbol>("P").GetMethod;
-            var inheritedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base").GetMember<NamedTypeSymbol>("Inherited");
+            var accessor = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Outer").GetMember<INamedTypeSymbol>("Inner").GetMember<IPropertySymbol>("P").GetMethod;
+            var inheritedType = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Base").GetMember<INamedTypeSymbol>("Inherited");
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -6368,7 +6372,7 @@ class C
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var comp = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
 
             // Not expected to bind, since we don't consider inherited members.
             comp.VerifyDiagnostics(
@@ -6388,7 +6392,7 @@ class C
             Assert.Equal(0, info.CandidateSymbols.Length);
 
             // No lookup results.
-            var derivedInterface = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("IDerived");
+            var derivedInterface = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("IDerived");
             Assert.Equal(0, model.LookupSymbols(syntax.SpanStart, derivedInterface).Length);
         }
 
@@ -6406,7 +6410,7 @@ class C
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var comp = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
 
             // Not expected to bind, since we don't consider inherited members.
             comp.VerifyDiagnostics(
@@ -6426,7 +6430,7 @@ class C
             Assert.Equal(0, info.CandidateSymbols.Length);
 
             // No lookup results.
-            var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("I");
+            var symbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("I");
             Assert.Equal(0, model.LookupSymbols(syntax.SpanStart, symbol).Length);
         }
 
@@ -6445,15 +6449,15 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();
             Assert.Equal(2, crefs.Length);
 
-            var outer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var inner = outer.GetMember<NamedTypeSymbol>("Inner");
+            var outer = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
+            var inner = outer.GetMember<INamedTypeSymbol>("Inner");
 
             Assert.Equal(outer, model.GetSymbolInfo(crefs[0]).Symbol.OriginalDefinition);
             Assert.Equal(inner, model.GetSymbolInfo(crefs[1]).Symbol.OriginalDefinition);
@@ -6471,7 +6475,7 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (3,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'C{}'
                 // /// <see cref="C{}" />
@@ -6490,9 +6494,9 @@ class C<T>
             var actualSymbol0 = model.GetSymbolInfo(crefs[0]).Symbol;
             Assert.Null(actualSymbol0);
 
-            var actualSymbol1 = (Symbol)model.GetSymbolInfo(crefs[1]).Symbol;
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), actualSymbol1.OriginalDefinition);
-            Assert.Equal(TypeKind.Error, actualSymbol1.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single().TypeKind);
+            var actualSymbol1 = model.GetSymbolInfo(crefs[1]).Symbol;
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), actualSymbol1.OriginalDefinition);
+            Assert.Equal(TypeKind.Error, ((INamedTypeSymbol)actualSymbol1).TypeArguments.Single().TypeKind);
         }
 
         [Fact]
@@ -6504,7 +6508,7 @@ class C<T>
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'C[]'
                 // /// <see cref="C[]" />
@@ -6514,7 +6518,7 @@ class C { }
             var cref = GetCrefSyntaxes(compilation).Single();
 
             // Once the square brackets are skipped, binding works just fine.
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
         }
 
         [Fact]
@@ -6526,7 +6530,7 @@ class C { }
 class C { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'C?'
                 // /// <see cref="C?" />
@@ -6536,7 +6540,7 @@ class C { }
             var cref = GetCrefSyntaxes(compilation).Single();
 
             // Once the question mark is skipped, binding works just fine.
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C"), model.GetSymbolInfo(cref).Symbol);
         }
 
         [Fact]
@@ -6549,7 +6553,7 @@ class C { }
 class Cat { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'Cat:-)'
                 // /// <see cref="Cat:-)" />
@@ -6559,10 +6563,12 @@ class Cat { }
             var cref = GetCrefSyntaxes(compilation).Single();
 
             // Once the smiley is skipped, binding works just fine.
-            Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Cat"), model.GetSymbolInfo(cref).Symbol);
+            Assert.Equal(compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Cat"), model.GetSymbolInfo(cref).Symbol);
         }
 
         #endregion Dev10 bugs from KevinH
+
+        private static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
 
         private static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
         {
@@ -6595,9 +6601,9 @@ class Cat { }
             return references;
         }
 
-        private static Symbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
+        private static ISymbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
         {
-            return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : (Symbol)symbol.OriginalDefinition).ToArray();
+            return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : symbol.OriginalDefinition).ToArray();
         }
 
         [Fact]
@@ -6626,7 +6632,7 @@ class Test
 
             var name = ((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single();
             Assert.Equal("U", name.ToString());
-            var typeParameter = (TypeParameterSymbol)model.GetSymbolInfo(name).Symbol;
+            var typeParameter = (ITypeParameterSymbol)model.GetSymbolInfo(name).Symbol;
             Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"));
         }
 
@@ -6657,7 +6663,7 @@ class Test
             var parameter = cref.Parameters.Parameters.Single();
             Assert.Equal(SyntaxKind.InKeyword, parameter.RefKindKeyword.Kind());
 
-            var parameterSymbol = ((MethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
+            var parameterSymbol = ((IMethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
             Assert.Equal(RefKind.In, parameterSymbol.RefKind);
         }
 

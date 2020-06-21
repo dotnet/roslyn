@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -8,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -53,8 +56,8 @@ namespace Microsoft.CodeAnalysis
 
             _writer.Write("level", GetLevel(diagnostic.Severity));
 
-            string message = diagnostic.GetMessage(_culture);
-            if (!string.IsNullOrEmpty(message))
+            string? message = diagnostic.GetMessage(_culture);
+            if (!RoslynString.IsNullOrEmpty(message))
             {
                 _writer.WriteObjectStart("message");
                 _writer.Write("text", message);
@@ -177,16 +180,16 @@ namespace Microsoft.CodeAnalysis
                     _writer.WriteObjectStart(); // rule
                     _writer.Write("id", descriptor.Id);
 
-                    string shortDescription = descriptor.Title.ToString(_culture);
-                    if (!string.IsNullOrEmpty(shortDescription))
+                    string? shortDescription = descriptor.Title.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(shortDescription))
                     {
                         _writer.WriteObjectStart("shortDescription");
                         _writer.Write("text", shortDescription);
                         _writer.WriteObjectEnd();
                     }
 
-                    string fullDescription = descriptor.Description.ToString(_culture);
-                    if (!string.IsNullOrEmpty(fullDescription))
+                    string? fullDescription = descriptor.Description.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(fullDescription))
                     {
                         _writer.WriteObjectStart("fullDescription");
                         _writer.Write("text", fullDescription);

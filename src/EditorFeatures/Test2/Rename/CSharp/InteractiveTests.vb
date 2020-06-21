@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     <[UseExportProvider]>
@@ -9,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             _outputHelper = outputHelper
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingTopLevelMethodsSupported()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingTopLevelMethodsSupported(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">
@@ -19,7 +21,7 @@ void [|$$Goo|]()
 {
 }
                     </Submission>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub

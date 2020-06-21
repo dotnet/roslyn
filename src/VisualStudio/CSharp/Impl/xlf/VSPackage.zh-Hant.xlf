@@ -78,15 +78,16 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
+Use enhanced colors;
+Editor Color Scheme;</source>
         <target state="translated">顯示已關閉檔案的診斷;
 為規則運算式標示色彩; 
 醒目提示游標下的相關元件; 
 回報無效的規則運算式;
 啟用完整解決方案分析;
 在外部處理序中執行編輯器功能分析;
-允許瀏覽到反向組譯的來源;
-Using 指示詞;
+啟用瀏覽至反向組譯的來源;
+using 指示詞;
 排序 using 時先放置系統指示詞;
 分隔 using 指示詞群組;
 為參考組件中的類型建議 using;
@@ -117,14 +118,15 @@ Using 指示詞;
 不要在自訂結構上放置 ref 或 out;
 實作介面或抽象類別;
 在插入屬性、事件和方法時，予以放置;
-並隨同其他同種類的成員;
+隨同其他同種類的成員;
 在結尾;
 在產生屬性時;
 建議使用擲回屬性;
 建議使用自動屬性;
 regex;
 規則運算式;
-使用增強色彩;</target>
+使用進階色彩;
+編輯器色彩配置;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -272,6 +274,7 @@ Insert space before and after binary operators;</source>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
@@ -282,8 +285,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">變更完成清單設定;預先選取最近使用的成員; 完成清單;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">變更完成清單設定;預先選取最近使用的成員; 完成清單;
 在鍵入字元後顯示完成清單;
 在刪除字元後顯示完成清單;
 醒目提示完成清單項目的相符部分;

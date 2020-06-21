@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -68,14 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override object GetItemKey(object data) => data;
 
                 protected override object GetOrUpdateAggregationKey(object data)
-                {
-                    return data;
-                }
+                    => data;
 
                 public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
-                {
-                    return new TableEntriesSource(this);
-                }
+                    => new TableEntriesSource(this);
 
                 public override AbstractTableEntriesSnapshot<DiagnosticTableItem> CreateSnapshot(AbstractTableEntriesSource<DiagnosticTableItem> source, int version, ImmutableArray<DiagnosticTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
@@ -97,14 +96,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private readonly BuildTableDataSource _source;
 
                     public TableEntriesSource(BuildTableDataSource source)
-                    {
-                        _source = source;
-                    }
+                        => _source = source;
 
                     public override object Key => _source._key;
                     public override string BuildTool => PredefinedBuildTools.Build;
                     public override bool SupportSpanTracking => false;
-                    public override DocumentId TrackingDocumentId => Contract.FailWithReturn<DocumentId>("This should never be called");
+                    public override DocumentId TrackingDocumentId => throw ExceptionUtilities.Unreachable;
 
                     public override ImmutableArray<DiagnosticTableItem> GetItems()
                     {
@@ -114,9 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
-                    {
-                        return ImmutableArray<ITrackingPoint>.Empty;
-                    }
+                        => ImmutableArray<ITrackingPoint>.Empty;
                 }
 
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>
@@ -155,13 +150,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Id;
                                 return content != null;
                             case StandardTableKeyNames.ErrorCodeToolTip:
-                                content = GetHelpLinkToolTipText(item.Workspace, data);
+                                content = BrowserHelper.GetHelpLinkToolTip(data);
                                 return content != null;
                             case StandardTableKeyNames.HelpKeyword:
                                 content = data.Id;
                                 return content != null;
                             case StandardTableKeyNames.HelpLink:
-                                content = GetHelpLink(item.Workspace, data);
+                                content = BrowserHelper.GetHelpLink(data)?.AbsoluteUri;
                                 return content != null;
                             case StandardTableKeyNames.ErrorCategory:
                                 content = data.Category;

@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using System.Reflection.Metadata;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -190,6 +191,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[] s_signature_HasThis_Void_SzArray_Boolean = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, SzArray, Boolean };
         private static readonly byte[] s_signature_HasThis_Void_SzArray_Byte = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, SzArray, Byte };
         private static readonly byte[] s_signature_HasThis_Void_SzArray_String = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, SzArray, String };
+        private static readonly byte[] s_signature_HasThis_Void_Boolean_SzArray_String = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, Boolean, SzArray, String };
+        private static readonly byte[] s_signature_HasThis_Void_Boolean_String = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, Boolean, String };
 
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32 = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32 };
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_Platform = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.Platform };
@@ -268,6 +271,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfMaybeNullAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfMaybeNullWhenAttribute = { s_signature_HasThis_Void_Boolean };
         private static readonly byte[][] s_signaturesOfNotNullAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfMemberNotNullAttribute = { s_signature_HasThis_Void_String, s_signature_HasThis_Void_SzArray_String };
+        private static readonly byte[][] s_signaturesOfMemberNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean_String, s_signature_HasThis_Void_Boolean_SzArray_String };
         private static readonly byte[][] s_signaturesOfNotNullIfNotNullAttribute = { s_signature_HasThis_Void_String };
         private static readonly byte[][] s_signaturesOfNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean };
         private static readonly byte[][] s_signaturesOfDoesNotReturnIfAttribute = { s_signature_HasThis_Void_Boolean };
@@ -417,11 +422,11 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfNullableAttribute = { s_signature_HasThis_Void_Byte, s_signature_HasThis_Void_SzArray_Byte };
         private static readonly byte[][] s_signaturesOfNullableContextAttribute = { s_signature_HasThis_Void_Byte };
         private static readonly byte[][] s_signaturesOfNullablePublicOnlyAttribute = { s_signature_HasThis_Void_Boolean };
-
         private static readonly byte[][] s_signaturesOfExperimentalAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfExcludeFromCodeCoverageAttribute = { s_signature_HasThis_Void };
-
+        private static readonly byte[][] s_signaturesOfSkipLocalsInitAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfEnumeratorCancellationAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfNativeIntegerAttribute = { s_signature_HasThis_Void, s_signature_HasThis_Void_SzArray_Boolean };
 
         // early decoded attributes:
         internal static readonly AttributeDescription OptionalAttribute = new AttributeDescription("System.Runtime.InteropServices", "OptionalAttribute", s_signaturesOfOptionalAttribute);
@@ -475,6 +480,8 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription MaybeNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MaybeNullAttribute", s_signaturesOfMaybeNullAttribute);
         internal static readonly AttributeDescription MaybeNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MaybeNullWhenAttribute", s_signaturesOfMaybeNullWhenAttribute);
         internal static readonly AttributeDescription NotNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullAttribute", s_signaturesOfNotNullAttribute);
+        internal static readonly AttributeDescription MemberNotNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MemberNotNullAttribute", s_signaturesOfMemberNotNullAttribute);
+        internal static readonly AttributeDescription MemberNotNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "MemberNotNullWhenAttribute", s_signaturesOfMemberNotNullWhenAttribute);
         internal static readonly AttributeDescription NotNullIfNotNullAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullIfNotNullAttribute", s_signaturesOfNotNullIfNotNullAttribute);
         internal static readonly AttributeDescription NotNullWhenAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "NotNullWhenAttribute", s_signaturesOfNotNullWhenAttribute);
         internal static readonly AttributeDescription DoesNotReturnIfAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "DoesNotReturnIfAttribute", s_signaturesOfDoesNotReturnIfAttribute);
@@ -550,5 +557,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription ExperimentalAttribute = new AttributeDescription("Windows.Foundation.Metadata", "ExperimentalAttribute", s_signaturesOfExperimentalAttribute);
         internal static readonly AttributeDescription ExcludeFromCodeCoverageAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "ExcludeFromCodeCoverageAttribute", s_signaturesOfExcludeFromCodeCoverageAttribute);
         internal static readonly AttributeDescription EnumeratorCancellationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "EnumeratorCancellationAttribute", s_signaturesOfEnumeratorCancellationAttribute);
+        internal static readonly AttributeDescription SkipLocalsInitAttribute = new AttributeDescription("System.Runtime.CompilerServices", "SkipLocalsInitAttribute", s_signaturesOfSkipLocalsInitAttribute);
+        internal static readonly AttributeDescription NativeIntegerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NativeIntegerAttribute", s_signaturesOfNativeIntegerAttribute);
     }
 }

@@ -1,15 +1,23 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
     Friend Module Extensions
+
+        Private ReadOnly s_exportProviderFactoryWithTestActiveStatementSpanTracker As IExportProviderFactory =
+            ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic _
+                .WithPart(GetType(TestActiveStatementSpanTracker)))
 
         Friend Sub VerifyUnchangedDocument(
             source As String,
@@ -93,14 +101,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                    expectedSemanticEdits As SemanticEditDescription(),
                                    expectedDeclarationError As DiagnosticDescription,
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VisualBasicEditAndContinueTestHelpers.Instance.VerifySemantics(
-                editScript,
-                activeStatements,
-                additionalOldSources,
-                additionalNewSources,
-                expectedSemanticEdits,
-                expectedDeclarationError,
-                expectedDiagnostics)
+            Using workspace = TestWorkspace.CreateVisualBasic("", exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+                VisualBasicEditAndContinueTestHelpers.Instance.VerifySemantics(
+                    workspace,
+                    editScript,
+                    activeStatements,
+                    additionalOldSources,
+                    additionalNewSources,
+                    expectedSemanticEdits,
+                    expectedDeclarationError,
+                    expectedDiagnostics)
+            End Using
         End Sub
     End Module
 End Namespace

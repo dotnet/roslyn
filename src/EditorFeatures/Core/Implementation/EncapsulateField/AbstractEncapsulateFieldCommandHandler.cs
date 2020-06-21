@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 
             var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
 
-            var result = service.EncapsulateFieldAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
+            var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
 
             // We are about to show a modal UI dialog so we should take over the command execution
             // wait context. That means the command system won't attempt to show its own wait dialog 
@@ -89,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
                      "vs.csharp.refactoring.preview",
                     EditorFeaturesResources.Encapsulate_Field_colon,
-                    result.GetNameAsync(cancellationToken).WaitAndGetResult(cancellationToken),
-                    result.GetGlyphAsync(cancellationToken).WaitAndGetResult(cancellationToken),
+                    result.Name,
+                    result.Glyph,
                     finalSolution,
                     document.Project.Solution);
             }

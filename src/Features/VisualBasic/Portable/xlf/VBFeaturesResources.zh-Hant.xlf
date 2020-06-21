@@ -27,11 +27,6 @@
         <target state="translated">新增 'Shadows'</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">'If' 陳述式可簡化</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">插入 '{0}'。</target>
@@ -90,11 +85,6 @@
       <trans-unit id="Multiple_Types">
         <source>&lt;Multiple Types&gt;</source>
         <target state="translated">&lt;多項類型&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">移除不必要的匯入</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -365,7 +355,7 @@ AddressOf &lt;procedureName&gt;</target>
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_The_Ansi_modifier_specifies_that_Visual_Basic_should_marshal_all_strings_to_ANSI_values_and_should_look_up_the_procedure_without_modifying_its_name_during_the_search_If_no_character_set_is_specified_ANSI_is_the_default">
         <source>Used in a Declare statement. The Ansi modifier specifies that Visual Basic should marshal all strings to ANSI values, and should look up the procedure without modifying its name during the search. If no character set is specified, ANSI is the default.</source>
-        <target state="translated">用在 Declare 陳述式中。Ansi 修飾詞會指定 Visual Basic 應將所有字串封送處理成 ANSI 值，且在搜尋期間，應查詢程序但不要修改其名稱。若未指定字元集，預設值就是 ANSI。</target>
+        <target state="translated">用在 Declare 陳述式中。Ansi 修飾元會指定 Visual Basic 應將所有字串封送處理成 ANSI 值，且在搜尋期間，應查詢程序但不要修改其名稱。若未指定字元集，預設值就是 ANSI。</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_a_data_type_in_a_declaration_statement">
@@ -385,7 +375,7 @@ AddressOf &lt;procedureName&gt;</target>
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_The_Auto_modifier_specifies_that_Visual_Basic_should_marshal_strings_according_to_NET_Framework_rules_and_should_determine_the_base_character_set_of_the_run_time_platform_and_possibly_modify_the_external_procedure_name_if_the_initial_search_fails">
         <source>Used in a Declare statement. The Auto modifier specifies that Visual Basic should marshal strings according to .NET Framework rules, and should determine the base character set of the run-time platform and possibly modify the external procedure name if the initial search fails.</source>
-        <target state="translated">用在 Declare 陳述式中。Auto 修飾詞可指定 Visual Basic 應該根據 .NET Framework 規則封送處理字串，且應判斷執行階段平台的基礎字元集，若初始搜尋失敗，還可能修改外部程序名稱。</target>
+        <target state="translated">用在 Declare 陳述式中。Auto 修飾元可指定 Visual Basic 應該根據 .NET Framework 規則封送處理字串，且應判斷執行階段平台的基礎字元集，若初始搜尋失敗，還可能修改外部程序名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_can_change_the_underlying_value_of_the_argument_in_the_calling_code">
@@ -1477,11 +1467,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">讓 {0} 成為非同步函式。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">插入遺漏的 Cast</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">將 {0} 轉換為 Iterator</target>
@@ -1509,37 +1494,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">在 '{0}' 中產生擴展轉換</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">請勿變更這個程式碼。請將清除程式碼放在上方的 Dispose(disposing As Boolean) 中。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的 Finalize()。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: 只有當上方的 Dispose(disposing As Boolean) 具有要釋放 Unmanaged 資源的程式碼時，才覆寫 Finalize()。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Visual Basic 加入這個程式碼的目的，在於能正確地實作可處置的模式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: 覆寫上列 Finalize() 時，取消下行的註解狀態。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">無須 Imports 陳述式。</target>
+        <target state="translated">在 '{0}' 中產生放大轉換</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1820,21 +1775,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">轉換為非同步 Sub</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">新增 'Me.'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">使用 'Is Nothing' 檢查</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">使用 'IsNot Nothing' 檢查</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

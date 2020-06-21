@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -259,7 +261,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             var listenerProvider = environment.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.RuleSetEditor);
-            waiter.CreateExpeditedWaitTask().JoinUsingDispatcher(CancellationToken.None);
+            waiter.ExpeditedWaitAsync().JoinUsingDispatcher(CancellationToken.None);
 
             options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
             Assert.Equal(expected: ReportDiagnostic.Warn, actual: options.GeneralDiagnosticOption);

@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 
@@ -195,7 +200,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
-        internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+        // Issue with enforcing nullability attributes in OHI https://github.com/dotnet/roslyn/issues/42169
+#pragma warning disable CS8765 // Type of parameter doesn't match overridden member because of nullability attributes.
+        internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+#pragma warning restore CS8765
         {
             var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
             return compilationAnalysisValueProvider.TryGetValue(key, out value);
@@ -356,13 +364,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void RegisterCompilationStartAction(DiagnosticAnalyzer analyzer, Action<CompilationStartAnalysisContext> action)
         {
             CompilationStartAnalyzerAction analyzerAction = new CompilationStartAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddCompilationStartAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationStartAction(analyzerAction);
         }
 
         public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
         {
             _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
-            GetOrCreateAnalyzerActions(analyzer).EnableConcurrentExecution();
+            GetOrCreateAnalyzerActions(analyzer).Value.EnableConcurrentExecution();
         }
 
         public void ConfigureGeneratedCodeAnalysis(DiagnosticAnalyzer analyzer, GeneratedCodeAnalysisFlags mode)
@@ -398,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return sessionActions;
             }
 
-            return compilationActions.Append(sessionActions);
+            return compilationActions.Append(in sessionActions);
         }
     }
 
@@ -471,41 +479,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal abstract class HostAnalysisScope
     {
-        private readonly ConcurrentDictionary<DiagnosticAnalyzer, AnalyzerActions> _analyzerActions = new ConcurrentDictionary<DiagnosticAnalyzer, AnalyzerActions>();
+        private readonly ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<AnalyzerActions>> _analyzerActions = new ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<AnalyzerActions>>();
 
         public virtual AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
-            return this.GetOrCreateAnalyzerActions(analyzer);
+            return this.GetOrCreateAnalyzerActions(analyzer).Value;
         }
 
         public void RegisterCompilationAction(DiagnosticAnalyzer analyzer, Action<CompilationAnalysisContext> action)
         {
             CompilationAnalyzerAction analyzerAction = new CompilationAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddCompilationAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationAction(analyzerAction);
         }
 
         public void RegisterCompilationEndAction(DiagnosticAnalyzer analyzer, Action<CompilationAnalysisContext> action)
         {
             CompilationAnalyzerAction analyzerAction = new CompilationAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddCompilationEndAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationEndAction(analyzerAction);
         }
 
         public void RegisterSemanticModelAction(DiagnosticAnalyzer analyzer, Action<SemanticModelAnalysisContext> action)
         {
             SemanticModelAnalyzerAction analyzerAction = new SemanticModelAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddSemanticModelAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddSemanticModelAction(analyzerAction);
         }
 
         public void RegisterSyntaxTreeAction(DiagnosticAnalyzer analyzer, Action<SyntaxTreeAnalysisContext> action)
         {
             SyntaxTreeAnalyzerAction analyzerAction = new SyntaxTreeAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddSyntaxTreeAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddSyntaxTreeAction(analyzerAction);
         }
 
         public void RegisterSymbolAction(DiagnosticAnalyzer analyzer, Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
         {
             SymbolAnalyzerAction analyzerAction = new SymbolAnalyzerAction(action, symbolKinds, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddSymbolAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddSymbolAction(analyzerAction);
 
             // The SymbolAnalyzerAction does not handle SymbolKind.Parameter because the compiler
             // does not make CompilationEvents for them. As a workaround, handle them specially by
@@ -558,66 +566,66 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void RegisterSymbolStartAction(DiagnosticAnalyzer analyzer, Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind)
         {
             var analyzerAction = new SymbolStartAnalyzerAction(action, symbolKind, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddSymbolStartAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddSymbolStartAction(analyzerAction);
         }
 
         public void RegisterSymbolEndAction(DiagnosticAnalyzer analyzer, Action<SymbolAnalysisContext> action)
         {
             var analyzerAction = new SymbolEndAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddSymbolEndAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddSymbolEndAction(analyzerAction);
         }
 
         public void RegisterCodeBlockStartAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
         {
             CodeBlockStartAnalyzerAction<TLanguageKindEnum> analyzerAction = new CodeBlockStartAnalyzerAction<TLanguageKindEnum>(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddCodeBlockStartAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCodeBlockStartAction(analyzerAction);
         }
 
         public void RegisterCodeBlockEndAction(DiagnosticAnalyzer analyzer, Action<CodeBlockAnalysisContext> action)
         {
             CodeBlockAnalyzerAction analyzerAction = new CodeBlockAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddCodeBlockEndAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCodeBlockEndAction(analyzerAction);
         }
 
         public void RegisterCodeBlockAction(DiagnosticAnalyzer analyzer, Action<CodeBlockAnalysisContext> action)
         {
             CodeBlockAnalyzerAction analyzerAction = new CodeBlockAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddCodeBlockAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCodeBlockAction(analyzerAction);
         }
 
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct
         {
             SyntaxNodeAnalyzerAction<TLanguageKindEnum> analyzerAction = new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, syntaxKinds, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddSyntaxNodeAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddSyntaxNodeAction(analyzerAction);
         }
 
         public void RegisterOperationBlockStartAction(DiagnosticAnalyzer analyzer, Action<OperationBlockStartAnalysisContext> action)
         {
             OperationBlockStartAnalyzerAction analyzerAction = new OperationBlockStartAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddOperationBlockStartAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddOperationBlockStartAction(analyzerAction);
         }
 
         public void RegisterOperationBlockEndAction(DiagnosticAnalyzer analyzer, Action<OperationBlockAnalysisContext> action)
         {
             OperationBlockAnalyzerAction analyzerAction = new OperationBlockAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddOperationBlockEndAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddOperationBlockEndAction(analyzerAction);
         }
 
         public void RegisterOperationBlockAction(DiagnosticAnalyzer analyzer, Action<OperationBlockAnalysisContext> action)
         {
             OperationBlockAnalyzerAction analyzerAction = new OperationBlockAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddOperationBlockAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddOperationBlockAction(analyzerAction);
         }
 
         public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             OperationAnalyzerAction analyzerAction = new OperationAnalyzerAction(action, operationKinds, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).AddOperationAction(analyzerAction);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddOperationAction(analyzerAction);
         }
 
-        protected AnalyzerActions GetOrCreateAnalyzerActions(DiagnosticAnalyzer analyzer)
+        protected StrongBox<AnalyzerActions> GetOrCreateAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
-            return _analyzerActions.GetOrAdd(analyzer, _ => new AnalyzerActions());
+            return _analyzerActions.GetOrAdd(analyzer, _ => new StrongBox<AnalyzerActions>(AnalyzerActions.Empty));
         }
     }
 
@@ -628,126 +636,187 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     // moves from an analyzer-centric model to an action-centric model. For example, the driver would need to stop asking
     // if a particular analyzer can analyze syntax trees, and instead ask if any syntax tree actions are present. Also,
     // the driver needs to apply all relevant actions rather then applying the actions of individual analyzers.
-    internal sealed class AnalyzerActions
+    internal struct AnalyzerActions
     {
-        private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActions = ImmutableArray<CompilationStartAnalyzerAction>.Empty;
-        private ImmutableArray<CompilationAnalyzerAction> _compilationEndActions = ImmutableArray<CompilationAnalyzerAction>.Empty;
-        private ImmutableArray<CompilationAnalyzerAction> _compilationActions = ImmutableArray<CompilationAnalyzerAction>.Empty;
-        private ImmutableArray<SyntaxTreeAnalyzerAction> _syntaxTreeActions = ImmutableArray<SyntaxTreeAnalyzerAction>.Empty;
-        private ImmutableArray<SemanticModelAnalyzerAction> _semanticModelActions = ImmutableArray<SemanticModelAnalyzerAction>.Empty;
-        private ImmutableArray<SymbolAnalyzerAction> _symbolActions = ImmutableArray<SymbolAnalyzerAction>.Empty;
-        private ImmutableArray<SymbolStartAnalyzerAction> _symbolStartActions = ImmutableArray<SymbolStartAnalyzerAction>.Empty;
-        private ImmutableArray<SymbolEndAnalyzerAction> _symbolEndActions = ImmutableArray<SymbolEndAnalyzerAction>.Empty;
-        private ImmutableArray<AnalyzerAction> _codeBlockStartActions = ImmutableArray<AnalyzerAction>.Empty;
-        private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
-        private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
-        private ImmutableArray<OperationBlockStartAnalyzerAction> _operationBlockStartActions = ImmutableArray<OperationBlockStartAnalyzerAction>.Empty;
-        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
-        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
-        private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
-        private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
+        public static readonly AnalyzerActions Empty = new AnalyzerActions(concurrent: false);
+
+        private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActions;
+        private ImmutableArray<CompilationAnalyzerAction> _compilationEndActions;
+        private ImmutableArray<CompilationAnalyzerAction> _compilationActions;
+        private ImmutableArray<SyntaxTreeAnalyzerAction> _syntaxTreeActions;
+        private ImmutableArray<SemanticModelAnalyzerAction> _semanticModelActions;
+        private ImmutableArray<SymbolAnalyzerAction> _symbolActions;
+        private ImmutableArray<SymbolStartAnalyzerAction> _symbolStartActions;
+        private ImmutableArray<SymbolEndAnalyzerAction> _symbolEndActions;
+        private ImmutableArray<AnalyzerAction> _codeBlockStartActions;
+        private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions;
+        private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions;
+        private ImmutableArray<OperationBlockStartAnalyzerAction> _operationBlockStartActions;
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActions;
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions;
+        private ImmutableArray<AnalyzerAction> _syntaxNodeActions;
+        private ImmutableArray<OperationAnalyzerAction> _operationActions;
         private bool _concurrent;
 
-        internal AnalyzerActions()
+        internal AnalyzerActions(bool concurrent)
         {
+            _compilationStartActions = ImmutableArray<CompilationStartAnalyzerAction>.Empty;
+            _compilationEndActions = ImmutableArray<CompilationAnalyzerAction>.Empty;
+            _compilationActions = ImmutableArray<CompilationAnalyzerAction>.Empty;
+            _syntaxTreeActions = ImmutableArray<SyntaxTreeAnalyzerAction>.Empty;
+            _semanticModelActions = ImmutableArray<SemanticModelAnalyzerAction>.Empty;
+            _symbolActions = ImmutableArray<SymbolAnalyzerAction>.Empty;
+            _symbolStartActions = ImmutableArray<SymbolStartAnalyzerAction>.Empty;
+            _symbolEndActions = ImmutableArray<SymbolEndAnalyzerAction>.Empty;
+            _codeBlockStartActions = ImmutableArray<AnalyzerAction>.Empty;
+            _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
+            _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
+            _operationBlockStartActions = ImmutableArray<OperationBlockStartAnalyzerAction>.Empty;
+            _operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+            _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+            _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
+            _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
+            _concurrent = concurrent;
+
             IsEmpty = true;
         }
 
-        public int CompilationStartActionsCount { get { return _compilationStartActions.Length; } }
-        public int CompilationEndActionsCount { get { return _compilationEndActions.Length; } }
-        public int CompilationActionsCount { get { return _compilationActions.Length; } }
-        public int SyntaxTreeActionsCount { get { return _syntaxTreeActions.Length; } }
-        public int SemanticModelActionsCount { get { return _semanticModelActions.Length; } }
-        public int SymbolActionsCount { get { return _symbolActions.Length; } }
-        public int SymbolStartActionsCount { get { return _symbolStartActions.Length; } }
-        public int SymbolEndActionsCount { get { return _symbolEndActions.Length; } }
-        public int SyntaxNodeActionsCount { get { return _syntaxNodeActions.Length; } }
-        public int OperationActionsCount { get { return _operationActions.Length; } }
-        public int OperationBlockStartActionsCount { get { return _operationBlockStartActions.Length; } }
-        public int OperationBlockEndActionsCount { get { return _operationBlockEndActions.Length; } }
-        public int OperationBlockActionsCount { get { return _operationBlockActions.Length; } }
-        public int CodeBlockStartActionsCount { get { return _codeBlockStartActions.Length; } }
-        public int CodeBlockEndActionsCount { get { return _codeBlockEndActions.Length; } }
-        public int CodeBlockActionsCount { get { return _codeBlockActions.Length; } }
-        public bool Concurrent => _concurrent;
-        public bool IsEmpty { get; private set; }
+        public AnalyzerActions(
+            ImmutableArray<CompilationStartAnalyzerAction> compilationStartActions,
+            ImmutableArray<CompilationAnalyzerAction> compilationEndActions,
+            ImmutableArray<CompilationAnalyzerAction> compilationActions,
+            ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
+            ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
+            ImmutableArray<SymbolAnalyzerAction> symbolActions,
+            ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
+            ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions,
+            ImmutableArray<AnalyzerAction> codeBlockStartActions,
+            ImmutableArray<CodeBlockAnalyzerAction> codeBlockEndActions,
+            ImmutableArray<CodeBlockAnalyzerAction> codeBlockActions,
+            ImmutableArray<OperationBlockStartAnalyzerAction> operationBlockStartActions,
+            ImmutableArray<OperationBlockAnalyzerAction> operationBlockEndActions,
+            ImmutableArray<OperationBlockAnalyzerAction> operationBlockActions,
+            ImmutableArray<AnalyzerAction> syntaxNodeActions,
+            ImmutableArray<OperationAnalyzerAction> operationActions,
+            bool concurrent,
+            bool isEmpty)
+        {
+            _compilationStartActions = compilationStartActions;
+            _compilationEndActions = compilationEndActions;
+            _compilationActions = compilationActions;
+            _syntaxTreeActions = syntaxTreeActions;
+            _semanticModelActions = semanticModelActions;
+            _symbolActions = symbolActions;
+            _symbolStartActions = symbolStartActions;
+            _symbolEndActions = symbolEndActions;
+            _codeBlockStartActions = codeBlockStartActions;
+            _codeBlockEndActions = codeBlockEndActions;
+            _codeBlockActions = codeBlockActions;
+            _operationBlockStartActions = operationBlockStartActions;
+            _operationBlockEndActions = operationBlockEndActions;
+            _operationBlockActions = operationBlockActions;
+            _syntaxNodeActions = syntaxNodeActions;
+            _operationActions = operationActions;
+            _concurrent = concurrent;
+            IsEmpty = isEmpty;
+        }
 
-        internal ImmutableArray<CompilationStartAnalyzerAction> CompilationStartActions
+        public readonly int CompilationStartActionsCount { get { return _compilationStartActions.Length; } }
+        public readonly int CompilationEndActionsCount { get { return _compilationEndActions.Length; } }
+        public readonly int CompilationActionsCount { get { return _compilationActions.Length; } }
+        public readonly int SyntaxTreeActionsCount { get { return _syntaxTreeActions.Length; } }
+        public readonly int SemanticModelActionsCount { get { return _semanticModelActions.Length; } }
+        public readonly int SymbolActionsCount { get { return _symbolActions.Length; } }
+        public readonly int SymbolStartActionsCount { get { return _symbolStartActions.Length; } }
+        public readonly int SymbolEndActionsCount { get { return _symbolEndActions.Length; } }
+        public readonly int SyntaxNodeActionsCount { get { return _syntaxNodeActions.Length; } }
+        public readonly int OperationActionsCount { get { return _operationActions.Length; } }
+        public readonly int OperationBlockStartActionsCount { get { return _operationBlockStartActions.Length; } }
+        public readonly int OperationBlockEndActionsCount { get { return _operationBlockEndActions.Length; } }
+        public readonly int OperationBlockActionsCount { get { return _operationBlockActions.Length; } }
+        public readonly int CodeBlockStartActionsCount { get { return _codeBlockStartActions.Length; } }
+        public readonly int CodeBlockEndActionsCount { get { return _codeBlockEndActions.Length; } }
+        public readonly int CodeBlockActionsCount { get { return _codeBlockActions.Length; } }
+        public readonly bool Concurrent => _concurrent;
+        public bool IsEmpty { readonly get; private set; }
+        public readonly bool IsDefault => _compilationStartActions.IsDefault;
+
+        internal readonly ImmutableArray<CompilationStartAnalyzerAction> CompilationStartActions
         {
             get { return _compilationStartActions; }
         }
 
-        internal ImmutableArray<CompilationAnalyzerAction> CompilationEndActions
+        internal readonly ImmutableArray<CompilationAnalyzerAction> CompilationEndActions
         {
             get { return _compilationEndActions; }
         }
 
-        internal ImmutableArray<CompilationAnalyzerAction> CompilationActions
+        internal readonly ImmutableArray<CompilationAnalyzerAction> CompilationActions
         {
             get { return _compilationActions; }
         }
 
-        internal ImmutableArray<SyntaxTreeAnalyzerAction> SyntaxTreeActions
+        internal readonly ImmutableArray<SyntaxTreeAnalyzerAction> SyntaxTreeActions
         {
             get { return _syntaxTreeActions; }
         }
 
-        internal ImmutableArray<SemanticModelAnalyzerAction> SemanticModelActions
+        internal readonly ImmutableArray<SemanticModelAnalyzerAction> SemanticModelActions
         {
             get { return _semanticModelActions; }
         }
 
-        internal ImmutableArray<SymbolAnalyzerAction> SymbolActions
+        internal readonly ImmutableArray<SymbolAnalyzerAction> SymbolActions
         {
             get { return _symbolActions; }
         }
 
-        internal ImmutableArray<SymbolStartAnalyzerAction> SymbolStartActions
+        internal readonly ImmutableArray<SymbolStartAnalyzerAction> SymbolStartActions
         {
             get { return _symbolStartActions; }
         }
 
-        internal ImmutableArray<SymbolEndAnalyzerAction> SymbolEndActions
+        internal readonly ImmutableArray<SymbolEndAnalyzerAction> SymbolEndActions
         {
             get { return _symbolEndActions; }
         }
 
-        internal ImmutableArray<CodeBlockAnalyzerAction> CodeBlockEndActions
+        internal readonly ImmutableArray<CodeBlockAnalyzerAction> CodeBlockEndActions
         {
             get { return _codeBlockEndActions; }
         }
 
-        internal ImmutableArray<CodeBlockAnalyzerAction> CodeBlockActions
+        internal readonly ImmutableArray<CodeBlockAnalyzerAction> CodeBlockActions
         {
             get { return _codeBlockActions; }
         }
 
-        internal ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> GetCodeBlockStartActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
+        internal readonly ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> GetCodeBlockStartActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
         {
             return _codeBlockStartActions.OfType<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
         }
 
-        internal ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
+        internal readonly ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
         {
             return _syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
         }
 
-        internal ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions
+        internal readonly ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions
         {
             get { return _operationBlockActions; }
         }
 
-        internal ImmutableArray<OperationBlockAnalyzerAction> OperationBlockEndActions
+        internal readonly ImmutableArray<OperationBlockAnalyzerAction> OperationBlockEndActions
         {
             get { return _operationBlockEndActions; }
         }
 
-        internal ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions
+        internal readonly ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions
         {
             get { return _operationBlockStartActions; }
         }
 
-        internal ImmutableArray<OperationAnalyzerAction> OperationActions
+        internal readonly ImmutableArray<OperationAnalyzerAction> OperationActions
         {
             get { return _operationActions; }
         }
@@ -857,14 +926,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Append analyzer actions from <paramref name="otherActions"/> to actions from this instance.
         /// </summary>
         /// <param name="otherActions">Analyzer actions to append</param>.
-        public AnalyzerActions Append(AnalyzerActions otherActions, bool appendSymbolStartAndSymbolEndActions = true)
+        public readonly AnalyzerActions Append(in AnalyzerActions otherActions, bool appendSymbolStartAndSymbolEndActions = true)
         {
-            if (otherActions == null)
+            if (otherActions.IsDefault)
             {
                 throw new ArgumentNullException(nameof(otherActions));
             }
 
-            AnalyzerActions actions = new AnalyzerActions();
+            AnalyzerActions actions = new AnalyzerActions(concurrent: _concurrent || otherActions.Concurrent);
             actions._compilationStartActions = _compilationStartActions.AddRange(otherActions._compilationStartActions);
             actions._compilationEndActions = _compilationEndActions.AddRange(otherActions._compilationEndActions);
             actions._compilationActions = _compilationActions.AddRange(otherActions._compilationActions);
@@ -881,7 +950,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             actions._operationBlockStartActions = _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions);
             actions._operationBlockEndActions = _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions);
             actions._operationBlockActions = _operationBlockActions.AddRange(otherActions._operationBlockActions);
-            actions._concurrent = actions._concurrent || otherActions.Concurrent;
             actions.IsEmpty = IsEmpty && otherActions.IsEmpty;
 
             return actions;

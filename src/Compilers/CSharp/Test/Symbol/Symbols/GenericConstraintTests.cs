@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -662,7 +664,7 @@ partial class B<T> where T : struct
     static partial void M2<U>(A<U> a, A<A<int>>.B b) where U : class;
     static partial void M3(A<T> a);
     static partial void M4<U, V>() where U : A<V>;
-    static partial A<U> M5<U>();
+    internal static partial A<U> M5<U>();
 }
 partial class B<T> where T : struct
 {
@@ -670,13 +672,9 @@ partial class B<T> where T : struct
     static partial void M2<U>(A<U> a, A<A<int>>.B b) where U : class { }
     static partial void M3(A<T> a) { }
     static partial void M4<U, V>() where U : A<V> { }
-    static partial A<U> M5<U>() { return null; }
+    internal static partial A<U> M5<U>() { return null; }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,25): error CS0766: Partial methods must have a void return type
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M5").WithLocation(11, 25),
-                // (19,25): error CS0766: Partial methods must have a void return type
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M5").WithLocation(19, 25),
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
                 // (10,28): error CS0453: The type 'V' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "U").WithArguments("A<T>", "T", "V").WithLocation(10, 28),
                 // (18,28): error CS0453: The type 'V' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
@@ -685,8 +683,8 @@ partial class B<T> where T : struct
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "a").WithArguments("A<T>", "T", "U").WithLocation(8, 36),
                 // (8,51): error CS0453: The type 'A<int>' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "b").WithArguments("A<T>", "T", "A<int>").WithLocation(8, 51),
-                // (19,25): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("A<T>", "T", "U").WithLocation(11, 25));
+                // (19,34): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("A<T>", "T", "U").WithLocation(11, 34));
         }
 
         [ClrOnlyFact]
@@ -3228,11 +3226,17 @@ partial class C
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (13,9): error CS0103: The name 't' does not exist in the current context
+                //         t.ToString();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(13, 9),
                 // (14,9): error CS0103: The name 'u' does not exist in the current context
+                //         u.ToString();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u").WithArguments("u").WithLocation(14, 9),
                 // (16,18): error CS0756: A partial method may not have multiple defining declarations
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M").WithLocation(16, 18));
+                //     partial void M<T1, T2>(T1 t1, T2 t2)
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M").WithLocation(16, 18),
+                // (16,18): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+                //     partial void M<T1, T2>(T1 t1, T2 t2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(16, 18));
         }
 
         [WorkItem(542331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542331")]
@@ -3347,7 +3351,12 @@ class C2 : IT<A>
 class C<T> : IT<T>
 {
     void M<U>() where U : T { }
-}";
+}
+class C3 : I
+{
+    public virtual void M<T>() where T : A { }
+}
+";
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (3,14): error CS0648: '' is a type not supported by the language
@@ -3364,12 +3373,15 @@ class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "C").WithArguments("IT<T>", "?", "T", "T").WithLocation(8, 7),
                 // (8,7): error CS0648: '' is a type not supported by the language
                 // class C<T> : IT<T>
-                Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
+                Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7),
+                // (14,25): error CS0425: The constraints for type parameter 'T' of method 'C3.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                //     public virtual void M<T>() where T : A { }
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("T", "C3.M<T>()", "T", "I.M<T>()").WithLocation(14, 25));
 
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
             var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
-            Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
+            Assert.False(((NamedTypeSymbol)constraintType).IsSerializable);
         }
 
         /// <summary>

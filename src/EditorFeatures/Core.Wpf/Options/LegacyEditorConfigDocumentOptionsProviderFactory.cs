@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Composition;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -14,7 +19,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
     [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
-    class LegacyEditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
+    [ExportMetadata("Name", PredefinedDocumentOptionsProviderNames.EditorConfig)]
+    internal class LegacyEditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IFileWatcher _fileWatcher;
@@ -32,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             _asynchronousOperationListenerProvider = asynchronousOperationListenerProvider;
         }
 
-        public IDocumentOptionsProvider TryCreate(Workspace workspace)
+        public IDocumentOptionsProvider? TryCreate(Workspace workspace)
         {
             if (EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(workspace))
             {
@@ -65,26 +71,23 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// An implementation of <see cref="IFileWatcher"/> that ensures we don't watch for a file synchronously to
         /// avoid deadlocks.
         /// </summary>
-        internal class DeferredFileWatcher : IFileWatcher
+        internal sealed class DeferredFileWatcher : IFileWatcher
         {
             private readonly IFileWatcher _fileWatcher;
-            private readonly SimpleTaskQueue _taskQueue = new SimpleTaskQueue(TaskScheduler.Default);
-            private readonly IAsynchronousOperationListener _listener;
+            private readonly TaskQueue _taskQueue;
 
             public DeferredFileWatcher(IFileWatcher fileWatcher, IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
             {
                 _fileWatcher = fileWatcher;
-                _fileWatcher.ConventionFileChanged += OnConventionFileChanged;
+                _fileWatcher.ConventionFileChanged += OnConventionFileChangedAsync;
 
-                _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Workspace);
+                _taskQueue = new TaskQueue(asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Workspace), TaskScheduler.Default);
             }
 
-            private Task OnConventionFileChanged(object sender, ConventionsFileChangeEventArgs arg)
-            {
-                return ConventionFileChanged?.Invoke(this, arg) ?? Task.CompletedTask;
-            }
+            private Task OnConventionFileChangedAsync(object sender, ConventionsFileChangeEventArgs arg)
+                => ConventionFileChanged?.Invoke(this, arg) ?? Task.CompletedTask;
 
-            public event ConventionsFileChangedAsyncEventHandler ConventionFileChanged;
+            public event ConventionsFileChangedAsyncEventHandler? ConventionFileChanged;
 
             public event ContextFileMovedAsyncEventHandler ContextFileMoved
             {
@@ -101,18 +104,16 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             public void Dispose()
             {
-                _fileWatcher.ConventionFileChanged -= OnConventionFileChanged;
+                _fileWatcher.ConventionFileChanged -= OnConventionFileChangedAsync;
                 _fileWatcher.Dispose();
             }
 
             public void StartWatching(string fileName, string directoryPath)
             {
-                var asyncToken = _listener.BeginAsyncOperation(nameof(DeferredFileWatcher) + "." + nameof(StartWatching));
-
                 // Read the file time stamp right now; we want to know if it changes between now
                 // and our ability to get the file watcher in place.
                 var originalFileTimeStamp = TryGetFileTimeStamp(fileName, directoryPath);
-                _taskQueue.ScheduleTask(() =>
+                _taskQueue.ScheduleTask(nameof(DeferredFileWatcher) + "." + nameof(StartWatching), () =>
                 {
                     _fileWatcher.StartWatching(fileName, directoryPath);
 
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                         ConventionFileChanged?.Invoke(this,
                             new ConventionsFileChangeEventArgs(fileName, directoryPath, changeType));
                     }
-                }).CompletesAsyncOperation(asyncToken);
+                }, CancellationToken.None);
             }
 
             private static DateTime? TryGetFileTimeStamp(string fileName, string directoryPath)
@@ -163,7 +164,9 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             public void StopWatching(string fileName, string directoryPath)
             {
-                _taskQueue.ScheduleTask(() => _fileWatcher.StopWatching(fileName, directoryPath));
+                _taskQueue.ScheduleTask(nameof(DeferredFileWatcher) + "." + nameof(StopWatching),
+                    () => _fileWatcher.StopWatching(fileName, directoryPath),
+                    CancellationToken.None);
             }
         }
     }

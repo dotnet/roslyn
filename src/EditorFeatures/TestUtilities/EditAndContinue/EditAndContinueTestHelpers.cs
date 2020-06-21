@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.EditAndContinue.AbstractEditAndContinueAnalyzer;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal void VerifyUnchangedDocument(
             string source,
             ActiveStatement[] oldActiveStatements,
-            TextSpan?[] trackingSpansOpt,
+            TextSpan?[]? trackingSpans,
             TextSpan[] expectedNewActiveStatements,
             ImmutableArray<TextSpan>[] expectedOldExceptionRegions,
             ImmutableArray<TextSpan>[] expectedNewExceptionRegions)
@@ -40,15 +44,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
-            TestActiveStatementTrackingService trackingService;
-            if (trackingSpansOpt != null)
-            {
-                trackingService = new TestActiveStatementTrackingService(documentId, trackingSpansOpt);
-            }
-            else
-            {
-                trackingService = null;
-            }
+            var spanTracker = new TestActiveStatementSpanTracker(
+                (trackingSpans != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, trackingSpans } } : null);
 
             var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
@@ -57,8 +54,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 oldActiveStatements.AsImmutable(),
                 text,
                 root,
-                documentId,
-                trackingService,
                 actualNewActiveStatements,
                 actualNewExceptionRegions);
 
@@ -94,20 +89,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = new List<RudeEditDiagnostic>();
             var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
-            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMemberInfo>();
-            var editMap = Analyzer.BuildEditMap(editScript);
+            var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
+            var editMap = BuildEditMap(editScript);
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
-            TestActiveStatementTrackingService trackingService;
-            if (description.OldTrackingSpans != null)
-            {
-                trackingService = new TestActiveStatementTrackingService(documentId, description.OldTrackingSpans);
-            }
-            else
-            {
-                trackingService = null;
-            }
+            var spanTracker = new TestActiveStatementSpanTracker(
+                (description.OldTrackingSpans != null) ? new Dictionary<DocumentId, TextSpan?[]> { { documentId, description.OldTrackingSpans } } : null);
 
             Analyzer.GetTestAccessor().AnalyzeSyntax(
                 editScript,
@@ -115,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 oldText,
                 newText,
                 documentId,
-                trackingService,
+                spanTracker,
                 oldActiveStatements.AsImmutable(),
                 actualNewActiveStatements,
                 actualNewExceptionRegions,
@@ -156,12 +144,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Assert.Equal(0, description.NewRegions[i].Length);
                 }
             }
-
-            if (description.OldTrackingSpans != null)
-            {
-                // Verify that the new tracking spans are equal to the new active statements.
-                AssertEx.Equal(trackingService.TrackingSpans, description.NewSpans.Select(s => (TextSpan?)s));
-            }
         }
 
         internal void VerifyLineEdits(
@@ -177,7 +159,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newText = SourceText.From(newSource);
 
             var diagnostics = new List<RudeEditDiagnostic>();
-            var editMap = Analyzer.BuildEditMap(editScript);
+            var editMap = BuildEditMap(editScript);
 
             var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
             var actualLineEdits = new List<LineChange>();
@@ -201,17 +183,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifySemantics(
+            Workspace workspace,
             EditScript<SyntaxNode> editScript,
-            ActiveStatementsDescription activeStatements = null,
-            IEnumerable<string> additionalOldSources = null,
-            IEnumerable<string> additionalNewSources = null,
-            SemanticEditDescription[] expectedSemanticEdits = null,
-            DiagnosticDescription expectedDeclarationError = null,
-            RudeEditDiagnosticDescription[] expectedDiagnostics = null)
+            ActiveStatementsDescription? activeStatements = null,
+            IEnumerable<string>? additionalOldSources = null,
+            IEnumerable<string>? additionalNewSources = null,
+            SemanticEditDescription[]? expectedSemanticEdits = null,
+            DiagnosticDescription? expectedDeclarationError = null,
+            RudeEditDiagnosticDescription[]? expectedDiagnostics = null)
         {
             activeStatements ??= ActiveStatementsDescription.Empty;
 
-            var editMap = Analyzer.BuildEditMap(editScript);
+            var editMap = BuildEditMap(editScript);
 
             var oldRoot = editScript.Match.OldRoot;
             var newRoot = editScript.Match.NewRoot;
@@ -242,11 +225,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
 
             var oldActiveStatements = activeStatements.OldStatements.AsImmutable();
-            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMemberInfo>();
+            var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
             var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
             var actualLineEdits = new List<LineChange>();
             var actualSemanticEdits = new List<SemanticEdit>();
             var diagnostics = new List<RudeEditDiagnostic>();
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
             var actualNewActiveStatements = new ActiveStatement[activeStatements.OldStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[activeStatements.OldStatements.Length];
@@ -256,8 +241,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 editMap,
                 oldText,
                 newText,
-                null,
-                null,
+                documentId,
+                spanTracker,
                 oldActiveStatements,
                 actualNewActiveStatements,
                 actualNewExceptionRegions,
@@ -326,7 +311,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 if (expectedSyntaxMap != null)
                 {
-                    Assert.NotNull(actualSyntaxMap);
+                    Contract.ThrowIfNull(actualSyntaxMap);
                     Assert.True(expectedSemanticEdits[i].PreserveLocalVariables);
 
                     var newNodes = new List<SyntaxNode>();
@@ -359,14 +344,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         private static string DisplaySpan(string source, TextSpan span)
-        {
-            return span + ": [" + source.Substring(span.Start, span.Length).Replace("\r\n", " ") + "]";
-        }
+            => span + ": [" + source.Substring(span.Start, span.Length).Replace("\r\n", " ") + "]";
 
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
-            Dictionary<SyntaxNode, AbstractEditAndContinueAnalyzer.LambdaInfo> lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
+            Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
+            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, Array.Empty<ActiveNode>(), ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)
@@ -384,9 +367,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
-        {
-            return ToMatchingPairs(match.Matches.Where(partners => partners.Key != match.OldRoot));
-        }
+            => ToMatchingPairs(match.Matches.Where(partners => partners.Key != match.OldRoot));
 
         public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
         {
@@ -412,8 +393,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal static class EditScriptTestUtils
     {
         public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
-        {
-            AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n");
-        }
+            => AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n");
     }
 }

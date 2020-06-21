@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>netstandard2.0;$(RoslynPortableTargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.1;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
@@ -53,6 +53,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Roslyn.Services.UnitTests.Utilities" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
@@ -60,25 +61,19 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs" />
-    <Compile Update="TestResource.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>TestResource.resx</DependentUpon>
-    </Compile>
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\ControlFlowRegionExtensions.cs" Link="Compilation\FlowAnalysis\ControlFlowRegionExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\CustomDataFlowAnalysis.cs" Link="Compilation\FlowAnalysis\CustomDataFlowAnalysis.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\DataFlowAnalyzer.cs" Link="Compilation\FlowAnalysis\DataFlowAnalyzer.cs" />
+    <!-- TODO: Remove the below IVTs to CodeStyle Unit test projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="TestResource.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
-      <LogicalName>TestResource.resources</LogicalName>
-    </EmbeddedResource>
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ControlFlowRegionExtensions.cs" Link="Compilation\FlowAnalysis\ControlFlowRegionExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\FlowAnalysis\CustomDataFlowAnalysis.cs" Link="Compilation\FlowAnalysis\CustomDataFlowAnalysis.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\FlowAnalysis\DataFlowAnalyzer.cs" Link="Compilation\FlowAnalysis\DataFlowAnalyzer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="TestResource.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="$(DiffPlexVersion)" />
@@ -90,7 +85,9 @@
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
     <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
+    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Version="$(MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
   </ItemGroup>
 </Project>

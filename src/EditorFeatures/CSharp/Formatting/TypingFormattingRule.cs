@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 {
@@ -14,14 +16,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
     {
         public readonly static TypingFormattingRule Instance = new TypingFormattingRule();
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             if (TryAddSuppressionOnMissingCloseBraceCase(list, node))
             {
                 return;
             }
 
-            base.AddSuppressOperations(list, node, optionSet, in nextOperation);
+            base.AddSuppressOperations(list, node, in nextOperation);
         }
 
         private bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node)
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return false;
             }
 
-            if (node.IsKind(SyntaxKind.Block) && ((BlockSyntax)node).Statements.Count >= 1)
+            if (node.IsKind(SyntaxKind.Block, out BlockSyntax block) && block.Statements.Count >= 1)
             {
                 // In the case of a block, see if the first statement is on the same line 
                 // as the open curly.  If so then we'll want to consider the end of the

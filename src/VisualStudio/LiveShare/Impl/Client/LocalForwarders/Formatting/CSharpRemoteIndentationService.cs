@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using System;
 using System.Composition;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
@@ -10,10 +13,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(IIndentationService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspIndentationServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpLspIndentationServiceFactory()
+        {
+        }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return languageServices.GetOriginalLanguageService<IIndentationService>();
-        }
+            => languageServices.GetOriginalLanguageService<IIndentationService>();
     }
 }

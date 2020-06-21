@@ -26,10 +26,17 @@ Options:
   /lib:&lt;path list&gt;               List of directories where to look for libraries specified by #r directive. 
                                  (alternative forms: /libPath /libPaths)
   /u:&lt;namespace&gt;                 Define global namespace using (alternative forms: /using, /usings, /import, /imports)
+  /langversion:?                 Display the allowed values for language version and exit
+  /langversion:&lt;string&gt;          Specify language version such as
+                                 `latest` (latest version, including minor versions),
+                                 `default` (same as `latest`),
+                                 `latestmajor` (latest version, excluding minor versions),
+                                 `preview` (latest version, including features in unsupported preview),
+                                 or specific versions like `6` or `7.1`
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="translated">Sintassi: csi [opzione] ... [file-script.csx] [argomento-script] ...
+        <target state="needs-review-translation">Sintassi: csi [opzione] ... [file-script.csx] [argomento-script] ...
 
 Esegue il file-script.csx se specificato; in caso contrario, avvia un REPL (Read Eval Print Loop) interattivo.
 

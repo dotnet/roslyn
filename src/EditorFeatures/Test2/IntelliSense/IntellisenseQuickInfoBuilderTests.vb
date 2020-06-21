@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Tags
+Imports Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
@@ -104,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -190,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -306,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -387,7 +390,236 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "  "),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException", navigationAction:=Sub() Return, "IOException"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Sub QuickInfoShowsMethodRemarks()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// Summary text.
+                                /// &lt;/summary&gt;
+                                /// &lt;remarks&gt;
+                                /// Remarks text.
+                                /// &lt;/remarks&gt;
+                                int Me$$thod() => throw null;
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "Method", navigationAction:=Sub() Return, "int MyClass.Method()"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Summary text."))),
+                New ClassifiedTextElement(
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, "Remarks text.")))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Sub QuickInfoShowsMethodReturns()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// Summary text.
+                                /// &lt;/summary&gt;
+                                /// &lt;returns&gt;
+                                /// Returns text.
+                                /// &lt;/returns&gt;
+                                int Me$$thod() => throw null;
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "Method", navigationAction:=Sub() Return, "int MyClass.Method()"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Summary text."))),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.Returns_colon)),
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "  ")),
+                        New ContainerElement(
+                            ContainerElementStyle.Stacked,
+                            New ClassifiedTextElement(
+                                New ClassifiedTextRun(ClassificationTypeNames.Text, "Returns text."))))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Sub QuickInfoShowsDelegateReturns()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// Summary text.
+                                /// &lt;/summary&gt;
+                                /// &lt;returns&gt;
+                                /// Returns text.
+                                /// &lt;/returns&gt;
+                                delegate int Me$$thod();
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.DelegatePrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "delegate"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.DelegateName, "Method", navigationAction:=Sub() Return, "Method"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Summary text."))),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.Returns_colon)),
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "  ")),
+                        New ContainerElement(
+                            ContainerElementStyle.Stacked,
+                            New ClassifiedTextElement(
+                                New ClassifiedTextRun(ClassificationTypeNames.Text, "Returns text."))))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Sub QuickInfoShowsPropertyValue()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// Summary text.
+                                /// &lt;/summary&gt;
+                                /// &lt;value&gt;
+                                /// Value text.
+                                /// &lt;/value&gt;
+                                int Pr$$operty { get; }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.PropertyPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.PropertyName, "Property", navigationAction:=Sub() Return, "int MyClass.Property"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "{"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "get"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "}"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Summary text."))),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.Value_colon)),
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "  ")),
+                        New ContainerElement(
+                            ContainerElementStyle.Stacked,
+                            New ClassifiedTextElement(
+                                New ClassifiedTextRun(ClassificationTypeNames.Text, "Value text."))))))
+
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -445,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 New ClassifiedTextElement(
                     New ClassifiedTextRun(ClassificationTypeNames.Text, "text2")))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -494,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "true", ClassifiedTextRunStyle.UseClassificationFont),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -544,7 +776,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 New ClassifiedTextElement(
                     New ClassifiedTextRun(ClassificationTypeNames.Text, ".")))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -596,7 +828,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "p"),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -636,7 +868,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -679,7 +911,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "}"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -717,12 +949,64 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.EventName, "MyEvent", navigationAction:=Sub() Return, "readonly event Action MyStruct.MyEvent"))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Sub QuickInfoForTypeParameterReference()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// The type parameter is &lt;typeparamref name="T"/&gt;.
+                                /// &lt;/summary&gt;
+                                void MyM$$ethod&lt;T&gt;() {
+                                    MyMethod&lt;int&gt;();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod<T>()"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "<"),
+                            New ClassifiedTextRun(ClassificationTypeNames.TypeParameterName, "T", navigationAction:=Sub() Return, "T"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ">"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "The type parameter is"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.TypeParameterName, "T", navigationAction:=Sub() Return, "T"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        Public Async Sub QuickInfoForTypeParameterReferenceClosedGeneric()
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -766,10 +1050,65 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "The type parameter is"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.TypeParameterName, "T"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, container)
+            ToolTipAssert.EqualContent(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        Public Async Sub QuickInfoForTypeParameterReferenceBoundGeneric()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.Threading;
+                            class MyClass&lt;K&gt; {
+                                /// &lt;summary&gt;
+                                /// The type parameter is &lt;typeparamref name="T"/&gt;.
+                                /// &lt;/summary&gt;
+                                void MyMethod&lt;T&gt;() {
+                                    MyM$$ethod&lt;K&gt;();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass<K>"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "<"),
+                            New ClassifiedTextRun(ClassificationTypeNames.TypeParameterName, "K", navigationAction:=Sub() Return, "K"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ">"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass<K>.MyMethod<K>()"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "<"),
+                            New ClassifiedTextRun(ClassificationTypeNames.TypeParameterName, "K", navigationAction:=Sub() Return, "K"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ">"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "The type parameter is"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.TypeParameterName, "K", navigationAction:=Sub() Return, "K"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
+
+            ToolTipAssert.EqualContent(expected, container)
         End Sub
     End Class
 End Namespace

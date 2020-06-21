@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
@@ -176,7 +179,8 @@ End Class
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)
 
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)))
 
                 Dim hostdoc = workspace.Documents.First()
                 Dim buffer = hostdoc.GetTextBuffer()
@@ -186,8 +190,10 @@ End Class
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim root = DirectCast(Await document.GetSyntaxRootAsync(), CompilationUnitSyntax)
+                Dim options = Await document.GetOptionsAsync()
+                Dim documentIndentStyle = options.GetOption(FormattingOptions.SmartIndent, root.Language)
 
-                Dim formattingRules = (New SpecialFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+                Dim formattingRules = New SpecialFormattingRule(documentIndentStyle).Concat(Formatter.GetDefaultFormattingRules(document))
 
                 ' get token
                 Dim token = root.FindToken(position)
@@ -195,8 +201,10 @@ End Class
                 Dim previousToken = token.GetPreviousToken(includeZeroWidth:=True)
                 Dim ignoreMissingToken = previousToken.IsMissing AndAlso line.Start.Position = position
 
+                Dim optionService = workspace.Services.GetRequiredService(Of IOptionService)()
+
                 Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                            formattingRules, root, line.AsTextLine, workspace.Options,
+                            formattingRules, root, line.AsTextLine, optionService, workspace.Options,
                             Nothing, ignoreMissingToken))
 
                 Dim smartFormatter = New VisualBasicSmartTokenFormatter(Await document.GetOptionsAsync(CancellationToken.None), formattingRules, root)

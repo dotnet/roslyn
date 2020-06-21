@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Threading;
@@ -14,12 +18,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly TextDocumentState _documentState;
 
         /// <summary>
-        /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>. <paramref name="documentState"/> should be non-null.
+        /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>.
         /// </summary>
         public AdditionalTextWithState(TextDocumentState documentState)
-        {
-            _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
-        }
+            => _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
 
         /// <summary>
         /// Resolved path of the document.

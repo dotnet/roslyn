@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
@@ -10,11 +13,13 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
+using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
@@ -32,17 +37,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             string expectedOutputMarkup,
             Action callback,
             bool verifyUndo = true,
-            IndentStyle indentStyle = IndentStyle.Smart)
+            IndentStyle indentStyle = IndentStyle.Smart,
+            bool useTabs = false)
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
-            workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
+
+            if (useTabs && expectedOutputMarkup != null)
+            {
+                Assert.Contains("\t", expectedOutputMarkup);
+            }
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
 
             var originalSnapshot = view.TextBuffer.CurrentSnapshot;
-            var originalSelection = document.SelectedSpans.Single();
-            view.SetSelection(originalSelection.ToSnapshotSpan(originalSnapshot));
+            var originalSelections = document.SelectedSpans;
+
+            var snapshotSpans = new List<SnapshotSpan>();
+            foreach (var selection in originalSelections)
+            {
+                snapshotSpans.Add(selection.ToSnapshotSpan(originalSnapshot));
+            }
+            view.SetMultiSelection(snapshotSpans);
 
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
             var commandHandler = new SplitStringLiteralCommandHandler(
@@ -60,17 +79,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                     out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
                 Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
-                Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
+                Assert.Equal(expectedSpans.First().Start, view.Caret.Position.BufferPosition.Position);
 
                 if (verifyUndo)
                 {
                     // Ensure that after undo we go back to where we were to begin with.
-                    var history = undoHistoryRegistry.GetHistory(document.TextBuffer);
-                    history.Undo(count: 1);
+                    var history = undoHistoryRegistry.GetHistory(document.GetTextBuffer());
+                    history.Undo(count: originalSelections.Count);
 
-                    var currentSnapshot = document.TextBuffer.CurrentSnapshot;
+                    var currentSnapshot = document.GetTextBuffer().CurrentSnapshot;
                     Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
-                    Assert.Equal(originalSelection.Start, view.Caret.Position.BufferPosition.Position);
+                    Assert.Equal(originalSelections.First().Start, view.Caret.Position.BufferPosition.Position);
                 }
             }
         }
@@ -83,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// </summary>
         private void TestHandled(
             string inputMarkup, string expectedOutputMarkup,
-            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart)
+            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart,
+            bool useTabs = false)
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
@@ -91,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 {
                     Assert.True(false, "Should not reach here.");
                 },
-                verifyUndo, indentStyle);
+                verifyUndo, indentStyle, useTabs);
         }
 
         private void TestNotHandled(string inputMarkup)
@@ -743,6 +763,134 @@ $""[||]"";
     }
 }",
             verifyUndo: false);
+        }
+
+        [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMultiCaretSingleLine()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""now is [||]the ti[||]me"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = ""now is "" +
+            ""[||]the ti"" +
+            ""[||]me"";
+    }
+}");
+        }
+
+        [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMultiCaretMultiLines()
+        {
+            TestHandled(
+@"class C
+{
+    string s = ""hello w[||]orld"";
+
+    void M()
+    {
+        var v = ""now is [||]the ti[||]me"";
+    }
+}",
+@"class C
+{
+    string s = ""hello w"" +
+        ""[||]orld"";
+
+    void M()
+    {
+        var v = ""now is "" +
+            ""[||]the ti"" +
+            ""[||]me"";
+    }
+}");
+        }
+
+        [WorkItem(39040, "https://github.com/dotnet/roslyn/issues/39040")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMultiCaretInterpolatedString()
+        {
+            TestHandled(
+@"class C
+{
+    string s = ""hello w[||]orld"";
+
+    void M()
+    {
+        var location = ""world"";
+        var s = $""H[||]ello {location}!"";
+    }
+}",
+@"class C
+{
+    string s = ""hello w"" +
+        ""[||]orld"";
+
+    void M()
+    {
+        var location = ""world"";
+        var s = $""H"" +
+            $""[||]ello {location}!"";
+    }
+}");
+        }
+
+        [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInStringWithKeepTabsEnabled1()
+        {
+            TestHandled(
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello [||]world"";
+	}
+}",
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello "" +
+			""[||]world"";
+	}
+}",
+            useTabs: true);
+        }
+
+        [WorkItem(40277, "https://github.com/dotnet/roslyn/issues/40277")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInStringWithKeepTabsEnabled2()
+        {
+            TestHandled(
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello "" +
+			""there [||]world"";
+	}
+}",
+@"class C
+{
+	void M()
+	{
+		var s = ""Hello "" +
+			""there "" +
+			""[||]world"";
+	}
+}",
+            useTabs: true);
         }
     }
 }

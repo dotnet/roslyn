@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,13 +12,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal abstract class CommonQuickInfoProvider : QuickInfoProvider
     {
-        public override async Task<QuickInfoItem> GetQuickInfoAsync(QuickInfoContext context)
+        public override async Task<QuickInfoItem?> GetQuickInfoAsync(QuickInfoContext context)
         {
             var document = context.Document;
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
 
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = await tree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
             var info = await GetQuickInfoAsync(document, token, position, cancellationToken).ConfigureAwait(false);
@@ -29,11 +33,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         protected virtual bool ShouldCheckPreviousToken(SyntaxToken token)
-        {
-            return true;
-        }
+            => true;
 
-        private async Task<QuickInfoItem> GetQuickInfoAsync(
+        private async Task<QuickInfoItem?> GetQuickInfoAsync(
             Document document,
             SyntaxToken token,
             int position,
@@ -48,6 +50,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return null;
         }
 
-        protected abstract Task<QuickInfoItem> BuildQuickInfoAsync(Document document, SyntaxToken token, CancellationToken cancellationToken);
+        protected abstract Task<QuickInfoItem?> BuildQuickInfoAsync(Document document, SyntaxToken token, CancellationToken cancellationToken);
     }
 }

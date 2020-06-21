@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,18 +9,24 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.DesignerAttributes;
+using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Remote.Shared;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
 using Nerdbank;
+using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Remote;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
@@ -36,6 +44,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        private static Solution WithChangedOptionsFromRemoteWorkspace(Solution solution)
+            => solution.WithChangedOptionsFrom(RemoteWorkspace.Options);
+
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestRemoteHostCreation()
         {
@@ -46,30 +57,20 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public void TestRemoteHostConnect()
-        {
-            using (var remoteHostService = CreateService())
-            {
-                var input = "Test";
-                var output = remoteHostService.Connect(input, uiCultureLCID: 0, cultureLCID: 0, serializedSession: null, cancellationToken: CancellationToken.None);
-
-                Assert.Equal(input, output);
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRemoteHostSynchronize()
         {
             var code = @"class Test { void Method() { } }";
 
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+                var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
                 var solution = workspace.CurrentSolution;
 
                 await UpdatePrimaryWorkspace(client, solution);
                 await VerifyAssetStorageAsync(client, solution);
+
+                solution = WithChangedOptionsFromRemoteWorkspace(solution);
 
                 Assert.Equal(
                     await solution.State.GetChecksumAsync(CancellationToken.None),
@@ -84,7 +85,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+                var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
                 var solution = workspace.CurrentSolution;
 
@@ -101,8 +102,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
 
                 // sync
-                await client.TryRunRemoteAsync(WellKnownRemoteHostServices.RemoteHostService, nameof(IRemoteHostService.SynchronizeTextAsync),
-                    new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) }, CancellationToken.None);
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.RemoteHost,
+                    nameof(IRemoteHostService.SynchronizeTextAsync),
+                    solution: null,
+                    new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
+                    callbackTarget: null,
+                    CancellationToken.None);
 
                 // apply change to solution
                 var newDocument = oldDocument.WithText(newText);
@@ -117,63 +123,143 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestTodoComments()
         {
-            var code = @"// TODO: Test";
+            using var workspace = TestWorkspace.CreateCSharp(@"
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
+// TODO: Test");
+
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            var solution = workspace.CurrentSolution;
+
+            // Ensure remote workspace is in sync with normal workspace.
+            var solutionService = await GetSolutionServiceAsync(solution);
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solutionService.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
+
+            var callback = new TodoCommentsListener();
+
+            using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
+            using var connection = await client.CreateConnectionAsync(
+                WellKnownServiceHubService.RemoteTodoCommentsService,
+                callback,
+                cancellationTokenSource.Token);
+
+            var invokeTask = connection.RunRemoteAsync(
+                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
+                solution: null,
+                arguments: Array.Empty<object>(),
+                cancellationTokenSource.Token);
+
+            var data = await callback.Data;
+            Assert.Equal(solution.Projects.Single().Documents.Single().Id, data.Item1);
+            Assert.Equal(1, data.Item2.Length);
+
+            var commentInfo = data.Item2[0];
+            Assert.Equal(new TodoCommentData
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+                DocumentId = solution.Projects.Single().Documents.Single().Id,
+                Priority = 1,
+                Message = "TODO: Test",
+                MappedFilePath = null,
+                OriginalFilePath = "test1.cs",
+                OriginalLine = 2,
+                MappedLine = 2,
+                OriginalColumn = 3,
+                MappedColumn = 3,
+            }, commentInfo);
 
-                var solution = workspace.CurrentSolution;
+            cancellationTokenSource.Cancel();
 
-                var comments = await client.TryRunCodeAnalysisRemoteAsync<IList<TodoComment>>(
-                    solution,
-                    nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
-                    new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) },
-                    CancellationToken.None);
+            await invokeTask;
+        }
 
-                Assert.Equal(1, comments.Count);
+        private class TodoCommentsListener : ITodoCommentsListener
+        {
+            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource
+                = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
+
+            public Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+            {
+                _dataSource.SetResult((documentId, data));
+                return Task.CompletedTask;
             }
+        }
+
+        private static async Task<SolutionService> GetSolutionServiceAsync(Solution solution, Dictionary<Checksum, object> map = null)
+        {
+            // make sure checksum is calculated
+            await solution.State.GetChecksumAsync(CancellationToken.None);
+
+            map ??= new Dictionary<Checksum, object>();
+            await solution.AppendAssetMapAsync(map, CancellationToken.None);
+
+            var sessionId = 0;
+            var storage = new AssetStorage();
+            storage.Initialize(new SimpleAssetSource(map));
+            var remoteWorkspace = new RemoteWorkspace(applyStartupOptions: false);
+
+            return new SolutionService(new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestDesignerAttributes()
         {
-            var code = @"[System.ComponentModel.DesignerCategory(""Form"")]
-                class Test { }";
+            using var workspace = TestWorkspace.CreateCSharp(
+@"[System.ComponentModel.DesignerCategory(""Form"")]
+class Test { }");
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+            var cancellationTokenSource = new CancellationTokenSource();
 
-                var solution = workspace.CurrentSolution;
+            var solution = workspace.CurrentSolution;
 
-                var result = await client.TryRunCodeAnalysisRemoteAsync<DesignerAttributeResult>(
-                    solution,
-                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                    solution.Projects.First().DocumentIds.First(),
-                    CancellationToken.None);
+            // Ensure remote workspace is in sync with normal workspace.
+            var solutionService = await GetSolutionServiceAsync(solution);
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solutionService.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
-                Assert.Equal("Form", result.DesignerAttributeArgument);
-            }
+            var callback = new DesignerAttributeListener();
+
+            using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
+            using var connection = await client.CreateConnectionAsync(
+                WellKnownServiceHubService.RemoteDesignerAttributeService,
+                callback,
+                cancellationTokenSource.Token);
+
+            var invokeTask = connection.RunRemoteAsync(
+                nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
+                solution: null,
+                arguments: Array.Empty<object>(),
+                cancellationTokenSource.Token);
+
+            var infos = await callback.Infos;
+            Assert.Equal(1, infos.Length);
+
+            var info = infos[0];
+            Assert.Equal("Form", info.Category);
+            Assert.Equal(solution.Projects.Single().Documents.Single().Id, info.DocumentId);
+
+            cancellationTokenSource.Cancel();
+
+            await invokeTask;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestRemoteHostSynchronizeGlobalAssets()
+        private class DesignerAttributeListener : IDesignerAttributeListener
         {
-            var code = @"class Test { void Method() { } }";
+            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource
+                = new TaskCompletionSource<ImmutableArray<DesignerAttributeData>>();
+            public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
+            public Task OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
-
-                await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService,
-                    workspace.CurrentSolution,
-                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    new object[] { new Checksum[0] { } }, CancellationToken.None);
-
-                var storage = client.AssetStorage;
-                Assert.Equal(0, storage.GetGlobalAssetsOfType<object>(CancellationToken.None).Count());
+                _infosSource.SetResult(infos);
+                return Task.CompletedTask;
             }
         }
 
@@ -183,10 +269,23 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
             var solution = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName).Solution;
 
-            var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
             await UpdatePrimaryWorkspace(client, solution);
             await VerifyAssetStorageAsync(client, solution);
+
+            // Only C# and VB projects are supported in Remote workspace.
+            // See "RemoteSupportedLanguages.IsSupported"
+            Assert.Empty(RemoteWorkspace.CurrentSolution.Projects);
+
+            solution = WithChangedOptionsFromRemoteWorkspace(solution);
+
+            Assert.NotEqual(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+
+            solution = solution.RemoveProject(solution.ProjectIds.Single());
+            solution = WithChangedOptionsFromRemoteWorkspace(solution);
 
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
@@ -196,34 +295,35 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRemoteHostSynchronizeIncrementalUpdate()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(Array.Empty<string>(), metadataReferences: null))
-            {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+            using var workspace = new TestWorkspace();
 
-                var solution = Populate(workspace.CurrentSolution.RemoveProject(workspace.CurrentSolution.ProjectIds.First()));
+            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
-                // verify initial setup
-                await UpdatePrimaryWorkspace(client, solution);
-                await VerifyAssetStorageAsync(client, solution);
+            var solution = Populate(workspace.CurrentSolution);
 
-                Assert.Equal(
-                    await solution.State.GetChecksumAsync(CancellationToken.None),
-                    await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+            // verify initial setup
+            await UpdatePrimaryWorkspace(client, solution);
+            await VerifyAssetStorageAsync(client, solution);
 
-                // incrementally update
-                solution = await VerifyIncrementalUpdatesAsync(client, solution, csAddition: " ", vbAddition: " ");
+            solution = WithChangedOptionsFromRemoteWorkspace(solution);
 
-                Assert.Equal(
-                    await solution.State.GetChecksumAsync(CancellationToken.None),
-                    await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Equal(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
 
-                // incrementally update
-                solution = await VerifyIncrementalUpdatesAsync(client, solution, csAddition: "\r\nclass Addition { }", vbAddition: "\r\nClass VB\r\nEnd Class");
+            // incrementally update
+            solution = await VerifyIncrementalUpdatesAsync(client, solution, csAddition: " ", vbAddition: " ");
 
-                Assert.Equal(
-                    await solution.State.GetChecksumAsync(CancellationToken.None),
-                    await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
-            }
+            Assert.Equal(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+
+            // incrementally update
+            solution = await VerifyIncrementalUpdatesAsync(client, solution, csAddition: "\r\nclass Addition { }", vbAddition: "\r\nClass VB\r\nEnd Class");
+
+            Assert.Equal(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -249,10 +349,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                             metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
                     });
 
+                var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
                 var remoteWorkspace = new RemoteWorkspace(workspaceKind: "test");
+                var optionService = remoteWorkspace.Services.GetRequiredService<IOptionService>();
+                var options = new SerializableOptionSet(languages, optionService, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty, ImmutableHashSet<OptionKey>.Empty);
 
                 // this shouldn't throw exception
-                remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, out var solution);
+                remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, options, out var solution);
                 Assert.NotNull(solution);
             }
         }
@@ -337,7 +440,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static Solution UpdateSolution(Solution solution, string projectName, string documentName, string csAddition, string vbAddition)
         {
-            var (project, document) = GetProjectAndDocument(solution, projectName, documentName);
+            var (_, document) = GetProjectAndDocument(solution, projectName, documentName);
 
             return document.WithText(GetNewText(document, csAddition, vbAddition)).Project.Solution;
         }
@@ -365,10 +468,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
-            await client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService, solution,
+            await client.RunRemoteAsync(
+                WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
+                callbackTarget: null,
                 CancellationToken.None);
         }
 

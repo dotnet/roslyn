@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractObjectInitializerCompletionProvider : CommonCompletionProvider
+    internal abstract class AbstractObjectInitializerCompletionProvider : LSPCompletionProvider
     {
         protected abstract Tuple<ITypeSymbol, Location> GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         protected abstract HashSet<string> GetInitializedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken);
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var enclosing = semanticModel.GetEnclosingNamedType(position, cancellationToken);
 
             // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
-            IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType.WithoutNullability());
+            IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType);
             members = members.Where(m => IsInitializable(m, enclosing) &&
                                          m.CanBeReferencedByName &&
                                          IsLegalFieldOrProperty(m) &&
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
-        private bool IsLegalFieldOrProperty(ISymbol symbol)
+        private static bool IsLegalFieldOrProperty(ISymbol symbol)
         {
             return symbol.IsWriteableFieldOrProperty()
                 || CanSupportObjectInitializer(symbol);

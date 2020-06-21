@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -22,7 +25,6 @@ using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -158,7 +160,6 @@ IL_0005:  ret
                 // A1.M with all assemblies.
                 var allBlocks = ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA2, moduleB1, moduleB2, moduleC).SelectAsArray(m => m.MetadataBlock);
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(),
                     allBlocks,
                     stateA1.SymReader,
                     stateA1.ModuleVersionId,
@@ -180,7 +181,6 @@ IL_0005:  ret
                 // Other EvaluationContext.CreateMethodContext overload.
                 // A1.M with all assemblies, offset outside of IL.
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(),
                     allBlocks,
                     stateA1.SymReader,
                     stateA1.ModuleVersionId,
@@ -648,8 +648,8 @@ class B : A
                     typeToken,
                     MakeAssemblyReferencesKind.AllAssemblies);
 
-                Assert.Equal(identityAS2, context.Compilation.GlobalNamespace.GetMembers("A").OfType<INamedTypeSymbol>().Single().ContainingAssembly.Identity);
-                Assert.Equal(identityBS2, context.Compilation.GlobalNamespace.GetMembers("B").OfType<INamedTypeSymbol>().Single().ContainingAssembly.Identity);
+                Assert.Equal(identityAS2, context.Compilation.GlobalNamespace.GetMembers("A").OfType<NamedTypeSymbol>().Single().ContainingAssembly.Identity);
+                Assert.Equal(identityBS2, context.Compilation.GlobalNamespace.GetMembers("B").OfType<NamedTypeSymbol>().Single().ContainingAssembly.Identity);
 
                 string error;
                 // A could be ambiguous, but the ambiguity is resolved in favor of the newer assembly.
@@ -688,7 +688,7 @@ class B : A
 IL_0000:  newobj     ""B..ctor()""
 IL_0005:  ret
 }");
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
+                Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
                 // B.F should result in missing assembly AS2 since there were no direct references to AS2.
                 ResultProperties resultProperties;
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
@@ -755,7 +755,7 @@ IL_0005:  ret
 IL_0000:  newobj     ""B..ctor()""
 IL_0005:  ret
 }");
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
+                Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ContainingAssembly.ToDisplayString(), identityBS2.GetDisplayName());
                 // B.F should result in missing assembly AS2 since there were no direct references to AS2.
                 testData = new CompilationTestData();
                 context.CompileExpression(
@@ -929,7 +929,7 @@ public class B
 IL_0000:  newobj     ""N.C1..ctor()""
 IL_0005:  ret
 }");
-            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
+            Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
 
             GetContextState(runtime, "A.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
             contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
@@ -947,7 +947,7 @@ IL_0005:  ret
 IL_0000:  newobj     ""C2..ctor()""
 IL_0005:  ret
 }");
-            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
+            Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
 
             // Duplicate extension method, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
@@ -963,7 +963,7 @@ IL_0000:  ldloc.0
 IL_0001:  call       ""A N.E.F(A)""
 IL_0006:  ret
 }");
-            Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
+            Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
         }
 
         /// <summary>
@@ -1000,7 +1000,7 @@ class C
 
             // Include an empty assembly to verify that not all assemblies
             // with no references are treated as mscorlib.
-            var referenceC = AssemblyMetadata.CreateFromImage(CommonResources.Empty).GetReference();
+            var referenceC = AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.Empty).GetReference();
 
             // At runtime System.Runtime.dll contract assembly is replaced
             // by mscorlib.dll and System.Runtime.dll facade assemblies.
@@ -1143,7 +1143,7 @@ IL_0005:  ret
   IL_0000:  ldnull
   IL_0001:  ret
 }");
-                Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName());
+                Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName());
             });
         }
 

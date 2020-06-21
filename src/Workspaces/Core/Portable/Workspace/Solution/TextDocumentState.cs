@@ -1,11 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
-
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,6 +39,13 @@ namespace Microsoft.CodeAnalysis
         // Checksums for this solution state
         private readonly ValueSource<DocumentStateChecksums> _lazyChecksums;
 
+        public DocumentInfo.DocumentAttributes Attributes { get; }
+
+        /// <summary>
+        /// A <see cref="IDocumentServiceProvider"/> associated with this document
+        /// </summary>
+        public IDocumentServiceProvider Services { get; }
+
         protected TextDocumentState(
             SolutionServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
@@ -62,157 +68,45 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public DocumentInfo.DocumentAttributes Attributes { get; }
-
-        /// <summary>
-        /// A <see cref="IDocumentServiceProvider"/> associated with this document
-        /// </summary>
-        public IDocumentServiceProvider Services { get; }
-
-        public DocumentId Id
-        {
-            get { return Attributes.Id; }
-        }
-
-        public string? FilePath
-        {
-            get { return Attributes.FilePath; }
-        }
-
-        public IReadOnlyList<string> Folders
-        {
-            get { return Attributes.Folders; }
-        }
-
-        public string Name
-        {
-            get { return this.Attributes.Name; }
-        }
-
         public TextDocumentState(DocumentInfo info, SolutionServices services)
-            : this(
-                  services,
-                  info.DocumentServiceProvider,
-                  info.Attributes,
-                  sourceText: null,
-                  textAndVersionSource: info.TextLoader != null
-                    ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: false)
+
+            : this(services,
+                   info.DocumentServiceProvider,
+                   info.Attributes,
+                   sourceText: null,
+                   textAndVersionSource: info.TextLoader != null
+                    ? CreateRecoverableText(info.TextLoader, info.Id, services)
                     : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath)))
         {
         }
 
-        protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
-        {
-            return new ConstantValueSource<TextAndVersion>(text);
-        }
+        public DocumentId Id => Attributes.Id;
+        public string? FilePath => Attributes.FilePath;
+        public IReadOnlyList<string> Folders => Attributes.Folders;
+        public string Name => Attributes.Name;
 
-        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException)
+        protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
+            => new ConstantValueSource<TextAndVersion>(text);
+
+        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services)
         {
             return new AsyncLazy<TextAndVersion>(
-                asynchronousComputeFunction: c => LoadTextAsync(loader, documentId, services, reportInvalidDataException, c),
-                synchronousComputeFunction: c => LoadTextSynchronously(loader, documentId, services, reportInvalidDataException, c),
+                asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
+                synchronousComputeFunction: cancellationToken => loader.LoadTextSynchronously(services.Workspace, documentId, cancellationToken),
                 cacheResult: true);
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
-        {
-            return new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
-        }
+            => new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
 
-        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException)
+        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
         {
             return new RecoverableTextAndVersion(
                 new AsyncLazy<TextAndVersion>(
-                    asynchronousComputeFunction: c => LoadTextAsync(loader, documentId, services, reportInvalidDataException, c),
-                    synchronousComputeFunction: c => LoadTextSynchronously(loader, documentId, services, reportInvalidDataException, c),
+                    asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
+                    synchronousComputeFunction: cancellationToken => loader.LoadTextSynchronously(services.Workspace, documentId, cancellationToken),
                     cacheResult: false),
                 services.TemporaryStorage);
-        }
-
-        private const double MaxDelaySecs = 1.0;
-        private const int MaxRetries = 5;
-        internal static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(MaxDelaySecs / MaxRetries);
-
-        protected static async Task<TextAndVersion> LoadTextAsync(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException, CancellationToken cancellationToken)
-        {
-            var retries = 0;
-
-            while (true)
-            {
-                try
-                {
-                    return await loader.LoadTextAndVersionAsync(services.Workspace, documentId, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                }
-                catch (OperationCanceledException)
-                {
-                    // if load text is failed due to a cancellation, make sure we propagate it out to the caller
-                    throw;
-                }
-                catch (IOException e)
-                {
-                    if (++retries > MaxRetries)
-                    {
-                        services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
-                        return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
-                    }
-
-                    // fall out to try again
-                }
-                catch (InvalidDataException e)
-                {
-                    // TODO: Adjust this behavior in the future if we add support for non-text additional files
-                    if (reportInvalidDataException)
-                    {
-                        services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
-                    }
-
-                    return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
-                }
-
-                // try again after a delay
-                await Task.Delay(RetryDelay, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        protected static TextAndVersion LoadTextSynchronously(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException, CancellationToken cancellationToken)
-        {
-            var retries = 0;
-
-            while (true)
-            {
-                try
-                {
-                    return loader.LoadTextAndVersionSynchronously(services.Workspace, documentId, cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    // if load text is failed due to a cancellation, make sure we propagate it out to the caller
-                    throw;
-                }
-                catch (IOException e)
-                {
-                    if (++retries > MaxRetries)
-                    {
-                        services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
-                        return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
-                    }
-
-                    // fall out to try again
-                }
-                catch (InvalidDataException e)
-                {
-                    // TODO: Adjust this behavior in the future if we add support for non-text additional files
-                    if (reportInvalidDataException)
-                    {
-                        services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
-                    }
-
-                    return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
-                }
-
-                // try again after a delay
-                Thread.Sleep(RetryDelay);
-            }
         }
 
         public ITemporaryTextStorage? Storage
@@ -269,7 +163,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
+        public bool TryGetTextAndVersion(out TextAndVersion? textAndVersion)
+            => TextAndVersionSource.TryGetValue(out textAndVersion);
+
+        public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
             if (sourceText != null)
             {
@@ -311,11 +208,6 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
         {
-            if (newTextAndVersion == null)
-            {
-                throw new ArgumentNullException(nameof(newTextAndVersion));
-            }
-
             var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
@@ -325,29 +217,18 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
         {
-            if (newText == null)
-            {
-                throw new ArgumentNullException(nameof(newText));
-            }
+            var newVersion = GetNewerVersion();
+            var newTextAndVersion = TextAndVersion.Create(newText, newVersion, FilePath);
 
-            var newVersion = this.GetNewerVersion();
-            var newTextAndVersion = TextAndVersion.Create(newText, newVersion, this.FilePath);
-
-            var newState = this.UpdateText(newTextAndVersion, mode);
-            return newState;
+            return UpdateText(newTextAndVersion, mode);
         }
 
         public TextDocumentState UpdateText(TextLoader loader, PreservationMode mode)
         {
-            if (loader == null)
-            {
-                throw new ArgumentNullException(nameof(loader));
-            }
-
             // don't blow up on non-text documents.
             var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: false)
-                : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: false);
+                ? CreateStrongText(loader, Id, solutionServices)
+                : CreateRecoverableText(loader, Id, solutionServices);
 
             return UpdateText(newTextSource, mode, incremental: false);
         }
@@ -374,6 +255,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal virtual async Task<Diagnostic?> GetLoadDiagnosticAsync(CancellationToken cancellationToken)
+            => (await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false)).LoadDiagnostic;
+
         private VersionStamp GetNewerVersion()
         {
             if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
@@ -389,5 +273,21 @@ namespace Microsoft.CodeAnalysis
             var textAndVersion = await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Version;
         }
+
+        /// <summary>
+        /// Only checks if the source of the text has changed, no content check is done.
+        /// </summary>
+        public bool HasTextChanged(TextDocumentState oldState, bool ignoreUnchangeableDocument)
+        {
+            if (ignoreUnchangeableDocument && !oldState.CanApplyChange())
+            {
+                return false;
+            }
+
+            return oldState.TextAndVersionSource != TextAndVersionSource;
+        }
+
+        public bool HasInfoChanged(TextDocumentState oldState)
+            => oldState.Attributes != Attributes;
     }
 }

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -22,16 +25,86 @@ namespace Microsoft.CodeAnalysis
                 Debugger.Break();
             }
 
-#if !NETFX20
+#if !NET20
             // don't fail fast with an aggregate exception that is masking true exception
             var aggregate = exception as AggregateException;
             if (aggregate != null && aggregate.InnerExceptions.Count == 1)
             {
                 exception = aggregate.InnerExceptions[0];
             }
+
 #endif
+            DumpStackTrace(exception: exception);
 
             Environment.FailFast(exception.ToString(), exception);
+            throw ExceptionUtilities.Unreachable; // to satisfy [DoesNotReturn]
+        }
+
+        [DebuggerHidden]
+        [DoesNotReturn]
+        internal static void Fail(string message)
+        {
+            DumpStackTrace(message: message);
+            Environment.FailFast(message);
+            throw ExceptionUtilities.Unreachable; // to satisfy [DoesNotReturn]
+        }
+
+        /// <summary>
+        /// Dumps the stack trace of the exception and the handler to the console. This is useful
+        /// for debugging unit tests that hit a fatal exception
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void DumpStackTrace(Exception? exception = null, string? message = null)
+        {
+            Console.WriteLine("Dumping info before call to failfast");
+            if (message is object)
+            {
+                Console.WriteLine(message);
+            }
+
+            if (exception is object)
+            {
+                Console.WriteLine("Exception info");
+                for (Exception? current = exception; current is object; current = current.InnerException)
+                {
+                    Console.WriteLine(current.Message);
+                    Console.WriteLine(current.StackTrace);
+                }
+            }
+
+#if !NET20 && !NETSTANDARD1_3
+            Console.WriteLine("Stack trace of handler");
+            var stackTrace = new StackTrace();
+            Console.WriteLine(stackTrace.ToString());
+#endif
+
+            Console.Out.Flush();
+        }
+
+        /// <summary>
+        /// Dumps the stack trace of the exception and the handler to the console. This is useful
+        /// for debugging unit tests that hit a fatal exception
+        /// </summary>
+        [Conditional("DEBUG")]
+        private static void DumpStackTrace(Exception exception)
+        {
+            Console.WriteLine("Dumping info before call to failfast");
+            Console.WriteLine("Exception info");
+
+            for (Exception? current = exception; current is object; current = current!.InnerException)
+            {
+                Console.WriteLine(current.Message);
+                Console.WriteLine(current.StackTrace);
+                current = current.InnerException;
+            }
+
+#if !NET20 && !NETSTANDARD1_3
+            Console.WriteLine("Stack trace of handler");
+            var stackTrace = new StackTrace();
+            Console.WriteLine(stackTrace.ToString());
+#endif
+
+            Console.Out.Flush();
         }
 
         /// <summary>
@@ -56,6 +129,7 @@ namespace Microsoft.CodeAnalysis
                 Debugger.Break();
             }
 
+            DumpStackTrace(message: message);
             Environment.FailFast("ASSERT FAILED" + Environment.NewLine + message);
         }
     }

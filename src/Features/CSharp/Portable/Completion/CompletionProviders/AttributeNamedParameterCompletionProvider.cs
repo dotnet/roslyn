@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +15,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +23,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class AttributeNamedParameterCompletionProvider : CommonCompletionProvider
+    [ExportCompletionProvider(nameof(AttributeNamedParameterCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(FirstBuiltInCompletionProvider))]
+    [Shared]
+    internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
     {
         private const string EqualsString = "=";
         private const string SpaceEqualsString = " =";
@@ -28,10 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules _spaceItemFilterRule = CompletionItemRules.Default.WithFilterCharacterRule(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' '));
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public AttributeNamedParameterCompletionProvider()
         {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
+
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -91,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private bool IsAfterNameColonArgument(SyntaxToken token)
+        private static bool IsAfterNameColonArgument(SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
             {
@@ -116,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private bool IsAfterNameEqualsArgument(SyntaxToken token)
+        private static bool IsAfterNameEqualsArgument(SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
             {
@@ -141,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private async Task<ImmutableArray<CompletionItem>> GetNameEqualsItemsAsync(
+        private static async Task<ImmutableArray<CompletionItem>> GetNameEqualsItemsAsync(
             CompletionContext context, SemanticModel semanticModel,
             SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
@@ -162,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return q.ToImmutableArray();
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
+        private static async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
             CompletionContext context, SemanticModel semanticModel, SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
             var parameterLists = GetParameterLists(semanticModel, context.Position, attributeSyntax, context.CancellationToken);
@@ -185,12 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
-        {
-            return existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
-        }
+        private static bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
+            => existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
 
-        private ISet<string> GetExistingNamedParameters(AttributeArgumentListSyntax argumentList, int position)
+        private static ISet<string> GetExistingNamedParameters(AttributeArgumentListSyntax argumentList, int position)
         {
             var existingArguments1 =
                 argumentList.Arguments.Where(a => a.Span.End <= position)
@@ -204,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return existingArguments1.Concat(existingArguments2).ToSet();
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
             SemanticModel semanticModel,
             int position,
             AttributeSyntax attribute,
@@ -220,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SpecializedCollections.EmptyEnumerable<ImmutableArray<IParameterSymbol>>();
         }
 
-        private IEnumerable<ISymbol> GetAttributeNamedParameters(
+        private static IEnumerable<ISymbol> GetAttributeNamedParameters(
             SemanticModel semanticModel,
             int position,
             AttributeSyntax attribute,
@@ -232,11 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(GetTextChange(selectedItem, ch));
-        }
+            => Task.FromResult(GetTextChange(selectedItem, ch));
 
-        private TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
+        private static TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
         {
             var displayText = selectedItem.DisplayText + selectedItem.DisplayTextSuffix;
 

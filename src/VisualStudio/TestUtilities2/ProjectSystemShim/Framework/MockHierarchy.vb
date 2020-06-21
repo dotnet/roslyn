@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.OLE.Interop
@@ -7,6 +9,7 @@ Imports Microsoft.VisualStudio.Shell
 Imports Roslyn.Utilities
 Imports System.IO
 Imports Moq
+Imports Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
     Public NotInheritable Class MockHierarchy
@@ -19,6 +22,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Private _projectName As String
         Private _projectBinPath As String
+        Private _maxSupportedLangVer As String
+        Private _runAnalyzers As String
+        Private _runAnalyzersDuringLiveAnalysis As String
         Private ReadOnly _projectRefPath As String
         Private ReadOnly _projectCapabilities As String
         Private ReadOnly _projectMock As Mock(Of EnvDTE.Project) = New Mock(Of EnvDTE.Project)(MockBehavior.Strict)
@@ -330,6 +336,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ElseIf pszPropName = "TargetRefPath" Then
                 pbstrPropValue = _projectRefPath
                 Return VSConstants.S_OK
+            ElseIf pszPropName = AdditionalPropertyNames.MaxSupportedLangVersion Then
+                pbstrPropValue = _maxSupportedLangVer
+                Return VSConstants.S_OK
+            ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzers Then
+                pbstrPropValue = _runAnalyzers
+                Return VSConstants.S_OK
+            ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis Then
+                pbstrPropValue = _runAnalyzersDuringLiveAnalysis
+                Return VSConstants.S_OK
             End If
 
             Throw New NotSupportedException($"{NameOf(MockHierarchy)}.{NameOf(GetPropertyValue)} does not support reading {pszPropName}.")
@@ -341,6 +356,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Return VSConstants.S_OK
             ElseIf pszPropName = "TargetFileName" Then
                 _projectName = PathUtilities.GetFileName(pszPropValue, includeExtension:=False)
+                Return VSConstants.S_OK
+            ElseIf pszPropName = AdditionalPropertyNames.MaxSupportedLangVersion Then
+                _maxSupportedLangVer = pszPropValue
+                Return VSConstants.S_OK
+            ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzers Then
+                _runAnalyzers = pszPropValue
+                Return VSConstants.S_OK
+            ElseIf pszPropName = AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis Then
+                _runAnalyzersDuringLiveAnalysis = pszPropValue
                 Return VSConstants.S_OK
             End If
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -27,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
         private class MockCommentSelectionService : AbstractCommentSelectionService
         {
             public MockCommentSelectionService(bool supportsBlockComment)
-            {
-                SupportsBlockComment = supportsBlockComment;
-            }
+                => SupportsBlockComment = supportsBlockComment;
 
             public override string SingleLineCommentString => "//";
             public override bool SupportsBlockComment { get; }
@@ -588,7 +588,6 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_BlockWithSingleInsideAndBlockSelected()
@@ -713,29 +712,19 @@ class A
         }
 
         private static void UncommentSelection(string code, IEnumerable<TextChange> expectedChanges, Span expectedSelectedSpan, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(code, expectedChanges, new[] { expectedSelectedSpan }, supportBlockComments, Operation.Uncomment);
-        }
+            => CommentOrUncommentSelection(code, expectedChanges, new[] { expectedSelectedSpan }, supportBlockComments, Operation.Uncomment);
 
         private static void UncommentSelection(string code, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Uncomment);
-        }
+            => CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Uncomment);
 
         private static void CommentSelection(string code, IEnumerable<TextChange> expectedChanges, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(code, expectedChanges, null /*expectedSelectedSpans*/, supportBlockComments, Operation.Comment);
-        }
+            => CommentOrUncommentSelection(code, expectedChanges, null /*expectedSelectedSpans*/, supportBlockComments, Operation.Comment);
 
         private static void CommentSelection(string code, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
-        }
+            => CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
 
         private static void CommentSelection(ITextView textView, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
-        {
-            CommentOrUncommentSelection(textView, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
-        }
+            => CommentOrUncommentSelection(textView, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
 
         private static void CommentOrUncommentSelection(
             string code,

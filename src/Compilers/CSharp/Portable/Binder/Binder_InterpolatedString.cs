@@ -1,4 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -45,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // GenerateConversionForAssignment with objectType. However we want to preserve the original expression's
                             // natural type so that overload resolution may select a specialized implementation of string.Format,
                             // so we discard the result of that call and only preserve its diagnostics.
-                            BoundExpression alignment = null;
-                            BoundLiteral format = null;
+                            BoundExpression? alignment = null;
+                            BoundLiteral? format = null;
                             if (interpolation.AlignmentClause != null)
                             {
                                 alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);

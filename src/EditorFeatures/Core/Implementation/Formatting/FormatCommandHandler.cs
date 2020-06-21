@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
+            var formattingService = document.GetRequiredLanguageService<IEditorFormattingService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         {
             if (selectionOpt.HasValue)
             {
-                var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+                var ruleFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
 
                 changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
                 if (changes.Count == 0)
@@ -90,14 +94,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private static bool CanExecuteCommand(ITextBuffer buffer)
-        {
-            return buffer.CanApplyChangeDocumentToWorkspace();
-        }
+            => buffer.CanApplyChangeDocumentToWorkspace();
 
         private static CommandState GetCommandState(ITextBuffer buffer)
-        {
-            return CanExecuteCommand(buffer) ? CommandState.Available : CommandState.Unspecified;
-        }
+            => CanExecuteCommand(buffer) ? CommandState.Available : CommandState.Unspecified;
 
         public void ExecuteReturnOrTypeCommand(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
         {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            IList<TextChange> textChanges;
+            IList<TextChange>? textChanges;
 
             // save current caret position
             if (args is ReturnKeyCommandArgs)
@@ -188,8 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private CaretPreservingEditTransaction CreateEditTransaction(ITextView view, string description)
-        {
-            return new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
-        }
+            => new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -215,7 +217,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="expandIncludes">Optionally, expand &lt;include&gt; elements.  No impact on non-source documentation comments.</param>
         /// <param name="cancellationToken">Token allowing cancellation of request.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
-        string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
+        string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Converts the symbol to a string representation.

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -16,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -162,12 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
-        Friend Overrides Function GetDelegatingConstructor(state As State,
-                                                           document As SemanticDocument,
-                                                           argumentCount As Integer,
-                                                           namedType As INamedTypeSymbol,
-                                                           candidates As ISet(Of IMethodSymbol),
-                                                           cancellationToken As CancellationToken) As IMethodSymbol
+        Protected Overrides Function GetDelegatingConstructor(
+                state As State,
+                document As SemanticDocument,
+                argumentCount As Integer,
+                namedType As INamedTypeSymbol,
+                candidates As ISet(Of IMethodSymbol),
+                cancellationToken As CancellationToken) As IMethodSymbol
             Dim oldToken = state.Token
             Dim tokenKind = oldToken.Kind()
             Dim simpleName = DirectCast(oldToken.Parent, SimpleNameSyntax)

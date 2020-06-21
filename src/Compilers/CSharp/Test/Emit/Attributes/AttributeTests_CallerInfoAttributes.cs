@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Text;
@@ -343,6 +345,51 @@ line: 21
 ";
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
+        public void TestCallerLineNumber_LocalFunctionAttribute()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class Test
+{
+    public static void Main()
+    {
+        log(""something happened"");
+        // comment
+        log
+            // comment
+            (
+            // comment
+            ""something happened""
+            // comment
+            )
+            // comment
+            ;
+        // comment
+
+        static void log(
+            string message,
+            [CallerLineNumber] int lineNumber = -1)
+        {
+            Console.WriteLine(""message: "" + message);
+            Console.WriteLine(""line: "" + lineNumber);
+        }
+    }
+}";
+
+            var expected = @"
+message: something happened
+line: 9
+message: something happened
+line: 13
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -1049,6 +1096,143 @@ name: LocalFunctionCaller
         }
 
         [Fact]
+        public void TestCallerMemberName_LocalFunctionAttribute_01()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class D
+{
+    public void LocalFunctionCaller()
+    {
+        static int log([CallerMemberName] string callerName = """")
+        {
+            Console.WriteLine(""name: "" + callerName);
+            return 1;
+        }
+
+        log();
+    }
+}
+
+class Test
+{
+
+    public static void Main()
+    {
+        var d = new D();
+        d.LocalFunctionCaller();
+    }
+}";
+
+            var expected = @"
+name: LocalFunctionCaller
+";
+
+            var compilation = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe,
+                parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
+        public void TestCallerMemberName_LocalFunctionAttribute_02()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class D
+{
+    public void LocalFunctionCaller()
+    {
+        static void local1()
+        {
+            static void log([CallerMemberName] string callerName = """")
+            {
+                Console.WriteLine(""name: "" + callerName);
+            }
+
+            log();
+        }
+
+        local1();
+    }
+}
+
+class Test
+{
+
+    public static void Main()
+    {
+        var d = new D();
+        d.LocalFunctionCaller();
+    }
+}";
+
+            var expected = @"
+name: LocalFunctionCaller
+";
+
+            var compilation = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe,
+                parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
+        public void TestCallerMemberName_LocalFunctionAttribute_03()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class D
+{
+    public void LocalFunctionCaller()
+    {
+        new Action(() =>
+        {
+            static void local1()
+            {
+                static void log([CallerMemberName] string callerName = """")
+                {
+                    Console.WriteLine(""name: "" + callerName);
+                }
+
+                log();
+            }
+
+            local1();
+        }).Invoke();
+    }
+}
+
+class Test
+{
+
+    public static void Main()
+    {
+        var d = new D();
+        d.LocalFunctionCaller();
+    }
+}";
+
+            var expected = @"
+name: LocalFunctionCaller
+";
+
+            var compilation = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe,
+                parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: expected);
+        }
+
+        [Fact]
         public void TestCallerMemberName_Operator()
         {
             string source = @"
@@ -1483,6 +1667,42 @@ partial class A
 2: 'a\b\..\c\d'
 3: '*'
 4: '       '
+");
+        }
+
+        [Fact]
+        public void TestCallerFilePath_LocalFunctionAttribute()
+        {
+            string source1 = @"
+using System.Runtime.CompilerServices;
+using System;
+
+partial class A
+{
+    static int i;
+
+    public static void Main()
+    {
+        log();
+        log();
+
+        static void log([System.Runtime.CompilerServices.CallerFilePathAttribute] string filePath = """")
+        {
+            Console.WriteLine(""{0}: '{1}'"", ++i, filePath);
+        }
+    }
+}";
+
+            var compilation = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview, path: @"C:\filename", encoding: Encoding.UTF8)
+                },
+                options: TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
+
+            CompileAndVerify(compilation, expectedOutput: @"
+1: 'C:\filename'
+2: 'C:\filename'
 ");
         }
 

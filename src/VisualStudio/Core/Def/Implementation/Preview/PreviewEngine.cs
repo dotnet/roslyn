@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -116,7 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var builder = ArrayBuilder<AbstractChange>.GetInstance();
 
             // Documents
-            var changedDocuments = projectChanges.SelectMany(p => p.GetChangedDocuments());
+            // (exclude unchangeable ones if they will be ignored when applied to workspace.)
+            var changedDocuments = projectChanges.SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, _oldSolution.Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges));
             var addedDocuments = projectChanges.SelectMany(p => p.GetAddedDocuments());
             var removedDocuments = projectChanges.SelectMany(p => p.GetRemovedDocuments());
 
@@ -270,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out var piLIne, out var piLineIndex));
             Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = default;
+            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = null;
 
             piLineLength = piLineLength > 0 ? piLineLength - 1 : 0;
 
@@ -301,14 +304,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             public override int IsExpandable => 0;
 
             internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
-            {
-                pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphInformation;
-            }
+                => pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphInformation;
 
             public override int OnRequestSource(object pIUnknownTextView)
-            {
-                return VSConstants.S_OK;
-            }
+                => VSConstants.S_OK;
 
             public override void UpdatePreview()
             {

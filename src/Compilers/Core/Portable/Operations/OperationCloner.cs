@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal override IOperation VisitNoneOperation(IOperation operation, object argument)
         {
-            return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
+            return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit, operation.Type);
         }
 
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, object argument)
         {
-            return new VariableDeclarationGroupOperation(VisitArray(operation.Declarations), operation.DeclarationKind, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new VariableDeclarationGroupOperation(VisitArray(operation.Declarations), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitVariableDeclarator(IVariableDeclaratorOperation operation, object argument)
@@ -194,9 +196,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ExpressionStatementOperation(Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitWith(IWithOperation operation, object argument)
+        internal override IOperation VisitWithStatement(IWithStatementOperation operation, object argument)
         {
-            return new WithOperation(Visit(operation.Body), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new WithStatementOperation(Visit(operation.Body), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitStop(IStopOperation operation, object argument)
@@ -654,6 +656,16 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitReDimClause(IReDimClauseOperation operation, object argument)
         {
             return new ReDimClauseOperation(Visit(operation.Operand), VisitArray(operation.DimensionSizes), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, object argument)
+        {
+            return new UsingDeclarationOperation(Visit(operation.DeclarationGroup), operation.IsAsynchronous, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitWith(IWithOperation operation, object argument)
+        {
+            return new WithOperation(Visit(operation.Operand), operation.CloneMethod, Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

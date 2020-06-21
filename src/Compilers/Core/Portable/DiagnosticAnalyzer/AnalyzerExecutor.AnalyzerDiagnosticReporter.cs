@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -54,15 +56,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void Free()
             {
-                _contextTree = default!;
-                _span = default;
-                _compilation = default!;
-                _analyzer = default!;
+                _contextTree = null!;
+                _span = null;
+                _compilation = null!;
+                _analyzer = null!;
                 _isSyntaxDiagnostic = default;
-                _addNonCategorizedDiagnosticOpt = default!;
-                _addCategorizedLocalDiagnosticOpt = default!;
-                _addCategorizedNonLocalDiagnosticOpt = default!;
-                _shouldSuppressGeneratedCodeDiagnostic = default!;
+                _addNonCategorizedDiagnosticOpt = null!;
+                _addCategorizedLocalDiagnosticOpt = null!;
+                _addCategorizedNonLocalDiagnosticOpt = null!;
+                _shouldSuppressGeneratedCodeDiagnostic = null!;
                 _cancellationToken = default;
                 s_objectPool.Free(this);
             }

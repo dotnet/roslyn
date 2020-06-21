@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using Cci = Microsoft.Cci;
 
 namespace Roslyn.Test.Utilities
@@ -20,8 +23,8 @@ namespace Roslyn.Test.Utilities
         internal static void VerifyIL(
             this CompilationTestData.MethodData method,
             string expectedIL,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             const string moduleNamePlaceholder = "{#Module#}";
             string actualIL = GetMethodIL(method);
@@ -35,7 +38,7 @@ namespace Roslyn.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
-        internal static ImmutableArray<KeyValuePair<IMethodSymbol, CompilationTestData.MethodData>> GetExplicitlyDeclaredMethods(this CompilationTestData data)
+        internal static ImmutableArray<KeyValuePair<IMethodSymbolInternal, CompilationTestData.MethodData>> GetExplicitlyDeclaredMethods(this CompilationTestData data)
         {
             return data.Methods.Where(m => !m.Key.IsImplicitlyDeclared).ToImmutableArray();
         }

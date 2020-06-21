@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
@@ -370,8 +372,10 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task PP_If8()
+        [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [CombinatorialData]
+        public async Task PP_If8(bool script, bool outOfProcess)
         {
             var code =
 @"#if
@@ -381,21 +385,30 @@ aoeu
 aou
 #endif
 aeu";
-            await TestAsync(code,
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                parseOptions,
+                outOfProcess,
                 PPKeyword("#"),
                 PPKeyword("if"),
                 PPKeyword("#"),
                 PPKeyword("else"),
                 Identifier("aoeu"),
-                Field("aoeu"),
+                script ? Field("aoeu") : Local("aoeu"),
                 Identifier("aou"),
                 PPKeyword("#"),
                 PPKeyword("endif"),
-                Field("aeu"));
+                script ? Field("aeu") : Identifier("aeu"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task PP_If9()
+        [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [CombinatorialData]
+        public async Task PP_If9(bool script, bool outOfProcess)
         {
             var code =
 @"#if //Goo1
@@ -405,7 +418,14 @@ aoeu
 aou
 #endif //Goo3
 aeu";
-            await TestAsync(code,
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                parseOptions,
+                outOfProcess,
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Comment("//Goo1"),
@@ -413,12 +433,12 @@ aeu";
                 PPKeyword("else"),
                 Comment("//Goo2"),
                 Identifier("aoeu"),
-                Field("aoeu"),
+                script ? Field("aoeu") : Local("aoeu"),
                 Identifier("aou"),
                 PPKeyword("#"),
                 PPKeyword("endif"),
                 Comment("//Goo3"),
-                Field("aeu"));
+                script ? Field("aeu") : Identifier("aeu"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1117,6 +1137,24 @@ aeu";
             await TestInMethodAsync(
                 code: @"_ = 1;",
                 expected: Classifications(Identifier("_"), Operators.Equals, Number("1"), Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task UnderscoreInLambda()
+        {
+            await TestInMethodAsync(
+                code: @"x = (_) => 1;",
+                expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.CloseParen,
+                    Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task DiscardInLambda()
+        {
+            await TestInMethodAsync(
+                code: @"x = (_, _) => 1;",
+                expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.Comma, Parameter("_"), Punctuation.CloseParen,
+                    Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
         }
 
         [Fact]

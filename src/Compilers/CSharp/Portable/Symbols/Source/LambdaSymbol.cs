@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -142,6 +144,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override DllImportData GetDllImportData()
         {
             return null;
+        }
+
+        public override bool AreLocalsZeroed
+        {
+            get { return AreContainingSymbolLocalsZeroed; }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
@@ -361,7 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
-                var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
+
+                var parameter = new SourceSimpleParameterSymbol(owner: this, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), locations);
 
                 builder.Add(parameter);
             }
@@ -403,6 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
 
         public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses() => ImmutableArray<TypeParameterConstraintClause>.Empty;
 

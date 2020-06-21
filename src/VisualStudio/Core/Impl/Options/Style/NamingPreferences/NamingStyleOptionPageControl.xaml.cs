@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.ObjectModel;
@@ -64,9 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.AddItem(CreateItemWithNoSelections());
-        }
+            => _viewModel.AddItem(CreateItemWithNoSelections());
 
         private void ManageSpecificationsButton_Click(object sender, RoutedEventArgs e)
         {
@@ -176,14 +176,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 namingStyles.ToImmutableAndFree(),
                 namingRules.ToImmutableAndFree());
 
-            OptionStore.SetOption(SimplificationOptions.NamingPreferences, _languageName, info);
+            OptionStore.SetOption(NamingStyleOptions.NamingPreferences, _languageName, info);
         }
 
         internal override void OnLoad()
         {
             base.OnLoad();
 
-            var preferences = OptionStore.GetOption(SimplificationOptions.NamingPreferences, _languageName);
+            var preferences = OptionStore.GetOption(NamingStyleOptions.NamingPreferences, _languageName);
             if (preferences == null)
             {
                 return;
@@ -194,13 +194,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         }
 
         internal bool ContainsErrors()
-        {
-            return _viewModel.CodeStyleItems.Any(i => !i.IsComplete());
-        }
+            => _viewModel.CodeStyleItems.Any(i => !i.IsComplete());
 
         private void CodeStyleMembers_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            _viewModel.SelectedIndex = CodeStyleMembers.SelectedIndex;
-        }
+            => _viewModel.SelectedIndex = CodeStyleMembers.SelectedIndex;
     }
 }

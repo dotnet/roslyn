@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -13,24 +15,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind.IsPropertyAccessor();
 
-        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var result = await base.DetermineCascadedSymbolsAsync(
-                symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
             // If we've been asked to search for specific accessors, then do not cascade.
             // We don't want to produce results for the associated property.
             if (!options.AssociatePropertyReferencesWithSpecificAccessor)
             {
-                var symbol = symbolAndProjectId.Symbol;
                 if (symbol.AssociatedSymbol != null)
                 {
-                    result = result.Add(symbolAndProjectId.WithSymbol(symbol.AssociatedSymbol));
+                    result = result.Add(symbol.AssociatedSymbol);
                 }
             }
 
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // This will find explicit calls to the method (which can happen when C# references
             // a VB parameterized property).
             var result = await FindDocumentsAsync(
-                project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+                project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name).ConfigureAwait(false);
 
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    new SymbolAndProjectId(property, document.Project.Id), document, semanticModel,
+                    property, document, semanticModel,
                     options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
                     cancellationToken).ConfigureAwait(false);
 

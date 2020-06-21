@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -167,8 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                 nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                 nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                nodeToBind.Kind() == SyntaxKind.SimpleBaseType || // initializer for a record constructor
                 nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
                 nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                nodeToBind.Kind() == SyntaxKind.GotoCaseStatement || // for error recovery
                 nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
@@ -737,9 +741,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                     nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                     nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                    nodeToBind.Kind() == SyntaxKind.SimpleBaseType || // initializer for a record constructor
                     nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
+                    nodeToBind.Kind() == SyntaxKind.GotoCaseStatement ||
                     nodeToBind is ExpressionSyntax);
                 Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
                 this._nodeBinder = nodeBinder;
@@ -763,6 +769,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var initializer = (ConstructorInitializerSyntax)_nodeToBind;
                         _nodeBinder.BindConstructorInitializer(initializer, diagnostics);
                         break;
+                    case SyntaxKind.SimpleBaseType:
+                        _nodeBinder.BindConstructorInitializer((SimpleBaseTypeSyntax)_nodeToBind, diagnostics);
+                        break;
                     case SyntaxKind.ArgumentList:
                         var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;
                         _nodeBinder.BindConstructorInitializer(invocation, diagnostics);
@@ -780,6 +789,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var arm = (SwitchExpressionArmSyntax)_nodeToBind;
                         var armBinder = (SwitchExpressionArmBinder)_nodeBinder;
                         armBinder.BindSwitchExpressionArm(arm, diagnostics);
+                        break;
+                    case SyntaxKind.GotoCaseStatement:
+                        _nodeBinder.BindStatement((GotoStatementSyntax)_nodeToBind, diagnostics);
                         break;
                     default:
                         _nodeBinder.BindExpression((ExpressionSyntax)_nodeToBind, diagnostics);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -6,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
@@ -23,7 +24,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
 
             public static async Task<State> TryGenerateAsync(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             private async Task<bool> TryInitializeAsync(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -60,8 +59,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     return false;
                 }
 
-                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
-                Parameters = service.DetermineParameters(selectedMembers, rules);
+                var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+                Parameters = DetermineParameters(selectedMembers, rules);
                 MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
                 // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,
                 // so parameters should be compared based on types since we don't want get a type mismatch error after the new constructor is genreated.
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return true;
             }
 
-            private IMethodSymbol GetDelegatedConstructorBasedOnParameterTypes(
+            private static IMethodSymbol GetDelegatedConstructorBasedOnParameterTypes(
                 INamedTypeSymbol containingType,
                 ImmutableArray<IParameterSymbol> parameters)
             {
@@ -78,18 +77,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     orderby c.Parameters.Length descending
                     where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Length
                     where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(p => p.IsParams)
-                    let constructorTypes = c.Parameters.Select(p => p.GetTypeWithAnnotatedNullability())
-                    let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.GetTypeWithAnnotatedNullability())
-                    where constructorTypes.SequenceEqual(symbolTypes, AllNullabilityIgnoringSymbolComparer.Instance)
+                    let constructorTypes = c.Parameters.Select(p => p.Type)
+                    let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.Type)
+                    where constructorTypes.SequenceEqual(symbolTypes, SymbolEqualityComparer.Default)
                     select c;
 
                 return q.FirstOrDefault();
             }
 
-            private IMethodSymbol GetMatchingConstructorBasedOnParameterTypes(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
+            private static IMethodSymbol GetMatchingConstructorBasedOnParameterTypes(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
                 => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructorBasedOnParameterTypes(c, parameters));
 
-            private bool MatchesConstructorBasedOnParameterTypes(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
+            private static bool MatchesConstructorBasedOnParameterTypes(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
                 => parameters.Select(p => p.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
         }
     }

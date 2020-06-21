@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -28,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                         foreach (var caller in callers.Where(c => c.IsDirect))
                         {
-                            var callerNode = await graphBuilder.AddNodeForSymbolAsync(caller.CallingSymbol, relatedNode: node).ConfigureAwait(false);
+                            var callerNode = await graphBuilder.AddNodeAsync(caller.CallingSymbol, relatedNode: node).ConfigureAwait(false);
                             graphBuilder.AddLink(callerNode, CodeLinkCategories.Calls, node);
                         }
                     }

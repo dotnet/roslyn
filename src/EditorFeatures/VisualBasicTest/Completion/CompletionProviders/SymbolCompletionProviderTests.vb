@@ -1,8 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New SymbolCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(SymbolCompletionProvider)
         End Function
 
-        Protected Overrides Function GetExportProvider() As ExportProvider
-            Return ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService))).CreateExportProvider()
+        Protected Overrides Function GetExportCatalog() As ComposableCatalog
+            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
@@ -2992,9 +2992,7 @@ End Class</Code>.Value
 
             Dim description =
 $"<{VBFeaturesResources.Awaitable}> Function C.Goo() As Task
-Doc Comment!
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Goo()"
+Doc Comment!"
 
             Await VerifyItemWithMscorlib45Async(code, "Goo", description, LanguageNames.VisualBasic)
         End Function
@@ -3014,7 +3012,6 @@ Class SomeClass
         Return Await Task.Run(Function() 42)
     End Function
 End Class</Code>.Value
-
 
             Await VerifyItemExistsAsync(code, "Bar")
         End Function
@@ -3202,7 +3199,6 @@ End Class
                 sourceLanguage:=LanguageNames.VisualBasic,
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
-
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5964,7 +5960,6 @@ Namespace $$
 
 ]]></code>.Value
 
-
             Await VerifyItemExistsAsync(source, "A")
         End Function
 
@@ -6457,7 +6452,6 @@ End Class
             Await VerifyItemExistsAsync(text, "b")
             Await VerifyItemIsAbsentAsync(text, "c")
         End Function
-
 
         <WorkItem(1079694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -7271,7 +7265,6 @@ End Module
                                  textTypedSoFar:="")
         End Function
 
-
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSystemFuncExcludedInExpressionContext1() As Task
@@ -7762,7 +7755,6 @@ End Namespace
             Dim input =
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="_MyType=WindowsForms">
-
                         <Document name="Form.vb">
                             <![CDATA[
 Namespace Global.System.Windows.Forms
@@ -7805,19 +7797,18 @@ Namespace Global.WindowsApplication1
     End Class
 End Namespace
     ]]></Document>
-
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input)
+            Using workspace = TestWorkspace.Create(input, exportProvider:=ExportProvider)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing)
+                                        matchingFilters:=Nothing, flags:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing)
+                                        matchingFilters:=Nothing, flags:=Nothing)
             End Using
 
         End Function
@@ -8063,6 +8054,202 @@ End Namespace"
 
             Await VerifyItemExistsAsync(source, "Task")
             Await VerifyItemExistsAsync(source, "FirstOrDefault")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaWithOverloads() As Task
+            Dim source =
+<code><![CDATA[
+Imports System.Linq.Expressions
+Imports System.Collections
+Imports System
+Imports System.Collections.Generic
+
+Namespace VBTest
+    Public Class SomeItem
+        Public A As String
+        Public B As Integer
+    End Class
+
+    Class SomeCollection(Of T)
+        Inherits List(Of T)
+        Public Overridable Function Include(path As String) As SomeCollection(Of T)
+            Return Nothing
+        End Function
+    End Class
+
+    Module Extensions
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of T, TProperty)(ByVal source As IList(Of T), path As Expression(Of Func(Of T, TProperty))) As IList(Of T)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+       Public Function Include(ByVal source As IList, path As String) As IList
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of T)(ByVal source As IList(Of T), path As String) As IList(Of T)
+            Return Nothing
+        End Function
+    End Module
+
+    Class Program
+        Sub M(c As SomeCollection(Of SomeItem))
+            Dim a = From m In c.Include(Function(t) t.$$)
+        End Sub
+    End Class
+End Namespace
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "A")
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        Public Async Function CompletionForLambdaWithOverloads2() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub M(a As Action(Of Integer))
+
+    End Sub
+
+    Sub M(a As String)
+
+    End Sub
+
+    Sub Test()
+        M(Sub(a) a.$$)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "GetTypeCode")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        Public Async Function CompletionForLambdaWithOverloads3() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub M(a As Action(Of Integer))
+
+    End Sub
+
+    Sub M(a As Action(Of String))
+
+    End Sub
+
+    Sub Test()
+        M(Sub(a as Integer) a.$$)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "GetTypeCode")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        Public Async Function CompletionForLambdaWithOverloads4() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub M(a As Action(Of Integer))
+
+    End Sub
+
+    Sub M(a As Action(Of String))
+
+    End Sub
+
+    Sub Test()
+        M(Sub(a) a.$$)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "GetTypeCode")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(y:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(Optional x As Integer = 0, Optional y As Action(Of String) = Nothing)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter2() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(z:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(x As Integer, y As Integer, z As Action(Of String))
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameterWithDifferentCasing() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(Z:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(x As Integer, y As Integer, z As Action(Of String))
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

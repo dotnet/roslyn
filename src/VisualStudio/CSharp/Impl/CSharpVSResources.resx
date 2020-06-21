@@ -312,9 +312,6 @@
   <data name="Use_var_when_generating_locals" xml:space="preserve">
     <value>Use 'var' when generating locals</value>
   </data>
-  <data name="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere" xml:space="preserve">
-    <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
-  </data>
   <data name="Show_procedure_line_separators" xml:space="preserve">
     <value>_Show procedure line separators</value>
   </data>
@@ -533,7 +530,8 @@
     <value>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</value>
   </data>
   <data name="In_other_binary_operators" xml:space="preserve">
-    <value>In other binary operators:  &amp;&amp;   ||   ??</value>
+    <value>In other binary operators:  &amp;&amp;   ||   ??   and   or</value>
+    <comment>'and' and 'or' are C# keywords and should not be localized</comment>
   </data>
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
@@ -555,6 +553,7 @@
   </data>
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</value>
+    <comment>'is' and 'as' are C# keywords and should not be localized</comment>
   </data>
   <data name="Perform_additional_code_cleanup_during_formatting" xml:space="preserve">
     <value>Perform additional code cleanup during formatting</value>
@@ -600,7 +599,10 @@
   <data name="Prefer_switch_expression" xml:space="preserve">
     <value>Prefer switch expression</value>
   </data>
-  <data name="CSharp_language_server_client" xml:space="preserve">
-    <value>C# Language Server Client</value>
+  <data name="Automatically_show_completion_list_in_argument_lists" xml:space="preserve">
+    <value>Automatically show completion list in argument lists (experimental)</value>
+  </data>
+  <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
+    <value>Show remarks in Quick Info</value>
   </data>
 </root>

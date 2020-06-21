@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -10,9 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     internal partial class FormatCommandHandler
     {
         public CommandState GetCommandState(FormatDocumentCommandArgs args)
-        {
-            return GetCommandState(args.SubjectBuffer);
-        }
+            => GetCommandState(args.SubjectBuffer);
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// match an extension.</param>
         /// <param name="extensionContentTypes">Content types from extension metadata.</param>
         public static bool MatchesAny(this IContentType dataContentType, IEnumerable<string> extensionContentTypes)
-        {
-            return extensionContentTypes.Any(v => dataContentType.IsOfType(v));
-        }
+            => extensionContentTypes.Any(v => dataContentType.IsOfType(v));
 
         public static bool MatchesAny(this IContentType dataContentType, params string[] extensionContentTypes)
-        {
-            return dataContentType.MatchesAny((IEnumerable<string>)extensionContentTypes);
-        }
+            => dataContentType.MatchesAny((IEnumerable<string>)extensionContentTypes);
     }
 }

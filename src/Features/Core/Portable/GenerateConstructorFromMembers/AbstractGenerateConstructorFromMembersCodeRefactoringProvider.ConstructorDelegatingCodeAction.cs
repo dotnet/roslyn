@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -6,9 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var thisConstructorArguments = factory.CreateArguments(
                     _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
 
-                var nullCheckStatements = ArrayBuilder<SyntaxNode>.GetInstance();
-                var assignStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+                using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
+                using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var useThrowExpressions = _service.PrefersThrowExpression(options);
@@ -84,13 +84,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     ? syntaxTree.GetLocation(_state.TextSpan)
                     : null;
 
-                var statements = nullCheckStatements.ToImmutableAndFree().Concat(assignStatements.ToImmutableAndFree());
+                var statements = nullCheckStatements.ToImmutable().Concat(assignStatements.ToImmutable());
                 var result = await codeGenerationService.AddMethodAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
                     CodeGenerationSymbolFactory.CreateConstructorSymbol(
                         attributes: default,
-                        accessibility: Accessibility.Public,
+                        accessibility: _state.ContainingType.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
                         modifiers: new DeclarationModifiers(),
                         typeName: _state.ContainingType.Name,
                         parameters: _state.Parameters,
@@ -108,8 +108,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             {
                 get
                 {
-                    var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
-                    var parameters = _state.Parameters.Select(p => symbolDisplayService.ToDisplayString(p, SimpleFormat));
+                    var parameters = _state.Parameters.Select(p => _service.ToDisplayString(p, SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
 
                     return string.Format(FeaturesResources.Generate_delegating_constructor_0_1,

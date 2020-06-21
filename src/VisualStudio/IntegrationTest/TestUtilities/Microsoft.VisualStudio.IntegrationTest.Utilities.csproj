@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project Sdk="Microsoft.NET.Sdk">
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Utilities</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    <UseWpf>true</UseWpf>
     <IsShipping>false</IsShipping>
 
     <!-- NuGet -->
@@ -28,14 +29,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="WindowsBase" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
@@ -80,7 +75,7 @@
     <Compile Include="..\..\..\Tools\Source\RunTests\ProcDumpUtil.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" Partner="UnitTesting" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
   </ItemGroup>
 </Project>

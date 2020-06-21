@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             }
 
             var compilation = semanticDocument.SemanticModel.Compilation;
-            var semanticFactsService = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
 
             for (var i = 0; i < parameterTypes.Count; i++)
             {
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     var type2 = method.Parameters[i].Type;
 
-                    if (!compilation.HasImplicitConversion(fromType: type1.WithoutNullability(), toType: type2.WithoutNullability()))
+                    if (!compilation.HasImplicitConversion(fromType: type1, toType: type2))
                     {
                         return false;
                     }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -114,8 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
             // Now we check for the commit charcter in the context of Rules that could change the list of commit characters.
 
-            // Tab, Enter and Null (call invoke commit) are always commit characters. 
-            if (typeChar != '\t' && typeChar != '\n' && typeChar != '\0' && !IsCommitCharacter(serviceRules, roslynItem, typeChar, filterText))
+            if (!Helpers.IsStandardCommitCharacter(typeChar) && !IsCommitCharacter(serviceRules, roslynItem, typeChar, filterText))
             {
                 // Returning None means we complete the current session with a void commit. 
                 // The Editor then will try to trigger a new completion session for the character.
@@ -144,11 +145,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TypeImportCompletionEnabled, out bool isTyperImportCompletionEnabled) && isTyperImportCompletionEnabled)
             {
                 AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
-
-                if (roslynItem.Flags.IsCached())
-                {
-                    AsyncCompletionLogger.LogCommitOfTypeImportCompletionItem();
-                }
             }
 
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
@@ -321,24 +317,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, textTypedSoFar))
+            if (Helpers.TextTypedSoFarMatchesItem(item, textTypedSoFar))
             {
                 return false;
             }
 
             // Fall back to the default rules for this language's completion service.
             return completionRules.DefaultCommitCharacters.IndexOf(ch) >= 0;
-        }
-
-        internal static bool TextTypedSoFarMatchesItem(CompletionItem item, string textTypedSoFar)
-        {
-            if (textTypedSoFar.Length > 0)
-            {
-                return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
-                       item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase);
-            }
-
-            return false;
         }
 
         internal static bool SendEnterThroughToEditor(CompletionRules rules, RoslynCompletionItem item, string textTypedSoFar)

@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
@@ -21,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public bool IsDocumentNameAValidIdentifier { get; set; }
 
             private State(SemanticDocument document)
-            {
-                SemanticDocument = document;
-            }
+                => SemanticDocument = document;
 
             internal static State Generate(
                 SemanticDocument document, TTypeDeclarationSyntax typeDeclaration,
@@ -51,12 +50,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var root = SemanticDocument.Root;
                 var syntaxFacts = SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
 
-
                 // compiler declared types, anonymous types, types defined in metadata should be filtered out.
                 if (!(SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is INamedTypeSymbol typeSymbol) ||
                     typeSymbol.Locations.Any(loc => loc.IsInMetadata) ||
                     typeSymbol.IsAnonymousType ||
-                    typeSymbol.IsImplicitlyDeclared)
+                    typeSymbol.IsImplicitlyDeclared ||
+                    typeSymbol.Name == string.Empty)
                 {
                     return false;
                 }

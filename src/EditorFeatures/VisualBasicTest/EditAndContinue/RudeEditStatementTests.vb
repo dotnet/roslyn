@@ -1,14 +1,23 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
     Public Class RudeEditStatementTests
         Inherits EditingTestBase
+
+        Private Shared ReadOnly s_exportProviderFactoryWithTestActiveStatementSpanTracker As IExportProviderFactory =
+            ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic _
+                .WithPart(GetType(TestActiveStatementSpanTracker)))
 
 #Region "Matching"
 
@@ -6008,15 +6017,20 @@ Class C
     End Function
 End Class
 "
-            Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
-                editScript:=edits,
-                activeStatements:=ActiveStatementsDescription.Empty,
-                additionalOldSources:=Nothing,
-                additionalNewSources:=Nothing,
-                expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")},
-                expectedDeclarationError:=Nothing)
+
+            Using workspace = TestWorkspace.CreateVisualBasic("", exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+                Dim edits = GetTopEdits(src1, src2)
+                VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
+                    workspace,
+                    editScript:=edits,
+                    activeStatements:=ActiveStatementsDescription.Empty,
+                    additionalOldSources:=Nothing,
+                    additionalNewSources:=Nothing,
+                    expectedSemanticEdits:=Nothing,
+                    expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")},
+                    expectedDeclarationError:=Nothing)
+            End Using
+
         End Sub
 
         <Fact>
@@ -6039,15 +6053,18 @@ Class C
     End Function
 End Class
 "
-            Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
-                editScript:=edits,
-                activeStatements:=ActiveStatementsDescription.Empty,
-                additionalOldSources:=Nothing,
-                additionalNewSources:=Nothing,
-                expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:=Nothing,
-                expectedDeclarationError:=Nothing)
+            Using workspace = TestWorkspace.CreateVisualBasic("", exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+                Dim edits = GetTopEdits(src1, src2)
+                VisualBasicEditAndContinueTestHelpers.Instance40.VerifySemantics(
+                    workspace,
+                    editScript:=edits,
+                    activeStatements:=ActiveStatementsDescription.Empty,
+                    additionalOldSources:=Nothing,
+                    additionalNewSources:=Nothing,
+                    expectedSemanticEdits:=Nothing,
+                    expectedDiagnostics:=Nothing,
+                    expectedDeclarationError:=Nothing)
+            End Using
         End Sub
 
 #End Region
@@ -6126,15 +6143,19 @@ Class C
     End Function
 End Class
 "
-            Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
-                editScript:=edits,
-                activeStatements:=ActiveStatementsDescription.Empty,
-                additionalOldSources:=Nothing,
-                additionalNewSources:=Nothing,
-                expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")},
-                expectedDeclarationError:=Nothing)
+
+            Using workspace = TestWorkspace.CreateVisualBasic("", exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+                Dim edits = GetTopEdits(src1, src2)
+                VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
+                    workspace,
+                    editScript:=edits,
+                    activeStatements:=ActiveStatementsDescription.Empty,
+                    additionalOldSources:=Nothing,
+                    additionalNewSources:=Nothing,
+                    expectedSemanticEdits:=Nothing,
+                    expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")},
+                    expectedDeclarationError:=Nothing)
+            End Using
         End Sub
 
         <Fact>
@@ -6158,14 +6179,17 @@ Class C
     End Function
 End Class
 "
-            Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                Nothing,
-                Nothing,
-                Nothing,
-                Nothing)
+            Using workspace = TestWorkspace.CreateVisualBasic("", exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+                Dim edits = GetTopEdits(src1, src2)
+                VisualBasicEditAndContinueTestHelpers.InstanceMinAsync.VerifySemantics(
+                    workspace,
+                    edits,
+                    ActiveStatementsDescription.Empty,
+                    Nothing,
+                    Nothing,
+                    Nothing,
+                    Nothing)
+            End Using
         End Sub
 #End Region
     End Class

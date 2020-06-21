@@ -34,10 +34,10 @@ jobs:
       release_64:
         _configuration: Release
         _testKind: Test64
-  timeoutInMinutes: 90
+  timeoutInMinutes: 120
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump -skipAnalyzers
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump
       displayName: Build and Test
 
     - task: PublishTestResults@2
@@ -62,7 +62,7 @@ jobs:
   pool:
     name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.ES.VS2017.Open
-  timeoutInMinutes: 90
+  timeoutInMinutes: 120
 
   steps:
     - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop
@@ -229,7 +229,7 @@ jobs:
 
 - job: macOS_Test
   pool:
-    vmImage: 'macOS-10.13'
+    vmImage: 'macOS-10.14'
   timeoutInMinutes: 90
 
   steps:

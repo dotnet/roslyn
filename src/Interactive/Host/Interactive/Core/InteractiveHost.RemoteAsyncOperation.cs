@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -10,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     internal partial class InteractiveHost
     {
-        internal class RemoteAsyncOperation<TResult> : MarshalByRefObject
+        internal sealed class RemoteAsyncOperation<TResult> : MarshalByRefObject
         {
             private readonly RemoteService _remoteService;
             private readonly TaskCompletionSource<TResult> _completion;
@@ -18,19 +22,14 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             internal RemoteAsyncOperation(RemoteService service)
             {
-                Debug.Assert(service != null);
-
                 _remoteService = service;
                 _completion = new TaskCompletionSource<TResult>();
                 _processExitedHandler = new EventHandler((_, __) => ProcessExited());
             }
 
-            public override object InitializeLifetimeService()
-            {
-                return null;
-            }
+            public override object? InitializeLifetimeService() => null;
 
-            public Task<TResult> AsyncExecute(Action<Service, RemoteAsyncOperation<TResult>> action)
+            public Task<TResult> ExecuteAsync(Action<Service, RemoteAsyncOperation<TResult>> action)
             {
                 try
                 {
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private void ProcessExited()
             {
-                Completed(result: default(TResult));
+                Completed(result: default!);
             }
 
             public void SetResult(TResult result)

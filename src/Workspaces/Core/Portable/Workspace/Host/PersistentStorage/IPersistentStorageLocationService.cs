@@ -1,63 +1,68 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Composition;
+using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    interface IPersistentStorageLocationService : IWorkspaceService
+    internal interface IPersistentStorageLocationService : IWorkspaceService
     {
         bool IsSupported(Workspace workspace);
-        string TryGetStorageLocation(SolutionId solutionId);
-
-        /// <summary>
-        /// A synchronous event raised prior to the location that <see cref="TryGetStorageLocation(SolutionId)"/> would return changes.
-        /// </summary>
-        event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
-    }
-
-    internal sealed class PersistentStorageLocationChangingEventArgs : EventArgs
-    {
-        public PersistentStorageLocationChangingEventArgs(SolutionId solutionId, string newStorageLocation, bool mustUseNewStorageLocationImmediately)
-        {
-            SolutionId = solutionId;
-            NewStorageLocation = newStorageLocation;
-            MustUseNewStorageLocationImmediately = mustUseNewStorageLocationImmediately;
-        }
-
-        public SolutionId SolutionId { get; }
-
-        /// <summary>
-        /// The new location. May be null if there is no longer a location.
-        /// </summary>
-        public string NewStorageLocation { get; }
-
-        /// <summary>
-        /// Specifies if any consumers must immediately start using the new storage location.
-        /// </summary>
-        /// <remarks>
-        /// Sometimes, the storage location is moving due to a user operation which requires components
-        /// to immediately release any file locks on the old location. A good example is renaming a solution,
-        /// which changes the storage location. In that case, the storage location is going to get moved
-        /// synchronously after this event is fired. Other times, it's because we closed the solution
-        /// and we're simply giving a hint to people that they should start shutting down.</remarks>
-        public bool MustUseNewStorageLocationImmediately { get; }
+        string? TryGetStorageLocation(Solution solution);
     }
 
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService)), Shared]
     internal class DefaultPersistentStorageLocationService : IPersistentStorageLocationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultPersistentStorageLocationService()
         {
         }
 
-        public bool IsSupported(Workspace workspace) => false;
+        public virtual bool IsSupported(Workspace workspace) => false;
 
-        public string TryGetStorageLocation(SolutionId solutionId) => null;
-#pragma warning disable CS0067 // the event is unused
-        public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
-#pragma warning disable CS0067
+        protected virtual string GetCacheDirectory()
+        {
+            // Store in the LocalApplicationData/Roslyn/hash folder (%appdatalocal%/... on Windows,
+            // ~/.local/share/... on unix).  This will place the folder in a location we can trust
+            // to be able to get back to consistently as long as we're working with the same
+            // solution and the same workspace kind.
+            var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
+            return Path.Combine(appDataFolder, "Microsoft", "VisualStudio", "Roslyn", "Cache");
+        }
+
+        public string? TryGetStorageLocation(Solution solution)
+        {
+            if (!IsSupported(solution.Workspace))
+                return null;
+
+            if (string.IsNullOrWhiteSpace(solution.FilePath))
+                return null;
+
+            // Ensure that each unique workspace kind for any given solution has a unique
+            // folder to store their data in.
+
+            var cacheDirectory = GetCacheDirectory();
+            var kind = StripInvalidPathChars(solution.Workspace.Kind ?? "");
+            var hash = StripInvalidPathChars(Checksum.Create(solution.FilePath).ToString());
+
+            return Path.Combine(cacheDirectory, kind, hash);
+
+            static string StripInvalidPathChars(string val)
+            {
+                var invalidPathChars = Path.GetInvalidPathChars();
+                val = new string(val.Where(c => !invalidPathChars.Contains(c)).ToArray());
+
+                return string.IsNullOrWhiteSpace(val) ? "None" : val;
+            }
+        }
     }
 }

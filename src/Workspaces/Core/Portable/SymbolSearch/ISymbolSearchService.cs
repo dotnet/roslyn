@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -66,7 +70,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         public readonly IList<string> ContainingNamespaceNames;
         public readonly string TypeName;
-        public readonly string Version;
+        public readonly string? Version;
 
         public PackageWithTypeResult(
             string packageName,
@@ -82,9 +86,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
     }
 
-    internal class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult>, IComparable<PackageWithAssemblyResult>
+    internal class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult?>, IComparable<PackageWithAssemblyResult?>
     {
-        public readonly string Version;
+        public readonly string? Version;
 
         public PackageWithAssemblyResult(
             string packageName,
@@ -98,16 +102,21 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public override int GetHashCode()
             => PackageName.GetHashCode();
 
-        public override bool Equals(object obj)
-            => Equals((PackageWithAssemblyResult)obj);
+        public override bool Equals(object? obj)
+            => Equals(obj as PackageWithAssemblyResult);
 
-        public bool Equals(PackageWithAssemblyResult other)
-            => PackageName.Equals(other.PackageName);
+        public bool Equals(PackageWithAssemblyResult? other)
+            => PackageName.Equals(other?.PackageName);
 
-        public int CompareTo(PackageWithAssemblyResult other)
-         => ComparerWithState.CompareTo(this, other, s_comparers);
+        public int CompareTo(PackageWithAssemblyResult? other)
+        {
+            if (other is null)
+                return 1;
 
-        private readonly static ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
+            return ComparerWithState.CompareTo(this, other, s_comparers);
+        }
+
+        private static readonly ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
             ImmutableArray.Create<Func<PackageWithAssemblyResult, IComparable>>(p => p.Rank, p => p.PackageName);
     }
 
@@ -132,6 +141,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     internal class DefaultSymbolSearchService : ISymbolSearchService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultSymbolSearchService()
         {
         }

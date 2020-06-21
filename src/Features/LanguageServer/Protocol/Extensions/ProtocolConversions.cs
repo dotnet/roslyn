@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,9 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -57,6 +61,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
         };
 
+        public static Uri GetUriFromFilePath(string filePath)
+        {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            return new Uri(filePath, UriKind.Absolute);
+        }
+
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
         {
             return new LSP.TextDocumentPositionParams()
@@ -67,19 +81,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(Document document)
-        {
-            return new LSP.TextDocumentIdentifier() { Uri = document.GetURI() };
-        }
+            => new LSP.TextDocumentIdentifier() { Uri = document.GetURI() };
 
         public static LinePosition PositionToLinePosition(LSP.Position position)
-        {
-            return new LinePosition(position.Line, position.Character);
-        }
+            => new LinePosition(position.Line, position.Character);
 
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
-        {
-            return new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
-        }
+            => new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
@@ -97,14 +105,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static LSP.Position LinePositionToPosition(LinePosition linePosition)
-        {
-            return new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
-        }
+            => new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
 
         public static LSP.Range LinePositionToRange(LinePositionSpan linePositionSpan)
-        {
-            return new LSP.Range { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
-        }
+            => new LSP.Range { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
 
         public static LSP.Range TextSpanToRange(TextSpan textSpan, SourceText text)
         {
@@ -113,9 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static Task<LSP.Location> DocumentSpanToLocationAsync(DocumentSpan documentSpan, CancellationToken cancellationToken)
-        {
-            return TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, cancellationToken);
-        }
+            => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, cancellationToken);
 
         public static async Task<LSP.LocationWithText> DocumentSpanToLocationWithTextAsync(DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
         {
@@ -162,10 +164,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             switch (severity)
             {
+                // TO-DO: Add new LSP diagnostic severity for hidden diagnostics
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1063158
                 case DiagnosticSeverity.Hidden:
                     return LSP.DiagnosticSeverity.Hint;
                 case DiagnosticSeverity.Info:
-                    return LSP.DiagnosticSeverity.Information;
+                    return LSP.DiagnosticSeverity.Hint;
                 case DiagnosticSeverity.Warning:
                     return LSP.DiagnosticSeverity.Warning;
                 case DiagnosticSeverity.Error:
@@ -367,6 +371,92 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 default:
                     return Glyph.None;
             }
+        }
+
+        // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
+        public static LSP.ReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
+        {
+            var referenceKinds = ArrayBuilder<LSP.ReferenceKind>.GetInstance();
+            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
+            {
+                var usageInfo = symbolUsageInfo.ValueUsageInfoOpt.Value;
+                if (usageInfo.IsReadFrom())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Read);
+                }
+
+                if (usageInfo.IsWrittenTo())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Write);
+                }
+
+                if (usageInfo.IsReference())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Reference);
+                }
+
+                if (usageInfo.IsNameOnly())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Name);
+                }
+            }
+
+            if (symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.HasValue)
+            {
+                var usageInfo = symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Qualified) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Qualified);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.TypeArgument) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.TypeArgument);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.TypeConstraint) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.TypeConstraint);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Base) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.BaseType);
+                }
+
+                // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
+                if ((usageInfo & TypeOrNamespaceUsageInfo.ObjectCreation) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Constructor);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Import) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Import);
+                }
+
+                // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
+                if ((usageInfo & TypeOrNamespaceUsageInfo.NamespaceDeclaration) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Declaration);
+                }
+            }
+
+            return referenceKinds.ToArrayAndFree();
+        }
+
+        public static string ProjectIdToProjectContextId(ProjectId id)
+        {
+            return id.Id + "|" + id.DebugName;
+        }
+
+        public static ProjectId ProjectContextToProjectId(ProjectContext projectContext)
+        {
+            var delimiter = projectContext.Id.IndexOf('|');
+
+            return ProjectId.CreateFromSerialized(
+                Guid.Parse(projectContext.Id.Substring(0, delimiter)),
+                debugName: projectContext.Id.Substring(delimiter + 1));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -625,7 +627,8 @@ expectedOutput:=<![CDATA[
         <WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")>
         <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
         <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
-        <Fact>
+        <WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")>
+        <ConditionalFact(GetType(DesktopOnly))>
         Public Sub DecimalLiteral_BreakingChange()
 
             CompileAndVerify(
@@ -5280,11 +5283,11 @@ Class MyArray
         Static B01#(3), B02!(idx), B03$(fidx)
         B01(0) = 1.1#
         B01#(2) = 2.2!
-        Console.WriteLine(B01(0).ToString(cul))
-        Console.WriteLine(B01(2).ToString(cul))
+        Console.WriteLine(B01(0).ToString("G15", cul))
+        Console.WriteLine(B01(2).ToString("G15", cul))
 
         B02!(idx - 1) = 0.123
-        Console.WriteLine(B02(idx - 1).ToString(cul))
+        Console.WriteLine(B02(idx - 1).ToString("G6", cul))
 
         B03$(fidx - 1) = "c c"
         Console.WriteLine(B03(1))
@@ -13821,7 +13824,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
@@ -13867,7 +13870,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()

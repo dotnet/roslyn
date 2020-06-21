@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -49,16 +51,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 public override RemoveSuppressionCodeAction CloneForFixMultipleContext()
-                {
-                    return new PragmaRemoveAction(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
-                }
+                    => new PragmaRemoveAction(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
 
                 public override SyntaxTree SyntaxTreeToModify => _suppressionTargetInfo.StartToken.SyntaxTree;
 
-                protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-                {
-                    return await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
+                protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+                    => await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 public async Task<Document> GetChangedDocumentAsync(bool includeStartTokenChange, bool includeEndTokenChange, CancellationToken cancellationToken)
                 {
@@ -171,11 +169,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 private SyntaxToken GetNewTokenWithRemovedOrToggledPragma(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, bool isStartToken, bool toggle)
-                {
-                    return GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle);
-                }
+                    => GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, Fixer, isStartToken, toggle);
 
-                private static SyntaxToken GetNewTokenWithPragmaUnsuppress(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, bool toggle)
+                private static SyntaxToken GetNewTokenWithPragmaUnsuppress(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, bool toggle)
                 {
                     Contract.ThrowIfFalse(indexOfTriviaToRemoveOrToggle >= 0);
 
@@ -216,9 +212,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
                 private SyntaxNode FormatNode(SyntaxNode node)
-                {
-                    return Formatter.Format(node, _document.Project.Solution.Workspace);
-                }
+                    => Formatter.Format(node, _document.Project.Solution.Workspace);
             }
         }
     }

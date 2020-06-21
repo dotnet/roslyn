@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -158,14 +160,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         internal void FocusNextElement()
-        {
-            FocusElement(_tabNavigableChildren.First(), i => i == _tabNavigableChildren.Count - 1 ? 0 : i + 1);
-        }
+            => FocusElement(_tabNavigableChildren.First(), i => i == _tabNavigableChildren.Count - 1 ? 0 : i + 1);
 
         internal void FocusPreviousElement()
-        {
-            FocusElement(_tabNavigableChildren.Last(), i => i == 0 ? _tabNavigableChildren.Count - 1 : i - 1);
-        }
+            => FocusElement(_tabNavigableChildren.Last(), i => i == 0 ? _tabNavigableChildren.Count - 1 : i - 1);
 
         private void OnPresentationSourceChanged(object sender, SourceChangedEventArgs args)
         {
@@ -250,9 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         protected override AutomationPeer OnCreateAutomationPeer()
-        {
-            return new DashboardAutomationPeer(this, _model.OriginalName);
-        }
+            => new DashboardAutomationPeer(this, _model.OriginalName);
 
         private void DisconnectFromPresentationSource()
         {
@@ -272,9 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void FindAdornmentCanvas_LayoutUpdated(object sender, EventArgs e)
-        {
-            PositionDashboard();
-        }
+            => PositionDashboard();
 
         public string RenameOverloads => EditorFeaturesResources.Include_overload_s;
         public Visibility RenameOverloadsVisibility => _model.RenameOverloadsVisibility;
@@ -316,9 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void OnTextViewLostAggregateFocus(object sender, EventArgs e)
-        {
-            this.Visibility = Visibility.Collapsed;
-        }
+            => this.Visibility = Visibility.Collapsed;
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -327,9 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e)
-        {
-            Commit();
-        }
+            => Commit();
 
         private void Commit()
         {
@@ -402,9 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         protected override void OnMouseUp(MouseButtonEventArgs e)
-        {
-            e.Handled = true;
-        }
+            => e.Handled = true;
 
         protected override void OnIsKeyboardFocusWithinChanged(DependencyPropertyChangedEventArgs e)
         {

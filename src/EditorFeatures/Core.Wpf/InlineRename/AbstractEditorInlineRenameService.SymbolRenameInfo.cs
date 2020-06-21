@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -7,15 +11,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -34,48 +37,53 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
-            private Task<RenameLocations> _underlyingFindRenameLocationsTask;
+            private Task<RenameLocations>? _underlyingFindRenameLocationsTask;
 
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
-            /// and we didn't select the 'Attribute' portion of the name.
+            /// and we didn't select the 'Attribute' portion of the name).
             /// </summary>
-            private readonly bool _shortenedTriggerSpan;
             private readonly bool _isRenamingAttributePrefix;
 
             public bool CanRename { get; }
-            public string LocalizedErrorMessage { get; }
+            public string? LocalizedErrorMessage { get; }
             public TextSpan TriggerSpan { get; }
-            public SymbolAndProjectId RenameSymbolAndProjectId { get; }
             public bool HasOverloads { get; }
             public bool ForceRenameOverloads { get; }
 
-            public ISymbol RenameSymbol => RenameSymbolAndProjectId.Symbol;
+            /// <summary>
+            /// The locations of the potential rename candidates for the symbol.
+            /// </summary>
+            public ImmutableArray<DocumentSpan> DefinitionLocations { get; }
+
+            public ISymbol RenameSymbol { get; }
 
             public SymbolInlineRenameInfo(
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 Document document,
                 TextSpan triggerSpan,
-                SymbolAndProjectId renameSymbolAndProjectId,
+                string triggerText,
+                ISymbol renameSymbol,
                 bool forceRenameOverloads,
+                ImmutableArray<DocumentSpan> definitionLocations,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
 
                 _refactorNotifyServices = refactorNotifyServices;
                 _document = document;
-                this.RenameSymbolAndProjectId = renameSymbolAndProjectId;
+                this.RenameSymbol = renameSymbol;
 
-                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbolAndProjectId).Any();
+                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
                 this.ForceRenameOverloads = forceRenameOverloads;
 
-                _isRenamingAttributePrefix = CanRenameAttributePrefix(document, triggerSpan, cancellationToken);
-                this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), cancellationToken);
+                _isRenamingAttributePrefix = CanRenameAttributePrefix(document, triggerSpan, triggerText, cancellationToken);
+                this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), triggerText, cancellationToken);
 
-                _shortenedTriggerSpan = this.TriggerSpan != triggerSpan;
+                this.DefinitionLocations = definitionLocations;
             }
 
-            private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
+            private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, string triggerText, CancellationToken cancellationToken)
             {
                 // if this isn't an attribute, or it doesn't have the 'Attribute' suffix, then clearly
                 // we can't rename just the attribute prefix.
@@ -88,7 +96,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // of the attribute.  If it does, then we can rename just the attribute prefix (otherwise
                 // we need to rename the entire attribute).
                 var nameWithoutAttribute = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
-                var triggerText = GetSpanText(document, triggerSpan, cancellationToken);
 
                 return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
             }
@@ -106,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             ///     - Compiler-generated EventHandler suffix       XEventHandler => X
             ///     - Compiler-generated get_ and set_ prefixes    get_X => X
             /// </summary>
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken)
+            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
             {
                 var searchName = this.RenameSymbol.Name;
                 if (_isRenamingAttributePrefix)
@@ -116,9 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     searchName = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
                 }
 
-                var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
-                var index = spanText.LastIndexOf(searchName, StringComparison.Ordinal);
-
+                var index = triggerText.LastIndexOf(searchName, StringComparison.Ordinal);
                 if (index < 0)
                 {
                     // Couldn't even find the search text at this reference location.  This might happen
@@ -130,16 +135,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new TextSpan(location.TextSpan.Start + index, searchName.Length);
             }
 
-            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
+            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
             {
-                var spanText = GetSpanText(location.Document, location.TextSpan, cancellationToken);
-                var position = spanText.LastIndexOf(replacementText, StringComparison.Ordinal);
+                var position = triggerText.LastIndexOf(replacementText, StringComparison.Ordinal);
 
                 if (_isRenamingAttributePrefix)
                 {
                     // We're only renaming the attribute prefix part.  We want to adjust the span of 
                     // the reference we've found to only update the prefix portion.
-                    var index = spanText.LastIndexOf(replacementText + AttributeSuffix, StringComparison.Ordinal);
+                    var index = triggerText.LastIndexOf(replacementText + AttributeSuffix, StringComparison.Ordinal);
                     position = index >= 0 ? index : position;
                 }
 
@@ -152,17 +156,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             private string GetWithoutAttributeSuffix(string value)
-                => value.GetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive);
+                => value.GetWithoutAttributeSuffix(isCaseSensitive: _document.GetRequiredLanguageService<ISyntaxFactsService>().IsCaseSensitive)!;
 
             private bool HasAttributeSuffix(string value)
-                => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive, result: out var _);
-
-            private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)
-            {
-                var sourceText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                var triggerText = sourceText.ToString(triggerSpan);
-                return triggerText;
-            }
+                => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _document.GetRequiredLanguageService<ISyntaxFactsService>().IsCaseSensitive, result: out var _);
 
             internal bool IsRenamingAttributeTypeWithAttributeSuffix()
             {
@@ -191,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return replacementText;
             }
 
-            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
+            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet? optionSet, CancellationToken cancellationToken)
             {
                 Task<RenameLocations> renameTask;
                 lock (_gate)
@@ -200,8 +197,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         // If this is the first call, then just start finding the initial set of rename
                         // locations.
-                        _underlyingFindRenameLocationsTask = RenameLocations.FindAsync(
-                            this.RenameSymbolAndProjectId, _document.Project.Solution, optionSet, cancellationToken);
+                        var solution = _document.Project.Solution;
+                        _underlyingFindRenameLocationsTask = Renamer.FindRenameLocationsAsync(
+                            solution, this.RenameSymbol, RenameOptionSet.From(solution, optionSet), cancellationToken);
                         renameTask = _underlyingFindRenameLocationsTask;
 
                         // null out the option set.  We don't need it anymore, and this will ensure
@@ -216,15 +214,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
                 }
 
-                return GetLocationSet(renameTask, optionSet, cancellationToken);
+                return GetLocationSetAsync(renameTask, optionSet, cancellationToken);
             }
 
-            private async Task<IInlineRenameLocationSet> GetLocationSet(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
+            private async Task<IInlineRenameLocationSet> GetLocationSetAsync(Task<RenameLocations> renameTask, OptionSet? optionSet, CancellationToken cancellationToken)
             {
                 var locationSet = await renameTask.ConfigureAwait(false);
                 if (optionSet != null)
                 {
-                    locationSet = await locationSet.FindWithUpdatedOptionsAsync(optionSet, cancellationToken).ConfigureAwait(false);
+                    locationSet = await locationSet.FindWithUpdatedOptionsAsync(
+                        RenameOptionSet.From(_document.Project.Solution, optionSet), cancellationToken).ConfigureAwait(false);
                 }
 
                 return new InlineRenameLocationSet(this, locationSet);
@@ -252,7 +251,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         return InlineRenameFileRenameInfo.TypeWithMultipleLocations;
                     }
 
-                    if (OriginalNameMatches(_document, RenameSymbol.Name))
+                    // Get the document that the symbol is defined in to compare
+                    // the name with the symbol name. If they match allow
+                    // rename file rename as part of the symbol rename
+                    var symbolSourceDocument = _document.Project.Solution.GetDocument(RenameSymbol.Locations.Single().SourceTree);
+                    if (symbolSourceDocument != null && WorkspacePathUtilities.TypeNameMatchesDocumentName(symbolSourceDocument, RenameSymbol.Name))
                     {
                         return InlineRenameFileRenameInfo.Allowed;
                     }
@@ -261,12 +264,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 return InlineRenameFileRenameInfo.NotAllowed;
-
-                // Local Functions
-
-                static bool OriginalNameMatches(Document document, string name)
-                    => Path.GetFileNameWithoutExtension(document.Name)
-                        .Equals(name, StringComparison.OrdinalIgnoreCase);
             }
         }
     }

@@ -1,25 +1,31 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
+#if DEBUG
+using System.Diagnostics;
+#endif
+
 namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
 {
     using Microsoft.CodeAnalysis.Indentation;
+    using Microsoft.CodeAnalysis.Precedence;
 
     internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
         where TBinaryExpressionSyntax : SyntaxNode
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly IPrecedenceService _precedenceService;
 
         protected AbstractBinaryExpressionWrapper(
             IIndentationService indentationService,
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             IPrecedenceService precedenceService) : base(indentationService)
         {
             _syntaxFacts = syntaxFacts;
@@ -47,12 +53,18 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                 return null;
             }
 
-            // Don't process this binary expression if it's in a parent binary expr of the same
-            // precedence.  We'll just allow our caller to walk up to that and call back into us 
-            // to handle.  This way, we're always starting at the topmost binary expr of this
+            // Don't process this binary expression if it's in a parent binary expr of the same or
+            // lower precedence.  We'll just allow our caller to walk up to that and call back into
+            // us to handle.  This way, we're always starting at the topmost binary expr of this
             // precedence.
+            //
+            // for example, if we have `if (a + b == c + d)` expectation is to wrap on the lower
+            // precedence `==` op, not either of the `+` ops
+            //
+            // Note: we use `<=` when comparing precedence because lower precedence has a higher
+            // value.
             if (binaryExpr.Parent is TBinaryExpressionSyntax parentBinary &&
-                precedence == _precedenceService.GetPrecedenceKind(parentBinary))
+                precedence <= _precedenceService.GetPrecedenceKind(parentBinary))
             {
                 return null;
             }
@@ -87,9 +99,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
         private ImmutableArray<SyntaxNodeOrToken> GetExpressionsAndOperators(
             PrecedenceKind precedence, TBinaryExpressionSyntax binaryExpr)
         {
-            var result = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var result);
             AddExpressionsAndOperators(precedence, binaryExpr, result);
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private void AddExpressionsAndOperators(

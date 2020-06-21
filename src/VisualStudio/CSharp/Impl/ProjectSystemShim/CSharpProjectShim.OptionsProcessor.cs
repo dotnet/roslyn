@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             private readonly VisualStudioProject _visualStudioProject;
 
             private readonly object[] _options = new object[(int)CompilerOptions.LARGEST_OPTION_ID];
-            private string _mainTypeName;
+            private string? _mainTypeName;
             private OutputKind _outputKind;
 
             public OptionsProcessor(VisualStudioProject visualStudioProject, HostWorkspaceServices workspaceServices)
@@ -47,9 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 }
             }
 
-            protected override CompilationOptions ComputeCompilationOptionsWithHostValues(CompilationOptions compilationOptions, IRuleSetFile ruleSetFileOpt)
+            protected override CompilationOptions ComputeCompilationOptionsWithHostValues(CompilationOptions compilationOptions, IRuleSetFile? ruleSetFile)
             {
-                IDictionary<string, ReportDiagnostic> ruleSetSpecificDiagnosticOptions = null;
+                IDictionary<string, ReportDiagnostic>? ruleSetSpecificDiagnosticOptions = null;
 
                 // Get options from the ruleset file, if any, first. That way project-specific
                 // options can override them.
@@ -57,10 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
                 // TODO: merge this core logic back down to the base of OptionsProcessor, since this should be the same for all languages. The CompilationOptions
                 // would then already contain the right information, and could be updated accordingly by the language-specific logic.
-                if (ruleSetFileOpt != null)
+                if (ruleSetFile != null)
                 {
-                    ruleSetGeneralDiagnosticOption = ruleSetFileOpt.GetGeneralDiagnosticOption();
-                    ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(ruleSetFileOpt.GetSpecificDiagnosticOptions());
+                    ruleSetGeneralDiagnosticOption = ruleSetFile.GetGeneralDiagnosticOption();
+                    ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(ruleSetFile.GetSpecificDiagnosticOptions());
                 }
                 else
                 {
@@ -148,9 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             }
 
             private static string GetIdForErrorCode(int errorCode)
-            {
-                return "CS" + errorCode.ToString("0000");
-            }
+                => "CS" + errorCode.ToString("0000");
 
             private IEnumerable<string> ParseWarningCodes(CompilerOptions compilerOptions)
             {
@@ -172,16 +175,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             }
 
             private bool? GetNullableBooleanOption(CompilerOptions optionID)
-            {
-                return (bool?)_options[(int)optionID];
-            }
+                => (bool?)_options[(int)optionID];
 
             private bool GetBooleanOption(CompilerOptions optionID)
-            {
-                return GetNullableBooleanOption(optionID).GetValueOrDefault(defaultValue: false);
-            }
+                => GetNullableBooleanOption(optionID).GetValueOrDefault(defaultValue: false);
 
-            private string GetFilePathRelativeOption(CompilerOptions optionID)
+            private string? GetFilePathRelativeOption(CompilerOptions optionID)
             {
                 var path = GetStringOption(optionID, defaultValue: null);
 
@@ -200,7 +199,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 return null;
             }
 
-            private string GetStringOption(CompilerOptions optionID, string defaultValue)
+            [return: NotNullIfNotNull("defaultValue")]
+            private string? GetStringOption(CompilerOptions optionID, string? defaultValue)
             {
                 var value = (string)_options[(int)optionID];
 
@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 }
             }
 
-            public void SetMainTypeName(string mainTypeName)
+            public void SetMainTypeName(string? mainTypeName)
             {
                 if (_mainTypeName != mainTypeName)
                 {

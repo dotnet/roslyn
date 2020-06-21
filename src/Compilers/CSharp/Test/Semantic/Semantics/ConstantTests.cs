@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -927,8 +929,15 @@ class C
 
             var actual = ParseAndGetConstantFoldingSteps(source);
 
+#if NET472
+            var longValue = "-9.22337203685478E+18";
+#else
+            var longValue = "-9.223372036854776E+18";
+#endif
+
+
             var expected =
-@"(sbyte)(sbyte.MaxValue + 0.1) --> 127
+$@"(sbyte)(sbyte.MaxValue + 0.1) --> 127
 sbyte.MaxValue + 0.1 --> 127.1
 sbyte.MaxValue --> 127
 sbyte.MaxValue --> 127
@@ -977,8 +986,8 @@ uint.MinValue - 0.1 --> -0.1
 uint.MinValue --> 0
 uint.MinValue --> 0
 (long)(long.MinValue - 0.1) --> -9223372036854775808
-long.MinValue - 0.1 --> -9.22337203685478E+18
-long.MinValue --> -9.22337203685478E+18
+long.MinValue - 0.1 --> {longValue}
+long.MinValue --> {longValue}
 long.MinValue --> -9223372036854775808
 (ulong)(ulong.MinValue - 0.1) --> 0
 ulong.MinValue - 0.1 --> -0.1
@@ -3300,7 +3309,10 @@ class C
 @"
 void f() { if () const int i = 0; }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+    // (2,6): warning CS8321: The local function 'f' is declared but never used
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(2, 6),
     // (2,16): error CS1525: Invalid expression term ')'
     // void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
@@ -3366,15 +3378,15 @@ void f() { if () const int i = 0; }
                 // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)null:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
-                // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
-                //             case (object)null:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13),
                 // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)"b":
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18),
                 // (23,18): error CS0150: A constant value is expected
                 //             case (object)"b":
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18));
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18),
+                // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
+                //             case (object)null:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13));
         }
 
         [Fact]

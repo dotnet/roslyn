@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -96,6 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         binder = scope;
                     }
+                }
+
+                if ((options & LookupOptions.LabelsOnly) != 0 && scope.IsLastBinderWithinMember())
+                {
+                    // Labels declared outside of a member are not visible inside.
+                    break;
                 }
             }
             return binder;
@@ -196,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     result.Clear();
                     break;
 
@@ -551,14 +560,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var mdSymbol = symbols[secondBest.Index];
 
                 //if names match, arities match, and containing symbols match (recursively), ...
-                if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                    mdSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                if (NameAndArityMatchRecursively(srcSymbol, mdSymbol))
                 {
                     return originalSymbols[best.Index];
                 }
             }
 
             return null;
+        }
+
+        private static bool NameAndArityMatchRecursively(Symbol x, Symbol y)
+        {
+            while (true)
+            {
+                if (isRoot(x))
+                {
+                    return isRoot(y);
+                }
+                if (isRoot(y))
+                {
+                    return false;
+                }
+                if (x.Name != y.Name || x.GetArity() != y.GetArity())
+                {
+                    return false;
+                }
+                x = x.ContainingSymbol;
+                y = y.ContainingSymbol;
+            }
+
+            static bool isRoot(Symbol symbol) => symbol is null || symbol is NamespaceSymbol { IsGlobalNamespace: true };
         }
 
         private bool IsSingleViableAttributeType(LookupResult result, out Symbol symbol)
@@ -929,7 +960,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersInInterfacesWithoutInheritance(current, GetBaseInterfaces(type, basesBeingResolved, ref useSiteDiagnostics),
                     name, arity, basesBeingResolved, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics);
             }
-
         }
 
         private static ImmutableArray<NamedTypeSymbol> GetBaseInterfaces(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -969,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Consumers of the result depend on the sorting performed by AllInterfacesWithDefinitionUseSiteDiagnostics.
             // Let's use similar sort algorithm.
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsConsiderEverything);
+            var visited = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.ConsiderEverything);
 
             for (int i = interfaces.Length - 1; i >= 0; i--)
             {
@@ -1535,7 +1565,7 @@ symIsHidden:;
                     break;
             }
 
-            return (object)type != null && (type.IsDelegateType() || type.IsDynamic());
+            return (object)type != null && (type.IsDelegateType() || type.IsDynamic() || type.IsFunctionPointer());
         }
 
         private static bool IsInstance(Symbol symbol)
@@ -1624,6 +1654,12 @@ symIsHidden:;
             for (var scope = this; scope != null; scope = scope.Next)
             {
                 scope.AddLookupSymbolsInfoInSingleBinder(result, options, originalBinder: this);
+
+                if ((options & LookupOptions.LabelsOnly) != 0 && scope.IsLastBinderWithinMember())
+                {
+                    // Labels declared outside of a member are not visible inside.
+                    break;
+                }
             }
         }
 

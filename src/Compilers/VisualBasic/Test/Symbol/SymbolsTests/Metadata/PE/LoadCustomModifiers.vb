@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -67,7 +70,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                 Assert.Equal("System.Runtime.CompilerServices.IsConst", p2Mod.Modifier.ToTestDisplayString())
             Next
 
-            Assert.Equal(SymbolKind.ErrorType, p4.Type.Kind)
+            Assert.Equal("p As System.Int32 modopt(System.Int32) modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsConst)", modifiers.GetMembers("F3").OfType(Of MethodSymbol)().Single().Parameters(0).ToTestDisplayString())
+
+            Assert.Equal("p As System.Int32 modreq(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsConst)", p4.ToTestDisplayString())
+            Assert.True(p4.HasUnsupportedMetadata)
+            Assert.True(p4.ContainingSymbol.HasUnsupportedMetadata)
 
             Assert.True(m5.IsSub)
             Assert.Equal(1, m5.ReturnTypeCustomModifiers.Length)

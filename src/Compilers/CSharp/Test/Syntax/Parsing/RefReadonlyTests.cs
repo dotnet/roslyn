@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Xunit;
 using System.Linq;
@@ -129,7 +131,7 @@ class Program
 }
 ";
 
-            ParseAndValidate(text, TestOptions.Regular,
+            ParseAndValidate(text, TestOptions.RegularPreview,
                 // (9,27): error CS1003: Syntax error, '(' expected
                 //     ref readonly int Field;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(9, 27),
@@ -148,6 +150,12 @@ class Program
                 // (12,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
                 //     {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
+                // (17,5): error CS8803: Top-level statements must precede namespace and type declarations.
+                //     static async ref readonly Task M<T>()
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"static async ref readonly Task M<T>()
+    {
+        throw null;
+    }").WithLocation(17, 5),
                 // (22,25): error CS1031: Type expected
                 //     public ref readonly virtual int* P1 => throw null;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(22, 25),
@@ -493,7 +501,7 @@ class Test
                 // (1,8): error CS1031: Type expected
                 // new ref[];
                 Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(1, 8),
-                // (1,10): error CS1526: A new expression requires (), [], or {} after type
+                // (1,10): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 // new ref[];
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(1, 10)
                 );

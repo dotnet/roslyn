@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
@@ -69,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Sub
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -132,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -197,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "–"),
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -262,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "–"),
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Sub
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -375,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                         New ClassifiedTextElement(
                                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Line2")))))))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Sub
     End Class
 End Namespace

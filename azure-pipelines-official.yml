@@ -8,8 +8,8 @@ resources:
 #  SignType: real
 #  SkipTests: false
 #  SkipApplyOptimizationData: false
-#  IbcSourceBranchName: 'default'
-#  IbcDropId: 'default'
+#  IbcDrop: 'default'
+#  PRNumber: 'default'
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -17,6 +17,7 @@ variables:
     value: .NETCore
   - name: _DotNetValidationArtifactsCategory
     value: .NETCoreValidation
+  - group: DotNet-Roslyn-SDLValidation-Params
 
 stages:
 - stage: build
@@ -36,6 +37,29 @@ stages:
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
+
+    - task: tagBuildOrRelease@0
+      displayName: Tag official build
+      inputs:
+        type: 'Build'
+        tags: 'OfficialBuild'
+      condition: and(succeeded(), endsWith(variables['SourceBranchName'], '-vs-deps'), eq(variables['PRNumber'], 'default'))
+          
+    - task: tagBuildOrRelease@0
+      displayName: Tag PR validation build
+      inputs:
+        type: 'Build'
+        tags: |
+          PRValidationBuild
+          PRNumber:$(PRNumber)
+      condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
+
+    - task: PowerShell@2
+      displayName: Setup branch for insertion validation
+      inputs:
+        filePath: 'eng\setup-pr-validation.ps1'
+        arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber)'
+      condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
@@ -76,8 +100,7 @@ stages:
                 -officialSkipTests $(SkipTests)
                 -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
                 -officialSourceBranchName $(SourceBranchName)
-                -officialIbcSourceBranchName $(IbcSourceBranchName)
-                -officialIbcDropId $(IbcDropId)
+                -officialIbcDrop $(IbcDrop)
                 /p:RepositoryName=$(Build.Repository.Name)
                 /p:VisualStudioDropAccessToken=$(System.AccessToken)
                 /p:VisualStudioDropName=$(VisualStudio.DropName)
@@ -98,7 +121,7 @@ stages:
       inputs:
         filePath: 'eng\publish-assets.ps1'
         arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
-      condition: succeeded()
+      condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files
     - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
@@ -108,6 +131,7 @@ stages:
         sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
         toLowerCase: false
         usePat: false
+        retentionDays: 90
       displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
       condition: succeeded()
 
@@ -243,6 +267,19 @@ stages:
       queue:
         name: Hosted VS2017
 
+# We need to skip post-build stages for PR validation build, but it can only be identified by 
+# the runtime variable 'PRNumber', thus this dummy stage. Also the dummy job is required
+# otherwise AzDO would just repeat jobs from previous stage.
+- stage: SetValidateDependency
+  displayName: Setup the dependency for post-build stages
+  condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
+  jobs:
+  - job: Log
+    displayName: Log
+    steps:
+    - powershell: Write-Host "Setup the dependency for post-build stages."
+      displayName: Log
+
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
@@ -250,3 +287,23 @@ stages:
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
       enableSourceLinkValidation: false
+      # It's important that post-build stages are depends on 'SetValidateDependency' stage instead of 'build', 
+      # since we don't want to publish validation build. 
+      validateDependsOn:
+        - SetValidateDependency
+      dependsOn:
+        - SetValidateDependency
+      # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
+      SDLValidationParameters:
+        enable: true
+        params: >-
+          -SourceToolsList @("policheck","credscan")
+          -TsaInstanceURL $(_TsaInstanceURL)
+          -TsaProjectName $(_TsaProjectName)
+          -TsaNotificationEmail $(_TsaNotificationEmail)
+          -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
+          -TsaBugAreaPath $(_TsaBugAreaPath)
+          -TsaIterationPath $(_TsaIterationPath)
+          -TsaRepositoryName $(_TsaRepositoryName)
+          -TsaCodebaseName $(_TsaCodebaseName)
+          -TsaPublish $True

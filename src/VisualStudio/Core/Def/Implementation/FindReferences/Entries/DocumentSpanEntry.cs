@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -69,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         ? WrittenReferenceHighlightTag.TagId
                         : ReferenceHighlightTag.TagId;
 
-                var properties = _presenter.FormatMapService
+                var properties = Presenter.FormatMapService
                                           .GetEditorFormatMap("text")
                                           .GetProperties(propertyId);
 
@@ -83,8 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     cs => new ClassifiedText(cs.ClassificationType, _excerptResult.Content.ToString(cs.TextSpan)));
 
                 var inlines = classifiedTexts.ToInlines(
-                    _presenter.ClassificationFormatMap,
-                    _presenter.TypeMap,
+                    Presenter.ClassificationFormatMap,
+                    Presenter.TypeMap,
                     runCallback: (run, classifiedText, position) =>
                     {
                         if (properties["Background"] is Brush highlightBrush)
@@ -136,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private DisposableToolTip CreateDisposableToolTip(Document document, TextSpan sourceSpan)
             {
-                _presenter.AssertIsForeground();
+                Presenter.AssertIsForeground();
 
                 var controlService = document.Project.Solution.Workspace.Services.GetService<IContentControlService>();
                 var sourceText = document.GetTextSynchronously(CancellationToken.None);
@@ -144,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var excerptService = document.Services.GetService<IDocumentExcerptService>();
                 if (excerptService != null)
                 {
-                    var excerpt = _presenter.ThreadingContext.JoinableTaskFactory.Run(() => excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.Tooltip, CancellationToken.None));
+                    var excerpt = Presenter.ThreadingContext.JoinableTaskFactory.Run(() => excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.Tooltip, CancellationToken.None));
                     if (excerpt != null)
                     {
                         // get tooltip from excerpt service

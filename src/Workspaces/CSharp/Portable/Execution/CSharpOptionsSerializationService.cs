@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Execution
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
     internal class CSharpOptionsSerializationService : AbstractOptionsSerializationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpOptionsSerializationService()
         {
         }
@@ -36,50 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             var csharpOptions = (CSharpParseOptions)options;
             writer.WriteInt32((int)csharpOptions.LanguageVersion);
             writer.WriteValue(options.PreprocessorSymbolNames.ToArray());
-        }
-
-        public override void WriteTo(OptionSet options, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            WriteOptionSetTo(options, LanguageNames.CSharp, writer, cancellationToken);
-
-            foreach (var option in CSharpCodeStyleOptions.GetCodeStyleOptions())
-            {
-                WriteOptionTo(options, option, writer, cancellationToken);
-            }
-
-            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
-            {
-                WriteOptionTo(options, option, writer, cancellationToken);
-            }
-
-            WriteOptionTo(options, CSharpCodeStyleOptions.PreferBraces, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.PreferStaticLocalFunction, writer, cancellationToken);
-        }
-
-        public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            OptionSet options = new SerializedPartialOptionSet();
-
-            options = ReadOptionSetFrom(options, LanguageNames.CSharp, reader, cancellationToken);
-
-            foreach (var option in CSharpCodeStyleOptions.GetCodeStyleOptions())
-            {
-                options = ReadOptionFrom(options, option, reader, cancellationToken);
-            }
-
-            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
-            {
-                options = ReadOptionFrom(options, option, reader, cancellationToken);
-            }
-
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferBraces, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferStaticLocalFunction, reader, cancellationToken);
-
-            return options;
         }
 
         public override CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)

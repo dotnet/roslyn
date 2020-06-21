@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -8,7 +10,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [UseExportProvider]
     public abstract class AbstractTypingCommandHandlerTest<TCommandArgs> where TCommandArgs : CommandArgs
     {
-        internal abstract ICommandHandler<TCommandArgs> CreateCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService);
+        internal abstract ICommandHandler<TCommandArgs> GetCommandHandler(TestWorkspace workspace);
 
         protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 var view = testDocument.GetTextView();
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
 
-                var commandHandler = CreateCommandHandler(workspace.GetService<ITextUndoHistoryRegistry>(), workspace.GetService<IEditorOperationsFactoryService>());
+                var commandHandler = GetCommandHandler(workspace);
 
                 var (args, insertionText) = CreateCommandArgs(view, view.TextBuffer);
                 var nextHandler = CreateInsertTextHandler(view, insertionText);

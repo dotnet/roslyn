@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -17,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     internal sealed class CloseBlockCommentCommandHandler : ICommandHandler<TypeCharCommandArgs>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CloseBlockCommentCommandHandler()
         {
         }
@@ -43,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                             line.IsEmptyOrWhitespace(0, line.Length - 2))
                         {
                             if (args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString) &&
-                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value))
+                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, out _, out _))
                             {
                                 args.SubjectBuffer.Replace(new VisualStudio.Text.Span(position - 1, 1), "/");
                                 return true;

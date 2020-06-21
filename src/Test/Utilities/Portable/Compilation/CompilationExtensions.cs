@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -178,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SyntaxNode root = tree.GetRoot();
             SemanticModel model = compilation.GetSemanticModel(tree);
             var declarationsBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            model.ComputeDeclarationsInNode(root, getSymbol: true, builder: declarationsBuilder, cancellationToken: CancellationToken.None);
+            model.ComputeDeclarationsInNode(root, associatedSymbol: null, getSymbol: true, builder: declarationsBuilder, cancellationToken: CancellationToken.None);
 
             var actualTextBuilder = new StringBuilder();
             foreach (DeclarationInfo declaration in declarationsBuilder.ToArrayAndFree().Where(d => d.DeclaredSymbol != null).OrderBy(d => d.DeclaredSymbol.ToTestDisplayString()))
@@ -294,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+            var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
             var visitor = TestOperationVisitor.Singleton;
 
             foreach (var root in roots)
@@ -307,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         try
                         {
-                            explictNodeMap.Add(operation.Syntax, operation);
+                            explicitNodeMap.Add(operation.Syntax, operation);
                         }
                         catch (ArgumentException)
                         {

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,12 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
+            Debug.Assert(node.Type is { });
             SyntaxNode syntax = node.Syntax;
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var stores = ArrayBuilder<BoundExpression>.GetInstance();
+            Debug.Assert(node.LeftOperand.Type is { });
 
             // Rewrite LHS with temporaries to prevent double-evaluation of side effects, as we'll need to use it multiple times.
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType());
+            Debug.Assert(transformedLHS.Type is { });
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression loweredRight = VisitExpression(node.RightOperand);
 
@@ -37,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // lhsRead ?? (transformedLHS = loweredRight)
                 BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
+                Debug.Assert(conditionalExpression.Type is { });
 
                 return (temps.Count == 0 && stores.Count == 0) ?
                     conditionalExpression :

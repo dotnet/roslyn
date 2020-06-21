@@ -1,5 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             };
 
         public FileChangeWatcher(Task<IVsAsyncFileChangeEx> fileChangeService)
-        {
-            _taskQueue = fileChangeService;
-        }
+            => _taskQueue = fileChangeService;
 
         private void EnqueueWork(Func<IVsAsyncFileChangeEx, Task> action)
         {
@@ -72,22 +77,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             queue.Wait();
         }
 
-        public IContext CreateContext()
+        public IContext CreateContext(params WatchedDirectory[] watchedDirectories)
         {
-            return new Context(this, null);
+            return new Context(this, watchedDirectories.ToImmutableArray());
         }
 
         /// <summary>
-        /// Creates an <see cref="IContext"/> that watches all files in a directory, in addition to any files explicitly requested by <see cref="IContext.EnqueueWatchingFile(string)"/>.
+        /// Gives a hint to the <see cref="IContext"/> that we should watch a top-level directory for all changes in addition
+        /// to any files called by <see cref="IContext.EnqueueWatchingFile(string)"/>.
         /// </summary>
-        public IContext CreateContextForDirectory(string directoryFilePath)
+        /// <remarks>
+        /// This is largely intended as an optimization; consumers should still call <see cref="IContext.EnqueueWatchingFile(string)" />
+        /// for files they want to watch. This allows the caller to give a hint that it is expected that most of the files being
+        /// watched is under this directory, and so it's more efficient just to watch _all_ of the changes in that directory
+        /// rather than creating and tracking a bunch of file watcher state for each file separately. A good example would be
+        /// just creating a single directory watch on the root of a project for source file changes: rather than creating a file watcher
+        /// for each individual file, we can just watch the entire directory and that's it.
+        /// </remarks>
+        public sealed class WatchedDirectory
         {
-            if (directoryFilePath == null)
+            public WatchedDirectory(string path, string? extensionFilter)
             {
-                throw new ArgumentNullException(nameof(directoryFilePath));
+                // We are doing string comparisons with this path, so ensure it has a trailing \ so we don't get confused with sibling
+                // paths that won't actually be covered.
+                if (!path.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
+                {
+                    path += System.IO.Path.DirectorySeparatorChar;
+                }
+
+                if (extensionFilter != null && !extensionFilter.StartsWith("."))
+                {
+                    throw new ArgumentException($"{nameof(extensionFilter)} should start with a period.", nameof(extensionFilter));
+                }
+
+                Path = path;
+                ExtensionFilter = extensionFilter;
             }
 
-            return new Context(this, directoryFilePath);
+            public string Path { get; }
+
+            /// <summary>
+            /// If non-null, only watch the directory for changes to a specific extension. String always starts with a period.
+            /// </summary>
+            public string? ExtensionFilter { get; }
         }
 
         /// <summary>
@@ -122,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class Context : IVsFreeThreadedFileChangeEvents2, IContext
         {
             private readonly FileChangeWatcher _fileChangeWatcher;
-            private readonly string _directoryFilePathOpt;
+            private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
             private readonly IFileWatchingToken _noOpFileWatchingToken;
 
             /// <summary>
@@ -131,26 +163,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly object _gate = new object();
             private bool _disposed = false;
             private readonly HashSet<FileWatchingToken> _activeFileWatchingTokens = new HashSet<FileWatchingToken>();
-            private uint _directoryWatchCookie;
 
-            public Context(FileChangeWatcher fileChangeWatcher, string directoryFilePath)
+            /// <summary>
+            /// The list of cookies we used to make watchers for <see cref="_watchedDirectories"/>.
+            /// </summary>
+            /// <remarks>
+            /// This does not need to be used under <see cref="_gate"/>, as it's only used inside the actual queue of file watcher
+            /// actions.
+            /// </remarks>
+            private readonly List<uint> _directoryWatchCookies = new List<uint>();
+
+            public Context(FileChangeWatcher fileChangeWatcher, ImmutableArray<WatchedDirectory> watchedDirectories)
             {
                 _fileChangeWatcher = fileChangeWatcher;
+                _watchedDirectories = watchedDirectories;
                 _noOpFileWatchingToken = new FileWatchingToken();
 
-                if (directoryFilePath != null)
+                foreach (var watchedDirectory in watchedDirectories)
                 {
-                    if (!directoryFilePath.EndsWith("\\"))
-                    {
-                        directoryFilePath += "\\";
-                    }
-
-                    _directoryFilePathOpt = directoryFilePath;
-
                     _fileChangeWatcher.EnqueueWork(
                         async service =>
                         {
-                            _directoryWatchCookie = await service.AdviseDirChangeAsync(_directoryFilePathOpt, watchSubdirectories: true, this).ConfigureAwait(false);
+                            var cookie = await service.AdviseDirChangeAsync(watchedDirectory.Path, watchSubdirectories: true, this).ConfigureAwait(false);
+                            _directoryWatchCookies.Add(cookie);
+
+                            if (watchedDirectory.ExtensionFilter != null)
+                            {
+                                // TODO: switch to proper reference assemblies
+                                var filterDirectoryChangesAsyncMethod = service.GetType().GetMethod("FilterDirectoryChangesAsync");
+
+                                if (filterDirectoryChangesAsyncMethod != null)
+                                {
+                                    var arguments = new object[] { cookie, new string[] { watchedDirectory.ExtensionFilter }, CancellationToken.None };
+                                    await ((Task)filterDirectoryChangesAsyncMethod.Invoke(service, arguments)).ConfigureAwait(false);
+                                }
+                            }
                         });
                 }
             }
@@ -170,14 +217,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _fileChangeWatcher.EnqueueWork(
                     async service =>
                     {
-                        // Since we put all of our work in a queue, we know that if we had tried to advise file or directory changes,
-                        // it must have happened before now
-                        if (_directoryFilePathOpt != null)
+                        // This cleanup code all runs in the single queue that we push usages of the file change service into.
+                        // Therefore, we know that any advise operations we had done have ran in that queue by now. Since this is also
+                        // running after dispose, we don't need to take any locks at this point, since we're taking the general policy
+                        // that any use of the type after it's been disposed is simply undefined behavior.
+
+                        // We don't use IAsyncDisposable here simply because we don't ever want to block on the queue if we're
+                        // able to avoid it, since that would potentially cause a stall or UI delay on shutting down.
+
+                        foreach (var cookie in _directoryWatchCookies)
                         {
-                            await service.UnadviseDirChangeAsync(_directoryWatchCookie).ConfigureAwait(false);
+                            await service.UnadviseDirChangeAsync(cookie).ConfigureAwait(false);
                         }
 
-                        // it runs after disposed. so no lock is needed for _activeFileWatchingTokens
+                        // Since this runs after disposal, no lock is needed for _activeFileWatchingTokens
                         foreach (var token in _activeFileWatchingTokens)
                         {
                             await UnsubscribeFileChangeEventsAsync(service, token).ConfigureAwait(false);
@@ -187,10 +240,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public IFileWatchingToken EnqueueWatchingFile(string filePath)
             {
-                // If we already have this file under our path, we don't have to do additional watching
-                if (_directoryFilePathOpt != null && filePath.StartsWith(_directoryFilePathOpt))
+                // If we already have this file under our path, we may not have to do additional watching
+                foreach (var watchedDirectory in _watchedDirectories)
                 {
-                    return _noOpFileWatchingToken;
+                    if (watchedDirectory != null && filePath.StartsWith(watchedDirectory.Path))
+                    {
+                        // If ExtensionFilter is null, then we're watching for all files in the directory so the prior check
+                        // of the directory containment was sufficient. If it isn't null, then we have to check the extension
+                        // matches.
+                        if (watchedDirectory.ExtensionFilter == null || filePath.EndsWith(watchedDirectory.ExtensionFilter))
+                        {
+                            return _noOpFileWatchingToken;
+                        }
+                    }
                 }
 
                 var token = new FileWatchingToken();
@@ -229,11 +291,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             private Task UnsubscribeFileChangeEventsAsync(IVsAsyncFileChangeEx service, FileWatchingToken typedToken)
-            {
-                return service.UnadviseFileChangeAsync(typedToken.Cookie.Value);
-            }
+                => service.UnadviseFileChangeAsync(typedToken.Cookie!.Value);
 
-            public event EventHandler<string> FileChanged;
+            public event EventHandler<string>? FileChanged;
 
             int IVsFreeThreadedFileChangeEvents.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
             {
@@ -280,9 +340,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             int IVsFileChangeEvents.DirectoryChanged(string pszDirectory)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             public class FileWatchingToken : IFileWatchingToken
             {

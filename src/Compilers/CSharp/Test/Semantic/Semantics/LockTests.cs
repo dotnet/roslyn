@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -39,7 +41,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var localSymbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+            var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
             Assert.Equal("o", localSymbol.Name);
             Assert.Equal(SpecialType.System_Object, localSymbol.Type.SpecialType);
 
@@ -544,7 +546,7 @@ public class Test
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().Single();
             var parameterSymbol = model.GetDeclaredSymbol(localDecl);
-            VerifySemanticInfoForLockStatements(compilation, parameterSymbol);
+            VerifySemanticInfoForLockStatements(compilation, parameterSymbol.GetSymbol());
         }
 
         [Fact]
@@ -597,8 +599,8 @@ partial class Test
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type, isSymbolNull: true);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+            VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol(), isSymbolNull: true);
         }
 
         [Fact()]
@@ -621,8 +623,8 @@ class Test
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type);
+            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+            VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol());
         }
 
         [Fact()]
@@ -686,7 +688,7 @@ class Test
 
         #region help method
 
-        private static void VerifySemanticInfoForLockStatements(CSharpCompilation compilation, ISymbol symbol, int index = 1, bool isSymbolNull = false)
+        private static void VerifySemanticInfoForLockStatements(CSharpCompilation compilation, Symbol symbol, int index = 1, bool isSymbolNull = false)
         {
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -706,8 +708,8 @@ class Test
             Assert.NotNull(typeInfo.Type);
             Assert.NotNull(typeInfo.ConvertedType);
 
-            Assert.Equal(symbol, (TypeSymbol)typeInfo.Type);
-            Assert.Equal(symbol, (TypeSymbol)typeInfo.ConvertedType);
+            Assert.Equal(symbol, typeInfo.Type.GetSymbol());
+            Assert.Equal(symbol, typeInfo.ConvertedType.GetSymbol());
         }
 
         #endregion

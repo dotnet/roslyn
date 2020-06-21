@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,8 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionSize;
-using Microsoft.CodeAnalysis.SQLite;
+using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -50,13 +51,11 @@ namespace IdeBenchmarks
     </Project>
 </Workspace>");
 
-            // Ensure we always use the storage service, no matter what the size of the solution.
-            _workspace.Options = _workspace.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1);
+            // Explicitly choose the sqlite db to test.
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
 
-            _storageService = new SQLitePersistentStorageService(
-                _workspace.Services.GetService<IOptionService>(),
-                new LocationService(),
-                new SolutionSizeTracker());
+            _storageService = new SQLitePersistentStorageService(new LocationService());
 
             _storage = _storageService.GetStorageWorker(_workspace.CurrentSolution);
             if (_storage == NoOpPersistentStorage.Instance)
@@ -90,14 +89,15 @@ namespace IdeBenchmarks
         private static readonly byte[] s_bytes = new byte[1000];
 
         [Benchmark(Baseline = true)]
-        public Task Perf()
+        public Task PerfAsync()
         {
-            var tasks = new List<Task>();
+            const int capacity = 1000;
+            var tasks = new List<Task>(capacity);
 
             // Create a lot of overlapping reads and writes to the DB to several different keys. The
             // percentage of reads and writes is parameterized above, allowing us to validate
             // performance with several different usage patterns.
-            for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < capacity; i++)
             {
                 var name = _random.Next(0, 4).ToString();
                 if (_random.Next(0, 100) < ReadPercentage)
@@ -120,17 +120,11 @@ namespace IdeBenchmarks
             return Task.WhenAll(tasks);
         }
 
-        private class SolutionSizeTracker : ISolutionSizeTracker
-        {
-            public long GetSolutionSize(Workspace workspace, SolutionId solutionId) => 0;
-        }
-
         private class LocationService : IPersistentStorageLocationService
         {
-            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging { add { } remove { } }
-
             public bool IsSupported(Workspace workspace) => true;
-            public string TryGetStorageLocation(SolutionId solutionId)
+
+            public string TryGetStorageLocation(Solution _)
             {
                 // Store the db in a different random temp dir.
                 var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());

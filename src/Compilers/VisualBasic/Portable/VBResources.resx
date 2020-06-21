@@ -816,7 +816,7 @@
     <value>'Sub New' cannot be declared 'Partial'.</value>
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
-    <value>Failed to emit module '{0}'.</value>
+    <value>Failed to emit module '{0}': {1}</value>
   </data>
   <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
@@ -1252,6 +1252,9 @@
   </data>
   <data name="ERR_DuplicatePrefix" xml:space="preserve">
     <value>XML namespace prefix '{0}' is already declared.</value>
+  </data>
+  <data name="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected" xml:space="preserve">
+    <value>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</value>
   </data>
   <data name="ERR_StrictDisallowsLateBinding" xml:space="preserve">
     <value>Option Strict On disallows late binding.</value>
@@ -4976,8 +4979,14 @@
   <data name="ThereAreNoPointerTypesInVB" xml:space="preserve">
     <value>There are no pointer types in VB.</value>
   </data>
+  <data name="ThereAreNoFunctionPointerTypesInVB" xml:space="preserve">
+    <value>There are no function pointer types in VB.</value>
+  </data>
   <data name="ThereIsNoDynamicTypeInVB" xml:space="preserve">
     <value>There is no dynamic type in VB.</value>
+  </data>
+  <data name="ThereAreNoNativeIntegerTypesInVB" xml:space="preserve">
+    <value>There are no native integer types in VB.</value>
   </data>
   <data name="VariableSyntaxNotWithinSyntaxTree" xml:space="preserve">
     <value>variableSyntax not within syntax tree</value>
@@ -5563,5 +5572,11 @@
   </data>
   <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
     <value>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</value>
+  </data>
+  <data name="WRN_AttributeNotSupportedInVB" xml:space="preserve">
+    <value>'{0}' is not supported in VB.</value>
+  </data>
+  <data name="WRN_AttributeNotSupportedInVB_Title" xml:space="preserve">
+    <value>Attribute is not supported in VB</value>
   </data>
 </root>

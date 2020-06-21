@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,12 +13,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -36,6 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             protected readonly IWpfTableControl2 TableControl;
+
+            private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
 
             protected readonly object Gate = new object();
 
@@ -113,6 +115,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
                 Debug.Assert(_tableDataSink != null);
+
+                // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
+                // VS actually responds to each SetProgess call by queuing a UI task to do the
+                // progress bar update.  This can made FindReferences feel extremely slow when
+                // thousands of SetProgress calls are made.
+                //
+                // To ensure a reasonable experience, we instead add the progress into a queue and
+                // only update the UI a few times a second so as to not overload it.
+                _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
+                    TimeSpan.FromMilliseconds(250),
+                    this.UpdateTableProgressAsync,
+                    this.CancellationToken);
             }
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
@@ -141,6 +155,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             break;
                     }
                 }
+
+                customColumnsToInclude.Add(StandardTableKeyNames.Repository);
+                customColumnsToInclude.Add(StandardTableKeyNames.ItemOrigin);
 
                 return customColumnsToInclude.ToImmutableAndFree();
             }
@@ -353,11 +370,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
-            {
-                return OnReferenceFoundWorkerAsync(reference);
-            }
+                => OnReferenceFoundWorkerAsync(reference);
 
             protected abstract Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
+
+            public sealed override Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference)
+                => OnExternalReferenceFoundWorkerAsync(reference);
+
+            protected abstract Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference);
 
             protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
             {
@@ -365,7 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = new RoslynDefinitionBucket(Presenter, this, definition);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition);
                         _definitionToBucket.Add(definition, bucket);
                     }
 
@@ -373,24 +393,34 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public sealed override Task ReportProgressAsync(int current, int maximum)
+            public sealed override Task ReportMessageAsync(string message)
+                => throw new InvalidOperationException("This should never be called in the streaming case.");
+
+            protected sealed override Task ReportProgressAsync(int current, int maximum)
             {
-                // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
-                // Right now VS actually responds to each SetProgess call by enqueueing a UI task
-                // to do the progress bar update.  This can made FindReferences feel extremely slow
-                // when thousands of SetProgress calls are made.  So, for now, we're removing
-                // the progress update until the FindRefs window fixes that perf issue.
-#if false
-                try
+                _progressQueue.AddWork((current, maximum));
+                return Task.CompletedTask;
+            }
+
+            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken cancellationToken)
+            {
+                if (!nextBatch.IsEmpty)
                 {
-                    // The original FAR window exposed a SetProgress(double). Ensure that we 
-                    // don't crash if this code is running on a machine without the new API.
-                    _findReferencesWindow.SetProgress(current, maximum);
+                    var (current, maximum) = nextBatch.Last();
+
+                    // Do not update the UI if the current progress is zero.  It will switch us from the indeterminate
+                    // progress bar (which conveys to the user that we're working) to showing effectively nothing (which
+                    // makes it appear as if the search is complete).  So the user sees:
+                    //
+                    //      indeterminate->complete->progress
+                    //
+                    // instead of:
+                    //
+                    //      indeterminate->progress
+
+                    if (current > 0)
+                        _findReferencesWindow.SetProgress(current, maximum);
                 }
-                catch
-                {
-                }
-#endif
 
                 return Task.CompletedTask;
             }

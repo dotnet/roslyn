@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -7,85 +11,134 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal class JsonRpcConnection : RemoteHostClient.Connection
+    internal sealed class JsonRpcConnection : RemoteServiceConnection
     {
-        // communication channel related to service information
-        private readonly ServiceJsonRpcEx _serviceRpc;
+        private readonly HostWorkspaceServices _services;
+        private readonly RemoteEndPoint _serviceEndPoint;
+        private readonly IRemotableDataService _remotableDataService;
 
-        // communication channel related to snapshot information
-        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remoteDataRpc;
+        // Non-null if the connection is pooled.
+        private IPooledConnectionReclamation? _poolReclamation;
+
+        // True if the underlying end-point has been disposed.
+        private bool _disposed;
 
         public JsonRpcConnection(
+            HostWorkspaceServices services,
             TraceSource logger,
-            object callbackTarget,
+            object? callbackTarget,
             Stream serviceStream,
-            ReferenceCountedDisposable<RemotableDataJsonRpc> dataRpc)
+            IPooledConnectionReclamation? poolReclamation)
         {
-            Contract.ThrowIfNull(dataRpc);
+            _remotableDataService = services.GetRequiredService<IRemotableDataService>();
+            _services = services;
 
-            _serviceRpc = new ServiceJsonRpcEx(dataRpc.Target.Workspace, logger, serviceStream, callbackTarget);
-            _remoteDataRpc = dataRpc;
+            _serviceEndPoint = new RemoteEndPoint(serviceStream, logger, callbackTarget);
+            _serviceEndPoint.UnexpectedExceptionThrown += UnexpectedExceptionThrown;
+            _serviceEndPoint.StartListening();
+
+            _poolReclamation = poolReclamation;
+#if DEBUG
+            _creationCallStack = Environment.StackTrace;
+#endif
         }
 
-        public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-        {
-            return _serviceRpc.InvokeAsync(targetName, arguments, cancellationToken);
-        }
+#if DEBUG
+        private readonly string _creationCallStack;
 
-        public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        ~JsonRpcConnection()
         {
-            return _serviceRpc.InvokeAsync<T>(targetName, arguments, cancellationToken);
-        }
-
-        public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-        {
-            return _serviceRpc.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
-        }
-
-        public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-        {
-            return _serviceRpc.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
+            // this can happen if someone kills OOP. 
+            // when that happen, we don't want to crash VS, so this is debug only check
+            if (!Environment.HasShutdownStarted)
             {
-                // dispose service and snapshot channels
-                _serviceRpc.Dispose();
-                _remoteDataRpc.Dispose();
+                Debug.Assert(false,
+                    $"Unless OOP process (RoslynCodeAnalysisService) is explicitly killed, this should have been disposed!\r\n {_creationCallStack}");
+            }
+        }
+#endif
+        public override void Dispose()
+        {
+            // If the connection was taken from a pool, return it to the pool.
+            // Otherwise, dispose the underlying end-point and transition to "disposed" state.
+
+            var poolReclamation = Interlocked.Exchange(ref _poolReclamation, null);
+            if (poolReclamation != null)
+            {
+                poolReclamation.Return(this);
+                return;
             }
 
-            base.Dispose(disposing);
-        }
-
-        /// <summary>
-        /// Communication channel between VS feature and roslyn service in remote host.
-        /// 
-        /// this is the channel consumer of remote host client will playing with
-        /// </summary>
-        private sealed class ServiceJsonRpcEx : JsonRpcEx
-        {
-            private readonly object _callbackTarget;
-
-            public ServiceJsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object callbackTarget)
-                : base(workspace, logger, stream, callbackTarget, useThisAsCallback: false)
+            if (_disposed)
             {
-                // this one doesn't need cancellation token since it has nothing to cancel
-                _callbackTarget = callbackTarget;
-
-                StartListening();
+                return;
             }
 
-            protected override void Dispose(bool disposing)
+            _disposed = true;
+
+            // dispose service and snapshot channels
+            _serviceEndPoint.UnexpectedExceptionThrown -= UnexpectedExceptionThrown;
+            _serviceEndPoint.Dispose();
+
+#if DEBUG
+            GC.SuppressFinalize(this);
+#endif
+        }
+
+        private void UnexpectedExceptionThrown(Exception exception)
+            => RemoteHostCrashInfoBar.ShowInfoBar(_services, exception);
+
+        public override async Task RunRemoteAsync(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
+        {
+            if (solution != null)
             {
-                Contract.ThrowIfFalse(disposing);
-                Disconnect();
+                using var scope = await _remotableDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
+
+                argumentsBuilder.Add(scope.SolutionInfo);
+                argumentsBuilder.AddRange(arguments);
+
+                await _serviceEndPoint.InvokeAsync(targetName, argumentsBuilder, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await _serviceEndPoint.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public override async Task<T> RunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
+        {
+            if (solution != null)
+            {
+                using var scope = await _remotableDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
+
+                argumentsBuilder.Add(scope.SolutionInfo);
+                argumentsBuilder.AddRange(arguments);
+
+                if (dataReader != null)
+                {
+                    return await _serviceEndPoint.InvokeAsync(targetName, argumentsBuilder, dataReader, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    return await _serviceEndPoint.InvokeAsync<T>(targetName, argumentsBuilder, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            else if (dataReader != null)
+            {
+                return await _serviceEndPoint.InvokeAsync(targetName, arguments, dataReader, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return await _serviceEndPoint.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
         }
     }

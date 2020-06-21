@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -29,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SplitStringLiteralCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
@@ -40,14 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         public string DisplayName => CSharpEditorResources.Split_string;
 
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandWorker(args);
-        }
+            => ExecuteCommandWorker(args);
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
         {
@@ -56,22 +57,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
 
             // Don't split strings if there is any actual selection.
-            if (spans.Count == 1 && spans[0].IsEmpty)
+            // We must check all spans to account for multi-carets.
+            if (spans.IsEmpty() || !spans.All(s => s.IsEmpty))
             {
-                var caret = textView.GetCaretPoint(subjectBuffer);
-                if (caret != null)
+                return false;
+            }
+
+            var caret = textView.GetCaretPoint(subjectBuffer);
+            if (caret == null)
+            {
+                return false;
+            }
+
+            // First, we need to verify that we are only working with string literals.
+            // Otherwise, let the editor handle all carets.
+            foreach (var span in spans)
+            {
+                var spanStart = span.Start;
+                var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(span.Start);
+                if (!LineContainsQuote(line, span.Start))
                 {
-                    // Quick check.  If the line doesn't contain a quote in it before the caret,
-                    // then no point in doing any more expensive synchronous work.
-                    var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(caret.Value);
-                    if (LineContainsQuote(line, caret.Value))
-                    {
-                        return SplitString(textView, subjectBuffer, caret.Value);
-                    }
+                    return false;
                 }
             }
 
-            return false;
+            // We now go through the verified string literals and split each of them.
+            // The list of spans is traversed in reverse order so we do not have to
+            // deal with updating later caret positions to account for the added space
+            // from splitting at earlier caret positions.
+            foreach (var span in spans.Reverse())
+            {
+                if (!SplitString(textView, subjectBuffer, span.Start))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool SplitString(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint caret)

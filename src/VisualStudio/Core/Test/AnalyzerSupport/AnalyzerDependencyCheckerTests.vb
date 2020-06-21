@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.FormattableString
@@ -10,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.Win32
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     <[UseExportProvider]>
@@ -22,7 +25,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim mscorlib As AssemblyIdentity = Nothing
             AssemblyIdentity.TryParseDisplayName(s_mscorlibDisplayName, mscorlib)
 
-            Return {New IgnorableAssemblyIdentityList({mscorlib})}
+            Return SpecializedCollections.SingletonEnumerable(
+                New IgnorableAssemblyIdentityList(SpecializedCollections.SingletonEnumerable(mscorlib)))
         End Function
 
         <Fact>
@@ -468,7 +472,6 @@ public class E
 
                 Dim analyzer1FileName As String = Path.GetFileName(conflicts(0).AnalyzerFilePath1)
                 Dim analyzer2FileName As String = Path.GetFileName(conflicts(0).AnalyzerFilePath2)
-
 
                 Assert.Equal(expected:="E.dll", actual:=analyzer1FileName)
                 Assert.Equal(expected:="E.dll", actual:=analyzer2FileName)

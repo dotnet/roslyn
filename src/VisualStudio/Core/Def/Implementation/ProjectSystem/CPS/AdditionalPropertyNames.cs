@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
@@ -12,5 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         public const string RootNamespace = nameof(RootNamespace);
         public const string MaxSupportedLangVersion = nameof(MaxSupportedLangVersion);
+        public const string RunAnalyzers = nameof(RunAnalyzers);
+        public const string RunAnalyzersDuringLiveAnalysis = nameof(RunAnalyzersDuringLiveAnalysis);
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,27 +24,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, object>
+    internal class CompletionHandler : AbstractRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
     {
-        public async Task<object> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken, bool keepThreadContext = false)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CompletionHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+        }
+
+        public override async Task<LSP.CompletionItem[]> HandleRequestAsync(LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, string? clientName,
+            CancellationToken cancellationToken)
+        {
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<LSP.CompletionItem>();
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var completionService = document.Project.LanguageServices.GetService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(keepThreadContext);
+            // Filter out unimported types for now as there are two issues with providing them:
+            // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
+            //     https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1076759
+            // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
+            //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
+            // 3.  LSP client should support completion filters / expanders
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var completionOptions = documentOptions
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false);
+
+            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
+            var list = await completionService.GetCompletionsAsync(document, position, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
                 return Array.Empty<LSP.CompletionItem>();
             }
 
             var lspVSClientCapability = clientCapabilities?.HasVisualStudioLspCapability() == true;
+
             return list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability)).ToArray();
 
             // local functions
@@ -62,12 +85,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             static TCompletionItem CreateCompletionItem<TCompletionItem>(LSP.CompletionParams request, CompletionItem item) where TCompletionItem : LSP.CompletionItem, new()
                 => new TCompletionItem
                 {
-                    Label = item.DisplayText,
+                    Label = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix,
                     InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : item.DisplayText,
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText }
+                    Data = new CompletionResolveData { TextDocument = request.TextDocument, Position = request.Position, DisplayText = item.DisplayText }
                 };
         }
 

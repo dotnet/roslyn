@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -74,6 +76,12 @@ namespace Microsoft.CodeAnalysis
         /// Is this a symbol for a tuple .
         /// </summary>
         bool IsTupleType { get; }
+
+        /// <summary>
+        /// True if the type represents a native integer. In C#, the types represented
+        /// by language keywords 'nint' and 'nuint'.
+        /// </summary>
+        bool IsNativeIntegerType { get; }
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -168,6 +176,17 @@ namespace Microsoft.CodeAnalysis
             NullableFlowState topLevelNullability,
             int position,
             SymbolDisplayFormat? format = null);
+
+        /// <summary>
+        /// Nullable annotation associated with the type, or <see cref="NullableAnnotation.None"/> if there are none.
+        /// </summary>
+        NullableAnnotation NullableAnnotation { get; }
+
+        /// <summary>
+        /// Returns the same type as this type but with the given nullable annotation.
+        /// </summary>
+        /// <param name="nullableAnnotation">The nullable annotation to use</param>
+        ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation);
     }
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes

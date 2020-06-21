@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -1296,7 +1298,7 @@ class C
 }
 ";
             await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
-                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
 
         [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
@@ -1326,7 +1328,7 @@ class C
 }
 ";
             await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
-                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
 
         [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
@@ -1356,7 +1358,7 @@ class C
 }
 ";
             await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
-                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
 
         [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
@@ -1405,7 +1407,7 @@ class C
 }
 ";
             await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.MergeStyles(
-                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+                options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
 
         [WorkItem(35775, "https://github.com/dotnet/roslyn/issues/35775")]
@@ -1435,6 +1437,469 @@ class C
 }
 ";
             await TestInRegularAndScriptAsync(source, expected, index: 0, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+  [||]  string s;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+
+    public Program(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    [||]string s;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+
+    public Program(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelection3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string [||]s;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+
+    public Program(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelection4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s[||];
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+
+    public Program(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelection5()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;[||]
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+
+    public Program(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelection6()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s; [||]
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+
+    public Program(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMultiVar1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    [||]string s, t;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s, t;
+
+    public Program(int i, string s, string t)
+    {
+        this.i = i;
+        this.s = s;
+        this.t = t;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMultiVar2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s, t;[||]
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s, t;
+
+    public Program(int i, string s, string t)
+    {
+        this.i = i;
+        this.s = s;
+        this.t = t;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMultiVar3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string [||]s, t;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s, t;
+
+    public Program(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMultiVar4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s[||], t;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s, t;
+
+    public Program(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMultiVar5()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s, [||]t;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s, t;
+
+    public Program(int i, string t)
+    {
+        this.i = i;
+        this.t = t;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMultiVar6()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s, t[||];
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s, t;
+
+    public Program(int i, string t)
+    {
+        this.i = i;
+        this.t = t;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMissing1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    [||]
+    string s, t;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}");
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMissing2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    s[||]tring s, t;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}");
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMissing3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string[||] s, t;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}");
+        }
+
+        [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNonSelectionMissing4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s,[||] t;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}");
         }
     }
 }

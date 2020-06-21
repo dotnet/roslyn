@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Roslyn.Utilities;
 
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis
             // Dev11: first look relative to the directory containing the file with the <include> element (baseFilepath)
             // and then look in the base directory (i.e. current working directory of the compiler).
 
-            string resolvedPath;
+            string? resolvedPath;
 
             if (baseFilePath != null)
             {
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             return FileUtilities.OpenRead(resolvedPath);
         }
 
-        protected virtual bool FileExists(string? resolvedPath)
+        protected virtual bool FileExists([NotNullWhen(true)] string? resolvedPath)
         {
             return File.Exists(resolvedPath);
         }

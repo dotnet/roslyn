@@ -1,7 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -9,8 +14,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Editor.UnitTests.Preview.TestOnly_CompilerDiagnosticAnalyzerProviderService;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityLevel
 {
@@ -21,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         // For example: "dotnet_style_object_initializer = true:suggestion   # Optional comment"
         private static readonly Regex s_optionBasedEntryPattern = new Regex(@"([\w ]+)=([\w ]+):[ ]*([\w]+)([ ]*[;#].*)?");
 
-        private static ImmutableArray<(string diagnosticId, ImmutableHashSet<IOption> codeStyleOptions)> GetIDEDiagnosticIdsAndOptions(
+        private static ImmutableArray<(string diagnosticId, ImmutableHashSet<IOption2> codeStyleOptions)> GetIDEDiagnosticIdsAndOptions(
             string languageName)
         {
             const string diagnosticIdPrefix = "IDE";
 
-            var diagnosticIdAndOptions = new List<(string diagnosticId, ImmutableHashSet<IOption> options)>();
+            var diagnosticIdAndOptions = new List<(string diagnosticId, ImmutableHashSet<IOption2> options)>();
             var uniqueDiagnosticIds = new HashSet<string>();
             foreach (var assembly in MefHostServices.DefaultAssemblies)
             {
-                var analyzerReference = new AnalyzerFileReference(assembly.Location, FromFileLoader.Instance);
+                var analyzerReference = new AnalyzerFileReference(assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile);
                 foreach (var analyzer in analyzerReference.GetAnalyzers(languageName))
                 {
                     foreach (var descriptor in analyzer.SupportedDiagnostics)
@@ -47,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
                         if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, languageName, out var options))
                         {
-                            options = ImmutableHashSet<IOption>.Empty;
+                            options = ImmutableHashSet<IOption2>.Empty;
                         }
 
                         if (uniqueDiagnosticIds.Add(diagnosticId))
@@ -255,7 +260,10 @@ dotnet_diagnostic.IDE0035.severity = %value%
 dotnet_diagnostic.IDE0036.severity = %value%
 
 # IDE0037
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_diagnostic.IDE0037.severity = %value%
+
+# IDE0038
+dotnet_diagnostic.IDE0038.severity = %value%
 
 # IDE0039
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -350,6 +358,33 @@ dotnet_diagnostic.IDE0068.severity = %value%
 # IDE0069
 dotnet_diagnostic.IDE0069.severity = %value%
 
+# IDE0070
+dotnet_diagnostic.IDE0070.severity = %value%
+
+# IDE0071
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+
+# IDE0072
+dotnet_diagnostic.IDE0072.severity = %value%
+
+# IDE0073
+dotnet_diagnostic.IDE0073.severity = %value%
+
+# IDE0074
+dotnet_style_prefer_compound_assignment = true:suggestion
+
+# IDE0075
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+
+# IDE0076
+dotnet_diagnostic.IDE0076.severity = %value%
+
+# IDE0077
+dotnet_diagnostic.IDE0077.severity = %value%
+
+# IDE0080
+dotnet_diagnostic.IDE0080.severity = %value%
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -416,7 +451,7 @@ dotnet_style_explicit_tuple_names = true:suggestion
 dotnet_diagnostic.IDE0036.severity = %value%
 
 # IDE0037
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_diagnostic.IDE0037.severity = %value%
 
 # IDE0040
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
@@ -477,6 +512,24 @@ dotnet_diagnostic.IDE0068.severity = %value%
 
 # IDE0069
 dotnet_diagnostic.IDE0069.severity = %value%
+
+# IDE0070
+dotnet_diagnostic.IDE0070.severity = %value%
+
+# IDE0071
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+
+# IDE0073
+dotnet_diagnostic.IDE0073.severity = %value%
+
+# IDE0075
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+
+# IDE0076
+dotnet_diagnostic.IDE0076.severity = %value%
+
+# IDE0077
+dotnet_diagnostic.IDE0077.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -710,10 +763,16 @@ csharp_prefer_simple_default_expression = true:suggestion
 No editorconfig based code style option
 
 # IDE0036, PreferredModifierOrder
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:silent
 
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
+
+# IDE0037, PreferInferredAnonymousTypeMemberNames
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
+
+# IDE0038
+No editorconfig based code style option
 
 # IDE0039, PreferLocalOverAnonymousFunction
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
@@ -820,6 +879,33 @@ No editorconfig based code style option
 # IDE0069
 No editorconfig based code style option
 
+# IDE0070
+No editorconfig based code style option
+
+# IDE0071, PreferSimplifiedInterpolation
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+
+# IDE0072
+No editorconfig based code style option
+
+# IDE0073, FileHeaderTemplate
+file_header_template = unset
+
+# IDE0074, PreferCompoundAssignment
+dotnet_style_prefer_compound_assignment = true:suggestion
+
+# IDE0075, PreferSimplifiedBooleanExpressions
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+
+# IDE0076
+No editorconfig based code style option
+
+# IDE0077
+No editorconfig based code style option
+
+# IDE0080
+No editorconfig based code style option
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -901,10 +987,13 @@ dotnet_style_prefer_auto_properties = true:silent
 dotnet_style_explicit_tuple_names = true:suggestion
 
 # IDE0036, PreferredModifierOrder
-visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator
+visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator:silent
 
 # IDE0037, PreferInferredTupleNames
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
+
+# IDE0037, PreferInferredAnonymousTypeMemberNames
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 
 # IDE0040, RequireAccessibilityModifiers
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
@@ -976,6 +1065,24 @@ No editorconfig based code style option
 No editorconfig based code style option
 
 # IDE0069
+No editorconfig based code style option
+
+# IDE0070
+No editorconfig based code style option
+
+# IDE0071, PreferSimplifiedInterpolation
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+
+# IDE0073, FileHeaderTemplate
+file_header_template = unset
+
+# IDE0075, PreferSimplifiedBooleanExpressions
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+
+# IDE0076
+No editorconfig based code style option
+
+# IDE0077
 No editorconfig based code style option
 
 # IDE1006

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -119,6 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public sealed override bool AreLocalsZeroed => ContainingModule.AreLocalsZeroed;
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
@@ -310,6 +314,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsDeclaredReadOnly => false;
+
+        internal sealed override bool IsInitOnly => false;
 
         internal override bool SynthesizesLoweredBoundBody
         {

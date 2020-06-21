@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.VisualStudio.Telemetry;
@@ -87,46 +89,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 AggregateException aggregate when aggregate.InnerException != null =>
                     // get first exception that is not aggregated exception
                     GetParameterString(aggregate.InnerException),
-                _ => $"{exception.GetType().ToString()} {(exception.StackTrace ?? exception.ToString())}",
+                _ => $"{exception.GetType()} {exception.StackTrace ?? exception.ToString()}",
             };
-
-        /// <summary>
-        /// hold onto last issue we reported. we use hash
-        /// since exception callstack could be quite big
-        /// </summary>
-        private static int s_lastExceptionReported;
-
-#if DEBUG
-        /// <summary>
-        /// in debug, we also hold onto reported string to make debugging easier
-        /// </summary>
-        private static string s_lastExceptionReportedDebug;
-#endif
-
-        public static bool ShouldReport(this Exception exception)
-        {
-            // this is a poor man's check whether we are called for same issues repeatedly
-            // one of problem of NFW compared to FW is that since we don't crash at an issue, same issue
-            // might happen repeatedly. especially in short amount of time. reporting all those issues
-            // are meaningless so we do cheap check to see we just reported same issue and
-            // bail out.
-            // I think this should be actually done by PostFault itself and I talked to them about it.
-            // but until they do something, we will do very simple throuttle ourselves.
-            var currentExceptionString = exception.GetParameterString();
-            var currentException = currentExceptionString.GetHashCode();
-            if (s_lastExceptionReported == currentException)
-            {
-                return false;
-            }
-
-#if DEBUG
-            s_lastExceptionReportedDebug = currentExceptionString;
-#endif
-
-            s_lastExceptionReported = currentException;
-
-            return true;
-        }
 
         public static bool SetCallstackIfEmpty(this Exception exception)
         {

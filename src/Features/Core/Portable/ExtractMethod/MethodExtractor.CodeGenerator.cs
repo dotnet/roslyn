@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -31,7 +34,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult)
+            protected readonly OptionSet Options;
+            protected readonly bool LocalFunction;
+
+            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, OptionSet options = null, bool localFunction = false)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
@@ -40,6 +46,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 SelectionResult = selectionResult;
                 AnalyzerResult = analyzerResult;
+
+                Options = options;
+                LocalFunction = localFunction;
 
                 MethodNameAnnotation = new SyntaxAnnotation();
                 CallSiteAnnotation = new SyntaxAnnotation();
@@ -51,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
-            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken);
+            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
@@ -72,24 +81,35 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public async Task<GeneratedCode> GenerateAsync(CancellationToken cancellationToken)
             {
                 var root = SemanticDocument.Root;
-
                 // should I check venus hidden position check here as well?
                 root = root.ReplaceNode(GetOutermostCallSiteContainerToProcess(cancellationToken), await GenerateBodyForCallSiteContainerAsync(cancellationToken).ConfigureAwait(false));
                 var callSiteDocument = await SemanticDocument.WithSyntaxRootAsync(root, cancellationToken).ConfigureAwait(false);
 
                 var newCallSiteRoot = callSiteDocument.Root;
-                var previousMemberNode = GetPreviousMember(callSiteDocument);
-
-                // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
-                var destination = (previousMemberNode.Parent == null) ? previousMemberNode : previousMemberNode.Parent;
 
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
+                var result = GenerateMethodDefinition(LocalFunction, cancellationToken);
 
-                var result = GenerateMethodDefinition(cancellationToken);
-                var newContainer = codeGenerationService.AddMethod(
-                    destination, result.Data,
-                    new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
-                    cancellationToken);
+                SyntaxNode destination, newContainer;
+                if (LocalFunction)
+                {
+                    destination = InsertionPoint.With(callSiteDocument).GetContext();
+                    var localMethod = codeGenerationService.CreateMethodDeclaration(
+                        method: result.Data,
+                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: Options, parseOptions: destination?.SyntaxTree.Options));
+                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
+                }
+                else
+                {
+                    var previousMemberNode = GetPreviousMember(callSiteDocument);
+
+                    // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
+                    destination = previousMemberNode.Parent ?? previousMemberNode;
+                    newContainer = codeGenerationService.AddMethod(
+                        destination, result.Data,
+                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: Options),
+                        cancellationToken);
+                }
 
                 var newDocument = callSiteDocument.Document.WithSyntaxRoot(newCallSiteRoot.ReplaceNode(destination, newContainer));
                 newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
@@ -235,7 +255,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             protected IEnumerable<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
-                IEnumerable<TStatement> statements, CancellationToken cancellationToken)
+                CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
 
@@ -269,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return statements.Concat(CreateReturnStatement(AnalyzerResult.VariableToUseAsReturnValue.Name));
             }
 
-            protected HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
+            protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>();
@@ -305,7 +325,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     }
 
                     typeParameters.Add(CodeGenerationSymbolFactory.CreateTypeParameter(
-                        parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(),
+                        parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(), parameter.NullableAnnotation,
                         parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasUnmanagedTypeConstraint,
                         parameter.HasValueTypeConstraint, parameter.HasNotNullConstraint, parameter.Ordinal));
                 }

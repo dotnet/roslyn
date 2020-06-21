@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Concurrent
@@ -97,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If result IsNot Nothing Then
                 ' We only cache result equivalent to digging through type forwarders, which
-                ' might produce an forwarder specific ErrorTypeSymbol. We don't want to 
+                ' might produce a forwarder specific ErrorTypeSymbol. We don't want to 
                 ' return that error symbol, unless digThroughForwardedTypes Is true.
                 If digThroughForwardedTypes OrElse (Not result.IsErrorType() AndAlso result.ContainingAssembly Is Me) Then
                     Return result

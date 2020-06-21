@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -22,17 +24,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public class EditSessionActiveStatementsTests : TestBase
     {
-        internal sealed class TestActiveStatementProvider : IActiveStatementProvider
-        {
-            private readonly ImmutableArray<ActiveStatementDebugInfo> _infos;
-
-            public TestActiveStatementProvider(ImmutableArray<ActiveStatementDebugInfo> infos)
-                => _infos = infos;
-
-            public Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-                => Task.FromResult(_infos);
-        }
-
         internal static ImmutableArray<ActiveStatementDebugInfo> GetActiveStatementDebugInfos(
             string[] markedSources,
             string extension = ".cs",
@@ -97,35 +88,38 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 ImmutableArray<ActiveStatementDebugInfo> activeStatements,
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
                 Func<Solution, Solution> adjustSolution = null,
-                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesDebuggee)
+                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
             {
                 var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTracker)));
 
                 var exportProvider = exportProviderFactory.CreateExportProvider();
 
-                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider);
+                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider, openDocuments: true);
 
                 if (adjustSolution != null)
                 {
                     Workspace.ChangeSolution(adjustSolution(Workspace.CurrentSolution));
                 }
 
-                var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
-                var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
-                var mockCompilationOutputsProvider = new MockCompilationOutputsProviderService();
+                var solution = Workspace.CurrentSolution;
 
-                var debuggingSession = new DebuggingSession(Workspace, mockDebuggeModuleProvider.Object, activeStatementProvider, mockCompilationOutputsProvider);
+                var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>(MockBehavior.Strict);
+                var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
+
+                var debuggingSession = new DebuggingSession(solution, mockCompilationOutputsProvider);
 
                 if (initialState != CommittedSolution.DocumentState.None)
                 {
-                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, Workspace.CurrentSolution, initialState);
+                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, solution, initialState);
                 }
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
+                Assert.IsType<TestActiveStatementSpanTracker>(Workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+
                 var telemetry = new EditSessionTelemetry();
-                EditSession = new EditSession(debuggingSession, telemetry);
+                EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockDebuggeModuleProvider.Object);
             }
 
             public ImmutableArray<DocumentId> GetDocumentIds()
@@ -544,7 +538,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, baseExceptionRegions.Select(r => r.Spans.IsDefault ? "out-of-sync" : "[" + string.Join(",", r.Spans) + "]"));
 
             // document got synchronized:
-            validator.EditSession.DebuggingSession.LastCommittedSolution.Test_SetDocumentState(docs[0], CommittedSolution.DocumentState.MatchesDebuggee);
+            validator.EditSession.DebuggingSession.LastCommittedSolution.Test_SetDocumentState(docs[0], CommittedSolution.DocumentState.MatchesBuildOutput);
 
             baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
 

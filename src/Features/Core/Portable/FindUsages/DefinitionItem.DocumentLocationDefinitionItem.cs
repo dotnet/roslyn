@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return SourceSpans[0].CanNavigateTo();
             }
 
-            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
+            public override bool TryNavigateTo(Workspace workspace, NavigationBehavior navigationBehavior)
             {
                 if (Properties.ContainsKey(NonNavigable))
                 {
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
                 }
 
-                return SourceSpans[0].TryNavigateTo(isPreview);
+                return SourceSpans[0].TryNavigateTo(navigationBehavior);
             }
 
             private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -276,10 +279,17 @@ class C
     }
 }
 ";
-            CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "p.bar + far").WithArguments("+", "method group", "method group"),
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"(x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far").WithArguments("+", "lambda expression", "method group"),
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group"));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,16): error CS0019: Operator '+' cannot be applied to operands of type 'method group' and 'method group'
+                //         goo += p.bar + far;// Invalid
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p.bar + far").WithArguments("+", "method group", "method group").WithLocation(11, 16),
+                // (12,16): error CS0019: Operator '+' cannot be applied to operands of type 'lambda expression' and 'method group'
+                //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"(x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far").WithArguments("+", "lambda expression", "method group").WithLocation(12, 16),
+                // (13,16): error CS0019: Operator '+' cannot be applied to operands of type 'anonymous method' and 'method group'
+                //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group").WithLocation(13, 16)
+                );
         }
 
         // Removal or concatenation for the delegate on Variance
@@ -1059,13 +1069,13 @@ namespace X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!q").WithArguments("!", "object").WithLocation(9, 17),
                 // (12,26): error CS8310: Operator '-' cannot be applied to operand '<null>'
                 //             object obj = -null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(12, 26),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "-null").WithArguments("-", "<null>").WithLocation(12, 26),
                 // (13,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //             obj = !null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(13, 19),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "!null").WithArguments("!", "<null>").WithLocation(13, 19),
                 // (14,19): error CS8310: Operator '~' cannot be applied to operand '<null>'
                 //             obj = ~null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(14, 19),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "~null").WithArguments("~", "<null>").WithLocation(14, 19),
                 // (16,13): error CS0023: Operator '++' cannot be applied to operand of type 'object'
                 //             obj++; // CS0023
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "obj++").WithArguments("++", "object").WithLocation(16, 13),
@@ -1074,7 +1084,7 @@ namespace X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "--obj").WithArguments("--", "object").WithLocation(17, 13),
                 // (18,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
                 //             return +null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(18, 20)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "+null").WithArguments("+", "<null>").WithLocation(18, 20)
                 );
         }
 
@@ -1102,16 +1112,16 @@ public class Test
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //         bool? b = !null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "!null").WithArguments("!", "<null>").WithLocation(6, 19),
                 // (7,18): error CS8310: Operator '~' cannot be applied to operand '<null>'
                 //         int? n = ~null;    // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "~null").WithArguments("~", "<null>").WithLocation(7, 18),
                 // (8,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
                 //         float? f = +null;  // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "+null").WithArguments("+", "<null>").WithLocation(8, 20),
                 // (9,19): error CS8310: Operator '-' cannot be applied to operand '<null>'
                 //         long? u = -null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(9, 19)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "-null").WithArguments("-", "<null>").WithLocation(9, 19)
                 );
         }
 
@@ -1477,6 +1487,166 @@ class D
                 // (6,29): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                 //         int[] arr = new int[m];    // Invalid
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "m").WithArguments("bool", "int").WithLocation(6, 29));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void ThrowExpression_ImplicitVoidConversion_Return()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        return true ? throw null : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,23): error CS0029: Cannot implicitly convert type '<throw expression>' to 'void'
+                //         return true ? throw null : M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 23));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void ThrowExpression_ImplicitVoidConversion_Assignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        object obj = true ? throw null : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,29): error CS0029: Cannot implicitly convert type '<throw expression>' to 'void'
+                //         object obj = true ? throw null : M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 29));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void IntLiteral_ImplicitVoidConversion_Assignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        object obj = true ? 0 : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,22): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'int' and 'void'
+                //         object obj = true ? 0 : M2();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? 0 : M2()").WithArguments("int", "void").WithLocation(6, 22));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_ImplicitVoidConversion_Assignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        object obj = true ? M2() : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,22): error CS0029: Cannot implicitly convert type 'void' to 'object'
+                //         object obj = true ? M2() : M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true ? M2() : M2()").WithArguments("void", "object").WithLocation(6, 22));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_ImplicitVoidConversion_DiscardAssignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        _ = true ? M2() : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = true ? M2() : M2();
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_Assignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        object obj = M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,22): error CS0029: Cannot implicitly convert type 'void' to 'object'
+                //         object obj = M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 22));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_DiscardAssignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        _ = M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = M2();
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_ImplicitVoidConversion_Return()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        return true ? M2() : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,9): error CS0127: Since 'C.M1()' returns void, a return keyword must not be followed by an object expression
+                //         return true ? M2() : M2();
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M1()").WithLocation(6, 9));
         }
 
         [Fact]
@@ -2550,7 +2720,11 @@ enum F { W, X = Z, Y, Z }
             var test = @"
 int x;
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test, new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 2, Column = 5 });
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,5): warning CS0168: The variable 'x' is declared but never used
+                // int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(2, 5)
+                );
         }
 
         [Fact]
@@ -2610,9 +2784,14 @@ namespace ns1
 delegate int D();
 D d = null;
 ";
-            CreateCompilation(test).VerifyDiagnostics(
-                // (3,3): error CS0116: A namespace does not directly contain members such as fields or methods
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d"));
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                    // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                    // D d = null;
+                    Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = null;").WithLocation(3, 1),
+                    // (3,3): warning CS0219: The variable 'd' is assigned but its value is never used
+                    // D d = null;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "d").WithArguments("d").WithLocation(3, 3)
+                );
         }
 
         [WorkItem(540091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540091")]
@@ -2625,7 +2804,10 @@ D d = {;}
 ";
             // In this case, CS0116 is suppressed because of the syntax errors
 
-            CreateCompilation(test).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // D d = {;}
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = {;").WithLocation(3, 1),
                 // (3,8): error CS1513: } expected
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ";"),
                 // (3,9): error CS1022: Type or namespace definition, or end-of-file expected
@@ -3152,10 +3334,10 @@ class Error
             Assert.Equal(1, boundCall.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, boundCall.CandidateReason);
 
-            var constructedMethodSymbol = (MethodSymbol)(boundCall.CandidateSymbols[0]);
+            var constructedMethodSymbol = (IMethodSymbol)(boundCall.CandidateSymbols[0]);
             Assert.Equal("void Error.Goo<A.ProtectedClass>(I<A.ProtectedClass> i)", constructedMethodSymbol.ToTestDisplayString());
 
-            var typeArgSymbol = constructedMethodSymbol.TypeArgumentsWithAnnotations.Single().Type;
+            var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single();
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Protected inner class is inaccessible");
 
@@ -3509,12 +3691,12 @@ namespace MyNamespace
 }";
             CreateCompilation(text).
                 VerifyDiagnostics(
-                    // (9,14): error CS0128: A local variable named 'i' is already defined in this scope
+                    // (9,14): error CS0128: A local variable or function named 'i' is already defined in this scope
                     //          int i = 2;   // CS0128
-                    Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i"),
+                    Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i").WithLocation(9, 14),
                     // (9,14): warning CS0219: The variable 'i' is assigned but its value is never used
                     //          int i = 2;   // CS0128
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i")
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(9, 14)
                 );
         }
 
@@ -7045,14 +7227,15 @@ class MyDerived : MyClass
     }
 }
 ";
+
             CreateCompilation(source).VerifyDiagnostics(
-                // (28,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (28,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         TestInt = 15; // CS0191 - not in declaring class
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(28, 9),
-                // (11,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (11,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         t.TestInt = 14; // CS0191 - we can't be sure that the receiver is this
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "t.TestInt").WithLocation(11, 9),
-                // (16,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (16,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         TestInt = 19;                  // CS0191
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(16, 9));
         }
@@ -11703,10 +11886,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
                 // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var v = M(); // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
-                // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
-                //         var p = null;//CS0815
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p"));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"));
         }
 
         [Fact]
@@ -12362,11 +12542,20 @@ namespace TestNamespace
     }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 10, Column = 23 },
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 11, Column = 23 },
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 12, Column = 22 },
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 13, Column = 22 }});
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b1 = (() => { }) is Del;   // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "(() => { }) is Del").WithLocation(10, 23),
+                // (11,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } is Del").WithLocation(11, 23),
+                // (12,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "() => { } as Del").WithLocation(12, 22),
+                // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22)
+                );
         }
 
         [Fact]
@@ -14586,14 +14775,16 @@ class C : IEnumerable
 }
 ";
             var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
+            var expected = new DiagnosticDescription[] {
                 // (12,13): error CS1621: The yield statement cannot be used inside an anonymous method or lambda expression
                 //             yield return this; // CS1621
                 Diagnostic(ErrorCode.ERR_YieldInAnonMeth, "yield"),
                 // (8,24): error CS0161: 'C.GetEnumerator()': not all code paths return a value
                 //     public IEnumerator GetEnumerator()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "GetEnumerator").WithArguments("C.GetEnumerator()")
-                );
+            };
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -16008,7 +16199,7 @@ public unsafe class C
                 // (19,9): error CS1650: Fields of static readonly field 'C._s1' cannot be assigned to (except in a static constructor or a variable initializer)
                 //         C._s1.name[3] = 'a';  // CS1648
                 Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "C._s1.name[3]").WithArguments("C._s1").WithLocation(19, 9),
-                // (20,9): error CS1648: Members of readonly field 'C._s2' cannot be modified (except in a constructor or a variable initializer)
+                // (20,9): error CS1648: Members of readonly field 'C._s2' cannot be modified (except in a constructor, an init-only member or a variable initializer)
                 //         myC._s2.name[3] = 'a';  // CS1648
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "myC._s2.name[3]").WithArguments("C._s2").WithLocation(20, 9)
                 );
@@ -17187,10 +17378,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,25): error CS1959: 'x' is of type 'T'. The type specified in a constant declaration must be sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, an enum-type, or a reference-type.
                 //             const T x = null; // CS1959
-                Diagnostic(ErrorCode.ERR_InvalidConstantDeclarationType, "null").WithArguments("x", "T"),
-                // (6,21): warning CS0219: The variable 'x' is assigned but its value is never used
-                //             const T x = null; // CS1959
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x")
+                Diagnostic(ErrorCode.ERR_InvalidConstantDeclarationType, "null").WithArguments("x", "T")
                 );
         }
 
@@ -24009,12 +24197,12 @@ class B : System.Attribute {
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (7,2): error CS8355: Cannot use attribute constructor 'B.B(in int)' because it is has 'in' parameters.
-                // [B()]
-                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2),
-                // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
+                // (2,2): error CS8358: Cannot use attribute constructor 'A.A(in int)' because it has 'in' parameters.
                 // [A(1)]
-                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2),
+                // (7,2): error CS8358: Cannot use attribute constructor 'B.B(in int)' because it has 'in' parameters.
+                // [B()]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2)
                 );
         }
 
@@ -24038,6 +24226,75 @@ public class C
                 //         Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, "a switch { 0 => 1, _ => 2 }").WithLocation(9, 45)
                 );
+        }
+
+        [Fact]
+        public void PointerGenericConstraintTypes()
+        {
+            var source = @"
+namespace A
+{
+    class D {}
+}
+
+class B {}
+
+unsafe class C<T, U, V, X, Y, Z> where T : byte*
+                                 where U : unmanaged
+                                 where V : U*
+                                 where X : object*
+                                 where Y : B*
+                                 where Z : A.D*
+{
+    void M1<A>() where A : byte* {}
+    void M2<A, B>() where A : unmanaged 
+                    where B : A* {}
+    void M3<A>() where A : object* {}
+    void M4<A>() where A : B* {}
+    void M5<A>() where A : T {}
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                    // (9,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    // unsafe class C<T, U, V, X, Y, Z> where T : byte*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "byte*").WithLocation(9, 44),
+                    // (11,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where V : U*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "U*").WithLocation(11, 44),
+                    // (12,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where X : object*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object*").WithLocation(12, 44),
+                    // (13,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where Y : B*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "B*").WithLocation(13, 44),
+                    // (14,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where Z : A.D*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "A.D*").WithLocation(14, 44),
+                    // (16,28): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //     void M1<A>() where A : byte* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "byte*").WithLocation(16, 28),
+                    // (18,31): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                     where B : A* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "A*").WithLocation(18, 31),
+                    // (19,28): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //     void M3<A>() where A : object* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object*").WithLocation(19, 28),
+                    // (20,28): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //     void M4<A>() where A : B* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "B*").WithLocation(20, 28)
+            );
+        }
+
+        [Fact]
+        public void ArrayGenericConstraintTypes()
+        {
+            var source = @"class A<T> where T : object[] {}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (1,22): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    // class A<T> where T : object[] {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object[]").WithLocation(1, 22));
         }
     }
 }

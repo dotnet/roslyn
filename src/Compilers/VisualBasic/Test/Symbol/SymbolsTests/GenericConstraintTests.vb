@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Xml.Linq
@@ -2662,19 +2664,33 @@ BC32078: 'Friend Sub M(Of V As A)()' cannot implement 'I(Of A, B).Sub M(Of V As 
 .class public A
 {
 }
-.class interface public abstract I<(class A modreq(int32))T>
+.class interface public abstract I
+{
+    .method public abstract virtual instance void M<(class A modreq(int32))T>() { }
+}
+.class interface public abstract IT<(class A modreq(int32))T>
 {
 }
 ]]>.Value
             Dim vbSource =
                 <compilation>
                     <file name="c.vb"><![CDATA[
-Class C
-    Implements I(Of A)
+Class C1
+    Implements I
+    Sub M(Of T)() Implements I.M
+    End Sub
+End Class
+Class C2
+    Implements IT(Of A)
 End Class
 Class C(Of T)
-    Implements I(Of T)
+    Implements IT(Of T)
     Sub M(Of U As T)()
+    End Sub
+End Class
+Class C3
+    Implements I
+    Sub M(Of T As A)() Implements I.M
     End Sub
 End Class
 ]]>
@@ -2682,19 +2698,25 @@ End Class
                 </compilation>
             Dim comp = CreateCompilationWithCustomILSource(vbSource, ilSource)
             comp.AssertTheseDiagnostics(<expected>
+BC32078: 'Public Sub M(Of T)()' cannot implement 'I.Sub M(Of T As ?)()' because they differ by type parameter constraints.
+    Sub M(Of T)() Implements I.M
+                             ~~~
 BC30649: '' is an unsupported type.
-Class C
-      ~
+Class C2
+      ~~
 BC32044: Type argument 'A' does not inherit from or implement the constraint type '?'.
-Class C
-      ~
+Class C2
+      ~~
 BC30649: '' is an unsupported type.
 Class C(Of T)
       ~
 BC32044: Type argument 'T' does not inherit from or implement the constraint type '?'.
 Class C(Of T)
       ~
-</expected>)
+BC32078: 'Public Sub M(Of T As A)()' cannot implement 'I.Sub M(Of T As ?)()' because they differ by type parameter constraints.
+    Sub M(Of T As A)() Implements I.M
+                                  ~~~
+                                        </expected>)
         End Sub
 
         ''' <summary>

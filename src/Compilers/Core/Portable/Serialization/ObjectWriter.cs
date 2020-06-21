@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +21,8 @@ namespace Roslyn.Utilities
     using System.Threading.Tasks;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
+#elif CODE_STYLE
+    using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
 #endif
@@ -69,16 +75,18 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public ObjectWriter(
             Stream stream,
+            bool leaveOpen = false,
             CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _writer = new BinaryWriter(stream, Encoding.UTF8);
+            _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
             _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _cancellationToken = cancellationToken;
@@ -98,6 +106,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
+            _writer.Dispose();
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
             _recursionDepth = 0;
@@ -117,7 +126,7 @@ namespace Roslyn.Utilities
         public void WriteUInt32(uint value) => _writer.Write(value);
         public void WriteUInt64(ulong value) => _writer.Write(value);
         public void WriteUInt16(ushort value) => _writer.Write(value);
-        public void WriteString(string value) => WriteStringValue(value);
+        public void WriteString(string? value) => WriteStringValue(value);
 
         /// <summary>
         /// Used so we can easily grab the low/high 64bits of a guid for serialization.
@@ -141,7 +150,7 @@ namespace Roslyn.Utilities
             WriteInt64(accessor.High64);
         }
 
-        public void WriteValue(object value)
+        public void WriteValue(object? value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
 
@@ -164,7 +173,7 @@ namespace Roslyn.Utilities
             if (typeInfo.IsPrimitive)
             {
                 // Note: int, double, bool, char, have been chosen to go first as they're they
-                // common values of literals in code, and so would be hte likely hits if we do
+                // common values of literals in code, and so would be the likely hits if we do
                 // have a primitive type we're serializing out.
                 if (value.GetType() == typeof(int))
                 {
@@ -255,11 +264,60 @@ namespace Roslyn.Utilities
             }
             else
             {
-                WriteObject(instance: value, instanceAsWritableOpt: null);
+                WriteObject(instance: value, instanceAsWritable: null);
             }
         }
 
-        public void WriteValue(IObjectWritable value)
+        /// <summary>
+        /// Write an array of bytes. The array data is provided as a
+        /// <see cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="byte"/>&gt;, and deserialized to a byte array.
+        /// </summary>
+        /// <param name="span">The array data.</param>
+        public void WriteValue(ReadOnlySpan<byte> span)
+        {
+            int length = span.Length;
+            switch (length)
+            {
+                case 0:
+                    _writer.Write((byte)EncodingKind.Array_0);
+                    break;
+                case 1:
+                    _writer.Write((byte)EncodingKind.Array_1);
+                    break;
+                case 2:
+                    _writer.Write((byte)EncodingKind.Array_2);
+                    break;
+                case 3:
+                    _writer.Write((byte)EncodingKind.Array_3);
+                    break;
+                default:
+                    _writer.Write((byte)EncodingKind.Array);
+                    WriteCompressedUInt((uint)length);
+                    break;
+            }
+
+            var elementType = typeof(byte);
+            Debug.Assert(s_typeMap[elementType] == EncodingKind.UInt8);
+
+            WritePrimitiveType(elementType, EncodingKind.UInt8);
+
+#if NETCOREAPP
+            _writer.Write(span);
+#else
+            // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write
+            // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
+            // object heap.
+            var buffer = new byte[Math.Min(length, 8192)];
+            for (int offset = 0; offset < length; offset += buffer.Length)
+            {
+                var segmentLength = Math.Min(buffer.Length, length - offset);
+                span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
+                _writer.Write(buffer, 0, segmentLength);
+            }
+#endif
+        }
+
+        public void WriteValue(IObjectWritable? value)
         {
             if (value == null)
             {
@@ -267,7 +325,7 @@ namespace Roslyn.Utilities
                 return;
             }
 
-            WriteObject(instance: value, instanceAsWritableOpt: value);
+            WriteObject(instance: value, instanceAsWritable: value);
         }
 
         private void WriteEncodedInt32(int v)
@@ -406,7 +464,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe void WriteStringValue(string value)
+        private unsafe void WriteStringValue(string? value)
         {
             if (value == null)
             {
@@ -487,7 +545,7 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            var elementType = array.GetType().GetElementType();
+            var elementType = array.GetType().GetElementType()!;
 
             if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
@@ -509,7 +567,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        a => WriteArrayValues((Array)a),
+                        a => WriteArrayValues((Array)a!),
                         array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
@@ -729,10 +787,10 @@ namespace Roslyn.Utilities
             this.WriteInt32(_binderSnapshot.GetTypeId(type));
         }
 
-        private void WriteObject(object instance, IObjectWritable instanceAsWritableOpt)
+        private void WriteObject(object instance, IObjectWritable? instanceAsWritable)
         {
-            Debug.Assert(instance != null);
-            Debug.Assert(instanceAsWritableOpt == null || instance == instanceAsWritableOpt);
+            RoslynDebug.Assert(instance != null);
+            RoslynDebug.Assert(instanceAsWritable == null || instance == instanceAsWritable);
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -758,7 +816,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var writable = instanceAsWritableOpt;
+                var writable = instanceAsWritable;
                 if (writable == null)
                 {
                     writable = instance as IObjectWritable;
@@ -777,7 +835,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        obj => WriteObjectWorker((IObjectWritable)obj),
+                        obj => WriteObjectWorker((IObjectWritable)obj!),
                         writable,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,

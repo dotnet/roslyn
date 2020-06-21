@@ -1,4 +1,11 @@
-﻿#if NET472
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+#if NET472
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -275,7 +282,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             return analyzerImage;
         }
 
-        public static string GetMSBuildDirectory()
+        public static string? GetMSBuildDirectory()
         {
             var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
             using (var key = Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}", false))

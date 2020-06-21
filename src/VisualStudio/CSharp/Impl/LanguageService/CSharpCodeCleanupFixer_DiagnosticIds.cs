@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -72,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.AddBracesDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_accessibility_modifiers))]
+        [LocalizedName(typeof(AnalyzersResources), nameof(AnalyzersResources.Add_accessibility_modifiers))]
         public static readonly FixIdDefinition AddAccessibilityModifiersDiagnosticId;
 
         [Export]

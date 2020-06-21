@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -108,6 +110,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = singleDeclaration.NameLocation;
 
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+            }
+
+            // Records can only inherit from other records or object
+            if (declaration.Kind == DeclarationKind.Record &&
+                localBase.SpecialType != SpecialType.System_Object &&
+                SynthesizedRecordClone.FindValidCloneMethod(localBase) is null)
+            {
+                var baseLocation = FindBaseRefSyntax(localBase);
+                diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
+            }
+            else if (declaration.Kind != DeclarationKind.Record &&
+                     SynthesizedRecordClone.FindValidCloneMethod(localBase) is object)
+            {
+                var baseLocation = FindBaseRefSyntax(localBase);
+                diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
             }
         }
 
@@ -259,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol baseType = null;
             SourceLocation baseTypeLocation = null;
 
-            var interfaceLocations = SpecializedCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
+            var interfaceLocations = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
 
             foreach (var decl in this.declaration.Declarations)
             {
@@ -303,6 +320,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            if (declaration.Kind == DeclarationKind.Record)
+            {
+                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
+                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
+                {
+                    baseInterfaces.Add(type);
+                    type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                }
+            }
 
             if ((object)baseType != null)
             {
@@ -569,12 +596,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved: basesBeingResolved);
-            bool isClass = (typeKind == TypeKind.Class);
+            bool isInterface = (typeKind == TypeKind.Interface);
 
-            ArrayBuilder<NamedTypeSymbol> result = isClass ? null : ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            ArrayBuilder<NamedTypeSymbol> result = isInterface ? ArrayBuilder<NamedTypeSymbol>.GetInstance() : null;
             foreach (var t in declaredInterfaces)
             {
-                if (!isClass)
+                if (isInterface)
                 {
                     if (BaseTypeAnalysis.TypeDependsOn(depends: t, on: this))
                     {
@@ -609,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return isClass ? declaredInterfaces : result.ToImmutableAndFree();
+            return isInterface ? result.ToImmutableAndFree() : declaredInterfaces;
         }
 
         private NamedTypeSymbol MakeAcyclicBaseType(DiagnosticBag diagnostics)

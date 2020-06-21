@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -31,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TypeInferrer
             End If
 
             Dim typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace()
+            Assert.Equal(expectedType, typeSyntax.ToString())
         End Function
 
         Private Async Function TestInClassAsync(text As String, expectedType As String, mode As TestMode) As Tasks.Task
@@ -698,6 +701,20 @@ End Class
             Await TestInMethodAsync(text, "System.Int32", mode)
         End Function
 
+        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestValueInNestedTuple1(mode As TestMode) As Task
+            Await TestInMethodAsync(
+"dim x as (integer, (string, boolean)) = ([|Goo()|], ("""", true));", "System.Int32", mode)
+        End Function
+
+        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestValueInNestedTuple2(mode As TestMode) As Task
+            Await TestInMethodAsync(
+"dim x as (integer, (string, boolean)) = (1, ("""", [|Goo()|]))", "System.Boolean", mode)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         Public Async Function TestAwaitExpressionWithChainingMethod() As Task
@@ -802,7 +819,22 @@ Class C
         Return Await [||]
     End Function
 End Class"
-            Await TestAsync(text, "Task.FromResult(False)", TestMode.Position)
+            Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", TestMode.Position)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestInferringInEnumHasFlags(mode As TestMode) As Task
+            Dim text =
+"Imports System.IO
+
+Module Program
+    Sub Main(args As String())
+        Dim f As FileInfo
+        f.Attributes.HasFlag([|flag|])
+    End Sub
+End Module"
+
+            Await TestAsync(text, "Global.System.IO.FileAttributes", mode)
         End Function
     End Class
 End Namespace

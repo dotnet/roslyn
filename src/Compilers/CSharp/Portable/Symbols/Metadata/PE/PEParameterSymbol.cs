@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -217,10 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (handle.IsNil)
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
-
-                typeWithAnnotations = TupleTypeSymbol.TryTransformToTuple(typeWithAnnotations.Type, out TupleTypeSymbol tuple) ?
-                    TypeWithAnnotations.Create(tuple) :
-                    typeWithAnnotations;
                 byte? value = nullableContext.GetNullableContextValue();
                 if (value.HasValue)
                 {
@@ -261,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 var typeSymbol = DynamicTypeDecoder.TransformType(typeWithAnnotations.Type, countOfCustomModifiers, handle, moduleSymbol, refKind);
+                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol);
                 typeWithAnnotations = typeWithAnnotations.WithTypeAndModifiers(typeSymbol, typeWithAnnotations.CustomModifiers);
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
@@ -406,6 +405,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return _ordinal;
+            }
+        }
+
+        public override bool IsDiscard
+        {
+            get
+            {
+                return false;
             }
         }
 
@@ -921,6 +928,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+        public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            return other is NativeIntegerParameterSymbol nps ?
+                nps.Equals(this, compareKind) :
+                base.Equals(other, compareKind);
         }
     }
 }

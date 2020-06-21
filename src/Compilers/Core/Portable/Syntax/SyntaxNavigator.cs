@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             SkippedTokens = 4,
         }
 
-        private static readonly Func<SyntaxTrivia, bool>[] s_stepIntoFunctions = new Func<SyntaxTrivia, bool>[]
+        private static readonly Func<SyntaxTrivia, bool>?[] s_stepIntoFunctions = new Func<SyntaxTrivia, bool>?[]
         {
             /* 000 */ null,
             /* 001 */ t =>                                             t.IsDocumentationCommentTrivia,
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             /* 111 */ t => t.IsSkippedTokensTrivia || t.IsDirective || t.IsDocumentationCommentTrivia,
         };
 
-        private static Func<SyntaxTrivia, bool> GetStepIntoFunction(
+        private static Func<SyntaxTrivia, bool>? GetStepIntoFunction(
             bool skipped, bool directives, bool docComments)
         {
             var index = (skipped ? SyntaxKinds.SkippedTokens : 0) |
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             return includeZeroWidth ? SyntaxToken.Any : SyntaxToken.NonZeroWidth;
         }
 
-        private static bool Matches(Func<SyntaxToken, bool> predicate, SyntaxToken token)
+        private static bool Matches(Func<SyntaxToken, bool>? predicate, SyntaxToken token)
         {
             return predicate == null || ReferenceEquals(predicate, SyntaxToken.Any) || predicate(token);
         }
@@ -77,12 +81,12 @@ namespace Microsoft.CodeAnalysis
             return GetNextToken(current, GetPredicateFunction(includeZeroWidth), GetStepIntoFunction(includeSkipped, includeDirectives, includeDocumentationComments));
         }
 
-        internal SyntaxToken GetPreviousToken(in SyntaxToken current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto)
+        internal SyntaxToken GetPreviousToken(in SyntaxToken current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto)
         {
             return GetPreviousToken(current, predicate, stepInto != null, stepInto);
         }
 
-        internal SyntaxToken GetNextToken(in SyntaxToken current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto)
+        internal SyntaxToken GetNextToken(in SyntaxToken current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto)
         {
             return GetNextToken(current, predicate, stepInto != null, stepInto);
         }
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<Stack<ChildSyntaxList.Enumerator>> s_childEnumeratorStackPool
             = new ObjectPool<Stack<ChildSyntaxList.Enumerator>>(() => new Stack<ChildSyntaxList.Enumerator>(), 10);
 
-        internal SyntaxToken GetFirstToken(SyntaxNode current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto)
+        internal SyntaxToken GetFirstToken(SyntaxNode current, Func<SyntaxToken, bool>? predicate, Func<SyntaxTrivia, bool>? stepInto)
         {
             var stack = s_childEnumeratorStackPool.Allocate();
             try
@@ -118,7 +122,8 @@ namespace Microsoft.CodeAnalysis
 
                         if (child.IsNode)
                         {
-                            stack.Push(child.AsNode().ChildNodesAndTokens().GetEnumerator());
+                            Debug.Assert(child.IsNode);
+                            stack.Push(child.AsNode()!.ChildNodesAndTokens().GetEnumerator());
                         }
                     }
                 }
@@ -135,7 +140,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<Stack<ChildSyntaxList.Reversed.Enumerator>> s_childReversedEnumeratorStackPool
             = new ObjectPool<Stack<ChildSyntaxList.Reversed.Enumerator>>(() => new Stack<ChildSyntaxList.Reversed.Enumerator>(), 10);
 
-        internal SyntaxToken GetLastToken(SyntaxNode current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto)
+        internal SyntaxToken GetLastToken(SyntaxNode current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto)
         {
             var stack = s_childReversedEnumeratorStackPool.Allocate();
             try
@@ -164,7 +169,8 @@ namespace Microsoft.CodeAnalysis
 
                         if (child.IsNode)
                         {
-                            stack.Push(child.AsNode().ChildNodesAndTokens().Reverse().GetEnumerator());
+                            Debug.Assert(child.IsNode);
+                            stack.Push(child.AsNode()!.ChildNodesAndTokens().Reverse().GetEnumerator());
                         }
                     }
                 }
@@ -180,15 +186,14 @@ namespace Microsoft.CodeAnalysis
 
         private SyntaxToken GetFirstToken(
             SyntaxTriviaList triviaList,
-            Func<SyntaxToken, bool> predicate,
+            Func<SyntaxToken, bool>? predicate,
             Func<SyntaxTrivia, bool> stepInto)
         {
             Debug.Assert(stepInto != null);
             foreach (var trivia in triviaList)
             {
-                if (trivia.HasStructure && stepInto(trivia))
+                if (trivia.TryGetStructure(out var structure) && stepInto(trivia))
                 {
-                    var structure = trivia.GetStructure();
                     var token = GetFirstToken(structure, predicate, stepInto);
                     if (token.RawKind != None)
                     {
@@ -222,25 +227,25 @@ namespace Microsoft.CodeAnalysis
         private bool TryGetLastTokenForStructuredTrivia(
             SyntaxTrivia trivia,
             Func<SyntaxToken, bool> predicate,
-            Func<SyntaxTrivia, bool> stepInto,
+            Func<SyntaxTrivia, bool>? stepInto,
             out SyntaxToken token)
         {
             token = default(SyntaxToken);
 
-            if (!trivia.HasStructure || stepInto == null || !stepInto(trivia))
+            if (!trivia.TryGetStructure(out var structure) || stepInto == null || !stepInto(trivia))
             {
                 return false;
             }
 
-            token = GetLastToken(trivia.GetStructure(), predicate, stepInto);
+            token = GetLastToken(structure, predicate, stepInto);
 
             return token.RawKind != None;
         }
 
         private SyntaxToken GetFirstToken(
             SyntaxToken token,
-            Func<SyntaxToken, bool> predicate,
-            Func<SyntaxTrivia, bool> stepInto)
+            Func<SyntaxToken, bool>? predicate,
+            Func<SyntaxTrivia, bool>? stepInto)
         {
             // find first token that matches (either specified token or token inside related trivia)
             if (stepInto != null)
@@ -274,7 +279,7 @@ namespace Microsoft.CodeAnalysis
         private SyntaxToken GetLastToken(
             SyntaxToken token,
             Func<SyntaxToken, bool> predicate,
-            Func<SyntaxTrivia, bool> stepInto)
+            Func<SyntaxTrivia, bool>? stepInto)
         {
             // find first token that matches (either specified token or token inside related trivia)
             if (stepInto != null)
@@ -308,7 +313,7 @@ namespace Microsoft.CodeAnalysis
         internal SyntaxToken GetNextToken(
             SyntaxTrivia current,
             Func<SyntaxToken, bool> predicate,
-            Func<SyntaxTrivia, bool> stepInto)
+            Func<SyntaxTrivia, bool>? stepInto)
         {
             bool returnNext = false;
 
@@ -340,7 +345,7 @@ namespace Microsoft.CodeAnalysis
         internal SyntaxToken GetPreviousToken(
             SyntaxTrivia current,
             Func<SyntaxToken, bool> predicate,
-            Func<SyntaxTrivia, bool> stepInto)
+            Func<SyntaxTrivia, bool>? stepInto)
         {
             bool returnPrevious = false;
 
@@ -373,17 +378,16 @@ namespace Microsoft.CodeAnalysis
             SyntaxTrivia current,
             SyntaxTriviaList list,
             Func<SyntaxToken, bool> predicate,
-            Func<SyntaxTrivia, bool> stepInto,
+            Func<SyntaxTrivia, bool>? stepInto,
             ref bool returnNext)
         {
             foreach (var trivia in list)
             {
                 if (returnNext)
                 {
-                    if (trivia.HasStructure && stepInto != null && stepInto(trivia))
+                    if (trivia.TryGetStructure(out var structure) && stepInto != null && stepInto(trivia))
                     {
-                        var structure = trivia.GetStructure();
-                        var token = GetFirstToken(structure, predicate, stepInto);
+                        var token = GetFirstToken(structure!, predicate, stepInto);
                         if (token.RawKind != None)
                         {
                             return token;
@@ -403,7 +407,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxTrivia current,
             SyntaxTriviaList list,
             Func<SyntaxToken, bool> predicate,
-            Func<SyntaxTrivia, bool> stepInto,
+            Func<SyntaxTrivia, bool>? stepInto,
             ref bool returnPrevious)
         {
             foreach (var trivia in list.Reverse())
@@ -428,7 +432,7 @@ namespace Microsoft.CodeAnalysis
         internal SyntaxToken GetNextToken(
             SyntaxNode node,
             Func<SyntaxToken, bool> predicate,
-            Func<SyntaxTrivia, bool> stepInto)
+            Func<SyntaxTrivia, bool>? stepInto)
         {
             while (node.Parent != null)
             {
@@ -449,7 +453,8 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var token = GetFirstToken(child.AsNode(), predicate, stepInto);
+                            Debug.Assert(child.IsNode);
+                            var token = GetFirstToken(child.AsNode()!, predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -477,7 +482,7 @@ namespace Microsoft.CodeAnalysis
         internal SyntaxToken GetPreviousToken(
             SyntaxNode node,
             Func<SyntaxToken, bool> predicate,
-            Func<SyntaxTrivia, bool> stepInto)
+            Func<SyntaxTrivia, bool>? stepInto)
         {
             while (node.Parent != null)
             {
@@ -498,7 +503,8 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var token = GetLastToken(child.AsNode(), predicate, stepInto);
+                            Debug.Assert(child.IsNode);
+                            var token = GetLastToken(child.AsNode()!, predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -523,7 +529,7 @@ namespace Microsoft.CodeAnalysis
             return default(SyntaxToken);
         }
 
-        internal SyntaxToken GetNextToken(in SyntaxToken current, Func<SyntaxToken, bool> predicate, bool searchInsideCurrentTokenTrailingTrivia, Func<SyntaxTrivia, bool> stepInto)
+        internal SyntaxToken GetNextToken(in SyntaxToken current, Func<SyntaxToken, bool> predicate, bool searchInsideCurrentTokenTrailingTrivia, Func<SyntaxTrivia, bool>? stepInto)
         {
             Debug.Assert(searchInsideCurrentTokenTrailingTrivia == false || stepInto != null);
             if (current.Parent != null)
@@ -531,7 +537,7 @@ namespace Microsoft.CodeAnalysis
                 // look inside trailing trivia for structure
                 if (searchInsideCurrentTokenTrailingTrivia)
                 {
-                    var firstToken = GetFirstToken(current.TrailingTrivia, predicate, stepInto);
+                    var firstToken = GetFirstToken(current.TrailingTrivia, predicate, stepInto!);
                     if (firstToken.RawKind != None)
                     {
                         return firstToken;
@@ -555,7 +561,8 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var token = GetFirstToken(child.AsNode(), predicate, stepInto);
+                            Debug.Assert(child.IsNode);
+                            var token = GetFirstToken(child.AsNode()!, predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;
@@ -576,7 +583,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal SyntaxToken GetPreviousToken(in SyntaxToken current, Func<SyntaxToken, bool> predicate, bool searchInsideCurrentTokenLeadingTrivia,
-            Func<SyntaxTrivia, bool> stepInto)
+            Func<SyntaxTrivia, bool>? stepInto)
         {
             Debug.Assert(searchInsideCurrentTokenLeadingTrivia == false || stepInto != null);
             if (current.Parent != null)
@@ -584,7 +591,7 @@ namespace Microsoft.CodeAnalysis
                 // look inside trailing trivia for structure
                 if (searchInsideCurrentTokenLeadingTrivia)
                 {
-                    var lastToken = GetLastToken(current.LeadingTrivia, predicate, stepInto);
+                    var lastToken = GetLastToken(current.LeadingTrivia, predicate, stepInto!);
                     if (lastToken.RawKind != None)
                     {
                         return lastToken;
@@ -608,7 +615,8 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var token = GetLastToken(child.AsNode(), predicate, stepInto);
+                            Debug.Assert(child.IsNode);
+                            var token = GetLastToken(child.AsNode()!, predicate, stepInto);
                             if (token.RawKind != None)
                             {
                                 return token;

@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
 
@@ -16,17 +20,13 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private class DocumentOptions : IDocumentOptions
         {
             private readonly ICodingConventionsSnapshot _codingConventionSnapshot;
-            private readonly IErrorLoggerService _errorLogger;
-            private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>> s_convertedDictionaryCache =
-                new ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>>();
+            private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string?>> s_convertedDictionaryCache =
+                new ConditionalWeakTable<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string?>>();
 
-            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot, IErrorLoggerService errorLogger)
-            {
-                _codingConventionSnapshot = codingConventionSnapshot;
-                _errorLogger = errorLogger;
-            }
+            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot)
+                => _codingConventionSnapshot = codingConventionSnapshot;
 
-            public bool TryGetDocumentOption(OptionKey option, out object value)
+            public bool TryGetDocumentOption(OptionKey option, out object? value)
             {
                 var editorConfigPersistence = option.Option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
                 if (editorConfigPersistence == null)
@@ -50,9 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 {
                     return editorConfigPersistence.TryGetOption(allRawConventions, option.Option.Type, out value);
                 }
-                catch (Exception ex)
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
-                    _errorLogger?.LogException(this, ex);
                     value = null;
                     return false;
                 }
@@ -63,33 +62,31 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             /// where we just convert the values to strings with ToString(). Ordering of the underlying dictionary is preserved, so that way
             /// code that relies on the underlying ordering of the underlying dictionary isn't affected.
             /// </summary>
-            private class StringConvertingDictionary : IReadOnlyDictionary<string, string>
+            private class StringConvertingDictionary : IReadOnlyDictionary<string, string?>
             {
-                private readonly IReadOnlyDictionary<string, object> _underlyingDictionary;
+                private readonly IReadOnlyDictionary<string, object?> _underlyingDictionary;
 
-                public StringConvertingDictionary(IReadOnlyDictionary<string, object> underlyingDictionary)
-                {
-                    _underlyingDictionary = underlyingDictionary ?? throw new ArgumentNullException(nameof(underlyingDictionary));
-                }
+                public StringConvertingDictionary(IReadOnlyDictionary<string, object?> underlyingDictionary)
+                    => _underlyingDictionary = underlyingDictionary ?? throw new ArgumentNullException(nameof(underlyingDictionary));
 
-                public string this[string key] => _underlyingDictionary[key]?.ToString();
+                public string? this[string key] => _underlyingDictionary[key]?.ToString();
 
                 public IEnumerable<string> Keys => _underlyingDictionary.Keys;
-                public IEnumerable<string> Values => _underlyingDictionary.Values.Select(s => s?.ToString());
+                public IEnumerable<string?> Values => _underlyingDictionary.Values.Select(s => s?.ToString());
 
                 public int Count => _underlyingDictionary.Count;
 
                 public bool ContainsKey(string key) => _underlyingDictionary.ContainsKey(key);
 
-                public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+                public IEnumerator<KeyValuePair<string, string?>> GetEnumerator()
                 {
                     foreach (var pair in _underlyingDictionary)
                     {
-                        yield return new KeyValuePair<string, string>(pair.Key, pair.Value?.ToString());
+                        yield return new KeyValuePair<string, string?>(pair.Key, pair.Value?.ToString());
                     }
                 }
 
-                public bool TryGetValue(string key, out string value)
+                public bool TryGetValue(string key, out string? value)
                 {
                     if (_underlyingDictionary.TryGetValue(key, out var objectValue))
                     {
@@ -104,9 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 }
 
                 IEnumerator IEnumerable.GetEnumerator()
-                {
-                    return GetEnumerator();
-                }
+                    => GetEnumerator();
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -57,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void VerifyIL(
             string expectedIL,
-            [CallerLineNumber]int callerLine = 0,
-            [CallerFilePath]string callerPath = null)
+            [CallerLineNumber] int callerLine = 0,
+            [CallerFilePath] string callerPath = null)
         {
             string actualIL = ILDelta.GetMethodIL();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
@@ -67,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifyLocalSignature(
             string qualifiedMethodName,
             string expectedSignature,
-            [CallerLineNumber]int callerLine = 0,
-            [CallerFilePath]string callerPath = null)
+            [CallerLineNumber] int callerLine = 0,
+            [CallerFilePath] string callerPath = null)
         {
             var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
             string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder, ToLocalInfo);
@@ -80,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedIL,
             Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null,
             MethodDefinitionHandle methodToken = default,
-            [CallerFilePath]string callerPath = null,
-            [CallerLineNumber]int callerLine = 0)
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0)
         {
             var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
 
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
         {
-            var actual = EmitResult.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.OfType<IFieldSymbol>().Select(f => f.Name + ": " + f.Type);
+            var actual = EmitResult.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field).Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);
             AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
         }
 

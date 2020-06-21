@@ -1,13 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -16,19 +15,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal class VenusCommandFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>
-        where TPackage : AbstractPackage<TPackage, TLanguageService>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
+    internal class VenusCommandFilter : AbstractVsTextViewFilter
     {
         private readonly ITextBuffer _subjectBuffer;
 
         public VenusCommandFilter(
-            TLanguageService languageService,
             IWpfTextView wpfTextView,
             ITextBuffer subjectBuffer,
             IOleCommandTarget nextCommandTarget,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(languageService, wpfTextView, editorAdaptersFactoryService)
+            IComponentModel componentModel)
+            : base(wpfTextView, componentModel)
         {
             Contract.ThrowIfNull(wpfTextView);
             Contract.ThrowIfNull(subjectBuffer);
@@ -37,30 +33,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _subjectBuffer = subjectBuffer;
 
             // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding.
-            var componentModel = (IComponentModel)languageService.SystemServiceProvider.GetService(typeof(SComponentModel));
             var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
             var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(wpfTextView, _subjectBuffer, nextCommandTarget);
             NextCommandTarget = vsCommandHandlerServiceAdapter;
         }
 
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        public VenusCommandFilter(
-            TLanguageService languageService,
-            IWpfTextView wpfTextView,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
-            ITextBuffer subjectBuffer,
-            IOleCommandTarget nextCommandTarget,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : this(languageService, wpfTextView, subjectBuffer, nextCommandTarget, editorAdaptersFactoryService)
-        {
-        }
-
         protected override ITextBuffer GetSubjectBufferContainingCaret()
-        {
-            return _subjectBuffer;
-        }
+            => _subjectBuffer;
 
-        protected override int GetDataTipTextImpl(TextSpan[] pSpan, AbstractLanguageService<TPackage, TLanguageService>.VsLanguageDebugInfo debugInfo, out string pbstrText)
+        protected override int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
         {
             var textViewModel = WpfTextView.TextViewModel;
             if (textViewModel == null)
@@ -89,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // Next, we'll check to see if there is actually a DataTip for this candidate.
                 // If there is, we'll map this span back to the DataBuffer and return it.
                 pSpan[0] = candidateSpan.ToVsTextSpan();
-                var hr = base.GetDataTipTextImpl(_subjectBuffer, pSpan, debugInfo, out pbstrText);
+                var hr = base.GetDataTipTextImpl(_subjectBuffer, pSpan, out pbstrText);
                 if (ErrorHandler.Succeeded(hr))
                 {
                     var subjectSpan = _subjectBuffer.CurrentSnapshot.GetSpan(pSpan[0]);

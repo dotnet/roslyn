@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="HostValueNotFound">
         <source>Cannot provide the value: host value not found</source>
-        <target state="new">Cannot provide the value: host value not found</target>
+        <target state="translated">Nie można podać wartości: nie znaleziono wartości hosta</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidPointerDereference">

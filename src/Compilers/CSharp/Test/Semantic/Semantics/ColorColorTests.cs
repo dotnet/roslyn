@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -2140,6 +2143,43 @@ class M
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29);
 
             compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
+        }
+
+        [WorkItem(718761, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/718761")]
+        [WorkItem(41457, "https://github.com/dotnet/roslyn/issues/41457")]
+        [Fact]
+        public void WorkItem718761()
+        {
+            string source = @"
+class C1
+{
+#pragma warning disable CS0169 // The field 'C1.C2' is never used
+    C2 C2;
+
+    void Test()
+    {
+        _ = new System.Action(C2.ReferenceEquals);
+    }
+}
+
+class C2
+{
+}
+";
+
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS0123: No overload for 'ReferenceEquals' matches delegate 'Action'
+                //         _ = new System.Action(C2.ReferenceEquals);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Action(C2.ReferenceEquals)").WithArguments("ReferenceEquals", "System.Action").WithLocation(9, 13)
+                );
+
+            compilation.VerifyEmitDiagnostics(
+                // (9,13): error CS0123: No overload for 'ReferenceEquals' matches delegate 'Action'
+                //         _ = new System.Action(C2.ReferenceEquals);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Action(C2.ReferenceEquals)").WithArguments("ReferenceEquals", "System.Action").WithLocation(9, 13)
+                );
         }
     }
 }

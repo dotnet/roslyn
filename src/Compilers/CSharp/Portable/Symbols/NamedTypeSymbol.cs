@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,13 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a type other than an array, a pointer, a type parameter, and dynamic.
     /// </summary>
-    internal abstract partial class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol
+    internal abstract partial class NamedTypeSymbol : TypeSymbol, INamedTypeSymbolInternal
     {
         private bool _hasNoBaseCycles;
 
         // Only the compiler can create NamedTypeSymbols.
-        internal NamedTypeSymbol()
+        internal NamedTypeSymbol(TupleExtraData tupleData = null)
         {
+            _lazyTupleData = tupleData;
         }
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -218,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetConstructors<MethodSymbol>(includeInstance: true, includeStatic: false);
+                return GetConstructors(includeInstance: true, includeStatic: false);
             }
         }
 
@@ -229,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetConstructors<MethodSymbol>(includeInstance: false, includeStatic: true);
+                return GetConstructors(includeInstance: false, includeStatic: true);
             }
         }
 
@@ -240,11 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetConstructors<MethodSymbol>(includeInstance: true, includeStatic: true);
+                return GetConstructors(includeInstance: true, includeStatic: true);
             }
         }
 
-        private ImmutableArray<TMethodSymbol> GetConstructors<TMethodSymbol>(bool includeInstance, bool includeStatic) where TMethodSymbol : class, IMethodSymbol
+        private ImmutableArray<MethodSymbol> GetConstructors(bool includeInstance, bool includeStatic)
         {
             Debug.Assert(includeInstance || includeStatic);
 
@@ -257,26 +261,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (instanceCandidates.IsEmpty && staticCandidates.IsEmpty)
             {
-                return ImmutableArray<TMethodSymbol>.Empty;
+                return ImmutableArray<MethodSymbol>.Empty;
             }
 
-            ArrayBuilder<TMethodSymbol> constructors = ArrayBuilder<TMethodSymbol>.GetInstance();
+            ArrayBuilder<MethodSymbol> constructors = ArrayBuilder<MethodSymbol>.GetInstance();
             foreach (Symbol candidate in instanceCandidates)
             {
-                if (candidate.Kind == SymbolKind.Method)
+                if (candidate is MethodSymbol method)
                 {
-                    TMethodSymbol method = candidate as TMethodSymbol;
-                    Debug.Assert((object)method != null);
                     Debug.Assert(method.MethodKind == MethodKind.Constructor);
                     constructors.Add(method);
                 }
             }
             foreach (Symbol candidate in staticCandidates)
             {
-                if (candidate.Kind == SymbolKind.Method)
+                if (candidate is MethodSymbol method)
                 {
-                    TMethodSymbol method = candidate as TMethodSymbol;
-                    Debug.Assert((object)method != null);
                     Debug.Assert(method.MethodKind == MethodKind.StaticConstructor);
                     constructors.Add(method);
                 }
@@ -639,8 +639,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
-            Debug.Assert(!this.IsTupleType);
-
             if ((object)t2 == this) return true;
             if ((object)t2 == null) return false;
 
@@ -653,16 +651,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         return true;
                     }
-                }
-            }
-
-            if ((comparison & TypeCompareKind.IgnoreTupleNames) != 0)
-            {
-                // If ignoring tuple element names, compare underlying tuple types
-                if (t2.IsTupleType)
-                {
-                    t2 = t2.TupleUnderlyingType;
-                    if (this.Equals(t2, comparison, isValueTypeOverrideOpt)) return true;
                 }
             }
 
@@ -683,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((thisIsOriginalDefinition || otherIsOriginalDefinition) &&
-                (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions)) == 0)
+                (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames)) == 0)
             {
                 return false;
             }
@@ -692,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // symbols.  Therefore this code may not behave correctly if 'this' is List<int>
             // where List`1 is a missing metadata type symbol, and other is similarly List<int>
             // but for a reference-distinct List`1.
-            if (!TypeSymbol.Equals(thisOriginalDefinition, otherOriginalDefinition, comparison, isValueTypeOverrideOpt))
+            if (!Equals(thisOriginalDefinition, otherOriginalDefinition, comparison, isValueTypeOverrideOpt))
             {
                 return false;
             }
@@ -732,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((thisIsNotConstructed || otherIsNotConstructed) &&
-                 (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions)) == 0)
+                 (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames)) == 0)
             {
                 return false;
             }
@@ -754,7 +742,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (this.IsTupleType && !tupleNamesEquals(other, comparison))
+            {
+                return false;
+            }
+
             return true;
+
+            bool tupleNamesEquals(NamedTypeSymbol other, TypeCompareKind comparison)
+            {
+                // Make sure field names are the same.
+                if ((comparison & TypeCompareKind.IgnoreTupleNames) == 0)
+                {
+                    var elementNames = TupleElementNames;
+                    var otherElementNames = other.TupleElementNames;
+                    return elementNames.IsDefault ? otherElementNames.IsDefault : !otherElementNames.IsDefault && elementNames.SequenceEqual(otherElementNames);
+                }
+
+                return true;
+            }
         }
 
         internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
@@ -796,19 +802,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!haveChanges)
-            {
-                allTypeArguments.Free();
-                result = this;
-            }
-            else
-            {
-                TypeMap substitution = new TypeMap(this.OriginalDefinition.GetAllTypeParameters(),
-                                                   allTypeArguments.ToImmutableAndFree());
-
-                result = substitution.SubstituteNamedType(this.OriginalDefinition);
-            }
-
+            result = haveChanges ? this.WithTypeArguments(allTypeArguments.ToImmutable()) : this;
+            allTypeArguments.Free();
             return true;
         }
 
@@ -834,16 +829,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            TypeSymbol result = this;
-            if (haveChanges)
-            {
-                var definition = this.OriginalDefinition;
-                TypeMap substitution = new TypeMap(definition.GetAllTypeParameters(), allTypeArguments.ToImmutable());
-                result = substitution.SubstituteNamedType(definition);
-            }
-
+            NamedTypeSymbol result = haveChanges ? this.WithTypeArguments(allTypeArguments.ToImmutable()) : this;
             allTypeArguments.Free();
             return result;
+        }
+
+        internal NamedTypeSymbol WithTypeArguments(ImmutableArray<TypeWithAnnotations> allTypeArguments)
+        {
+            var definition = this.OriginalDefinition;
+            TypeMap substitution = new TypeMap(definition.GetAllTypeParameters(), allTypeArguments);
+            return substitution.SubstituteNamedType(definition).WithTupleDataFrom(this);
         }
 
         internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
@@ -872,7 +867,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allTypeArguments.Free();
             allTypeParameters.Free();
-            return result;
+
+            return IsTupleType ? MergeTupleNames((NamedTypeSymbol)other, result) : result;
         }
 
         /// <summary>
@@ -892,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             // Tuple types act as covariant when merging equivalent types.
-            bool isTuple = typeA.IsTupleCompatible();
+            bool isTuple = typeA.IsTupleType;
 
             var definition = typeA.OriginalDefinition;
             bool haveChanges = false;
@@ -1229,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (TypeWithAnnotations arg in this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
-                if (DeriveUseSiteDiagnosticFromType(ref result, arg))
+                if (DeriveUseSiteDiagnosticFromType(ref result, arg, AllowedRequiredModifierType.None))
                 {
                     return true;
                 }
@@ -1376,6 +1372,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsSerializable { get; }
 
         /// <summary>
+        /// Returns true if locals are to be initialized
+        /// </summary>
+        public abstract bool AreLocalsZeroed { get; }
+
+        /// <summary>
         /// Type layout information (ClassLayout metadata and layout kind flags).
         /// </summary>
         internal abstract TypeLayout Layout { get; }
@@ -1464,29 +1465,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
         /// <returns></returns>
-        public sealed override bool IsTupleCompatible(out int tupleCardinality)
+        internal bool IsTupleTypeOfCardinality(out int tupleCardinality)
         {
-            if (IsTupleType)
-            {
-                tupleCardinality = 0;
-                return false;
-            }
-
             // Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
             if (!IsUnboundGenericType &&
                 ContainingSymbol?.Kind == SymbolKind.Namespace &&
                 ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true &&
-                Name == TupleTypeSymbol.TupleTypeName &&
+                Name == ValueTupleTypeName &&
                 ContainingNamespace.Name == MetadataHelpers.SystemString)
             {
                 int arity = Arity;
 
-                if (arity > 0 && arity < TupleTypeSymbol.RestPosition)
+                if (arity >= 0 && arity < ValueTupleRestPosition)
                 {
                     tupleCardinality = arity;
                     return true;
                 }
-                else if (arity == TupleTypeSymbol.RestPosition && !IsDefinition)
+                else if (arity == ValueTupleRestPosition && !IsDefinition)
                 {
                     // Skip through "Rest" extensions
                     TypeSymbol typeToCheck = this;
@@ -1495,29 +1490,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     do
                     {
                         levelsOfNesting++;
-                        typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].Type;
+                        typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[ValueTupleRestPosition - 1].Type;
                     }
-                    while (TypeSymbol.Equals(typeToCheck.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything2) && !typeToCheck.IsDefinition);
-
-                    if (typeToCheck.IsTupleType)
-                    {
-                        var underlying = typeToCheck.TupleUnderlyingType;
-                        if (underlying.Arity == TupleTypeSymbol.RestPosition && !TypeSymbol.Equals(underlying.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
-                        {
-                            tupleCardinality = 0;
-                            return false;
-                        }
-
-                        tupleCardinality = (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting + typeToCheck.TupleElementTypesWithAnnotations.Length;
-                        return true;
-                    }
+                    while (Equals(typeToCheck.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything) && !typeToCheck.IsDefinition);
 
                     arity = (typeToCheck as NamedTypeSymbol)?.Arity ?? 0;
 
-                    if (arity > 0 && arity < TupleTypeSymbol.RestPosition && typeToCheck.IsTupleCompatible(out tupleCardinality))
+                    if (arity > 0 && arity < ValueTupleRestPosition && ((NamedTypeSymbol)typeToCheck).IsTupleTypeOfCardinality(out tupleCardinality))
                     {
-                        Debug.Assert(tupleCardinality < TupleTypeSymbol.RestPosition);
-                        tupleCardinality += (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting;
+                        Debug.Assert(tupleCardinality < ValueTupleRestPosition);
+                        tupleCardinality += (ValueTupleRestPosition - 1) * levelsOfNesting;
                         return true;
                     }
                 }
@@ -1527,153 +1509,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        #region INamedTypeSymbol Members
+        /// <summary>
+        /// Returns an instance of a symbol that represents a native integer
+        /// if this underlying symbol represents System.IntPtr or System.UIntPtr.
+        /// For other symbols, throws <see cref="System.InvalidOperationException"/>.
+        /// </summary>
+        internal abstract NamedTypeSymbol AsNativeInteger();
 
-        int INamedTypeSymbol.Arity
+        /// <summary>
+        /// If this is a native integer, returns the symbol for the underlying type,
+        /// either <see cref="System.IntPtr"/> or <see cref="System.UIntPtr"/>.
+        /// Otherwise, returns null.
+        /// </summary>
+        internal abstract NamedTypeSymbol NativeIntegerUnderlyingType { get; }
+
+        protected override ISymbol CreateISymbol()
         {
-            get
-            {
-                return this.Arity;
-            }
+            return new PublicModel.NonErrorNamedTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        ImmutableArray<IMethodSymbol> INamedTypeSymbol.InstanceConstructors
+        protected override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get
-            {
-                return this.GetConstructors<IMethodSymbol>(includeInstance: true, includeStatic: false);
-            }
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.NonErrorNamedTypeSymbol(this, nullableAnnotation);
         }
 
-        ImmutableArray<IMethodSymbol> INamedTypeSymbol.StaticConstructors
-        {
-            get
-            {
-                return this.GetConstructors<IMethodSymbol>(includeInstance: false, includeStatic: true);
-            }
-        }
-
-        ImmutableArray<IMethodSymbol> INamedTypeSymbol.Constructors
-        {
-            get
-            {
-                return this.GetConstructors<IMethodSymbol>(includeInstance: true, includeStatic: true);
-            }
-        }
-
-        IEnumerable<string> INamedTypeSymbol.MemberNames
-        {
-            get
-            {
-                return this.MemberNames;
-            }
-        }
-
-        ImmutableArray<ITypeParameterSymbol> INamedTypeSymbol.TypeParameters
-        {
-            get
-            {
-                return StaticCast<ITypeParameterSymbol>.From(this.TypeParameters);
-            }
-        }
-
-        ImmutableArray<ITypeSymbol> INamedTypeSymbol.TypeArguments
-        {
-            get
-            {
-                return this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => (ITypeSymbol)a.Type);
-            }
-        }
-
-        ImmutableArray<CodeAnalysis.NullableAnnotation> INamedTypeSymbol.TypeArgumentNullableAnnotations =>
-            this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.ToPublicAnnotation());
-
-        ImmutableArray<CustomModifier> INamedTypeSymbol.GetTypeArgumentCustomModifiers(int ordinal)
-        {
-            return this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[ordinal].CustomModifiers;
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-
-        IMethodSymbol INamedTypeSymbol.DelegateInvokeMethod
-        {
-            get
-            {
-                return this.DelegateInvokeMethod;
-            }
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.EnumUnderlyingType
+        INamedTypeSymbolInternal INamedTypeSymbolInternal.EnumUnderlyingType
         {
             get
             {
                 return this.EnumUnderlyingType;
             }
         }
-
-        INamedTypeSymbol INamedTypeSymbol.ConstructedFrom
-        {
-            get
-            {
-                return this.ConstructedFrom;
-            }
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.Construct(params ITypeSymbol[] typeArguments)
-        {
-            return Construct(ConstructTypeArguments(typeArguments), unbound: false);
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
-        {
-            return Construct(ConstructTypeArguments(typeArguments, typeArgumentNullableAnnotations), unbound: false);
-        }
-
-        INamedTypeSymbol INamedTypeSymbol.ConstructUnboundGenericType()
-        {
-            return this.ConstructUnboundGenericType();
-        }
-
-        ISymbol INamedTypeSymbol.AssociatedSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Returns fields that represent tuple elements for types that are tuples.
-        ///
-        /// If this type is not a tuple, then returns default.
-        /// </summary>
-        ImmutableArray<IFieldSymbol> INamedTypeSymbol.TupleElements => StaticCast<IFieldSymbol>.From(this.TupleElements);
-
-        /// <summary>
-        /// If this is a tuple type symbol, returns the symbol for its underlying type.
-        /// Otherwise, returns null.
-        /// </summary>
-        INamedTypeSymbol INamedTypeSymbol.TupleUnderlyingType => this.TupleUnderlyingType;
-
-        bool INamedTypeSymbol.IsComImport => IsComImport;
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitNamedType(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitNamedType(this);
-        }
-
-        #endregion
     }
 }

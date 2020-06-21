@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -9,13 +11,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
     internal static class ITextSnapshotExtensions
     {
         public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, VsTextSpan textSpan)
-        {
-            return TryGetSpan(snapshot, textSpan).Value;
-        }
+            => TryGetSpan(snapshot, textSpan).Value;
 
         public static SnapshotSpan? TryGetSpan(this ITextSnapshot snapshot, VsTextSpan textSpan)
-        {
-            return snapshot.TryGetSpan(textSpan.iStartLine, textSpan.iStartIndex, textSpan.iEndLine, textSpan.iEndIndex);
-        }
+            => snapshot.TryGetSpan(textSpan.iStartLine, textSpan.iStartIndex, textSpan.iEndLine, textSpan.iEndIndex);
     }
 }

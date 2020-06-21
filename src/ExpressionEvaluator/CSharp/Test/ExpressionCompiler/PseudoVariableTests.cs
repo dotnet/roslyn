@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -1116,7 +1118,7 @@ IL_0010:  ret
                     out error,
                     testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)((MethodSymbol)methodData.Method).ReturnType).PointedAtType.SpecialType);
                 methodData.VerifyIL(
     @"{
   // Code size       17 (0x11)
@@ -1156,7 +1158,7 @@ IL_0010:  ret
                     out error,
                     testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)((MethodSymbol)methodData.Method).ReturnType).PointedAtType.SpecialType);
                 methodData.VerifyIL(
     @"{
   // Code size       21 (0x15)

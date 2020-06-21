@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -18,6 +20,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Metadata.Tools;
@@ -148,13 +151,37 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected const string MemberNotNullAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
+    public sealed class MemberNotNullAttribute : Attribute
+    {
+        public MemberNotNullAttribute(params string[] members) { }
+        public MemberNotNullAttribute(string member) { }
+    }
+}
+";
+
+        protected const string MemberNotNullWhenAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
+    public sealed class MemberNotNullWhenAttribute : Attribute
+    {
+        public MemberNotNullWhenAttribute(bool when, params string[] members) { }
+        public MemberNotNullWhenAttribute(bool when, string member) { }
+    }
+}
+";
+
         protected const string DoesNotReturnIfAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
     public class DoesNotReturnIfAttribute : Attribute
     {
-        public DoesNotReturnIfAttribute (bool condition) { }
+        public DoesNotReturnIfAttribute(bool condition) { }
     }
 }
 ";
@@ -165,7 +192,7 @@ namespace System.Diagnostics.CodeAnalysis
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class DoesNotReturnAttribute : Attribute
     {
-        public DoesNotReturnAttribute () { }
+        public DoesNotReturnAttribute() { }
     }
 }
 ";
@@ -181,13 +208,21 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected const string IsExternalInitTypeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
         protected const string IAsyncDisposableDefinition = @"
-using System.Threading.Tasks;
 namespace System
 {
     public interface IAsyncDisposable
     {
-        ValueTask DisposeAsync();
+       System.Threading.Tasks.ValueTask DisposeAsync();
     }
 }
 ";
@@ -502,6 +537,34 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        protected const string NativeIntegerAttributeDefinition =
+@"using System.Collections.Generic;
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(
+        AttributeTargets.Class |
+        AttributeTargets.Event |
+        AttributeTargets.Field |
+        AttributeTargets.GenericParameter |
+        AttributeTargets.Parameter |
+        AttributeTargets.Property |
+        AttributeTargets.ReturnValue,
+        AllowMultiple = false,
+        Inherited = false)]
+    public sealed class NativeIntegerAttribute : Attribute
+    {
+        public NativeIntegerAttribute()
+        {
+            TransformFlags = new[] { true };
+        }
+        public NativeIntegerAttribute(bool[] flags)
+        {
+            TransformFlags = flags;
+        }
+        public readonly IList<bool> TransformFlags;
+    }
+}";
+
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
             return WithNonNullTypes(options, NullableContextOptions.Enable);
@@ -751,7 +814,7 @@ namespace System.Runtime.CompilerServices
             {
                 if (action != null)
                 {
-                    return (m) => action((ModuleSymbol)m);
+                    return (m) => action(m.GetSymbol<ModuleSymbol>());
                 }
                 else
                 {
@@ -786,20 +849,20 @@ namespace System.Runtime.CompilerServices
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
             CompileAndVerifyFieldMarshalCommon(
-                CreateCompilationWithMscorlib40(source),
+                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview),
                 getExpectedBlob,
                 isField);
 
         #region SyntaxTree Factories
 
-        public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null)
+        public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null, Encoding encoding = null)
         {
             if ((object)options == null)
             {
                 options = TestOptions.Regular;
             }
 
-            var stringText = StringText.From(text, Encoding.UTF8);
+            var stringText = StringText.From(text, encoding ?? Encoding.UTF8);
             return CheckSerializable(SyntaxFactory.ParseSyntaxTree(stringText, options, filename));
         }
 
@@ -835,7 +898,7 @@ namespace System.Runtime.CompilerServices
 
         public static SyntaxTree ParseWithRoundTripCheck(string text, CSharpParseOptions options = null)
         {
-            var tree = Parse(text, options: options);
+            var tree = Parse(text, options: options ?? TestOptions.RegularPreview);
             var parsedText = tree.GetRoot();
             // we validate the text roundtrips
             Assert.Equal(text, parsedText.ToFullString());
@@ -1067,8 +1130,7 @@ namespace System.Runtime.CompilerServices
             UsesIsNullableVisitor.GetUses(builder, symbol);
 
             var format = SymbolDisplayFormat.TestFormat
-                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
-                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
                 .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeName);
 
             var symbols = builder.SelectAsArray(s => s.ToDisplayString(format));
@@ -1290,6 +1352,11 @@ namespace System.Runtime.CompilerServices
             return new Tuple<TNode, SemanticModel>(node, compilation.GetSemanticModel(compilation.SyntaxTrees[treeIndex]));
         }
 
+        public Tuple<TNode, SemanticModel> GetBindingNodeAndModel<TNode>(Compilation compilation, int treeIndex = 0) where TNode : SyntaxNode
+        {
+            return GetBindingNodeAndModel<TNode>((CSharpCompilation)compilation, treeIndex);
+        }
+
         public Tuple<IList<TNode>, SemanticModel> GetBindingNodesAndModel<TNode>(CSharpCompilation compilation, int treeIndex = 0, int which = -1) where TNode : SyntaxNode
         {
             var nodes = GetBindingNodes<TNode>(compilation, treeIndex, which);
@@ -1361,6 +1428,11 @@ namespace System.Runtime.CompilerServices
             return nodeList;
         }
 
+        public IList<TNode> GetBindingNodes<TNode>(Compilation compilation, int treeIndex = 0, int which = -1) where TNode : SyntaxNode
+        {
+            return GetBindingNodes<TNode>((CSharpCompilation)compilation, treeIndex, which);
+        }
+
         private static TNode FindBindingNode<TNode>(SyntaxTree tree, string startTag, string endTag) where TNode : SyntaxNode
         {
             // =================
@@ -1411,17 +1483,17 @@ namespace System.Runtime.CompilerServices
 
         #region Attributes
 
-        internal IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
+        internal static IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
         {
             return attributes.Select(a => a.AttributeClass.Name);
         }
 
-        internal IEnumerable<string> GetAttributeNames(ImmutableArray<CSharpAttributeData> attributes)
+        internal static IEnumerable<string> GetAttributeNames(ImmutableArray<CSharpAttributeData> attributes)
         {
             return attributes.Select(a => a.AttributeClass.Name);
         }
 
-        internal IEnumerable<string> GetAttributeStrings(ImmutableArray<CSharpAttributeData> attributes)
+        internal static IEnumerable<string> GetAttributeStrings(ImmutableArray<CSharpAttributeData> attributes)
         {
             return attributes.Select(a => a.ToString());
         }
@@ -1494,9 +1566,9 @@ namespace System.Runtime.CompilerServices
 
         #region IL Validation
 
-        internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
+        internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
         {
-            return VisualizeRealIL((PEModuleSymbol)peModule, methodData, markers);
+            return VisualizeRealIL((PEModuleSymbol)peModule.GetSymbol(), methodData, markers, areLocalsZeroed);
         }
 
         /// <summary>
@@ -1509,7 +1581,7 @@ namespace System.Runtime.CompilerServices
         /// - winmd
         /// - global methods
         /// </remarks>
-        internal unsafe static string VisualizeRealIL(PEModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
+        internal unsafe static string VisualizeRealIL(PEModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
         {
             var typeName = GetContainingTypeMetadataName(methodData.Method);
             // TODO (tomat): global methods (typeName == null)
@@ -1550,12 +1622,12 @@ namespace System.Runtime.CompilerServices
 
             var visualizer = new Visualizer(new MetadataDecoder(peModule, peMethod));
 
-            visualizer.DumpMethod(sb, maxStack, ilBytes, localDefinitions, ehHandlerRegions, markers);
+            visualizer.DumpMethod(sb, maxStack, ilBytes, localDefinitions, ehHandlerRegions, markers, areLocalsZeroed);
 
             return sb.ToString();
         }
 
-        private static string GetContainingTypeMetadataName(IMethodSymbol method)
+        private static string GetContainingTypeMetadataName(IMethodSymbolInternal method)
         {
             var type = method.ContainingType;
             if (type == null)
@@ -1610,7 +1682,7 @@ namespace System.Runtime.CompilerServices
             public override string VisualizeSymbol(uint token, OperandType operandType)
             {
                 Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
-                return string.Format("\"{0}\"", (reference is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : (object)reference);
+                return string.Format("\"{0}\"", (reference is Symbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : (object)reference);
             }
 
             public override string VisualizeLocalType(object type)
@@ -1620,7 +1692,7 @@ namespace System.Runtime.CompilerServices
                     type = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
                 }
 
-                return (type is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
+                return (type is Symbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
             }
         }
 
@@ -1680,6 +1752,14 @@ namespace System.Runtime.CompilerServices
             additionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
 
             return actualOperation;
+        }
+
+        protected static void VerifyOperationTreeForNode(CSharpCompilation compilation, SemanticModel model, SyntaxNode syntaxNode, string expectedOperationTree)
+        {
+            var actualOperation = model.GetOperation(syntaxNode);
+            Assert.NotNull(actualOperation);
+            var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
         protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)
@@ -1863,8 +1943,8 @@ namespace System.Runtime.CompilerServices
             return comp;
         }
 
-        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null)
-            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s), options);
+        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s, options: parseOptions), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+# nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -28,7 +33,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             { PropertyNames.DesignTimeBuild, bool.TrueString },
 
             // this will force CoreCompile task to execute even if all inputs and outputs are up to date
+#if NETCOREAPP
+            { PropertyNames.NonExistentFile, "__NonExistentSubDir__\\__NonExistentFile__" },
+#else
+            // Setting `BuildingInsideVisualStudio` indirectly sets NonExistentFile:
+            // https://github.com/microsoft/msbuild/blob/ab9b2f36a5ff7a85f842b205d5529e77fdc9d7ab/src/Tasks/Microsoft.Common.CurrentVersion.targets#L3462-L3470
             { PropertyNames.BuildingInsideVisualStudio, bool.TrueString },
+#endif
 
             { PropertyNames.BuildProjectReferences, bool.FalseString },
             { PropertyNames.BuildingProject, bool.FalseString },
@@ -49,9 +60,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         }.ToImmutableDictionary();
 
         private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;
-
-        private MSB.Evaluation.ProjectCollection _batchBuildProjectCollection;
-        private MSBuildDiagnosticLogger _batchBuildLogger;
+        private readonly ILogger? _msbuildLogger;
+        private MSB.Evaluation.ProjectCollection? _batchBuildProjectCollection;
+        private MSBuildDiagnosticLogger? _batchBuildLogger;
         private bool _batchBuildStarted;
 
         ~ProjectBuildManager()
@@ -62,22 +73,23 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties)
+        public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
         {
             _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
+            _msbuildLogger = msbuildLogger;
         }
 
         private ImmutableDictionary<string, string> AllGlobalProperties
             => s_defaultGlobalProperties.AddRange(_additionalGlobalProperties);
 
-        private static async Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
-            string path, MSB.Evaluation.ProjectCollection projectCollection, CancellationToken cancellationToken)
+        private static async Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
+            string path, MSB.Evaluation.ProjectCollection? projectCollection, CancellationToken cancellationToken)
         {
             var log = new DiagnosticLog();
 
             try
             {
-                var loadedProjects = projectCollection.GetLoadedProjects(path);
+                var loadedProjects = projectCollection?.GetLoadedProjects(path);
                 if (loadedProjects != null && loadedProjects.Count > 0)
                 {
                     Debug.Assert(loadedProjects.Count == 1);
@@ -107,7 +119,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        public Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
+        public Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
             string path, CancellationToken cancellationToken)
         {
             if (_batchBuildStarted)
@@ -129,7 +141,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        public async Task<string> TryGetOutputFilePathAsync(
+        public async Task<string?> TryGetOutputFilePathAsync(
             string path, CancellationToken cancellationToken)
         {
             Debug.Assert(_batchBuildStarted);
@@ -142,7 +154,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
         public bool BatchBuildStarted => _batchBuildStarted;
 
-        public void StartBatchBuild(IDictionary<string, string> globalProperties = null)
+        public void StartBatchBuild(IDictionary<string, string>? globalProperties = null)
         {
             if (_batchBuildStarted)
             {
@@ -152,7 +164,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
             var allProperties = s_defaultGlobalProperties.AddRange(globalProperties);
             _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
-
             _batchBuildLogger = new MSBuildDiagnosticLogger()
             {
                 Verbosity = MSB.Framework.LoggerVerbosity.Normal
@@ -160,7 +171,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
             {
-                Loggers = new MSB.Framework.ILogger[] { _batchBuildLogger }
+                Loggers = _msbuildLogger is null
+                    ? (new MSB.Framework.ILogger[] { _batchBuildLogger })
+                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, _msbuildLogger })
             };
 
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
@@ -178,7 +191,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
 
             // unload project so collection will release global strings
-            _batchBuildProjectCollection.UnloadAllProjects();
+            _batchBuildProjectCollection?.UnloadAllProjects();
             _batchBuildProjectCollection = null;
             _batchBuildLogger = null;
             _batchBuildStarted = false;
@@ -211,7 +224,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 }
             }
 
-            _batchBuildLogger.SetProjectAndLog(projectInstance.FullPath, log);
+            _batchBuildLogger?.SetProjectAndLog(projectInstance.FullPath, log);
 
             var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets);
 
@@ -231,7 +244,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         // this lock is static because we are using the default build manager, and there is only one per process
         private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
 
-        private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             // only allow one build to use the default build manager at a time
             using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -240,7 +253,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        private Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private static Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
 

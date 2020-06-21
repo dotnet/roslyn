@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="translated">Preferencje dotyczące opakowywania</target>
+        <target state="translated">Preferencje zawijania</target>
         <note />
       </trans-unit>
     </body>

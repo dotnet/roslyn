@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +24,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
-    [Export(typeof(ISuggestedActionCallback))]
+    // Temporarily disabled due to noise: https://github.com/dotnet/roslyn/issues/39818
+    //[Export(typeof(ISuggestedActionCallback))]
     internal class FxCopAnalyzersSuggestedActionCallback : ForegroundThreadAffinitizedObject, ISuggestedActionCallback
     {
         private const string AnalyzerVsixHyperlink = @"https://marketplace.visualstudio.com/items?itemName=VisualStudioPlatformTeam.MicrosoftCodeAnalysis2019";
@@ -218,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                         FxCopAnalyzersInstallLogger.Log(nameof(FxCopAnalyzersInstallOptions.HasMetCandidacyRequirements));
                     }
 
-                    _workspace.Options = options;
+                    _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(options));
                 }
             }
 
@@ -238,7 +241,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             if (timeSinceLastShown.TotalDays >= 1)
             {
-                _workspace.Options = _workspace.Options.WithChangedOption(FxCopAnalyzersInstallOptions.LastDateTimeInfoBarShown, utcNow.ToBinary());
+                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                    .WithChangedOption(FxCopAnalyzersInstallOptions.LastDateTimeInfoBarShown, utcNow.ToBinary())));
                 FxCopAnalyzersInstallLogger.Log("InfoBarShown");
 
                 var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
@@ -306,7 +310,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private void DoNotShowAgain()
         {
-            _workspace.Options = _workspace.Options.WithChangedOption(FxCopAnalyzersInstallOptions.NeverShowAgain, true);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(FxCopAnalyzersInstallOptions.NeverShowAgain, true)));
             FxCopAnalyzersInstallLogger.Log(nameof(FxCopAnalyzersInstallOptions.NeverShowAgain));
         }
     }

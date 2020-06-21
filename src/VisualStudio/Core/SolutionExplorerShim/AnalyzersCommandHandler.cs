@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using EnvDTE;
@@ -35,7 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly AnalyzerItemsTracker _tracker;
         private readonly AnalyzerReferenceManager _analyzerReferenceManager;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ICodeActionEditHandlerService _editHandlerService;
 
         private ContextMenuController _analyzerFolderContextMenuController;
         private ContextMenuController _analyzerContextMenuController;
@@ -69,16 +71,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private bool _initialized;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public AnalyzersCommandHandler(
             AnalyzerItemsTracker tracker,
             AnalyzerReferenceManager analyzerReferenceManager,
-            [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider,
-            ICodeActionEditHandlerService editHandlerService)
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _tracker = tracker;
             _analyzerReferenceManager = analyzerReferenceManager;
             _serviceProvider = serviceProvider;
-            _editHandlerService = editHandlerService;
         }
 
         /// <summary>
@@ -432,6 +433,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
                 var waitIndicator = componentModel.GetService<IWaitIndicator>();
+                var editHandlerService = componentModel.GetService<ICodeActionEditHandlerService>();
 
                 try
                 {
@@ -450,7 +452,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                 {
                                     var newSolution = selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
                                     var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
-                                    _editHandlerService.Apply(
+                                    editHandlerService.Apply(
                                         _workspace,
                                         fromDocument: null,
                                         operations: operations,

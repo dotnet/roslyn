@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -6,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.VisualStudio.Text
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     <[UseExportProvider]>
@@ -20,6 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 &lt;/html&gt;
 </text>.NormalizedValue
         Private Shared s_baseIndentationOfNugget As Integer = 8
+
+        Public Sub New(output As ITestOutputHelper)
+            MyBase.New(output)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -165,7 +172,7 @@ End Module
             AssertSmartIndent(
                 code,
                 indentationLine:=1,
-                expectedIndentation:=12)
+                expectedIndentation:=8)
         End Sub
 
         <WpfFact>
@@ -881,7 +888,6 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestWithStatement()
@@ -987,7 +993,6 @@ End Class</Code>.Value
                 indentationLine:=6,
                 expectedIndentation:=16)
         End Sub
-
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -2995,7 +3000,7 @@ end class"
                 expectedIndentation As Integer)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents)
 
                 Dim factory = TryCast(workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)(),
                                     TestFormattingRuleFactoryServiceFactory.Factory)
@@ -3004,8 +3009,8 @@ end class"
                     factory.TextSpan = subjectDocument.SelectedSpans.Single()
                 End If
 
-                Dim indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
-                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor)
+                Dim indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
+                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor)
 
                 TestIndentation(
                     point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
@@ -3028,9 +3033,9 @@ end class"
                 useTabs As Boolean,
                 indentStyle As FormattingOptions.IndentStyle)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.Options = workspace.Options _
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle) _
-                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)
+                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)))
 
                 TestIndentation(workspace, indentationLine, expectedIndentation)
             End Using

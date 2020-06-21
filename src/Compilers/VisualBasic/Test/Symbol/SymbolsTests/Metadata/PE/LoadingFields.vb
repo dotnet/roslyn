@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
@@ -9,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -87,8 +90,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.False(f6.IsConst)
             Assert.False(f6.IsReadOnly)
             Assert.False(f6.IsShared)
-            Assert.Equal(0, f6.CustomModifiers.Length)
-            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(f6.Type)
+            Assert.False(f6.CustomModifiers.Single().IsOptional)
+            Assert.Equal("System.Runtime.CompilerServices.IsVolatile", f6.CustomModifiers.Single().Modifier.ToTestDisplayString())
+            Assert.True(f6.HasUnsupportedMetadata)
 
             Assert.Equal(3, csFields.GetMembers("FFF").Length())
             Assert.Equal(3, csFields.GetMembers("Fff").Length())

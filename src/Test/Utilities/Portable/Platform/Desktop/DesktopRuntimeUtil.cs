@@ -1,4 +1,8 @@
-﻿#if NET472
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#if NET472
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -92,7 +96,6 @@ namespace Roslyn.Test.Utilities.Desktop
                 throw new Exception($"Exception loading {moduleName} reflectionOnly:{reflectionOnly}", ex);
             }
         }
-
     }
 }
 

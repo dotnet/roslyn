@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
@@ -39,9 +41,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Protected Overloads Sub TestChildren(code As XElement, ParamArray names() As String)
             TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
-                    Assert.Equal(names.Length, rootCodeModel.CodeElements.Count)
-
                     Dim actualNames = rootCodeModel.CodeElements.OfType(Of EnvDTE.CodeElement).Select(Function(e) e.Name).ToArray()
+                    Assert.Equal(names.Length, rootCodeModel.CodeElements.Count)
 
                     For i = 0 To names.Length - 1
                         Assert.Contains(names(i), actualNames)

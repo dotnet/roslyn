@@ -1,8 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
@@ -13,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return New VisualBasicWrappingCodeRefactoringProvider()
         End Function
 
-        Private ReadOnly Property EndOfLine As IDictionary(Of OptionKey, Object) = [Option](
-            CodeStyleOptions.OperatorPlacementWhenWrapping,
+        Private ReadOnly Property EndOfLine As OptionsCollection = [Option](
+            CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.EndOfLine)
 
-        Private ReadOnly Property BeginningOfLine As IDictionary(Of OptionKey, Object) = [Option](
-            CodeStyleOptions.OperatorPlacementWhenWrapping,
+        Private ReadOnly Property BeginningOfLine As OptionsCollection = [Option](
+            CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.BeginningOfLine)
 
         Private Function TestEndOfLine(markup As String, expected As String) As Task
@@ -613,6 +615,29 @@ end class",
                   & ""is"" _
                   & ""the"" _
                   & ""time""
+    end sub
+end class")
+        End Function
+
+        <WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestWrapLowerPrecedenceInLargeBinary() As Task
+            Await TestAllWrappingCasesAsync(
+"class C
+    sub Bar()
+        dim goo = [||]a + b + c + d = x * y * z
+    end sub
+end class",
+"class C
+    sub Bar()
+        dim goo = a + b + c + d _
+            = x * y * z
+    end sub
+end class",
+"class C
+    sub Bar()
+        dim goo = a + b + c + d _
+                  = x * y * z
     end sub
 end class")
         End Function

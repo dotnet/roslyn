@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,22 +17,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _item = item;
         }
 
-        public override object SourceItem
-        {
-            get
-            {
-                return _item;
-            }
-        }
+        public override object SourceItem => _item;
+        public override AnalyzerReference AnalyzerReference => _item.AnalyzerReference;
 
-        public override AnalyzerReference AnalyzerReference
-        {
-            get { return _item.AnalyzerReference; }
-        }
-
-        protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity)
-        {
-            return new LegacyDiagnosticItem(_item, diagnostic, effectiveSeverity, CommandHandler.DiagnosticContextMenuController);
-        }
+        protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language)
+            => new LegacyDiagnosticItem(_item, diagnostic, effectiveSeverity, language, CommandHandler.DiagnosticContextMenuController);
     }
 }

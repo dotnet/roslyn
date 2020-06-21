@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class IPropertySymbolExtensions
     {
-        public static IPropertySymbol RenameParameters(this IPropertySymbol property, IList<string> parameterNames)
+        public static IPropertySymbol RenameParameters(this IPropertySymbol property, ImmutableArray<string> parameterNames)
         {
             var parameterList = property.Parameters;
             if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))
@@ -40,9 +42,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IPropertySymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
             this IPropertySymbol property, ISymbol accessibleWithin, params INamedTypeSymbol[] attributesToRemove)
         {
-            bool shouldRemoveAttribute(AttributeData a) =>
-                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
-
             var someParameterHasAttribute = property.Parameters
                 .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));
             if (!someParameterHasAttribute)
@@ -62,11 +61,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
                         p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
-                        p.RefKind, p.IsParams, p.GetTypeWithAnnotatedNullability(), p.Name, p.IsOptional,
+                        p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 property.GetMethod,
                 property.SetMethod,
                 property.IsIndexer);
+
+            bool shouldRemoveAttribute(AttributeData a) =>
+                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
+                a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
         }
 
         public static bool IsWritableInConstructor(this IPropertySymbol property)

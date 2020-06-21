@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -75,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
-                 location)
+                 location,
+                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
         {
             _name = name;
             _explicitInterfaceType = explicitInterfaceType;
@@ -98,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _hasAnyBody = hasBody;
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
+            DeclarationModifiers declarationModifiers;
+            (declarationModifiers, HasExplicitAccessModifier, modifierErrors) = this.MakeModifiers(modifiers, methodKind, hasBody, location, diagnostics);
 
             var isMetadataVirtualIgnoringModifiers = (object)explicitInterfaceType != null; //explicit impls must be marked metadata virtual
 
@@ -177,33 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // Method or delegate cannot return type '{0}'
+                    // The return type of a method, delegate, or function pointer cannot be '{0}'
                     diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType.Type);
-                }
-            }
-
-            var location = this.Locations[0];
-            if (IsAsync)
-            {
-                var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
-                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
-                var enumeratorCancellationCount = Parameters.Count(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true });
-                if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
-                    (Bodies.blockBody != null || Bodies.arrowBody != null))
-                {
-                    if (enumeratorCancellationCount == 0 &&
-                        ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
-                    {
-                        // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
-                        // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
-                        diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
-                    }
-
-                    if (enumeratorCancellationCount > 1)
-                    {
-                        // The [EnumeratorCancellation] attribute can only be used on one parameter
-                        diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, location);
-                    }
                 }
             }
 
@@ -218,6 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
+            var location = locations[0];
             // Checks taken from MemberDefiner::defineMethod
             if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
             {
@@ -311,16 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsPartial)
             {
-                // check that there are no out parameters in a partial
-                foreach (var p in this.Parameters)
-                {
-                    if (p.RefKind == RefKind.Out)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, location);
-                        break;
-                    }
-                }
-
                 if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, location);
@@ -468,28 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                     return false;
-                }, typePredicateOpt: null, arg: (method, declaredConstraints), canDigThroughNullable: false, useDefaultType: true);
-            }
-        }
-
-        // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
-        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
-        {
-            foreach (var parameter in parameters)
-            {
-                var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
-                if (parameter.RefKind != RefKind.None)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsUnsafe())
-                {
-                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsRestrictedType())
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
-                }
+                }, typePredicate: null, arg: (method, declaredConstraints), canDigThroughNullable: false, useDefaultType: true);
             }
         }
 
@@ -506,36 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            Location errorLocation = this.Locations[0];
-
-            if (this.RefKind != RefKind.None)
-            {
-                ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
-            }
-            else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
-            {
-                diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
-            }
-
-            for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
-            {
-                var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
-                if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
-                {
-                    diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
-                    break;
-                }
-            }
-
-            if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
-            {
-                diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
-            }
-
-            if (!diagnostics.HasAnyResolvedErrors())
-            {
-                ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
-            }
+            AsyncMethodChecks(diagnostics);
 
             CompleteAsyncMethodChecks(diagnostics, cancellationToken);
             diagnostics.Free();
@@ -683,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && !_hasAnyBody;
+                return this.IsPartial && !_hasAnyBody && !HasExternModifier;
             }
         }
 
@@ -694,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartial && _hasAnyBody;
+                return this.IsPartial && (_hasAnyBody || HasExternModifier);
             }
         }
 
@@ -746,6 +666,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return SourcePartialImplementation;
+            }
+        }
+
+        public sealed override bool IsExtern
+        {
+            get
+            {
+                return IsPartialDefinition
+                    ? _otherPartOfPartial?.IsExtern ?? false
+                    : HasExternModifier;
             }
         }
 
@@ -828,7 +758,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isExpressionBodied; }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        internal bool HasExplicitAccessModifier { get; }
+
+        private (DeclarationModifiers mods, bool hasExplicitAccessMod, bool modifierErrors) MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
             bool isInterface = this.ContainingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
@@ -880,7 +812,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            // In order to detect whether explicit accessibility mods were provided, we pass the default value
+            // for 'defaultAccess' and manually add in the 'defaultAccess' flags after the call.
+            bool hasExplicitAccessMod;
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out bool modifierErrors);
+            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
+            {
+                hasExplicitAccessMod = false;
+                mods |= defaultAccess;
+            }
+            else
+            {
+                hasExplicitAccessMod = true;
+            }
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
@@ -889,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                         location, diagnostics);
 
             mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
-            return mods;
+            return (mods, hasExplicitAccessMod, modifierErrors);
         }
 
         private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
@@ -977,25 +921,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
+        private const DeclarationModifiers PartialMethodExtendedModifierMask =
+            DeclarationModifiers.Virtual |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Extern;
+
+        internal bool HasExtendedPartialModifier => (DeclarationModifiers & PartialMethodExtendedModifierMask) != 0;
+
         private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
-            const DeclarationModifiers partialMethodInvalidModifierMask = (DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private) |
-                     DeclarationModifiers.Virtual |
-                     DeclarationModifiers.Abstract |
-                     DeclarationModifiers.Override |
-                     DeclarationModifiers.New |
-                     DeclarationModifiers.Sealed |
-                     DeclarationModifiers.Extern;
-
             bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
 
-            if (IsPartial && !ReturnsVoid)
+            if (IsPartial && HasExplicitAccessModifier)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodMustReturnVoid, location);
+                Binder.CheckFeatureAvailability(SyntaxNode, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, location);
             }
-            else if (IsPartial && (DeclarationModifiers & partialMethodInvalidModifierMask) != 0)
+
+            if (IsPartial && IsAbstract)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
+            }
+            else if (IsPartial && !HasExplicitAccessModifier && !ReturnsVoid)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, location, this);
+            }
+            else if (IsPartial && !HasExplicitAccessModifier && HasExtendedPartialModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, location, this);
+            }
+            else if (IsPartial && !HasExplicitAccessModifier && Parameters.Any(p => p.RefKind == RefKind.Out))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, location, this);
             }
             else if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))
             {
@@ -1167,6 +1125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
+            if (ReturnType.ContainsNativeInteger())
+            {
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+
             if (compilation.ShouldEmitNullableAttributes(this) && ReturnTypeWithAnnotations.NeedsNullableAttribute())
             {
                 compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
@@ -1183,6 +1148,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void PartialMethodChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
+
+            MethodSymbol constructedDefinition = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations);
+            bool returnTypesEqual = constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
+            if (!returnTypesEqual
+                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(implementation.ReturnType)
+                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(definition.ReturnType))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
+            }
+
+            if (definition.RefKind != implementation.RefKind)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.Locations[0]);
+            }
 
             if (definition.IsStatic != implementation.IsStatic)
             {
@@ -1209,19 +1188,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
             }
 
+            if (definition.HasExplicitAccessModifier != implementation.HasExplicitAccessModifier
+                || definition.DeclaredAccessibility != implementation.DeclaredAccessibility)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.Locations[0]);
+            }
+
+            if (definition.IsVirtual != implementation.IsVirtual
+                || definition.IsOverride != implementation.IsOverride
+                || definition.IsSealed != implementation.IsSealed
+                || definition.IsNew != implementation.IsNew)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodExtendedModDifference, implementation.Locations[0]);
+            }
+
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
             SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 implementation.DeclaringCompilation,
-                definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations),
+                constructedDefinition,
                 implementation,
                 diagnostics,
-                reportMismatchInReturnType: null,
-                (diagnostics, implementedMethod, implementingMethod, implementingParameter, arg) =>
+                (diagnostics, implementedMethod, implementingMethod, topLevel, returnTypesEqual) =>
+                {
+                    if (returnTypesEqual)
+                    {
+                        // report only if this is an unsafe *nullability* difference
+                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
+                    }
+                },
+                (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
-                extraArgument: (object)null);
+                extraArgument: returnTypesEqual);
         }
 
         private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)

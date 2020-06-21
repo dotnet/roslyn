@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -50,7 +52,6 @@ End Module
 "
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultiLineIdentifier() As Task
             Await TestFixOneAsync(
@@ -69,7 +70,6 @@ End Module
         End If
 ")
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestElseIf() As Task
@@ -300,8 +300,6 @@ End Module")
 End Module")
         End Function
 
-
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultipleStatementsMultiLineIfBlock() As Task
             Await TestInRegularAndScriptAsync(
@@ -328,8 +326,6 @@ End Module",
     End Sub
 End Module")
         End Function
-
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTriviaAfterMultiLineIfBlock() As Task
@@ -576,7 +572,6 @@ End Module",
     End Sub
 End Module")
         End Function
-
 
         <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>

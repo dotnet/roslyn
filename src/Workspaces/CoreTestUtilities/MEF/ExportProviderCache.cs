@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -11,7 +16,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -35,13 +39,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static bool _enabled;
 
-        private static ExportProvider _currentExportProvider;
-        private static ComposableCatalog _expectedCatalog;
-        private static ExportProvider _expectedProviderForCatalog;
+        private static ExportProvider? _currentExportProvider;
+        private static ComposableCatalog? _expectedCatalog;
+        private static ExportProvider? _expectedProviderForCatalog;
 
         internal static bool Enabled => _enabled;
 
-        internal static ExportProvider ExportProviderForCleanup => _currentExportProvider;
+        internal static ExportProvider? ExportProviderForCleanup => _currentExportProvider;
 
         internal static void SetEnabled_OnlyUseExportProviderAttributeCanCall(bool value)
         {
@@ -55,11 +59,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public static ComposableCatalog GetOrCreateAssemblyCatalog(Assembly assembly)
-        {
-            return GetOrCreateAssemblyCatalog(SpecializedCollections.SingletonEnumerable(assembly));
-        }
+            => GetOrCreateAssemblyCatalog(SpecializedCollections.SingletonEnumerable(assembly));
 
-        public static ComposableCatalog GetOrCreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver resolver = null)
+        public static ComposableCatalog GetOrCreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
         {
             if (assemblies is ImmutableArray<Assembly> assembliesArray)
             {
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return CreateAssemblyCatalog(assemblies, resolver);
         }
 
-        private static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver resolver = null)
+        private static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
         {
             var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
 
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return ComposableCatalog.Create(resolver ?? Resolver.DefaultInstance).AddParts(parts);
         }
 
-        public static ComposableCatalog CreateTypeCatalog(IEnumerable<Type> types, Resolver resolver = null)
+        public static ComposableCatalog CreateTypeCatalog(IEnumerable<Type> types, Resolver? resolver = null)
         {
             var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
 
@@ -105,38 +107,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public static PartDiscovery CreatePartDiscovery(Resolver resolver)
-        {
-            return PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
-        }
+            => PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
 
         public static ComposableCatalog WithParts(this ComposableCatalog @this, ComposableCatalog catalog)
-        {
-            return @this.AddParts(catalog.DiscoveredParts);
-        }
+            => @this.AddParts(catalog.DiscoveredParts);
 
         public static ComposableCatalog WithParts(this ComposableCatalog catalog, IEnumerable<Type> types)
-        {
-            return catalog.WithParts(CreateTypeCatalog(types));
-        }
+            => catalog.WithParts(CreateTypeCatalog(types));
 
         public static ComposableCatalog WithParts(this ComposableCatalog catalog, params Type[] types)
-        {
-            return WithParts(catalog, (IEnumerable<Type>)types);
-        }
+            => WithParts(catalog, (IEnumerable<Type>)types);
 
         public static ComposableCatalog WithPart(this ComposableCatalog catalog, Type t)
-        {
-            return catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
-        }
+            => catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
 
         /// <summary>
         /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
         /// parts assignable to type <paramref name="t"/> removed from the catalog.
         /// </summary>
         public static ComposableCatalog WithoutPartsOfType(this ComposableCatalog catalog, Type t)
-        {
-            return catalog.WithoutPartsOfTypes(SpecializedCollections.SingletonEnumerable(t));
-        }
+            => catalog.WithoutPartsOfTypes(SpecializedCollections.SingletonEnumerable(t));
 
         /// <summary>
         /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
@@ -254,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return GetOrCreateExportProvider();
             }
 
-            private static void RequireForSingleExportProvider(bool condition)
+            private static void RequireForSingleExportProvider([DoesNotReturnIf(false)] bool condition)
             {
                 if (!condition)
                 {
@@ -275,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     //   method attempting to create a default ExportProvider which did not match the one assigned to
                     //   the test.
                     // * A test attempted to perform multiple test sequences in the context of a single test method,
-                    //   rather than break up the test into distict tests for each case.
+                    //   rather than break up the test into distinct tests for each case.
                     // * A test referenced different predefined ExportProvider instances within the context of a test.
                     //   Each test is expected to use the same ExportProvider throughout the test.
                     throw new InvalidOperationException($"Only one {nameof(ExportProvider)} can be created in the context of a single test.");
@@ -288,9 +278,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public static readonly IAssemblyLoader Instance = new SimpleAssemblyLoader();
 
             public Assembly LoadAssembly(AssemblyName assemblyName)
-            {
-                return Assembly.Load(assemblyName);
-            }
+                => Assembly.Load(assemblyName);
 
             public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
             {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -90,26 +92,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         public void EntireRange()
-        {
-            VerifyRange("{|b:{|r:class C {}|}|}");
-        }
+            => VerifyRange("{|b:{|r:class C {}|}|}");
 
         [Fact]
         public void EntireRange_Merge()
-        {
-            VerifyRange("{|r:class {|b:C { }|} class {|b: B { } |}|}");
-        }
+            => VerifyRange("{|r:class {|b:C { }|} class {|b: B { } |}|}");
 
         [Fact]
         public void EntireRange_EndOfFile()
-        {
-            VerifyRange("{|r:class {|b:C { }|} class {|b: B { } |} |}");
-        }
+            => VerifyRange("{|r:class {|b:C { }|} class {|b: B { } |} |}");
 
         [Fact]
         public void EntireRangeWithTransformation_RemoveClass()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -126,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void EntireRangeWithTransformation_AddMember()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -145,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void RangeWithTransformation_AddMember()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -164,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         public void RangeWithTransformation_RemoveMember()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -182,21 +178,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         public void MultipleRange_Overlapped()
-        {
-            VerifyRange("namespace N {|r:{ {|b:class C { {|b:void Method() { }|} }|} }|}");
-        }
+            => VerifyRange("namespace N {|r:{ {|b:class C { {|b:void Method() { }|} }|} }|}");
 
         [Fact]
         public void MultipleRange_Adjacent()
-        {
-            VerifyRange("namespace N {|r:{ {|b:class C { |}{|b:void Method() { } }|} }|}");
-        }
+            => VerifyRange("namespace N {|r:{ {|b:class C { |}{|b:void Method() { } }|} }|}");
 
         [Fact]
         public void MultipleRanges()
-        {
-            VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
-        }
+            => VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
 
         [Fact]
         [WorkItem(12848, "DevDiv_Projects/Roslyn")]
@@ -280,7 +270,7 @@ End Module";
         [Fact]
         public void RangeWithTransformation_OutsideOfRange()
         {
-            var expectedResult = default(IEnumerable<TextSpan>);
+            var expectedResult = (IEnumerable<TextSpan>)null;
             var transformer = new SimpleCodeCleanupProvider("TransformerCleanup", async (doc, spans, cancellationToken) =>
             {
                 var root = await doc.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -300,11 +290,9 @@ End Module";
         }
 
         public static CSharp.Syntax.MethodDeclarationSyntax CreateCSharpMethod(string returnType = "void", string methodName = "Method")
-        {
-            return CSharp.SyntaxFactory.MethodDeclaration(CSharp.SyntaxFactory.ParseTypeName(returnType), CSharp.SyntaxFactory.Identifier(methodName));
-        }
+            => CSharp.SyntaxFactory.MethodDeclaration(CSharp.SyntaxFactory.ParseTypeName(returnType), CSharp.SyntaxFactory.Identifier(methodName));
 
-        private void VerifyRange(string codeWithMarker, string language = LanguageNames.CSharp)
+        private static void VerifyRange(string codeWithMarker, string language = LanguageNames.CSharp)
         {
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
@@ -314,7 +302,7 @@ End Module";
             VerifyRange(codeWithoutMarker, ImmutableArray<ICodeCleanupProvider>.Empty, namedSpans["b"], ref expectedResult, language);
         }
 
-        private void VerifyRange(string codeWithMarker, ICodeCleanupProvider transformer, ref IEnumerable<TextSpan> expectedResult, string language = LanguageNames.CSharp)
+        private static void VerifyRange(string codeWithMarker, ICodeCleanupProvider transformer, ref IEnumerable<TextSpan> expectedResult, string language = LanguageNames.CSharp)
         {
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
@@ -322,9 +310,9 @@ End Module";
             VerifyRange(codeWithoutMarker, ImmutableArray.Create(transformer), namedSpans["b"], ref expectedResult, language);
         }
 
-        private void VerifyRange(string code, ImmutableArray<ICodeCleanupProvider> codeCleanups, ImmutableArray<TextSpan> spans, ref IEnumerable<TextSpan> expectedResult, string language)
+        private static void VerifyRange(string code, ImmutableArray<ICodeCleanupProvider> codeCleanups, ImmutableArray<TextSpan> spans, ref IEnumerable<TextSpan> expectedResult, string language)
         {
-            var result = default(IEnumerable<TextSpan>);
+            var result = (IEnumerable<TextSpan>)null;
             var spanCodeCleanup = new SimpleCodeCleanupProvider("TestCodeCleanup", (d, s, c) =>
             {
                 result = s;

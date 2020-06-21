@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1431,15 +1433,15 @@ public class C
 {
   // Code size       57 (0x39)
   .maxstack  3
-  .locals init ((int, int)? V_0, //a
+  .locals init (System.ValueTuple<int, int>? V_0, //a
                 System.ValueTuple<int, int> V_1)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""(int, int)?""
+  IL_0002:  initobj    ""System.ValueTuple<int, int>?""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""(int, int) (int, int)?.GetValueOrDefault()""
+  IL_000a:  call       ""System.ValueTuple<int, int> System.ValueTuple<int, int>?.GetValueOrDefault()""
   IL_000f:  stloc.1
   IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""bool (int, int)?.HasValue.get""
+  IL_0012:  call       ""bool System.ValueTuple<int, int>?.HasValue.get""
   IL_0017:  brtrue.s   IL_002d
   IL_0019:  ldloca.s   V_1
   IL_001b:  ldc.i4.1
@@ -1447,7 +1449,7 @@ public class C
   IL_001d:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_0022:  ldloca.s   V_0
   IL_0024:  ldloc.1
-  IL_0025:  call       ""(int, int)?..ctor((int, int))""
+  IL_0025:  call       ""System.ValueTuple<int, int>?..ctor(System.ValueTuple<int, int>)""
   IL_002a:  ldloc.1
   IL_002b:  br.s       IL_002e
   IL_002d:  ldloc.1
@@ -1460,15 +1462,15 @@ public class C
 {
   // Code size       57 (0x39)
   .maxstack  3
-  .locals init ((object f1, object f2)? V_0, //b
+  .locals init (System.ValueTuple<object, object>? V_0, //b
                 System.ValueTuple<object, object> V_1)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""(object f1, object f2)?""
+  IL_0002:  initobj    ""System.ValueTuple<object, object>?""
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""(object f1, object f2) (object f1, object f2)?.GetValueOrDefault()""
+  IL_000a:  call       ""System.ValueTuple<object, object> System.ValueTuple<object, object>?.GetValueOrDefault()""
   IL_000f:  stloc.1
   IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""bool (object f1, object f2)?.HasValue.get""
+  IL_0012:  call       ""bool System.ValueTuple<object, object>?.HasValue.get""
   IL_0017:  brtrue.s   IL_002d
   IL_0019:  ldloca.s   V_1
   IL_001b:  ldnull
@@ -1476,7 +1478,7 @@ public class C
   IL_001d:  call       ""System.ValueTuple<object, object>..ctor(object, object)""
   IL_0022:  ldloca.s   V_0
   IL_0024:  ldloc.1
-  IL_0025:  call       ""(object f1, object f2)?..ctor((object f1, object f2))""
+  IL_0025:  call       ""System.ValueTuple<object, object>?..ctor(System.ValueTuple<object, object>)""
   IL_002a:  ldloc.1
   IL_002b:  br.s       IL_002e
   IL_002d:  ldloc.1
@@ -2593,9 +2595,6 @@ class C
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,10): error CS0177: The out parameter 'o2' must be assigned to before control leaves the current method
-                //     void M(in object o1, out object o2)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("o2").WithLocation(4, 10),
                 // (6,9): error CS8331: Cannot assign to variable 'in object' because it is a readonly variable
                 //         o1 ??= null;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "o1").WithArguments("variable", "in object").WithLocation(6, 9),

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -80,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!String.IsNullOrEmpty(fileName));
 
             // PermissionSetAttribute type must have a writable public string type property member 'Hex'
-            Debug.Assert(((INamedTypeSymbol)_sourceAttribute.GetType(context)).GetMembers(HexPropertyName).Any(
+            ISymbol iSymbol = ((ISymbolInternal)_sourceAttribute.GetType(context)).GetISymbol();
+            Debug.Assert(((INamedTypeSymbol)iSymbol).GetMembers(HexPropertyName).Any(
                 member => member.Kind == SymbolKind.Property && ((IPropertySymbol)member).Type.SpecialType == SpecialType.System_String));
 #endif
 

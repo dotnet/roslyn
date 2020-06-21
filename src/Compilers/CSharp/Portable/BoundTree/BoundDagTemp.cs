@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -14,22 +18,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static BoundDagTemp ForOriginalInput(SyntaxNode syntax, TypeSymbol type) => new BoundDagTemp(syntax, type, null, 0);
 
-        public override bool Equals(object obj) => obj is BoundDagTemp other && this.Equals(other);
+        public override bool Equals(object? obj) => obj is BoundDagTemp other && this.Equals(other);
+
         public bool Equals(BoundDagTemp other)
         {
-            return other != (object)null && this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) && object.Equals(this.Source, other.Source) && this.Index == other.Index;
+            return other is { } &&
+                this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
+                object.Equals(this.Source, other.Source) && this.Index == other.Index;
         }
+
         public override int GetHashCode()
         {
             return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
-        }
-        public static bool operator ==(BoundDagTemp left, BoundDagTemp right)
-        {
-            return left.Equals(right);
-        }
-        public static bool operator !=(BoundDagTemp left, BoundDagTemp right)
-        {
-            return !left.Equals(right);
         }
     }
 }

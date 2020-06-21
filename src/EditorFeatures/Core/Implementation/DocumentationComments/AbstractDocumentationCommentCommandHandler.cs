@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -466,9 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         }
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
@@ -486,9 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         }
 
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
@@ -505,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             {
                 var selectedSpan = args.TextView.Selection
                     .GetSnapshotSpansOnBuffer(args.SubjectBuffer)
-                    .FirstOrNullable();
+                    .FirstOrNull();
 
                 originalPosition = selectedSpan != null
                     ? selectedSpan.Value.Start
@@ -578,9 +576,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         }
 
         public CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
@@ -607,9 +603,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         }
 
         public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

@@ -1,14 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,12 +22,40 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
+    [Shared]
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SymbolCompletionProvider()
+        {
+        }
+
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
+        }
+
+        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        {
+            var sourceText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+            if (ShouldTriggerInArgumentLists(sourceText, options))
+            {
+                // Avoid preselection & hard selection when triggered via insertion in an argument list.
+                // If an item is hard selected, then a user trying to type MethodCall() will get
+                // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
+                if (completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
+                    position > 0 &&
+                    await IsTriggerInArgumentListAsync(document, position - 1, CancellationToken.None).ConfigureAwait(false) == true)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         protected override bool IsInstrinsic(ISymbol s)
@@ -30,8 +63,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+            return ShouldTriggerInArgumentLists(text, options)
+                ? CompletionUtilities.IsTriggerCharacterOrArgumentListCharacter(text, characterPosition, options)
+                : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
+
+        internal override async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
+        {
+            if (trigger.Kind == CompletionTriggerKind.Insertion && caretPosition > 0)
+            {
+                var result = await IsTriggerOnDotAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+
+                if (ShouldTriggerInArgumentLists(document.Project.Solution.Workspace, await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)))
+                {
+                    result = await IsTriggerInArgumentListAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
+                    if (result.HasValue)
+                    {
+                        return result.Value;
+                    }
+                }
+            }
+
+            // By default we want to proceed with triggering completion if we have items.
+            return true;
+        }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         protected override async Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
@@ -44,7 +105,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        private async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
+        private bool ShouldTriggerInArgumentLists(SourceText text, OptionSet options)
+            => Workspace.TryGetWorkspace(text.Container, out var workspace) &&
+                ShouldTriggerInArgumentLists(workspace, options);
+
+        private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
+
+        private bool ShouldTriggerInArgumentLists(Workspace workspace, OptionSet options)
+        {
+            var isTriggerInArgumentListOptionEnabled = options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
+            if (isTriggerInArgumentListOptionEnabled != null)
+            {
+                return isTriggerInArgumentListOptionEnabled.Value;
+            }
+
+            if (_shouldTriggerCompletionInArgumentListsExperiment == null)
+            {
+                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                _shouldTriggerCompletionInArgumentListsExperiment =
+                    experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TriggerCompletionInArgumentLists);
+            }
+
+            return _shouldTriggerCompletionInArgumentListsExperiment.Value;
+        }
+
+        private static async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (text[characterPosition] != '.')
@@ -63,7 +148,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.Kind() != SyntaxKind.NumericLiteralToken;
         }
 
-        protected override async Task<SyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
+        /// <returns><see langword="null"/> if not an argument list character, otherwise whether the trigger is in an argument list.</returns>
+        private static async Task<bool?> IsTriggerInArgumentListAsync(Document document, int characterPosition, CancellationToken cancellationToken)
+        {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (!CompletionUtilities.IsArgumentListCharacter(text[characterPosition]))
+            {
+                return null;
+            }
+
+            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = tree.FindToken(characterPosition);
+
+            if (!token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
+            {
+                return false;
+            }
+
+            // Be careful, e.g. if we're in a comment before the token
+            if (token.Span.End > characterPosition + 1)
+            {
+                return false;
+            }
+
+            // Only allow spaces between the end of the token and the trigger character
+            for (var i = token.Span.End; i < characterPosition; i++)
+            {
+                if (text[i] != ' ')
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
             var span = new TextSpan(position, 0);
@@ -109,9 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static CompletionItemRules MakeRule(int importDirective, int preselect, int tupleLiteral)
-        {
-            return MakeRule(importDirective == 1, preselect == 1, tupleLiteral == 1);
-        }
+            => MakeRule(importDirective == 1, preselect == 1, tupleLiteral == 1);
 
         private static CompletionItemRules MakeRule(bool importDirective, bool preselect, bool tupleLiteral)
         {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -56,13 +58,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // In this case, we need to iterate through the <TargetFrameworks>, set <TargetFramework> with
                 // each value, and build the project.
 
-                var hasTargetFrameworkProp = _loadedProject.GetProperty(PropertyNames.TargetFramework) != null;
                 var targetFrameworks = targetFrameworksValue.Split(';');
                 var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(targetFrameworks.Length);
 
+                if (!_loadedProject.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
+                    initialGlobalTargetFrameworkValue = null;
+
                 foreach (var targetFramework in targetFrameworks)
                 {
-                    _loadedProject.SetProperty(PropertyNames.TargetFramework, targetFramework);
+                    _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
                     _loadedProject.ReevaluateIfNecessary();
 
                     var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
@@ -70,16 +74,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     results.Add(projectFileInfo);
                 }
 
-                // Remove the <TargetFramework> property if it didn't exist in the file before we set it.
-                // Otherwise, set it back to it's original value.
-                if (!hasTargetFrameworkProp)
+                if (initialGlobalTargetFrameworkValue is null)
                 {
-                    var targetFrameworkProp = _loadedProject.GetProperty(PropertyNames.TargetFramework);
-                    _loadedProject.RemoveProperty(targetFrameworkProp);
+                    _loadedProject.RemoveGlobalProperty(PropertyNames.TargetFramework);
                 }
                 else
                 {
-                    _loadedProject.SetProperty(PropertyNames.TargetFramework, targetFrameworkValue);
+                    _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, initialGlobalTargetFrameworkValue);
                 }
 
                 _loadedProject.ReevaluateIfNecessary();
@@ -338,7 +339,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private bool IsInGAC(string filePath)
+        private static bool IsInGAC(string filePath)
         {
             return GlobalAssemblyCacheLocation.RootLocations.Any(gloc => PathUtilities.IsChildPath(gloc, filePath));
         }
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private bool IsFrameworkReferenceAssembly(string filePath)
+        private static bool IsFrameworkReferenceAssembly(string filePath)
         {
             return PathUtilities.IsChildPath(FrameworkRoot, filePath);
         }
@@ -443,7 +444,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void RemoveProjectReference(string projectName, string projectFilePath)
         {
-            var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
             var item = FindProjectReferenceItem(projectName, projectFilePath);
             if (item != null)
             {

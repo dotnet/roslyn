@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -1225,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Friend Function CreateBoundCatchBlockExceptionDeclarationOrExpression(boundCatchBlock As BoundCatchBlock) As IOperation
             If boundCatchBlock.LocalOpt IsNot Nothing AndAlso
-                        boundCatchBlock.ExceptionSourceOpt?.Kind = BoundKind.Local AndAlso
+                        (boundCatchBlock.ExceptionSourceOpt?.Kind = BoundKind.Local).GetValueOrDefault() AndAlso
                         boundCatchBlock.LocalOpt Is DirectCast(boundCatchBlock.ExceptionSourceOpt, BoundLocal).LocalSymbol Then
                 Return New VariableDeclaratorOperation(boundCatchBlock.LocalOpt, initializer:=Nothing, ignoredArguments:=ImmutableArray(Of IOperation).Empty, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
             Else
@@ -1413,12 +1415,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return New EndOperation(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundWithStatementOperation(boundWithStatement As BoundWithStatement) As IWithOperation
+        Private Function CreateBoundWithStatementOperation(boundWithStatement As BoundWithStatement) As IWithStatementOperation
             Dim syntax As SyntaxNode = boundWithStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundWithStatement.WasCompilerGenerated
-            Return New VisualBasicLazyWithOperation(Me, boundWithStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New VisualBasicLazyWithStatementOperation(Me, boundWithStatement, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Friend Function CreateBoundUsingStatementResources(boundUsingStatement As BoundUsingStatement) As IOperation

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -26,7 +29,7 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = SignatureCallingConvention.CDecl,
+        CDecl = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
@@ -66,7 +69,51 @@ namespace Microsoft.Cci
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = SignatureAttributes.ExplicitThis
+        ExplicitThis = SignatureAttributes.ExplicitThis,
+    }
+
+    internal static class CallingConventionUtils
+    {
+        private const SignatureCallingConvention SignatureCallingConventionMask =
+            SignatureCallingConvention.Default
+            | SignatureCallingConvention.CDecl
+            | SignatureCallingConvention.StdCall
+            | SignatureCallingConvention.ThisCall
+            | SignatureCallingConvention.FastCall
+            | SignatureCallingConvention.VarArgs;
+
+        private const SignatureAttributes SignatureAttributesMask =
+            SignatureAttributes.Generic
+            | SignatureAttributes.Instance
+            | SignatureAttributes.ExplicitThis;
+
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention, bool throwOnInvalidConvention = false)
+        {
+            var callingConvention = (CallingConvention)(convention & SignatureCallingConventionMask);
+            if (throwOnInvalidConvention && callingConvention != (CallingConvention)convention)
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
+            return callingConvention;
+        }
+
+        internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
+            => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
+
+        /// <summary>
+        /// Compares calling conventions, ignoring calling convention attributes.
+        /// </summary>
+        internal static bool IsCallingConvention(this CallingConvention original, CallingConvention compare)
+        {
+            Debug.Assert((compare & ~(CallingConvention)SignatureCallingConventionMask) == 0);
+            return ((original & (CallingConvention)SignatureCallingConventionMask)) == compare;
+        }
+
+        internal static bool HasUnknownCallingConventionAttributeBits(this CallingConvention convention)
+            => (convention & ~((CallingConvention)SignatureCallingConventionMask
+                               | (CallingConvention)SignatureAttributesMask))
+               != 0;
     }
 
     /// <summary>
@@ -329,7 +376,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// True if the locals are initialized by zeroing the stack upon method entry.
         /// </summary>
-        bool LocalsAreZeroed { get; }
+        bool AreLocalsZeroed { get; }
+
+        /// <summary>
+        /// True if there's a stackalloc somewhere in the method.
+        /// </summary>
+        bool HasStackalloc { get; }
 
         /// <summary>
         /// The local variables of the method.

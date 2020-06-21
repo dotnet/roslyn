@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -26,9 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected abstract void ShutdownSource();
 
         protected void ConnectWorkspaceEvents()
-        {
-            Workspace.WorkspaceChanged += OnWorkspaceChanged;
-        }
+            => Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
@@ -62,8 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
                 default:
-                    Contract.Fail("Can't reach here");
-                    return;
+                    throw ExceptionUtilities.UnexpectedValue(e.Kind);
             }
         }
 
@@ -88,9 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected void AddTableSource(ITableDataSource source)
-        {
-            this.TableManager.AddSource(source, Columns);
-        }
+            => this.TableManager.AddSource(source, Columns);
 
         internal ITableManager TableManager { get; }
 
