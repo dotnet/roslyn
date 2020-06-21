@@ -3322,7 +3322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(bodyBinder != null);
 
             BoundExpressionStatement initializer = null;
-            if (recordDecl.BaseWithArguments is SimpleBaseTypeSyntax baseWithArguments)
+            if (recordDecl.PrimaryConstructorBaseTypeSyntax is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
             }
@@ -3334,10 +3334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   expressionBody: null);
         }
 
-        internal BoundExpressionStatement BindConstructorInitializer(SimpleBaseTypeSyntax initializer, DiagnosticBag diagnostics)
+        internal virtual BoundExpressionStatement BindConstructorInitializer(PrimaryConstructorBaseTypeSyntax initializer, DiagnosticBag diagnostics)
         {
-            Debug.Assert(initializer.Parent?.Parent is RecordDeclarationSyntax recordDecl && recordDecl.ParameterList is object && recordDecl.BaseWithArguments == initializer);
-
             BoundExpression initializerInvocation = GetBinder(initializer).BindConstructorInitializer(initializer.ArgumentList, (MethodSymbol)this.ContainingMember(), diagnostics);
             var constructorInitializer = new BoundExpressionStatement(initializer, initializerInvocation);
             Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
