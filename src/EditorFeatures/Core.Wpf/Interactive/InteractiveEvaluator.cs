@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.InteractiveWindow;
@@ -53,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly IInteractiveWindowCommandsFactory _commandsFactory;
         private readonly ImmutableArray<IInteractiveWindowCommand> _commands;
         private readonly CancellationTokenSource _shutdownCancellationSource;
-        private readonly CancellationToken _shutdownCancellationToken;
 
         private IInteractiveWindow? _lazyInteractiveWindow;
         private IInteractiveWindowCommands? _lazyInteractiveCommands;
@@ -135,11 +135,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _interactiveHost = new InteractiveHost(replType, initialWorkingDirectory);
             _interactiveHost.ProcessInitialized += ProcessInitialized;
-        }
-
-        private void LogState([CallerMemberName] string? member = null, [CallerLineNumber] int line = 0)
-        {
-            Debug.WriteLine($"{member} ({line}): current={_currentSubmissionProjectId?.DebugName}, last={_lastSuccessfulSubmissionProjectId?.DebugName}");
         }
 
         public IContentType ContentType => _contentType;
@@ -230,8 +225,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _taskQueue.ScheduleTask(nameof(ProcessInitialized), () =>
             {
-                LogState();
-
                 // clear workspace state:
                 _workspace.ClearSolution();
                 _currentSubmissionProjectId = null;
@@ -250,9 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 }
 
                 _pendingBuffers.Clear();
-
-                LogState();
-            }, _shutdownCancellationToken);
+            }, _shutdownCancellationSource.Token);
         }
 
         private static RuntimeMetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, InteractiveHostPlatformInfo platformInfo, ImmutableArray<string> searchPaths, string baseDirectory)
@@ -279,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            _taskQueue.ScheduleTask(nameof(SubmissionBufferAdded), () => AddSubmissionProjectNoLock(args.NewBuffer, LanguageName), _shutdownCancellationToken);
+            _taskQueue.ScheduleTask(nameof(SubmissionBufferAdded), () => AddSubmissionProjectNoLock(args.NewBuffer, LanguageName), _shutdownCancellationSource.Token);
         }
 
         private void AddSubmissionProjectNoLock(ITextBuffer submissionBuffer, string languageName)
@@ -348,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             CompilationOptions compilationOptions;
             if (previousSubmissionProjectId != null)
             {
-                compilationOptions = solution.GetProjectState(previousSubmissionProjectId)!.CompilationOptions!;
+                compilationOptions = solution.GetRequiredProject(previousSubmissionProjectId).CompilationOptions!;
 
                 var metadataResolver = (RuntimeMetadataReferenceResolver)compilationOptions.MetadataReferenceResolver!;
                 if (metadataResolver.PathResolver.BaseDirectory != WorkingDirectory ||
@@ -369,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 var metadataService = _workspace.Services.GetRequiredService<IMetadataService>();
                 compilationOptions = GetSubmissionCompilationOptions(
                     name,
-                    CreateMetadataReferenceResolver(metadataService, _platformInfo, SourceSearchPaths, WorkingDirectory),
+                    CreateMetadataReferenceResolver(metadataService, _platformInfo, ReferenceSearchPaths, WorkingDirectory),
                     CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory),
                     imports);
             }
@@ -511,18 +502,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     var result = await _interactiveHost.ExecuteAsync(text).ConfigureAwait(false);
                     if (result.Success)
                     {
-                        LogState();
-
                         _lastSuccessfulSubmissionProjectId = _currentSubmissionProjectId;
 
                         // update local search paths - remote paths has already been updated
                         UpdatePathsNoLock(result);
-
-                        LogState();
                     }
 
                     return new ExecutionResult(result.Success);
-                }, _shutdownCancellationToken).ConfigureAwait(false);
+                }, _shutdownCancellationSource.Token).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.Report(e))
             {
