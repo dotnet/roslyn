@@ -43,4 +43,38 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return instance;
         }
     }
+
+    internal sealed partial class PooledStack<T> : Stack<T>
+    {
+        private readonly ObjectPool<PooledStack<T>> _pool;
+
+        private PooledStack(ObjectPool<PooledStack<T>> pool, int capacity) : base(capacity)
+        {
+            _pool = pool;
+        }
+
+        public void Free()
+        {
+            this.Clear();
+            _pool?.Free(this);
+        }
+
+        // global pool
+        private static readonly ObjectPool<PooledStack<T>> s_poolInstance = CreatePool(16);
+
+        // if someone needs to create a pool;
+        public static ObjectPool<PooledStack<T>> CreatePool(int capacity)
+        {
+            ObjectPool<PooledStack<T>> pool = null;
+            pool = new ObjectPool<PooledStack<T>>(() => new PooledStack<T>(pool, capacity));
+            return pool;
+        }
+
+        public static PooledStack<T> GetInstance()
+        {
+            var instance = s_poolInstance.Allocate();
+            Debug.Assert(instance.Count == 0);
+            return instance;
+        }
+    }
 }

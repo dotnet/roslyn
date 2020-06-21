@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             T item)
         {
             var closure = PooledObjects.PooledHashSet<T>.GetInstance();
-            var stack = new Stack<T>();
+            var stack = PooledObjects.PooledStack<T>.GetInstance();
             stack.Push(item);
             while (stack.Count > 0)
             {
@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+            stack.Free();
             var result = closure.ToHashSet<T>();
             closure.Free();
             return result;
