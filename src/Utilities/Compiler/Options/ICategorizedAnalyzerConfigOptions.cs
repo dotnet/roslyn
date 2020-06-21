@@ -29,12 +29,12 @@ namespace Analyzer.Utilities
     {
         bool IsEmpty { get; }
 
-        [return: MaybeNull]
-        T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality);
+        [return: MaybeNull, NotNullIfNotNull("defaultValue")]
+        T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality);
     }
 
     internal static class CategorizedAnalyzerConfigOptionsExtensions
     {
-        public delegate bool TryParseValue<T>(string value, [MaybeNull, NotNullWhen(returnValue: true)] out T parsedValue);
+        public delegate bool TryParseValue<T>(string value, [MaybeNullWhen(returnValue: false)] out T parsedValue);
     }
 }

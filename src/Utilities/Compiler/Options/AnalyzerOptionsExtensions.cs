@@ -152,7 +152,7 @@ namespace Analyzer.Utilities
             where TEnum : struct
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation, cancellationToken);
-            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParseValue, defaultValue)!;
+            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParseValue, defaultValue);
             static bool TryParseValue(string value, out ImmutableHashSet<TEnum> result)
             {
                 var builder = ImmutableHashSet.CreateBuilder<TEnum>();
@@ -436,7 +436,7 @@ namespace Analyzer.Utilities
             where TValue : notnull
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation, cancellationToken);
-            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParse, defaultValue: GetDefaultValue())!;
+            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParse, defaultValue: GetDefaultValue());
 
             // Local functions.
             bool TryParse(string s, out SymbolNamesWithValueOption<TValue> option)
