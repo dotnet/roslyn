@@ -161,8 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
             var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions);
 
-            Debug.Assert(Arguments.CompilationName != null);
-
             return CSharpCompilation.Create(
                 Arguments.CompilationName,
                 trees.WhereNotNull(),
