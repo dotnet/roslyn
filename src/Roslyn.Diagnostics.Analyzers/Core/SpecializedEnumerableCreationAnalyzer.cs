@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -125,9 +126,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
 
-            protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel)
+            protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                TypeInfo typeInfo = semanticModel.GetTypeInfo(expression);
+                TypeInfo typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
 
                 return typeInfo.ConvertedType != null &&
                     Equals(typeInfo.ConvertedType.OriginalDefinition, GenericEnumerableSymbol) &&

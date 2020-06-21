@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 
@@ -20,14 +22,25 @@ namespace Test.Utilities
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
+                    var project = solution.GetProject(projectId)!;
+                    var parseOptions = (VisualBasicParseOptions)project.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
+
+                    if (AnalyzerConfigDocument != null)
+                    {
+                        solution = project.AddAnalyzerConfigDocument(
+                            ".editorconfig",
+                            SourceText.From($"is_global = true" + Environment.NewLine + AnalyzerConfigDocument),
+                            filePath: @"z:\.editorconfig").Project.Solution;
+                    }
 
                     return solution;
                 });
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic15_5;
+
+            public string? AnalyzerConfigDocument { get; set; }
         }
     }
 }

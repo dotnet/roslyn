@@ -1390,7 +1390,7 @@ class TestClass
 
                 if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(EndString))
+                    if (exprFullText.Contains(EndString, StringComparison.Ordinal))
                     {
                         if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                         {
@@ -1409,7 +1409,7 @@ class TestClass
 
                 if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(StartString))
+                    if (exprFullText.Contains(StartString, StringComparison.Ordinal))
                     {
                         if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                         {

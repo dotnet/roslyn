@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// <summary>
         /// Operation visitor to flow the data values across a given statement in a basic block.
         /// </summary>
-        private sealed class ValueContentDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
+        private sealed class ValueContentDataFlowOperationVisitor : PredicateAnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
         {
             private readonly ValueContentAnalysisDomain _valueContentAnalysisDomain;
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             protected override ValueContentAnalysisData MergeAnalysisData(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
                 => _valueContentAnalysisDomain.Merge(value1, value2);
-            protected override ValueContentAnalysisData MergeAnalysisDataForBackEdge(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
+            protected override ValueContentAnalysisData MergeAnalysisDataForBackEdge(ValueContentAnalysisData value1, ValueContentAnalysisData value2, BasicBlock forBlock)
                 => _valueContentAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2);
             protected override void UpdateValuesForAnalysisData(ValueContentAnalysisData targetAnalysisData)
                 => UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);

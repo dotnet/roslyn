@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
@@ -113,6 +114,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     result.Add(entry.Key, entry.Value);
+                }
+            }
+
+            return result;
+        }
+
+        internal static DictionaryAnalysisData<TKey, TValue> Intersect(
+            DictionaryAnalysisData<TKey, TValue> map1,
+            DictionaryAnalysisData<TKey, TValue> map2,
+            Func<TValue, TValue, TValue> intersect)
+        {
+            var result = new DictionaryAnalysisData<TKey, TValue>();
+            if (map1.Count == 0 || map2.Count == 0)
+            {
+                return result;
+            }
+
+            foreach (var kvp in map1)
+            {
+                if (map2.TryGetValue(kvp.Key, out var value2))
+                {
+                    result.Add(kvp.Key, intersect(kvp.Value, value2));
                 }
             }
 

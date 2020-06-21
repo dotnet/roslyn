@@ -81,6 +81,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
+                // This accessor is only meant for use by the DFA analysis for operations within the CFG,
+                // which have a completely different operation tree.
+                // Make sure the analyzers don't invoke this accessor with operations from the original operation tree
+                // They should instead by invoking the accessor 'this[OperationKind operationKind, SyntaxNode syntax]'
+                // with operation's kind and syntax as arguments.
+                Debug.Assert(operation.GetRoot() != ControlFlowGraph.OriginalOperation,
+                    "Did you mean to invoke the accessor that takes operation's kind and syntax as arguments?");
+
                 if (_operationStateMap.TryGetValue(operation, out var value))
                 {
                     return value;

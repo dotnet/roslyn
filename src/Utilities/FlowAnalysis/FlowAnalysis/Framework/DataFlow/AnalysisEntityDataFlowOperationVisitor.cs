@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public abstract class AnalysisEntityDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisData : AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue>
+        where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
         where TAbstractAnalysisValue : IEquatable<TAbstractAnalysisValue>
@@ -29,8 +29,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected AnalysisEntityDataFlowOperationVisitor(TAnalysisContext analysisContext)
             : base(analysisContext)
         {
+            Debug.Assert(!analysisContext.PredicateAnalysis || SupportsPredicateAnalysis);
         }
 
+        protected virtual bool SupportsPredicateAnalysis => false;
         protected void AddTrackedEntities(HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false)
             => AddTrackedEntities(CurrentAnalysisData, builder, forInterproceduralAnalysis);
         protected abstract void AddTrackedEntities(TAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false);
@@ -461,43 +463,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return trackedEntitiesBuilder.ToImmutableAndFree();
         }
 
-        #endregion
-
-        #region Predicate analysis
-        protected override void UpdateReachability(BasicBlock basicBlock, TAnalysisData analysisData, bool isReachable)
-        {
-            Debug.Assert(PredicateAnalysis);
-            if (analysisData is AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue> predicatedData)
-            {
-                Debug.Assert(!isReachable || predicatedData.IsReachableBlockData);
-                predicatedData.IsReachableBlockData = isReachable;
-            }
-        }
-
-        protected override bool IsReachableBlockData(TAnalysisData analysisData)
-            => analysisData?.IsReachableBlockData ?? true;
-
-        protected sealed override void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, TAnalysisData? truePredicateData, TAnalysisData? falsePredicateData)
-                => CurrentAnalysisData?.StartTrackingPredicatedData(
-                        predicatedEntity,
-                        truePredicateData,
-                        falsePredicateData);
-        protected sealed override void StopTrackingPredicatedData(AnalysisEntity predicatedEntity)
-            => CurrentAnalysisData?.StopTrackingPredicatedData(predicatedEntity);
-        protected sealed override bool HasPredicatedDataForEntity(TAnalysisData analysisData, AnalysisEntity predicatedEntity)
-            => analysisData?.HasPredicatedDataForEntity(predicatedEntity) == true;
-        protected sealed override void TransferPredicatedData(AnalysisEntity fromEntity, AnalysisEntity toEntity)
-            => CurrentAnalysisData?.TransferPredicatedData(fromEntity, toEntity);
-        protected sealed override PredicateValueKind ApplyPredicatedDataForEntity(TAnalysisData analysisData, AnalysisEntity predicatedEntity, bool trueData)
-            => analysisData?.ApplyPredicatedDataForEntity(predicatedEntity, trueData) ?? PredicateValueKind.Unknown;
-        protected override void SetPredicateValueKind(IOperation operation, TAnalysisData analysisData, PredicateValueKind predicateValueKind)
-        {
-            base.SetPredicateValueKind(operation, analysisData, predicateValueKind);
-            if (predicateValueKind == PredicateValueKind.AlwaysFalse)
-            {
-                analysisData.IsReachableBlockData = false;
-            }
-        }
         #endregion
 
         #region Interprocedural analysis

@@ -330,6 +330,15 @@
   <data name="ExposeMemberForTestingTitle" xml:space="preserve">
     <value>Expose member for testing</value>
   </data>
+  <data name="AvoidOptSuffixForNullableEnableCodeDescription" xml:space="preserve">
+    <value>Avoid the 'Opt' suffix in a nullable-enabled code.</value>
+  </data>
+  <data name="AvoidOptSuffixForNullableEnableCodeMessage" xml:space="preserve">
+    <value>Avoid the 'Opt' suffix in a nullable-enabled code</value>
+  </data>
+  <data name="AvoidOptSuffixForNullableEnableCodeTitle" xml:space="preserve">
+    <value>Avoid the 'Opt' suffix</value>
+  </data>
   <data name="BracePlacementMessage" xml:space="preserve">
     <value>Braces must not have blank lines between them</value>
   </data>
@@ -347,5 +356,8 @@
   </data>
   <data name="Place_statement_on_following_line" xml:space="preserve">
     <value>Place statement on following line</value>
+  </data>
+  <data name="AvoidOptSuffixForNullableEnableCodeCodeFixTitle" xml:space="preserve">
+    <value>Remove the 'Opt' suffix</value>
   </data>
 </root>
