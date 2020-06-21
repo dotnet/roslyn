@@ -146,6 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 diagnosticId == CS1929) && // An extension `GetAwaiter()` is in scope, but for another type
                 AncestorOrSelfIsAwaitExpression(syntaxFactsService, node);
 
+        protected override bool CanAddImportForGetEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node)
+            => diagnosticId == CS1579 || diagnosticId == CS8414;
+
+        protected override bool CanAddImportForGetAsyncEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node)
+            => diagnosticId == CS8411 || diagnosticId == CS8415;
+
         protected override bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;

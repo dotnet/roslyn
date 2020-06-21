@@ -117,6 +117,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 AncestorOrSelfIsAwaitExpression(syntaxFactsService, node)
         End Function
 
+        Protected Overrides Function CanAddImportForGetEnumerator(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function CanAddImportForGetAsyncEnumerator(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
             Return diagnosticId = AddImportDiagnosticIds.BC36593 AndAlso
                 node.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
