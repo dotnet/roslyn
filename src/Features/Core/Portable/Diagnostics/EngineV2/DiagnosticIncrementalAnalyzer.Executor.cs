@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private static async Task<DocumentAnalysisData> ComputeDocumentAnalysisDataAsync(
             DocumentAnalysisExecutor executor, StateSet stateSet, CancellationToken cancellationToken)
         {
-            var kind = executor.Kind;
-            var document = executor.Document;
+            var kind = executor.AnalysisScope.Kind;
+            var document = executor.AnalysisScope.Document;
 
             // get log title and functionId
             GetLogFunctionIdAndTitle(kind, out var functionId, out var title);

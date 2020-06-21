@@ -44,8 +44,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                // First attempt to fetch diagnostics from the cache, while computing the state sets for analyzers that are not cached.
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+
+                // First attempt to fetch diagnostics from the cache, while computing the state sets for analyzers that are not cached.
                 using var _ = ArrayBuilder<StateSet>.GetInstance(out var nonCachedStateSets);
                 foreach (var stateSet in stateSets)
                 {
@@ -64,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // Then, compute the diagnostics for non-cached state sets.
                 if (nonCachedStateSets.Count > 0)
                 {
-                    var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, nonCachedStateSets, cancellationToken).ConfigureAwait(false);
-                    var executor = new DocumentAnalysisExecutor(document, span: null, kind, compilationWithAnalyzers, DiagnosticAnalyzerInfoCache);
+                    var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
+                    var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, DiagnosticAnalyzerInfoCache);
                     foreach (var stateSet in nonCachedStateSets)
                     {
                         var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, cancellationToken).ConfigureAwait(false);
