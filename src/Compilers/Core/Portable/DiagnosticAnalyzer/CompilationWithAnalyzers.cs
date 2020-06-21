@@ -481,9 +481,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns categorized syntax diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="tree"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
-        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
-        /// can be absent.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="tree">Syntax tree to analyze.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
@@ -491,14 +489,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyTree(tree);
 
-            return GetCategorizedAnalyzerSyntaxDiagnosticsAsync(tree, Analyzers, cancellationToken);
+            return GetCategorizedAnalyzerSyntaxDiagnosticsCoreAsync(tree, Analyzers, cancellationToken);
         }
 
         /// <summary>
         /// Returns categorized syntax diagnostics produced by given <paramref name="analyzers"/> from analyzing the given <paramref name="tree"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
-        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
-        /// can be absent.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="tree">Syntax tree to analyze.</param>
         /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
@@ -565,9 +561,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns semantic diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
-        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
-        /// can be absent.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="model">Semantic model representing the syntax tree to analyze.</param>
         /// <param name="filterSpan">An optional span within the tree to scope analysis.</param>
@@ -581,9 +575,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns semantic diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
-        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
-        /// can be absent.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="model">Semantic model representing the syntax tree to analyze.</param>
         /// <param name="filterSpan">An optional span within the tree to scope analysis.</param>
