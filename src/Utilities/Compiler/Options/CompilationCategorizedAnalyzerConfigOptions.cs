@@ -49,7 +49,7 @@ namespace Analyzer.Utilities
         {
             get
             {
-                Debug.Assert(ReferenceEquals(this, Empty) || _generalOptions.Count > 0 || _specificOptions.Count > 0);
+                Debug.Assert(ReferenceEquals(this, Empty) || !_generalOptions.IsEmpty || !_specificOptions.IsEmpty);
                 return ReferenceEquals(this, Empty);
             }
         }
@@ -70,12 +70,12 @@ namespace Analyzer.Utilities
                 var key = kvp.Key;
                 var value = kvp.Value;
 
-                if (!key.StartsWith(KeyPrefix, StringComparison.OrdinalIgnoreCase))
+                if (!HasSupportedKeyPrefix(key, out var keyPrefix))
                 {
                     continue;
                 }
 
-                key = key.Substring(KeyPrefix.Length);
+                key = key.Substring(keyPrefix.Length);
                 var keyParts = key.Split('.').Select(s => s.Trim()).ToImmutableArray();
                 switch (keyParts.Length)
                 {

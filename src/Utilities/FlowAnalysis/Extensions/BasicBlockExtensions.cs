@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -167,22 +166,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             => Math.Max(basicBlock.FallThroughSuccessor?.Destination?.Ordinal ?? -1,
                         basicBlock.ConditionalSuccessor?.Destination?.Ordinal ?? -1);
 
-        internal static IOperation? GetPreviousOperationInBlock(this BasicBlock basicBlock, IOperation operation)
+        internal static bool DominatesPredecessors(this BasicBlock? basicBlock)
         {
-            Debug.Assert(operation != null);
-
-            IOperation? previousOperation = null;
-            foreach (var currentOperation in basicBlock.Operations)
+            if (basicBlock == null ||
+                basicBlock.Predecessors.Length == 0)
             {
-                if (operation == currentOperation)
-                {
-                    return previousOperation;
-                }
-
-                previousOperation = currentOperation;
+                return false;
             }
 
-            return null;
+            foreach (var predecessor in basicBlock.Predecessors)
+            {
+                if (!Dominates(predecessor.Source.ConditionalSuccessor, basicBlock) ||
+                    !Dominates(predecessor.Source.FallThroughSuccessor, basicBlock))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+
+            static bool Dominates(ControlFlowBranch? branch, BasicBlock basicBlock)
+            {
+                return branch?.Destination == null ||
+                    branch.Destination.Ordinal <= basicBlock.Ordinal;
+            }
         }
     }
 }
