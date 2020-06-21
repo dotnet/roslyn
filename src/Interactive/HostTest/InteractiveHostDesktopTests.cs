@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
     public sealed class InteractiveHostDesktopTests : AbstractInteractiveHostTests
     {
-        private static readonly string s_fxDir = FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory());
-
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Desktop64;
-        internal override string[] ReferenceSearchPaths => new[] { s_fxDir };
         internal override bool UseDefaultInitializationFile => false;
 
         [Fact]
@@ -372,24 +369,6 @@ WriteLine(5);
             Assert.True(result);
         }
 
-        [Fact]
-        public async Task AddReference_AssemblyAlreadyLoaded()
-        {
-            var result = await LoadReference("System.Core");
-            var output = await ReadOutputToEnd();
-            var error = await ReadErrorOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("", output);
-            Assert.True(result);
-
-            result = await LoadReference("System.Core.dll");
-            output = await ReadOutputToEnd();
-            error = await ReadErrorOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("", output);
-            Assert.True(result);
-        }
-
         // Caused by submission not inheriting references.
         [Fact(Skip = "101161")]
         public async Task AddReference_ShadowCopy()
@@ -712,27 +691,70 @@ new D().Y
         ////        }
 
         [Fact]
-        public async Task ReferencePaths()
+        public async Task ReferencePathsRsp()
         {
-            var directory = Temp.CreateDirectory();
-            var assemblyName = GetUniqueName();
-            CompileLibrary(directory, assemblyName + ".dll", assemblyName, @"public class C { }");
-            var rspFile = Temp.CreateFile();
-            rspFile.WriteAllText("/lib:" + directory.Path);
+            var directory1 = Temp.CreateDirectory();
+            CompileLibrary(directory1, "Assembly0.dll", "Assembly0", @"public class C0 { }");
+            CompileLibrary(directory1, "Assembly1.dll", "Assembly1", @"public class C1 { }");
+
+            var initDirectory = Temp.CreateDirectory();
+            var initFile = initDirectory.CreateFile("init.csx");
+
+            initFile.WriteAllText(@"
+#r ""Assembly0.dll""
+System.Console.WriteLine(typeof(C0).Assembly.GetName());
+System.Console.WriteLine(typeof(C2).Assembly.GetName());
+Print(ReferencePaths);
+");
+            var rspDirectory = Temp.CreateDirectory();
+            CompileLibrary(rspDirectory, "Assembly2.dll", "Assembly2", @"public class C2 { }");
+            CompileLibrary(rspDirectory, "Assembly3.dll", "Assembly3", @"public class C3 { }");
+
+            var rspFile = rspDirectory.CreateFile("init.rsp");
+            rspFile.WriteAllText($"/lib:{directory1.Path} /r:Assembly2.dll {initFile.Path}");
 
             await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, culture: CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
 
-            await Execute(
-$@"#r ""{assemblyName}.dll""
-typeof(C).Assembly.GetName()");
+            await Execute(@"
+#r ""Assembly1.dll""
+System.Console.WriteLine(typeof(C1).Assembly.GetName());
+Print(ReferencePaths);
+");
 
             var error = await ReadErrorOutputToEnd();
-            var output = SplitLines(await ReadOutputToEnd());
+            var output = await ReadOutputToEnd();
 
-            Assert.Equal("", error);
-            Assert.Equal(2, output.Length);
-            Assert.Equal($"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }", output[0]);
-            Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
+            var expectedSearchPaths = PrintSearchPaths(RuntimeEnvironment.GetRuntimeDirectory(), directory1.Path);
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path))}
+Assembly0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+Assembly2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+{expectedSearchPaths}
+Assembly1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+{expectedSearchPaths}
+    ", output);
+        }
+
+        [Fact]
+        public async Task ReferencePathsRsp_Error()
+        {
+            var initDirectory = Temp.CreateDirectory();
+            var initFile = initDirectory.CreateFile("init.csx");
+            initFile.WriteAllText(@"#r ""Assembly.dll""");
+
+            var rspDirectory = Temp.CreateDirectory();
+            CompileLibrary(rspDirectory, "Assembly.dll", "Assembly", "public class C { }");
+
+            var rspFile = rspDirectory.CreateFile("init.rsp");
+            rspFile.WriteAllText($"{initFile.Path}");
+
+            await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, culture: CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
+
+            var error = await ReadErrorOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                @$"{initFile.Path}(1,1): error CS0006: {string.Format(CSharpResources.ERR_NoMetadataFile, "Assembly.dll")}", error);
         }
 
         [Fact]
@@ -926,51 +948,6 @@ new object[] { new Class1(), new Class2(), new Class3() }
             var output = await ReadOutputToEnd();
             Assert.Equal("", error);
             Assert.Equal("object[3] { Class1 { }, Class2 { }, Class3 { } }\r\n", output);
-        }
-
-        [Fact]
-        public async Task SearchPaths1()
-        {
-            var dll = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01);
-            var srcDir = Temp.CreateDirectory();
-            var dllDir = Path.GetDirectoryName(dll.Path);
-            srcDir.CreateFile("goo.csx").WriteAllText("ReferencePaths.Add(@\"" + dllDir + "\");");
-
-            string normalizeSeparatorsAndFrameworkFolders(string s) => s.Replace("\\", "\\\\").Replace("Framework64", "Framework");
-
-            // print default:
-            await Host.ExecuteAsync(@"ReferencePaths");
-            var output = await ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_fxDir })) + "\" }\r\n", output);
-
-            await Host.ExecuteAsync(@"SourcePaths");
-            output = await ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { HomeDir })) + "\" }\r\n", output);
-
-            // add and test if added:
-            await Host.ExecuteAsync("SourcePaths.Add(@\"" + srcDir + "\");");
-
-            await Host.ExecuteAsync(@"SourcePaths");
-
-            output = await ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { HomeDir, srcDir.Path })) + "\" }\r\n", output);
-
-            // execute file (uses modified search paths), the file adds a reference path
-            await Host.ExecuteFileAsync("goo.csx");
-
-            await Host.ExecuteAsync(@"ReferencePaths");
-
-            output = await ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_fxDir, dllDir })) + "\" }\r\n", output);
-
-            await Host.AddReferenceAsync(Path.GetFileName(dll.Path));
-
-            await Host.ExecuteAsync(@"typeof(Metadata.ICSProp)");
-
-            var error = await ReadErrorOutputToEnd();
-            output = await ReadOutputToEnd();
-            Assert.Equal("", error);
-            Assert.Equal("[Metadata.ICSProp]\r\n", output);
         }
 
         [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]

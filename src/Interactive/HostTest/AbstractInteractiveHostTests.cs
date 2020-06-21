@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,8 +34,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         internal readonly InteractiveHost Host;
 
-        internal static readonly string HomeDir = FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-
         protected AbstractInteractiveHostTests()
         {
             Host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
@@ -44,7 +43,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         }
 
         internal abstract InteractiveHostPlatform DefaultPlatform { get; }
-        internal abstract string[] ReferenceSearchPaths { get; }
         internal abstract bool UseDefaultInitializationFile { get; }
 
         public async Task InitializeAsync()
@@ -52,8 +50,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var initializationFileName = UseDefaultInitializationFile ? "CSharpInteractive.rsp" : null;
 
             await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName, CultureInfo.InvariantCulture, DefaultPlatform));
-
-            await Host.SetPathsAsync(ReferenceSearchPaths, new[] { HomeDir }, HomeDir);
 
             // assert and remove logo:
             var output = SplitLines(await ReadOutputToEnd());
@@ -174,5 +170,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             return (file.Path, image);
         }
+
+        public static string PrintSearchPaths(params string[] paths)
+            => paths.Length == 0 ? "SearchPaths { }" : $"SearchPaths {{ {string.Join(", ", paths.Select(p => "\"" + p.Replace("\\", "\\\\") + "\""))} }}";
     }
 }

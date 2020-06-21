@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             private readonly object _lastTaskGuard = new object();
             private Task<EvaluationState> _lastTask;
 
+            private static InteractiveHostPlatformInfo s_currentPlatformInfo = InteractiveHostPlatformInfo.GetCurrentPlatformInfo();
+
             private sealed class ServiceState : IDisposable
             {
                 public readonly InteractiveAssemblyLoader AssemblyLoader;
@@ -122,12 +124,17 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // The initial working directory is set when the process is created.
                 var workingDirectory = Directory.GetCurrentDirectory();
 
+                var referenceResolver = new RuntimeMetadataReferenceResolver(
+                    searchPaths: ImmutableArray<string>.Empty,
+                    baseDirectory: workingDirectory,
+                    packageResolver: null,
+                    gacFileResolver: s_currentPlatformInfo.HasGlobalAssemblyCache ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                    s_currentPlatformInfo.PlatformAssemblyPaths,
+                    (path, properties) => new ShadowCopyReference(GetServiceState().MetadataFileProvider, path, properties));
+
                 var initialState = new EvaluationState(
                     scriptState: null,
-                    scriptOptions: ScriptOptions.Default.WithMetadataResolver(new ScriptMetadataResolver(
-                        searchPaths: ImmutableArray<string>.Empty,
-                        baseDirectory: workingDirectory,
-                        (path, properties) => new ShadowCopyReference(GetServiceState().MetadataFileProvider, path, properties))),
+                    scriptOptions: ScriptOptions.Default.WithMetadataResolver(new ScriptMetadataResolver(referenceResolver)),
                     ImmutableArray<string>.Empty,
                     workingDirectory);
 
@@ -169,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 _serviceState = new ServiceState(assemblyLoader, metadataFileProvider, replServiceProvider, globals);
 
-                return Task.FromResult(InteractiveHostPlatformInfo.Current.Serialize());
+                return Task.FromResult(s_currentPlatformInfo.Serialize());
             }
 
             private ServiceState GetServiceState()
@@ -524,10 +531,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                         Console.Out.WriteLine(string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(initializationFilePath)));
                         var parser = serviceState.ReplServiceProvider.CommandLineParser;
 
-                        // The base directory for relative paths is the directory that contains the .rsp file.
-                        // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
+                        // Add the Framework runtime directory to reference search paths when running on .NET Framework (PlatformAssemblyPaths list is empty).
+                        // Otherwise, platform assemblies are looked up in PlatformAssemblyPaths directly.
+                        var sdkDirectory = s_currentPlatformInfo.PlatformAssemblyPaths.IsEmpty ? RuntimeEnvironment.GetRuntimeDirectory() : null;
+
                         var rspDirectory = Path.GetDirectoryName(initializationFilePath);
-                        var args = parser.Parse(new[] { "@" + initializationFilePath }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
+                        var args = parser.Parse(new[] { "@" + initializationFilePath }, baseDirectory: rspDirectory, sdkDirectory, additionalReferenceDirectories: null);
 
                         foreach (var error in args.Errors)
                         {
@@ -537,16 +546,23 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                         if (args.Errors.Length == 0)
                         {
-                            var metadataResolver = state.MetadataReferenceResolver.WithSearchPaths(args.ReferencePaths).WithBaseDirectory(rspDirectory);
-                            var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, rspDirectory);
+                            var referencePaths = args.ReferencePaths;
+                            var sourcePaths = args.SourcePaths;
+
+                            // TODO: Workaround for https://github.com/dotnet/roslyn/issues/45346
+                            var referencePathsWithoutRspDir = referencePaths.Remove(rspDirectory);
+                            var metadataResolver = state.MetadataReferenceResolver.WithSearchPaths(referencePathsWithoutRspDir);
+                            var rspMetadataResolver = state.MetadataReferenceResolver.WithSearchPaths(referencePaths).WithBaseDirectory(rspDirectory);
+
+                            var sourceResolver = CreateSourceReferenceResolver(sourcePaths, rspDirectory);
 
                             var metadataReferences = new List<PortableExecutableReference>();
-                            foreach (CommandLineReference cmdLineReference in args.MetadataReferences)
+                            foreach (var cmdLineReference in args.MetadataReferences)
                             {
                                 // interactive command line parser doesn't accept modules or linked assemblies
                                 Debug.Assert(cmdLineReference.Properties.Kind == MetadataImageKind.Assembly && !cmdLineReference.Properties.EmbedInteropTypes);
 
-                                var resolvedReferences = metadataResolver.ResolveReference(cmdLineReference.Reference, baseFilePath: null, properties: MetadataReferenceProperties.Assembly);
+                                var resolvedReferences = rspMetadataResolver.ResolveReference(cmdLineReference.Reference, baseFilePath: null, properties: MetadataReferenceProperties.Assembly);
                                 if (!resolvedReferences.IsDefaultOrEmpty)
                                 {
                                     metadataReferences.AddRange(resolvedReferences);
@@ -570,10 +586,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                             var globals = serviceState.Globals;
                             globals.ReferencePaths.Clear();
-                            globals.ReferencePaths.AddRange(args.ReferencePaths);
+                            globals.ReferencePaths.AddRange(referencePathsWithoutRspDir);
 
                             globals.SourcePaths.Clear();
-                            globals.SourcePaths.AddRange(args.SourcePaths);
+                            globals.SourcePaths.AddRange(sourcePaths);
 
                             globals.Args.AddRange(args.ScriptArguments);
 
