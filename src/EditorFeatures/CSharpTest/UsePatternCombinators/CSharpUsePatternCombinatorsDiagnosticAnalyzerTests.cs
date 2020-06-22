@@ -30,7 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
             => (new CSharpUsePatternCombinatorsDiagnosticAnalyzer(), new CSharpUsePatternCombinatorsCodeFixProvider());
 
         private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions parseOptions = null, bool enabled = true)
-            => TestMissingAsync(FromExpression(expression), new TestParameters(
+            => TestMissingAsync(FromExpression(expression), parseOptions, enabled);
+
+        private Task TestMissingAsync(string initialMarkup, ParseOptions parseOptions = null, bool enabled = true)
+            => TestMissingAsync(initialMarkup, new TestParameters(
                 parseOptions: parseOptions ?? CSharp9, options: enabled ? null : s_disabled));
 
         private Task TestAllAsync(string initialMarkup, string expectedMarkup)
@@ -47,29 +50,32 @@ using System;
 using System.Collections.Generic;
 class C
 {
-    bool field = {|FixAllInDocument:EXPRESSION|};
-    bool Method() => EXPRESSION;
-    bool Prop1 => EXPRESSION;
-    bool Prop2 { get } = EXPRESSION;
-    void If() { if (EXPRESSION) ; }
-    void Argument1() => Test(EXPRESSION);
-    void Argument2() => Test(() => EXPRESSION);
-    void Argument3() => Test(_ => EXPRESSION);
-    void For() { for (; EXPRESSION; ); }
-    void Local() { var local = EXPRESSION; }
-    void Conditional() { _ = EXPRESSION ? EXPRESSION : EXPRESSION; }
-    void Assignment() { _ = EXPRESSION; }
-    void Do() { do ; while (EXPRESSION); }
-    void While() { while (EXPRESSION) ; }
-    bool When() => o switch { _ when EXPRESSION => EXPRESSION };
-    bool Return() { return EXPRESSION; }
-    IEnumerable<bool> YieldReturn() { yield return EXPRESSION; }
-    Func<object, bool> SimpleLambda() => o => EXPRESSION;
-    Func<bool> ParenthesizedLambda() => () => EXPRESSION;
-    void LocalFunc() { bool LocalFunction() => EXPRESSION; }
-    int i;
-    int? nullable;
-    object o;
+    static bool field = {|FixAllInDocument:EXPRESSION|};
+    static bool Method() => EXPRESSION;
+    static bool Prop1 => EXPRESSION;
+    static bool Prop2 { get; } = EXPRESSION;
+    static void If() { if (EXPRESSION) ; }
+    static void Argument1() => Test(EXPRESSION);
+    static void Argument2() => Test(() => EXPRESSION);
+    static void Argument3() => Test(_ => EXPRESSION);
+    static void Test(bool b) {}
+    static void Test(Func<bool> b) {}
+    static void Test(Func<object, bool> b) {}
+    static void For() { for (; EXPRESSION; ); }
+    static void Local() { var local = EXPRESSION; }
+    static void Conditional() { _ = EXPRESSION ? EXPRESSION : EXPRESSION; }
+    static void Assignment() { _ = EXPRESSION; }
+    static void Do() { do ; while (EXPRESSION); }
+    static void While() { while (EXPRESSION) ; }
+    static bool When() => o switch { _ when EXPRESSION => EXPRESSION };
+    static bool Return() { return EXPRESSION; }
+    static IEnumerable<bool> YieldReturn() { yield return EXPRESSION; }
+    static Func<object, bool> SimpleLambda() => o => EXPRESSION;
+    static Func<bool> ParenthesizedLambda() => () => EXPRESSION;
+    static void LocalFunc() { bool LocalFunction() => EXPRESSION; }
+    static int i;
+    static int? nullable;
+    static object o;
 }
 ";
             return initialMarkup.Replace("EXPRESSION", expression);
@@ -88,6 +94,7 @@ class C
             await TestAllMissingOnExpressionAsync(expression);
         }
 
+        [InlineData("i == default || i > default(int)", "i is default(int) or > (default(int))")]
         [InlineData("!(o is C c)", "o is not C c")]
         [InlineData("o is int ii && o is long jj", "o is int ii and long jj")]
         [InlineData("!(o is C)", "o is not C")]
@@ -216,6 +223,20 @@ class C
     bool M1(int v)
     {
         return v is 0 or 1 or 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        public async Task TestMissingInExpressionTree()
+        {
+            await TestMissingAsync(
+@"using System.Linq;
+class C
+{
+    void M0(IQueryable<int> q)
+    {
+        q.Where(item => item == 1 [||]|| item == 2);
     }
 }");
         }
