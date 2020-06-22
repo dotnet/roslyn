@@ -656,17 +656,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        var namedType = (NamedTypeSymbol)current;
-                        if (namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.IsEmpty)
+                        var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                        if (typeArguments.IsEmpty)
                         {
                             return null;
                         }
 
                         int i;
-                        for (i = 0; i < namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length - 1; i++)
+                        for (i = 0; i < typeArguments.Length - 1; i++)
                         {
                             // Let's try to avoid early resolution of nullable types
-                            (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i], canDigThroughNullable);
+                            (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
                             var result = VisitType(
                                 typeWithAnnotationsOpt: nextTypeWithAnnotations,
                                 type: nextType,
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                         }
 
-                        next = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i];
+                        next = typeArguments[i];
                         break;
 
                     case TypeKind.Array:
