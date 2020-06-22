@@ -36,10 +36,11 @@ namespace Test.Utilities
 
                     if (AnalyzerConfigDocument != null)
                     {
-                        solution = project.AddAnalyzerConfigDocument(
+                        solution = solution.AddAnalyzerConfigDocument(
+                            DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
                             ".editorconfig",
                             SourceText.From($"is_global = true" + Environment.NewLine + AnalyzerConfigDocument),
-                            filePath: @"z:\.editorconfig").Project.Solution;
+                            filePath: @"z:\.editorconfig");
                     }
 
                     return solution;
