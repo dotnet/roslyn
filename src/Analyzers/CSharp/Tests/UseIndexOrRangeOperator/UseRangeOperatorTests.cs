@@ -507,5 +507,35 @@ class C
                 FixedCode = source,
             }.RunAsync();
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestReturnByRef()
+        {
+            var source =
+@"
+struct S { public ref S Slice(int start, int length) => throw null; public int Length { get; } public S this[System.Range r] { get => throw null; } }
+class C
+{
+    void Goo(S s)
+    {
+        var x = s.Slice([|1, s.Length - 2|]);
+    }
+}";
+            var fixedSource =
+@"
+struct S { public ref S Slice(int start, int length) => throw null; public int Length { get; } public S this[System.Range r] { get => throw null; } }
+class C
+{
+    void Goo(S s)
+    {
+        var x = s[1..^1];
+    }
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
     }
 }
