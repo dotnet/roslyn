@@ -29,8 +29,11 @@ namespace Test.Utilities
         public static ReferenceAssemblies DefaultWithAzureStorage { get; } = ReferenceAssemblies.Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("WindowsAzure.Storage", "9.0.0")));
 
-        public static ReferenceAssemblies DefaultWithNewtonsoftJson { get; } = Default
+        public static ReferenceAssemblies DefaultWithNewtonsoftJson10 { get; } = Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Newtonsoft.Json", "10.0.1")));
+
+        public static ReferenceAssemblies DefaultWithNewtonsoftJson12 { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Newtonsoft.Json", "12.0.1")));
 
         public static ReferenceAssemblies DefaultWithWinForms { get; } = ReferenceAssemblies.NetFramework.Net472.WindowsForms;
 
