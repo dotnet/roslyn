@@ -6512,7 +6512,7 @@ class Q
         public void NonexhaustiveEnumDiagnostic_25()
         {
             var source =
-    @$"class C
+@$"class C
 {{
     static int M(string s) => s switch
     {{
@@ -6533,7 +6533,7 @@ class Q
         public void NonexhaustiveEnumDiagnostic_26()
         {
             var source =
-    @$"class C
+@$"class C
 {{
     static int M(string s) => s switch
     {{
@@ -6556,7 +6556,7 @@ class Q
         public void NonexhaustiveEnumDiagnostic_27()
         {
             var source =
-    @"class C
+@"class C
 {
     static int M(string s) => s switch
     {
@@ -6576,7 +6576,7 @@ class Q
         {
             // Note that "not" of an impossible pattern handles everything.
             var source =
-    @"class C
+@"class C
 {
     static int M(string s) => s switch
     {
@@ -6585,6 +6585,35 @@ class Q
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_29()
+        {
+            var source =
+@"class C
+{
+    static int M((int x, int y) s) => s switch
+    {
+        not (1, 2) { Extra: 3 } => 0
+    };
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public int Extra;
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,41): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ x: 1,  y: 2,  Extra: 3 }' is not covered.
+                //     static int M((int x, int y) s) => s switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ x: 1,  y: 2,  Extra: 3 }").WithLocation(3, 41)
                 );
         }
     }
