@@ -3138,6 +3138,50 @@ ref struct DisposableEnumerator
             Assert.Null(enumeratorInfo.DisposeMethod);
         }
 
+        [Fact]
+        public void TestExtensionGetEnumerator()
+        {
+            var text = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
+}";
+
+            var boundNode = GetBoundForEachStatement(text, options: TestOptions.RegularPreview);
+
+            ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
+            Assert.NotNull(info);
+            Assert.Equal("C", info.CollectionType.ToTestDisplayString());
+            Assert.Equal(SpecialType.System_Int32, info.ElementTypeWithAnnotations.SpecialType);
+            Assert.Equal("C.Enumerator Extensions.GetEnumerator(this C self)", info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Enumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
+            Assert.Equal("System.Boolean C.Enumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            Assert.False(info.NeedsDisposal);
+            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+
+            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal("System.Int32 i", boundNode.IterationVariables.Single().ToTestDisplayString());
+            Assert.Equal("C", boundNode.Expression.Type.ToDisplayString());
+        }
+
         private static BoundForEachStatement GetBoundForEachStatement(string text, CSharpParseOptions options = null, params DiagnosticDescription[] diagnostics)
         {
             var tree = Parse(text, options: options);
