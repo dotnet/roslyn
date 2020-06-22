@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (_analysisOptions.Options == null || !_analysisOptions.Options.AdditionalFiles.Contains(file))
             {
-                throw new ArgumentException(CodeAnalysisResources.InvalidNonSourceFile, nameof(file));
+                throw new ArgumentException(CodeAnalysisResources.InvalidAdditionalFile, nameof(file));
             }
         }
 
