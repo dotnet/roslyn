@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return completionItemsbuilder.ToImmutable();
 
-            // Add string represent complex types (i.e. "" and "[]") to the receiver type, so we would include in the filter
+            // Add strings represent complex types (i.e. "" and "[]") to the receiver type, so we would include in the filter
             // info about extension methods with complex receiver type.
             static ImmutableArray<string> AttachComplexTypes(ImmutableArray<string> receiverTypeNames)
             {
@@ -268,8 +268,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Need to find the matching one in current compilation
                 // before any further checks is done.
                 var methodSymbolInCurrentCompilation = isSymbolFromCurrentCompilation
-                                                        ? methodSymbol
-                                                        : SymbolFinder.FindSimilarSymbols(methodSymbol, semanticModel.Compilation).FirstOrDefault();
+                    ? methodSymbol
+                    : SymbolFinder.FindSimilarSymbols(methodSymbol, semanticModel.Compilation).FirstOrDefault();
 
                 if (methodSymbolInCurrentCompilation == null
                     || !semanticModel.IsAccessible(position, methodSymbolInCurrentCompilation))
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static ImmutableArray<IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(
             IAssemblySymbol assembly,
-            MultiDictionary<string, (string, string)> extensionMethodFilter,
+            MultiDictionary<string, (string methodName, string receiverTypeName)> extensionMethodFilter,
             ISet<string> namespaceFilter,
             bool internalsVisible,
             StatisticCounter counter,
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         // Create filter for extension methods from source.
-        private static MultiDictionary<string, (string, string)> CreateAggregatedFilter(ImmutableArray<string> receiverTypeNames, CacheEntry syntaxIndex)
+        private static MultiDictionary<string, (string methodName, string receiverTypeName)> CreateAggregatedFilter(ImmutableArray<string> receiverTypeNames, CacheEntry syntaxIndex)
         {
             var results = new MultiDictionary<string, (string, string)>();
 
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         // Create filter for extension methods from metadata
-        private static MultiDictionary<string, (string, string)> CreateAggregatedFilter(ImmutableArray<string> receiverTypeNames, SymbolTreeInfo symbolInfo)
+        private static MultiDictionary<string, (string methodName, string receiverTypeName)> CreateAggregatedFilter(ImmutableArray<string> receiverTypeNames, SymbolTreeInfo symbolInfo)
         {
             var results = new MultiDictionary<string, (string, string)>();
 

@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// <summary>
             /// Indicate if the type of parameter is any kind of array (used for both simple and complex types)
             /// </summary>
-
             public readonly bool IsArray;
 
             /// <summary>
