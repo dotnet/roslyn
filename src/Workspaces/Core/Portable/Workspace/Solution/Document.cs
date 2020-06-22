@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSyntaxTreeAsync"/> and <see cref="GetSyntaxRootAsync"/> methods.
-        /// 
+        ///
         /// If <see langword="false"/> then these methods will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSemanticModelAsync"/> method.
-        /// 
+        ///
         /// If <see langword="false"/> then that method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSemanticModel
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis
 
         internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
         {
-            string? projectFilePath = Project.FilePath;
+            var projectFilePath = Project.FilePath;
             // We need to work out path to this document. Documents may not have a "real" file path if they're something created
             // as a part of a code action, but haven't been written to disk yet.
             string? effectiveFilePath = null;

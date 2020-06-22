@@ -363,7 +363,6 @@ namespace Microsoft.CodeAnalysis
             public override int GetHashCode() => _lazyAnalyzerConfigSet.GetHashCode();
         }
 
-
         private static ValueSource<AnalyzerConfigSet> ComputeAnalyzerConfigSetValueSource(IEnumerable<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
         {
             return new AsyncLazy<AnalyzerConfigSet>(
