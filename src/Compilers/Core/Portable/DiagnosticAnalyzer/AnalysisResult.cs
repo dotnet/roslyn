@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Analyzers = analyzers;
             SyntaxDiagnostics = localSyntaxDiagnostics;
             SemanticDiagnostics = localSemanticDiagnostics;
-            NonSourceFileDiagnostics = localNonSourceFileDiagnostics;
+            AdditionalFileDiagnostics = localNonSourceFileDiagnostics;
             CompilationDiagnostics = nonLocalDiagnostics;
             AnalyzerTelemetryInfo = analyzerTelemetryInfo;
         }
@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> SemanticDiagnostics { get; }
 
         /// <summary>
-        /// Diagnostics in non-source files reported by the <see cref="Analyzers"/>.
+        /// Diagnostics in additional files reported by the <see cref="Analyzers"/>.
         /// </summary>
-        public ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> NonSourceFileDiagnostics { get; }
+        public ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> AdditionalFileDiagnostics { get; }
 
         /// <summary>
         /// Compilation diagnostics reported by the <see cref="Analyzers"/>.
@@ -96,12 +96,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private ImmutableArray<Diagnostic> GetDiagnostics(ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers)
         {
-            if (SyntaxDiagnostics.Count > 0 || SemanticDiagnostics.Count > 0 || NonSourceFileDiagnostics.Count > 0 || CompilationDiagnostics.Count > 0)
+            if (SyntaxDiagnostics.Count > 0 || SemanticDiagnostics.Count > 0 || AdditionalFileDiagnostics.Count > 0 || CompilationDiagnostics.Count > 0)
             {
                 var builder = ImmutableArray.CreateBuilder<Diagnostic>();
                 AddLocalDiagnostics(SyntaxDiagnostics, excludedAnalyzers, builder);
                 AddLocalDiagnostics(SemanticDiagnostics, excludedAnalyzers, builder);
-                AddLocalDiagnostics(NonSourceFileDiagnostics, excludedAnalyzers, builder);
+                AddLocalDiagnostics(AdditionalFileDiagnostics, excludedAnalyzers, builder);
                 AddNonLocalDiagnostics(CompilationDiagnostics, excludedAnalyzers, builder);
 
                 return builder.ToImmutable();

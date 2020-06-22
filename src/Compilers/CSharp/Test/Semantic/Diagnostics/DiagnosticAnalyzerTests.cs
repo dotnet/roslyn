@@ -3542,7 +3542,7 @@ class B
 
             var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
             verifyDiagnostics(analysisResult.GetAllDiagnostics());
-            verifyDiagnostics(analysisResult.NonSourceFileDiagnostics[additionalFile][analyzer]);
+            verifyDiagnostics(analysisResult.AdditionalFileDiagnostics[additionalFile][analyzer]);
 
             void verifyDiagnostics(ImmutableArray<Diagnostic> diagnostics)
             {
@@ -3603,7 +3603,7 @@ class B
 
             static ImmutableArray<Diagnostic> getReportedDiagnostics(AnalysisResult analysisResult, DiagnosticAnalyzer analyzer, AdditionalText additionalFile)
             {
-                if (analysisResult.NonSourceFileDiagnostics.TryGetValue(additionalFile, out var diagnosticsMap) &&
+                if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFile, out var diagnosticsMap) &&
                     diagnosticsMap.TryGetValue(analyzer, out var diagnostics))
                 {
                     return diagnostics;

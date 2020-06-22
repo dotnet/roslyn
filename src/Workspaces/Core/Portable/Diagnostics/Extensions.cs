@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-                foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.NonSourceFileDiagnostics)
+                foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.AdditionalFileDiagnostics)
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {

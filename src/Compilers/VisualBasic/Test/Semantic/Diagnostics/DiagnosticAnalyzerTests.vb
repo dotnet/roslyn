@@ -1583,7 +1583,7 @@ End Namespace
 
             Dim analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None)
             TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
-            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.NonSourceFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
         End Function
 
         Private Shared Sub TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics As ImmutableArray(Of Diagnostic),
