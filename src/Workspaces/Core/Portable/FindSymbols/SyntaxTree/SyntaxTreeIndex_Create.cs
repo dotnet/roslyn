@@ -314,7 +314,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 // simply treat it as a complex method.
                 if (originalName == null)
                 {
-                    receiverTypeName = string.Empty;
+                    receiverTypeName = Extensions.ComplexReceiverTypeName;
                 }
                 else
                 {

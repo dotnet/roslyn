@@ -120,11 +120,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     // We do not differentiate array of different kinds sicne they are all represented in the indices as "NonArrayElementTypeName[]"
                     // e.g. int[], int[][], int[,], etc. are all represented as "int[]", whereas array of complex type such as T[] is "[]".
-                    return elementTypeName + "[]";
+                    return elementTypeName + FindSymbols.Extensions.ArrayReceiverTypeNameSuffix;
 
                 default:
                     // Complex types are represented by "";
-                    return string.Empty;
+                    return FindSymbols.Extensions.ComplexReceiverTypeName;
             }
         }
 
@@ -237,14 +237,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return completionItemsbuilder.ToImmutable();
 
-            // Add strings represent complex types (i.e. "" and "[]") to the receiver type, so we would include in the filter
-            // info about extension methods with complex receiver type.
+            // Add strings represent complex types (i.e. "" for non-array types and "[]" for array types) to the receiver type, 
+            // so we would include in the filter info about extension methods with complex receiver type.
             static ImmutableArray<string> AttachComplexTypes(ImmutableArray<string> receiverTypeNames)
             {
                 using var _ = ArrayBuilder<string>.GetInstance(receiverTypeNames.Length + 2, out var receiverTypeNamesBuilder);
                 receiverTypeNamesBuilder.AddRange(receiverTypeNames);
-                receiverTypeNamesBuilder.Add(string.Empty);
-                receiverTypeNamesBuilder.Add("[]");
+                receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexReceiverTypeName);
+                receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexArrayReceiverTypeName);
 
                 return receiverTypeNamesBuilder.ToImmutable();
             }

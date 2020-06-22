@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             public readonly ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap { get; }
 
-            public bool ContainsExtensionMethod => ReceiverTypeNameToExtensionMethodMap.Count > 0;
+            public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
 
             public ExtensionMethodInfo(ImmutableDictionary<string, ImmutableArray<int>> receiverTypeNameToExtensionMethodMap)
             {

@@ -36,13 +36,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
         protected static string CreateReceiverTypeString(string typeName, bool isArray)
         {
-            if (typeName == null)
+            if (string.IsNullOrEmpty(typeName))
             {
-                return isArray ? "[]" : string.Empty;
+                return isArray
+                    ? FindSymbols.Extensions.ComplexArrayReceiverTypeName
+                    : FindSymbols.Extensions.ComplexReceiverTypeName;
             }
             else
             {
-                return isArray ? typeName + "[]" : typeName;
+                return isArray
+                    ? typeName + FindSymbols.Extensions.ArrayReceiverTypeNameSuffix
+                    : typeName;
             }
         }
 

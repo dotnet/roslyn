@@ -730,10 +730,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // similar for complex receiver types, "[]" means it's an array type, "" otherwise.
                             var parameterTypeName = (parameterTypeInfo.IsComplexType, parameterTypeInfo.IsArray) switch
                             {
-                                (true, true) => "[]",
-                                (true, false) => string.Empty,
-                                (false, true) => parameterTypeInfo.Name + "[]",
-                                (false, false) => parameterTypeInfo.Name
+                                (true, true) => Extensions.ComplexArrayReceiverTypeName,                          // complex array type, e.g. "T[,]"
+                                (true, false) => Extensions.ComplexReceiverTypeName,                              // complex non-array type, e.g. "T"
+                                (false, true) => parameterTypeInfo.Name + Extensions.ArrayReceiverTypeNameSuffix, // simple array type, e.g. "int[][,]"
+                                (false, false) => parameterTypeInfo.Name                                          // simple non-array type, e.g. "int"
                             };
 
                             receiverTypeNameToMethodMap.Add(parameterTypeName, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
