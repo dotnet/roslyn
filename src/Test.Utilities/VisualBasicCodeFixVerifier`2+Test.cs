@@ -27,7 +27,7 @@ namespace Test.Utilities
                     var parseOptions = (VisualBasicParseOptions)project.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    if (AnalyzerConfigDocument != null)
+                    if (AnalyzerConfigDocument is not null)
                     {
                         solution = solution.AddAnalyzerConfigDocument(
                             DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
