@@ -4929,8 +4929,66 @@ class Program
 }");
         }
 
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_38()
+        {
+            var source =
+@"using static System.Console;
+abstract record A
+{
+    public abstract object X { get; init; }
+    public abstract object Y { get; init; }
+}
+abstract record B : A
+{
+    public new void X() { }
+    public new struct Y { }
+}
+record C(object X, object Y) : B;
+class Program
+{
+    static void Main()
+    {
+        C c = new C(1, 2);
+        A a = c;
+        WriteLine((a.X, a.Y));
+        var (x, y) = c;
+        WriteLine((x, y));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (9,21): error CS0533: 'B.X()' hides inherited abstract member 'A.X'
+                //     public new void X() { }
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "X").WithArguments("B.X()", "A.X").WithLocation(9, 21),
+                // (10,23): error CS0533: 'B.Y' hides inherited abstract member 'A.Y'
+                //     public new struct Y { }
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "Y").WithArguments("B.Y", "A.Y").WithLocation(10, 23),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.X.init'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.init").WithLocation(12, 8),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.Y.init'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.Y.init").WithLocation(12, 8),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.X.get'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.get").WithLocation(12, 8),
+                // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.Y.get'
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.Y.get").WithLocation(12, 8),
+                // (12,17): error CS8866: Record member 'B.X' must be a readable instance property of type 'object' to match positional parameter 'X'.
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "object", "X").WithLocation(12, 17),
+                // (12,27): error CS8866: Record member 'B.Y' must be a readable instance property of type 'object' to match positional parameter 'Y'.
+                // record C(object X, object Y) : B;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "object", "Y").WithLocation(12, 27));
+
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", }, GetProperties(comp, "C").ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_39()
         {
             var sourceA =
 @".class public System.Runtime.CompilerServices.IsExternalInit
@@ -4984,7 +5042,7 @@ class Program
         }
 
         [Fact]
-        public void Inheritance_39()
+        public void Inheritance_40()
         {
             var sourceA =
 @".class public System.Runtime.CompilerServices.IsExternalInit
