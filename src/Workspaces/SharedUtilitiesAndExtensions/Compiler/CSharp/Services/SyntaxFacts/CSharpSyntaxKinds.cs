@@ -90,5 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public int TypeArgumentList => (int)SyntaxKind.TypeArgumentList;
         public int? GlobalStatement => (int)SyntaxKind.GlobalStatement;
+
+        public int Interpolation => (int)SyntaxKind.Interpolation;
     }
 }

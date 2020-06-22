@@ -90,5 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public ReadOnly Property TypeArgumentList As Integer = SyntaxKind.TypeArgumentList Implements ISyntaxKinds.TypeArgumentList
         Public ReadOnly Property GlobalStatement As Integer? = Nothing Implements ISyntaxKinds.GlobalStatement
+
+        Public ReadOnly Property Interpolation As Integer = SyntaxKind.Interpolation Implements ISyntaxKinds.Interpolation
     End Class
 End Namespace

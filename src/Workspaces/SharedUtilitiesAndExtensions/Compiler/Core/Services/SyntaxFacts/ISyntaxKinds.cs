@@ -133,5 +133,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int TypeArgumentList { get; }
 
         #endregion
+
+        #region other
+
+        int Interpolation { get; }
+
+        #endregion
     }
 }
