@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string PropertyName = "EqualityContract";
 
-        public SynthesizedRecordEqualityContractProperty(NamedTypeSymbol containingType, bool isOverride)
+        public SynthesizedRecordEqualityContractProperty(NamedTypeSymbol containingType, PropertySymbol? overriddenProperty)
         {
             ContainingType = containingType;
-            IsVirtual = !isOverride;
-            IsOverride = isOverride;
+            IsVirtual = overriddenProperty is null;
+            IsOverride = !(overriddenProperty is null);
             TypeWithAnnotations = TypeWithAnnotations.Create(containingType.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), NullableAnnotation.NotAnnotated);
-            GetMethod = new GetAccessorSymbol(this);
+            GetMethod = new GetAccessorSymbol(this, overriddenProperty?.GetMethod);
         }
 
         public override NamedTypeSymbol ContainingType { get; }
@@ -81,13 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly SynthesizedRecordEqualityContractProperty _property;
 
-            public GetAccessorSymbol(SynthesizedRecordEqualityContractProperty property)
+            public GetAccessorSymbol(SynthesizedRecordEqualityContractProperty property, MethodSymbol? overriddenMethod)
             {
                 _property = property;
-                Name = SourcePropertyAccessorSymbol.GetAccessorName(
-                    PropertyName,
-                    getNotSet: true,
-                    isWinMdOutput: false /* unused for getters */);
+                Name = overriddenMethod?.Name ??
+                    SourcePropertyAccessorSymbol.GetAccessorName(PropertyName, getNotSet: true, isWinMdOutput: false /* unused for getters */);
             }
 
             public override string Name { get; }

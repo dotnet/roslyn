@@ -3062,7 +3062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (ParameterSymbol param in recordParameters)
                 {
                     bool isInherited = false;
-                    var property = new SynthesizedRecordPropertySymbol(this, param, isOverride: false, diagnostics);
+                    var property = new SynthesizedRecordPropertySymbol(this, param, overriddenProperty: null, diagnostics);
                     if (!memberSignatures.TryGetValue(property, out var existingMember))
                     {
                         existingMember = getInheritedMember(property, this);
@@ -3076,9 +3076,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                     {
                         // There already exists a member corresponding to the candidate synthesized property.
-                        if (isInherited && existingMember.IsAbstract)
+                        if (isInherited && prop.IsAbstract)
                         {
-                            addProperty(new SynthesizedRecordPropertySymbol(this, param, isOverride: true, diagnostics));
+                            addProperty(new SynthesizedRecordPropertySymbol(this, param, overriddenProperty: prop, diagnostics));
                         }
                         else
                         {
@@ -3181,7 +3181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PropertySymbol addEqualityContract()
             {
-                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: getInheritedEqualityContract(this) is object);
+                var property = new SynthesizedRecordEqualityContractProperty(this, getInheritedEqualityContract(this));
                 // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
                 if (!memberSignatures.ContainsKey(property))
                 {

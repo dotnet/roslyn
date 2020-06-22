@@ -4211,6 +4211,45 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
         public void Inheritance_34()
         {
             var source =
+@"abstract record A
+{
+    public abstract object P1 { get; init; }
+    public virtual object P2 { get; init; }
+}
+record B(string P1, string P2) : A;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,8): error CS0534: 'B' does not implement inherited abstract member 'A.P1.get'
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P1.get").WithLocation(6, 8),
+                // (6,8): error CS0534: 'B' does not implement inherited abstract member 'A.P1.init'
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P1.init").WithLocation(6, 8),
+                // (6,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'string' to match positional parameter 'P1'.
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "string", "P1").WithLocation(6, 17),
+                // (6,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'string' to match positional parameter 'P2'.
+                // record B(string P1, string P2) : A;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "string", "P2").WithLocation(6, 28));
+
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type B.EqualityContract { get; }",
+                "System.Object B.P1 { get; init; }",
+                "System.Object B.P2 { get; init; }",
+                "System.Object B.P3 { get; init; }",
+                "System.Object B.P4 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_35()
+        {
+            var source =
 @"using static System.Console;
 abstract record A(object X, object Y)
 {
@@ -4405,7 +4444,7 @@ class Program
 
         [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
-        public void Inheritance_35()
+        public void Inheritance_36()
         {
             var source =
 @"using static System.Console;
@@ -4620,7 +4659,7 @@ class Program
 
         [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
-        public void Inheritance_36()
+        public void Inheritance_37()
         {
             var source =
 @"using static System.Console;
@@ -4888,6 +4927,124 @@ class Program
   IL_0033:  add
   IL_0034:  ret
 }");
+        }
+
+        [Fact]
+        public void Inheritance_38()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void  .ctor() { ldnull throw }
+}
+.class public abstract A
+{
+  .method family hidebysig specialname rtspecialname instance void  .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void  .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'()
+  {
+  }
+  .property instance class [mscorlib]System.Type EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type A::GetProperty1()
+  }
+  .property instance object P()
+  {
+    .get instance object A::GetProperty2()
+    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::SetProperty2(object)
+  }
+  .method family virtual instance class [mscorlib]System.Type GetProperty1() { ldnull ret }
+  .method public abstract virtual instance object GetProperty2() { }
+  .method public abstract virtual instance void modreq(System.Runtime.CompilerServices.IsExternalInit) SetProperty2(object 'value') { }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"record B(object P) : A;";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(comp, "B");
+            Assert.Equal(2, actualMembers.Length);
+            verifyProperty(actualMembers[0], "System.Type B.EqualityContract { get; }", "GetProperty1", null);
+            verifyProperty(actualMembers[1], "System.Object B.P { get; init; }", "GetProperty2", "SetProperty2");
+
+            static void verifyProperty(Symbol symbol, string propertyDescription, string? getterName, string? setterName)
+            {
+                var property = (PropertySymbol)symbol;
+                Assert.Equal(propertyDescription, symbol.ToTestDisplayString());
+                Assert.Equal(getterName, property.GetMethod?.Name);
+                Assert.Equal(setterName, property.SetMethod?.Name);
+            }
+        }
+
+        [Fact]
+        public void Inheritance_39()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void  .ctor() { ldnull throw }
+}
+.class public abstract A
+{
+  .method family hidebysig specialname rtspecialname instance void  .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void  .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'()
+  {
+  }
+  .property instance class [mscorlib]System.Type modopt(int32) EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type modopt(int32) A::get_EqualityContract()
+  }
+  .property instance object modopt(uint16) P()
+  {
+    .get instance object modopt(uint16) A::get_P()
+    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::set_P(object modopt(uint16))
+  }
+  .method family virtual instance class [mscorlib]System.Type modopt(int32) get_EqualityContract() { ldnull ret }
+  .method public abstract virtual instance object modopt(uint16) get_P() { }
+  .method public abstract virtual instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(object modopt(uint16) 'value') { }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"record B(object P) : A;";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(comp, "B");
+            Assert.Equal(2, actualMembers.Length);
+            verifyProperty(actualMembers[0], "System.Type B.EqualityContract { get; }", CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Int32)));
+            verifyProperty(actualMembers[1], "System.Object B.P { get; init; }", CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
+
+            static void verifyProperty(Symbol symbol, string propertyDescription, params CustomModifier[] expectedModifiers)
+            {
+                var property = (PropertySymbol)symbol;
+                Assert.Equal(propertyDescription, symbol.ToTestDisplayString());
+                if (property.GetMethod is MethodSymbol getMethod)
+                {
+                    var returnType = getMethod.ReturnTypeWithAnnotations;
+                    Assert.True(getMethod.OverriddenMethod.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.ConsiderEverything));
+                    AssertEx.Equal(expectedModifiers, returnType.CustomModifiers);
+                }
+                if (property.SetMethod is MethodSymbol setMethod)
+                {
+                    var parameterType = setMethod.Parameters[0].TypeWithAnnotations;
+                    Assert.True(setMethod.OverriddenMethod.Parameters[0].TypeWithAnnotations.Equals(parameterType, TypeCompareKind.ConsiderEverything));
+                    AssertEx.Equal(expectedModifiers, parameterType.CustomModifiers);
+                }
+            }
         }
 
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]

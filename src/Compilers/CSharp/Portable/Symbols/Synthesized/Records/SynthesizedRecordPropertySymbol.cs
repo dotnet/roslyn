@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override MethodSymbol SetMethod { get; }
         public override NamedTypeSymbol ContainingType { get; }
 
-        public SynthesizedRecordPropertySymbol(NamedTypeSymbol containingType, ParameterSymbol backingParameter, bool isOverride, DiagnosticBag diagnostics)
+        public SynthesizedRecordPropertySymbol(NamedTypeSymbol containingType, ParameterSymbol backingParameter, PropertySymbol? overriddenProperty, DiagnosticBag diagnostics)
             : base(backingParameter.Locations[0])
         {
             ContainingType = containingType;
@@ -34,9 +34,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isReadOnly: true,
                 isStatic: false,
                 hasInitializer: true);
-            GetMethod = new GetAccessorSymbol(this, name);
-            SetMethod = new InitAccessorSymbol(this, name, diagnostics);
-            IsOverride = isOverride;
+
+            GetMethod = new GetAccessorSymbol(this, getAccessorName(name, overriddenProperty?.GetMethod, getNotSet: true));
+            SetMethod = new InitAccessorSymbol(this, getAccessorName(name, overriddenProperty?.SetMethod, getNotSet: false), diagnostics);
+            IsOverride = !(overriddenProperty is null);
+
+            static string getAccessorName(string paramName, MethodSymbol? overriddenAccessor, bool getNotSet)
+            {
+                return overriddenAccessor?.Name ??
+                    SourcePropertyAccessorSymbol.GetAccessorName(
+                        paramName,
+                        getNotSet,
+                        // https://github.com/dotnet/roslyn/issues/44684
+                        isWinMdOutput: false);
+            }
         }
 
         public ParameterSymbol BackingParameter => _backingParameter;
@@ -114,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool IsExtensionMethod => false;
 
-            public override bool HidesBaseMethodsByName => false; // PROTOTYPE: Should this be true if it hides?
+            public override bool HidesBaseMethodsByName => false;
 
             public override bool IsVararg => false;
 
@@ -195,12 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             public override string Name { get; }
 
-            public GetAccessorSymbol(SynthesizedRecordPropertySymbol property, string paramName) : base(property)
+            public GetAccessorSymbol(SynthesizedRecordPropertySymbol property, string name) : base(property)
             {
-                Name = SourcePropertyAccessorSymbol.GetAccessorName(
-                    paramName,
-                    getNotSet: true,
-                    isWinMdOutput: false /* unused for getters */);
+                Name = name;
             }
 
             public override MethodKind MethodKind => MethodKind.PropertyGet;
@@ -231,15 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public InitAccessorSymbol(
                 SynthesizedRecordPropertySymbol property,
-                string paramName,
+                string name,
                 DiagnosticBag diagnostics) :
                 base(property)
             {
-                Name = SourcePropertyAccessorSymbol.GetAccessorName(
-                    paramName,
-                    getNotSet: false,
-                    // https://github.com/dotnet/roslyn/issues/44684
-                    isWinMdOutput: false);
+                Name = name;
 
                 var comp = property.DeclaringCompilation;
                 var type = TypeWithAnnotations.Create(comp.GetSpecialType(SpecialType.System_Void));
