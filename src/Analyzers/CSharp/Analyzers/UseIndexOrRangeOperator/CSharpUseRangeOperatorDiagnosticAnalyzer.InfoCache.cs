@@ -94,12 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 if (sliceLikeMethod.ReturnType.Equals(containingType))
                 {
                     var indexer = GetIndexer(containingType, RangeType, containingType);
-                    // If the slice like method and the indexer don't both return a Ref or not, then don't
-                    // convert
-                    if (indexer != null && indexer.ReturnsByRef != sliceLikeMethod.ReturnsByRef)
-                    {
-                        return default;
-                    }
 
                     // it's a method like:  MyType MyType.Get(int start, int length).  Look for an
                     // indexer like  `MyType MyType.this[Range range]`.

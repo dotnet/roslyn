@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
+            var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
             // Need to make sure that if we are assigning values to the slice that both the slice-like method and the
             // indexer are references
-            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() &&
-                !valid)
+            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && indexer != null && indexer.ReturnsByRef != invocation.TargetMethod.ReturnsByRef)
             {
                 return null;
             }
