@@ -310,17 +310,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constraints.IsEmpty && evaluations.IsEmpty)
                     return null;
 
-                foreach (var con in constraints)
+                if (!constraints.All(c => c switch
                 {
-                    switch (con)
-                    {
-                        case (test: BoundDagNonNullTest _, sense: true):
-                        case (test: BoundDagExplicitNullTest _, sense: false):
-                            // not-null tests are implicitly incorporated into a recursive pattern
-                            break;
-                        default:
-                            return null;
-                    }
+                    // not-null tests are implicitly incorporated into a recursive pattern
+                    (test: BoundDagNonNullTest _, sense: true) => true,
+                    (test: BoundDagExplicitNullTest _, sense: false) => true,
+                    _ => false,
+                }))
+                {
+                    return null;
                 }
 
                 string deconstruction = null;
