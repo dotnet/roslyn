@@ -6551,5 +6551,41 @@ class Q
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments(@"""20""").WithLocation(3, 33)
                 );
         }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_27()
+        {
+            var source =
+    @"class C
+{
+    static int M(string s) => s switch
+    {
+        not { Length: 1, Length: 1 } => 0
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,33): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 1 }' is not covered.
+                //     static int M(string s) => s switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 1 }").WithLocation(3, 33)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_28()
+        {
+            // Note that "not" of an impossible pattern handles everything.
+            var source =
+    @"class C
+{
+    static int M(string s) => s switch
+    {
+        not { Length: 1, Length: 2 } => 0
+    };
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                );
+        }
     }
 }
