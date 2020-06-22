@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                       .Distinct()
                       .ToImmutableArray();
 
-            var scopes = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var scopes);
             scopes.Add(CreateAction(context, Scope.ContainingMember));
 
             // If we captured any Method type-parameters, we can only replace the tuple types we
@@ -90,9 +90,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             {
                 var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
                 if (containingType != null)
-                {
                     scopes.Add(CreateAction(context, Scope.ContainingType));
-                }
 
                 // If we captured any Type type-parameters, we can only replace the tuple
                 // types we find in the containing type.  No other tuple types in other
@@ -116,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             context.RegisterRefactoring(
                 new CodeAction.CodeActionWithNestedActions(
                     FeaturesResources.Convert_to_struct,
-                    scopes.ToImmutableAndFree(),
+                    scopes.ToImmutable(),
                     isInlinable: false),
                 tupleExprOrTypeNode.Span);
         }
@@ -401,7 +399,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                                                .Where(p => p.SupportsCompilation)
                                                .Concat(startingProject).ToSet();
 
-            var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
+            using var _ = ArrayBuilder<DocumentToUpdate>.GetInstance(out var result);
             var tupleFieldNames = tupleType.TupleElements.SelectAsArray<IFieldSymbol, string>(f => f.Name);
 
             foreach (var project in allProjects)
@@ -410,19 +408,19 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingProjectAsync(
             Project project, INamedTypeSymbol tupleType, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
+            using var _ = ArrayBuilder<DocumentToUpdate>.GetInstance(out var result);
             var tupleFieldNames = tupleType.TupleElements.SelectAsArray<IFieldSymbol, string>(f => f.Name);
 
             await AddDocumentsToUpdateForProjectAsync(
                 project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static async Task AddDocumentsToUpdateForProjectAsync(Project project, ArrayBuilder<DocumentToUpdate> result, ImmutableArray<string> tupleFieldNames, CancellationToken cancellationToken)
@@ -463,7 +461,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var semanticModel = await startingDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var typeSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(containingType, cancellationToken);
 
-            var result = ArrayBuilder<DocumentToUpdate>.GetInstance();
+            using var _ = ArrayBuilder<DocumentToUpdate>.GetInstance(out var result);
 
             var declarationService = startingDocument.GetLanguageService<ISymbolDeclarationService>();
             foreach (var group in declarationService.GetDeclarations(typeSymbol).GroupBy(r => r.SyntaxTree))
@@ -474,7 +472,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 result.Add(new DocumentToUpdate(document, nodes));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static ImmutableArray<DocumentToUpdate> GetDocumentsToUpdateForContainingMember(

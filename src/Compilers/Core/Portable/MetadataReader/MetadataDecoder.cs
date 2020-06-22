@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,6 +28,14 @@ namespace Microsoft.CodeAnalysis
         {
             IsOptional = isOptional;
             Modifier = modifier;
+        }
+    }
+
+    internal static class ModifierInfoExtensions
+    {
+        internal static bool AnyRequired<TypeSymbol>(this ImmutableArray<ModifierInfo<TypeSymbol>> modifiers) where TypeSymbol : class
+        {
+            return !modifiers.IsDefaultOrEmpty && modifiers.Any(m => !m.IsOptional);
         }
     }
 
@@ -214,7 +223,7 @@ namespace Microsoft.CodeAnalysis
                     int countOfSizes;
                     int countOfLowerBounds;
 
-                    modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
+                    modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
                     typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
                     if (!ppSig.TryReadCompressedInteger(out countOfDimensions) ||
                         !ppSig.TryReadCompressedInteger(out countOfSizes))
@@ -297,13 +306,13 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 case SignatureTypeCode.SZArray:
-                    modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
+                    modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
                     typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
                     typeSymbol = GetSZArrayTypeSymbol(typeSymbol, modifiers);
                     break;
 
                 case SignatureTypeCode.Pointer:
-                    modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
+                    modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
                     typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
                     typeSymbol = MakePointerTypeSymbol(typeSymbol, modifiers);
                     break;
@@ -374,7 +383,7 @@ namespace Microsoft.CodeAnalysis
             {
                 bool argumentRefersToNoPia;
                 SignatureTypeCode typeCode;
-                ImmutableArray<ModifierInfo<TypeSymbol>> modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
+                ImmutableArray<ModifierInfo<TypeSymbol>> modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
                 argumentsBuilder.Add(KeyValuePairUtil.Create(DecodeTypeOrThrow(ref ppSig, typeCode, out argumentRefersToNoPia), modifiers));
                 argumentRefersToNoPiaLocalTypeBuilder.Add(argumentRefersToNoPia);
             }
@@ -698,11 +707,8 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private ImmutableArray<ModifierInfo<TypeSymbol>> DecodeModifiersOrThrow(
             ref BlobReader signatureReader,
-            AllowedRequiredModifierType allowedRequiredModifierType,
-            out SignatureTypeCode typeCode,
-            out AllowedRequiredModifierType requiredModifiersFound)
+            out SignatureTypeCode typeCode)
         {
-            requiredModifiersFound = AllowedRequiredModifierType.None;
             ArrayBuilder<ModifierInfo<TypeSymbol>> modifiers = null;
 
             for (; ; )
@@ -724,48 +730,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 TypeSymbol type = DecodeModifierTypeOrThrow(ref signatureReader);
-
-                if (!isOptional)
-                {
-                    var isAllowed = false;
-
-                    if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) != 0 &&
-                        IsAcceptedInAttributeModifierType(type))
-                    {
-                        requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
-                        isAllowed = true;
-                    }
-                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile) != 0 &&
-                        IsAcceptedVolatileModifierType(type))
-                    {
-                        requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile;
-                        isAllowed = true;
-                    }
-                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType) != 0 &&
-                        IsAcceptedUnmanagedTypeModifierType(type))
-                    {
-                        requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType;
-                        isAllowed = true;
-                    }
-                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0 &&
-                        IsAcceptedIsExternalInitModifierType(type))
-                    {
-                        requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
-                        isAllowed = true;
-                    }
-                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute) != 0 &&
-                        IsAcceptedOutAttributeModifierType(type))
-                    {
-                        requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
-                        isAllowed = true;
-                    }
-
-                    if (!isAllowed)
-                    {
-                        throw new UnsupportedSignatureContent();
-                    }
-                }
-
                 ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>(isOptional, type);
 
                 if (modifiers == null)
@@ -915,9 +879,9 @@ tryAgain:
             }
         }
 
-        internal TypeSymbol DecodeGenericParameterConstraint(EntityHandle token, out bool isUnmanagedConstraint)
+        internal TypeSymbol DecodeGenericParameterConstraint(EntityHandle token, out ImmutableArray<ModifierInfo<TypeSymbol>> modifiers)
         {
-            isUnmanagedConstraint = false;
+            modifiers = ImmutableArray<ModifierInfo<TypeSymbol>>.Empty;
 
             switch (token.Kind)
             {
@@ -926,29 +890,8 @@ tryAgain:
                         try
                         {
                             var memoryReader = this.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)token);
-                            var modifiers = DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out var typeCode, out var modReqFound);
+                            modifiers = DecodeModifiersOrThrow(ref memoryReader, out var typeCode);
                             var type = DecodeTypeOrThrow(ref memoryReader, typeCode, out _);
-
-                            if ((modReqFound & AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType) != 0)
-                            {
-                                // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
-                                Debug.Assert(!modifiers.IsDefaultOrEmpty);
-
-                                if (type.SpecialType == SpecialType.System_ValueType && modifiers.Length == 1)
-                                {
-                                    isUnmanagedConstraint = true;
-                                }
-                                else
-                                {
-                                    return GetUnsupportedMetadataTypeSymbol();
-                                }
-                            }
-                            else if (!modifiers.IsDefaultOrEmpty)
-                            {
-                                // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
-                                return GetUnsupportedMetadataTypeSymbol();
-                            }
-
                             return type;
                         }
                         catch (BadImageFormatException mrEx)
@@ -975,7 +918,13 @@ tryAgain:
         {
             SignatureTypeCode typeCode;
 
-            var customModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
+            var customModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
+
+            if (customModifiers.AnyRequired())
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
             var constraints = LocalSlotConstraints.None;
             TypeSymbol typeSymbol;
 
@@ -1016,7 +965,12 @@ tryAgain:
         {
             SignatureTypeCode typeCode;
 
-            var customModifiers = DecodeModifiersOrThrow(ref sigReader, AllowedRequiredModifierType.None, out typeCode, out _);
+            var customModifiers = DecodeModifiersOrThrow(ref sigReader, out typeCode);
+
+            if (customModifiers.AnyRequired())
+            {
+                throw new UnsupportedSignatureContent();
+            }
 
             if (typeCode == SignatureTypeCode.TypeHandle)
             {
@@ -1207,50 +1161,18 @@ tryAgain:
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
-        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info, bool isReturn, bool allowOutAttribute = false)
+        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info)
         {
-            var allowedAttributes = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
-
-            if (allowOutAttribute)
-            {
-                allowedAttributes |= AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
-            }
-
-            if (isReturn)
-            {
-                // https://github.com/dotnet/roslyn/issues/44671 make this more restrictive (ie. disallow aside from the return value of an instance setter)
-                allowedAttributes |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
-            }
-
             info.CustomModifiers = DecodeModifiersOrThrow(
                 ref signatureReader,
-                allowedAttributes,
-                out SignatureTypeCode typeCode,
-                out AllowedRequiredModifierType foundRequiredTypes);
+                out SignatureTypeCode typeCode);
 
             if (typeCode == SignatureTypeCode.ByReference)
             {
-                if (allowOutAttribute && (foundRequiredTypes & allowedAttributes) == allowedAttributes)
-                {
-                    throw new UnsupportedSignatureContent();
-                }
-
                 info.IsByRef = true;
 
                 info.RefCustomModifiers = info.CustomModifiers;
-                if ((foundRequiredTypes & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
-                {
-                    // This cannot be placed on RefCustomModifiers, just CustomModifiers
-                    info.CustomModifiers = default;
-                    throw new UnsupportedSignatureContent();
-                }
-
-                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
-            }
-            else if ((foundRequiredTypes & ~AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
-            {
-                // in and out can only be placed on RefCustomModifiers
-                throw new UnsupportedSignatureContent();
+                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
             }
 
             info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out _);
@@ -1925,13 +1847,13 @@ tryAgain:
             try
             {
                 // get the return type
-                DecodeParameterOrThrow(ref signatureReader, ref paramInfo[0], isReturn: true);
+                DecodeParameterOrThrow(ref signatureReader, ref paramInfo[0]);
 
                 // Get all of the parameters.
                 for (paramIndex = 1; paramIndex <= paramCount; paramIndex++)
                 {
                     // Figure out the type.
-                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex], isReturn: false, isFunctionPointerSignature);
+                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex]);
                 }
 
                 if (shouldProcessAllBytes && signatureReader.RemainingBytes > 0)
@@ -1960,7 +1882,7 @@ tryAgain:
             parameterCount = signatureReader.ReadCompressedInteger();
         }
 
-        internal TypeSymbol DecodeFieldSignature(FieldDefinitionHandle fieldHandle, out bool isVolatile, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        internal TypeSymbol DecodeFieldSignature(FieldDefinitionHandle fieldHandle, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             try
             {
@@ -1971,25 +1893,22 @@ tryAgain:
 
                 if (signatureHeader.Kind != SignatureKind.Field)
                 {
-                    isVolatile = false;
                     customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
                     return GetUnsupportedMetadataTypeSymbol(); // unsupported signature content
                 }
 
-                return DecodeFieldSignature(ref signatureReader, out isVolatile, out customModifiers);
+                return DecodeFieldSignature(ref signatureReader, out customModifiers);
             }
             catch (BadImageFormatException mrEx)
             {
-                isVolatile = false;
                 customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
                 return GetUnsupportedMetadataTypeSymbol(mrEx);
             }
         }
 
         // MetaImport::DecodeFieldSignature
-        protected TypeSymbol DecodeFieldSignature(ref BlobReader signatureReader, out bool isVolatile, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        protected TypeSymbol DecodeFieldSignature(ref BlobReader signatureReader, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
-            isVolatile = false;
             customModifiers = default;
 
             try
@@ -1997,10 +1916,7 @@ tryAgain:
                 SignatureTypeCode typeCode;
                 customModifiers = DecodeModifiersOrThrow(
                     ref signatureReader,
-                    AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile,
-                    out typeCode,
-                    out var modifiersFound);
-                isVolatile = ((modifiersFound & AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile) != 0);
+                    out typeCode);
 
                 return DecodeTypeOrThrow(ref signatureReader, typeCode, out _);
             }
@@ -2516,17 +2432,6 @@ tryAgain:
 
             var methodParam = methodParams[1];
             return !methodParam.IsByRef && methodParam.Type.Equals(eventType);
-        }
-
-        [Flags]
-        private enum AllowedRequiredModifierType
-        {
-            None = 0,
-            System_Runtime_CompilerServices_Volatile = 1,
-            System_Runtime_InteropServices_InAttribute = 1 << 1,
-            System_Runtime_InteropServices_UnmanagedType = 1 << 2,
-            System_Runtime_CompilerServices_IsExternalInit = 1 << 3,
-            System_Runtime_CompilerServices_OutAttribute = 1 << 4,
         }
     }
 }
