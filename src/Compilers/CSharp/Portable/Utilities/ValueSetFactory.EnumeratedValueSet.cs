@@ -25,16 +25,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// In <see cref="_included"/>, then members are listed by inclusion.  Otherwise all members
             /// are assumed to be contained in the set unless excluded.
             /// </summary>
-            private bool _included;
+            private readonly bool _included;
 
-            private ImmutableHashSet<T> _membersIncludedOrExcluded;
+            private readonly ImmutableHashSet<T> _membersIncludedOrExcluded;
 
             private EnumeratedValueSet(bool included, ImmutableHashSet<T> membersIncludedOrExcluded) =>
                 (this._included, this._membersIncludedOrExcluded) = (included, membersIncludedOrExcluded);
 
-            public static EnumeratedValueSet<T, TTC> AllValues = new EnumeratedValueSet<T, TTC>(included: false, ImmutableHashSet<T>.Empty);
+            public static readonly EnumeratedValueSet<T, TTC> AllValues = new EnumeratedValueSet<T, TTC>(included: false, ImmutableHashSet<T>.Empty);
 
-            public static EnumeratedValueSet<T, TTC> NoValues = new EnumeratedValueSet<T, TTC>(included: true, ImmutableHashSet<T>.Empty);
+            public static readonly EnumeratedValueSet<T, TTC> NoValues = new EnumeratedValueSet<T, TTC>(included: true, ImmutableHashSet<T>.Empty);
 
             internal static EnumeratedValueSet<T, TTC> Including(T value) => new EnumeratedValueSet<T, TTC>(included: true, ImmutableHashSet<T>.Empty.Add(value));
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     // If that doesn't work, choose from a sufficiently large random selection of values.
                     // Since this is an excluded set, they cannot all be excluded
-                    var candidates = tc.RandomValues(_membersIncludedOrExcluded.Count + 1, new Random(0));
+                    var candidates = tc.RandomValues(_membersIncludedOrExcluded.Count + 1, new Random(0), _membersIncludedOrExcluded.Count + 1);
                     foreach (var value in candidates)
                     {
                         if (this.Any(BinaryOperatorKind.Equal, value))

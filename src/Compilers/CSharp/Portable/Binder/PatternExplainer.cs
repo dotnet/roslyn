@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -28,40 +29,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool nullPaths)
         {
             // compute the distance from each node to the endpoint.
-            var dist = PooledDictionary<BoundDecisionDagNode, int>.GetInstance();
+            var dist = PooledDictionary<BoundDecisionDagNode, (int distance, BoundDecisionDagNode next)>.GetInstance();
             int nodeCount = nodes.Length;
-            int distance(BoundDecisionDagNode x) => x != null && dist.TryGetValue(x, out int v) ? v : nodeCount + 2;
+            int distance(BoundDecisionDagNode x)
+            {
+                if (x == null)
+                    return nodeCount + 2;
+                if (dist.TryGetValue(x, out var v))
+                    return v.distance;
+                Debug.Assert(!nodes.Contains(x));
+                return nodeCount + 2;
+            }
+
             for (int i = nodeCount - 1; i >= 0; i--)
             {
                 var n = nodes[i];
-                switch (n)
+                dist.Add(n, n switch
                 {
-                    case BoundEvaluationDecisionDagNode e:
-                        // evaluations are free; we are more interested in decision nodes
-                        dist.Add(e, distance(e.Next));
-                        break;
-                    case BoundTestDecisionDagNode { Test: BoundDagNonNullTest _ } t when !nullPaths:
-                        dist.Add(t, 1 + distance(t.WhenTrue));
-                        break;
-                    case BoundTestDecisionDagNode { Test: BoundDagExplicitNullTest _ } t when !nullPaths:
-                        dist.Add(t, 1 + distance(t.WhenFalse));
-                        break;
-                    case BoundTestDecisionDagNode t:
-                        dist.Add(t, 1 + Math.Min(distance(t.WhenTrue), distance(t.WhenFalse)));
-                        break;
-                    case BoundWhenDecisionDagNode w:
-                        dist.Add(w, 1 + Math.Min(distance(w.WhenTrue), distance(w.WhenFalse)));
-                        break;
-                    default:
-                        // treat the endpoint as distance 1.
-                        // treat other nodes as not on the path to the endpoint
-                        dist.Add(n, (n == node) ? 1 : nodeCount + 2);
-                        break;
-                }
+                    BoundEvaluationDecisionDagNode e => (distance(e.Next), e.Next),
+                    BoundTestDecisionDagNode { Test: BoundDagNonNullTest _ } t when !nullPaths => (1 + distance(t.WhenTrue), t.WhenTrue),
+                    BoundTestDecisionDagNode { Test: BoundDagExplicitNullTest _ } t when !nullPaths => (1 + distance(t.WhenFalse), t.WhenFalse),
+                    BoundTestDecisionDagNode t when distance(t.WhenTrue) is var trueDist && distance(t.WhenFalse) is var falseDist =>
+                        (trueDist <= falseDist) ? (1 + trueDist, t.WhenTrue) : (1 + falseDist, t.WhenFalse),
+                    BoundWhenDecisionDagNode w when distance(w.WhenTrue) is var trueDist && distance(w.WhenFalse) is var falseDist =>
+                        (trueDist <= falseDist) ? (1 + trueDist, w.WhenTrue) : (1 + falseDist, w.WhenFalse),
+                    // treat the endpoint as distance 1.
+                    // treat other nodes as not on the path to the endpoint
+                    _ => ((n == node) ? 1 : nodeCount + 2, null),
+                });
             }
 
             // trace a path from the root node to the node of interest
-            var result = ArrayBuilder<BoundDecisionDagNode>.GetInstance(capacity: dist[nodes[0]]);
+            var result = ArrayBuilder<BoundDecisionDagNode>.GetInstance(capacity: dist[nodes[0]].distance);
             for (BoundDecisionDagNode n = nodes[0]; n != node;)
             {
                 result.Add(n);
@@ -71,14 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         n = e.Next;
                         break;
                     case BoundTestDecisionDagNode t:
-                        int d = dist[t];
-                        if (t.WhenTrue != null && distance(t.WhenTrue) == (d - 1))
-                            n = t.WhenTrue;
-                        else
-                            n = t.WhenFalse;
-
-                        Debug.Assert(n != null);
-                        Debug.Assert(distance(n) == (d - 1));
+                        (int d, BoundDecisionDagNode next) = dist[t];
+                        Debug.Assert(next != null);
+                        Debug.Assert(distance(next) == (d - 1));
+                        n = next;
                         break;
                     case BoundWhenDecisionDagNode w:
                         result.RemoveLast();
@@ -111,18 +106,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var constraints = new Dictionary<BoundDagTemp, ArrayBuilder<(BoundDagTest, bool)>>();
             var evaluations = new Dictionary<BoundDagTemp, ArrayBuilder<BoundDagEvaluation>>();
-            for (int i = 0, limit = pathToNode.Length; i < limit; i++)
+            for (int i = 0, n = pathToNode.Length; i < n; i++)
             {
                 BoundDecisionDagNode node = pathToNode[i];
                 switch (node)
                 {
                     case BoundTestDecisionDagNode t:
                         {
-                            BoundDecisionDagNode nextNode = (i < pathToNode.Length - 1) ? pathToNode[i + 1] : targetNode;
+                            BoundDecisionDagNode nextNode = (i < n - 1) ? pathToNode[i + 1] : targetNode;
                             bool sense = t.WhenTrue == nextNode || (t.WhenFalse != nextNode && t.WhenTrue is BoundWhenDecisionDagNode);
                             BoundDagTest test = t.Test;
-                            BoundDagTemp temp = t.Test.Input;
-                            if (t.Test is BoundDagTypeTest && sense == false)
+                            BoundDagTemp temp = test.Input;
+                            if (test is BoundDagTypeTest && sense == false)
                             {
                                 // A failed type test is not very useful in constructing a counterexample,
                                 // at least not without discriminated unions, so we just drop them.
@@ -155,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string SamplePatternForTemp(
             BoundDagTemp input,
-            Dictionary<BoundDagTemp, ArrayBuilder<(BoundDagTest, bool)>> constraintMap,
+            Dictionary<BoundDagTemp, ArrayBuilder<(BoundDagTest test, bool sense)>> constraintMap,
             Dictionary<BoundDagTemp, ArrayBuilder<BoundDagEvaluation>> evaluationMap,
             bool requireExactType)
         {
-            var constraints = constraintMap.TryGetValue(input, out ArrayBuilder<(BoundDagTest test, bool sense)> x) ? x.ToImmutable() : ImmutableArray<(BoundDagTest test, bool sense)>.Empty;
-            var evaluations = evaluationMap.TryGetValue(input, out ArrayBuilder<BoundDagEvaluation> y) ? y.ToImmutable() : ImmutableArray<BoundDagEvaluation>.Empty;
+            var constraints = getArray(constraintMap, input);
+            var evaluations = getArray(evaluationMap, input);
 
             return
                 tryHandleSingleTest() ??
@@ -170,6 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryHandleNumericLimits() ??
                 tryHandleRecursivePattern() ??
                 produceFallbackPattern();
+
+            static ImmutableArray<T> getArray<T>(Dictionary<BoundDagTemp, ArrayBuilder<T>> map, BoundDagTemp temp)
+            {
+                return map.TryGetValue(temp, out var builder) ? builder.ToImmutable() : ImmutableArray<T>.Empty;
+            }
 
             // Handle the special case of a single test that is not handled.
             string tryHandleSingleTest()
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (evaluations.Length == 1 && constraints.Length == 1 &&
                     constraints[0] is (BoundDagNonNullTest _, true) &&
                     evaluations[0] is BoundDagTypeEvaluation { Type: var evaluationType } te &&
-                    input.Type.IsNullableType() && input.Type.StrippedType().Equals(evaluationType, TypeCompareKind.AllIgnoreOptions))
+                    input.Type.IsNullableType() && input.Type.GetNullableUnderlyingType().Equals(evaluationType, TypeCompareKind.AllIgnoreOptions))
                 {
                     var typedTemp = new BoundDagTemp(te.Syntax, te.Type, te);
                     var result = SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: false);
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var elementTemp = new BoundDagTemp(e.Syntax, e.Field.Type, e);
                         var index = e.Field.TupleElementIndex;
                         if (index < 0 || index >= cardinality)
-                            continue;
+                            return null;
                         var oldPattern = subpatterns[index];
                         var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false);
                         subpatterns[index] = makeConjunct(oldPattern, newPattern);
@@ -310,8 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constraints.IsEmpty && evaluations.IsEmpty)
                     return null;
 
-                string typeName = requireExactType ? input.Type.ToDisplayString() : null;
-
                 foreach (var con in constraints)
                 {
                     switch (con)
@@ -337,14 +335,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var method = e.DeconstructMethod;
                             int extensionExtra = method.RequiresInstanceReceiver ? 0 : 1;
                             int count = method.Parameters.Length - extensionExtra;
-                            var subpatterns = new ArrayBuilder<string>(count);
+                            var subpatternBuilder = new StringBuilder("(");
                             for (int j = 0; j < count; j++)
                             {
                                 var elementTemp = new BoundDagTemp(e.Syntax, method.Parameters[j + extensionExtra].Type, e, j);
                                 var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false);
-                                subpatterns.Add(newPattern);
+                                if (j != 0)
+                                    subpatternBuilder.Append(", ");
+                                subpatternBuilder.Append(newPattern);
                             }
-                            var result = "(" + string.Join(", ", subpatterns) + ")";
+                            subpatternBuilder.Append(")");
+                            var result = subpatternBuilder.ToString();
                             if (deconstruction != null && needsPropertyString)
                             {
                                 deconstruction = deconstruction + " { }";
@@ -373,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                string typeName = requireExactType ? input.Type.ToDisplayString() : null;
                 needsPropertyString |= deconstruction == null && typeName == null || properties.Count != 0;
                 var propertyString = needsPropertyString ? (deconstruction != null ? " {" : "{") + string.Join(", ", properties.Select(kvp => $" {kvp.Key.Name}: {kvp.Value}")) + " }" : null;
                 Debug.Assert(typeName != null || deconstruction != null || propertyString != null);
@@ -423,15 +425,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (remainingValues.Any(BinaryOperatorKind.LessThan, ConstantValue.Create(int.MinValue)))
                     return $"< ({type.ToDisplayString()})int.MinValue";
-
-                throw ExceptionUtilities.Unreachable;
             }
             else if (underlyingType.SpecialType == SpecialType.System_UIntPtr)
             {
                 if (remainingValues.Any(BinaryOperatorKind.GreaterThan, ConstantValue.Create(uint.MaxValue)))
                     return $"> ({type.ToDisplayString()})uint.MaxValue";
-
-                throw ExceptionUtilities.Unreachable;
             }
 
             throw ExceptionUtilities.Unreachable;
@@ -439,13 +437,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string ValueString(ConstantValue value, TypeSymbol type, bool requireExactType)
         {
-            if ((type.IsEnumType() || requireExactType || type.IsNativeIntegerType) &&
-                !(typeHasExactTypeLiteral(type) && !value.IsNull))
-            {
-                return $"({type.ToDisplayString()}){PrimitiveValueString(value, type.EnumUnderlyingTypeOrSelf())}";
-            }
-
-            return PrimitiveValueString(value, type);
+            bool requiresCast = (type.IsEnumType() || requireExactType || type.IsNativeIntegerType) &&
+                !(typeHasExactTypeLiteral(type) && !value.IsNull);
+            string valueString = PrimitiveValueString(value, type.EnumUnderlyingTypeOrSelf());
+            return requiresCast ? $"({type.ToDisplayString()}){valueString}" : valueString;
 
             static bool typeHasExactTypeLiteral(TypeSymbol type) => type.SpecialType switch
             {

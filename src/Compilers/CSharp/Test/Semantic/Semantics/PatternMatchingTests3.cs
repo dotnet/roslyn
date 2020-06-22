@@ -5620,12 +5620,31 @@ class C
         (string, _) => 1,
         (_, string) => 2,
     };
+    void M2(object? a, object? b)
+    {
+        _ = (a, b) switch { (null, _) => 1 };
+        _ = (a, b) switch { (null, _) => 1, (_, null) => 2 };
+        _ = (a, b) switch { (_, not null) => 1 };
+        _ = (a, b) switch { (_, not null) => 1, (not null, _) => 2 };
+    }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
                 // (4,43): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, null)' is not covered.
                 //     int M(string? a, string? b) => (a, b) switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, null)").WithLocation(4, 43)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, null)").WithLocation(4, 43),
+                // (11,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(not null, _)' is not covered.
+                //         _ = (a, b) switch { (null, _) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(not null, _)").WithLocation(11, 20),
+                // (12,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(not null, not null)' is not covered.
+                //         _ = (a, b) switch { (null, _) => 1, (_, null) => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(not null, not null)").WithLocation(12, 20),
+                // (13,20): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(_, null)' is not covered.
+                //         _ = (a, b) switch { (_, not null) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(_, null)").WithLocation(13, 20),
+                // (14,20): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, null)' is not covered.
+                //         _ = (a, b) switch { (_, not null) => 1, (not null, _) => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(null, null)").WithLocation(14, 20)
                 );
         }
 
@@ -6486,6 +6505,50 @@ class Q
                 // (5,22): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(2, 3) and (1) { }' is not covered.
                 //     int M2(Q o) => o switch { not ((2, 3) and (1) { }) => 0 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(2, 3) and (1) { }").WithLocation(5, 22)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_25()
+        {
+            var source =
+    @$"class C
+{{
+    static int M(string s) => s switch
+    {{
+        """" => 0,
+        {Enumerable.Range((int)'A', (int)('z' - 'A') + 1).Select(x => (char)x)
+                .Aggregate("", (s, c) => s + $"{ObjectDisplay.FormatPrimitive(c.ToString(), ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes)} => 0, ")}
+    }};
+}}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,33): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '"0"' is not covered.
+                //     static int M(string s) => s switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments(@"""0""").WithLocation(3, 33)
+                );
+        }
+
+        [Fact]
+        public void NonexhaustiveEnumDiagnostic_26()
+        {
+            var source =
+    @$"class C
+{{
+    static int M(string s) => s switch
+    {{
+        """" => 0,
+        {Enumerable.Range((int)'A', (int)('z' - 'A') + 1).Select(x => (char)x)
+                .Aggregate("", (s, c) => s + $"{ObjectDisplay.FormatPrimitive(c.ToString(), ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes)} => 0, ")}
+        {Enumerable.Range(0, 20)
+                .Aggregate("", (s, i) => s + $"{ObjectDisplay.FormatPrimitive(i.ToString(), ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes)} => 0, ")}
+    }};
+}}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,33): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '"20"' is not covered.
+                //     static int M(string s) => s switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments(@"""20""").WithLocation(3, 33)
                 );
         }
     }
