@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Complex methods include:
             // - Method declared in the document which includes using alias directive
             // - Generic method where the receiver type is a type-paramter (e.g. List<T> would be considered simple, not complex)
-            // - If the receiver type name is one of the following (i.e. name of the type for the first parameter) 
-            //      1. ValueTuple type
-            //      2. Pointer type
+            // - If the receiver type name is Pointer type (i.e. name of the type for the first parameter) 
             //
             // The rest of methods are considered simple.
 

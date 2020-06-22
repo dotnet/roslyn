@@ -46,6 +46,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
         }
 
+        protected static string CreateValueTupleTypeString(int elementCount)
+        {
+            const string ValueTupleName = "ValueTuple";
+            if (elementCount == 0)
+            {
+                return ValueTupleName;
+            }
+            // A ValueTuple can have up to 8 type parameters.
+            return ValueTupleName + GetMetadataAritySuffix(elementCount > 8 ? 8 : elementCount);
+        }
+
         protected static void FreeAliasMapList(List<Dictionary<string, string>> list)
         {
             if (list != null)

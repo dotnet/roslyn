@@ -1537,6 +1537,92 @@ namespace NS1
                 inlineDescription: "NS2");
         }
 
+        [InlineData(ReferenceType.Project, "(int,int)")]
+        [InlineData(ReferenceType.Project, "(int,int,int,int,int,int,int,int,int,int)")]    // more than 8 tuple elements
+        [InlineData(ReferenceType.Metadata, "(int,int)")]
+        [InlineData(ReferenceType.Metadata, "(int,int,int,int,int,int,int,int,int,int)")]   // more than 8 tuple elements
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestTupleArray(ReferenceType refType, string tupleType)
+        {
+            var refDoc = $@"
+using System;
+
+namespace NS2
+{{
+    public static class Extensions
+    {{
+        public static bool ExtentionMethod(this {tupleType}[] x) => false;
+    }}
+}}";
+            var srcDoc = $@"
+namespace NS1
+{{
+    public class C
+    {{
+        public void M({tupleType}[] x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2");
+        }
+
+        [InlineData(ReferenceType.Project, "(int[],int[])")]
+        [InlineData(ReferenceType.Project, "(int[],int[],int[],int[],int[],int[],int[],int[],int[],int[])")] // more than 8 tuple elements
+        [InlineData(ReferenceType.Metadata, "(int[],int[])")]
+        [InlineData(ReferenceType.Metadata, "(int[],int[],int[],int[],int[],int[],int[],int[],int[],int[])")] // more than 8 tuple elements
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestArrayTuple(ReferenceType refType, string tupleType)
+        {
+            var refDoc = $@"
+using System;
+
+namespace NS2
+{{
+    public static class Extensions
+    {{
+        public static bool ExtentionMethod(this {tupleType} x) => false;
+    }}
+}}";
+            var srcDoc = $@"
+namespace NS1
+{{
+    public class C
+    {{
+        public void M({tupleType} x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2");
+        }
+
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
 

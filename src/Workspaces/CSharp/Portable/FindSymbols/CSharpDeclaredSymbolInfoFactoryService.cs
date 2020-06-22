@@ -568,6 +568,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         // Ignore nullability, becase nullable reference type might not be enabled universally.
                         // In the worst case we just include more methods to check in out filter.
                         return TryGetSimpleTypeName(nullableNode.ElementType, typeParameterNames, out simpleTypeName, out isArray);
+
+                    case TupleTypeSyntax tupleType:
+                        simpleTypeName = CreateValueTupleTypeString(tupleType.Elements.Count);
+                        return true;
                 }
             }
 
