@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region tokens
 
+        int CloseBraceToken { get; }
+        int ColonToken { get; }
         int DotToken { get; }
         int EndOfFileToken { get; }
         int HashToken { get; }

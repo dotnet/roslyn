@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int SingleLineCommentTrivia => (int)SyntaxKind.SingleLineCommentTrivia;
         public int? MultiLineCommentTrivia => (int)SyntaxKind.MultiLineCommentTrivia;
 
+        public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
+        public int ColonToken => (int)SyntaxKind.ColonToken;
         public int CharacterLiteralToken => (int)SyntaxKind.CharacterLiteralToken;
         public int DotToken => (int)SyntaxKind.DotToken;
         public int InterpolatedStringTextToken => (int)SyntaxKind.InterpolatedStringTextToken;

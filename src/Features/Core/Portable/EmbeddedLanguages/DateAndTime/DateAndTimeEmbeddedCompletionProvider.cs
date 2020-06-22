@@ -10,8 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -80,9 +82,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             if (stringTokenOpt == null)
                 return;
 
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var stringToken = stringTokenOpt.Value;
-            if (position <= stringToken.SpanStart || position >= stringToken.Span.End)
-                return;
+
+            // If we're not in an interpolation, at least make sure we're within the bounds of the string.
+            if (stringToken.RawKind != syntaxFacts.SyntaxKinds.InterpolatedStringTextToken)
+            {
+                if (position <= stringToken.SpanStart || position >= stringToken.Span.End)
+                    return;
+            }
 
             // Note: it's acceptable if this fails to convert.  We just won't show the example in that case.
             var virtualChars = _language.Info.VirtualCharService.TryConvertToVirtualChars(stringToken);
