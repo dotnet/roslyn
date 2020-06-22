@@ -2587,5 +2587,91 @@ class MyClass : BaseClass
     void MyFunc(BaseClass param1, int newparam) { }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestOnExtensionGetEnumerator()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+namespace N {
+static class Extensions
+{
+    public static IEnumerator<int> GetEnumerator(this object o)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().[|GetEnumerator|](1);
+        foreach (var a in new object());
+    }
+}}";
+            var fix =
+@"
+using System.Collections.Generic;
+namespace N {
+static class Extensions
+{
+    public static IEnumerator<int> GetEnumerator(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().GetEnumerator(1);
+        foreach (var a in new object());
+    }
+}}";
+            await TestInRegularAndScriptAsync(code, fix);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestOnExtensionGetAsyncEnumerator()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace N {
+static class Extensions
+{
+    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o)
+    {
+    }
+}
+class C1
+{
+    async Task M1()
+    {
+        new object().[|GetAsyncEnumerator|](1);
+        await foreach (var a in new object());
+    }
+}}" + IAsyncEnumerable;
+            var fix =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace N {
+static class Extensions
+{
+    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    async Task M1()
+    {
+        new object().GetAsyncEnumerator(1);
+        await foreach (var a in new object());
+    }
+}}" + IAsyncEnumerable;
+            await TestInRegularAndScriptAsync(code, fix);
+        }
     }
 }
