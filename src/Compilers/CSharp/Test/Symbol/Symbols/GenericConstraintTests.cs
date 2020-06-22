@@ -6907,6 +6907,11 @@ static class Program
     object GetService();
 }
 
+interface J
+{
+    object GetService<T>();
+}
+
 static class Program
 {
     static void M(I provider)
@@ -6915,26 +6920,42 @@ static class Program
         provider.GetService<>().ToString();
         provider.GetService<>();
     }
+
+    static void N(J provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,9): error CS8389: Omitting the type argument is not allowed in the current context
+                // (15,9): error CS8389: Omitting the type argument is not allowed in the current context
                 //         provider.GetService<>();
-                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(10, 9),
-                // (10,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(15, 9),
+                // (15,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
                 //         provider.GetService<>();
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(10, 18),
-                // (11,9): error CS8389: Omitting the type argument is not allowed in the current context
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(15, 18),
+                // (16,9): error CS8389: Omitting the type argument is not allowed in the current context
                 //         provider.GetService<>().ToString();
-                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(11, 9),
-                // (11,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(16, 9),
+                // (16,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
                 //         provider.GetService<>().ToString();
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(11, 18),
-                // (12,9): error CS8389: Omitting the type argument is not allowed in the current context
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(16, 18),
+                // (17,9): error CS8389: Omitting the type argument is not allowed in the current context
                 //         provider.GetService<>();
-                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(12, 9),
-                // (12,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(17, 9),
+                // (17,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
                 //         provider.GetService<>();
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(17, 18),
+                // (22,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(22, 9),
+                // (23,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(23, 9),
+                // (24,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(24, 9)
             );
         }
 
@@ -6948,25 +6969,71 @@ static class Program
 
 static class Program
 {
-    static T GetService<T>(this I obj) => default;
+    static void GetServiceA(this I obj){}
+    static T GetServiceB<T>(this I obj) => default;
     
     static void M(I provider)
     {
-        provider.GetService<>();
-        provider.GetService<>().ToString();
-        provider.GetService<>();
+        provider.GetServiceA<>();
+        provider.GetServiceA<>().ToString();
+        
+        provider.GetServiceB<>();
+        provider.GetServiceB<>().ToString();
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,9): error CS8389: Omitting the type argument is not allowed in the current context
-                //         provider.GetService<>();
-                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(9, 9),
                 // (10,9): error CS8389: Omitting the type argument is not allowed in the current context
-                //         provider.GetService<>().ToString();
-                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(10, 9),
+                //         provider.GetServiceA<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceA<>").WithLocation(10, 9),
+                // (10,18): error CS1061: 'I' does not contain a definition for 'GetServiceA' and no accessible extension method 'GetServiceA' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceA<>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceA<>").WithArguments("I", "GetServiceA").WithLocation(10, 18),
                 // (11,9): error CS8389: Omitting the type argument is not allowed in the current context
-                //         provider.GetService<>();
-                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(11, 9)
+                //         provider.GetServiceA<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceA<>").WithLocation(11, 9),
+                // (11,18): error CS1061: 'I' does not contain a definition for 'GetServiceA' and no accessible extension method 'GetServiceA' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceA<>().ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceA<>").WithArguments("I", "GetServiceA").WithLocation(11, 18),
+                // (13,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceB<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceB<>").WithLocation(13, 9),
+                // (14,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceB<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceB<>").WithLocation(14, 9)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Static()
+        {
+            var source =
+@"static class Program
+{
+    static T GetServiceA<T>() => default;
+    static object GetServiceB(){ return null; }
+    
+    static void M()
+    {
+        GetServiceA<>();
+        GetServiceA<>().ToString();
+        GetServiceB<>();
+        GetServiceB<>().ToString();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,9): error CS0305: Using the generic method group 'GetServiceA' requires 1 type arguments
+                //         GetServiceA<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceA<>").WithArguments("GetServiceA", "method group", "1").WithLocation(8, 9),
+                // (9,9): error CS0305: Using the generic method group 'GetServiceA' requires 1 type arguments
+                //         GetServiceA<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceA<>").WithArguments("GetServiceA", "method group", "1").WithLocation(9, 9),
+                // (10,9): error CS0308: The non-generic method 'Program.GetServiceB()' cannot be used with type arguments
+                //         GetServiceB<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetServiceB<>").WithArguments("Program.GetServiceB()", "method").WithLocation(10, 9),
+                // (11,9): error CS0308: The non-generic method 'Program.GetServiceB()' cannot be used with type arguments
+                //         GetServiceB<>().ToString();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetServiceB<>").WithArguments("Program.GetServiceB()", "method").WithLocation(11, 9)
             );
         }
     }
