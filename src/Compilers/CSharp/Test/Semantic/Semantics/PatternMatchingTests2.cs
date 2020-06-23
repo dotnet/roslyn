@@ -352,10 +352,22 @@ public class Point
         switch (i) { case < default: break; } // error 7
         if (i is < ((default))) {} // error 8
         switch (i) { case < ((default)): break; } // error 9
+
+        if (i is default!) {} // error 10
+        if (i is (default!)) {} // error 11
+        if (i is < ((default)!)) {} // error 12
+        if (i is default!!) {} // error 13
+        if (i is (default!!)) {} // error 14
+        if (i is < ((default)!!)) {} // error 15
+
+        // These are not accepted by the parser. See https://github.com/dotnet/roslyn/issues/45387
+        if (i is (default)!) {} // error 16
+        if (i is ((default)!)) {} // error 17
     }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
+                // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
                 // (7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
@@ -381,7 +393,55 @@ public class Point
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(14, 22),
                 // (15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case < ((default)): break; } // error 9
-                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31),
+                // (17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is default!) {} // error 10
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(17, 18),
+                // (18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default!)) {} // error 11
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(18, 19),
+                // (19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < ((default)!)) {} // error 12
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(19, 22),
+                // (20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is default!!) {} // error 13
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(20, 18),
+                // (21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default!!)) {} // error 14
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(21, 19),
+                // (22,22): error CS8715: Duplicate null suppression operator ('!')
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_DuplicateNullSuppression, "default").WithLocation(22, 22),
+                // (22,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(22, 22),
+                // (25,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(25, 19),
+                // (25,27): error CS1026: ) expected
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "!").WithLocation(25, 27),
+                // (25,28): error CS1525: Invalid expression term ')'
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(25, 28),
+                // (25,28): error CS1002: ; expected
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(25, 28),
+                // (25,28): error CS1513: } expected
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(25, 28),
+                // (26,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 2 out parameters and a void return type.
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((default)!)").WithArguments("int", "2").WithLocation(26, 18),
+                // (26,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(26, 20),
+                // (26,28): error CS1003: Syntax error, ',' expected
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(26, 28),
+                // (26,29): error CS1525: Invalid expression term ')'
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(26, 29)
                 );
         }
 

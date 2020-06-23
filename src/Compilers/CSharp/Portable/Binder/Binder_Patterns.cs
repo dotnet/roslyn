@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            ExpressionSyntax innerExpression = expression.SkipParens();
+            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression);
             if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
             {
                 diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
@@ -201,6 +201,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, boundType.Type, hasErrors);
+            }
+        }
+
+        private ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e)
+        {
+            while (true)
+            {
+                switch (e)
+                {
+                    case ParenthesizedExpressionSyntax p:
+                        e = p.Expression;
+                        break;
+                    case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } p:
+                        e = p.Operand;
+                        break;
+                    default:
+                        return e;
+                }
             }
         }
 
@@ -1239,7 +1257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _);
-            ExpressionSyntax innerExpression = node.Expression.SkipParens();
+            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression);
             if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
             {
                 diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
