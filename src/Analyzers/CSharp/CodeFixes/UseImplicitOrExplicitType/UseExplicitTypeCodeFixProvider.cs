@@ -112,10 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
                     // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
                     // determine if it needs to be null
-                    var methodBody = node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodBody);
+                    var methodBody = node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFacts.IsMethodBody(n) || n is CompilationUnitSyntax);
                     var operationScope = semanticModel.GetOperation(methodBody, cancellationToken);
                     var declSymbol = semanticModel.GetDeclaredSymbol(variableIdentifier.Value.Parent);
-                    if (NullableHelpers.IsSymbolAssignedMaybeNull(semanticModel, operationScope, declSymbol) == false)
+                    if (NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, operationScope, declSymbol) == false)
                     {
                         // If the symbol is never assigned null we can update the type symbol to also be non-null
                         newTypeSymbol = newTypeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);

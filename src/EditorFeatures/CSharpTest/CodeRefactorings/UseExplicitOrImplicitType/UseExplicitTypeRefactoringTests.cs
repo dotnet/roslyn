@@ -528,7 +528,7 @@ class C
         }
 
         [Fact]
-        public async Task TestNullabilityAssignment4()
+        public async Task TestNullabilityAssignment_Foreach1()
         {
             var code = @"
 #nullable enable
@@ -564,7 +564,7 @@ class C
         }
 
         [Fact]
-        public async Task TestNullabilityAssignment5()
+        public async Task TestNullabilityAssignment_Foreach2()
         {
             var code = @"
 #nullable enable
@@ -594,6 +594,94 @@ class C
         {
         }
     }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45398")]
+        public async Task TestNullabilityAssignment_Lambda1()
+        {
+            var code = @"
+#nullable enable
+
+import System;
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        Action a = () => {
+            var[||] v = s_data;
+            v = GetNullableString();
+        };
+    }
+
+    string? GetNullableString() => null;
+}";
+
+            var expected = @"
+#nullable enable
+
+import System;
+
+class C
+{
+    private static string s_data;
+
+    static void Main()
+    {
+        Action a = () => {
+            string? v = s_data;
+            v = GetNullableString();
+        };
+    }
+
+    string? GetNullableString() => null;
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45398")]
+        public async Task TestNullabilityAssignment_Lambda2()
+        {
+            var code = @"
+#nullable enable
+
+import System;
+
+class C
+{
+    static void Main()
+    {
+        Action a = () => {
+            var[||] v = """";
+            v = GetString();
+        };
+    }
+
+    string GetString() => """";
+}";
+
+            var expected = @"
+#nullable enable
+
+import System;
+
+class C
+{
+    static void Main()
+    {
+        Action a = () => {
+            string v = """";
+            v = GetString();
+        };
+    }
+
+    string GetString() => """";
 }";
 
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);

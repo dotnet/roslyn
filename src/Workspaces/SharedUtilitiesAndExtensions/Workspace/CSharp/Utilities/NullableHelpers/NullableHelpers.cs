@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         /// is ever assigned a possibly null value as determined by nullable flow state. Returns
         /// null if no references are found, letting the caller determine what to do with that information
         /// </summary>
-        public static bool? IsSymbolAssignedMaybeNull(SemanticModel semanticModel, IOperation containingOperation, ISymbol symbol)
+        public static bool? IsSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, IOperation containingOperation, ISymbol symbol)
         {
             var references = containingOperation.DescendantsAndSelf()
                 .Where(o => IsSymbolReferencedByOperation(o, symbol));
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var foreachInfo = semanticModel.GetForEachStatementInfo((ForEachStatementSyntax)forEachLoop.Syntax);
 
-                    // Use NotAnnotated here to keep both Annotated and Oblivious treated the same, since
+                    // Use NotAnnotated here to keep both Annotated and None treated the same, since
                     // this is directly looking at the annotation and not the flow state
                     if (foreachInfo.ElementType.NullableAnnotation != NullableAnnotation.NotAnnotated)
                     {
