@@ -355,8 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var iop = getOperation(model, expression);
             if (typeInfo.Type is null)
             {
-                Assert.True(iop?.Type is null ||
-                            iop is ITupleOperation { NaturalType: null });
+                assertTypeInfoNull(iop, typeInfo);
             }
             else if (iop is { Type: { } })
             {
@@ -414,6 +413,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
 getOperation:
                 return model.GetOperation(expression);
+            }
+
+            static void assertTypeInfoNull(IOperation iop, TypeInfo typeInfo)
+            {
+                switch (iop)
+                {
+                    // For both of these types, their `IOperation.Type` property represents the converted type,
+                    // because any conversions that need to occur are pushed into the branches. However, the
+                    // `TypeInfo.Type` property represents the natural type of the switch expression.
+                    case ITupleOperation { NaturalType: null }:
+                    case ISwitchExpressionOperation _:
+                        Assert.True(iop.Type?.NullableAnnotation == typeInfo.ConvertedType?.NullableAnnotation);
+                        break;
+
+                    default:
+                        Assert.Null(iop?.Type);
+                        break;
+                }
             }
         }
 
