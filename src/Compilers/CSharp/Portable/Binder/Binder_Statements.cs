@@ -162,8 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindCheckedStatement(CheckedStatementSyntax node, DiagnosticBag diagnostics)
         {
-            BoundStatement block = BindEmbeddedBlock(node.Block, diagnostics);
-            return new BoundBlock(node, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(block), false);
+            return BindEmbeddedBlock(node.Block, diagnostics);
         }
 
         private BoundStatement BindUnsafeStatement(UnsafeStatementSyntax node, DiagnosticBag diagnostics)
@@ -181,8 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_IllegalInnerUnsafe, node.UnsafeKeyword);
             }
 
-            BoundStatement block = BindEmbeddedBlock(node.Block, diagnostics);
-            return new BoundBlock(node, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(block), false);
+            return BindEmbeddedBlock(node.Block, diagnostics);
         }
 
         private BoundStatement BindFixedStatement(FixedStatementSyntax node, DiagnosticBag diagnostics)
