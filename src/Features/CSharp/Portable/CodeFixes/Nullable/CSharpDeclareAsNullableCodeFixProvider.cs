@@ -280,6 +280,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return propertyDeclarationSyntax.Type;
             }
 
+            // string x;
+            // Unassigned value that's not marked as null
+            if (node is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax _ } declarationSyntax } &&
+                declarationSyntax.Variables.Count == 1)
+            {
+                return declarationSyntax.Type;
+            }
+
             // void M(string x = null) { }
             if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax? optionalParameter))
             {
@@ -351,7 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 SyntaxKind.DefaultLiteralExpression,
                 SyntaxKind.ConditionalExpression,
                 SyntaxKind.ConditionalAccessExpression,
-                SyntaxKind.PropertyDeclaration);
+                SyntaxKind.PropertyDeclaration,
+                SyntaxKind.VariableDeclarator);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

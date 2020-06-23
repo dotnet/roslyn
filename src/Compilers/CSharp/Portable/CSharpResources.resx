@@ -5750,7 +5750,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive" xml:space="preserve">
-    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered.</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive_Title" xml:space="preserve">
     <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
@@ -5981,7 +5981,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustiveForNull" xml:space="preserve">
-    <value>The switch expression does not handle some null inputs (it is not exhaustive).</value>
+    <value>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered.</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustiveForNull_Title" xml:space="preserve">
     <value>The switch expression does not handle some null inputs.</value>
