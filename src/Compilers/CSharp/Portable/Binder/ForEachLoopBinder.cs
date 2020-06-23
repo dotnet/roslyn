@@ -702,11 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionExprType is null) // There's no way to enumerate something without a type.
             {
-                if (collectionExpr.ConstantValue is { IsNull: true })
-                {
-                    diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);
-                }
-                else
+                if (!reportConstantNullCollectionExpr(collectionExpr))
                 {
                     // Anything else with a null type is a method group or anonymous function
                     diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, _syntax.Expression.Location, collectionExpr.Display);

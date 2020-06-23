@@ -5011,6 +5011,15 @@ public class C
             Console.Write(i);
         }
     }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetAsyncEnumerator(this object self) => new C.Enumerator();
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
@@ -7200,7 +7209,55 @@ public static class Extensions
         }
 
         [Fact]
-        public void TestGetAsyncEnumeratorPatternViaValidExtensionInClosestNamespaceInvalidInFurtherNamespace()
+        public void TestGetAsyncEnumeratorPatternViaValidExtensionInClosestNamespaceInvalidInFurtherNamespace1()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+using N1.N2.N3;
+
+namespace N1
+{
+    public static class Extensions
+    {
+        public static int GetAsyncEnumerator(this C self) => throw null;
+    }
+
+    namespace N2
+    {
+            public static class Extensions
+            {
+                public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
+            }
+
+        namespace N3
+        {
+            using N2;
+            public class C
+            {
+                public static async Task Main()
+                {
+                    await foreach (var i in new C())
+                    {
+                        Console.Write(i);
+                    }
+                }
+                public sealed class Enumerator
+                {
+                    public int Current { get; private set; }
+                    public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
+                }
+            }
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "123");
+        }
+
+        [Fact]
+        public void TestGetAsyncEnumeratorPatternViaValidExtensionInClosestNamespaceInvalidInFurtherNamespace2()
         {
             var source = @"
 using System;
@@ -7252,7 +7309,60 @@ namespace N3
         }
 
         [Fact]
-        public void TestGetAsyncEnumeratorPatternViaInvalidExtensionInClosestNamespaceValidInFurtherNamespace()
+        public void TestGetAsyncEnumeratorPatternViaInvalidExtensionInClosestNamespaceValidInFurtherNamespace1()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+using N1.N2.N3;
+
+namespace N1
+{
+    public static class Extensions
+    {
+        public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
+    }
+
+    namespace N2
+    {
+            public static class Extensions
+            {
+                public static int GetAsyncEnumerator(this C self) => throw null;
+            }
+
+        namespace N3
+        {
+            using N2;
+            public class C
+            {
+                public static async Task Main()
+                {
+                    await foreach (var i in new C())
+                    {
+                        Console.Write(i);
+                    }
+                }
+                public sealed class Enumerator
+                {
+                    public int Current { get; private set; }
+                    public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
+                }
+            }
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (27,45): error CS0117: 'int' does not contain a definition for 'Current'
+                    //                     await foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("int", "Current").WithLocation(27, 45),
+                    // (27,45): error CS8412: Asynchronous foreach requires that the return type 'int' of 'Extensions.GetAsyncEnumerator(C)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                    //                     await foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("int", "N1.N2.Extensions.GetAsyncEnumerator(N1.N2.N3.C)").WithLocation(27, 45));
+        }
+
+        [Fact]
+        public void TestGetAsyncEnumeratorPatternViaInvalidExtensionInClosestNamespaceValidInFurtherNamespace2()
         {
             var source = @"
 using System;

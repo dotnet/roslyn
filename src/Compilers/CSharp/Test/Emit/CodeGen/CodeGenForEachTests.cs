@@ -2622,6 +2622,15 @@ public class C
             Console.Write(i);
         }
     }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetEnumerator(this object self) => new C.Enumerator();
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
@@ -4791,7 +4800,51 @@ namespace N
         }
 
         [Fact]
-        public void TestGetEnumeratorPatternViaValidExtensionInClosestNamespaceInvalidInFurtherNamespace()
+        public void TestGetEnumeratorPatternViaValidExtensionInClosestNamespaceInvalidInFurtherNamespace1()
+        {
+            var source = @"
+using System;
+using N1.N2.N3;
+
+namespace N1
+{
+    public static class Extensions
+    {
+        public static int GetEnumerator(this C self) => throw null;
+    }
+
+    namespace N2
+    {
+        public static class Extensions
+        {
+            public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
+        }
+
+        namespace N3
+        {
+            public class C
+            {
+                public static void Main()
+                {
+                    foreach (var i in new C())
+                    {
+                        Console.Write(i);
+                    }
+                }
+                public sealed class Enumerator
+                {
+                    public int Current { get; private set; }
+                    public bool MoveNext() => Current++ != 3;
+                }
+            }
+        }
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+        }
+
+        [Fact]
+        public void TestGetEnumeratorPatternViaValidExtensionInClosestNamespaceInvalidInFurtherNamespace2()
         {
             var source = @"
 using System;
@@ -4837,7 +4890,58 @@ namespace N3
         }
 
         [Fact]
-        public void TestGetEnumeratorPatternViaInvalidExtensionInClosestNamespaceValidInFurtherNamespace()
+        public void TestGetEnumeratorPatternViaInvalidExtensionInClosestNamespaceValidInFurtherNamespace1()
+        {
+            var source = @"
+using System;
+using N1.N2.N3;
+
+namespace N1
+{
+    public static class Extensions
+    {
+        public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
+    }
+
+    namespace N2
+    {
+        public static class Extensions
+        {
+            public static int GetEnumerator(this C self) => throw null;
+        }
+
+        namespace N3
+        {
+            public class C
+            {
+                public static void Main()
+                {
+                    foreach (var i in new C())
+                    {
+                        Console.Write(i);
+                    }
+                }
+                public sealed class Enumerator
+                {
+                    public int Current { get; private set; }
+                    public bool MoveNext() => Current++ != 3;
+                }
+            }
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (25,39): error CS0117: 'int' does not contain a definition for 'Current'
+                    //                     foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("int", "Current").WithLocation(25, 39),
+                    // (25,39): error CS0202: foreach requires that the return type 'int' of 'Extensions.GetEnumerator(C)' must have a suitable public 'MoveNext' method and public 'Current' property
+                    //                     foreach (var i in new C())
+                    Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("int", "N1.N2.Extensions.GetEnumerator(N1.N2.N3.C)").WithLocation(25, 39));
+        }
+
+        [Fact]
+        public void TestGetEnumeratorPatternViaInvalidExtensionInClosestNamespaceValidInFurtherNamespace2()
         {
             var source = @"
 using System;
