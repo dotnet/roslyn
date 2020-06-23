@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -294,11 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (IsSwitchExpressionAndCannotUseVar(typeName, initializer, semanticModel))
-            {
-                return false;
-            }
-
             // variables declared using var cannot be used further in the same initialization expression.
             if (initializer.DescendantNodesAndSelf()
                 .Where(n => n is IdentifierNameSyntax id && id.Identifier.ValueText.Equals(identifier.ValueText))
@@ -356,83 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // The base analyzer may impose further limitations
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
-        }
-
-        private static bool IsSwitchExpressionAndCannotUseVar(TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel)
-        {
-            if (initializer.IsKind(SyntaxKind.SwitchExpression))
-            {
-                // We compare the variable declaration type to each arm's type to see if there is an exact match, or if the
-                // arm type inherits from the variable declaration type. We also must verify that the arm types are all
-                // in the same line of inheritance. If not, we must use the explicit type instead of var.
-                // Even if 'true' is returned from this method, it is not guaranteed that we can use var. Further checks should occur
-                // after this method is called, such as checking if multiple implicit coversions exist.
-                var declarationType = semanticModel.GetTypeInfo(typeName).Type;
-                var noValidTypeExpressions = true;
-                if (declarationType != null)
-                {
-                    using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var seenTypes);
-                    foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
-                    {
-                        var expression = arm.Expression;
-                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax? parenExpression))
-                        {
-                            expression = parenExpression.WalkDownParentheses();
-                        }
-
-                        if (!expression.IsKind(SyntaxKind.ThrowExpression) && !expression.IsKind(SyntaxKind.NullLiteralExpression) && !expression.IsKind(SyntaxKind.DefaultLiteralExpression))
-                        {
-                            noValidTypeExpressions = false;
-                            var expressionType = semanticModel.GetTypeInfo(expression).Type;
-                            if (expressionType == null)
-                            {
-                                continue;
-                            }
-
-                            if (!expressionType.InheritsFromOrEquals(declarationType))
-                            {
-                                return true;
-                            }
-
-                            // All arms must be in the same direct line of inheritance.
-                            // e.g. Given the tree:
-                            //   C
-                            //  / \
-                            // A   B
-                            //
-                            // Substituting 'var' for 'x' in the following switch expression will introduce a compiler error
-                            // due to the potential for ambiguity (e.g. if C inherited from another class D).
-                            // C x = i switch
-                            // {
-                            //     0 => new A(),
-                            //     1 => new B(),
-                            //     _ => throw new ArgumentException(),
-                            // };
-                            if (expressionType.Equals(declarationType) || seenTypes.Contains(expressionType))
-                            {
-                                continue;
-                            }
-
-                            var invalidType = seenTypes.Any(
-                                t => !t.InheritsFromOrEquals(expressionType) && !expressionType.InheritsFromOrEquals(t));
-                            if (invalidType)
-                            {
-                                return true;
-                            }
-
-                            seenTypes.Add(expressionType);
-                        }
-                    }
-                }
-
-                // If all arms are either throw statements, null literal expressions, or default literal expressions, return true.
-                if (noValidTypeExpressions)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }
