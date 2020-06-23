@@ -833,6 +833,22 @@ class Program
         }
 
         [Fact]
+        [WorkItem(44338, "https://github.com/dotnet/roslyn/issues/44338")]
+        public async Task NoFixInvocationOfExternalMethod_NamedArgument()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Program
+{
+    void M()
+    {
+        var list = new System.Collections.Generic.List<string>();
+        list.Add(item: [|null|]);
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         public async Task FixInvocation_NamedArgument_OutOfOrder()
         {
             await TestInRegularAndScript1Async(
@@ -853,6 +869,22 @@ class Program
         M2(x: null, i: 1);
     }
     void M2(int i, string? x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(44338, "https://github.com/dotnet/roslyn/issues/44338")]
+        public async Task NoFixInvocationOfExternalMethod_NamedArgument_OutOfOrder()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Program
+{
+    void M()
+    {
+        var dict = new System.Collections.Generic.Dictionary<string, int>();
+        dict.Add(value: 0, key: [|null|]);
+    }
 }", parameters: s_nullableFeature);
         }
 
@@ -893,6 +925,22 @@ class Program
         M2(null);
     }
     void M2(string? x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(44338, "https://github.com/dotnet/roslyn/issues/44338")]
+        public async Task NoFixInvocationOfExternalMethod_PositionArgument()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Program
+{
+    void M()
+    {
+        var list = new System.Collections.Generic.List<string>();
+        list.Add([|null|]);
+    }
 }", parameters: s_nullableFeature);
         }
 
