@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             var expression = (ExpressionSyntax)context.Node;
             if (expression.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
                 return;
-            
+
             // Bail if this is not a topmost expression
             // to avoid overlapping diagnostics.
             if (!IsTopmostExpression(expression))
