@@ -4984,20 +4984,18 @@ class Program
             var sourceA =
 @".class public System.Runtime.CompilerServices.IsExternalInit
 {
-  .method public hidebysig specialname rtspecialname instance void  .ctor() { ldnull throw }
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
 }
 .class public abstract A
 {
-  .method family hidebysig specialname rtspecialname instance void  .ctor()
+  .method family hidebysig specialname rtspecialname instance void .ctor()
   {
     ldarg.0
     call       instance void [mscorlib]System.Object::.ctor()
     ret
   }
-  .method family hidebysig specialname rtspecialname instance void  .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'()
-  {
-  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
   .property instance class [mscorlib]System.Type EqualityContract()
   {
     .get instance class [mscorlib]System.Type A::GetProperty1()
@@ -5014,9 +5012,23 @@ class Program
             var refA = CompileIL(sourceA);
 
             var sourceB =
-@"record B(object P) : A;";
-            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+@"using static System.Console;
+record B(object P) : A
+{
+    static void Main()
+    {
+        B b = new B(3);
+        WriteLine(b.P);
+        WriteLine(((A)b).P);
+        WriteLine(b.EqualityContract.Name);
+    }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"3
+3
+B");
 
             var actualMembers = GetProperties(comp, "B");
             Assert.Equal(2, actualMembers.Length);
@@ -5038,20 +5050,18 @@ class Program
             var sourceA =
 @".class public System.Runtime.CompilerServices.IsExternalInit
 {
-  .method public hidebysig specialname rtspecialname instance void  .ctor() { ldnull throw }
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
 }
 .class public abstract A
 {
-  .method family hidebysig specialname rtspecialname instance void  .ctor()
+  .method family hidebysig specialname rtspecialname instance void .ctor()
   {
     ldarg.0
     call       instance void [mscorlib]System.Object::.ctor()
     ret
   }
-  .method family hidebysig specialname rtspecialname instance void  .ctor(class A A_1) { ldnull throw }
-  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'()
-  {
-  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
   .property instance class [mscorlib]System.Type modopt(int32) EqualityContract()
   {
     .get instance class [mscorlib]System.Type modopt(int32) A::get_EqualityContract()
@@ -5068,9 +5078,23 @@ class Program
             var refA = CompileIL(sourceA);
 
             var sourceB =
-@"record B(object P) : A;";
-            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+@"using static System.Console;
+record B(object P) : A
+{
+    static void Main()
+    {
+        B b = new B(3);
+        WriteLine(b.P);
+        WriteLine(((A)b).P);
+        WriteLine(b.EqualityContract.Name);
+    }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"3
+3
+B");
 
             var actualMembers = GetProperties(comp, "B");
             Assert.Equal(2, actualMembers.Length);

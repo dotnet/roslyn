@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override Accessibility DeclaredAccessibility => _property.DeclaredAccessibility;
 
-            public override bool IsStatic => _property.IsStatic;
+            public override bool IsStatic => false;
 
             public override bool IsVirtual => _property.IsVirtual;
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-            internal override bool HasSpecialName => _property.HasSpecialName;
+            internal override bool HasSpecialName => false;
 
             internal override MethodImplAttributes ImplementationAttributes => MethodImplAttributes.Managed;
 
