@@ -6241,9 +6241,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult,
                         flags);
 
-                    if (!boundMethodGroup.HasErrors && boundMethodGroup.ResultKind == LookupResultKind.Empty && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadArity, node, rightName, MessageID.IDS_MethodGroup.Localize(), typeArgumentsSyntax.Count);
+                        Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
                     }
 
                     return boundMethodGroup;
