@@ -40,6 +40,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public VisualStudioInstanceFactory()
         {
+            AppContext.SetSwitch("Switch.System.Diagnostics.IgnorePortablePDBsInStackTraces", false);
+
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
 
@@ -78,10 +80,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 Directory.CreateDirectory(logDir);
 
-                var exception = eventArgs.Exception;
-                File.WriteAllText(
-                    Path.Combine(logDir, $"{baseFileName}.log"),
-                    $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
+                File.WriteAllText(Path.Combine(logDir, $"{baseFileName}.log"), eventArgs.Exception.ToString());
 
                 EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
