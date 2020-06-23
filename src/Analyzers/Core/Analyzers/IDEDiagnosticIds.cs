@@ -145,6 +145,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UnboundIdentifierId = "IDE1007";
         public const string UnboundConstructorId = "IDE1008";
 
+        //Convert typeof(someType).Name to nameof(someType)
+        public const string ConvertNameOfDiagnosticId = "IDE1009";
+
         // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
     }
 }
