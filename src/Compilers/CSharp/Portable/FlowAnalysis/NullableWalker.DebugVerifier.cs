@@ -150,7 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.Left is BoundObjectInitializerMember { MemberSymbol: null })
                 {
                     VerifyExpression(node);
-                    return Visit(node.Left);
+                    Visit(node.Left);
+                    return null;
                 }
 
                 return base.VisitAssignmentOperator(node);

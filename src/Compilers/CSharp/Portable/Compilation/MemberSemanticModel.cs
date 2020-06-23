@@ -1727,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
 #if DEBUG
-                AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), takeSnapshots: false);
+                AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
 #endif
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
@@ -1986,12 +1986,12 @@ done:
 #if DEBUG
                 if (!Compilation.NullableSemanticAnalysisEnabled)
                 {
-                    AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, takeSnapshots: true);
+                    AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
                     return;
                 }
 #endif
 
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnosticBag, takeSnapshots: true, out snapshotManager, ref remappedSymbols);
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnosticBag, createSnapshots: true, out snapshotManager, ref remappedSymbols);
                 cache(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
             }
 
@@ -2023,7 +2023,7 @@ done:
             BoundNode boundRoot,
             Binder binder,
             DiagnosticBag diagnostics,
-            bool takeSnapshots,
+            bool createSnapshots,
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols);
 
@@ -2032,7 +2032,7 @@ done:
         /// Performs just the analysis step of getting nullability information for a semantic model. This is only used during DEBUG builds where nullable
         /// is turned off on a compilation level, giving some extra debug verification of the nullable flow analysis. 
         /// </summary>
-        protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool takeSnapshots);
+        protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
 #endif
 #nullable restore
 
