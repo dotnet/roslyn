@@ -8,6 +8,47 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_DateAndTime
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionListIsShownWithDefaultFormatStringAfterTypingFirstQuote(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+class c
+{
+    void goo(DateTime d)
+    {
+        d.ToString($$);
+    }
+}
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("""")
+                Await state.AssertSelectedCompletionItem("G", inlineDescription:=FeaturesResources.general_long_date_time)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("d.ToString(""G)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionListIsNotShownAfterTypingEndingQuote(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+class c
+{
+    void goo(DateTime d)
+    {
+        d.ToString(" $$);
+    }
+}
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("""")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ExplicitInvoke(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -22,10 +63,10 @@ class c
 ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("d", inlineDescription:=FeaturesResources.short_date)
+                Await state.AssertSelectedCompletionItem("G", inlineDescription:=FeaturesResources.general_long_date_time)
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("d.ToString(""d"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("d.ToString(""G"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
