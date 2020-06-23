@@ -4920,6 +4920,7 @@ class Program
 }");
         }
 
+        // Member in intermediate base that hides abstract property. Not supported.
         [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_38()
@@ -4978,8 +4979,81 @@ class Program
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", }, GetProperties(comp, "C").ToTestDisplayStrings());
         }
 
+        // Member in intermediate base that hides abstract property. Not supported.
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_39()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
+}
+.class public abstract A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .property instance class [mscorlib]System.Type EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type A::get_EqualityContract()
+  }
+  .property instance object P()
+  {
+    .get instance object A::get_P()
+    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::set_P(object)
+  }
+  .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
+  .method public abstract virtual instance object get_P() { }
+  .method public abstract virtual instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(object 'value') { }
+}
+.class public abstract B extends A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void A::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class B A_1) { ldnull throw }
+  .method public hidebysig specialname abstract virtual instance class A  '<>Clone'() { }
+  .property instance class [mscorlib]System.Type EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type B::get_EqualityContract()
+  }
+  .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
+  .method public hidebysig instance object P() { ldnull ret }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"record CA(object P) : A;
+record CB(object P) : B;
+";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS0534: 'CB' does not implement inherited abstract member 'A.P.get'
+                // record CB(object P) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "CB").WithArguments("CB", "A.P.get").WithLocation(2, 8),
+                // (2,8): error CS0534: 'CB' does not implement inherited abstract member 'A.P.init'
+                // record CB(object P) : B;
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "CB").WithArguments("CB", "A.P.init").WithLocation(2, 8),
+                // (2,18): error CS8866: Record member 'B.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
+                // record CB(object P) : B;
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("B.P", "object", "P").WithLocation(2, 18));
+
+            AssertEx.Equal(new[] { "System.Type CA.EqualityContract { get; }", "System.Object CA.P { get; init; }" }, GetProperties(comp, "CA").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type CB.EqualityContract { get; }" }, GetProperties(comp, "CB").ToTestDisplayStrings());
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_40()
         {
             var sourceA =
 @".class public System.Runtime.CompilerServices.IsExternalInit
@@ -5044,8 +5118,9 @@ B");
             }
         }
 
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
-        public void Inheritance_40()
+        public void Inheritance_41()
         {
             var sourceA =
 @".class public System.Runtime.CompilerServices.IsExternalInit
