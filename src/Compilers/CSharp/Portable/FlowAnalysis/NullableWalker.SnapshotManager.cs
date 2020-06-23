@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            returnTypesOpt: null,
                                            analyzedNullabilityMap,
                                            snapshotBuilderOpt: newManagerOpt,
+                                           localFuncVarUsagesOpt: null,
                                            isSpeculative: true),
                         variableState,
                         sharedState.Symbol);

@@ -372,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
+            SmallDictionary<LocalFunctionSymbol, LocalFunctionState> localFuncVarUsagesOpt,
             bool isSpeculative = false)
             // Members of variables are tracked up to a fixed depth, to avoid cycles. The
             // maxSlotDepth value is arbitrary but large enough to allow most scenarios.
@@ -385,6 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
             _returnTypesOpt = returnTypesOpt;
             _snapshotBuilderOpt = snapshotBuilderOpt;
+            _localFuncVarUsages = localFuncVarUsagesOpt;
             _isSpeculative = isSpeculative;
 
             if (initialState != null)
@@ -767,7 +769,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialState: null,
                 analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null,
-                returnTypesOpt: null);
+                returnTypesOpt: null,
+                localFuncVarUsagesOpt: null);
         }
 
 #nullable enable
@@ -799,7 +802,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialState: null,
                 analyzedNullabilities,
                 snapshotBuilder,
-                returnTypesOpt: null);
+                returnTypesOpt: null,
+                localFuncVarUsagesOpt: null);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             snapshotManager = snapshotBuilder?.ToManagerAndFree();
@@ -892,7 +896,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialState: null,
                 analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null,
-                returnTypesOpt: null);
+                returnTypesOpt: null,
+                localFuncVarUsagesOpt: null);
         }
 
         internal static void Analyze(
@@ -904,7 +909,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableState initialState,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
+            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
+            SmallDictionary<LocalFunctionSymbol, LocalFunctionState> localFuncVarUsagesOpt)
         {
             Analyze(
                 compilation,
@@ -918,7 +924,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialState,
                 analyzedNullabilityMapOpt,
                 snapshotBuilderOpt,
-                returnTypesOpt);
+                returnTypesOpt,
+                localFuncVarUsagesOpt);
         }
 
         private static void Analyze(
@@ -933,7 +940,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableState initialState,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
+            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
+            SmallDictionary<LocalFunctionSymbol, LocalFunctionState> localFuncVarUsagesOpt)
         {
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(compilation,
@@ -946,8 +954,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             initialState,
                                             returnTypesOpt,
                                             analyzedNullabilityMapOpt,
-                                            snapshotBuilderOpt);
-
+                                            snapshotBuilderOpt,
+                                            localFuncVarUsagesOpt);
             try
             {
                 Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
@@ -2942,7 +2950,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             initialState: null,
                                             returnTypesOpt: null,
                                             analyzedNullabilityMapOpt: null,
-                                            snapshotBuilderOpt: null);
+                                            snapshotBuilderOpt: null,
+                                            localFuncVarUsagesOpt: null);
 
             int n = returns.Count;
             var resultTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
@@ -6872,7 +6881,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialState: initialState ?? GetVariableState(State.Clone()),
                 analyzedNullabilityMap,
                 snapshotBuilder,
-                returnTypesOpt: null);
+                returnTypesOpt: null,
+                localFuncVarUsagesOpt: _localFuncVarUsages ??= new SmallDictionary<LocalFunctionSymbol, LocalFunctionState>()
+                );
         }
 
         public override BoundNode VisitUnboundLambda(UnboundLambda node)

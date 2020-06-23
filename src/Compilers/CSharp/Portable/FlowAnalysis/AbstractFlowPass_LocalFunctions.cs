@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract TLocalFunctionState CreateLocalFunctionState();
 
-        private SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>? _localFuncVarUsages = null;
+        protected SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>? _localFuncVarUsages = null;
 
         protected TLocalFunctionState GetOrCreateLocalFuncUsages(LocalFunctionSymbol localFunc)
         {
