@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var fileName = (string?)namedArg.Value.ValueInternal;
                     var resolver = compilation.Options.XmlReferenceResolver;
 
-                    resolvedFilePath = (resolver != null) ? resolver.ResolveReference(fileName, baseFilePath: null) : null;
+                    resolvedFilePath = (resolver != null && fileName != null) ? resolver.ResolveReference(fileName, baseFilePath: null) : null;
 
                     if (resolvedFilePath == null)
                     {
