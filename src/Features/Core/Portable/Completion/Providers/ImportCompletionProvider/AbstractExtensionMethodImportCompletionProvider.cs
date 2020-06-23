@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         forceIndexCreation: isExpandedCompletion,
                         cancellationToken).ConfigureAwait(false);
 
-                    completionContext.AddItems(items.Select(i => Convert(i)));
+                    completionContext.AddItems(items.Select(i => Convert(i, SymbolKey.CreateString(receiverTypeSymbol))));
                 }
                 else
                 {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _ => symbol as ITypeSymbol,
             };
 
-        private CompletionItem Convert(SerializableImportCompletionItem serializableItem)
+        private CompletionItem Convert(SerializableImportCompletionItem serializableItem, string receiverTypeSymbolKey)
             => ImportCompletionItem.Create(
                 serializableItem.Name,
                 serializableItem.Arity,
@@ -112,6 +112,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 serializableItem.Glyph,
                 GenericSuffix,
                 CompletionItemFlags.Expanded,
-                serializableItem.SymbolKeyData);
+                (serializableItem.SymbolKeyData, receiverTypeSymbolKey));
     }
 }

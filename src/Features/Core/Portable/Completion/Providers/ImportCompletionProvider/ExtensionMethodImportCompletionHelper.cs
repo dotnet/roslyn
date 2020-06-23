@@ -196,6 +196,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             using var _1 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var completionItemsbuilder);
             using var _2 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
 
+            // This dictionary is used as cache among all projects and PE references. 
+            // The key is the receiver type as in the extension method declaration (symbol retrived from current compilation).
+            // The value indicates if we can reduce an extension method with this receiver type given receiver type.
+            using var _3 = PooledDictionary<ITypeSymbol, bool>.GetInstance(out var checkedReceiverTypes);
+
             receiverTypeNames = AttachComplexTypes(receiverTypeNames);
 
             // Get extension method items from source
@@ -214,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var isSymbolFromCurrentCompilation = project == currentProject;
                 GetExtensionMethodItemsWorker(
                     position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, isSymbolFromCurrentCompilation,
-                    completionItemsbuilder, namespaceNameCache, cancellationToken);
+                    completionItemsbuilder, namespaceNameCache, checkedReceiverTypes, cancellationToken);
             }
 
             // Get extension method items from PE
@@ -231,7 +236,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     GetExtensionMethodItemsWorker(
                         position, semanticModel, receiverTypeSymbol, matchingMethodSymbols,
-                        isSymbolFromCurrentCompilation: true, completionItemsbuilder, namespaceNameCache, cancellationToken);
+                        isSymbolFromCurrentCompilation: true, completionItemsbuilder, namespaceNameCache,
+                        checkedReceiverTypes, cancellationToken);
                 }
             }
 
@@ -254,41 +260,94 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             SemanticModel semanticModel,
             ITypeSymbol receiverTypeSymbol,
-            ImmutableArray<IMethodSymbol> matchingMethodSymbols,
+            MultiDictionary<ITypeSymbol, IMethodSymbol> matchingMethodSymbols,
             bool isSymbolFromCurrentCompilation,
             ArrayBuilder<SerializableImportCompletionItem> builder,
             Dictionary<INamespaceSymbol, string> stringCache,
+            Dictionary<ITypeSymbol, bool> checkedReceiverTypes,
             CancellationToken cancellationToken)
         {
-            foreach (var methodSymbol in matchingMethodSymbols)
+            // Matching extension method symbols are grouped based on their receiver type.
+            foreach (var (receiverType, methodSymbols) in matchingMethodSymbols)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Symbols could be from a different compilation.
-                // Need to find the matching one in current compilation
-                // before any further checks is done.
-                var methodSymbolInCurrentCompilation = isSymbolFromCurrentCompilation
-                    ? methodSymbol
-                    : SymbolFinder.FindSimilarSymbols(methodSymbol, semanticModel.Compilation).FirstOrDefault();
+                var receiverTypeInCurrentCompilation = isSymbolFromCurrentCompilation
+                    ? receiverType
+                    : SymbolFinder.FindSimilarSymbols(receiverType, semanticModel.Compilation).OfType<ITypeSymbol>().FirstOrDefault();
 
-                if (methodSymbolInCurrentCompilation == null
-                    || !semanticModel.IsAccessible(position, methodSymbolInCurrentCompilation))
+                // If we already checked an extension method with same receiver type before, and we know it can't be applied
+                // to the receiverTypeSymbol, then no need to proceed further.
+                if (checkedReceiverTypes.TryGetValue(receiverTypeInCurrentCompilation, out var cachedResult) && !cachedResult)
                 {
                     continue;
                 }
 
-                var reducedMethodSymbol = methodSymbolInCurrentCompilation.ReduceExtensionMethod(receiverTypeSymbol);
-                if (reducedMethodSymbol != null)
+                if (isSymbolFromCurrentCompilation)
                 {
-                    var symbolKeyData = SymbolKey.CreateString(reducedMethodSymbol);
-                    builder.Add(new SerializableImportCompletionItem(
-                        symbolKeyData,
-                        reducedMethodSymbol.Name,
-                        reducedMethodSymbol.Arity,
-                        reducedMethodSymbol.GetGlyph(),
-                        GetFullyQualifiedNamespaceName(reducedMethodSymbol.ContainingNamespace, stringCache)));
+                    // We haven't seen this type yet. Try to check by reducing one extension method
+                    // to the given receiver type and save the result.
+                    if (!cachedResult)
+                    {
+                        var reducedMethodSymbol = methodSymbols.First().ReduceExtensionMethod(receiverTypeSymbol);
+                        cachedResult = reducedMethodSymbol != null;
+                        checkedReceiverTypes[receiverType] = cachedResult;
+                    }
+
+                    // Receiver type matches the receiver type of the extension method declaration.
+                    // We can add accessible ones to the item builder.
+                    if (cachedResult)
+                    {
+                        foreach (var methodSymbol in methodSymbols)
+                        {
+                            if (semanticModel.IsAccessible(position, methodSymbol))
+                            {
+                                CreateAndAddItem(methodSymbol, builder, stringCache);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Symbols could be from a different compilation.
+                    // Need to find the matching one in current compilation before any further checks is done.
+                    foreach (var methodSymbol in methodSymbols.Select(s => SymbolFinder.FindSimilarSymbols(s, semanticModel.Compilation).FirstOrDefault()).WhereNotNull())
+                    {
+                        // We haven't seen this type yet. Try to check by reducing one extension method
+                        // to the given receiver type and save the result.
+                        // Note we will only hit this condition at most once, which is the first time we find a non-null
+                        // similar symbol from current compilation.
+                        if (!cachedResult)
+                        {
+                            // If this is the first symbol we retrived from current compilation,
+                            // try to check if we can apply it to given receiver type, and save result to our cache.
+                            var reducedMethodSymbol = methodSymbol.ReduceExtensionMethod(receiverTypeSymbol);
+                            cachedResult = reducedMethodSymbol != null;
+                            checkedReceiverTypes[receiverType] = cachedResult;
+
+                            // Now, cachedResult being false means the receiver type doesn't match,
+                            // stop processing any more methods.
+                            if (!cachedResult)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (semanticModel.IsAccessible(position, methodSymbol))
+                        {
+                            CreateAndAddItem(methodSymbol, builder, stringCache);
+                        }
+                    }
                 }
             }
+
+            static void CreateAndAddItem(IMethodSymbol methodSymbol, ArrayBuilder<SerializableImportCompletionItem> builder, Dictionary<INamespaceSymbol, string> stringCache)
+                => builder.Add(new SerializableImportCompletionItem(
+                        SymbolKey.CreateString(methodSymbol),
+                        methodSymbol.Name,
+                        methodSymbol.Arity,
+                        methodSymbol.GetGlyph(),
+                        GetFullyQualifiedNamespaceName(methodSymbol.ContainingNamespace, stringCache)));
         }
 
         private static string GetFullyQualifiedNamespaceName(INamespaceSymbol symbol, Dictionary<INamespaceSymbol, string> stringCache)
@@ -308,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return name;
         }
 
-        private static ImmutableArray<IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(
+        private static MultiDictionary<ITypeSymbol, IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(
             IAssemblySymbol assembly,
             MultiDictionary<string, (string methodName, string receiverTypeName)> extensionMethodFilter,
             ISet<string> namespaceFilter,
@@ -316,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             StatisticCounter counter,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+            var builder = new MultiDictionary<ITypeSymbol, IMethodSymbol>();
 
             foreach (var (fullyQualifiedContainerName, methodNames) in extensionMethodFilter)
             {
@@ -351,19 +410,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         counter.TotalExtensionMethodsChecked++;
 
-                        if (MatchExtensionMethod(methodSymbol, receiverTypeName, internalsVisible))
+                        if (MatchExtensionMethod(methodSymbol, receiverTypeName, internalsVisible, out var receiverType))
                         {
                             // Find a potential match.
-                            builder.Add(methodSymbol);
+                            builder.Add(receiverType!, methodSymbol);
                         }
                     }
                 }
             }
 
-            return builder.ToImmutable();
+            return builder;
 
-            static bool MatchExtensionMethod(IMethodSymbol method, string filterReceiverTypeName, bool internalsVisible)
+            static bool MatchExtensionMethod(IMethodSymbol method, string filterReceiverTypeName, bool internalsVisible, out ITypeSymbol? receiverType)
             {
+                receiverType = null;
                 if (!method.IsExtensionMethod || method.Parameters.IsEmpty || !IsAccessible(method, internalsVisible))
                 {
                     return false;
@@ -371,8 +431,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // We get a match if the receiver type name match. 
                 // For complex type, we would check if it matches with filter on whether it's an array.
-                return filterReceiverTypeName.Length == 0 ||
-                       string.Equals(filterReceiverTypeName, GetReceiverTypeName(method.Parameters[0].Type), StringComparison.Ordinal);
+                if (filterReceiverTypeName.Length > 0 && !string.Equals(filterReceiverTypeName, GetReceiverTypeName(method.Parameters[0].Type), StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                receiverType = method.Parameters[0].Type;
+                return true;
             }
 
             // An quick accessibility check based on declared accessibility only, a semantic based check is still required later.

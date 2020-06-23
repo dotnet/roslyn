@@ -1623,6 +1623,50 @@ namespace NS1
                 inlineDescription: "NS2");
         }
 
+
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestDescriptionOfGenericReceiverType(ReferenceType refType)
+        {
+            var refDoc = @"
+using System;
+
+namespace NS2
+{
+    public static class Extensions
+    {
+        public static bool ExtentionMethod<T>(this T t) => false;
+    }
+}";
+            var srcDoc = @"
+namespace NS1
+{
+    public class C
+    {
+        public void M(int x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                displayTextSuffix: "<>",
+                glyph: (int)Glyph.ExtensionMethodPublic,
+                inlineDescription: "NS2",
+                expectedDescriptionOrNull: "(extension) bool int.ExtentionMethod<int>()");
+        }
+
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
 
