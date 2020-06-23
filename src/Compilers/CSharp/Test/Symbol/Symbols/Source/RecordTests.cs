@@ -146,7 +146,7 @@ record C(int x, string y)
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
-            var x = (SourceOrRecordPropertySymbol)c.GetProperty("x");
+            var x = (SourcePropertySymbolBase)c.GetProperty("x");
             Assert.NotNull(x.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
@@ -176,7 +176,7 @@ record C(int x, string y)
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
             Assert.True(setAccessor.IsInitOnly);
 
-            var y = (SourceOrRecordPropertySymbol)c.GetProperty("y");
+            var y = (SourcePropertySymbolBase)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);

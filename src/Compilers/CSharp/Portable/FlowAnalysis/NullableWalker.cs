@@ -7039,14 +7039,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return accessor.Parameters.Last().FlowAnalysisAnnotations;
                 }
-                if (property is SourcePropertySymbol sourceProperty)
+                if (property is SourcePropertySymbolBase sourceProperty)
                 {
                     return getPropertyAnnotations(sourceProperty);
                 }
                 return FlowAnalysisAnnotations.None;
             }
 
-            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbol property)
+            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbolBase property)
             {
                 var annotations = FlowAnalysisAnnotations.None;
                 if (property.HasAllowNull)
