@@ -32,7 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                     Return
                 End If
 
-
                 _expressions.Add(node)
             End Sub
 

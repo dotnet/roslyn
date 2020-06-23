@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 : Task.FromResult(CompletionDescription.Empty);
         }
 
-
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var change = (await GetTextChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false))

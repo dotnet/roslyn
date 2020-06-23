@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableDocumentHighlights>>(
+                var result = await client.RunRemoteAsync<IList<SerializableDocumentHighlights>>(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     solution,
@@ -43,10 +43,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(h => h.Rehydrate(solution));
-                }
+                return result.SelectAsArray(h => h.Rehydrate(solution));
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -165,7 +162,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
-            IEnumerable<ReferencedSymbol> references, Document startingDocument,
+            ImmutableArray<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
@@ -177,10 +174,10 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
             if (symbol.IsConstructor())
             {
-                references = references.Where(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
+                references = references.WhereAsArray(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
             }
 
-            var additionalReferences = new List<Location>();
+            using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);
 
             foreach (var currentDocument in documentsToSearch)
             {
@@ -209,7 +206,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Solution solution,
             ISymbol symbol,
             IEnumerable<ReferencedSymbol> references,
-            IEnumerable<Location> additionalReferences,
+            ArrayBuilder<Location> additionalReferences,
             IImmutableSet<Document> documentToSearch,
             CancellationToken cancellationToken)
         {

@@ -1649,19 +1649,22 @@ class Program
         }
 
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatInvalidCode_1()
         {
+            var expected = @"> Roslyn.Utilities.dll!   Basic";
             var content = @">	Roslyn.Utilities.dll! 	Basic";
-            await AssertFormatAsync(content, content);
+            await AssertFormatAsync(expected, content);
         }
 
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatInvalidCode_2()
         {
             var content = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic";
-            var expectedContent = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes Basic";
+            var expectedContent = @"> Roslyn.Utilities.dll! Line 43 + 0x5 bytes Basic";
             await AssertFormatAsync(expectedContent, content);
         }
 

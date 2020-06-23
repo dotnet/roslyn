@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ulong INumericTC<ulong>.MaxValue => ulong.MaxValue;
 
+            ulong INumericTC<ulong>.Zero => 0;
+
             bool INumericTC<ulong>.Related(BinaryOperatorKind relation, ulong left, ulong right)
             {
                 switch (relation)
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value - 1;
             }
 
-            ulong INumericTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt64Value;
+            ulong INumericTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0UL : constantValue.UInt64Value;
 
             ConstantValue INumericTC<ulong>.ToConstantValue(ulong value) => ConstantValue.Create(value);
 

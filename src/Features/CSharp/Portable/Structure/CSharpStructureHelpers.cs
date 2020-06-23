@@ -351,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     return propertyDeclaration.Modifiers.FirstOrNull() ?? propertyDeclaration.Type.GetFirstToken();
                 }
                 else if (node.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration)
+                    || node.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration)
                     || node.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration)
                     || node.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
                 {
@@ -369,6 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     return enumDeclaration.OpenBraceToken.GetPreviousToken();
                 }
                 else if (node.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration)
+                    || node.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration)
                     || node.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration)
                     || node.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
                 {

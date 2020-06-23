@@ -1827,7 +1827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.IsExecutableBlock()
         End Function
 
-        Public Function GetExecutableBlockStatements(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetExecutableBlockStatements
+        Public Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetExecutableBlockStatements
             Return node.GetExecutableBlockStatements()
         End Function
 

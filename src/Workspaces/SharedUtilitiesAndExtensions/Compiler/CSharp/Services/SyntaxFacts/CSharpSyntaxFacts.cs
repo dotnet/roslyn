@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -1685,14 +1686,15 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsKind(SyntaxKind.Block);
 
         public bool IsExecutableBlock(SyntaxNode node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection, SyntaxKind.CompilationUnit);
 
-        public SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node)
+        public IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node)
         {
             return node switch
             {
                 BlockSyntax block => block.Statements,
                 SwitchSectionSyntax switchSection => switchSection.Statements,
+                CompilationUnitSyntax compilationUnit => compilationUnit.Members.OfType<GlobalStatementSyntax>().SelectAsArray(globalStatement => globalStatement.Statement),
                 _ => throw ExceptionUtilities.UnexpectedValue(node),
             };
         }
@@ -1700,13 +1702,15 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
             => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
 
-        public bool IsStatementContainer(SyntaxNode node)
+#nullable enable
+        public bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node)
             => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
+#nullable restore
 
         public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node)
             => IsExecutableBlock(node)
                ? GetExecutableBlockStatements(node)
-               : (IReadOnlyList<SyntaxNode>)ImmutableArray.Create<SyntaxNode>(node.GetEmbeddedStatement());
+               : ImmutableArray.Create<SyntaxNode>(node.GetEmbeddedStatement());
 
         public bool IsCastExpression(SyntaxNode node)
             => node is CastExpressionSyntax;
@@ -1750,6 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKindEx.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:

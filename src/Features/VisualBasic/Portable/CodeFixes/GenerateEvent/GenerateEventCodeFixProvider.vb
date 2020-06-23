@@ -324,7 +324,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             Dim targetType As INamedTypeSymbol = Nothing
 
-
             Dim keywordEventContainer = TryCast(handlesClauseItem.EventContainer, KeywordEventContainerSyntax)
             If keywordEventContainer IsNot Nothing Then
                 ' Me/MyClass/MyBase

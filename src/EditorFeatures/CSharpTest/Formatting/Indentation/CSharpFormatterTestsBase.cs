@@ -20,12 +20,15 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     [UseExportProvider]
     public class CSharpFormatterTestsBase : CSharpFormattingEngineTestBase
     {
+        public CSharpFormatterTestsBase(ITestOutputHelper output) : base(output) { }
+
         protected const string HtmlMarkup = @"<html>
     <body>
         <%{|S1:|}%>

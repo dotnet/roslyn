@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
 
-
         internal OptionPreviewControl(IServiceProvider serviceProvider, OptionStore optionStore, Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> createViewModel) : base(optionStore)
         {
             InitializeComponent();

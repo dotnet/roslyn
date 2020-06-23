@@ -1517,4 +1517,16 @@ I agree to all of the foregoing:</value>
   <data name="Parameter_information" xml:space="preserve">
     <value>Parameter information</value>
   </data>
+  <data name="Infer_from_context" xml:space="preserve">
+    <value>Infer from context</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Warning_colon_duplicate_parameter_name" xml:space="preserve">
+    <value>Warning: duplicate parameter name</value>
+  </data>
+  <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
+    <value>Warning: type does not bind</value>
+  </data>
 </root>

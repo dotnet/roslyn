@@ -712,7 +712,6 @@ End Module
 
         End Function
 
-
         <WorkItem(738826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738826")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyParenthesisedGetTypeOperator() As Task
@@ -775,7 +774,6 @@ End Class
             Await TestAsync(input, expected)
 
         End Function
-
 
 #End Region
 

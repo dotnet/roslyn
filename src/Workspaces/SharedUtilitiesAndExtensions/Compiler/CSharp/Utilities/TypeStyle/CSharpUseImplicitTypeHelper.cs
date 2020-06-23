@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // different names for those tuple elements.  Check and make sure the types are the
             // same before proceeding.
 
-            var invocationOp = semanticModel.GetOperation(invocationExpression) as IInvocationOperation;
+            var invocationOp = semanticModel.GetOperation(invocationExpression, cancellationToken) as IInvocationOperation;
             if (invocationOp == null)
                 return false;
 

@@ -494,9 +494,9 @@ public class Point
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         var r = 1 switch { };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 19),
                 // (5,19): error CS8506: No best type was found for the switch expression.
                 //         var r = 1 switch { };
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(5, 19));
@@ -518,9 +518,9 @@ public class Point
     public delegate void D();
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '3' is not covered.
                 //         var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("3").WithLocation(5, 19)
                 );
         }
 
@@ -609,9 +609,9 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (7,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         var c = a switch { var x2 when x2 is var x3 => x3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 19)
                 );
             var names = new[] { "x1", "x2", "x3", "x4", "x5" };
             var tree = compilation.SyntaxTrees[0];
@@ -2574,6 +2574,65 @@ public class C
         }
 
         [Fact]
+        public void IsNullableReferenceType_01()
+        {
+            var source =
+@"#nullable enable
+public class C {
+    public void M1(object o) {
+        var t = o is string? { };
+    }
+    public void M2(object o) {
+        var t = o is (string? { });
+    }
+    public void M3(object o) {
+        var t = o is string?;
+    }
+    public void M4(object o) {
+        var t = o is string? _;
+    }
+    public void M5(object o) {
+        var t = o is (string? _);
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (4,22): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
+                //         var t = o is string? { };
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string").WithLocation(4, 22),
+                // (7,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         var t = o is (string? { });
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? { })").WithArguments("object", "2").WithLocation(7, 22),
+                // (7,29): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? { });
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(7, 29),
+                // (7,31): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? { });
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 31),
+                // (10,22): error CS8650: It is not legal to use nullable reference type 'string?' in an is-type expression; use the underlying type 'string' instead.
+                //         var t = o is string?;
+                Diagnostic(ErrorCode.ERR_IsNullableType, "string?").WithArguments("string").WithLocation(10, 22),
+                // (13,30): error CS0103: The name '_' does not exist in the current context
+                //         var t = o is string? _;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(13, 30),
+                // (13,31): error CS1003: Syntax error, ':' expected
+                //         var t = o is string? _;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(13, 31),
+                // (13,31): error CS1525: Invalid expression term ';'
+                //         var t = o is string? _;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(13, 31),
+                // (16,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         var t = o is (string? _);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? _)").WithArguments("object", "2").WithLocation(16, 22),
+                // (16,29): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? _);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(16, 29),
+                // (16,31): error CS1003: Syntax error, ',' expected
+                //         var t = o is (string? _);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",", "").WithLocation(16, 31)
+                );
+        }
+
+        [Fact]
         public void IsAlwaysPatternKinds()
         {
             var source =
@@ -2595,6 +2654,218 @@ public class C
                 //         _ = s is string or null;        // always disjunctive pattern
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "s is string or null").WithArguments("string").WithLocation(7, 13)
                 );
+        }
+
+        [Fact]
+        public void SemanticModelForSwitchExpression()
+        {
+            var source =
+@"public class C
+{
+    void M(int i)
+    {
+        C x0 = i switch // 0
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        _ = i switch // 1
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        D x2 = i switch // 2
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        };
+        D x3 = i switch // 3
+        {
+            0 => new E(), // 3.1
+            1 => new F(), // 3.2
+            _ => throw null,
+        };
+        C x4 = i switch // 4
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        };
+        D x5 = i switch // 5
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        };
+        D x6 = i switch // 6
+        {
+            0 => 1,
+            1 => 2,
+            _ => throw null,
+        };
+        _ = (C)(i switch // 7
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 8
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 9
+        {
+            0 => new E(), // 9.1
+            1 => new F(), // 9.2
+            _ => throw null,
+        });
+        _ = (C)(i switch // 10
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 11
+        {
+            0 => new A(),
+            1 => new B(),
+            2 => new C(),
+            _ => throw null,
+        });
+        _ = (D)(i switch // 12
+        {
+            0 => 1,
+            1 => 2,
+            _ => throw null,
+        });
+    }
+}
+
+class A : C { }
+class B : C { }
+class D
+{
+    public static implicit operator D(C c) => throw null;
+    public static implicit operator D(short s) => throw null;
+}
+class E
+{
+    public static implicit operator C(E c) => throw null;
+}
+class F
+{
+    public static implicit operator C(F c) => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (11,15): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch // 1
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(11, 15),
+                // (25,18): error CS0029: Cannot implicitly convert type 'E' to 'D'
+                //             0 => new E(), // 3.1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new E()").WithArguments("E", "D").WithLocation(25, 18),
+                // (26,18): error CS0029: Cannot implicitly convert type 'F' to 'D'
+                //             1 => new F(), // 3.2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(26, 18),
+                // (63,18): error CS0029: Cannot implicitly convert type 'E' to 'D'
+                //             0 => new E(), // 9.1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new E()").WithArguments("E", "D").WithLocation(63, 18),
+                // (64,18): error CS0029: Cannot implicitly convert type 'F' to 'D'
+                //             1 => new F(), // 9.2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new F()").WithArguments("F", "D").WithLocation(64, 18)
+                );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            void checkType(ExpressionSyntax expr, string expectedNaturalType, string expectedConvertedType, ConversionKind expectedConversionKind)
+            {
+                var typeInfo = model.GetTypeInfo(expr);
+                var conversion = model.GetConversion(expr);
+                Assert.Equal(expectedNaturalType, typeInfo.Type?.ToTestDisplayString());
+                Assert.Equal(expectedConvertedType, typeInfo.ConvertedType?.ToTestDisplayString());
+                Assert.Equal(expectedConversionKind, conversion.Kind);
+            }
+
+            var switches = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().ToArray();
+            for (int i = 0; i < switches.Length; i++)
+            {
+                var expr = switches[i];
+                switch (i)
+                {
+                    case 0:
+                    case 7:
+                        checkType(expr, null, "C", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 1:
+                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "B", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        break;
+                    case 2:
+                    case 8:
+                        checkType(expr, null, "D", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "A", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "B", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        break;
+                    case 3:
+                        checkType(expr, "?", "D", ConversionKind.NoConversion);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        break;
+                    case 9:
+                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        break;
+                    case 4:
+                    case 10:
+                        checkType(expr, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 5:
+                        checkType(expr, "C", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 11:
+                        checkType(expr, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, "C", "C", ConversionKind.Identity);
+                        checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        break;
+                    case 6:
+                    case 12:
+                        checkType(expr, "System.Int32", "D", ConversionKind.SwitchExpression);
+                        checkType(expr.Arms[0].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        break;
+                    default:
+                        Assert.False(true);
+                        break;
+                }
+            }
         }
     }
 }
