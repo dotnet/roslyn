@@ -3462,6 +3462,24 @@ class C
             source.Append(source1);
             CompileAndVerify(source.ToString(), expectedOutput: "58430604");
         }
+
+        [Fact]
+        public void ConstantInterpolatedStringsSimple()
+        {
+            string source = @"
+class C
+{
+    static void F()
+    {
+        const string X = ""2b"";
+        const string Y = X + ""9s"";
+        const string F = $""bb"";
+        System.Console.WriteLine(Y + F);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard

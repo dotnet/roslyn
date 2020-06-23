@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
             var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+            ConstantValue resultConstant = null;
             foreach (var content in node.Contents)
             {
                 switch (content.Kind())
@@ -97,7 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.InterpolatedStringText:
                         {
                             var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
-                            builder.Add(new BoundLiteral(content, ConstantValue.Create(text, SpecialType.System_String), stringType));
+                            var constantVal = ConstantValue.Create(text, SpecialType.System_String);
+                            builder.Add(new BoundLiteral(content, constantVal, stringType));
+                            resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), constantVal);
                             continue;
                         }
                     default:
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundInterpolatedString(node, builder.ToImmutableAndFree(), stringType);
+            return new BoundInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
         }
     }
 }
