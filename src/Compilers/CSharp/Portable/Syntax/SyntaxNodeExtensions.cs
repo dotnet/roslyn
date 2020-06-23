@@ -78,14 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
 
                 case SyntaxKind.RecordDeclaration:
                     return ((RecordDeclarationSyntax)syntax).ParameterList is object;
-                case SyntaxKind.SimpleBaseType:
-                    return ((SimpleBaseTypeSyntax)syntax).ArgumentList is object &&
-                           syntax.Parent?.Parent is RecordDeclarationSyntax recordDecl &&
-                           recordDecl.ParameterList is object && recordDecl.BaseWithArguments == syntax;
 
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
