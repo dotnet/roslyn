@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override CSharpSyntaxNode? GetInitializer()
         {
-            return GetSyntax().PrimaryConstructorBaseTypeSyntax;
+            return GetSyntax().PrimaryConstructorBaseType;
         }
 
         internal override bool IsExpressionBodied

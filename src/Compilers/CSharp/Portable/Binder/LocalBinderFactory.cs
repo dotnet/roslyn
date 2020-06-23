@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
             AddToMap(node, enclosing);
-            Visit(node.PrimaryConstructorBaseTypeSyntax, enclosing);
+            Visit(node.PrimaryConstructorBaseType, enclosing);
         }
 
         public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)

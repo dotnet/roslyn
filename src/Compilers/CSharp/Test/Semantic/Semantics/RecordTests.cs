@@ -7951,23 +7951,19 @@ interface I {}
                 speculativePrimaryInitializer = baseWithargs.WithArgumentList(baseWithargs.ArgumentList.WithArguments(baseWithargs.ArgumentList.Arguments.RemoveAt(1)));
 
                 speculativeBaseInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, speculativePrimaryInitializer.ArgumentList);
-                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer, out speculativeModel!));
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer, out _));
 
                 symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
-                Assert.Null(symbolInfo.Symbol);
-                Assert.Empty(symbolInfo.CandidateSymbols);
-                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
 
                 symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
-                Assert.Null(symbolInfo.Symbol);
-                Assert.Empty(symbolInfo.CandidateSymbols);
-                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
 
                 Assert.False(model.TryGetSpeculativeSemanticModel(tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().SpanStart,
-                                                                  speculativeBaseInitializer, out speculativeModel!));
+                                                                  speculativeBaseInitializer, out _));
 
                 var otherBasePosition = ((BaseListSyntax)baseWithargs.Parent!).Types[1].SpanStart;
-                Assert.False(model.TryGetSpeculativeSemanticModel(otherBasePosition, speculativePrimaryInitializer, out speculativeModel!));
+                Assert.False(model.TryGetSpeculativeSemanticModel(otherBasePosition, speculativePrimaryInitializer, out _));
 
                 Assert.True(model.TryGetSpeculativeSemanticModel(baseWithargs.SpanStart, speculativePrimaryInitializer, out speculativeModel!));
                 Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel!.GetSymbolInfo((SyntaxNode)speculativePrimaryInitializer).Symbol.ToTestDisplayString());
@@ -7975,22 +7971,24 @@ interface I {}
                 Assert.Equal("Base..ctor(System.Int32 X)", CSharpExtensions.GetSymbolInfo(speculativeModel, speculativePrimaryInitializer).Symbol.ToTestDisplayString());
 
                 Assert.True(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out speculativeModel!));
+
+                var xxDecl = OutVarTests.GetOutVarDeclaration(speculativePrimaryInitializer.SyntaxTree, "xx");
+                var xxRef = OutVarTests.GetReferences(speculativePrimaryInitializer.SyntaxTree, "xx").ToArray();
+                Assert.Equal(1, xxRef.Length);
+                OutVarTests.VerifyModelForOutVar(speculativeModel, xxDecl, xxRef);
+
                 Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel!.GetSymbolInfo((SyntaxNode)speculativePrimaryInitializer).Symbol.ToTestDisplayString());
                 Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel.GetSymbolInfo(speculativePrimaryInitializer).Symbol.ToTestDisplayString());
                 Assert.Equal("Base..ctor(System.Int32 X)", CSharpExtensions.GetSymbolInfo(speculativeModel, speculativePrimaryInitializer).Symbol.ToTestDisplayString());
 
-                Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (PrimaryConstructorBaseTypeSyntax)null!, speculativeModel: out _));
-                Assert.Throws<ArgumentException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, baseWithargs, speculativeModel: out _));
+                Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (PrimaryConstructorBaseTypeSyntax)null!, out _));
+                Assert.Throws<ArgumentException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, baseWithargs, out _));
 
                 symbolInfo = model.GetSpeculativeSymbolInfo(otherBasePosition, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
-                Assert.Null(symbolInfo.Symbol);
-                Assert.Empty(symbolInfo.CandidateSymbols);
-                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
 
                 symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, otherBasePosition, speculativePrimaryInitializer);
-                Assert.Null(symbolInfo.Symbol);
-                Assert.Empty(symbolInfo.CandidateSymbols);
-                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
 
                 symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
                 Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
@@ -8032,9 +8030,146 @@ interface I {}
                 Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out _));
 
                 symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
+        }
+
+        [Fact]
+        public void BaseArguments_20()
+        {
+            var src = @"
+class Base
+{
+    public Base(int X)
+    {
+    }
+
+    public Base() {}
+}
+
+class C : Base(GetInt(X, out var xx) + xx, Y), I
+{
+    C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
+
+    static int GetInt(int x1, out int x2)
+    {
+        throw null;
+    }
+}
+
+interface I {}
+";
+
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8861: Unexpected argument list.
+                // class C : Base(GetInt(X, out var xx) + xx, Y), I
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(11, 15),
+                // (13,30): error CS1729: 'Base' does not contain a constructor that takes 4 arguments
+                //     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("Base", "4").WithLocation(13, 30)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            SymbolInfo symbolInfo;
+            PrimaryConstructorBaseTypeSyntax speculativePrimaryInitializer;
+            ConstructorInitializerSyntax speculativeBaseInitializer;
+
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single();
+                Assert.Equal("Base(GetInt(X, out var xx) + xx, Y)", baseWithargs.ToString());
+                Assert.Equal("Base", model.GetTypeInfo(baseWithargs.Type).Type.ToTestDisplayString());
+                Assert.Equal(TypeInfo.None, model.GetTypeInfo(baseWithargs));
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+
+                speculativePrimaryInitializer = baseWithargs.WithArgumentList(baseWithargs.ArgumentList.WithArguments(baseWithargs.ArgumentList.Arguments.RemoveAt(1)));
+
+                speculativeBaseInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, speculativePrimaryInitializer.ArgumentList);
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().SpanStart,
+                                                                  speculativeBaseInitializer, out _));
+
+                var otherBasePosition = ((BaseListSyntax)baseWithargs.Parent!).Types[1].SpanStart;
+                Assert.False(model.TryGetSpeculativeSemanticModel(otherBasePosition, speculativePrimaryInitializer, out _));
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.SpanStart, speculativePrimaryInitializer, out _));
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out _));
+
+                Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (PrimaryConstructorBaseTypeSyntax)null!, out _));
+                Assert.Throws<ArgumentException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, baseWithargs, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(otherBasePosition, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, otherBasePosition, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single().ArgumentList.OpenParenToken.SpanStart,
+                                                                         (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+                Assert.Equal(": base(X, Y, Z, 1)", baseWithargs.ToString());
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
                 Assert.Null(symbolInfo.Symbol);
-                Assert.Empty(symbolInfo.CandidateSymbols);
-                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                string[] candidates = new[] { "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(model.GetMemberGroup(baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(CSharpExtensions.GetMemberGroup(model, baseWithargs).Select(m => m.ToTestDisplayString()));
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
 
                 symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
                 Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());

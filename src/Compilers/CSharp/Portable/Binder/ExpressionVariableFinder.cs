@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.ParameterList is object);
 
-            if (node.PrimaryConstructorBaseTypeSyntax is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            if (node.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 VisitNodeToBind(baseWithArguments);
             }

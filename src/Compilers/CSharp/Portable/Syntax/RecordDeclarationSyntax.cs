@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class RecordDeclarationSyntax
     {
-        internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseTypeSyntax
+        internal PrimaryConstructorBaseTypeSyntax? PrimaryConstructorBaseType
         {
             get
             {

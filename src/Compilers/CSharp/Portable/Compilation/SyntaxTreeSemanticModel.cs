@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                var argumentList = recordDecl.PrimaryConstructorBaseTypeSyntax?.ArgumentList;
+                                var argumentList = recordDecl.PrimaryConstructorBaseType?.ArgumentList;
                                 outsideMemberDecl = argumentList is null || !LookupPosition.IsBetweenTokens(position, argumentList.OpenParenToken, argumentList.CloseParenToken);
                             }
                         }
@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var recordDecl = (RecordDeclarationSyntax)memberDecl;
                             return recordDecl.ParameterList is object &&
-                                   recordDecl.PrimaryConstructorBaseTypeSyntax is PrimaryConstructorBaseTypeSyntax baseWithArguments &&
+                                   recordDecl.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments &&
                                    (node == baseWithArguments || baseWithArguments.ArgumentList.FullSpan.Contains(span)) ? GetOrAddModel(memberDecl) : null;
                         }
 
