@@ -67,14 +67,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 data.CodeActionParams.Range,
                 cancellationToken).ConfigureAwait(false);
 
-            var codeActionToResolve = codeActions?.FirstOrDefault(a => a.Key.Title == codeAction.Title);
+            if (codeActions == null || !codeActions.Any())
+            {
+                return codeAction;
+            }
+
+            var codeActionToResolve = codeActions.FirstOrDefault(a => a.Title == codeAction.Title);
+            if (codeActionToResolve == null)
+            {
+                // Check any potential nested actions for a match.
+                foreach (var c in codeActions)
+                {
+                    foreach (var n in c.NestedCodeActions)
+                    {
+                        if (n.Title == codeAction.Title)
+                        {
+                            codeActionToResolve = n;
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (codeActionToResolve == null)
             {
                 return codeAction;
             }
 
-            // add check here
-            var operations = await codeActionToResolve.Value.Key.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operations = await codeActionToResolve.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             if (operations.IsEmpty)
             {
                 return codeAction;
@@ -108,7 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             Range = ProtocolConversions.TextSpanToRange(text.Span, oldText)
                         });
 
-                        workspaceEdit.Changes.Add(newDoc.FilePath, edits.ToArray());
+                        workspaceEdit.Changes.Add(document.GetURI().AbsoluteUri, edits.ToArray());
                     }
                 }
 

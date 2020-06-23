@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var edits = ArrayBuilder<LSP.TextEdit>.GetInstance();
             var document = _solutionProvider.GetDocument(request.CodeActionParams.TextDocument);
-            var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document,
+            var codeActions = await CodeActionsHandler.GetCodeActionsAndKindAsync(document,
                 _codeFixService,
                 _codeRefactoringService,
                 request.CodeActionParams.Range,

@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,8 +16,9 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken cancellationToken)
         {
             var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
-            var codeActions = await GetCodeActionsAsync(document,
+            var codeActions = await GetCodeActionsAndKindAsync(document,
                 _codeFixService,
                 _codeRefactoringService,
                 request.Range,
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             static VSCodeAction GenerateVSCodeAction(
                 CodeActionParams request,
-                CodeAnalysis.CodeActions.CodeAction codeAction,
+                CodeAction codeAction,
                 CodeActionKind codeActionKind)
             {
                 var nestedActions = new List<VSCodeAction>();
@@ -92,24 +92,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        internal static async Task<IEnumerable<KeyValuePair<CodeAnalysis.CodeActions.CodeAction, CodeActionKind>>> GetCodeActionsAsync(
+        internal static async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document? document,
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            LSP.Range selection,
+            CancellationToken cancellationToken)
+        {
+            if (document == null)
+            {
+                return ImmutableArray<CodeAction>.Empty;
+            }
+
+            var (codeFixCollections, codeRefactorings) = await GetCodeFixesAndRefactoringsAsync(
+                document, codeFixService,
+                codeRefactoringService, selection,
+                cancellationToken).ConfigureAwait(false);
+
+            var codeActions = codeFixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).Concat(
+                    codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));
+
+            return codeActions;
+        }
+
+        internal static async Task<IEnumerable<KeyValuePair<CodeAction, CodeActionKind>>> GetCodeActionsAndKindAsync(
             Document? document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
-            var actions = new Dictionary<CodeAnalysis.CodeActions.CodeAction, CodeActionKind>();
+            var actions = new Dictionary<CodeAction, CodeActionKind>();
             if (document == null)
             {
                 return actions;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
-            var codeFixCollections = await codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).ConfigureAwait(false);
-            var codeRefactorings = await codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var (codeFixCollections, codeRefactorings) = await GetCodeFixesAndRefactoringsAsync(
+                document, codeFixService,
+                codeRefactoringService, selection,
+                cancellationToken).ConfigureAwait(false);
 
             foreach (var fix in codeFixCollections.SelectMany(codeFix => codeFix.Fixes))
             {
@@ -122,6 +143,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             return actions;
+        }
+
+        internal static async Task<(ImmutableArray<CodeFixCollection>, ImmutableArray<CodeRefactoring>)> GetCodeFixesAndRefactoringsAsync(
+            Document document,
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            LSP.Range selection,
+            CancellationToken cancellationToken)
+        {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
+            var codeFixCollections = await codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).ConfigureAwait(false);
+            var codeRefactorings = await codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            return (codeFixCollections, codeRefactorings);
         }
     }
 }

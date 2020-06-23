@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             {
                 var runRequest = ((JToken)request.Arguments.Single()).ToObject<RunCodeActionParams>();
                 var document = _solutionProvider.GetDocument(runRequest.CodeActionParams.TextDocument);
-                var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document, _codeFixService, _codeRefactoringService,
+                var codeActions = await CodeActionsHandler.GetCodeActionsAndKindAsync(document, _codeFixService, _codeRefactoringService,
                     runRequest.CodeActionParams.Range, cancellationToken).ConfigureAwait(false);
 
                 var actionToRun = codeActions?.FirstOrDefault(a => a.Key.Title == runRequest.Title);
