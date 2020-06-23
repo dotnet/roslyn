@@ -102,22 +102,18 @@ namespace Analyzer.Utilities
             return (false, null);
 
             // Local functions.
-            bool TryGetSpecificOptionValue(string specificOptionKey, string optionKeyPrefix, out T specificOptionValue)
+            bool TryGetSpecificOptionValue(string specificOptionKey, string optionKeyPrefix, [MaybeNullWhen(false)] out T specificOptionValue)
             {
                 if (TryGetOptionValue(optionKeyPrefix, specificOptionKey, optionName, out var valueString))
                 {
-#pragma warning disable CS8601 // Possible null reference assignment - Once local function attributes are supported, add "[MaybeNull]" on 'specificOptionValue'.
                     return tryParseValue(valueString, out specificOptionValue);
-#pragma warning restore CS8601 // Possible null reference assignment.
                 }
 
-#pragma warning disable CS8601 // Possible null reference assignment - Once local function attributes are supported, add "[MaybeNull]" on 'specificOptionValue'.
                 specificOptionValue = default;
-#pragma warning restore CS8601 // Possible null reference assignment.
                 return false;
             }
 
-            bool TryGetAnySpecificOptionValue(IEnumerable<string> specificOptionKeys, string optionKeyPrefix, out T specificOptionValue)
+            bool TryGetAnySpecificOptionValue(IEnumerable<string> specificOptionKeys, string optionKeyPrefix, [MaybeNullWhen(false)] out T specificOptionValue)
             {
                 foreach (var specificOptionKey in specificOptionKeys)
                 {
@@ -127,24 +123,18 @@ namespace Analyzer.Utilities
                     }
                 }
 
-#pragma warning disable CS8601 // Possible null reference assignment - Once local function attributes are supported, add "[MaybeNull]" on 'specificOptionValue'.
                 specificOptionValue = default;
-#pragma warning restore CS8601 // Possible null reference assignment.
                 return false;
             }
 
-            bool TryGetGeneralOptionValue(string optionKeyPrefix, out T generalOptionValue)
+            bool TryGetGeneralOptionValue(string optionKeyPrefix, [MaybeNullWhen(false)] out T generalOptionValue)
             {
                 if (TryGetOptionValue(optionKeyPrefix, optionKeySuffix: null, optionName, out var valueString))
                 {
-#pragma warning disable CS8601 // Possible null reference assignment - Once local function attributes are supported, add "[MaybeNull]" on 'generalOptionValue'.
                     return tryParseValue(valueString, out generalOptionValue);
-#pragma warning restore CS8601 // Possible null reference assignment.
                 }
 
-#pragma warning disable CS8601 // Possible null reference assignment - Once local function attributes are supported, add "[MaybeNull]" on 'generalOptionValue'.
                 generalOptionValue = default;
-#pragma warning restore CS8601 // Possible null reference assignment.
                 return false;
             }
         }

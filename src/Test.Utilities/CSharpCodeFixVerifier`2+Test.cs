@@ -34,7 +34,7 @@ namespace Test.Utilities
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(NullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
-                    if (AnalyzerConfigDocument != null)
+                    if (AnalyzerConfigDocument is not null)
                     {
                         solution = solution.AddAnalyzerConfigDocument(
                             DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
