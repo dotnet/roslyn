@@ -4233,16 +4233,7 @@ record B(string P1, string P2) : A;
                 // record B(string P1, string P2) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "string", "P2").WithLocation(6, 28));
 
-            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Type B.EqualityContract { get; }",
-                "System.Object B.P1 { get; init; }",
-                "System.Object B.P2 { get; init; }",
-                "System.Object B.P3 { get; init; }",
-                "System.Object B.P4 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
         }
 
         [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
@@ -5068,11 +5059,11 @@ class Program
   .property instance object modopt(uint16) P()
   {
     .get instance object modopt(uint16) A::get_P()
-    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::set_P(object modopt(uint16))
+    .set instance void modopt(uint8) modreq(System.Runtime.CompilerServices.IsExternalInit) A::set_P(object modopt(uint16))
   }
   .method family virtual instance class [mscorlib]System.Type modopt(int32) get_EqualityContract() { ldnull ret }
   .method public abstract virtual instance object modopt(uint16) get_P() { }
-  .method public abstract virtual instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(object modopt(uint16) 'value') { }
+  .method public abstract virtual instance void modopt(uint8) modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(object modopt(uint16) 'value') { }
 }";
             var refA = CompileIL(sourceA);
 
@@ -5083,25 +5074,29 @@ class Program
 
             var actualMembers = GetProperties(comp, "B");
             Assert.Equal(2, actualMembers.Length);
-            verifyProperty(actualMembers[0], "System.Type B.EqualityContract { get; }", CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Int32)));
-            verifyProperty(actualMembers[1], "System.Object B.P { get; init; }", CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
 
-            static void verifyProperty(Symbol symbol, string propertyDescription, params CustomModifier[] expectedModifiers)
+            var property = (PropertySymbol)actualMembers[0];
+            Assert.Equal("System.Type B.EqualityContract { get; }", property.ToTestDisplayString());
+            verifyReturnType(property.GetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Int32)));
+
+            property = (PropertySymbol)actualMembers[1];
+            Assert.Equal("System.Object B.P { get; init; }", property.ToTestDisplayString());
+            verifyReturnType(property.GetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
+            verifyReturnType(property.SetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Byte)));
+            verifyParameterType(property.SetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
+
+            static void verifyReturnType(MethodSymbol method, params CustomModifier[] expectedModifiers)
             {
-                var property = (PropertySymbol)symbol;
-                Assert.Equal(propertyDescription, symbol.ToTestDisplayString());
-                if (property.GetMethod is MethodSymbol getMethod)
-                {
-                    var returnType = getMethod.ReturnTypeWithAnnotations;
-                    Assert.True(getMethod.OverriddenMethod.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.ConsiderEverything));
-                    AssertEx.Equal(expectedModifiers, returnType.CustomModifiers);
-                }
-                if (property.SetMethod is MethodSymbol setMethod)
-                {
-                    var parameterType = setMethod.Parameters[0].TypeWithAnnotations;
-                    Assert.True(setMethod.OverriddenMethod.Parameters[0].TypeWithAnnotations.Equals(parameterType, TypeCompareKind.ConsiderEverything));
-                    AssertEx.Equal(expectedModifiers, parameterType.CustomModifiers);
-                }
+                var returnType = method.ReturnTypeWithAnnotations;
+                Assert.True(method.OverriddenMethod.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.ConsiderEverything));
+                AssertEx.Equal(expectedModifiers, returnType.CustomModifiers);
+            }
+
+            static void verifyParameterType(MethodSymbol method, params CustomModifier[] expectedModifiers)
+            {
+                var parameterType = method.Parameters[0].TypeWithAnnotations;
+                Assert.True(method.OverriddenMethod.Parameters[0].TypeWithAnnotations.Equals(parameterType, TypeCompareKind.ConsiderEverything));
+                AssertEx.Equal(expectedModifiers, parameterType.CustomModifiers);
             }
         }
 
