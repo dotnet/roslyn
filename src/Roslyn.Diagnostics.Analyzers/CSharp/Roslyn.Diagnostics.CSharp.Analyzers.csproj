@@ -9,4 +9,5 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
   </ItemGroup>
+  <Import Project="..\..\Utilities\Refactoring.CSharp\Refactoring.CSharp.Utilities.projitems" Label="Shared" />
 </Project>
