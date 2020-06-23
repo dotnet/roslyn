@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
             {
                 var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTracker)));
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer.Factory)).WithPart(typeof(DummyLanguageService)).WithPart(typeof(TestActiveStatementSpanTrackerFactory)));
 
                 var exportProvider = exportProviderFactory.CreateExportProvider();
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
-                Assert.IsType<TestActiveStatementSpanTracker>(Workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+                Assert.IsType<TestActiveStatementSpanTracker>(Workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
 
                 var telemetry = new EditSessionTelemetry();
                 EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockDebuggeModuleProvider.Object);
