@@ -6,6 +6,8 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -21,6 +23,12 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new SemanticModelService();
+            => new NoOpSemanticModelService();
+
+        private class NoOpSemanticModelService : ISemanticModelService
+        {
+            public Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+                => document.GetSemanticModelAsync(cancellationToken);
+        }
     }
 }
