@@ -347,11 +347,15 @@ public class Point
         switch (i) { case default: break; } // error 3
         switch (i) { case default when true: break; } // error 4
         switch ((1, 2)) { case (1, default): break; } // error 5
+
+        if (i is < default) {} // error 6
+        switch (i) { case < default: break; } // error 7
+        if (i is < ((default))) {} // error 8
+        switch (i) { case < ((default)): break; } // error 9
     }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
                 // (7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
@@ -365,7 +369,19 @@ public class Point
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
                 // (10,36): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch ((1, 2)) { case (1, default): break; } // error 5
-                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36),
+                // (12,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < default) {} // error 6
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 20),
+                // (13,29): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case < default: break; } // error 7
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(13, 29),
+                // (14,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < ((default))) {} // error 8
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(14, 22),
+                // (15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case < ((default)): break; } // error 9
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31)
                 );
         }
 
