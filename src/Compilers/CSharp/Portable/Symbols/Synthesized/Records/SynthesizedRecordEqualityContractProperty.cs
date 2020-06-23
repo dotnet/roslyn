@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ContainingType = containingType;
             IsVirtual = overriddenProperty is null;
             IsOverride = !(overriddenProperty is null);
-            TypeWithAnnotations = TypeWithAnnotations.Create(containingType.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), NullableAnnotation.NotAnnotated);
+            TypeWithAnnotations = overriddenProperty is null ?
+                TypeWithAnnotations.Create(containingType.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), NullableAnnotation.NotAnnotated) :
+                overriddenProperty.TypeWithAnnotations;
             GetMethod = new GetAccessorSymbol(this, overriddenProperty?.GetMethod);
         }
 
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
-            public override ImmutableArray<ParameterSymbol> Parameters => _property.Parameters;
+            public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
             public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 

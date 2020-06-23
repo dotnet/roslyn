@@ -5113,8 +5113,20 @@ B");
             {
                 var property = (PropertySymbol)symbol;
                 Assert.Equal(propertyDescription, symbol.ToTestDisplayString());
-                Assert.Equal(getterName, property.GetMethod?.Name);
-                Assert.Equal(setterName, property.SetMethod?.Name);
+                verifyAccessor(property.GetMethod, getterName);
+                verifyAccessor(property.SetMethod, setterName);
+            }
+
+            static void verifyAccessor(MethodSymbol? accessor, string? name)
+            {
+                Assert.Equal(name, accessor?.Name);
+                if (accessor is object)
+                {
+                    foreach (var parameter in accessor.Parameters)
+                    {
+                        Assert.Same(accessor, parameter.ContainingSymbol);
+                    }
+                }
             }
         }
 
@@ -5175,11 +5187,11 @@ B");
             Assert.Equal(2, actualMembers.Length);
 
             var property = (PropertySymbol)actualMembers[0];
-            Assert.Equal("System.Type B.EqualityContract { get; }", property.ToTestDisplayString());
+            Assert.Equal("System.Type modopt(System.Int32) B.EqualityContract { get; }", property.ToTestDisplayString());
             verifyReturnType(property.GetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Int32)));
 
             property = (PropertySymbol)actualMembers[1];
-            Assert.Equal("System.Object B.P { get; init; }", property.ToTestDisplayString());
+            Assert.Equal("System.Object modopt(System.UInt16) B.P { get; init; }", property.ToTestDisplayString());
             verifyReturnType(property.GetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
             verifyReturnType(property.SetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Byte)));
             verifyParameterType(property.SetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
@@ -5197,6 +5209,33 @@ B");
                 Assert.True(method.OverriddenMethod.Parameters[0].TypeWithAnnotations.Equals(parameterType, TypeCompareKind.ConsiderEverything));
                 AssertEx.Equal(expectedModifiers, parameterType.CustomModifiers);
             }
+        }
+
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_42()
+        {
+            var source =
+@"#nullable enable
+record A
+{
+    protected virtual System.Type? EqualityContract => null;
+}
+record B : A
+{
+    static void Main()
+    {
+        var b = new B();
+        _ = b.EqualityContract.ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = b.EqualityContract.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.EqualityContract").WithLocation(11, 13));
+
+            Assert.Equal("System.Type? B.EqualityContract { get; }", GetProperties(comp, "B").Single().ToTestDisplayString(includeNonNullable: true));
         }
 
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
