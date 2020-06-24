@@ -1780,7 +1780,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundSwitchExpression _switchExpression;
 
         public CSharpLazySwitchExpressionOperation(CSharpOperationFactory operationFactory, BoundSwitchExpression boundSwitchExpression, SemanticModel semanticModel)
-            : base(semanticModel, boundSwitchExpression.Syntax, boundSwitchExpression.Type.GetPublicSymbol(), constantValue: default, boundSwitchExpression.WasCompilerGenerated)
+            : base(semanticModel, boundSwitchExpression.Syntax, boundSwitchExpression.GetPublicTypeSymbol(), constantValue: default, boundSwitchExpression.WasCompilerGenerated)
         {
             _operationFactory = operationFactory;
             _switchExpression = boundSwitchExpression;

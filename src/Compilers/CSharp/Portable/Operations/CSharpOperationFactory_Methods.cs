@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                             instance,
                                                             _semanticModel,
                                                             anonymousProperty.Syntax,
-                                                            anonymousProperty.Type.GetPublicSymbol(),
+                                                            anonymousProperty.GetPublicTypeSymbol(),
                                                             ConvertToOptional(anonymousProperty.ConstantValue),
                                                             anonymousProperty.WasCompilerGenerated);
                     isImplicitAssignment = isImplicit;
