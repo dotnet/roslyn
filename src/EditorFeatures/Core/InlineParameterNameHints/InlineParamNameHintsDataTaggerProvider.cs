@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
             foreach (var span in paramNameHintSpans)
             {
-                context.AddTag(new TagSpan<InlineParamNameHintDataTag>(span._span.ToSnapshotSpan(snapshotSpan.Snapshot), new InlineParamNameHintDataTag(span._name))); //span.Item1.Length + 1, _format); //));
+                context.AddTag(new TagSpan<InlineParamNameHintDataTag>(span.Span.ToSnapshotSpan(snapshotSpan.Snapshot), new InlineParamNameHintDataTag(span.Name))); //span.Item1.Length + 1, _format); //));
             }
         }
     }

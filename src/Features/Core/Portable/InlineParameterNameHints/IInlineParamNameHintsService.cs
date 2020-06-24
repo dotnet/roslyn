@@ -10,10 +10,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineParameterNameHints
 {
-    struct NameAndSpan
+    readonly struct NameAndSpan
     {
-        public string _name;
-        public TextSpan _span;
+        public NameAndSpan(string name, TextSpan span)
+        {
+            Name = name;
+            Span = span;
+        }
+        public string Name { get; }
+        public TextSpan Span { get; }
     }
 
     internal interface IInlineParamNameHintsService : ILanguageService

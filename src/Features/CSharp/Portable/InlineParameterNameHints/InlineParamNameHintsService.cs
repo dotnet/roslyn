@@ -43,19 +43,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
 
             var invocations = node.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
-            NameAndSpan nameAndSpan;
             foreach (var invo in invocations)
             {
                 foreach (var argument in invo.ArgumentList.Arguments)
                 {
-                    if (argument.NameColon == null && IsLiteralOrNoNamedExpression(argument))
+                    if (argument.NameColon == null && IsExpressionWithNoName(argument.Expression))
                     {
                         var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                         if (param != null)
                         {
-                            nameAndSpan._name = param.Name;
-                            nameAndSpan._span = argument.Span;
-                            spans.Add(nameAndSpan);
+                            spans.Add(new NameAndSpan(param.Name, argument.Span));
                         }
                     }
                 }
@@ -69,43 +66,27 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
         /// </summary>
         /// <param name="arg">The argument that is being looked at</param>
         /// <returns>true when the adornment should be added</returns>
-        private static bool IsLiteralOrNoNamedExpression(ArgumentSyntax arg)
+        private static bool IsExpressionWithNoName(ExpressionSyntax arg)
         {
-            if (arg.Expression is LiteralExpressionSyntax)
+            if (arg is LiteralExpressionSyntax)
             {
                 return true;
             }
-            if (arg.Expression is ObjectCreationExpressionSyntax)
+            if (arg is ObjectCreationExpressionSyntax)
             {
                 return true;
             }
-            if (arg.Expression is CastExpressionSyntax cast)
+            if (arg is CastExpressionSyntax cast)
             {
-                // Determine if the descendant node from the cast is of literal type
+                // Recurse until we find a literal
                 // If so, then we should add the adornment
-                var literal = arg.DescendantNodes().OfType<LiteralExpressionSyntax>();
-                foreach (var l in literal)
-                {
-                    if (l is LiteralExpressionSyntax)
-                    {
-                        return true;
-                    }
-                }
-                return false;
+                IsExpressionWithNoName(cast.Expression);
             }
-            if (arg.Expression is PrefixUnaryExpressionSyntax negation)
+            if (arg is PrefixUnaryExpressionSyntax negation)
             {
-                // Determine if the descendant node from the unary expression is of literal type
+                // Recurse until we find a literal
                 // If so, then we should add the adornment
-                var literal = arg.DescendantNodes().OfType<LiteralExpressionSyntax>();
-                foreach (var l in literal)
-                {
-                    if (l is LiteralExpressionSyntax)
-                    {
-                        return true;
-                    }
-                }
-                return false;
+                IsExpressionWithNoName(negation.Operand);
             }
             return false;
         }

@@ -10,8 +10,8 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 {
     /// <summary>
-    /// This is the tag which implements the IntraTextAdornmentTag and is meant to
-    /// create the UIElements that get shown in the editor
+    /// This is the tag which implements the IntraTextAdornmentTag and is meant to create the UIElements that get shown
+    /// in the editor
     /// </summary>
     internal class InlineParamNameHintsTag : IntraTextAdornmentTag
     {
