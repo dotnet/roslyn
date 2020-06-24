@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
                                 var alignmentConstant = alignment.ConstantValue;
+                                resultConstant = ConstantValue.Bad;
                                 if (alignmentConstant != null && !alignmentConstant.IsBad)
                                 {
                                     const int magnitudeLimit = 32767;
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var text = interpolation.FormatClause.FormatStringToken.ValueText;
                                 char lastChar;
                                 bool hasErrors = false;
+                                resultConstant = ConstantValue.Bad;
                                 if (text.Length == 0)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_EmptyFormatSpecifier, interpolation.FormatClause.Location);
@@ -93,7 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             builder.Add(new BoundStringInsert(interpolation, value, alignment, format, null));
-                            //resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
+                            if (value.ConstantValue != null)
+                                if (!value.ConstantValue.IsString)
+                                    resultConstant = ConstantValue.Bad;
+                            if (resultConstant != ConstantValue.Bad)
+                                resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
                             continue;
                         }
                     case SyntaxKind.InterpolatedStringText:
@@ -101,13 +107,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
                             var constantVal = ConstantValue.Create(text, SpecialType.System_String);
                             builder.Add(new BoundLiteral(content, constantVal, stringType));
-                            //resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), constantVal);
+                            if (resultConstant != ConstantValue.Bad)
+                                resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), constantVal);
                             continue;
                         }
                     default:
                         throw ExceptionUtilities.UnexpectedValue(content.Kind());
                 }
             }
+
+            if (resultConstant == ConstantValue.Bad)
+                resultConstant = null;
 
             return new BoundInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
         }
