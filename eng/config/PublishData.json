@@ -1,18 +1,9 @@
 {
-  "feeds": [
-    {
-      "name": "dotnet5",
-      "source": "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json"
-    },
-    {
-      "name": "vssdk",
-      "source": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json"
-    },
-    {
-      "name": "vs-impl",
-      "source": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
-    }
-  ],
+  "feeds": {
+      "dotnet5": "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json",
+      "vssdk": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json",
+      "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
+  },
   "packages": {
     "Microsoft.CodeAnalysis" : "dotnet5",
     "Microsoft.CodeAnalysis.Common" : "dotnet5",
