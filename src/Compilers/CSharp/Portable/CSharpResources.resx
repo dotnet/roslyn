@@ -471,6 +471,9 @@
   <data name="ERR_ThisInBadContext" xml:space="preserve">
     <value>Keyword 'this' is not available in the current context</value>
   </data>
+  <data name="ERR_OmittedTypeArgument" xml:space="preserve">
+    <value>Omitting the type argument is not allowed in the current context</value>
+  </data>
   <data name="WRN_InvalidMainSig" xml:space="preserve">
     <value>'{0}' has the wrong signature to be an entry point</value>
   </data>
