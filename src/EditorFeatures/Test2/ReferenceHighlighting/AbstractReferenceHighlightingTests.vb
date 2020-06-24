@@ -58,14 +58,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 For Each hostDocument In workspace.Documents
                     Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
                         Function(name) name.Value,
-                        Function(name, spans) New With {name, spans}) _
-                        .Select(Function(nameAndSpans) _
-                                    New With {.Name = nameAndSpans.name.Key,
-                                              .Span = nameAndSpans.spans
-                                    })
+                        Function(name, span) _
+                        New With {.Name = name.Key,
+                                  span
+                        })
 
                     For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
-                        expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.ToString())
+                        expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.span.ToString())
                     Next
                 Next
 
