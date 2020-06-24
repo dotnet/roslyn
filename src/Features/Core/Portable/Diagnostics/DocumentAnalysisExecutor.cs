@@ -169,13 +169,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (isCompilerAnalyzer)
             {
+                // TODO: Move this invocation to OOP
                 return await _compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, ImmutableArray.Create(analyzer), cancellationToken).ConfigureAwait(false);
             }
 
             if (_lazySyntaxDiagnostics == null)
             {
                 // TODO: Move this invocation to OOP
-                var treeDiagnostics = await _compilationWithAnalyzers.GetCategorizedAnalyzerSyntaxDiagnosticsAsync(tree, _compilationBasedAnalyzersInAnalysisScope, cancellationToken).ConfigureAwait(false);
+                var analysisResult = await _compilationWithAnalyzers.GetAnalysisResultAsync(tree, _compilationBasedAnalyzersInAnalysisScope, cancellationToken).ConfigureAwait(false);
+                var treeDiagnostics = analysisResult.SyntaxDiagnostics.TryGetValue(tree, out var value) ? value : ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
                 Interlocked.CompareExchange(ref _lazySyntaxDiagnostics, treeDiagnostics, null);
             }
 
@@ -202,13 +204,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #endif
 
                 var adjustedSpan = await GetAdjustedSpanForCompilerAnalyzerAsync().ConfigureAwait(false);
+
+                // TODO: Move this invocation to OOP
                 return await _compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, adjustedSpan, ImmutableArray.Create(analyzer), cancellationToken).ConfigureAwait(false);
             }
 
             if (_lazySemanticDiagnostics == null)
             {
                 // TODO: Move this invocation to OOP
-                var treeDiagnostics = await _compilationWithAnalyzers.GetCategorizedAnalyzerSemanticDiagnosticsAsync(model, span, _compilationBasedAnalyzersInAnalysisScope, cancellationToken).ConfigureAwait(false);
+                var analysisResult = await _compilationWithAnalyzers.GetAnalysisResultAsync(model, span, _compilationBasedAnalyzersInAnalysisScope, cancellationToken).ConfigureAwait(false);
+                var treeDiagnostics = analysisResult.SemanticDiagnostics.TryGetValue(model.SyntaxTree, out var value) ? value : ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
                 Interlocked.CompareExchange(ref _lazySemanticDiagnostics, treeDiagnostics, null);
             }
 

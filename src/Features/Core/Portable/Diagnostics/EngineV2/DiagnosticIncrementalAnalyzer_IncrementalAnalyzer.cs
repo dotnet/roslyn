@@ -47,6 +47,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
 
+                // We split the diagnostic computation for document into following steps:
+                //  1. Try to get cached diagnostics for each analyzer, while computing the set of analyzers that do not have cached diagnostics.
+                //  2. Execute all the non-cached analyzers with a single invocation into CompilationWithAnalyzers.
+                //  3. Fetch computed diagnostics per-analyzer from the above invocation, and cache and raise diagnostic reported events.
+                // In near future, the diagnostic computation invocation into CompilationWithAnalyzers will be moved to OOP.
+                // This should help simplify and/or remove the IDE layer diagnostic caching in devenv process.
+
                 // First attempt to fetch diagnostics from the cache, while computing the state sets for analyzers that are not cached.
                 using var _ = ArrayBuilder<StateSet>.GetInstance(out var nonCachedStateSets);
                 foreach (var stateSet in stateSets)
@@ -63,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                // Then, compute the diagnostics for non-cached state sets.
+                // Then, compute the diagnostics for non-cached state sets, and cache and raise diagnostic reported events for these diagnostics.
                 if (nonCachedStateSets.Count > 0)
                 {
                     var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
