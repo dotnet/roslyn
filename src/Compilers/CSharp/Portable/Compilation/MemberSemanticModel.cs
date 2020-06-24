@@ -1953,7 +1953,7 @@ done:
             BoundNode boundRoot;
             Binder binder;
 
-            bind(Root, out binder, out boundRoot);
+            bind(bindableRoot, out binder, out boundRoot);
 
             if (IsSpeculativeSemanticModel)
             {
