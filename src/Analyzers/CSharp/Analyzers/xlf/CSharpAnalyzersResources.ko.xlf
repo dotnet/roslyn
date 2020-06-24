@@ -17,6 +17,11 @@
         <target state="translated">switch 문을 식으로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_type_name_to_nameof">
+        <source>Convert typeof to nameof</source>
+        <target state="new">Convert typeof to nameof</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
         <target state="translated">변수 선언 분해</target>
