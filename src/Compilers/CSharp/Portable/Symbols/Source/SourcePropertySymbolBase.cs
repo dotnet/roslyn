@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourcePropertySymbolBase : PropertySymbol, IAttributeTargetSymbol
     {
         /// <summary>
-        /// Condensed flags storing useful information about the <see cref="SourcePropertySymbol"/>
+        /// Condensed flags storing useful information about the <see cref="SourcePropertySymbolBase"/>
         /// so that we do not have to go back to source to compute this data.
         /// </summary>
         [Flags]
@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsAutoProperty = 1 << 1,
             IsExplicitInterfaceImplementation = 1 << 2,
         }
-
-        private const string DefaultIndexerName = "Item";
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
 
