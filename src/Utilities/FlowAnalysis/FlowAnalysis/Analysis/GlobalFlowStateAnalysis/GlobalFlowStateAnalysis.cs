@@ -7,29 +7,29 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
+namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
-    using FlightEnabledAnalysisDomain = MapAbstractDomain<AnalysisEntity, FlightEnabledAbstractValue>;
-    using FlightEnabledAnalysisData = DictionaryAnalysisData<AnalysisEntity, FlightEnabledAbstractValue>;
-    using FlightEnabledAnalysisResult = DataFlowAnalysisResult<FlightEnabledBlockAnalysisResult, FlightEnabledAbstractValue>;
+    using GlobalFlowStateAnalysisDomain = MapAbstractDomain<AnalysisEntity, GlobalFlowStateAnalysisValueSet>;
+    using GlobalFlowStateAnalysisData = DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>;
+    using GlobalFlowStateAnalysisResult = DataFlowAnalysisResult<GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>;
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     /// <summary>
-    /// Dataflow analysis to track FlightEnabled state.
+    /// Dataflow analysis to track set of global <see cref="IAbstractAnalysisValue"/>s enabled on each control flow path at each <see cref="IOperation"/> in the <see cref="ControlFlowGraph"/>.
     /// </summary>
-    internal partial class FlightEnabledAnalysis : ForwardDataFlowAnalysis<FlightEnabledAnalysisData, FlightEnabledAnalysisContext, FlightEnabledAnalysisResult, FlightEnabledBlockAnalysisResult, FlightEnabledAbstractValue>
+    internal partial class GlobalFlowStateAnalysis : ForwardDataFlowAnalysis<GlobalFlowStateAnalysisData, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>
     {
-        internal static readonly FlightEnabledAnalysisDomain FlightEnabledAnalysisDomainInstance = new FlightEnabledAnalysisDomain(FlightEnabledAbstractValueDomain.Instance);
+        internal static readonly GlobalFlowStateAnalysisDomain GlobalFlowStateAnalysisDomainInstance = new GlobalFlowStateAnalysisDomain(GlobalFlowStateAnalysisValueSetDomain.Instance);
 
-        private FlightEnabledAnalysis(FlightEnabledAnalysisDomain analysisDomain, FlightEnabledDataFlowOperationVisitor operationVisitor)
+        private GlobalFlowStateAnalysis(GlobalFlowStateAnalysisDomain analysisDomain, GlobalFlowStateDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
         {
         }
 
-        public static FlightEnabledAnalysisResult? TryGetOrComputeResult(
+        public static GlobalFlowStateAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
-            Func<FlightEnabledAnalysisContext, FlightEnabledDataFlowOperationVisitor> createOperationVisitor,
+            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateDataFlowOperationVisitor> createOperationVisitor,
             WellKnownTypeProvider wellKnownTypeProvider,
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                 performPointsToAnalysis, performValueContentAnalysis, out pointsToAnalysisResult, out valueContentAnalysisResult);
         }
 
-        private static FlightEnabledAnalysisResult? TryGetOrComputeResult(
+        private static GlobalFlowStateAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
-            Func<FlightEnabledAnalysisContext, FlightEnabledDataFlowOperationVisitor> createOperationVisitor,
+            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateDataFlowOperationVisitor> createOperationVisitor,
             WellKnownTypeProvider wellKnownTypeProvider,
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
@@ -80,26 +80,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                     out pointsToAnalysisResult, pessimisticAnalysis, performPointsToAnalysis, performCopyAnalysis: false, interproceduralAnalysisPredicate) :
                 null;
 
-            var analysisContext = FlightEnabledAnalysisContext.Create(
-                FlightEnabledAbstractValueDomain.Instance, wellKnownTypeProvider, cfg, owningSymbol,
+            var analysisContext = GlobalFlowStateAnalysisContext.Create(
+                GlobalFlowStateAnalysisValueSetDomain.Instance, wellKnownTypeProvider, cfg, owningSymbol,
                 analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult,
                 valueContentAnalysisResult, c => TryGetOrComputeResultForAnalysisContext(c, createOperationVisitor), interproceduralAnalysisPredicate);
             return TryGetOrComputeResultForAnalysisContext(analysisContext, createOperationVisitor);
         }
 
-        private static FlightEnabledAnalysisResult? TryGetOrComputeResultForAnalysisContext(
-            FlightEnabledAnalysisContext flightEnabledAnalysisContext,
-            Func<FlightEnabledAnalysisContext, FlightEnabledDataFlowOperationVisitor> createOperationVisitor)
+        private static GlobalFlowStateAnalysisResult? TryGetOrComputeResultForAnalysisContext(
+            GlobalFlowStateAnalysisContext analysisContext,
+            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateDataFlowOperationVisitor> createOperationVisitor)
         {
-            var operationVisitor = createOperationVisitor(flightEnabledAnalysisContext);
-            var flightEnabledAnalysis = new FlightEnabledAnalysis(FlightEnabledAnalysisDomainInstance, operationVisitor);
-            return flightEnabledAnalysis.TryGetOrComputeResultCore(flightEnabledAnalysisContext, cacheResult: false);
+            var operationVisitor = createOperationVisitor(analysisContext);
+            var analysis = new GlobalFlowStateAnalysis(GlobalFlowStateAnalysisDomainInstance, operationVisitor);
+            return analysis.TryGetOrComputeResultCore(analysisContext, cacheResult: false);
         }
 
-        protected override FlightEnabledAnalysisResult ToResult(FlightEnabledAnalysisContext analysisContext, FlightEnabledAnalysisResult dataFlowAnalysisResult)
+        protected override GlobalFlowStateAnalysisResult ToResult(GlobalFlowStateAnalysisContext analysisContext, GlobalFlowStateAnalysisResult dataFlowAnalysisResult)
             => dataFlowAnalysisResult;
 
-        protected override FlightEnabledBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, FlightEnabledAnalysisData data)
-            => new FlightEnabledBlockAnalysisResult(basicBlock, data);
+        protected override GlobalFlowStateBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, GlobalFlowStateAnalysisData data)
+            => new GlobalFlowStateBlockAnalysisResult(basicBlock, data);
     }
 }

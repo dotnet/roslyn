@@ -7,21 +7,21 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
+namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using InterproceduralFlightEnabledAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AnalysisEntity, FlightEnabledAbstractValue>, FlightEnabledAnalysisContext, FlightEnabledAbstractValue>;
-    using FlightEnabledAnalysisData = DictionaryAnalysisData<AnalysisEntity, FlightEnabledAbstractValue>;
-    using FlightEnabledAnalysisResult = DataFlowAnalysisResult<FlightEnabledBlockAnalysisResult, FlightEnabledAbstractValue>;
+    using InterproceduralGlobalFlowStateAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisValueSet>;
+    using GlobalFlowStateAnalysisData = DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>;
+    using GlobalFlowStateAnalysisResult = DataFlowAnalysisResult<GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>;
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     /// <summary>
-    /// Analysis context for execution of <see cref="FlightEnabledAnalysis"/> on a control flow graph.
+    /// Analysis context for execution of <see cref="GlobalFlowStateAnalysis"/> on a control flow graph.
     /// </summary>
-    internal sealed class FlightEnabledAnalysisContext : AbstractDataFlowAnalysisContext<FlightEnabledAnalysisData, FlightEnabledAnalysisContext, FlightEnabledAnalysisResult, FlightEnabledAbstractValue>
+    internal sealed class GlobalFlowStateAnalysisContext : AbstractDataFlowAnalysisContext<GlobalFlowStateAnalysisData, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateAnalysisValueSet>
     {
-        private FlightEnabledAnalysisContext(
-            AbstractValueDomain<FlightEnabledAbstractValue> valueDomain,
+        private GlobalFlowStateAnalysisContext(
+            AbstractValueDomain<GlobalFlowStateAnalysisValueSet> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
             bool pessimisticAnalysis,
             PointsToAnalysisResult? pointsToAnalysisResultOpt,
             ValueContentAnalysisResult? valueContentAnalysisResultOpt,
-            Func<FlightEnabledAnalysisContext, FlightEnabledAnalysisResult?> tryGetOrComputeAnalysisResult,
+            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult?> tryGetOrComputeAnalysisResult,
             ControlFlowGraph? parentControlFlowGraphOpt,
-            InterproceduralFlightEnabledAnalysisData? interproceduralAnalysisDataOpt,
+            InterproceduralGlobalFlowStateAnalysisData? interproceduralAnalysisDataOpt,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph,
                   owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis,
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
         {
         }
 
-        internal static FlightEnabledAnalysisContext Create(
-            AbstractValueDomain<FlightEnabledAbstractValue> valueDomain,
+        internal static GlobalFlowStateAnalysisContext Create(
+            AbstractValueDomain<GlobalFlowStateAnalysisValueSet> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
@@ -58,27 +58,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
             bool pessimisticAnalysis,
             PointsToAnalysisResult? pointsToAnalysisResultOpt,
             ValueContentAnalysisResult? valueContentAnalysisResult,
-            Func<FlightEnabledAnalysisContext, FlightEnabledAnalysisResult?> tryGetOrComputeAnalysisResult,
+            Func<GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult?> tryGetOrComputeAnalysisResult,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
         {
-            return new FlightEnabledAnalysisContext(
+            return new GlobalFlowStateAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
                 analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResultOpt,
                 valueContentAnalysisResult, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
                 interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
         }
 
-        public override FlightEnabledAnalysisContext ForkForInterproceduralAnalysis(
+        public override GlobalFlowStateAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
             IOperation operation,
             PointsToAnalysisResult? pointsToAnalysisResultOpt,
             CopyAnalysisResult? copyAnalysisResultOpt,
             ValueContentAnalysisResult? valueContentAnalysisResultOpt,
-            InterproceduralFlightEnabledAnalysisData? interproceduralAnalysisData)
+            InterproceduralGlobalFlowStateAnalysisData? interproceduralAnalysisData)
         {
             RoslynDebug.Assert(copyAnalysisResultOpt == null);
-            return new FlightEnabledAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg,
+            return new GlobalFlowStateAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg,
                 invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
                 pointsToAnalysisResultOpt, valueContentAnalysisResultOpt, TryGetOrComputeAnalysisResult,
                 ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicateOpt);

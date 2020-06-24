@@ -7,31 +7,31 @@ using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using static Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis.FlightEnabledAnalysis;
+using static Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis.GlobalFlowStateAnalysis;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
+namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
-    using FlightEnabledAnalysisData = DictionaryAnalysisData<AnalysisEntity, FlightEnabledAbstractValue>;
-    using FlightEnabledAnalysisResult = DataFlowAnalysisResult<FlightEnabledBlockAnalysisResult, FlightEnabledAbstractValue>;
+    using GlobalFlowStateAnalysisData = DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>;
+    using GlobalFlowStateAnalysisResult = DataFlowAnalysisResult<GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>;
 
     /// <summary>
-    /// Operation visitor to flow the FlightEnabled values across a given statement in a basic block.
+    /// Operation visitor to flow the GlobalFlowState values across a given statement in a basic block.
     /// </summary>
-    internal abstract class FlightEnabledDataFlowOperationVisitor
-        : AnalysisEntityDataFlowOperationVisitor<FlightEnabledAnalysisData, FlightEnabledAnalysisContext, FlightEnabledAnalysisResult, FlightEnabledAbstractValue>
+    internal abstract class GlobalFlowStateDataFlowOperationVisitor
+        : AnalysisEntityDataFlowOperationVisitor<GlobalFlowStateAnalysisData, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateAnalysisValueSet>
     {
         // This is the global entity storing CFG wide state, which gets updated for every visited operation in the visitor.
         private readonly AnalysisEntity _globalEntity;
         private readonly bool _hasPredicatedGlobalState;
 
-        protected FlightEnabledDataFlowOperationVisitor(FlightEnabledAnalysisContext analysisContext, bool hasPredicatedGlobalState)
+        protected GlobalFlowStateDataFlowOperationVisitor(GlobalFlowStateAnalysisContext analysisContext, bool hasPredicatedGlobalState)
             : base(analysisContext)
         {
             _globalEntity = GetGlobalEntity(analysisContext);
             _hasPredicatedGlobalState = hasPredicatedGlobalState;
         }
 
-        private static AnalysisEntity GetGlobalEntity(FlightEnabledAnalysisContext analysisContext)
+        private static AnalysisEntity GetGlobalEntity(GlobalFlowStateAnalysisContext analysisContext)
         {
             ISymbol owningSymbol;
             if (analysisContext.InterproceduralAnalysisDataOpt == null)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                 parentOpt: null);
         }
 
-        public sealed override FlightEnabledAnalysisData Flow(IOperation statement, BasicBlock block, FlightEnabledAnalysisData input)
+        public sealed override GlobalFlowStateAnalysisData Flow(IOperation statement, BasicBlock block, GlobalFlowStateAnalysisData input)
         {
             if (input.Count == 0)
             {
@@ -67,13 +67,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
             return base.Flow(statement, block, input);
         }
 
-        protected FlightEnabledAbstractValue GlobalState
+        protected GlobalFlowStateAnalysisValueSet GlobalState
         {
             get => GetAbstractValue(_globalEntity);
             set => SetAbstractValue(_globalEntity, value);
         }
 
-        public sealed override (FlightEnabledAnalysisData output, bool isFeasibleBranch) FlowBranch(BasicBlock fromBlock, BranchWithInfo branch, FlightEnabledAnalysisData input)
+        public sealed override (GlobalFlowStateAnalysisData output, bool isFeasibleBranch) FlowBranch(BasicBlock fromBlock, BranchWithInfo branch, GlobalFlowStateAnalysisData input)
         {
             var result = base.FlowBranch(fromBlock, branch, input);
 
@@ -90,52 +90,52 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
             return result;
         }
 
-        protected void MergeAndSetGlobalState(FlightEnabledAbstractValue value, bool negate = false)
+        protected void MergeAndSetGlobalState(GlobalFlowStateAnalysisValueSet value, bool negate = false)
         {
             Debug.Assert(_hasPredicatedGlobalState || !negate);
 
-            if (value.EnabledFlights.Count > 0)
+            if (value.AnalysisValues.Count > 0)
             {
                 var currentGlobalValue = GetAbstractValue(_globalEntity);
-                if (currentGlobalValue.Kind != FlightEnabledAbstractValueKind.Unknown)
+                if (currentGlobalValue.Kind != GlobalFlowStateAnalysisValueSetKind.Unknown)
                 {
-                    var newGlobalValue = currentGlobalValue.WithAdditionalEnabledFlights(value, negate);
+                    var newGlobalValue = currentGlobalValue.WithAdditionalAnalysisValues(value, negate);
                     SetAbstractValue(_globalEntity, newGlobalValue);
                 }
             }
         }
 
-        protected sealed override void AddTrackedEntities(FlightEnabledAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+        protected sealed override void AddTrackedEntities(GlobalFlowStateAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
             => builder.UnionWith(analysisData.Keys);
 
         protected sealed override void ResetAbstractValue(AnalysisEntity analysisEntity)
             => SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
 
-        protected sealed override void StopTrackingEntity(AnalysisEntity analysisEntity, FlightEnabledAnalysisData analysisData)
+        protected sealed override void StopTrackingEntity(AnalysisEntity analysisEntity, GlobalFlowStateAnalysisData analysisData)
             => analysisData.Remove(analysisEntity);
 
-        protected sealed override FlightEnabledAbstractValue GetAbstractValue(AnalysisEntity analysisEntity)
+        protected sealed override GlobalFlowStateAnalysisValueSet GetAbstractValue(AnalysisEntity analysisEntity)
             => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
-        protected sealed override FlightEnabledAbstractValue GetAbstractDefaultValue(ITypeSymbol type)
-            => FlightEnabledAbstractValue.Unset;
+        protected sealed override GlobalFlowStateAnalysisValueSet GetAbstractDefaultValue(ITypeSymbol type)
+            => GlobalFlowStateAnalysisValueSet.Unset;
 
         protected sealed override bool HasAbstractValue(AnalysisEntity analysisEntity)
             => CurrentAnalysisData.ContainsKey(analysisEntity);
 
-        protected sealed override bool HasAnyAbstractValue(FlightEnabledAnalysisData data)
+        protected sealed override bool HasAnyAbstractValue(GlobalFlowStateAnalysisData data)
             => data.Count > 0;
 
-        protected sealed override void SetAbstractValue(AnalysisEntity analysisEntity, FlightEnabledAbstractValue value)
+        protected sealed override void SetAbstractValue(AnalysisEntity analysisEntity, GlobalFlowStateAnalysisValueSet value)
         {
             Debug.Assert(_hasPredicatedGlobalState || value.Parents.IsEmpty);
             SetAbstractValue(CurrentAnalysisData, analysisEntity, value);
         }
 
-        private static void SetAbstractValue(FlightEnabledAnalysisData analysisData, AnalysisEntity analysisEntity, FlightEnabledAbstractValue value)
+        private static void SetAbstractValue(GlobalFlowStateAnalysisData analysisData, AnalysisEntity analysisEntity, GlobalFlowStateAnalysisValueSet value)
         {
             // PERF: Avoid creating an entry if the value is the default unknown value.
-            if (value.Kind != FlightEnabledAbstractValueKind.Known &&
+            if (value.Kind != GlobalFlowStateAnalysisValueSetKind.Known &&
                 !analysisData.ContainsKey(analysisEntity))
             {
                 return;
@@ -147,47 +147,47 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
         protected sealed override void ResetCurrentAnalysisData()
             => ResetAnalysisData(CurrentAnalysisData);
 
-        protected sealed override FlightEnabledAnalysisData MergeAnalysisData(FlightEnabledAnalysisData value1, FlightEnabledAnalysisData value2)
-            => FlightEnabledAnalysisDomainInstance.Merge(value1, value2);
-        protected sealed override FlightEnabledAnalysisData MergeAnalysisData(FlightEnabledAnalysisData value1, FlightEnabledAnalysisData value2, BasicBlock forBlock)
+        protected sealed override GlobalFlowStateAnalysisData MergeAnalysisData(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)
+            => GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
+        protected sealed override GlobalFlowStateAnalysisData MergeAnalysisData(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2, BasicBlock forBlock)
             => _hasPredicatedGlobalState && forBlock.DominatesPredecessors() ?
-            FlightEnabledAnalysisDomainInstance.Intersect(value1, value2, FlightEnabledAbstractValueDomain.Intersect) :
-            FlightEnabledAnalysisDomainInstance.Merge(value1, value2);
-        protected sealed override void UpdateValuesForAnalysisData(FlightEnabledAnalysisData targetAnalysisData)
+            GlobalFlowStateAnalysisDomainInstance.Intersect(value1, value2, GlobalFlowStateAnalysisValueSetDomain.Intersect) :
+            GlobalFlowStateAnalysisDomainInstance.Merge(value1, value2);
+        protected sealed override void UpdateValuesForAnalysisData(GlobalFlowStateAnalysisData targetAnalysisData)
             => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
-        protected sealed override FlightEnabledAnalysisData GetClonedAnalysisData(FlightEnabledAnalysisData analysisData)
-            => new FlightEnabledAnalysisData(analysisData);
-        public override FlightEnabledAnalysisData GetEmptyAnalysisData()
-            => new FlightEnabledAnalysisData();
-        protected sealed override FlightEnabledAnalysisData GetExitBlockOutputData(FlightEnabledAnalysisResult analysisResult)
-            => new FlightEnabledAnalysisData(analysisResult.ExitBlockOutput.Data);
-        protected sealed override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(FlightEnabledAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+        protected sealed override GlobalFlowStateAnalysisData GetClonedAnalysisData(GlobalFlowStateAnalysisData analysisData)
+            => new GlobalFlowStateAnalysisData(analysisData);
+        public override GlobalFlowStateAnalysisData GetEmptyAnalysisData()
+            => new GlobalFlowStateAnalysisData();
+        protected sealed override GlobalFlowStateAnalysisData GetExitBlockOutputData(GlobalFlowStateAnalysisResult analysisResult)
+            => new GlobalFlowStateAnalysisData(analysisResult.ExitBlockOutput.Data);
+        protected sealed override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(GlobalFlowStateAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
             => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData, throwBranchWithExceptionType);
-        protected sealed override bool Equals(FlightEnabledAnalysisData value1, FlightEnabledAnalysisData value2)
-            => FlightEnabledAnalysisDomainInstance.Equals(value1, value2);
-        protected sealed override void ApplyInterproceduralAnalysisResultCore(FlightEnabledAnalysisData resultData)
+        protected sealed override bool Equals(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)
+            => GlobalFlowStateAnalysisDomainInstance.Equals(value1, value2);
+        protected sealed override void ApplyInterproceduralAnalysisResultCore(GlobalFlowStateAnalysisData resultData)
             => ApplyInterproceduralAnalysisResultHelper(resultData);
-        protected sealed override FlightEnabledAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
+        protected sealed override GlobalFlowStateAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
             => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData, SetAbstractValue);
 
-        protected FlightEnabledAbstractValue GetValueOrDefault(FlightEnabledAbstractValue value)
-            => value.Kind == FlightEnabledAbstractValueKind.Known ? value : GlobalState;
+        protected GlobalFlowStateAnalysisValueSet GetValueOrDefault(GlobalFlowStateAnalysisValueSet value)
+            => value.Kind == GlobalFlowStateAnalysisValueSetKind.Known ? value : GlobalState;
 
         #region Visitor methods
 
-        public override FlightEnabledAbstractValue Visit(IOperation operation, object? argument)
+        public override GlobalFlowStateAnalysisValueSet Visit(IOperation operation, object? argument)
         {
             var value = base.Visit(operation, argument);
             return GetValueOrDefault(value);
         }
 
-        public override FlightEnabledAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+        public override GlobalFlowStateAnalysisValueSet VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
             IMethodSymbol method,
             IOperation? visitedInstance,
             ImmutableArray<IArgumentOperation> visitedArguments,
             bool invokedAsDelegate,
             IOperation originalOperation,
-            FlightEnabledAbstractValue defaultValue)
+            GlobalFlowStateAnalysisValueSet defaultValue)
         {
             var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
 
@@ -201,12 +201,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
             return GetValueOrDefault(value);
         }
 
-        public override FlightEnabledAbstractValue VisitUnaryOperatorCore(IUnaryOperation operation, object? argument)
+        public override GlobalFlowStateAnalysisValueSet VisitUnaryOperatorCore(IUnaryOperation operation, object? argument)
         {
             var value = base.VisitUnaryOperatorCore(operation, argument);
             if (_hasPredicatedGlobalState &&
                 operation.OperatorKind == UnaryOperatorKind.Not &&
-                value.Kind == FlightEnabledAbstractValueKind.Known)
+                value.Kind == GlobalFlowStateAnalysisValueSetKind.Known)
             {
                 return value.GetNegatedValue();
             }
