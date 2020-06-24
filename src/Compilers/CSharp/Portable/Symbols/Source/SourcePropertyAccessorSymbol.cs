@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    isIterator: false)
         {
             Debug.Assert(property.IsAutoProperty);
-            Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
+            Debug.Assert(!property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
