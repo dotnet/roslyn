@@ -226,4 +226,20 @@
     </PropertyGroup>
   </Target>
 
+  <!--
+    =======
+    CopyAdditionalFiles
+    =======
+
+    If a user requests that any @(AdditionalFiles) items are copied to the output directory
+    we add them to the @(None) group to ensure they will be copied.
+ -->
+ 
+   <Target Name="CopyAdditionalFiles" 
+           BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <None Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.CopyToOutputDirectory)' != ''" />
+    </ItemGroup>
+  </Target>
+
 </Project>
