@@ -15,20 +15,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
     internal sealed class FlightEnabledAbstractValue : CacheBasedEquatable<FlightEnabledAbstractValue>
     {
         public static readonly FlightEnabledAbstractValue Unset = new FlightEnabledAbstractValue(
-            ImmutableHashSet<string>.Empty, ImmutableHashSet<FlightEnabledAbstractValue>.Empty, 0, FlightEnabledAbstractValueKind.Unset);
+            ImmutableHashSet<IGlobalAbstractValue>.Empty, ImmutableHashSet<FlightEnabledAbstractValue>.Empty, 0, FlightEnabledAbstractValueKind.Unset);
         public static readonly FlightEnabledAbstractValue Empty = new FlightEnabledAbstractValue(
-            ImmutableHashSet<string>.Empty, ImmutableHashSet<FlightEnabledAbstractValue>.Empty, 0, FlightEnabledAbstractValueKind.Empty);
+            ImmutableHashSet<IGlobalAbstractValue>.Empty, ImmutableHashSet<FlightEnabledAbstractValue>.Empty, 0, FlightEnabledAbstractValueKind.Empty);
         public static readonly FlightEnabledAbstractValue Unknown = new FlightEnabledAbstractValue(
-            ImmutableHashSet<string>.Empty, ImmutableHashSet<FlightEnabledAbstractValue>.Empty, 0, FlightEnabledAbstractValueKind.Unknown);
+            ImmutableHashSet<IGlobalAbstractValue>.Empty, ImmutableHashSet<FlightEnabledAbstractValue>.Empty, 0, FlightEnabledAbstractValueKind.Unknown);
 
         public FlightEnabledAbstractValue(
-            ImmutableHashSet<string> enabledFlights,
+            ImmutableHashSet<IGlobalAbstractValue> enabledFlights,
             ImmutableHashSet<FlightEnabledAbstractValue> parents,
             int height,
             FlightEnabledAbstractValueKind kind)
         {
             Debug.Assert((!enabledFlights.IsEmpty || !parents.IsEmpty) == (kind == FlightEnabledAbstractValueKind.Known));
-            Debug.Assert(enabledFlights.All(enabledFlightSet => !string.IsNullOrEmpty(enabledFlightSet)));
+            Debug.Assert(enabledFlights.All(enabledFlightSet => enabledFlightSet != default));
             Debug.Assert(parents.All(parent => parent != null));
             Debug.Assert(height >= 0);
             Debug.Assert(height == 0 || kind == FlightEnabledAbstractValueKind.Known);
@@ -40,20 +40,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
             Kind = kind;
         }
 
-        public FlightEnabledAbstractValue(string enabledFlight)
+        public FlightEnabledAbstractValue(IGlobalAbstractValue enabledFlight)
             : this(ImmutableHashSet.Create(enabledFlight), ImmutableHashSet<FlightEnabledAbstractValue>.Empty, height: 0, FlightEnabledAbstractValueKind.Known)
         {
         }
 
         public FlightEnabledAbstractValue(FlightEnabledAbstractValue parent1, FlightEnabledAbstractValue parent2)
-            : this(ImmutableHashSet<string>.Empty,
+            : this(ImmutableHashSet<IGlobalAbstractValue>.Empty,
                    ImmutableHashSet.Create(parent1, parent2),
                    height: Math.Max(parent1.Height, parent2.Height) + 1,
                    FlightEnabledAbstractValueKind.Known)
         {
         }
 
-        public ImmutableHashSet<string> EnabledFlights { get; }
+        public ImmutableHashSet<IGlobalAbstractValue> EnabledFlights { get; }
         public ImmutableHashSet<FlightEnabledAbstractValue> Parents { get; }
         public int Height { get; }
         public FlightEnabledAbstractValueKind Kind { get; }
@@ -84,11 +84,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                 newEnabledFlights.Height,
                 newEnabledFlights.Kind);
 
-        private static string GetNegatedFlightValue(string flight)
-            => flight.Length > 0 && flight[0] == '!' ? flight.Substring(1) : "!" + flight;
-
-        private static ImmutableHashSet<string> GetNegatedFlightValues(ImmutableHashSet<string> flights)
-            => flights.Select(GetNegatedFlightValue).ToImmutableHashSet();
+        private static ImmutableHashSet<IGlobalAbstractValue> GetNegatedFlightValues(ImmutableHashSet<IGlobalAbstractValue> flights)
+            => flights.Select(f => f.GetNegatedValue()).ToImmutableHashSet();
 
         internal FlightEnabledAbstractValue WithAdditionalEnabledFlights(FlightEnabledAbstractValue newEnabledFlights, bool negate)
         {
@@ -163,7 +160,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                     return string.Empty;
                 }
 
-                var result = string.Join(" && ", EnabledFlights.Order());
+                var result = string.Join(" && ", EnabledFlights.Select(f => f.ToString()).Order());
                 if (Parents.Count > 0)
                 {
                     result = $" && {result}";

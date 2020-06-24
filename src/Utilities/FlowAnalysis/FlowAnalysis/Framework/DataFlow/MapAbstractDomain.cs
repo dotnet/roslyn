@@ -120,22 +120,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return result;
         }
 
-        internal static DictionaryAnalysisData<TKey, TValue> Intersect(
+        internal DictionaryAnalysisData<TKey, TValue> Intersect(
             DictionaryAnalysisData<TKey, TValue> map1,
             DictionaryAnalysisData<TKey, TValue> map2,
             Func<TValue, TValue, TValue> intersect)
         {
             var result = new DictionaryAnalysisData<TKey, TValue>();
-            if (map1.Count == 0 || map2.Count == 0)
-            {
-                return result;
-            }
-
             foreach (var kvp in map1)
             {
-                if (map2.TryGetValue(kvp.Key, out var value2))
+                if (!map2.TryGetValue(kvp.Key, out var value2))
                 {
-                    result.Add(kvp.Key, intersect(kvp.Value, value2));
+                    value2 = ValueDomain.UnknownOrMayBeValue;
+                }
+
+                result.Add(kvp.Key, intersect(kvp.Value, value2));
+            }
+
+            foreach (var key in map2.Keys)
+            {
+                if (!result.ContainsKey(key))
+                {
+                    result.Add(key, ValueDomain.UnknownOrMayBeValue);
                 }
             }
 

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
 
     internal partial class FlightEnabledAnalysis : ForwardDataFlowAnalysis<FlightEnabledAnalysisData, FlightEnabledAnalysisContext, FlightEnabledAnalysisResult, FlightEnabledBlockAnalysisResult, FlightEnabledAbstractValue>
     {
-        private class FlightEnabledAbstractValueDomain : AbstractValueDomain<FlightEnabledAbstractValue>
+        internal class FlightEnabledAbstractValueDomain : AbstractValueDomain<FlightEnabledAbstractValue>
         {
             public static FlightEnabledAbstractValueDomain Instance = new FlightEnabledAbstractValueDomain();
 

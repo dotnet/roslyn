@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
@@ -26,8 +25,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
-            ImmutableArray<IMethodSymbol> flightEnablingMethods,
-            Func<FlightEnabledAnalysisCallbackContext, FlightEnabledAbstractValue> getValueForFlightEnablingMethodInvocation,
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
@@ -49,22 +46,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                   interproceduralAnalysisDataOpt,
                   interproceduralAnalysisPredicateOpt)
         {
-            RoslynDebug.Assert(!flightEnablingMethods.IsDefaultOrEmpty);
-
-            FlightEnablingMethods = flightEnablingMethods;
-            GetValueForFlightEnablingMethodInvocation = getValueForFlightEnablingMethodInvocation;
         }
-
-        public ImmutableArray<IMethodSymbol> FlightEnablingMethods { get; }
-        public Func<FlightEnabledAnalysisCallbackContext, FlightEnabledAbstractValue> GetValueForFlightEnablingMethodInvocation { get; }
 
         internal static FlightEnabledAnalysisContext Create(
             AbstractValueDomain<FlightEnabledAbstractValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
-            ImmutableArray<IMethodSymbol> flightEnablingMethods,
-            Func<FlightEnabledAnalysisCallbackContext, FlightEnabledAbstractValue> getValueForFlightEnablingMethodInvocation,
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
@@ -75,8 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
         {
             return new FlightEnabledAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
-                flightEnablingMethods, getValueForFlightEnablingMethodInvocation, analyzerOptions,
-                interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResultOpt,
+                analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResultOpt,
                 valueContentAnalysisResult, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
                 interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
         }
@@ -92,15 +79,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
         {
             RoslynDebug.Assert(copyAnalysisResultOpt == null);
             return new FlightEnabledAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg,
-                invokedMethod, FlightEnablingMethods, GetValueForFlightEnablingMethodInvocation,
-                AnalyzerOptions, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
+                invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
                 pointsToAnalysisResultOpt, valueContentAnalysisResultOpt, TryGetOrComputeAnalysisResult,
                 ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicateOpt);
         }
 
         protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            addPart(HashUtilities.Combine(FlightEnablingMethods));
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -30,8 +29,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
         public static FlightEnabledAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
-            ImmutableArray<IMethodSymbol> flightEnablingMethods,
-            Func<FlightEnabledAnalysisCallbackContext, FlightEnabledAbstractValue> getValueForFlightEnablingMethodInvocation,
+            Func<FlightEnabledAnalysisContext, FlightEnabledDataFlowOperationVisitor> createOperationVisitor,
             WellKnownTypeProvider wellKnownTypeProvider,
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
@@ -48,16 +46,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, owningSymbol, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
-            if (interproceduralAnalysisConfig.InterproceduralAnalysisKind != InterproceduralAnalysisKind.None)
-            {
-                interproceduralAnalysisPredicate ??= new InterproceduralAnalysisPredicate(
-                    skipAnalysisForInvokedMethodPredicateOpt: m => flightEnablingMethods.Contains(m),
-                    skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt: null,
-                    skipAnalysisForInvokedContextPredicateOpt: null);
-            }
-
-            return TryGetOrComputeResult(cfg, owningSymbol, flightEnablingMethods,
-                getValueForFlightEnablingMethodInvocation, wellKnownTypeProvider, analyzerOptions,
+            return TryGetOrComputeResult(cfg, owningSymbol, createOperationVisitor, wellKnownTypeProvider, analyzerOptions,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicate, pessimisticAnalysis,
                 performPointsToAnalysis, performValueContentAnalysis, out pointsToAnalysisResult, out valueContentAnalysisResult);
         }
@@ -65,8 +54,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
         private static FlightEnabledAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
-            ImmutableArray<IMethodSymbol> flightEnablingMethods,
-            Func<FlightEnabledAnalysisCallbackContext, FlightEnabledAbstractValue> getValueForFlightEnablingMethodInvocation,
+            Func<FlightEnabledAnalysisContext, FlightEnabledDataFlowOperationVisitor> createOperationVisitor,
             WellKnownTypeProvider wellKnownTypeProvider,
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
@@ -94,17 +82,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
 
             var analysisContext = FlightEnabledAnalysisContext.Create(
                 FlightEnabledAbstractValueDomain.Instance, wellKnownTypeProvider, cfg, owningSymbol,
-                flightEnablingMethods, getValueForFlightEnablingMethodInvocation, analyzerOptions,
-                interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult,
-                valueContentAnalysisResult, TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicate);
-            return TryGetOrComputeResultForAnalysisContext(analysisContext);
+                analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult,
+                valueContentAnalysisResult, c => TryGetOrComputeResultForAnalysisContext(c, createOperationVisitor), interproceduralAnalysisPredicate);
+            return TryGetOrComputeResultForAnalysisContext(analysisContext, createOperationVisitor);
         }
 
-        private static FlightEnabledAnalysisResult? TryGetOrComputeResultForAnalysisContext(FlightEnabledAnalysisContext FlightEnabledAnalysisContext)
+        private static FlightEnabledAnalysisResult? TryGetOrComputeResultForAnalysisContext(
+            FlightEnabledAnalysisContext flightEnabledAnalysisContext,
+            Func<FlightEnabledAnalysisContext, FlightEnabledDataFlowOperationVisitor> createOperationVisitor)
         {
-            var operationVisitor = new FlightEnabledDataFlowOperationVisitor(FlightEnabledAnalysisContext);
-            var FlightEnabledAnalysis = new FlightEnabledAnalysis(FlightEnabledAnalysisDomainInstance, operationVisitor);
-            return FlightEnabledAnalysis.TryGetOrComputeResultCore(FlightEnabledAnalysisContext, cacheResult: false);
+            var operationVisitor = createOperationVisitor(flightEnabledAnalysisContext);
+            var flightEnabledAnalysis = new FlightEnabledAnalysis(FlightEnabledAnalysisDomainInstance, operationVisitor);
+            return flightEnabledAnalysis.TryGetOrComputeResultCore(flightEnabledAnalysisContext, cacheResult: false);
         }
 
         protected override FlightEnabledAnalysisResult ToResult(FlightEnabledAnalysisContext analysisContext, FlightEnabledAnalysisResult dataFlowAnalysisResult)
