@@ -1051,9 +1051,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
 
-        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.Property;
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
+        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
             => (_propertyFlags & Flags.IsAutoProperty) != 0
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
