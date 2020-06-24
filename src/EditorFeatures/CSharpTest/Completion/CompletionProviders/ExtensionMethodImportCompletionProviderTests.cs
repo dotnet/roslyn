@@ -1623,7 +1623,6 @@ namespace NS1
                 inlineDescription: "NS2");
         }
 
-
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
