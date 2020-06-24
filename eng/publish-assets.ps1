@@ -19,7 +19,8 @@ Param(
   [string]$gitHubToken = "",
   [string]$gitHubEmail = "",
   [string]$nugetApiKey = "",
-  [string]$myGetApiKey = ""
+  [string]$myGetApiKey = "",
+  [string]$azureApiKey = ""
 )
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -30,28 +31,46 @@ function Get-PublishKey([string]$uploadUrl) {
   switch ($url.Host) {
     "dotnet.myget.org" { return $myGetApiKey }
     "api.nuget.org" { return $nugetApiKey }
+    "pkgs.dev.azure.com" { return $azureApiKey}
     default { throw "Cannot determine publish key for $uploadUrl" }
   }
 }
 
-# Publish the NuGet packages to the specified URL
-function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
+function Publish-Nuget($publishData, [string]$packageDir) {
   Push-Location $packageDir
   try {
-    Write-Host "Publishing $(Split-Path -leaf $packageDir) to $uploadUrl"
-    $apiKey = Get-PublishKey $uploadUrl
+    # Retrieve the mapping of package (without version and extension) to the feed name
+    # and also the mapping of feed name to nuget source from PublishData.json
+    $feedData = GetFeedPublishData
+    $packagesData = GetPackagesPublishData
+
     foreach ($package in Get-ChildItem *.nupkg) {
       $nupkg = Split-Path -Leaf $package
       Write-Host "  Publishing $nupkg"
       if (-not (Test-Path $nupkg)) {
         throw "$nupkg does not exist"
       }
+      
+      # Lookup the feed name from the packages map using the package name without the version or extension.
+      $nupkgWithoutVersion = $nupkg -replace '(\.\d){3}-.*.nupkg', ''
+      if (-not (Get-Member -InputObject $packagesData -Name $nupkgWithoutVersion)) {
+        throw "$nupkg has no configured feed (looked for $nupkgWithoutVersion)"
+      }
 
+      # Use the feed name to get the source to upload the package to.
+      $feedName = $packagesData.$nupkgWithoutVersion
+      if (-not (Get-Member -InputObject $feedData -Name $feedName))
+      {
+        throw "$feedName has no configured source feed"
+      }
+      
+      $uploadUrl = $feedData.$feedName
+      $apiKey = Get-PublishKey $uploadUrl
       if (-not $test) {
         Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
       }
     }
-  } 
+  }
   finally {
     Pop-Location
   }
@@ -89,11 +108,9 @@ function Publish-Channel([string]$packageDir, [string]$name) {
 # Do basic verification on the values provided in the publish configuration
 function Test-Entry($publishData, [switch]$isBranch) { 
   if ($isBranch) { 
-    if ($publishData.nuget -ne $null) { 
-      foreach ($nugetKind in $publishData.nugetKind) {
-        if ($nugetKind -ne "PerBuildPreRelease" -and $nugetKind -ne "Shipping" -and $nugetKind -ne "NonShipping") {
-                     throw "Branches are only allowed to publish Shipping, NonShipping, or PerBuildPreRelease"
-        }
+    foreach ($nugetKind in $publishData.nugetKind) {
+      if ($nugetKind -ne "PerBuildPreRelease" -and $nugetKind -ne "Shipping" -and $nugetKind -ne "NonShipping") {
+                    throw "Branches are only allowed to publish Shipping, NonShipping, or PerBuildPreRelease"
       }
     }
   }
@@ -104,10 +121,8 @@ function Publish-Entry($publishData, [switch]$isBranch) {
   Test-Entry $publishData -isBranch:$isBranch
 
   # First publish the NuGet packages to the specified feeds
-  foreach ($url in $publishData.nuget) {
-    foreach ($nugetKind in $publishData.nugetKind) {
-      Publish-NuGet (Join-Path $PackagesDir $nugetKind) $url
-    }
+  foreach ($nugetKind in $publishData.nugetKind) {
+    Publish-NuGet $publishData (Join-Path $PackagesDir $nugetKind)
   }
 
   # Next publish the VSIX to the specified feeds
