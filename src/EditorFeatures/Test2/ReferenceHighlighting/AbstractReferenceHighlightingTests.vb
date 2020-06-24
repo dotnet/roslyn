@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         Function(name) name.Value,
                         Function(name, span) _
                         New With {.Name = name.Key,
-                                  span
+                                  .Span = span
                         })
 
                     For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
