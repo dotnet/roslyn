@@ -5103,6 +5103,36 @@ public static class Extensions
         }
 
         [Fact]
+        public void TestGetAsyncEnumeratorPatternViaExtensionsOnDefaultObject()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+public class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in default(object))
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetAsyncEnumerator(this object self) => new C.Enumerator();
+}";
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "123");
+        }
+
+        [Fact]
         public void TestGetAsyncEnumeratorPatternViaExtensionsWithStructEnumerator()
         {
             string source = @"
@@ -7225,10 +7255,10 @@ namespace N1
 
     namespace N2
     {
-            public static class Extensions
-            {
-                public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
-            }
+        public static class Extensions
+        {
+            public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
+        }
 
         namespace N3
         {
@@ -7325,10 +7355,10 @@ namespace N1
 
     namespace N2
     {
-            public static class Extensions
-            {
-                public static int GetAsyncEnumerator(this C self) => throw null;
-            }
+        public static class Extensions
+        {
+            public static int GetAsyncEnumerator(this C self) => throw null;
+        }
 
         namespace N3
         {

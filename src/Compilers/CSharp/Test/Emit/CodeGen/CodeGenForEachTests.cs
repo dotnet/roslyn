@@ -2695,6 +2695,33 @@ public static class Extensions
         }
 
         [Fact]
+        public void TestGetEnumeratorPatternViaExtensionsOnDefaultObject()
+        {
+            var source = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in default(object))
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetEnumerator(this object self) => new C.Enumerator();
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+        }
+
+        [Fact]
         public void TestGetEnumeratorPatternViaExtensionsWithStructEnumerator()
         {
             var source = @"
