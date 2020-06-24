@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.InlineParamNameHints
+Imports Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParamNameHints
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
 
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineParamNameHintsTests
@@ -57,9 +57,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParamNameHints
                 AssertEx.Equal(expectedTags, producedTags)
 
             End Using
-
         End Function
-
     End Class
-
 End Namespace

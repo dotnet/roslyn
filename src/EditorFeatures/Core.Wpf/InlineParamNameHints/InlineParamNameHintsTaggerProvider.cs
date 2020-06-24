@@ -1,10 +1,14 @@
-﻿using System.ComponentModel.Composition;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineParamNameHints
+namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 {
     /// <summary>
     /// The provider that is used as a middleman to create the tagger so that the data tag
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParamNameHints
     [Name(nameof(InlineParamNameHintsTaggerProvider))]
     class InlineParamNameHintsTaggerProvider : ITaggerProvider
     {
-        private IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
+        private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
         [ImportingConstructor]
         public InlineParamNameHintsTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService)
         {

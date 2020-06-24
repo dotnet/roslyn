@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// is true, the last parameter will be returned if it is params parameter and the index of
         /// the specified argument is greater than the number of parameters.
         /// </summary>
-        public static IParameterSymbol DetermineParameter(
+        public static IParameterSymbol? DetermineParameter(
             this ArgumentSyntax argument,
             SemanticModel semanticModel,
             bool allowParams = false,
