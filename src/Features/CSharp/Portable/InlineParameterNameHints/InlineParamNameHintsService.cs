@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.InlineParameterNameHintsService;
+using Microsoft.CodeAnalysis.InlineParameterNameHints;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,18 +22,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
         {
         }
 
-        public async Task<IEnumerable<(string, TextSpan)>> GetInlineParameterNameHintsAsync(
+        public async Task<IEnumerable<NameAndSpan>> GetInlineParameterNameHintsAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var node = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var spans = new List<(string name, TextSpan span)>();
+            var spans = new List<NameAndSpan>();
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var invocations = node.DescendantNodes().OfType<InvocationExpressionSyntax>();
+
+            NameAndSpan nameAndSpan;
             foreach (var invo in invocations)
             {
                 foreach (var argument in invo.ArgumentList.Arguments)
@@ -43,7 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                         var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                         if (param != null)
                         {
-                            spans.Add((param.Name, argument.Span));
+                            nameAndSpan._name = param.Name;
+                            nameAndSpan._span = argument.Span;
+                            spans.Add(nameAndSpan);
                         }
                     }
                 }

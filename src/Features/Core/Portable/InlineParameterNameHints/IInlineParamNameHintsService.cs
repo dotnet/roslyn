@@ -8,10 +8,16 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.InlineParameterNameHintsService
+namespace Microsoft.CodeAnalysis.InlineParameterNameHints
 {
+    struct NameAndSpan
+    {
+        public string _name;
+        public TextSpan _span;
+    }
+
     internal interface IInlineParamNameHintsService : ILanguageService
     {
-        Task<IEnumerable<(string, TextSpan)>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);
+        Task<IEnumerable<NameAndSpan>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);
     }
 }

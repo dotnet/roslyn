@@ -1,20 +1,19 @@
 ﻿using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.InlineParamNameHints;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.InlineParameterNameHints;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineParamNameHints
+namespace Microsoft.CodeAnalysis.Editor.InlineParamNameHints
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType("csharp")]
@@ -42,13 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineParamNameHints
             var document = documentSnapshotSpan.Document;
 
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var paramNameHintsService = document.GetLanguageService<InlineParameterNameHintsService.IInlineParamNameHintsService>();
+            var paramNameHintsService = document.GetLanguageService<IInlineParamNameHintsService>();
             var paramNameHintSpans = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             foreach (var span in paramNameHintSpans)
             {
-                context.AddTag(new TagSpan<InlineParamNameHintDataTag>(span.Item2.ToSnapshotSpan(snapshotSpan.Snapshot), new InlineParamNameHintDataTag(span.Item1))); //span.Item1.Length + 1, _format); //));
+                context.AddTag(new TagSpan<InlineParamNameHintDataTag>(span._span.ToSnapshotSpan(snapshotSpan.Snapshot), new InlineParamNameHintDataTag(span._name))); //span.Item1.Length + 1, _format); //));
             }
         }
     }
