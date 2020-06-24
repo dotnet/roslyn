@@ -390,6 +390,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("", metaName.EvaluatedValue);
         }
 
+        [Fact]
+        public void GenerateEditorConfigIsPassedToTheCompiler()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include=""prop"" />
+    </ItemGroup>
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            var items = instance.GetItems("AnalyzerConfigFiles");
+            Assert.Single(items);
+        }
+
         private ProjectInstance CreateProjectInstance(XmlReader reader)
         {
             Project proj = new Project(reader);
