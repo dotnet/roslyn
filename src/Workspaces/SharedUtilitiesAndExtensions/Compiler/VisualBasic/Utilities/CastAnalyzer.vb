@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return expressionTypeInfo.ConvertedType
         End Function
 
-        Private Function GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer As SpeculationAnalyzer, speculatedExpression As ExpressionSyntax, outerSpeculatedExpression As ExpressionSyntax, outerType As ITypeSymbol, cancellationToken As CancellationToken, <Out> ByRef speculatedExpressionOuterType As ITypeSymbol) As Conversion
+        Private Shared Function GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer As SpeculationAnalyzer, speculatedExpression As ExpressionSyntax, outerSpeculatedExpression As ExpressionSyntax, cancellationToken As CancellationToken, <Out> ByRef speculatedExpressionOuterType As ITypeSymbol) As Conversion
             Dim innerSpeculatedExpression = speculatedExpression.WalkDownParentheses()
             Dim typeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(innerSpeculatedExpression, cancellationToken)
             Dim conv = speculationAnalyzer.SpeculativeSemanticModel.GetConversion(innerSpeculatedExpression, cancellationToken)
@@ -135,14 +135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             speculatedExpression = speculatedExpression.WalkUpParentheses()
             typeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculatedExpression, cancellationToken)
             speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, typeInfo, speculationAnalyzer.SpeculativeSemanticModel, cancellationToken)
-            If speculatedExpressionOuterType Is Nothing Then
+            If speculatedExpressionOuterType Is Nothing OrElse outerSpeculatedExpression.IsParentKind(SyntaxKind.SimpleArgument) Then
                 Return Nothing
-            End If
-            ' If we are here we might be inside a SimpleArgument but it is
-            ' not part of a ParamArray which is handled above.
-            If outerSpeculatedExpression.IsParentKind(SyntaxKind.SimpleArgument) Then
-                speculatedExpressionOuterType = outerType
-                Return _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
             End If
 
             Return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType)
@@ -268,7 +262,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     speculatedExpressionOuterType = outerType
                     expressionToOuterType = _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
                 Else
-                    expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer, speculationAnalyzer.ReplacedExpression, outerSpeculatedExpression, outerType, _cancellationToken, speculatedExpressionOuterType)
+                    expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer, speculationAnalyzer.ReplacedExpression, outerSpeculatedExpression, _cancellationToken, speculatedExpressionOuterType)
+                    If expressionToOuterType = Nothing AndAlso outerSpeculatedExpression.IsParentKind(SyntaxKind.SimpleArgument) Then
+                        ' If we are here we might be inside a SimpleArgument but it is
+                        ' not part of a ParamArray which is handled above.
+                        speculatedExpressionOuterType = outerType
+                        expressionToOuterType = _semanticModel.ClassifyConversion(_castExpressionNode.WalkDownParentheses(), speculatedExpressionOuterType)
+                    End If
                 End If
 
                 ' CONSIDER: Anonymous function conversions cannot be compared from different semantic models as lambda symbol comparison requires syntax tree equality. Should this be a compiler bug?
