@@ -20,33 +20,31 @@ namespace Microsoft.CodeAnalysis
     internal abstract class Operation : IOperation
     {
         protected static readonly IOperation s_unset = new EmptyOperation(
-            semanticModel: null, syntax: null, type: null, constantValue: OperationConstantValue.None, isImplicit: true);
+            semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(
-            operations: ImmutableArray<IOperation>.Empty, locals: default, semanticModel: null, syntax: null, type: null, constantValue: OperationConstantValue.None, isImplicit: true);
+            operations: ImmutableArray<IOperation>.Empty, locals: default, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IArrayInitializerOperation s_unsetArrayInitializer = new ArrayInitializerOperation(
-            elementValues: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: OperationConstantValue.None, isImplicit: true);
+            elementValues: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IEventReferenceOperation s_unsetEventReference = new EventReferenceOperation(
-            @event: null, instance: null, semanticModel: null, syntax: null, type: null, constantValue: OperationConstantValue.None, isImplicit: true);
+            @event: null, instance: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(
-            initializers: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: OperationConstantValue.None, isImplicit: true);
+            initializers: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(
-            value: null, inputType: null, semanticModel: null, syntax: null, type: null, constantValue: OperationConstantValue.None, isImplicit: true);
+            value: null, inputType: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(
-            declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: OperationConstantValue.None, isImplicit: true);
+            declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: true);
         protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(
-            locals: ImmutableArray<ILocalSymbol>.Empty, value: null, semanticModel: null, syntax: null, type: null, constantValue: OperationConstantValue.None, isImplicit: false);
+            locals: ImmutableArray<ILocalSymbol>.Empty, value: null, semanticModel: null, syntax: null, type: null, constantValue: null, isImplicit: false);
         private readonly SemanticModel? _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once
         // but once initialized, will never change
         private IOperation? _parentDoNotAccessDirectly;
 
-        protected Operation(OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol type, OperationConstantValue constantValue, bool isImplicit)
+        protected Operation(OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
         {
-            // Constant value must at least be ConstantValue.None.
-            Debug.Assert(constantValue is object);
             // Constant value cannot be "null" for non-nullable value type operations.
-            Debug.Assert(type?.IsValueType != true || ITypeSymbolHelpers.IsNullableType(type) || !constantValue.Value.HasValue || constantValue.Value.Value != null);
+            Debug.Assert(type?.IsValueType != true || ITypeSymbolHelpers.IsNullableType(type) || constantValue == null || constantValue == CodeAnalysis.ConstantValue.Unset || !constantValue.IsNull);
 
 #if DEBUG
             if (semanticModel != null)
@@ -122,11 +120,23 @@ namespace Microsoft.CodeAnalysis
             get => Syntax.Language;
         }
 
-        internal OperationConstantValue OperationConstantValue { get; }
+        internal CodeAnalysis.ConstantValue? OperationConstantValue { get; }
+
         /// <summary>
         /// If the operation is an expression that evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression. Otherwise, <see cref="Optional{Object}.HasValue"/> is false.
         /// </summary>
-        public Optional<object?> ConstantValue => OperationConstantValue.Value;
+        public Optional<object?> ConstantValue
+        {
+            get
+            {
+                if (OperationConstantValue == null || OperationConstantValue.IsBad)
+                {
+                    return default(Optional<object?>);
+                }
+
+                return new Optional<object?>(OperationConstantValue.Value);
+            }
+        }
 
         public abstract IEnumerable<IOperation> Children { get; }
 

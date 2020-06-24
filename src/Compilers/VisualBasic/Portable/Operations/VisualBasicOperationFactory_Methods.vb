@@ -11,10 +11,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Operations
     Partial Friend NotInheritable Class VisualBasicOperationFactory
-        Private Shared Function ConvertToOptional(value As ConstantValue) As OperationConstantValue
-            Return OperationConstantValue.Create(value)
-        End Function
-
         Private Shared Function IsMidStatement(node As BoundNode) As Boolean
             If node.Kind = BoundKind.Conversion Then
                 node = DirectCast(node, BoundConversion).Operand
@@ -92,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignment.Left))
             Dim syntax As SyntaxNode = boundAssignment.Syntax
             Dim type As ITypeSymbol = boundAssignment.Type
-            Dim constantValue As OperationConstantValue = ConvertToOptional(boundAssignment.ConstantValueOpt)
+            Dim constantValue As ConstantValue = boundAssignment.ConstantValueOpt
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
             Return New VisualBasicLazyCompoundAssignmentOperation(Me, boundAssignment, inConversion, outConversion, operatorInfo.OperatorKind,
@@ -358,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                         _semanticModel,
                         value.Syntax,
                         [property].Type,
-                        constantValue:=OperationConstantValue.None,
+                        constantValue:=Nothing,
                         isImplicit:=True)
                     isImplicitAssignment = True
                 Else
@@ -371,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim isRef As Boolean = False
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
-                Dim constantValue As OperationConstantValue = value.GetConstantValue()
+                Dim constantValue As ConstantValue = value.GetConstantValue()
                 Dim assignment = New SimpleAssignmentOperation(isRef, target, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment)
                 builder.Add(assignment)
             Next i
@@ -451,14 +447,14 @@ Namespace Microsoft.CodeAnalysis.Operations
                             initializerSyntax = last.InitializerOpt.Syntax
                             isImplicit = True
                         End If
-                        initializer = New VisualBasicLazyVariableInitializerOperation(Me, last.InitializerOpt, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=OperationConstantValue.None, isImplicit)
+                        initializer = New VisualBasicLazyVariableInitializerOperation(Me, last.InitializerOpt, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit)
                     End If
                 Else
                     Dim asNewDeclarations = DirectCast(first, BoundAsNewLocalDeclarations)
                     declarators = asNewDeclarations.LocalDeclarations.SelectAsArray(AddressOf GetVariableDeclarator)
                     Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
                     Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
-                    initializer = New VisualBasicLazyVariableInitializerOperation(Me, asNewDeclarations.Initializer, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=OperationConstantValue.None, isImplicit:=False)
+                    initializer = New VisualBasicLazyVariableInitializerOperation(Me, asNewDeclarations.Initializer, _semanticModel, initializerSyntax, type:=Nothing, constantValue:=Nothing, isImplicit:=False)
                 End If
 
                 builder.Add(New VariableDeclarationOperation(declarators,
@@ -467,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                          _semanticModel,
                                                          declarationGroup.Key,
                                                          type:=Nothing,
-                                                         constantValue:=OperationConstantValue.None,
+                                                         constantValue:=Nothing,
                                                          isImplicit:=False))
             Next
 
@@ -479,12 +475,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             If boundLocalDeclaration.IdentifierInitializerOpt IsNot Nothing Then
                 Dim syntax = boundLocalDeclaration.Syntax
                 Dim initializerValue As BoundNode = boundLocalDeclaration.IdentifierInitializerOpt
-                initializer = New VisualBasicLazyVariableInitializerOperation(Me, initializerValue, _semanticModel, syntax, type:=Nothing, constantValue:=OperationConstantValue.None, isImplicit:=True)
+                initializer = New VisualBasicLazyVariableInitializerOperation(Me, initializerValue, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
             End If
 
             Dim ignoredArguments = ImmutableArray(Of IOperation).Empty
 
-            Return New VariableDeclaratorOperation(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=OperationConstantValue.None, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
+            Return New VariableDeclaratorOperation(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationGroupOperation
@@ -493,14 +489,14 @@ Namespace Microsoft.CodeAnalysis.Operations
                             _semanticModel,
                             syntax,
                             type:=Nothing,
-                            constantValue:=OperationConstantValue.None,
+                            constantValue:=Nothing,
                             isImplicit:=False) ' Declaration is always explicit
         End Function
 
         Friend Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New VisualBasicLazyEventAssignmentOperation(
-                Me, statement, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=OperationConstantValue.None, isImplicit:=True)
+                Me, statement, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
         End Function
 
 #Region "Conversions"
@@ -542,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                    _semanticModel,
                                                                    boundOperand.Syntax,
                                                                    adjustedInfo.Operation.Type,
-                                                                   ConvertToOptional(boundOperand.ConstantValueOpt),
+                                                                   boundOperand.ConstantValueOpt,
                                                                    boundOperand.WasCompilerGenerated),
                             adjustedInfo.Conversion,
                             adjustedInfo.IsDelegateCreation)

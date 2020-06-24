@@ -589,7 +589,7 @@ namespace IOperationGenerator
                 {
                     Write("OperationKind kind, ");
                 }
-                Write("SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, OperationConstantValue constantValue, bool isImplicit");
+                Write("SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit");
 
                 WriteLine(")");
                 Indent();
