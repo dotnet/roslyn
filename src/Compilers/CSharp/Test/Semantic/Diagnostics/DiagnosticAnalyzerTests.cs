@@ -3520,7 +3520,7 @@ class B
         }
 
         [Theory, CombinatorialData]
-        public async Task TestCategorizedAnalyzerDiagnosticsAsync(bool syntax, bool singleAnalyzer)
+        public async Task TestGetAnalysisResultAsync(bool syntax, bool singleAnalyzer)
         {
             string source1 = @"
 partial class B
@@ -3547,7 +3547,7 @@ class C
             var allAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
             var compilationWithAnalyzers = compilation.WithAnalyzers(allAnalyzers);
 
-            // Invoke "GetAnalyzerSemanticDiagnosticsAsync" for a single analyzer on a single tree and
+            // Invoke "GetAnalysisResultAsync" for a single analyzer on a single tree and
             // ensure that the API respects the requested analysis scope:
             // 1. It only reports diagnostics for the requested analyzer.
             // 2. It only reports diagnostics for the requested tree.
