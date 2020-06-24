@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
         private class NoOpSemanticModelService : ISemanticModelService
         {
             public Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
-                => document.GetSemanticModelAsync(cancellationToken);
+                => document.GetSemanticModelAsync(cancellationToken)!;
         }
     }
 }

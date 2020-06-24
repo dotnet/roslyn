@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnose: false,
                     ref useSiteDiagnostics);
 
-                // https://github.com/dotnet/roslyn/issues/44908 - Should handle hiding/overriding
                 if (lookupResult.IsMultiViable)
                 {
                     foreach (var symbol in lookupResult.Symbols)
