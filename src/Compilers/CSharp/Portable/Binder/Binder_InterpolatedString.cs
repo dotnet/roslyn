@@ -96,10 +96,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             builder.Add(new BoundStringInsert(interpolation, value, alignment, format, null));
                             if (value.ConstantValue != null)
+                            {
                                 if (!value.ConstantValue.IsString || value.ConstantValue.IsBad || value.ConstantValue.IsNull)
                                     resultConstant = ConstantValue.Bad;
-                            if (resultConstant != ConstantValue.Bad)
-                                resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
+                                if (resultConstant != ConstantValue.Bad)
+                                    resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
+                            }
+                            else
+                            {
+                                resultConstant = ConstantValue.Bad;
+                            }
                             continue;
                         }
                     case SyntaxKind.InterpolatedStringText:
