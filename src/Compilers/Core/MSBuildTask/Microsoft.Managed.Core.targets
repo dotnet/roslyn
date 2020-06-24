@@ -231,8 +231,8 @@
     CopyAdditionalFiles
     =======
 
-    If a user requests that any @(AdditionalFile) items are copied to the output directory
-    We add them to the @(None) group to ensure they will be copied.
+    If a user requests that any @(AdditionalFiles) items are copied to the output directory
+    we add them to the @(None) group to ensure they will be copied.
  -->
  
    <Target Name="CopyAdditionalFiles" 
