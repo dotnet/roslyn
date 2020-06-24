@@ -59,16 +59,16 @@ function Publish-Nuget($publishData, [string]$packageDir) {
         throw "$nupkg has no configured feed (looked for $nupkgWithoutVersion)"
       }
 
-      # Use the feed name to get the source to upload the package to.
       $feedName = $packagesData.$nupkgWithoutVersion
-      if ($feedName.equals("arcade"))
-      {
+
+      # If the configured feed is arcade, then skip publishing here.  Arcade will handle publishing to their feeds.
+      if ($feedName.equals("arcade")) {
         Write-Host "    Skipping publishing for $nupkg as it is published by arcade"
         continue
       }
-
-      if (-not (Get-Member -InputObject $feedData -Name $feedName))
-      {
+      
+      # Use the feed name to get the source to upload the package to.
+      if (-not (Get-Member -InputObject $feedData -Name $feedName)) {
         throw "$feedName has no configured source feed"
       }
       

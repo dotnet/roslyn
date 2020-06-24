@@ -8,7 +8,7 @@ $ErrorActionPreference="Stop"
 
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
-$PublishDataUrl = "https://raw.githubusercontent.com/dibarbet/roslyn/fb23175a852ee9045b74185aa53070a404a9d6c7/eng/config/PublishData.json"
+$PublishDataUrl = "https://raw.githubusercontent.com/dibarbet/roslyn/b83a09493dbf0b2f8b8f086eb1408707208982c6/eng/config/PublishData.json"
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
