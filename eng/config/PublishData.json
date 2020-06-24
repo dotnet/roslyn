@@ -1,11 +1,34 @@
 {
   "feeds": {
-      "dotnet5": "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json",
       "vssdk": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json",
       "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
   },
   "packages": {
     "default": {
+      "Microsoft.CodeAnalysis" : "arcade",
+      "Microsoft.CodeAnalysis.Common" : "arcade",
+      "Microsoft.CodeAnalysis.Compilers" : "arcade",
+      "Microsoft.CodeAnalysis.Scripting" : "arcade",
+      "Microsoft.CodeAnalysis.Scripting.Common" : "arcade",
+      "Microsoft.CodeAnalysis.Workspaces.Common" : "arcade",
+      "Microsoft.CodeAnalysis.Workspaces.MSBuild" : "arcade",
+      "Microsoft.CodeAnalysis.CSharp" : "arcade",
+      "Microsoft.CodeAnalysis.CSharp.CodeStyle" : "arcade",
+      "Microsoft.CodeAnalysis.CSharp.Features" : "arcade",
+      "Microsoft.CodeAnalysis.CSharp.Scripting" : "arcade",
+      "Microsoft.CodeAnalysis.CSharp.Workspaces" : "arcade",
+      "Microsoft.CodeAnalysis.VisualBasic" : "arcade",
+      "Microsoft.CodeAnalysis.VisualBasic.CodeStyle" : "arcade",
+      "Microsoft.CodeAnalysis.VisualBasic.Features" : "arcade",
+      "Microsoft.CodeAnalysis.VisualBasic.Workspaces" : "arcade",
+      "Microsoft.CodeAnalysis.Build.Tasks" : "arcade",
+      "Microsoft.Net.Compilers" : "arcade",
+      "Microsoft.Net.Compilers.Toolset" : "arcade",
+      "Microsoft.NETCore.Compilers" : "arcade",
+      "Microsoft.CodeAnalysis.Debugging" : "arcade",
+      "Microsoft.CodeAnalysis.PooledObjects" : "arcade",
+      "Microsoft.CodeAnalysis.Features" : "arcade",
+
       "Microsoft.CodeAnalysis.EditorFeatures" : "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Common" : "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Text" : "vssdk",
