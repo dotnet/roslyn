@@ -1994,7 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion result = ClassifyConversion(sourceType, destination);
 
             {
-                if (result.IsReference && sourceConstantValue is { IsNull: true } cv)
+                if (result.IsReference && sourceConstantValue is { IsNull: true })
                 {
                     constantValue = sourceConstantValue;
                 }
