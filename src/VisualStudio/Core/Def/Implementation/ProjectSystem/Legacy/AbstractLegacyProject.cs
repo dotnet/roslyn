@@ -267,22 +267,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             return Guid.Empty;
         }
 
-        private static bool GetIsWebsiteProject(IVsHierarchy hierarchy)
-        {
-            try
-            {
-                if (hierarchy.TryGetProject(out var project))
-                {
-                    return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
-                }
-            }
-            catch (Exception)
-            {
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Map of folder item IDs in the workspace to the string version of their path.
         /// </summary>
