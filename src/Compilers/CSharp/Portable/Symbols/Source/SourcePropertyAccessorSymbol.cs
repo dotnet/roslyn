@@ -218,7 +218,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
             CheckModifiersForBody(syntax, location, diagnostics);
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
