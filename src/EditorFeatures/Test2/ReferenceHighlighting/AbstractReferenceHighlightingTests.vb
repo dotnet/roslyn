@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         })
 
                     For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
-                        expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.span.ToString())
+                        expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.ToString())
                     Next
                 Next
 
