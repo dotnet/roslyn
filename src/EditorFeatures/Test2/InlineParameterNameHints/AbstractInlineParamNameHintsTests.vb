@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParamNameHints
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineParamNameHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
-                Dim tagProducer = New InlineParamNameHintsTaggerProvider(
+                Dim tagProducer = New InlineParamNameHintsDataTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     AsynchronousOperationListenerProvider.NullProvider,
                     workspace.GetService(Of IForegroundNotificationService))

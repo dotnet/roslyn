@@ -4,32 +4,35 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineParamNameHints
+namespace Microsoft.CodeAnalysis.Editor.InlineParamNameHints
 {
-    class InlineParamHintsTag : IntraTextAdornmentTag
+    class InlineParamNameHintsTag : IntraTextAdornmentTag
     {
-        public readonly int TagLength;
         public readonly string TagName;
 
-        public InlineParamHintsTag(string text, int tagLength, TextFormattingRunProperties format)
-            : base(CreateElement(text, format), null, (tagLength == 0) ? ((PositionAffinity?)PositionAffinity.Predecessor) : null)
+        public InlineParamNameHintsTag(string text)
+            : base(CreateElement(text), null, (PositionAffinity?)PositionAffinity.Successor)
         {
-            TagLength = tagLength;
             TagName = text;
+            if (TagName.Length != 0)
+            {
+                TagName += ": ";
+            }
         }
 
-        private static UIElement CreateElement(string text, TextFormattingRunProperties format)
+        private static UIElement CreateElement(string text)
         {
-            var block = new TextBox
+            if (text.Length != 0)
+            {
+                text += ": ";
+            }
+            var block = new TextBlock
             {
                 Text = text,
-                Foreground = format.ForegroundBrush,
-                FontFamily = format.Typeface.FontFamily,
-                FontSize = format.FontRenderingEmSize,
-                FontStyle = FontStyles.Normal
+                FontStyle = FontStyles.Normal,
+                Padding = new Thickness(0),
             };
-            block.FontSize = format.FontRenderingEmSize;
-            block.FontStyle = FontStyles.Italic;//.Oblique;
+            block.FontStyle = FontStyles.Normal;
 
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
