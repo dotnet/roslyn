@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         forceIndexCreation: isExpandedCompletion,
                         cancellationToken).ConfigureAwait(false);
 
-                    completionContext.AddItems(items.Select(i => Convert(i, SymbolKey.CreateString(receiverTypeSymbol))));
+                    var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol);
+                    completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));
                 }
                 else
                 {

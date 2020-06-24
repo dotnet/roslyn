@@ -280,11 +280,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var declaredReceiverTypeInCurrentCompilation = SymbolFinder.FindSimilarSymbols(declaredReceiverType, semanticModel.Compilation, ignoreAssemblyKey: true, cancellationToken).FirstOrDefault();
+                var declaredReceiverTypeInCurrentCompilation = SymbolFinder.FindSimilarSymbols(declaredReceiverType, semanticModel.Compilation).FirstOrDefault();
                 if (declaredReceiverTypeInCurrentCompilation == null)
                 {
-                    if (!Debugger.IsAttached)
-                        Debugger.Launch();
+                    // Bug: https://github.com/dotnet/roslyn/issues/45404
+                    // SymbolFinder.FindSimilarSymbols would fail if current and referenced compilation targeting different frameworks say net472 and netstandard respectively.
+                    // Here's SymbolKey for System.String from those two framework as an example:
+                    //
+                    //  {1 (D "String" (N "System" 0 (N "" 0 (U (S "netstandard" 4) 3) 2) 1) 0 0 (% 0) 0)}
+                    //  {1 (D "String"(N "System" 0(N "" 0(U(S "mscorlib" 4) 3) 2) 1) 0 0(% 0) 0)}
+                    //
+                    // Also we don't use the "ignoreAssemblyKey" option for SymbolKey resolution because its perfermance doesn't meet our requirement.
                     continue;
                 }
 
@@ -295,7 +301,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
-                var methodsInCurrentCompilation = methodSymbols.Select(s => SymbolFinder.FindSimilarSymbols(s, semanticModel.Compilation, ignoreAssemblyKey: false, cancellationToken).FirstOrDefault()).WhereNotNull();
+                // This is also affected by the symbol resolving issue mentioned above, which means in case referenced projects
+                // are targeting different framework, we will miss extension methods with any framework type in their signature from those projects.
+                var methodsInCurrentCompilation = methodSymbols.Select(s => SymbolFinder.FindSimilarSymbols(s, semanticModel.Compilation).FirstOrDefault()).WhereNotNull();
 
                 var enumerator = methodsInCurrentCompilation.GetEnumerator();
                 if (!enumerator.MoveNext())
@@ -303,10 +311,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
-                // Get the first method so we can check if the receiver type applies.
                 var methodInCurrentCompilation = enumerator.Current;
 
-                // We haven't seen this type yet. Try to check by reducing one extension method
+                // We haven't seen this receiver type yet. Try to check by reducing one extension method
                 // to the given receiver type and save the result.
                 if (!cachedResult)
                 {
@@ -317,28 +324,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     checkedReceiverTypes[declaredReceiverTypeInCurrentCompilation] = cachedResult;
                 }
 
-                // Now, cachedResult being false means the receiver type doesn't match,
+                // Now, cachedResult being false means method doesn't match the receiver type,
                 // stop processing methods from this group.
                 if (!cachedResult)
                 {
                     continue;
                 }
 
-                // Add first method to the item list.
-                if (semanticModel.IsAccessible(position, methodInCurrentCompilation))
-                {
-                    CreateAndAddItem(methodInCurrentCompilation, builder, stringCache);
-                }
-
-                // Then add the rest to item list.
-                while (enumerator.MoveNext())
+                // Add all methods to item list
+                do
                 {
                     methodInCurrentCompilation = enumerator.Current;
+
                     if (semanticModel.IsAccessible(position, methodInCurrentCompilation))
                     {
                         CreateAndAddItem(methodInCurrentCompilation, builder, stringCache);
                     }
                 }
+                while (enumerator.MoveNext());
             }
         }
 
