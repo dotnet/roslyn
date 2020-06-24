@@ -14,10 +14,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -62,10 +63,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
             codeActions = codeActions.Where(c => !(c.Key is CodeActionWithOptions));
 
+            var suppressionActions = codeActions.Where(
+                a => a.Key is AbstractConfigurationActionWithNestedActions &&
+                (a.Key as AbstractConfigurationActionWithNestedActions)?.IsBulkConfigurationAction == false);
+
             var results = new List<VSCodeAction>();
             foreach (var codeAction in codeActions)
             {
+                // Temporarily filter out suppress and configure code actions, as we'll later combine them under a top-level
+                // code action.
+                if (codeAction.Key is AbstractConfigurationActionWithNestedActions)
+                {
+                    continue;
+                }
+
                 results.Add(GenerateVSCodeAction(request, codeAction.Key, codeAction.Value));
+            }
+
+            // Special case (also dealt with specially in local Roslyn): 
+            // If we have configure/suppress code actions, combine them under one top-level code action.
+            var configureSuppressActions = codeActions.Where(a => a.Key is AbstractConfigurationActionWithNestedActions);
+            if (configureSuppressActions.Any())
+            {
+                results.Add(GenerateVSCodeAction(request, new CodeActionWithNestedActions(
+                    "Suppress or Configure issues",
+                    configureSuppressActions.Select(a => a.Key).ToImmutableArray(), true), CodeActionKind.QuickFix));
             }
 
             return results.ToArray();

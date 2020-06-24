@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             Range = ProtocolConversions.TextSpanToRange(text.Span, oldText)
                         });
 
-                        workspaceEdit.Changes.Add(document.GetURI().AbsoluteUri, edits.ToArray());
+                        workspaceEdit.Changes.Add(data.CodeActionParams.TextDocument.Uri.AbsoluteUri, edits.ToArray());
                     }
                 }
 
