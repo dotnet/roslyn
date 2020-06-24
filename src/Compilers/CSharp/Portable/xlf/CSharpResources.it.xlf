@@ -537,6 +537,11 @@
         <target state="translated">Un parametro di tipo che ammette i valori Null deve essere noto per essere un tipo valore o un tipo riferimento che non ammette i valori Null. Provare ad aggiungere un vincolo di tipo, 'class' o 'struct'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OmittedTypeArgument">
+        <source>Omitting the type argument is not allowed in the current context</source>
+        <target state="new">Omitting the type argument is not allowed in the current context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Non è possibile dichiarare una variabile out come variabile locale ref</target>

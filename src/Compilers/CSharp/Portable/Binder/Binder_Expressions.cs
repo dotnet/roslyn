@@ -3809,9 +3809,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="initializerArgumentListOpt">
         /// Null for implicit, 
-        /// BaseConstructorInitializerSyntax.ArgumentList, or 
-        /// ThisConstructorInitializerSyntax.ArgumentList, or 
-        /// SimpleBaseTypeSyntax.ArgumentList for explicit.</param>
+        /// <see cref="ConstructorInitializerSyntax.ArgumentList"/>, or 
+        /// <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/> for explicit.</param>
         /// <param name="constructor">Constructor containing the initializer.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. unable to find constructor to invoke).</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
@@ -3953,9 +3952,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         errorLocation = initializerSyntax.ThisOrBaseKeyword.GetLocation();
                         break;
 
-                    case SimpleBaseTypeSyntax baseWithArguments:
-                        Debug.Assert(baseWithArguments.Parent?.Parent is RecordDeclarationSyntax recordDecl && recordDecl.BaseList.Types.FirstOrDefault() == baseWithArguments);
-                        nonNullSyntax = initializerArgumentListOpt;
+                    case PrimaryConstructorBaseTypeSyntax baseWithArguments:
+                        nonNullSyntax = baseWithArguments;
                         errorLocation = initializerArgumentListOpt.GetLocation();
                         break;
 
@@ -6274,9 +6272,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult,
                         flags);
 
-                    if (!boundMethodGroup.HasErrors && boundMethodGroup.ResultKind == LookupResultKind.Empty && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadArity, node, rightName, MessageID.IDS_MethodGroup.Localize(), typeArgumentsSyntax.Count);
+                        Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
                     }
 
                     return boundMethodGroup;
