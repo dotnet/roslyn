@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return default(SyntaxToken);
+                return default;
             }
             finally
             {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return default(SyntaxToken);
+                return default;
             }
             finally
             {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         private SyntaxToken GetLastToken(
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         private bool TryGetLastTokenForStructuredTrivia(
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool>? stepInto,
             out SyntaxToken token)
         {
-            token = default(SyntaxToken);
+            token = default;
 
             if (!trivia.TryGetStructure(out var structure) || stepInto == null || !stepInto(trivia))
             {
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         private SyntaxToken GetLastToken(
@@ -307,12 +307,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         internal SyntaxToken GetNextToken(
             SyntaxTrivia current,
-            Func<SyntaxToken, bool> predicate,
+            Func<SyntaxToken, bool>? predicate,
             Func<SyntaxTrivia, bool>? stepInto)
         {
             bool returnNext = false;
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis
         private SyntaxToken GetNextToken(
             SyntaxTrivia current,
             SyntaxTriviaList list,
-            Func<SyntaxToken, bool> predicate,
+            Func<SyntaxToken, bool>? predicate,
             Func<SyntaxTrivia, bool>? stepInto,
             ref bool returnNext)
         {
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         private SyntaxToken GetPreviousToken(
@@ -426,12 +426,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         internal SyntaxToken GetNextToken(
             SyntaxNode node,
-            Func<SyntaxToken, bool> predicate,
+            Func<SyntaxToken, bool>? predicate,
             Func<SyntaxTrivia, bool>? stepInto)
         {
             while (node.Parent != null)
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis
                 return GetNextToken(((IStructuredTriviaSyntax)node).ParentTrivia, predicate, stepInto);
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         internal SyntaxToken GetPreviousToken(
@@ -526,10 +526,10 @@ namespace Microsoft.CodeAnalysis
                 return GetPreviousToken(((IStructuredTriviaSyntax)node).ParentTrivia, predicate, stepInto);
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
-        internal SyntaxToken GetNextToken(in SyntaxToken current, Func<SyntaxToken, bool> predicate, bool searchInsideCurrentTokenTrailingTrivia, Func<SyntaxTrivia, bool>? stepInto)
+        internal SyntaxToken GetNextToken(in SyntaxToken current, Func<SyntaxToken, bool>? predicate, bool searchInsideCurrentTokenTrailingTrivia, Func<SyntaxTrivia, bool>? stepInto)
         {
             Debug.Assert(searchInsideCurrentTokenTrailingTrivia == false || stepInto != null);
             if (current.Parent != null)
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis
                 return GetNextToken(current.Parent, predicate, stepInto);
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         internal SyntaxToken GetPreviousToken(in SyntaxToken current, Func<SyntaxToken, bool> predicate, bool searchInsideCurrentTokenLeadingTrivia,
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis
                 return GetPreviousToken(current.Parent, predicate, stepInto);
             }
 
-            return default(SyntaxToken);
+            return default;
         }
     }
 }

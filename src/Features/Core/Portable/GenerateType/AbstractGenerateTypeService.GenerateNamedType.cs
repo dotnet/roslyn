@@ -106,15 +106,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private ImmutableArray<ISymbol> DetermineMembers(GenerateTypeOptionsResult options = null)
             {
-                var members = ArrayBuilder<ISymbol>.GetInstance();
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
                 AddMembers(members, options);
 
                 if (_state.IsException)
-                {
                     AddExceptionConstructors(members);
-                }
 
-                return members.ToImmutableAndFree();
+                return members.ToImmutable();
             }
 
             private void AddMembers(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)

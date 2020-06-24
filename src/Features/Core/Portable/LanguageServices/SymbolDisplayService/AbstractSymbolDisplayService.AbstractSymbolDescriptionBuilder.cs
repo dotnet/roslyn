@@ -474,14 +474,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var initializerParts = await GetInitializerSourcePartsAsync(symbol).ConfigureAwait(false);
                     if (!initializerParts.IsDefaultOrEmpty)
                     {
-                        var parts = ArrayBuilder<SymbolDisplayPart>.GetInstance();
+                        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
                         parts.AddRange(ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat));
                         parts.AddRange(Space());
                         parts.AddRange(Punctuation("="));
                         parts.AddRange(Space());
                         parts.AddRange(initializerParts);
 
-                        return parts.ToImmutableAndFree();
+                        return parts.ToImmutable();
                     }
                 }
 
@@ -506,14 +506,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var initializerParts = await GetInitializerSourcePartsAsync(symbol).ConfigureAwait(false);
                     if (initializerParts != null)
                     {
-                        var parts = ArrayBuilder<SymbolDisplayPart>.GetInstance();
+                        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
                         parts.AddRange(ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat));
                         parts.AddRange(Space());
                         parts.AddRange(Punctuation("="));
                         parts.AddRange(Space());
                         parts.AddRange(initializerParts);
 
-                        return parts.ToImmutableAndFree();
+                        return parts.ToImmutable();
                     }
                 }
 

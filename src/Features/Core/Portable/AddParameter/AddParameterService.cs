@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -268,11 +269,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
         }
 
-        private static List<SyntaxTrivia> GetDesiredLeadingIndentation(
+        private static ImmutableArray<SyntaxTrivia> GetDesiredLeadingIndentation(
             SyntaxGenerator generator, ISyntaxFactsService syntaxFacts,
             SyntaxNode node, bool includeLeadingNewLine)
         {
-            var triviaList = new List<SyntaxTrivia>();
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var triviaList);
             if (includeLeadingNewLine)
             {
                 triviaList.Add(generator.ElasticCarriageReturnLineFeed);
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 triviaList.Add(lastWhitespace);
             }
 
-            return triviaList;
+            return triviaList.ToImmutable();
         }
 
         private static bool ShouldPlaceParametersOnNewLine(
