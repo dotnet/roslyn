@@ -3463,22 +3463,22 @@ class C
             CompileAndVerify(source.ToString(), expectedOutput: "58430604");
         }
 
-        [Fact]
-        public void ConstantInterpolatedStringsSimple()
-        {
-            string source = @"
-class C
-{
-    static void F()
-    {
-        const string S = $""Testing"";
-        const string F = $""{$""{S}""}"";
-        System.Console.WriteLine(F);
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-        }
+//        [Fact]
+//        public void ConstantInterpolatedStringsSimple()
+//        {
+//            string source = @"
+//class C
+//{
+//    static void F()
+//    {
+//        const string S = $""Testing"";
+//        const string F = $""{$""{S}""}"";
+//        System.Console.WriteLine(F);
+//    }
+//}";
+//            var comp = CreateCompilation(source);
+//            comp.VerifyDiagnostics();
+//        }
     }
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard

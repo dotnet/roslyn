@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             builder.Add(new BoundStringInsert(interpolation, value, alignment, format, null));
-                            resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
+                            //resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
                             continue;
                         }
                     case SyntaxKind.InterpolatedStringText:
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
                             var constantVal = ConstantValue.Create(text, SpecialType.System_String);
                             builder.Add(new BoundLiteral(content, constantVal, stringType));
-                            resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), constantVal);
+                            //resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), constantVal);
                             continue;
                         }
                     default:
