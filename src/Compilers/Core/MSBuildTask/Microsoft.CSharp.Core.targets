@@ -5,20 +5,19 @@
 
   <PropertyGroup>
     <!-- .NETCoreApp < 3.0, .NETStandard < 2.1, or any other target framework -->
-    <MaxSupportedLangVersion Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') AND
-                                        ('$(TargetFrameworkIdentifier)' != '.NETStandard' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '2.1') AND
-                                        '$(MaxSupportedLangVersion)' == ''">7.3</MaxSupportedLangVersion>
+    <_MaxSupportedLangVersion Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') AND
+                                         ('$(TargetFrameworkIdentifier)' != '.NETStandard' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '2.1')">7.3</_MaxSupportedLangVersion>
     
     <!-- .NETCoreApp < 5.0, .NETStandard == 2.1 -->
-    <MaxSupportedLangVersion Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0') AND
-                                        ('$(TargetFrameworkIdentifier)' != '.NETStandard' OR '$(_TargetFrameworkVersionWithoutV)' == '2.1') AND
-                                        '$(MaxSupportedLangVersion)' == ''">8.0</MaxSupportedLangVersion>
+    <_MaxSupportedLangVersion Condition="(('$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0') OR
+                                          ('$(TargetFrameworkIdentifier)' == '.NETStandard' AND '$(_TargetFrameworkVersionWithoutV)' == '2.1')) AND
+                                          '$(_MaxSupportedLangVersion)' == ''">8.0</_MaxSupportedLangVersion>
 
     <!-- .NETCoreApp == 5.0 -->
-    <MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '5.0' AND
-                                        '$(MaxSupportedLangVersion)' == ''">9.0</MaxSupportedLangVersion>
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '5.0' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">9.0</_MaxSupportedLangVersion>
     
-    <LangVersion Condition="'$(LangVersion)' == '' AND '$(MaxSupportedLangVersion)' != ''">$(MaxSupportedLangVersion)</LangVersion>
+    <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
 
   <Target Name="CoreCompile"

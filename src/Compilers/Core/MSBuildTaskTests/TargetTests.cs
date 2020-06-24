@@ -408,6 +408,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [InlineData(".NETStandard", "2.1", "8.0")]
 
         [InlineData("UnknownTFM", "0.0", "7.3")]
+        [InlineData("UnknownTFM", "5.0", "7.3")]
         public void LanguageVersionGivenTargetFramework(string tfi, string tfv, string expectedVersion)
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
@@ -424,7 +425,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             instance.Build(GetTestLoggers());
 
             var langVersion = instance.GetPropertyValue("LangVersion");
-            var maxLangVersion = instance.GetPropertyValue("MaxSupportedLangVersion");
+            var maxLangVersion = instance.GetPropertyValue("_MaxSupportedLangVersion");
 
             Assert.Equal(expectedVersion, langVersion);
             Assert.Equal(expectedVersion, maxLangVersion);
@@ -448,57 +449,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             instance.Build(GetTestLoggers());
 
             var langVersion = instance.GetPropertyValue("LangVersion");
-            var maxLangVersion = instance.GetPropertyValue("MaxSupportedLangVersion");
+            var maxLangVersion = instance.GetPropertyValue("_MaxSupportedLangVersion");
 
             Assert.Equal("55.0", langVersion);
             Assert.Equal("7.3", maxLangVersion);
         }
-
-        [Fact]
-        public void ExplicitMaxLanguageVersion()
-        {
-            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
-<Project>
-    <PropertyGroup>
-        <MaxSupportedLangVersion>55.0</MaxSupportedLangVersion>
-    </PropertyGroup>
-    <Import Project=""Microsoft.CSharp.Core.targets"" />
-</Project>
-"));
-
-            var instance = CreateProjectInstance(xmlReader);
-            instance.Build(GetTestLoggers());
-
-            var langVersion = instance.GetPropertyValue("LangVersion");
-            var maxLangVersion = instance.GetPropertyValue("MaxSupportedLangVersion");
-
-            Assert.Equal("55.0", langVersion);
-            Assert.Equal("55.0", maxLangVersion);
-        }
-
-        [Fact]
-        public void ExplicitLanguageVersionOverridesExplicitMaxLanguageVersion()
-        {
-            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
-<Project>
-    <PropertyGroup>
-        <MaxSupportedLangVersion>55.0</MaxSupportedLangVersion>
-        <LangVersion>40.0</LangVersion>
-    </PropertyGroup>
-    <Import Project=""Microsoft.CSharp.Core.targets"" />
-</Project>
-"));
-
-            var instance = CreateProjectInstance(xmlReader);
-            instance.Build(GetTestLoggers());
-
-            var langVersion = instance.GetPropertyValue("LangVersion");
-            var maxLangVersion = instance.GetPropertyValue("MaxSupportedLangVersion");
-
-            Assert.Equal("40.0", langVersion);
-            Assert.Equal("55.0", maxLangVersion);
-        }
-
         [Fact]
         public void GenerateEditorConfigIsPassedToTheCompiler()
         {
