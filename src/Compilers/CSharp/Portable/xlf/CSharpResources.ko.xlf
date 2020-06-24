@@ -537,6 +537,11 @@
         <target state="translated">값 형식 또는 null을 허용하지 않는 참조 형식이 되려면 nullable 형식 매개 변수를 알려야 합니다. 'class', 'struct' 또는 형식 제약 조건 추가를 고려하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OmittedTypeArgument">
+        <source>Omitting the type argument is not allowed in the current context</source>
+        <target state="new">Omitting the type argument is not allowed in the current context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">출력 변수는 참조 로컬로 선언할 수 없습니다.</target>
