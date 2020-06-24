@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateExprBodiedAccessor(
+        protected override SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
@@ -280,8 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => ((BasePropertyDeclarationSyntax)syntax).ExplicitInterfaceSpecifier;
 
         protected override BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
-        {
-            return (syntax.Kind() == SyntaxKind.IndexerDeclaration) ? ((IndexerDeclarationSyntax)syntax).ParameterList : null;
-        }
+            => (syntax as IndexerDeclarationSyntax)?.ParameterList;
     }
 }

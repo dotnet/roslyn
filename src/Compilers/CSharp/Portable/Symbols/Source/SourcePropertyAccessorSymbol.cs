@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList modifiers,
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
-            bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
@@ -346,14 +345,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    isIterator: false)
         {
             Debug.Assert(property.IsAutoProperty);
+            Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = true;
-            Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
-            var hasBody = false;
-            var hasExpressionBody = false;
-            _isExpressionBodied = !hasBody && hasExpressionBody;
+            const bool hasAnyBody = false;
+            _isExpressionBodied = false;
             _usesInit = usesInit;
             if (_usesInit)
             {
@@ -361,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(modifiers, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(modifiers, isExplicitInterfaceImplementation, hasAnyBody, location, diagnostics, out modifierErrors);
 
             // Include some modifiers from the containing property, but not the accessibility modifiers.
             declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
@@ -376,12 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBody || hasExpressionBody || _isAutoPropertyAccessor, diagnostics);
-
-            if (hasBody || hasExpressionBody)
-            {
-                CheckModifiersForBody(syntax, location, diagnostics);
-            }
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasAnyBody || _isAutoPropertyAccessor, diagnostics);
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
@@ -391,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(location, hasBody || hasExpressionBody, _isAutoPropertyAccessor, diagnostics);
+                this.CheckModifiers(location, hasAnyBody, _isAutoPropertyAccessor, diagnostics);
             }
 
             if (this.IsOverride)

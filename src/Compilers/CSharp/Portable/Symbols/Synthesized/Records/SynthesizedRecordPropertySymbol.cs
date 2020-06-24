@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics)
         {
             BackingParameter = backingParameter;
-
         }
 
         protected override TypeSyntax GetTypeSyntax(SyntaxNode syntax)
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out modifierErrors);
 
-            this.CheckUnsafeModifier(mods, diagnostics);
+            Debug.Assert(!mods.HasFlag(DeclarationModifiers.Unsafe));
             return mods;
         }
 
@@ -113,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax is object);
+            Debug.Assert(isAutoPropertyAccessor);
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 isGet,
                 usesInit: !isGet, // the setter is always init-only
@@ -125,12 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SyntaxTokenList(), // No tokens on the accessors
                 explicitlyImplementedPropertyOpt,
                 aliasQualifierOpt,
-                isAutoPropertyAccessor,
                 isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateExprBodiedAccessor(
+        protected override SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,

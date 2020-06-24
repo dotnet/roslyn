@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!hasAccessorList && hasExpressionBody)
             {
                 _propertyFlags |= Flags.IsExpressionBodied;
-                _getMethod = CreateExprBodiedAccessor(
+                _getMethod = CreateExpressionBodiedAccessor(
                     arrowExpression,
                     explicitlyImplementedProperty,
                     aliasQualifierOpt,
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics);
 
-        protected abstract SourcePropertyAccessorSymbol CreateExprBodiedAccessor(
+        protected abstract SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
@@ -1049,20 +1049,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Attributes
 
-        protected virtual IAttributeTargetSymbol AttributesOwner => this;
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
 
-        protected virtual AttributeLocation DefaultAttributeLocation => AttributeLocation.Property;
+        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.Property;
 
-        protected virtual AttributeLocation AllowedAttributeLocations
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
             => (_propertyFlags & Flags.IsAutoProperty) != 0
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
-
-        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => AttributesOwner;
-
-        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AllowedAttributeLocations;
-
-        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => DefaultAttributeLocation;
 
         /// <summary>
         /// Returns a bag of custom attributes applied on the property and data decoded from well-known attributes. Returns null if there are no attributes.
@@ -1553,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var compilation = this.DeclaringCompilation;
             var syntaxTree = _syntaxRef.SyntaxTree;
-            var syntax = (CSharpSyntaxNode)_syntaxRef.GetSyntax();
+            var syntax = CSharpSyntaxNode;
             var binderFactory = compilation.GetBinderFactory(syntaxTree);
             var binder = binderFactory.GetBinder(syntax, syntax, this);
             SyntaxTokenList modifiers = GetModifierTokens(syntax);
