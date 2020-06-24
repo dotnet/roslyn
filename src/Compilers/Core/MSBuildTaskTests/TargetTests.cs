@@ -401,6 +401,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [InlineData(".NETCoreApp", "3.0", "8.0")]
         [InlineData(".NETCoreApp", "3.1", "8.0")]
         [InlineData(".NETCoreApp", "5.0", "9.0")]
+        [InlineData(".NETCoreApp", "6.0", "")]
 
         [InlineData(".NETStandard", "1.0", "7.3")]
         [InlineData(".NETStandard", "1.5", "7.3")]
@@ -429,6 +430,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             Assert.Equal(expectedVersion, langVersion);
             Assert.Equal(expectedVersion, maxLangVersion);
+
+            // This will fail whenever the current language version is updated.
+            // Ensure you update the target files to select the correct CSharp version for the newest target framework
+            // and add to the theory data above to cover it, before changing this version to make the test pass again.
+            Assert.Equal(CSharp.LanguageVersion.CSharp9, CSharp.LanguageVersionFacts.CurrentVersion);
         }
 
         [Fact]
