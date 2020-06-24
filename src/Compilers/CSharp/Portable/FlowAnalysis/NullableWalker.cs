@@ -2131,7 +2131,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // variables set according to Joining the state at all the
             // local function use sites
             State = TopState().Clone();
-            for (int slot = 1; slot < localFunctionState.StartingState.Capacity; slot++)
+
+            // localFunctionState.StartingState.Capacity may be larger due to local variables inside a lambda which calls a local function.
+            // State.Capacity may be larger because the local function is never called, or it is not called in an inner scope which introduces local variables.
+            for (int slot = 1; slot < Math.Min(localFunctionState.StartingState.Capacity, State.Capacity); slot++)
             {
                 var symbol = variableBySlot[RootSlot(slot)].Symbol;
                 if (Symbol.IsCaptured(symbol, localFunc.Symbol))
