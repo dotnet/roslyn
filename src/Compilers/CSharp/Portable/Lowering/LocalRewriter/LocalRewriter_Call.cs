@@ -1197,6 +1197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
                     return new SourceLocation(((ConstructorInitializerSyntax)syntax).ArgumentList.OpenParenToken);
+                case SyntaxKind.PrimaryConstructorBaseType:
+                    return new SourceLocation(((PrimaryConstructorBaseTypeSyntax)syntax).ArgumentList.OpenParenToken);
                 case SyntaxKind.ElementAccessExpression:
                     return new SourceLocation(((ElementAccessExpressionSyntax)syntax).ArgumentList.OpenBracketToken);
                 case SyntaxKind.FromClause:

@@ -537,6 +537,11 @@
         <target state="translated">可為 Null 的型別參數必須已知為實值型別或不可為 Null 的參考型別。建議新增 'class'、'struct' 或型別條件約束。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OmittedTypeArgument">
+        <source>Omitting the type argument is not allowed in the current context</source>
+        <target state="new">Omitting the type argument is not allowed in the current context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">out 變數不可宣告為 ref local</target>
@@ -2295,13 +2300,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
-        <target state="translated">switch 運算式未處理其輸入類型可能的值 (並非全部)。</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered.</source>
+        <target state="new">The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
-        <source>The switch expression does not handle some null inputs (it is not exhaustive).</source>
-        <target state="translated">Switch 運算式未處理某些 null 輸入 (並不徹底)。</target>
+        <source>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered.</source>
+        <target state="new">The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
