@@ -15,6 +15,9 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineParamNameHints
 {
+    /// <summary>
+    /// The TaggerProvider that calls upon the service in order to locate the spans and names
+    /// </summary>
     [Export(typeof(ITaggerProvider))]
     [ContentType("csharp")]
     [TagType(typeof(InlineParamNameHintDataTag))]
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParamNameHints
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
             IForegroundNotificationService notificationService)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineParamNameHints), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints), notificationService)
         {
         }
 

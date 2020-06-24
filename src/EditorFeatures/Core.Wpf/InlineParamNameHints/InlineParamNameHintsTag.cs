@@ -2,14 +2,21 @@
 using System.Windows.Controls;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineParamNameHints
 {
+    /// <summary>
+    /// This is the tag which implements the IntraTextAdornmentTag and is meant to
+    /// create the UIElements that get shown in the editor
+    /// </summary>
     class InlineParamNameHintsTag : IntraTextAdornmentTag
     {
         public readonly string TagName;
 
+        /// <summary>
+        /// Creates the UIElement on call
+        /// </summary>
+        /// <param name="text">The name of the parameter associated with the argument</param>
         public InlineParamNameHintsTag(string text)
             : base(CreateElement(text), null, (PositionAffinity?)PositionAffinity.Successor)
         {

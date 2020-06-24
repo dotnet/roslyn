@@ -8,11 +8,15 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineParameterNameHints;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
 {
+    /// <summary>
+    /// The service to locate the positions in which the adornments should appear
+    /// as well as associate the adornments back to the parameter name
+    /// </summary>
     [ExportLanguageService(typeof(IInlineParamNameHintsService), LanguageNames.CSharp), Shared]
     internal class InlineParamNameHintsService : IInlineParamNameHintsService
     {
@@ -56,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
             return spans;
         }
 
+        /// <summary>
+        /// Determines if the argument is of a type that should have an adornment appended
+        /// </summary>
+        /// <param name="arg">The argument that is being looked at</param>
+        /// <returns>true when the adornment should be added</returns>
         private static bool IsLiteralOrNoNamedExpression(ArgumentSyntax arg)
         {
             if (arg.Expression is LiteralExpressionSyntax)

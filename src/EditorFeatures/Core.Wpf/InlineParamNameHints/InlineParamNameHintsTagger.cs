@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineParamNameHints
 {
+    /// <summary>
+    /// The purpose of this tagger is to convert the InlineParamNameHintsDataTags to
+    /// the InlineParamNameHintsTag, which actually creates the UIElement. It reacts to
+    /// tags changing and updates the adornments accordingly.
+    /// </summary>
     class InlineParamNameHintsTagger : ITagger<IntraTextAdornmentTag>
     {
         private readonly ITagAggregator<InlineParamNameHintDataTag> _tagAggregator;
