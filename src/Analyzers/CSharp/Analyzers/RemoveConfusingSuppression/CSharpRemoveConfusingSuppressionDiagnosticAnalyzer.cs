@@ -10,13 +10,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
+namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpRemoveUnnecessarySuppressionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpRemoveConfusingSuppressionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
-        public CSharpRemoveUnnecessarySuppressionDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.RemoveUnnecessarySuppressionForIsExpressionDiagnosticId,
+        public CSharpRemoveConfusingSuppressionDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_suppression_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Suppression_operator_has_no_effect_and_can_be_misinterpreted), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

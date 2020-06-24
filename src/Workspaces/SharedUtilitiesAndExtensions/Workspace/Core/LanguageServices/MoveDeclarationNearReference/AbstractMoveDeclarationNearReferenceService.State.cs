@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                OutermostBlock = DeclarationStatement.Parent;
+                OutermostBlock = syntaxFacts.GetStatementContainer(DeclarationStatement);
                 if (!syntaxFacts.IsExecutableBlock(OutermostBlock))
                 {
                     return false;

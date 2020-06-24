@@ -2733,6 +2733,32 @@ class C
             AssertInstrumented(verifier, "C.E2.remove");
         }
 
+        [CompilerTrait(CompilerFeature.InitOnlySetters)]
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_Accessors_Init()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    [ExcludeFromCodeCoverage]
+    int P1 { get => 1; init {} }
+
+    int P2 { get => 1; init {} }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource + IsExternalInitTypeDefinition,
+                options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            AssertNotInstrumented(verifier, "C.P1.get");
+            AssertNotInstrumented(verifier, "C.P1.init");
+
+            AssertInstrumented(verifier, "C.P2.get");
+            AssertInstrumented(verifier, "C.P2.init");
+        }
+
         [Fact]
         public void ExcludeFromCodeCoverageAttribute_CustomDefinition_Good()
         {

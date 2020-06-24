@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                 nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                 nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                nodeToBind.Kind() == SyntaxKind.SimpleBaseType || // iniializer for a record constructor
                 nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
                 nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                 nodeToBind.Kind() == SyntaxKind.GotoCaseStatement || // for error recovery
@@ -740,6 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                     nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                     nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                    nodeToBind.Kind() == SyntaxKind.SimpleBaseType || // iniializer for a record constructor
                     nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
@@ -766,6 +768,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.BaseConstructorInitializer:
                         var initializer = (ConstructorInitializerSyntax)_nodeToBind;
                         _nodeBinder.BindConstructorInitializer(initializer, diagnostics);
+                        break;
+                    case SyntaxKind.SimpleBaseType:
+                        _nodeBinder.BindConstructorInitializer((SimpleBaseTypeSyntax)_nodeToBind, diagnostics);
                         break;
                     case SyntaxKind.ArgumentList:
                         var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;

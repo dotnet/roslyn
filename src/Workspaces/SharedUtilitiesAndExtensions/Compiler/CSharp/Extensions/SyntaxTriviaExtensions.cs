@@ -211,10 +211,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsPragmaDirective(this SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
         {
-            if (trivia.Kind() == SyntaxKind.PragmaWarningDirectiveTrivia)
+            if (trivia.IsKind(SyntaxKind.PragmaWarningDirectiveTrivia))
             {
                 var pragmaWarning = (PragmaWarningDirectiveTriviaSyntax)trivia.GetStructure();
-                isDisable = pragmaWarning.DisableOrRestoreKeyword.Kind() == SyntaxKind.DisableKeyword;
+                isDisable = pragmaWarning.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
                 isActive = pragmaWarning.IsActive;
                 errorCodes = pragmaWarning.ErrorCodes;
                 return true;
