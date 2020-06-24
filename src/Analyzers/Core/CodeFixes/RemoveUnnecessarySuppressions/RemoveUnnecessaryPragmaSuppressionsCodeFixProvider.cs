@@ -52,23 +52,29 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var seenNodes);
+            // We need to track unique set of processed nodes when removing the nodes.
+            // This is because we generate an unnecessary pragma suppression diagnostic at both the pragma disable and matching pragma restore location
+            // with the corresponding restore/disable location as an additional location to be removed.
+            // Our code fix ensures that we remove both the disable and restore directives with a single code fix application.
+            // So, we need to ensure that we do not attempt to remove the same node multiple times when performing a FixAll in document operation.
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var processedNodes);
+            
             foreach (var diagnostic in diagnostics)
             {
-                RemoveNode(diagnostic.Location, editor, seenNodes);
+                RemoveNode(diagnostic.Location, editor, processedNodes);
 
                 foreach (var location in diagnostic.AdditionalLocations)
                 {
-                    RemoveNode(location, editor, seenNodes);
+                    RemoveNode(location, editor, processedNodes);
                 }
             }
 
             return Task.CompletedTask;
 
-            static void RemoveNode(Location location, SyntaxEditor editor, HashSet<SyntaxNode> seenNodes)
+            static void RemoveNode(Location location, SyntaxEditor editor, HashSet<SyntaxNode> processedNodes)
             {
                 var node = editor.OriginalRoot.FindTrivia(location.SourceSpan.Start).GetStructure()!;
-                if (seenNodes.Add(node))
+                if (processedNodes.Add(node))
                 {
                     editor.RemoveNode(node);
                 }

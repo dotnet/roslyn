@@ -110,8 +110,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             }
 
             // Bail out if analyzer has been turned off through options.
-            var userExclusions = GetUserExclusions(tree, compilationWithAnalyzers, cancellationToken, out var excludeAll);
-            if (excludeAll)
+            var option = compilationWithAnalyzers.AnalysisOptions.Options?.GetOption(
+                CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, tree, cancellationToken).Trim();
+            var (userExclusions, analyzerDisabled) = ParseUserExclusions(option);
+            if (analyzerDisabled)
             {
                 return;
             }
@@ -148,17 +150,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             using var _5 = PooledHashSet<string>.GetInstance(out var compilerDiagnosticIds);
             foreach (var trivia in root.DescendantTrivia())
             {
-                // Check if this is an active pragma with at least one applicable diagnostic ID.
-                if (SyntaxFacts.IsPragmaDirective(trivia, out var isDisable, out var isActive, out var idNodes) &&
+                // Check if this is an active pragma with at least one applicable diagnostic ID/error code.
+                // Note that a pragma can have multiple error codes, such as '#pragma warning disable ID0001, ID0002'
+                if (SyntaxFacts.IsPragmaDirective(trivia, out var isDisable, out var isActive, out var errorCodeNodes) &&
                     isActive &&
-                    idNodes.Count > 0)
+                    errorCodeNodes.Count > 0)
                 {
                     // Iterate through each ID for this pragma and build the supported IDs.
                     idsBuilder.Clear();
-                    foreach (var idNode in idNodes)
+                    foreach (var errorCodeNode in errorCodeNodes)
                     {
                         // Ignore unsupported IDs and those excluded through user option.
-                        if (!IsSupportedId(idNode, out var id, out var isCompilerDiagnosticId) ||
+                        if (!IsSupportedId(errorCodeNode, out var id, out var isCompilerDiagnosticId) ||
                             userExclusions.Contains(id, StringComparer.OrdinalIgnoreCase))
                         {
                             continue;
@@ -191,7 +194,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 
                     sortedPragmasWithIds.Add((trivia, idsBuilder.ToImmutable(), isDisable));
 
-                    // Assume that the prama is not used at the beginning.
+                    // Pragma directive is initialized as unnecessary at the start of the algorithm (value = false).
+                    // We will subsequently find required/used pragmas and update the entries in this map (value = true).
                     pragmasToIsUsedMap.Add(trivia, false);
                 }
             }
@@ -224,291 +228,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // Finally, report the unnecessary pragmas.
             ReportUnnecessaryPragmaDiagnostics(pragmasToIsUsedMap, sortedPragmasWithIds,
                 reportDiagnostic, severity, compilationWithAnalyzers.Compilation);
-
-            return;
-
-            static ImmutableArray<string> GetUserExclusions(
-                SyntaxTree tree,
-                CompilationWithAnalyzers compilationWithAnalyzers,
-                CancellationToken cancellationToken,
-                out bool excludeAll)
-            {
-                excludeAll = false;
-
-                var userExclusions = compilationWithAnalyzers.AnalysisOptions.Options?.GetOption(
-                    CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, tree, cancellationToken).Trim();
-
-                // Option value must be a comma separate list of diagnostic IDs to exclude from unnecessary pragma analysis.
-                // We also allow a special keyword "all" to disable the analyzer completely.
-                switch (userExclusions)
-                {
-                    case "":
-                    case null:
-                        return ImmutableArray<string>.Empty;
-
-                    case "all":
-                        excludeAll = true;
-                        return ImmutableArray<string>.Empty;
-
-                    default:
-                        if (userExclusions == CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions.DefaultValue)
-                            return ImmutableArray<string>.Empty;
-
-                        break;
-                }
-
-                using var _ = ArrayBuilder<string>.GetInstance(out var builder);
-                foreach (var part in userExclusions.Split(','))
-                {
-                    var trimmedPart = part.Trim();
-                    if (string.Equals(trimmedPart, "all", StringComparison.OrdinalIgnoreCase))
-                    {
-                        excludeAll = true;
-                        return ImmutableArray<string>.Empty;
-                    }
-
-                    builder.Add(trimmedPart);
-                }
-
-                return builder.ToImmutable();
-            }
-
-            static async Task<(ImmutableArray<Diagnostic> reportedDiagnostics, ImmutableArray<string> unhandledIds)> GetReportedDiagnosticsForIdsAsync(
-                ImmutableHashSet<string> idsToAnalyze,
-                SyntaxNode root,
-                SemanticModel semanticModel,
-                CompilationWithAnalyzers compilationWithAnalyzers,
-                Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
-                Func<DiagnosticAnalyzer, bool> getIsCompilationEndAnalyzer,
-                PooledHashSet<string> compilerDiagnosticIds,
-                CancellationToken cancellationToken)
-            {
-                using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var analyzersBuilder);
-                using var _2 = ArrayBuilder<string>.GetInstance(out var unhandledIds);
-
-                // First, we compute the relevant analyzers whose reported diagnostics need to be computed.
-                var addedCompilerAnalyzer = false;
-                var hasNonCompilerAnalyzers = idsToAnalyze.Count > compilerDiagnosticIds.Count;
-                foreach (var analyzer in compilationWithAnalyzers.Analyzers)
-                {
-                    if (!addedCompilerAnalyzer &&
-                        analyzer.IsCompilerAnalyzer())
-                    {
-                        addedCompilerAnalyzer = true;
-                        analyzersBuilder.Add(analyzer);
-
-                        if (!hasNonCompilerAnalyzers)
-                        {
-                            break;
-                        }
-
-                        continue;
-                    }
-
-                    if (hasNonCompilerAnalyzers)
-                    {
-                        Debug.Assert(!analyzer.IsCompilerAnalyzer());
-
-                        bool? lazyIsUnhandledAnalyzer = null;
-                        foreach (var descriptor in getSupportedDiagnostics(analyzer))
-                        {
-                            if (!idsToAnalyze.Contains(descriptor.Id))
-                            {
-                                continue;
-                            }
-
-                            lazyIsUnhandledAnalyzer ??= getIsCompilationEndAnalyzer(analyzer) || analyzer is IPragmaSuppressionsAnalyzer;
-                            if (lazyIsUnhandledAnalyzer.Value)
-                            {
-                                unhandledIds.Add(descriptor.Id);
-                            }
-                        }
-
-                        if (lazyIsUnhandledAnalyzer.HasValue && !lazyIsUnhandledAnalyzer.Value)
-                        {
-                            analyzersBuilder.Add(analyzer);
-                        }
-                    }
-                }
-
-                // Then, we execute these analyzers on the current file to fetch these diagnostics.
-                // Note that if an analyzer has already executed, then this will be just a cache access
-                // as computed analyzer diagnostics are cached on CompilationWithAnalyzers instance.
-
-                using var _3 = ArrayBuilder<Diagnostic>.GetInstance(out var reportedDiagnostics);
-                if (!addedCompilerAnalyzer && compilerDiagnosticIds.Count > 0)
-                {
-                    // Special case when compiler analyzer could not be found.
-                    Debug.Assert(semanticModel.Compilation.Options.ReportSuppressedDiagnostics);
-                    reportedDiagnostics.AddRange(root.GetDiagnostics());
-                    reportedDiagnostics.AddRange(semanticModel.GetDiagnostics(cancellationToken: cancellationToken));
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-
-                if (analyzersBuilder.Count > 0)
-                {
-                    var analyzers = analyzersBuilder.ToImmutable();
-
-                    var syntaxDiagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, analyzers, cancellationToken).ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
-                    reportedDiagnostics.AddRange(syntaxDiagnostics);
-
-                    var semanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan: null, analyzers, cancellationToken).ConfigureAwait(false);
-                    cancellationToken.ThrowIfCancellationRequested();
-                    reportedDiagnostics.AddRange(semanticDiagnostics);
-                }
-
-                return (reportedDiagnostics.ToImmutable(), unhandledIds.ToImmutable());
-            }
-
-            static void ProcessReportedDiagnostics(
-                ImmutableArray<Diagnostic> diagnostics,
-                SyntaxTree tree,
-                CompilationWithAnalyzers compilationWithAnalyzers,
-                PooledDictionary<string, List<(SyntaxTrivia pragma, bool isDisable)>> idToPragmasMap,
-                PooledDictionary<SyntaxTrivia, bool> pragmasToIsUsedMap)
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    if (!diagnostic.IsSuppressed ||
-                        !idToPragmasMap.TryGetValue(diagnostic.Id, out var pragmasForIdInReverseOrder))
-                    {
-                        continue;
-                    }
-
-                    var suppressionInfo = diagnostic.GetSuppressionInfo(compilationWithAnalyzers.Compilation);
-                    if (suppressionInfo?.Attribute != null)
-                    {
-                        // Ignore diagnostics suppressed by SuppressMessageAttributes.
-                        continue;
-                    }
-
-                    Debug.Assert(diagnostic.Location.IsInSource);
-                    Debug.Assert(diagnostic.Location.SourceTree == tree);
-
-                    // Process the pragmas for the document bottom-up,
-                    // finding the first disable pragma directive before the diagnostic span.
-                    // Mark this pragma and the corresponding enable pragma directive as used.
-                    SyntaxTrivia? lastEnablePragma = null;
-                    foreach (var (pragma, isDisable) in pragmasForIdInReverseOrder)
-                    {
-                        if (isDisable)
-                        {
-                            if (pragma.Span.End <= diagnostic.Location.SourceSpan.Start)
-                            {
-                                pragmasToIsUsedMap[pragma] = true;
-                                if (lastEnablePragma.HasValue)
-                                {
-                                    pragmasToIsUsedMap[lastEnablePragma.Value] = true;
-                                }
-
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            lastEnablePragma = pragma;
-                        }
-                    }
-                }
-            }
-
-            static void ReportUnnecessaryPragmaDiagnostics(
-                PooledDictionary<SyntaxTrivia, bool> pragmasToIsUsedMap,
-                ArrayBuilder<(SyntaxTrivia pragma, ImmutableArray<string> ids, bool isDisable)> sortedPragmasWithIds,
-                Action<Diagnostic> reportDiagnostic,
-                ReportDiagnostic severity,
-                Compilation compilation)
-            {
-                using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
-                foreach (var (pragma, isUsed) in pragmasToIsUsedMap)
-                {
-                    if (!isUsed)
-                    {
-                        // We found an unnecessary pragma directive.
-                        // Try to find a matching disable/restore counterpart that toggles the pragma state.
-                        // This enables the code fix to simultaneously remove both the disable and restore directives.
-                        // If we don't find a matching pragma, report just the current pragma.
-                        ImmutableArray<Location> additionalLocations;
-                        if (TryGetTogglingPragmaDirective(pragma, sortedPragmasWithIds, out var togglePragma) &&
-                            pragmasToIsUsedMap.TryGetValue(togglePragma, out var isToggleUsed) &&
-                            !isToggleUsed)
-                        {
-                            additionalLocations = ImmutableArray.Create(togglePragma.GetLocation());
-                        }
-                        else
-                        {
-                            additionalLocations = ImmutableArray<Location>.Empty;
-                        }
-
-                        var effectiveSeverity = severity.ToDiagnosticSeverity() ?? s_removeUnnecessarySuppressionDescriptor.DefaultSeverity;
-                        var diagnostic = Diagnostic.Create(s_removeUnnecessarySuppressionDescriptor, pragma.GetLocation(), effectiveSeverity, additionalLocations, properties: null);
-                        diagnosticsBuilder.Add(diagnostic);
-                    }
-                }
-
-                // Apply the diagnostic filtering
-                var effectiveDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnosticsBuilder, compilation);
-                foreach (var diagnostic in effectiveDiagnostics)
-                {
-                    reportDiagnostic(diagnostic);
-                }
-            }
-
-            static bool TryGetTogglingPragmaDirective(
-                SyntaxTrivia pragma,
-                ArrayBuilder<(SyntaxTrivia pragma, ImmutableArray<string> ids, bool isDisable)> sortedPragmasWithIds,
-                out SyntaxTrivia togglePragma)
-            {
-                var indexOfPragma = sortedPragmasWithIds.FindIndex(p => p.pragma == pragma);
-                var idsForPragma = sortedPragmasWithIds[indexOfPragma].ids;
-                var isDisable = sortedPragmasWithIds[indexOfPragma].isDisable;
-                var incrementOrDecrement = isDisable ? 1 : -1;
-                var matchingPragmaStackCount = 0;
-                for (var i = indexOfPragma + incrementOrDecrement; i >= 0 && i < sortedPragmasWithIds.Count; i += incrementOrDecrement)
-                {
-                    var (nextPragma, nextPragmaIds, nextPragmaIsDisable) = sortedPragmasWithIds[i];
-                    var intersect = nextPragmaIds.Intersect(idsForPragma).ToImmutableArray();
-                    if (intersect.IsEmpty)
-                    {
-                        // Unrelated pragma
-                        continue;
-                    }
-
-                    if (intersect.Length != idsForPragma.Length)
-                    {
-                        // Partial intersection of IDs - bail out.
-                        togglePragma = default;
-                        return false;
-                    }
-
-                    // Found a pragma with same IDs.
-                    // Check if this is a pragma of same kind (disable/restore) or not.
-                    if (isDisable == nextPragmaIsDisable)
-                    {
-                        // Same pragma kind, increment the stack count
-                        matchingPragmaStackCount++;
-                    }
-                    else
-                    {
-                        // Found a pragma of opposite kind.
-                        if (matchingPragmaStackCount > 0)
-                        {
-                            // Not matching one for the input pragma, decrement stack count
-                            matchingPragmaStackCount--;
-                        }
-                        else
-                        {
-                            // Found the match.
-                            togglePragma = nextPragma;
-                            return true;
-                        }
-                    }
-                }
-
-                togglePragma = default;
-                return false;
-            }
         }
 
         private bool IsSupportedId(
@@ -553,6 +272,274 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 default:
                     return idWithoutPrefix == id;
             }
+        }
+
+        private static (ImmutableArray<string> userExclusions, bool analyzerDisabled) ParseUserExclusions(string? userExclusions)
+        {
+            // Option value must be a comma separate list of diagnostic IDs to exclude from unnecessary pragma analysis.
+            // We also allow a special keyword "all" to disable the analyzer completely.
+            switch (userExclusions)
+            {
+                case "":
+                case null:
+                    return (userExclusions: ImmutableArray<string>.Empty, analyzerDisabled: false);
+
+                case "all":
+                    return (userExclusions: ImmutableArray<string>.Empty, analyzerDisabled: true);
+
+                default:
+                    // Default string representation for unconfigured option value should be treated as no exclusions.
+                    if (userExclusions == CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions.DefaultValue)
+                        return (userExclusions: ImmutableArray<string>.Empty, analyzerDisabled: false);
+
+                    break;
+            }
+
+            using var _ = ArrayBuilder<string>.GetInstance(out var builder);
+            foreach (var part in userExclusions.Split(','))
+            {
+                var trimmedPart = part.Trim();
+                builder.Add(trimmedPart);
+            }
+
+            return (userExclusions: builder.ToImmutable(), analyzerDisabled: false);
+        }
+
+        private static async Task<(ImmutableArray<Diagnostic> reportedDiagnostics, ImmutableArray<string> unhandledIds)> GetReportedDiagnosticsForIdsAsync(
+            ImmutableHashSet<string> idsToAnalyze,
+            SyntaxNode root,
+            SemanticModel semanticModel,
+            CompilationWithAnalyzers compilationWithAnalyzers,
+            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
+            Func<DiagnosticAnalyzer, bool> getIsCompilationEndAnalyzer,
+            PooledHashSet<string> compilerDiagnosticIds,
+            CancellationToken cancellationToken)
+        {
+            using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var analyzersBuilder);
+            using var _2 = ArrayBuilder<string>.GetInstance(out var unhandledIds);
+
+            // First, we compute the relevant analyzers whose reported diagnostics need to be computed.
+            var addedCompilerAnalyzer = false;
+            var hasNonCompilerAnalyzers = idsToAnalyze.Count > compilerDiagnosticIds.Count;
+            foreach (var analyzer in compilationWithAnalyzers.Analyzers)
+            {
+                if (!addedCompilerAnalyzer &&
+                    analyzer.IsCompilerAnalyzer())
+                {
+                    addedCompilerAnalyzer = true;
+                    analyzersBuilder.Add(analyzer);
+
+                    if (!hasNonCompilerAnalyzers)
+                    {
+                        break;
+                    }
+
+                    continue;
+                }
+
+                if (hasNonCompilerAnalyzers)
+                {
+                    Debug.Assert(!analyzer.IsCompilerAnalyzer());
+
+                    bool? lazyIsUnhandledAnalyzer = null;
+                    foreach (var descriptor in getSupportedDiagnostics(analyzer))
+                    {
+                        if (!idsToAnalyze.Contains(descriptor.Id))
+                        {
+                            continue;
+                        }
+
+                        lazyIsUnhandledAnalyzer ??= getIsCompilationEndAnalyzer(analyzer) || analyzer is IPragmaSuppressionsAnalyzer;
+                        if (lazyIsUnhandledAnalyzer.Value)
+                        {
+                            unhandledIds.Add(descriptor.Id);
+                        }
+                    }
+
+                    if (lazyIsUnhandledAnalyzer.HasValue && !lazyIsUnhandledAnalyzer.Value)
+                    {
+                        analyzersBuilder.Add(analyzer);
+                    }
+                }
+            }
+
+            // Then, we execute these analyzers on the current file to fetch these diagnostics.
+            // Note that if an analyzer has already executed, then this will be just a cache access
+            // as computed analyzer diagnostics are cached on CompilationWithAnalyzers instance.
+
+            using var _3 = ArrayBuilder<Diagnostic>.GetInstance(out var reportedDiagnostics);
+            if (!addedCompilerAnalyzer && compilerDiagnosticIds.Count > 0)
+            {
+                // Special case when compiler analyzer could not be found.
+                Debug.Assert(semanticModel.Compilation.Options.ReportSuppressedDiagnostics);
+                reportedDiagnostics.AddRange(root.GetDiagnostics());
+                reportedDiagnostics.AddRange(semanticModel.GetDiagnostics(cancellationToken: cancellationToken));
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            if (analyzersBuilder.Count > 0)
+            {
+                var analyzers = analyzersBuilder.ToImmutable();
+
+                var syntaxDiagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, analyzers, cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                reportedDiagnostics.AddRange(syntaxDiagnostics);
+
+                var semanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan: null, analyzers, cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                reportedDiagnostics.AddRange(semanticDiagnostics);
+            }
+
+            return (reportedDiagnostics.ToImmutable(), unhandledIds.ToImmutable());
+        }
+
+        private static void ProcessReportedDiagnostics(
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxTree tree,
+            CompilationWithAnalyzers compilationWithAnalyzers,
+            PooledDictionary<string, List<(SyntaxTrivia pragma, bool isDisable)>> idToPragmasMap,
+            PooledDictionary<SyntaxTrivia, bool> pragmasToIsUsedMap)
+        {
+            foreach (var diagnostic in diagnostics)
+            {
+                if (!diagnostic.IsSuppressed ||
+                    !idToPragmasMap.TryGetValue(diagnostic.Id, out var pragmasForIdInReverseOrder))
+                {
+                    continue;
+                }
+
+                var suppressionInfo = diagnostic.GetSuppressionInfo(compilationWithAnalyzers.Compilation);
+                if (suppressionInfo?.Attribute != null)
+                {
+                    // Ignore diagnostics suppressed by SuppressMessageAttributes.
+                    continue;
+                }
+
+                Debug.Assert(diagnostic.Location.IsInSource);
+                Debug.Assert(diagnostic.Location.SourceTree == tree);
+
+                // Process the pragmas for the document bottom-up,
+                // finding the first disable pragma directive before the diagnostic span.
+                // Mark this pragma and the corresponding enable pragma directive as used.
+                SyntaxTrivia? lastEnablePragma = null;
+                foreach (var (pragma, isDisable) in pragmasForIdInReverseOrder)
+                {
+                    if (isDisable)
+                    {
+                        if (pragma.Span.End <= diagnostic.Location.SourceSpan.Start)
+                        {
+                            pragmasToIsUsedMap[pragma] = true;
+                            if (lastEnablePragma.HasValue)
+                            {
+                                pragmasToIsUsedMap[lastEnablePragma.Value] = true;
+                            }
+
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        lastEnablePragma = pragma;
+                    }
+                }
+            }
+        }
+
+        private static void ReportUnnecessaryPragmaDiagnostics(
+            PooledDictionary<SyntaxTrivia, bool> pragmasToIsUsedMap,
+            ArrayBuilder<(SyntaxTrivia pragma, ImmutableArray<string> ids, bool isDisable)> sortedPragmasWithIds,
+            Action<Diagnostic> reportDiagnostic,
+            ReportDiagnostic severity,
+            Compilation compilation)
+        {
+            using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
+            foreach (var (pragma, isUsed) in pragmasToIsUsedMap)
+            {
+                if (!isUsed)
+                {
+                    // We found an unnecessary pragma directive.
+                    // Try to find a matching disable/restore counterpart that toggles the pragma state.
+                    // This enables the code fix to simultaneously remove both the disable and restore directives.
+                    // If we don't find a matching pragma, report just the current pragma.
+                    ImmutableArray<Location> additionalLocations;
+                    if (TryGetTogglingPragmaDirective(pragma, sortedPragmasWithIds, out var togglePragma) &&
+                        pragmasToIsUsedMap.TryGetValue(togglePragma, out var isToggleUsed) &&
+                        !isToggleUsed)
+                    {
+                        additionalLocations = ImmutableArray.Create(togglePragma.GetLocation());
+                    }
+                    else
+                    {
+                        additionalLocations = ImmutableArray<Location>.Empty;
+                    }
+
+                    var effectiveSeverity = severity.ToDiagnosticSeverity() ?? s_removeUnnecessarySuppressionDescriptor.DefaultSeverity;
+                    var diagnostic = Diagnostic.Create(s_removeUnnecessarySuppressionDescriptor, pragma.GetLocation(), effectiveSeverity, additionalLocations, properties: null);
+                    diagnosticsBuilder.Add(diagnostic);
+                }
+            }
+
+            // Apply the diagnostic filtering
+            var effectiveDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnosticsBuilder, compilation);
+            foreach (var diagnostic in effectiveDiagnostics)
+            {
+                reportDiagnostic(diagnostic);
+            }
+        }
+
+        private static bool TryGetTogglingPragmaDirective(
+            SyntaxTrivia pragma,
+            ArrayBuilder<(SyntaxTrivia pragma, ImmutableArray<string> ids, bool isDisable)> sortedPragmasWithIds,
+            out SyntaxTrivia togglePragma)
+        {
+            var indexOfPragma = sortedPragmasWithIds.FindIndex(p => p.pragma == pragma);
+            var idsForPragma = sortedPragmasWithIds[indexOfPragma].ids;
+            var isDisable = sortedPragmasWithIds[indexOfPragma].isDisable;
+            var incrementOrDecrement = isDisable ? 1 : -1;
+            var matchingPragmaStackCount = 0;
+            for (var i = indexOfPragma + incrementOrDecrement; i >= 0 && i < sortedPragmasWithIds.Count; i += incrementOrDecrement)
+            {
+                var (nextPragma, nextPragmaIds, nextPragmaIsDisable) = sortedPragmasWithIds[i];
+                var intersect = nextPragmaIds.Intersect(idsForPragma).ToImmutableArray();
+                if (intersect.IsEmpty)
+                {
+                    // Unrelated pragma
+                    continue;
+                }
+
+                if (intersect.Length != idsForPragma.Length)
+                {
+                    // Partial intersection of IDs - bail out.
+                    togglePragma = default;
+                    return false;
+                }
+
+                // Found a pragma with same IDs.
+                // Check if this is a pragma of same kind (disable/restore) or not.
+                if (isDisable == nextPragmaIsDisable)
+                {
+                    // Same pragma kind, increment the stack count
+                    matchingPragmaStackCount++;
+                }
+                else
+                {
+                    // Found a pragma of opposite kind.
+                    if (matchingPragmaStackCount > 0)
+                    {
+                        // Not matching one for the input pragma, decrement stack count
+                        matchingPragmaStackCount--;
+                    }
+                    else
+                    {
+                        // Found the match.
+                        togglePragma = nextPragma;
+                        return true;
+                    }
+                }
+            }
+
+            togglePragma = default;
+            return false;
         }
     }
 }
