@@ -3554,19 +3554,22 @@ class C
 
             var analyzersToQuery = singleAnalyzer ? ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1) : allAnalyzers;
 
-            ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnostics;
+            AnalysisResult analysisResult;
             if (singleAnalyzer)
             {
-                diagnostics = syntax ?
-                    await compilationWithAnalyzers.GetCategorizedAnalyzerSyntaxDiagnosticsAsync(tree1, analyzersToQuery, CancellationToken.None) :
-                    await compilationWithAnalyzers.GetCategorizedAnalyzerSemanticDiagnosticsAsync(semanticModel1, filterSpan: null, analyzersToQuery, CancellationToken.None);
+                analysisResult = syntax ?
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(tree1, analyzersToQuery, CancellationToken.None) :
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, analyzersToQuery, CancellationToken.None);
             }
             else
             {
-                diagnostics = syntax ?
-                    await compilationWithAnalyzers.GetCategorizedAnalyzerSyntaxDiagnosticsAsync(tree1, CancellationToken.None) :
-                    await compilationWithAnalyzers.GetCategorizedAnalyzerSemanticDiagnosticsAsync(semanticModel1, filterSpan: null, CancellationToken.None);
+                analysisResult = syntax ?
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(tree1, CancellationToken.None) :
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, CancellationToken.None);
             }
+
+            var diagnosticsMap = syntax ? analysisResult.SyntaxDiagnostics : analysisResult.SemanticDiagnostics;
+            var diagnostics = diagnosticsMap.TryGetValue(tree1, out var value) ? value : ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
 
             foreach (var analyzer in allAnalyzers)
             {

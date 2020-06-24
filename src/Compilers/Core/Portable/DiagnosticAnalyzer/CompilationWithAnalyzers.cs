@@ -480,43 +480,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns categorized syntax diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="tree"/>.
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SyntaxDiagnostics"/> produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="tree"/>.
         /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="tree">Syntax tree to analyze.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetCategorizedAnalyzerSyntaxDiagnosticsAsync(SyntaxTree tree, CancellationToken cancellationToken)
+        public Task<AnalysisResult> GetAnalysisResultAsync(SyntaxTree tree, CancellationToken cancellationToken)
         {
             VerifyTree(tree);
 
-            return GetCategorizedAnalyzerSyntaxDiagnosticsCoreAsync(tree, Analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(tree, Analyzers, cancellationToken);
         }
 
         /// <summary>
-        /// Returns categorized syntax diagnostics produced by given <paramref name="analyzers"/> from analyzing the given <paramref name="tree"/>.
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SyntaxDiagnostics"/> produced by given <paramref name="analyzers"/> from analyzing the given <paramref name="tree"/>.
         /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="tree">Syntax tree to analyze.</param>
         /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetCategorizedAnalyzerSyntaxDiagnosticsAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        public Task<AnalysisResult> GetAnalysisResultAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
             VerifyTree(tree);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return GetCategorizedAnalyzerSyntaxDiagnosticsCoreAsync(tree, analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(tree, analyzers, cancellationToken);
         }
 
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetCategorizedAnalyzerSyntaxDiagnosticsCoreAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
             try
             {
                 var analysisScope = new AnalysisScope(analyzers, tree, filterSpan: null, syntaxAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
                 await ComputeAnalyzerSyntaxDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
-                var result = _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
-                return result.SyntaxDiagnostics.TryGetValue(tree, out var diagnostics) ?
-                    diagnostics :
-                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
+                return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -574,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns semantic diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Returns semantic diagnostics produced by the given <paramref name="analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
         /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="model">Semantic model representing the syntax tree to analyze.</param>
@@ -590,49 +587,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns categorized semantic diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
-        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
-        /// can be absent.
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SemanticDiagnostics"/> produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="model">Semantic model representing the syntax tree to analyze.</param>
         /// <param name="filterSpan">An optional span within the tree to scope analysis.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetCategorizedAnalyzerSemanticDiagnosticsAsync(SemanticModel model, TextSpan? filterSpan, CancellationToken cancellationToken)
+        public Task<AnalysisResult> GetAnalysisResultAsync(SemanticModel model, TextSpan? filterSpan, CancellationToken cancellationToken)
         {
             VerifyModel(model);
 
-            return GetCategorizedAnalyzerSemanticDiagnosticsCoreAsync(model, filterSpan, this.Analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(model, filterSpan, this.Analyzers, cancellationToken);
         }
 
         /// <summary>
-        /// Returns categorized semantic diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
-        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
-        /// can be absent.
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SemanticDiagnostics"/> produced by the given <paramref name="analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="model">Semantic model representing the syntax tree to analyze.</param>
         /// <param name="filterSpan">An optional span within the tree to scope analysis.</param>
         /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetCategorizedAnalyzerSemanticDiagnosticsAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        public Task<AnalysisResult> GetAnalysisResultAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
             VerifyModel(model);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return GetCategorizedAnalyzerSemanticDiagnosticsCoreAsync(model, filterSpan, analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(model, filterSpan, analyzers, cancellationToken);
         }
 
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetCategorizedAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
             try
             {
                 var analysisScope = new AnalysisScope(analyzers, model.SyntaxTree, filterSpan, syntaxAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
                 await ComputeAnalyzerSemanticDiagnosticsAsync(model, analysisScope, cancellationToken).ConfigureAwait(false);
-                var result = _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
-                return result.SemanticDiagnostics.TryGetValue(model.SyntaxTree, out var diagnostics) ?
-                    diagnostics :
-                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
+                return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
