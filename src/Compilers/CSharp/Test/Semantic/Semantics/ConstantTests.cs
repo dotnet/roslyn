@@ -3471,10 +3471,9 @@ class C
 {
     static void F()
     {
-        const string X = ""2b"";
-        const string Y = X + ""9s"";
-        const string F = $""bb"";
-        System.Console.WriteLine(Y + F);
+        const string S = $""Testing"";
+        const string F = $""{$""{S}""}"";
+        System.Console.WriteLine(F);
     }
 }";
             var comp = CreateCompilation(source);

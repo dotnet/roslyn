@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             builder.Add(new BoundStringInsert(interpolation, value, alignment, format, null));
+                            resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
                             continue;
                         }
                     case SyntaxKind.InterpolatedStringText:
