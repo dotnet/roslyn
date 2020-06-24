@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             CancellationToken cancellationToken,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
             uint defaultMaxInterproceduralMethodCallChain = 1, // By default, we only want to track method calls one level down.
-            bool pessimisticAnalysis = true)
+            bool pessimisticAnalysis = false)
         {
             Debug.Assert(!owningSymbol.IsConfiguredToSkipAnalysis(analyzerOptions, rule, compilation, cancellationToken));
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             SymbolNamesWithValueOption<Unit> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool performCopyAnalysis,
-            bool pessimisticAnalysis = true)
+            bool pessimisticAnalysis)
         {
             var cfg = topmostBlock.GetEnclosingControlFlowGraph();
             if (cfg == null)
