@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly ImmutableArray<(T first, T last)> _intervals;
 
             public readonly static NumericValueSet<T, TTC> AllValues = new NumericValueSet<T, TTC>(default(TTC).MinValue, default(TTC).MaxValue);
+
             public readonly static NumericValueSet<T, TTC> NoValues = new NumericValueSet<T, TTC>(ImmutableArray<(T first, T last)>.Empty);
 
             internal NumericValueSet(T first, T last) : this(ImmutableArray.Create((first, last)))
@@ -49,7 +51,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _intervals = intervals;
             }
 
-            bool IValueSet.IsEmpty => _intervals.Length == 0;
+            public bool IsEmpty => _intervals.Length == 0;
+
+            ConstantValue IValueSet.Sample
+            {
+                get
+                {
+                    if (IsEmpty)
+                        throw new ArgumentException();
+
+                    // Prefer a value near zero.
+                    var tc = default(TTC);
+                    var gz = NumericValueSetFactory<T, TTC>.Instance.Related(BinaryOperatorKind.GreaterThanOrEqual, tc.Zero);
+                    var t = (NumericValueSet<T, TTC>)this.Intersect(gz);
+                    if (!t.IsEmpty)
+                        return tc.ToConstantValue(t._intervals[0].first);
+                    return tc.ToConstantValue(this._intervals[this._intervals.Length - 1].last);
+                }
+            }
 
             public bool Any(BinaryOperatorKind relation, T value)
             {
