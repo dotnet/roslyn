@@ -8,7 +8,7 @@ $ErrorActionPreference="Stop"
 
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
-$PublishDataUrl = "https://raw.githubusercontent.com/dibarbet/roslyn/migrate_feeds/eng/config/PublishData.json"
+$PublishDataUrl = "https://raw.githubusercontent.com/dibarbet/roslyn/fb23175a852ee9045b74185aa53070a404a9d6c7/eng/config/PublishData.json"
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
@@ -49,9 +49,13 @@ function GetFeedPublishData() {
   return $data.feeds
 }
 
-function GetPackagesPublishData() {
+function GetPackagesPublishData([string]$packageFeeds) {
   $data = GetPublishData
-  return $data.packages
+  if (Get-Member -InputObject $data.packages -Name $packageFeeds) {
+    return $data.packages.$packageFeeds
+  } else {
+    return $null
+  }
 }
 
 function GetReleasePublishData([string]$releaseName) {

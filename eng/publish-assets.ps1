@@ -19,8 +19,7 @@ Param(
   [string]$gitHubToken = "",
   [string]$gitHubEmail = "",
   [string]$nugetApiKey = "",
-  [string]$myGetApiKey = "",
-  [string]$azureApiKey = ""
+  [string]$myGetApiKey = ""
 )
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -31,7 +30,8 @@ function Get-PublishKey([string]$uploadUrl) {
   switch ($url.Host) {
     "dotnet.myget.org" { return $myGetApiKey }
     "api.nuget.org" { return $nugetApiKey }
-    "pkgs.dev.azure.com" { return $azureApiKey}
+    # For publishing to azure, the API key can be any non-empty string as authentication is done in the pipeline.
+    "pkgs.dev.azure.com" { return "AzureArtifacts"}
     default { throw "Cannot determine publish key for $uploadUrl" }
   }
 }
@@ -39,10 +39,12 @@ function Get-PublishKey([string]$uploadUrl) {
 function Publish-Nuget($publishData, [string]$packageDir) {
   Push-Location $packageDir
   try {
-    # Retrieve the mapping of package (without version and extension) to the feed name
-    # and also the mapping of feed name to nuget source from PublishData.json
+    # Retrieve the feed name to source mapping.
     $feedData = GetFeedPublishData
-    $packagesData = GetPackagesPublishData
+
+    # Each branch stores the name of the package to feed map it should use.
+    # Retrieve the correct map for this particular branch.
+    $packagesData = GetPackagesPublishData $publishData.packageFeeds
 
     foreach ($package in Get-ChildItem *.nupkg) {
       $nupkg = Split-Path -Leaf $package
@@ -59,6 +61,12 @@ function Publish-Nuget($publishData, [string]$packageDir) {
 
       # Use the feed name to get the source to upload the package to.
       $feedName = $packagesData.$nupkgWithoutVersion
+      if ($feedName.equals("arcade"))
+      {
+        Write-Host "    Skipping publishing for $nupkg as it is published by arcade"
+        continue
+      }
+
       if (-not (Get-Member -InputObject $feedData -Name $feedName))
       {
         throw "$feedName has no configured source feed"
@@ -66,6 +74,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       
       $uploadUrl = $feedData.$feedName
       $apiKey = Get-PublishKey $uploadUrl
+
       if (-not $test) {
         Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
       }
