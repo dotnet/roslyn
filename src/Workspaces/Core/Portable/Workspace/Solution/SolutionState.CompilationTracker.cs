@@ -107,7 +107,8 @@ namespace Microsoft.CodeAnalysis
                              symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
                 var unrootedSymbolSet = state.UnrootedSymbolSet;
-                return unrootedSymbolSet != null && unrootedSymbolSet.TryGetValue(symbol, out _);
+                Contract.ThrowIfNull(unrootedSymbolSet, $"Should not be checking if a symbol is from this compilation for this {state.GetType()} state");
+                return unrootedSymbolSet.TryGetValue(symbol, out _);
             }
 
             /// <summary>

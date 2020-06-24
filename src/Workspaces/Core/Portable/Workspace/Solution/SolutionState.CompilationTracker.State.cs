@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
                     : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
                            generatorDriver: inProgressGeneratorDriver,
-                           GetUnrootedSymbols(inProgressCompilation))
+                           unrootedSymbolSet: null)
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
                            generatorDriver,
-                           GetUnrootedSymbols(declarationCompilation))
+                           unrootedSymbolSet: null)
                 {
                 }
             }
