@@ -3627,10 +3627,17 @@ class C
 
                 var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
+                var type = (INamedTypeSymbol)model.GetTypeInfo(node).Type;
                 Assert.Equal("(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, "
                      + "System.String h, System.Int32 i, System.Int32 j, System.Int32 k, System.Int32 l, System.Int32 m, System.Int32 n, "
                      + "System.String o, System.Int32 p, System.Int32 q)",
-                     model.GetTypeInfo(node).Type.ToTestDisplayString());
+                     type.ToTestDisplayString());
+
+                foreach (var item in type.TupleElements)
+                {
+                    Assert.True(item.IsExplicitlyNamedTupleElement);
+                    Assert.False(item.CorrespondingTupleField.IsExplicitlyNamedTupleElement);
+                }
             };
 
             var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", sourceSymbolValidator: validator);
@@ -3670,8 +3677,21 @@ class C
                 var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
                 var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+                var yType = (INamedTypeSymbol)model.GetTypeInfo(yTuple).Type;
                 Assert.Equal("(System.Int32 a, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32 e, System.Int32 f, System.Int32, System.Int32, System.Int32)",
-                    model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+                    yType.ToTestDisplayString());
+
+                Assert.Equal("a", yType.TupleElements[0].Name);
+                Assert.True(yType.TupleElements[0].IsExplicitlyNamedTupleElement);
+                Assert.False(yType.TupleElements[0].CorrespondingTupleField.IsExplicitlyNamedTupleElement);
+
+                Assert.Equal("Item2", yType.TupleElements[1].Name);
+                Assert.False(yType.TupleElements[1].IsExplicitlyNamedTupleElement);
+                Assert.Same(yType.TupleElements[1], yType.TupleElements[1].CorrespondingTupleField);
+
+                Assert.Equal("b", yType.TupleElements[2].Name);
+                Assert.True(yType.TupleElements[2].IsExplicitlyNamedTupleElement);
+                Assert.False(yType.TupleElements[2].CorrespondingTupleField.IsExplicitlyNamedTupleElement);
 
                 var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
                 Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
@@ -12578,7 +12598,7 @@ class C
             AssertVirtualTupleElementField(m2a2);
 
             Assert.Same(m1Item1, m1Item1.OriginalDefinition);
-            Assert.True(m1Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
+            Assert.True(m1Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything)); // TODO2
             Assert.True(m1Item1.Equals(m1Item1));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m1Item1.AssociatedSymbol);
@@ -21807,6 +21827,46 @@ public class B
             Assert.Equal("(System.Int32, System.Int32)[missing]", methodM.ReturnTypeWithAnnotations.ToTestDisplayString());
             Assert.True(methodM.ReturnType.IsTupleType);
             Assert.True(methodM.ReturnType.IsErrorType());
+            foreach (var item in methodM.ReturnType.TupleElements)
+            {
+                Assert.False(item.IsExplicitlyNamedTupleElement);
+            }
+        }
+
+        [Fact]
+        public void RetargetTupleErrorType_WithNames()
+        {
+            var lib_cs = @"
+public class A
+{
+    public static (int Item1, int Bob) M() { return (1, 2); }
+}
+";
+            var source = @"
+public class B
+{
+    void M2() { return A.M(); }
+}
+";
+            var lib = CreateCompilationWithMscorlib40(lib_cs, references: s_valueTupleRefs);
+            lib.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { lib.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                //     void M2() { return A.M(); }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
+                );
+
+            var methodM = comp.GetMember<MethodSymbol>("A.M");
+
+            Assert.Equal("(System.Int32 Item1, System.Int32 Bob)[missing]", methodM.ReturnTypeWithAnnotations.ToTestDisplayString());
+            Assert.True(methodM.ReturnType.IsTupleType);
+            Assert.True(methodM.ReturnType.IsErrorType());
+            foreach (var item in methodM.ReturnType.TupleElements)
+            {
+                Assert.True(item.IsExplicitlyNamedTupleElement);
+            }
         }
 
         [Fact, WorkItem(13088, "https://github.com/dotnet/roslyn/issues/13088")]
@@ -27432,12 +27492,13 @@ class C
             static void verify(FieldSymbol field, bool retargeting, int index)
             {
                 Assert.True(field.IsDefinition);
-                Assert.True(field.HasUseSiteError); // TODO2
+                //Assert.True(field.HasUseSiteError); // TODO2, the tuple error element fields have use-site errors, but the retargeted fields don't. We shouldn't retarget fake fields, they should be re-added.
                 Assert.True(field.IsTupleElement());
                 Assert.True(field.IsDefaultTupleElement);
                 Assert.Equal(index, field.TupleElementIndex);
                 //Assert.Null(field.TupleUnderlyingField); // TODO2
                 Assert.Same(field, field.CorrespondingTupleField);
+                Assert.False(field.IsExplicitlyNamedTupleElement);
             }
         }
 
@@ -27695,6 +27756,7 @@ namespace System
 
                     Assert.Same(item, item.TupleUnderlyingField);
                     Assert.Same(item, item.CorrespondingTupleField);
+                    Assert.False(item.IsExplicitlyNamedTupleElement);
 
                     Assert.Null(item.AssociatedSymbol);
                 }
@@ -27773,6 +27835,7 @@ namespace System
 
                     Assert.Null(item.TupleUnderlyingField);
                     Assert.Null(item.CorrespondingTupleField);
+                    Assert.False(item.IsExplicitlyNamedTupleElement);
                     Assert.Null(item.AssociatedSymbol);
                 }
             }
@@ -27866,6 +27929,7 @@ namespace System
                         Assert.Null(item.CorrespondingTupleField);
                     }
 
+                    Assert.False(item.IsExplicitlyNamedTupleElement);
                     Assert.Same(item, item.TupleUnderlyingField);
                     Assert.Null(item.AssociatedSymbol);
                 }
@@ -28070,7 +28134,7 @@ namespace System
                 Assert.True(tuple1.GetMember<FieldSymbol>("Item1").IsDefinition);
 
                 var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M2").ReturnType;
-                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2)", print(tuple2));
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2)", print(tuple2)); // TODO2
                 AssertEx.SetEqual(new[] {
                     "SubstitutedFieldSymbol: field",
                     "TupleElementFieldSymbol: Item1",

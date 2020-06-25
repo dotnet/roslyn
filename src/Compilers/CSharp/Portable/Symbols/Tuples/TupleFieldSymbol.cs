@@ -77,6 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override sealed bool IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                return !_isImplicitlyDeclared;
+            }
+        }
+
         public sealed override FieldSymbol TupleUnderlyingField
         {
             get

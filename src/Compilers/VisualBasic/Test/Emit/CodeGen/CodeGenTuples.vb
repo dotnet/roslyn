@@ -5773,6 +5773,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.Equal("first As T1", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.False(mFirst.IsImplicitlyDeclared)
             Assert.Null(mFirst.TypeLayoutOffset)
+            Assert.True(DirectCast(mFirst, IFieldSymbol).IsExplicitlyNamedTupleElement)
 
             Dim mItem1 = DirectCast(mTuple.GetMembers("Item1").Single(), FieldSymbol)
 
@@ -5791,6 +5792,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mItem1.Locations.IsEmpty)
             Assert.True(mItem1.IsImplicitlyDeclared)
             Assert.Null(mItem1.TypeLayoutOffset)
+            Assert.False(DirectCast(mItem1, IFieldSymbol).IsExplicitlyNamedTupleElement)
 
         End Sub
 
@@ -15385,6 +15387,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.Equal("Item1", m3Item8.TupleUnderlyingField.Name)
             Assert.True(m3Item8.IsImplicitlyDeclared)
             Assert.Null(m3Item8.TypeLayoutOffset)
+            Assert.False(DirectCast(m3Item8, IFieldSymbol).IsExplicitlyNamedTupleElement)
 
             Dim m3TupleRestTuple = DirectCast(DirectCast(m3Tuple.GetMembers("Rest").Single(), FieldSymbol).Type, NamedTypeSymbol)
             AssertTestDisplayString(m3TupleRestTuple.GetMembers(),
@@ -15546,6 +15549,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.Equal("Item1", m4Item8.TupleUnderlyingField.Name)
             Assert.True(m4Item8.IsImplicitlyDeclared)
             Assert.Null(m4Item8.TypeLayoutOffset)
+            Assert.False(DirectCast(m4Item8, IFieldSymbol).IsExplicitlyNamedTupleElement)
 
             Dim m4h4 = DirectCast(m4Tuple.GetMembers("h4").Single(), FieldSymbol)
 
@@ -15565,6 +15569,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.Equal("Item1", m4h4.TupleUnderlyingField.Name)
             Assert.False(m4h4.IsImplicitlyDeclared)
             Assert.Null(m4h4.TypeLayoutOffset)
+            Assert.True(DirectCast(m4h4, IFieldSymbol).IsExplicitlyNamedTupleElement)
 
             Dim m4TupleRestTuple = DirectCast(DirectCast(m4Tuple.GetMembers("Rest").Single(), FieldSymbol).Type, NamedTypeSymbol)
             AssertTestDisplayString(m4TupleRestTuple.GetMembers(),
@@ -15798,6 +15803,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.Equal("Item8 As Integer", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.Equal("Item1", m5Item8.TupleUnderlyingField.Name)
             Assert.False(m5Item8.IsImplicitlyDeclared)
+            Assert.True(DirectCast(m5Item8, IFieldSymbol).IsExplicitlyNamedTupleElement)
             Assert.Null(m5Item8.TypeLayoutOffset)
 
             Dim m5TupleRestTuple = DirectCast(DirectCast(m5Tuple.GetMembers("Rest").Single(), FieldSymbol).Type, NamedTypeSymbol)
@@ -16152,6 +16158,7 @@ BC37261: Tuple element name 'Item1' is only allowed at position 1.
             Assert.False(m8Item8.Locations.IsEmpty)
             Assert.Equal("Item1", m8Item8.TupleUnderlyingField.Name)
             Assert.True(m8Item8.IsImplicitlyDeclared)
+            Assert.False(DirectCast(m8Item8, IFieldSymbol).IsExplicitlyNamedTupleElement)
             Assert.Null(m8Item8.TypeLayoutOffset)
 
             Dim m8Item1 = DirectCast(m8Tuple.GetMembers("Item1").Last(), FieldSymbol)
@@ -16171,6 +16178,7 @@ BC37261: Tuple element name 'Item1' is only allowed at position 1.
             Assert.False(m8Item1.Locations.IsEmpty)
             Assert.Equal("Item1", m8Item1.TupleUnderlyingField.Name)
             Assert.False(m8Item1.IsImplicitlyDeclared)
+            Assert.True(DirectCast(m8Item1, IFieldSymbol).IsExplicitlyNamedTupleElement)
             Assert.Null(m8Item1.TypeLayoutOffset)
 
             Dim m8TupleRestTuple = DirectCast(DirectCast(m8Tuple.GetMembers("Rest").Single(), FieldSymbol).Type, NamedTypeSymbol)
@@ -16347,6 +16355,7 @@ options:=TestOptions.DebugExe)
             Assert.True(m1Item1.DeclaringSyntaxReferences.IsEmpty)
             Assert.Equal("Item1", m1Item1.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.True(m1Item1.IsImplicitlyDeclared)
+            Assert.False(DirectCast(m1Item1, IFieldSymbol).IsExplicitlyNamedTupleElement)
             Assert.Null(m1Item1.TypeLayoutOffset)
 
             Dim m2Item1 = DirectCast(m2Tuple.GetMembers()(1), FieldSymbol)
@@ -16369,6 +16378,7 @@ options:=TestOptions.DebugExe)
             Assert.Equal("SourceFile(a.vb[760..765))", m2Item1.TupleUnderlyingField.Locations.Single().ToString())
             Assert.Equal("SourceFile(a.vb[175..177))", m2Item1.Locations.Single().ToString())
             Assert.True(m2Item1.IsImplicitlyDeclared)
+            Assert.False(DirectCast(m2Item1, IFieldSymbol).IsExplicitlyNamedTupleElement)
             Assert.Null(m2Item1.TypeLayoutOffset)
 
             Dim m2a2 = DirectCast(m2Tuple.GetMembers()(2), FieldSymbol)
@@ -16388,6 +16398,7 @@ options:=TestOptions.DebugExe)
             Assert.Equal("a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.Equal("Item1", m2a2.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.False(m2a2.IsImplicitlyDeclared)
+            Assert.True(DirectCast(m2a2, IFieldSymbol).IsExplicitlyNamedTupleElement)
             Assert.Null(m2a2.TypeLayoutOffset)
 
             Dim m1ToString = m1Tuple.GetMember(Of MethodSymbol)("ToString")

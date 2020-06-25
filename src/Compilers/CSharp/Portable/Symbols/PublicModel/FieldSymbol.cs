@@ -65,6 +65,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IFieldSymbol.IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                // TODO2
+                return _underlying.IsExplicitlyNamedTupleElement;
+            }
+        }
+
         bool IFieldSymbol.IsConst => _underlying.IsConst;
 
         bool IFieldSymbol.IsReadOnly => _underlying.IsReadOnly;

@@ -400,8 +400,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!(this is TupleElementFieldSymbol));
+                Debug.Assert(!(this is TupleElementFieldSymbol) && !(this is TupleErrorFieldSymbol));
                 return TupleElementIndex >= 0;
+            }
+        }
+
+        public virtual bool IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                Debug.Assert(!(this is TupleElementFieldSymbol) && !(this is TupleErrorFieldSymbol));
+                return false;
             }
         }
 
