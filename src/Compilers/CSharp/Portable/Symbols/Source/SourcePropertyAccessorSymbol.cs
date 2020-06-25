@@ -666,7 +666,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <returns>
-        /// <see cref="AccessorDeclarationSyntax"/> or <see cref="ArrowExpressionClauseSyntax"/>
+        /// The declaring syntax for the accessor, or property if there is no accessor-specific
+        /// syntax.
         /// </returns>
         internal CSharpSyntaxNode GetSyntax()
         {
@@ -717,8 +718,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // Per design meeting resolution [see bug 11253], no source accessor is implicitly declared in C#,
-                // because there is "get", "set", or expression-body syntax.
-                return false;
+                // if there is "get", "set", or expression-body syntax.
+                switch (GetSyntax().Kind())
+                {
+                    case SyntaxKind.GetAccessorDeclaration:
+                    case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
+                    case SyntaxKind.ArrowExpressionClause:
+                        return false;
+                };
+
+                return true;
             }
         }
 
