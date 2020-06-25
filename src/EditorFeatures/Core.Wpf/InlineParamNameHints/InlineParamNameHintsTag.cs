@@ -37,12 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             {
                 text += ": ";
             }
+
             var block = new TextBlock
             {
                 Text = text,
                 FontStyle = FontStyles.Normal,
                 Padding = new Thickness(0),
             };
+
             block.FontStyle = FontStyles.Normal;
 
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));

@@ -13,8 +13,8 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 {
     /// <summary>
-    /// The purpose of this tagger is to convert the InlineParamNameHintsDataTags to
-    /// the InlineParamNameHintsTag, which actually creates the UIElement. It reacts to
+    /// The purpose of this tagger is to convert the <see cref="InlineParamNameHintDataTag"/> to
+    /// the <see cref="InlineParamNameHintsTag"/>, which actually creates the UIElement. It reacts to
     /// tags changing and updates the adornments accordingly.
     /// </summary>
     class InlineParamNameHintsTagger : ITagger<IntraTextAdornmentTag>, IDisposable
@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         {
             _buffer = buffer;
             _tagAggregator = tagAggregator;
-            _tagAggregator.TagsChanged += _tagAggregator_TagsChanged;
+            _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
         }
 
-        private void _tagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
+        private void OnTagAggregatorTagsChanged(object sender, TagsChangedEventArgs e)
         {
             var spans = e.Span.GetSpans(_buffer);
             foreach (var span in spans)
