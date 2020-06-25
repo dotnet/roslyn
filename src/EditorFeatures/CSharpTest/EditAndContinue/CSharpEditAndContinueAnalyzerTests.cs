@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         private static readonly IExportProviderFactory s_exportProviderFactoryWithTestActiveStatementSpanTracker =
             ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(TestActiveStatementSpanTracker)));
+                .WithPart(typeof(TestActiveStatementSpanTrackerFactory)));
 
         #region Helpers
 
@@ -266,7 +266,6 @@ class C
     }
 }
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             var oldSolution = workspace.CurrentSolution;
@@ -287,7 +286,8 @@ class C
             var oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan);
 
             var baseActiveStatements = ImmutableArray.Create(ActiveStatementsDescription.CreateActiveStatement(ActiveStatementFlags.IsLeafFrame, oldStatementSpan, DocumentId.CreateNewId(ProjectId.CreateNewId())));
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newDocument, CancellationToken.None);
 
@@ -324,7 +324,6 @@ class C
     }
 }
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             var oldSolution = workspace.CurrentSolution;
@@ -334,7 +333,8 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
@@ -355,13 +355,13 @@ class C
     }
 }
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             var oldProject = workspace.CurrentSolution.Projects.Single();
             var oldDocument = oldProject.Documents.Single();
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, CancellationToken.None);
 
@@ -391,7 +391,6 @@ class C
     }
 }
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
@@ -403,7 +402,8 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
@@ -424,7 +424,6 @@ class C
     }
 }
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
             var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
 
@@ -437,7 +436,8 @@ class C
             var documentId = oldDocument.Id;
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, CancellationToken.None);
 
@@ -473,7 +473,6 @@ class C
     }
 }
 ";
-                var analyzer = new CSharpEditAndContinueAnalyzer();
 
                 var featuresToEnable = new Dictionary<string, string>() { { feature, "enabled" } };
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
@@ -489,7 +488,8 @@ class C
                 var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-                var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+                var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+                var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
                 var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
@@ -513,7 +513,6 @@ class C
     }
 }
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
@@ -523,7 +522,8 @@ class C
             var documentId = oldDocument.Id;
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, CancellationToken.None);
 
@@ -555,7 +555,6 @@ class C
     }
 }
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
@@ -567,7 +566,8 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
@@ -599,7 +599,6 @@ class C
     }
 }
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
@@ -611,7 +610,8 @@ class C
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None);
 
@@ -642,7 +642,6 @@ namespace N
     }
 }
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
             // fork the solution to introduce a change
@@ -664,7 +663,8 @@ namespace N
 
             var result = new List<DocumentAnalysisResults>();
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             foreach (var changedDocumentId in changedDocuments)
             {
@@ -692,7 +692,6 @@ namespace N
 ";
             var source2 = @"
 ";
-            var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source1, exportProvider: s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider());
 
@@ -714,7 +713,8 @@ namespace N
 
             var result = new List<DocumentAnalysisResults>();
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTracker>());
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker);
 
             foreach (var changedDocumentId in changedDocuments)
             {
