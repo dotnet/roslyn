@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 if (operation.Parent is IMemberReferenceOperation memberReference && memberReference.Instance == operation)
                 {
-                    Assert.False(memberReference.Member.IsStatic);
+                    Assert.False(memberReference.Member.IsStatic && !operation.HasErrors(this._compilation));
                 }
                 else if (operation.Parent is IInvocationOperation invocation && invocation.Instance == operation)
                 {
