@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly IValueSetFactory<decimal> _underlying = NumericValueSetFactory<decimal, DecimalTC>.Instance;
 
+            IValueSet IValueSetFactory.AllValues => NumericValueSet<decimal, DecimalTC>.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => NumericValueSet<decimal, DecimalTC>.NoValues;
+
             public IValueSet<decimal> Related(BinaryOperatorKind relation, decimal value) => _underlying.Related(relation, DecimalTC.Normalize(value));
 
             IValueSet IValueSetFactory.Random(int expectedSize, Random random) => _underlying.Random(expectedSize, random);

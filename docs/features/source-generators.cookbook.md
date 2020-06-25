@@ -509,7 +509,7 @@ MyGenerator.props:
 <Project>
     <ItemGroup>
         <CompilerVisibleProperty Include="MyGenerator_EnableLogging" />
-        <CompilerVisibleMetadata Include="AdditionalFiles" MetadataName="MyGenerator_EnableLogging" />
+        <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="MyGenerator_EnableLogging" />
     </ItemGroup>
 </Project>
 ```
