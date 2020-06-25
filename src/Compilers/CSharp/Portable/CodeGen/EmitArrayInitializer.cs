@@ -460,27 +460,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var arraySizeInBytes = elementCount * elementSize;
             data = ImmutableArray.Create(new byte[arraySizeInBytes]);
             return true;
-        }
 
-        private int GetArrayElementCount(BoundArrayCreation initializer)
-        {
-            if (initializer.InitializerOpt != null)
+            static int GetArrayElementCount(BoundArrayCreation initializer)
             {
-                return initializer.InitializerOpt.Initializers.Length;
-            }
+                if (initializer.InitializerOpt != null)
+                {
+                    return initializer.InitializerOpt.Initializers.Length;
+                }
 
-            if (initializer.Bounds == null || initializer.Bounds.Length != 1)
-            {
-                return -1;
-            }
+                if (initializer.Bounds == null || initializer.Bounds.Length != 1)
+                {
+                    return -1;
+                }
 
-            var elementCountValue = initializer.Bounds[0].ConstantValue;
-            if (elementCountValue == null)
-            {
-                return -1;
-            }
+                var elementCountValue = initializer.Bounds[0].ConstantValue;
+                if (elementCountValue == null)
+                {
+                    return -1;
+                }
 
-            return elementCountValue.Int32Value;
+                return elementCountValue.Int32Value;
+            }
         }
 
         /// <summary>
