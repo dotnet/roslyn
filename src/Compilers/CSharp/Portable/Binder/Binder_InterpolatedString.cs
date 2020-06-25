@@ -98,9 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (value.ConstantValue != null)
                             {
                                 if (!value.ConstantValue.IsString || value.ConstantValue.IsBad || value.ConstantValue.IsNull)
+                                {
                                     resultConstant = ConstantValue.Bad;
+                                }
+
                                 if (resultConstant != ConstantValue.Bad)
+                                {
                                     resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
+                                }
                             }
                             else
                             {
@@ -114,7 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var constantVal = ConstantValue.Create(text, SpecialType.System_String);
                             builder.Add(new BoundLiteral(content, constantVal, stringType));
                             if (resultConstant != ConstantValue.Bad)
+                            {
                                 resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), constantVal);
+                            }
                             continue;
                         }
                     default:
@@ -123,7 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (resultConstant == ConstantValue.Bad)
+            {
                 resultConstant = null;
+            }
 
             return new BoundInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
         }
