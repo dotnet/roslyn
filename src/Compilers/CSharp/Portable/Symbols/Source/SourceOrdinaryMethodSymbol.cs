@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(containingType,
                  name,
                  location,
-                 syntax.GetReference(),
+                 syntax,
                  methodKind,
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                  isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
-        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(SyntaxReference syntaxReference, DiagnosticBag diagnostics)
+        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            var syntax = (MethodDeclarationSyntax)syntaxReference.GetSyntax();
+            var syntax = (MethodDeclarationSyntax)node;
             if (syntax.Arity == 0)
             {
                 ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics);
@@ -147,11 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var returnsVoid = returnType.IsVoidType();
-            if (this.RefKind != RefKind.None && returnsVoid)
-            {
-                Debug.Assert(returnTypeSyntax.HasErrors);
-            }
+            Debug.Assert(this.RefKind == RefKind.None || !returnType.IsVoidType() || returnTypeSyntax.HasErrors);
 
             ImmutableArray<TypeParameterConstraintClause> declaredConstraints = default;
 
@@ -487,10 +483,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isExpressionBodied; }
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, out bool modifierErrors, DiagnosticBag diagnostics)
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            return ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, Locations[0], diagnostics, out modifierErrors);
+            return ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, Locations[0], diagnostics, out _);
         }
 
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, DiagnosticBag diagnostics)

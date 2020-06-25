@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol containingType,
             string name,
             Location location,
-            SyntaxReference syntaxReference,
+            CSharpSyntaxNode syntax,
             MethodKind methodKind,
             bool isIterator,
             bool isExtensionMethod,
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasBody,
             DiagnosticBag diagnostics) :
             base(containingType,
-                 syntaxReference,
+                 syntax.GetReference(),
                  location,
                  isIterator)
         {
@@ -49,17 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // computed lazily later and then the flags will be fixed up.
             const bool returnsVoid = false;
 
-            bool modifierErrors;
             DeclarationModifiers declarationModifiers;
-            (declarationModifiers, HasExplicitAccessModifier, modifierErrors) = this.MakeModifiers(syntaxReference, methodKind, isPartial, hasBody, location, diagnostics);
+            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isPartial, hasBody, location, diagnostics);
 
             var isMetadataVirtualIgnoringModifiers = methodKind == MethodKind.ExplicitInterfaceImplementation; //explicit impls must be marked metadata virtual
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
 
-            _typeParameters = MakeTypeParameters(syntaxReference, diagnostics);
+            _typeParameters = MakeTypeParameters(syntax, diagnostics);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntaxReference.GetSyntax(), location, hasBody, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
 
             if (hasBody)
             {
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract ImmutableArray<TypeParameterSymbol> MakeTypeParameters(SyntaxReference syntaxReference, DiagnosticBag diagnostics);
+        protected abstract ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, DiagnosticBag diagnostics);
 
         public override bool ReturnsVoid
         {
@@ -382,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool HasExplicitAccessModifier { get; }
 
-        private (DeclarationModifiers mods, bool hasExplicitAccessMod, bool modifierErrors) MakeModifiers(SyntaxReference syntaxReferenceOpt, MethodKind methodKind, bool isPartial, bool hasBody, Location location, DiagnosticBag diagnostics)
+        private (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodKind methodKind, bool isPartial, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
             bool isInterface = this.ContainingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
@@ -437,9 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // In order to detect whether explicit accessibility mods were provided, we pass the default value
             // for 'defaultAccess' and manually add in the 'defaultAccess' flags after the call.
             bool hasExplicitAccessMod;
-            DeclarationModifiers mods;
-            bool modifierErrors;
-            mods = MakeDeclarationModifiers(allowedModifiers, out modifierErrors, diagnostics);
+            DeclarationModifiers mods = MakeDeclarationModifiers(allowedModifiers, diagnostics);
             if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
             {
                 hasExplicitAccessMod = false;
@@ -457,10 +454,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                         location, diagnostics);
 
             mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
-            return (mods, hasExplicitAccessMod, modifierErrors);
+            return (mods, hasExplicitAccessMod);
         }
 
-        protected abstract DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, out bool modifierErrors, DiagnosticBag diagnostics);
+        protected abstract DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics);
 
         private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
         {
