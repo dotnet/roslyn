@@ -1818,7 +1818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceConstantValue as ConstantValue = source.GetConstantValue()
             If sourceType Is Nothing Then
-                If sourceConstantValue?.IsNothing = True AndAlso destination.IsReferenceType Then
+                If sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing AndAlso destination.IsReferenceType Then
                     constantValue = sourceConstantValue
                     Return New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.WideningNothingLiteral, Nothing))
                 End If
@@ -1828,7 +1828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As Conversion = ClassifyConversion(sourceType, destination)
 
-            If result.IsReference AndAlso sourceConstantValue?.IsNothing = True Then
+            If result.IsReference AndAlso sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing Then
                 constantValue = sourceConstantValue
             End If
 
