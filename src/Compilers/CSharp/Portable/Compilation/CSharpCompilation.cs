@@ -1993,11 +1993,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion result = ClassifyConversion(sourceType, destination);
 
+            if (result.IsReference && sourceConstantValue is { IsNull: true })
             {
-                if (result.IsReference && sourceConstantValue is { IsNull: true })
-                {
-                    constantValue = sourceConstantValue;
-                }
+                constantValue = sourceConstantValue;
             }
 
             return result;
