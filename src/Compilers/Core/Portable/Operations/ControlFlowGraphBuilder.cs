@@ -4679,16 +4679,14 @@ oneMoreTime:
                     }
                     else if (operation.StepValue.GetConstantValue() is { IsBad: false } value)
                     {
-                        if (value.Discriminator != ConstantValueTypeDiscriminator.Bad)
+                        Debug.Assert(value.Discriminator != ConstantValueTypeDiscriminator.Bad);
+                        if (value.IsNegativeNumeric)
                         {
-                            if (value.IsNegativeNumeric)
-                            {
-                                comparisonKind = BinaryOperatorKind.GreaterThanOrEqual;
-                            }
-                            else if (value.IsNumeric)
-                            {
-                                comparisonKind = BinaryOperatorKind.LessThanOrEqual;
-                            }
+                            comparisonKind = BinaryOperatorKind.GreaterThanOrEqual;
+                        }
+                        else if (value.IsNumeric)
+                        {
+                            comparisonKind = BinaryOperatorKind.LessThanOrEqual;
                         }
                     }
 
