@@ -1183,9 +1183,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (targetType == null)
                 {
-                    // Below assert fires for IDeclarationPatternOperation with null DeclaredSymbol, but non-null MatchedType.
-                    // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
-                    //Debug.Fail($"Unexpected 'null' target type for '{operation.Syntax.ToString()}'");
+                    Debug.Fail($"Unexpected 'null' target type for '{operation.Syntax}'");
                     return false;
                 }
 
@@ -1443,22 +1441,38 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case IIsPatternOperation isPatternOperation:
                     // Predicate analysis for "is pattern" checks:
                     //  1. Non-null value check for declaration pattern, i.e. "c is D d"
-                    //  2. Equality value check for constant pattern, i.e. "x is 1"
-                    if (isPatternOperation.Pattern.Kind == OperationKind.DeclarationPattern)
+                    //  2. Non-null value check for discard pattern, i.e. "c is D _"
+                    //  3. Non-null value check for recursive pattern, i.e. "c is D { SomeProperty: 0 }"
+                    //  4. Equality value check for constant pattern, i.e. "x is 1"
+                    switch (isPatternOperation.Pattern.Kind)
                     {
-                        predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
-                    }
-                    else if (isPatternOperation.Pattern is IConstantPatternOperation constantPattern)
-                    {
-                        predicateValueKind = SetValueForEqualsOrNotEqualsComparisonOperator(isPatternOperation.Value, constantPattern.Value,
-                            equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, isReferenceEquality: false, targetAnalysisData: targetAnalysisData);
-                    }
-                    else
-                    {
-                        // Below assert fires for IDiscardPatternOperation.
-                        // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
-                        //Debug.Fail($"Unknown pattern kind '{isPatternOperation.Kind}'");
-                        predicateValueKind = PredicateValueKind.Unknown;
+                        case OperationKind.DeclarationPattern:
+                            // Set predicated null/non-null value for declared pattern variable, i.e. for 'd' in "c is D d".
+                            predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
+
+                            // Also set the predicated value for pattern value for true branch, i.e. for 'c' in "c is D d".
+                            goto case OperationKind.DiscardPattern;
+
+                        case OperationKind.DiscardPattern:
+                        case OperationKind.RecursivePattern:
+                            // For the true branch, set the pattern operation value to NotNull.
+                            if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
+                            {
+                                predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Value, equals: false, targetAnalysisData: targetAnalysisData);
+                            }
+
+                            break;
+
+                        case OperationKind.ConstantPattern:
+                            var constantPattern = (IConstantPatternOperation)isPatternOperation.Pattern;
+                            predicateValueKind = SetValueForEqualsOrNotEqualsComparisonOperator(isPatternOperation.Value, constantPattern.Value,
+                                equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, isReferenceEquality: false, targetAnalysisData: targetAnalysisData);
+                            break;
+
+                        default:
+                            Debug.Fail($"Unknown pattern kind '{isPatternOperation.Pattern.Kind}'");
+                            predicateValueKind = PredicateValueKind.Unknown;
+                            break;
                     }
 
                     break;
