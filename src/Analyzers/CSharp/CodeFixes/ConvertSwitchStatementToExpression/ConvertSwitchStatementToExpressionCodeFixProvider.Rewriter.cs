@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public static StatementSyntax Rewrite(
                 SwitchStatementSyntax switchStatement,
+                ITypeSymbol expressionCastType,
                 ITypeSymbol declaratorToRemoveTypeOpt,
                 SyntaxKind nodeToGenerate,
                 bool shouldMoveNextStatementToSwitchExpression,
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
 
                 // Rewrite the switch statement as a switch expression.
-                var switchExpression = rewriter.RewriteSwitchStatement(switchStatement,
+                var switchExpression = rewriter.RewriteSwitchStatement(switchStatement, expressionCastType,
                     allowMoveNextStatementToSwitchExpression: shouldMoveNextStatementToSwitchExpression);
 
                 // Generate the final statement to wrap the switch expression, e.g. a "return" or an assignment.
@@ -178,10 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             }
 
             public override ExpressionSyntax VisitSwitchStatement(SwitchStatementSyntax node)
-                => RewriteSwitchStatement(node);
+                => RewriteSwitchStatement(node, null);
 
-            private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, bool allowMoveNextStatementToSwitchExpression = true)
+            private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, ITypeSymbol expressionCastType, bool allowMoveNextStatementToSwitchExpression = true)
             {
+
                 var switchArms = node.Sections
                     // The default label must come last in the switch expression.
                     .OrderBy(section => section.Labels.Any(label => IsDefaultSwitchLabel(label)))
@@ -202,9 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                              SwitchExpressionArm(DiscardPattern(), Visit(nextStatement))));
                     }
                 }
-
+                // Assuming that the expressionCastType is not null, we need to explicitly cast the switch statements input
+                // in case there is an implicit conversion in effect.
                 return SwitchExpression(
-                    node.Expression.Parenthesize(),
+                    expressionCastType != null ? node.Expression.Cast(expressionCastType).Parenthesize() : node.Expression.Parenthesize(),
                     Token(leading: default, SyntaxKind.SwitchKeyword, node.CloseParenToken.TrailingTrivia),
                     Token(SyntaxKind.OpenBraceToken),
                     SeparatedList(
