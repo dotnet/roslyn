@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     {
         public readonly string TagName;
 
+
         public InlineParamNameHintDataTag(string name)
         {
             TagName = name;
