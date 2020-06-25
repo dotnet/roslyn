@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // Our code fix ensures that we remove both the disable and restore directives with a single code fix application.
             // So, we need to ensure that we do not attempt to remove the same node multiple times when performing a FixAll in document operation.
             using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var processedNodes);
-            
+
             foreach (var diagnostic in diagnostics)
             {
                 RemoveNode(diagnostic.Location, editor, processedNodes);
