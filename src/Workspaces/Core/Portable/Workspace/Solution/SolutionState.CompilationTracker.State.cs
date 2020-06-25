@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
                 /// compilation (or any of it's assemblies) may produce new assembly symbols.
                 /// </summary>
-                public readonly HashSet<ReferenceHolder<ISymbol>>? UnrootedSymbolSet;
+                public readonly WeakSet<ISymbol>? UnrootedSymbolSet;
 
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>>? compilation,
                     Compilation? declarationOnlyCompilation,
                     TrackedGeneratorDriver generatorDriver,
-                    HashSet<ReferenceHolder<ISymbol>>? unrootedSymbolSet)
+                    WeakSet<ISymbol>? unrootedSymbolSet)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
@@ -108,18 +107,18 @@ namespace Microsoft.CodeAnalysis
                         : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
 
-                public static HashSet<ReferenceHolder<ISymbol>> GetUnrootedSymbols(Compilation compilation)
+                public static WeakSet<ISymbol> GetUnrootedSymbols(Compilation compilation)
                 {
-                    var result = new HashSet<ReferenceHolder<ISymbol>>();
+                    var result = new WeakSet<ISymbol>();
 
                     var compAssembly = compilation.Assembly;
-                    result.Add(ReferenceHolder<ISymbol>.Weak(compAssembly));
+                    result.Add(compAssembly);
 
                     // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
                     // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
                     // underlying compilation is GC'ed.
                     if (compilation.Language == LanguageNames.CSharp)
-                        result.Add(ReferenceHolder<ISymbol>.Weak(compilation.DynamicType));
+                        result.Add(compilation.DynamicType);
 
                     foreach (var reference in compilation.References)
                     {
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis
                         if (symbol == null)
                             continue;
 
-                        result.Add(ReferenceHolder<ISymbol>.Weak(symbol));
+                        result.Add(symbol);
                     }
 
                     return result;
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedFiles,
                     TrackedGeneratorDriver generatorDriver,
                     bool hasSuccessfullyLoaded,
-                    HashSet<ReferenceHolder<ISymbol>>? compilationAssemblies)
+                    WeakSet<ISymbol>? compilationAssemblies)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatorDriver,

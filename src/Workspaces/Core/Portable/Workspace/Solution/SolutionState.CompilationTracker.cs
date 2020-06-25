@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
                              symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
                 var unrootedSymbolSet = state.UnrootedSymbolSet;
-                return unrootedSymbolSet?.Contains(ReferenceHolder<ISymbol>.Strong(symbol)) ?? false;
+                return unrootedSymbolSet?.Contains(symbol) ?? false;
             }
 
             /// <summary>
