@@ -86,9 +86,9 @@ new in
 ";
 
             UsingTree(test).GetDiagnostics().Verify(
-                // (2,5): error CS1031: Type expected
+                // (2,5): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 // new in
-                Diagnostic(ErrorCode.ERR_TypeExpected, "in").WithLocation(2, 5),
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "in").WithLocation(2, 5),
                 // (2,5): error CS1002: ; expected
                 // new in
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 5),

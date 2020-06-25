@@ -6865,7 +6865,9 @@ done:;
                 return ParseFunctionPointerTypeSyntax();
             }
 
-            return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected);
+            return this.AddError(
+                this.CreateMissingIdentifierName(),
+                mode == ParseTypeMode.NewExpression ? ErrorCode.ERR_BadNewExpr : ErrorCode.ERR_TypeExpected);
         }
 
 #nullable enable
