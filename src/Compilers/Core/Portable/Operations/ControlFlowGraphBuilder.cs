@@ -4505,7 +4505,7 @@ oneMoreTime:
                         _forToLoopBinaryOperatorLeftOperand = null;
                         _forToLoopBinaryOperatorRightOperand = null;
                     }
-                    else if (operation.StepValue.GetConstantValue() != null &&
+                    else if (!(operation.StepValue.GetConstantValue() is { IsBad: false }) &&
                              !ITypeSymbolHelpers.IsSignedIntegralType(stepEnumUnderlyingTypeOrSelf) &&
                              !ITypeSymbolHelpers.IsUnsignedIntegralType(stepEnumUnderlyingTypeOrSelf))
                     {
@@ -4677,7 +4677,7 @@ oneMoreTime:
                     {
                         comparisonKind = BinaryOperatorKind.LessThanOrEqual;
                     }
-                    else if (operation.StepValue.GetConstantValue() is ConstantValue value)
+                    else if (operation.StepValue.GetConstantValue() is { IsBad: false } value)
                     {
                         if (value.Discriminator != ConstantValueTypeDiscriminator.Bad)
                         {
