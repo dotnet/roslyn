@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SourceConstructorSymbolBase(
             SourceMemberContainerTypeSymbol containingType,
             Location location,
-            CSharpSyntaxNode syntax,
-            MethodKind methodKind,
-            DiagnosticBag diagnostics)
+            CSharpSyntaxNode syntax)
             : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), SyntaxFacts.HasYieldOperations(syntax))
         {
             Debug.Assert(

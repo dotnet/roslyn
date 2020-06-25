@@ -250,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EventFieldDeclaration:
                 case SyntaxKind.BaseList:
                 case SyntaxKind.SimpleBaseType:
+                case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
 
                 case SyntaxKind.Block:

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             string source,
             ActiveStatementsDescription description)
         {
-            CSharpEditAndContinueTestHelpers.Instance.VerifyUnchangedDocument(
+            CSharpEditAndContinueTestHelpers.CreateInstance().VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldStatements,
                 description.OldTrackingSpans,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ActiveStatementsDescription description,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            CSharpEditAndContinueTestHelpers.Instance.VerifyRudeDiagnostics(
+            CSharpEditAndContinueTestHelpers.CreateInstance().VerifyRudeDiagnostics(
                 editScript,
                 description,
                 expectedDiagnostics);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             IEnumerable<string> expectedNodeUpdates,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            CSharpEditAndContinueTestHelpers.Instance.VerifyLineEdits(
+            CSharpEditAndContinueTestHelpers.CreateInstance().VerifyLineEdits(
                 editScript,
                 expectedLineEdits,
                 expectedNodeUpdates,

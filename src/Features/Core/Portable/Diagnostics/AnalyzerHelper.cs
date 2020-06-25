@@ -299,138 +299,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Contract.ThrowIfFalse(compilation1 == compilation2);
         }
 
-        /// <summary>
-        /// Return all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer) by calculating them
-        /// </summary>
-        public static async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
-            DiagnosticAnalyzer analyzer,
-            Document document,
-            AnalysisKind kind,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            CompilationWithAnalyzers? compilationWithAnalyzers,
-            TextSpan? span,
-            CancellationToken cancellationToken)
-        {
-            var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
-
-            if (analyzer == FileContentLoadAnalyzer.Instance)
-            {
-                return loadDiagnostic != null ?
-                    SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, document)) :
-                    SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-            }
-
-            if (loadDiagnostic != null)
-            {
-                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-            }
-
-            if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
-            {
-                var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                    documentAnalyzer, document, kind, compilationWithAnalyzers?.Compilation, cancellationToken).ConfigureAwait(false);
-
-                return diagnostics.ConvertToLocalDiagnostics(document);
-            }
-
-            // quick optimization to reduce allocations.
-            if (compilationWithAnalyzers == null || !analyzer.SupportAnalysisKind(kind))
-            {
-                if (kind == AnalysisKind.Syntax)
-                {
-                    Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
-                        (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a}, {k}", compilationWithAnalyzers, document, analyzer, kind);
-                }
-
-                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-            }
-
-            // If project is not loaded successfully then, we disable semantic errors for compiler analyzers
-            // We also need to disable analysis for IPragmaSuppressionAnalyzer if we cannot compute all reported diagnostics.
-            if (kind != AnalysisKind.Syntax &&
-                (analyzer.IsCompilerAnalyzer() || analyzer is IPragmaSuppressionsAnalyzer))
-            {
-                var isEnabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-
-                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a}, ({d.Id}, {d.Project.Id}), Enabled:{e}", analyzer, document, isEnabled);
-
-                if (!isEnabled)
-                {
-                    return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-                }
-            }
-
-            // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
-            var singleAnalyzer = ImmutableArray.Create(analyzer);
-            var skippedAnalyzerInfo = document.Project.GetSkippedAnalyzersInfo(analyzerInfoCache);
-            ImmutableArray<string> filteredIds;
-
-            switch (kind)
-            {
-                case AnalysisKind.Syntax:
-                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    if (tree == null)
-                    {
-                        return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-                    }
-
-                    var diagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, singleAnalyzer, cancellationToken).ConfigureAwait(false);
-
-                    if (diagnostics.IsDefaultOrEmpty)
-                    {
-                        Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic, (d, a, t) => $"{d.Id}, {d.Project.Id}, {a}, {t.Length}", document, analyzer, tree);
-                    }
-                    else if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
-                    {
-                        diagnostics = diagnostics.Filter(filteredIds);
-                    }
-
-                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
-                    return diagnostics.ConvertToLocalDiagnostics(document);
-
-                case AnalysisKind.Semantic:
-                    var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    if (model == null)
-                    {
-                        return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-                    }
-
-                    // We specially handle IPragmaSuppressionsAnalyzer by passing in the 'CompilationWithAnalyzers'
-                    // context to compute unnecessary pragma suppression diagnostics.
-                    // This is required because this analyzer relies on reported compiler + analyzer diagnostics
-                    // for unnecessary pragma analysis.
-                    if (analyzer is IPragmaSuppressionsAnalyzer suppressionsAnalyzer)
-                    {
-                        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var builder);
-                        await suppressionsAnalyzer.AnalyzeAsync(model, span, compilationWithAnalyzers,
-                            analyzerInfoCache.GetDiagnosticDescriptors, IsCompilationEndAnalyzer, builder.Add, cancellationToken).ConfigureAwait(false);
-                        diagnostics = builder.ToImmutable();
-                    }
-                    else
-                    {
-                        diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, span, singleAnalyzer, cancellationToken).ConfigureAwait(false);
-                    }
-
-                    if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
-                    {
-                        diagnostics = diagnostics.Filter(filteredIds);
-                    }
-
-                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
-                    return diagnostics.ConvertToLocalDiagnostics(document);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
-
-            // Local functions
-            bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer)
-            {
-                RoslynDebug.AssertNotNull(compilationWithAnalyzers);
-                return analyzerInfoCache.IsCompilationEndAnalyzer(analyzer, document.Project, compilationWithAnalyzers.Compilation) ?? true;
-            }
-        }
-
         public static async Task<ImmutableArray<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
             DocumentDiagnosticAnalyzer analyzer,
             Document document,
@@ -647,5 +515,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
+
+#if DEBUG
+        internal static bool AreEquivalent(Diagnostic[] diagnosticsA, Diagnostic[] diagnosticsB)
+        {
+            var set = new HashSet<Diagnostic>(diagnosticsA, DiagnosticComparer.Instance);
+            return set.SetEquals(diagnosticsB);
+        }
+
+        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic?>
+        {
+            internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
+
+            public bool Equals(Diagnostic? x, Diagnostic? y)
+            {
+                if (x is null)
+                    return y is null;
+                else if (y is null)
+                    return false;
+
+                return x.Id == y.Id && x.Location == y.Location;
+            }
+
+            public int GetHashCode(Diagnostic? obj)
+            {
+                if (obj is null)
+                    return 0;
+
+                return Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
+            }
+        }
+#endif
     }
 }

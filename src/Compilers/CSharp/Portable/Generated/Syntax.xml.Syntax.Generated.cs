@@ -2989,7 +2989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class WithExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax? receiver;
+        private ExpressionSyntax? expression;
         private InitializerExpressionSyntax? initializer;
 
         internal WithExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -2997,7 +2997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public ExpressionSyntax Receiver => GetRedAtZero(ref this.receiver)!;
+        public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
         public SyntaxToken WithKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
 
@@ -3007,7 +3007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.receiver)!,
+                0 => GetRedAtZero(ref this.expression)!,
                 2 => GetRed(ref this.initializer, 2)!,
                 _ => null,
             };
@@ -3015,7 +3015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index)
             => index switch
             {
-                0 => this.receiver,
+                0 => this.expression,
                 2 => this.initializer,
                 _ => null,
             };
@@ -3024,11 +3024,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWithExpression(this);
 
-        public WithExpressionSyntax Update(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        public WithExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
         {
-            if (receiver != this.Receiver || withKeyword != this.WithKeyword || initializer != this.Initializer)
+            if (expression != this.Expression || withKeyword != this.WithKeyword || initializer != this.Initializer)
             {
-                var newNode = SyntaxFactory.WithExpression(receiver, withKeyword, initializer);
+                var newNode = SyntaxFactory.WithExpression(expression, withKeyword, initializer);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -3036,9 +3036,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public WithExpressionSyntax WithReceiver(ExpressionSyntax receiver) => Update(receiver, this.WithKeyword, this.Initializer);
-        public WithExpressionSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(this.Receiver, withKeyword, this.Initializer);
-        public WithExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.Receiver, this.WithKeyword, initializer);
+        public WithExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.WithKeyword, this.Initializer);
+        public WithExpressionSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(this.Expression, withKeyword, this.Initializer);
+        public WithExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.Expression, this.WithKeyword, initializer);
 
         public WithExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items) => WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
     }
@@ -9578,7 +9578,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class SimpleBaseTypeSyntax : BaseTypeSyntax
     {
         private TypeSyntax? type;
-        private ArgumentListSyntax? argumentList;
 
         internal SimpleBaseTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9587,13 +9586,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override TypeSyntax Type => GetRedAtZero(ref this.type)!;
 
-        public ArgumentListSyntax? ArgumentList => GetRed(ref this.argumentList, 1);
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.type : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
+
+        public SimpleBaseTypeSyntax Update(TypeSyntax type)
+        {
+            if (type != this.Type)
+            {
+                var newNode = SyntaxFactory.SimpleBaseType(type);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override BaseTypeSyntax WithTypeCore(TypeSyntax type) => WithType(type);
+        public new SimpleBaseTypeSyntax WithType(TypeSyntax type) => Update(type);
+    }
+
+    public sealed partial class PrimaryConstructorBaseTypeSyntax : BaseTypeSyntax
+    {
+        private TypeSyntax? type;
+        private ArgumentListSyntax? argumentList;
+
+        internal PrimaryConstructorBaseTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public override TypeSyntax Type => GetRedAtZero(ref this.type)!;
+
+        public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
                 0 => GetRedAtZero(ref this.type)!,
-                1 => GetRed(ref this.argumentList, 1),
+                1 => GetRed(ref this.argumentList, 1)!,
                 _ => null,
             };
 
@@ -9605,15 +9640,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _ => null,
             };
 
-        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrimaryConstructorBaseType(this);
         [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPrimaryConstructorBaseType(this);
 
-        public SimpleBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax? argumentList)
+        public PrimaryConstructorBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax argumentList)
         {
             if (type != this.Type || argumentList != this.ArgumentList)
             {
-                var newNode = SyntaxFactory.SimpleBaseType(type, argumentList);
+                var newNode = SyntaxFactory.PrimaryConstructorBaseType(type, argumentList);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -9622,14 +9657,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override BaseTypeSyntax WithTypeCore(TypeSyntax type) => WithType(type);
-        public new SimpleBaseTypeSyntax WithType(TypeSyntax type) => Update(type, this.ArgumentList);
-        public SimpleBaseTypeSyntax WithArgumentList(ArgumentListSyntax? argumentList) => Update(this.Type, argumentList);
+        public new PrimaryConstructorBaseTypeSyntax WithType(TypeSyntax type) => Update(type, this.ArgumentList);
+        public PrimaryConstructorBaseTypeSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.Type, argumentList);
 
-        public SimpleBaseTypeSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
-        {
-            var argumentList = this.ArgumentList ?? SyntaxFactory.ArgumentList();
-            return WithArgumentList(argumentList.WithArguments(argumentList.Arguments.AddRange(items)));
-        }
+        public PrimaryConstructorBaseTypeSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
 
     /// <summary>Type parameter constraint clause.</summary>

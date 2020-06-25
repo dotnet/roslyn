@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return default;
             }
 
-            using var diagnostics = SharedPools.Default<List<DiagnosticData>>().GetPooledObject();
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
             using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             var linkedToken = linkedTokenSource.Token;
@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // This flag is used by SuggestedActionsSource to track what solution is was
             // last able to get "full results" for.
             var isFullResult = await _diagnosticService.TryAppendDiagnosticsForSpanAsync(
-                document, range, diagnostics.Object, cancellationToken: linkedToken).ConfigureAwait(false);
+                document, range, diagnostics, cancellationToken: linkedToken).ConfigureAwait(false);
 
-            var errorDiagnostics = diagnostics.Object.Where(d => d.Severity == DiagnosticSeverity.Error);
-            var otherDiagnostics = diagnostics.Object.Where(d => d.Severity != DiagnosticSeverity.Error);
+            var errorDiagnostics = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
+            var otherDiagnostics = diagnostics.Where(d => d.Severity != DiagnosticSeverity.Error);
 
             // Kick off a task that will determine there's an Error Diagnostic with a fixer
             var errorDiagnosticsTask = Task.Run(

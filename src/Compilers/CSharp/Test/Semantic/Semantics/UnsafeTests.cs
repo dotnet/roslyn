@@ -216,14 +216,31 @@ class C
 {
     void Goo()
     {
-        unsafe { }
+        /*<bind>*/unsafe
+        {
+            _ = 0;
+        }/*</bind>*/
     }
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
-                // (6,9): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe"));
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = 0;')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = 0')
+        Left: 
+          IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(text, expectedOperationTree,
+                compilationOptions: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false),
+                expectedDiagnostics: new DiagnosticDescription[] {
+                    // file.cs(6,19): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                    //         /*<bind>*/unsafe
+                    Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(6, 19)
+                });
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
