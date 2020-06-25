@@ -390,6 +390,60 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("", metaName.EvaluatedValue);
         }
 
+        [Fact]
+        public void GenerateEditorConfigIsPassedToTheCompiler()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include=""prop"" />
+    </ItemGroup>
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            var items = instance.GetItems("AnalyzerConfigFiles");
+            Assert.Single(items);
+        }
+
+        [Fact]
+        public void AdditionalFilesAreAddedToNoneWhenCopied()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+    <ItemGroup>
+        <AdditionalFiles Include=""file1.cs"" CopyToOutputDirectory=""Always"" />
+        <AdditionalFiles Include=""file2.cs"" CopyToOutputDirectory=""PreserveNewest"" />
+        <AdditionalFiles Include=""file3.cs"" CopyToOutputDirectory=""Never"" />
+        <AdditionalFiles Include=""file4.cs"" CopyToOutputDirectory="""" />
+        <AdditionalFiles Include=""file5.cs"" />
+    </ItemGroup>
+</Project>
+"));
+            var instance = CreateProjectInstance(xmlReader);
+            bool runSuccess = instance.Build(target: "CopyAdditionalFiles", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            var noneItems = instance.GetItems("None").ToArray();
+            Assert.Equal(3, noneItems.Length);
+
+            Assert.Equal("file1.cs", noneItems[0].EvaluatedInclude);
+            Assert.Equal("Always", noneItems[0].GetMetadataValue("CopyToOutputDirectory"));
+
+            Assert.Equal("file2.cs", noneItems[1].EvaluatedInclude);
+            Assert.Equal("PreserveNewest", noneItems[1].GetMetadataValue("CopyToOutputDirectory"));
+
+            Assert.Equal("file3.cs", noneItems[2].EvaluatedInclude);
+            Assert.Equal("Never", noneItems[2].GetMetadataValue("CopyToOutputDirectory"));
+        }
+
         private ProjectInstance CreateProjectInstance(XmlReader reader)
         {
             Project proj = new Project(reader);

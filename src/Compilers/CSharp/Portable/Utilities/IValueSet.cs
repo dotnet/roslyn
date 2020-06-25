@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -51,6 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Does this value set contain no values?
         /// </summary>
         bool IsEmpty { get; }
+
+        /// <summary>
+        /// Produce a sample value contained in the set. Throws <see cref="ArgumentException"/> if the set is empty. If the set
+        /// contains values but we cannot produce a particular value (e.g. for the set `nint > int.MaxValue`), returns null.
+        /// </summary>
+        ConstantValue? Sample { get; }
     }
 
     /// <summary>
