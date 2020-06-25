@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -43,19 +41,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         {
             var tagsList = new List<ITagSpan<IntraTextAdornmentTag>>();
             var dataTags = _tagAggregator.GetTags(spans);
-            foreach(var tag in dataTags)
+
+            if (spans.Count <= 0)
             {
-                if (spans.Count <= 0)
-                {
-                    return tagsList;
-                }
+                return tagsList;
+            }
+
+            foreach (var tag in dataTags)
+            {
                 var dataTagSpans = tag.Span.GetSpans(spans[0].Snapshot);
                 var textTag = tag.Tag;
                 if (dataTagSpans.Count > 0)
                 {
                     var dataTagSpan = dataTagSpans[0];
                     var adornmentSpan = new SnapshotSpan(dataTagSpan.Start, 0);
-                    tagsList.Add(new TagSpan<IntraTextAdornmentTag>(adornmentSpan, new InlineParamNameHintsTag(textTag.TagName)));
+                    tagsList.Add(new TagSpan<IntraTextAdornmentTag>(adornmentSpan, new InlineParamNameHintsTag(textTag.ParameterName)));
                 }
             }
             return tagsList;

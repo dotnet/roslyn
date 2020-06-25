@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.InlineParameterNameHints;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// The TaggerProvider that calls upon the service in order to locate the spans and names
     /// </summary>
     [Export(typeof(ITaggerProvider))]
-    [ContentType("csharp")]
+    [ContentType(ContentTypeNames.CSharpContentType)]
     [TagType(typeof(InlineParamNameHintDataTag))]
     [Name(nameof(InlineParamNameHintsDataTaggerProvider))]
     internal class InlineParamNameHintsDataTaggerProvider : AsynchronousTaggerProvider<InlineParamNameHintDataTag>
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
             foreach (var span in paramNameHintSpans)
             {
-                context.AddTag(new TagSpan<InlineParamNameHintDataTag>(span.Span.ToSnapshotSpan(snapshotSpan.Snapshot), new InlineParamNameHintDataTag(span.Name))); //span.Item1.Length + 1, _format); //));
+                context.AddTag(new TagSpan<InlineParamNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, span.Pos, 0), new InlineParamNameHintDataTag(span.Name))); //span.Item1.Length + 1, _format); //));
             }
         }
     }

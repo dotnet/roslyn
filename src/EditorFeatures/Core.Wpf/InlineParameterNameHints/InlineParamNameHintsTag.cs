@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 Padding = new Thickness(0),
             };
 
-            block.FontStyle = FontStyles.Normal;
+            // block.FontStyle = FontStyles.Normal;
 
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 

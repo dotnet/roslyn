@@ -7,6 +7,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
         Inherits AbstractInlineParamNameHintsTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestNoParameterSimpleCase() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int testMethod()
+    {
+        return 5;
+    }
+    void Main() 
+    {
+        $$testMethod();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
         Public Async Function TestOneParameterSimpleCase() As Task
             Dim input =
             <Workspace>

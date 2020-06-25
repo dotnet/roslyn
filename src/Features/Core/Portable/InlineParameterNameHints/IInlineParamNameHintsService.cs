@@ -10,19 +10,19 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineParameterNameHints
 {
-    readonly struct NameAndSpan
+    readonly struct InlineParameterHint
     {
-        public NameAndSpan(string name, TextSpan span)
+        public InlineParameterHint(string name, int pos)
         {
             Name = name;
-            Span = span;
+            Pos = pos;
         }
         public string Name { get; }
-        public TextSpan Span { get; }
+        public int Pos { get; }
     }
 
     internal interface IInlineParamNameHintsService : ILanguageService
     {
-        Task<IEnumerable<NameAndSpan>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);
+        Task<IEnumerable<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);
     }
 }

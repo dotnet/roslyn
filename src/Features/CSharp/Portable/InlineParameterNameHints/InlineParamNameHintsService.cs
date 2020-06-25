@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -30,14 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
         {
         }
 
-        public async Task<IEnumerable<NameAndSpan>> GetInlineParameterNameHintsAsync(
+        public async Task<IEnumerable<InlineParameterHint>> GetInlineParameterNameHintsAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var node = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var spans = new List<NameAndSpan>();
+            var spans = new List<InlineParameterHint>();
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -45,14 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
 
             foreach (var invocation in invocations)
             {
-                foreach (var argument in invo.ArgumentList.Arguments)
+                foreach (var argument in invocation.ArgumentList.Arguments)
                 {
                     if (argument.NameColon == null && IsExpressionWithNoName(argument.Expression))
                     {
                         var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                         if (param != null)
                         {
-                            spans.Add(new NameAndSpan(param.Name, argument.Span));
+                            spans.Add(new InlineParameterHint(param.Name, argument.Span.Start));
                         }
                     }
                 }

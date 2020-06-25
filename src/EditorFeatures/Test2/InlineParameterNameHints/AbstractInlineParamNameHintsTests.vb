@@ -16,11 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
     Public MustInherit Class AbstractInlineParamNameHintsTests
 
         Protected Async Function VerifyParamHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
-            Await VerifyParamHints(test, optionIsEnabled, outOfProcess:=False)
-            Await VerifyParamHints(test, optionIsEnabled, outOfProcess:=True)
-        End Function
-
-        Private Async Function VerifyParamHints(test As XElement, optionIsEnabled As Boolean, outOfProcess As Boolean) As Tasks.Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineParamNameHintsTests)}.{NameOf(Me.VerifyParamHints)} creates asynchronous taggers")
 
@@ -30,26 +25,31 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
                     workspace.GetService(Of IForegroundNotificationService))
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-                Dim caretPosition = hostDocument.CursorPosition.Value
+                ' Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim context = New TaggerContext(Of InlineParamNameHintDataTag)(
-                    document, snapshot, New SnapshotPoint(snapshot, caretPosition))
+                    document, snapshot, New SnapshotPoint(snapshot, 0))
                 Await tagProducer.GetTestAccessor().ProduceTagsAsync(context)
 
                 Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start
-                                   Let spanName = tag.Tag.TagName
-                                   Select spanName + ":" + tag.Span.Span.ToTextSpan().ToString()
+                                   Let spanName = tag.Tag.ParameterName
+                                   Select spanName + ":" + tag.Span.Span.ToTextSpan().Start.ToString()
 
                 Dim expectedTags As New List(Of String)
 
                 For Each hostDocument In workspace.Documents
-                    For Each nameAndSpans In hostDocument.AnnotatedSpans.OrderBy(Function(x) x.Value.First().Start)
-                        For Each span In nameAndSpans.Value
-                            expectedTags.Add(nameAndSpans.Key + ":" + span.ToString())
-                        Next
+                    Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
+                        Function(name) name.Value,
+                        Function(name, span) _
+                        New With {.Name = name.Key,
+                                  .Span = span
+                        })
+
+                    For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
+                        expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.Start.ToString())
                     Next
                 Next
 

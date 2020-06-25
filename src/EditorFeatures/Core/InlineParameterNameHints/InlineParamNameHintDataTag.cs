@@ -13,12 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// </summary>
     class InlineParamNameHintDataTag : ITag
     {
-        public readonly string TagName;
-
+        public readonly string ParameterName;
 
         public InlineParamNameHintDataTag(string name)
         {
-            TagName = name;
+            ParameterName = name;
         }
     }
 }
