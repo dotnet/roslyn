@@ -69,8 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool isAutoProperty,
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
-            out bool hasGetAccessor,
-            out bool hasSetAccessor,
             out bool isInitOnly,
             out CSharpSyntaxNode? getSyntax,
             out CSharpSyntaxNode? setSyntax)
@@ -138,9 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAutoProperty = false;
                 accessorsHaveImplementation = GetArrowExpression(syntax) is object;
             }
-
-            hasGetAccessor = getSyntax is object;
-            hasSetAccessor = setSyntax is object;
         }
 
         protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)

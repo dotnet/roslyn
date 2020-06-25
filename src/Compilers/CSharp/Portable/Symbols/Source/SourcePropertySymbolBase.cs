@@ -111,11 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out bool isAutoProperty,
                 out bool hasAccessorList,
                 out bool accessorsHaveImplementation,
-                out bool hasGetAccessor,
-                out bool hasSetAccessor,
                 out bool isInitOnly,
                 out var getSyntax,
                 out var setSyntax);
+
+            var hasGetAccessor = getSyntax is object;
+            var hasSetAccessor = setSyntax is object;
 
             bool modifierErrors;
             _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isIndexer,
@@ -438,8 +439,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool isAutoProperty,
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
-            out bool hasGetAccessor,
-            out bool hasSetAccessor,
             out bool isInitOnly,
             out CSharpSyntaxNode? getSyntax,
             out CSharpSyntaxNode? setSyntax);

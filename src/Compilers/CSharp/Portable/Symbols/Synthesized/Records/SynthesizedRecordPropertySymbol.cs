@@ -61,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool isAutoProperty,
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
-            out bool hasGetAccessor,
-            out bool hasSetAccessor,
             out bool isInitOnly,
             out CSharpSyntaxNode? getSyntax,
             out CSharpSyntaxNode? setSyntax)
@@ -70,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             isAutoProperty = true;
             hasAccessorList = false;
             getSyntax = setSyntax = syntax;
-            hasGetAccessor = hasSetAccessor = true;
             isInitOnly = true;
             accessorsHaveImplementation = false;
         }
