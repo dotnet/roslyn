@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// the <see cref="InlineParamNameHintsTag"/>, which actually creates the UIElement. It reacts to
     /// tags changing and updates the adornments accordingly.
     /// </summary>
-    class InlineParamNameHintsTagger : ITagger<IntraTextAdornmentTag>, IDisposable
+    internal sealed class InlineParamNameHintsTagger : ITagger<IntraTextAdornmentTag>, IDisposable
     {
         private readonly ITagAggregator<InlineParamNameHintDataTag> _tagAggregator;
         private readonly ITextBuffer _buffer;
