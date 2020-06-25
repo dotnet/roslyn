@@ -1601,7 +1601,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Also we want to substitute the type according to the type map for the method that uses the delegate.
                         // Such substitution handles cases when the delegate type uses a type parameter from the method
                         // and the parameter is not captured by the container.
-                        cacheVariableType = ((SynthesizedMethodBaseSymbol)(referencedMethod.ConstructedFrom)).TypeMap.SubstituteType(cacheVariableType).Type;
+                        if (TryGetGenericMethodTypeMap(referencedMethod.ConstructedFrom, out var typeMap))
+                        {
+                            cacheVariableType = typeMap.SubstituteType(cacheVariableType).Type;
+                        }
 
                         var hasTypeParametersFromSynthesizedMethod = cacheVariableType.ContainsTypeParameter(referencedMethod.ConstructedFrom);
 
@@ -1643,6 +1646,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+
+            static bool TryGetGenericMethodTypeMap(MethodSymbol method, out TypeMap typeMap)
+            {
+                if (!method.IsGenericMethod)
+                {
+                    typeMap = default;
+                    return false;
+                }
+
+                if (method is SynthesizedMethodBaseSymbol synthesizedMethod)
+                {
+                    typeMap = synthesizedMethod.TypeMap;
+                    return true;
+                }
+
+                if (method is SubstitutedMethodSymbol substitutedMethod)
+                {
+                    typeMap = substitutedMethod.TypeSubstitution;
+                    return true;
+                }
+
+                typeMap = default;
+                return false;
+            }
         }
 
         // This helper checks syntactically whether there is a loop or lambda expression
