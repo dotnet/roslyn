@@ -34,6 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BackingParameter = backingParameter;
         }
 
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
+
+        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.None;
+
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.None;
+
         protected override Location TypeLocation
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
 
