@@ -103,7 +103,7 @@ class A
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
-        Public Async Function TestObjectParametersSimpleCase() As Task
+        Public Async Function TestObjectCreationParametersSimpleCase() As Task
             Dim input =
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
