@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
-            CheckModifiersForBody(syntax, location, diagnostics);
+            CheckModifiersForBody(location, diagnostics);
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasBody || hasExpressionBody)
             {
-                CheckModifiersForBody(syntax, location, diagnostics);
+                CheckModifiersForBody(location, diagnostics);
             }
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
