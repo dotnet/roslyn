@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
-
     Public Class CSharpInlineParamNameHintsTests
         Inherits AbstractInlineParamNameHintsTests
 
