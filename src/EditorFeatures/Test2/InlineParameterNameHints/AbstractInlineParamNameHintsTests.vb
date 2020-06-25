@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
-
     <[UseExportProvider]>
     Public MustInherit Class AbstractInlineParamNameHintsTests
 
