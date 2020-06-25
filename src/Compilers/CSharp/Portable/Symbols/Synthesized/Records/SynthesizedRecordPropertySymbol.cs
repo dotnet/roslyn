@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BackingParameter = backingParameter;
         }
 
-        public override bool IsImplicitlyDeclared => true;
-
         IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.None;

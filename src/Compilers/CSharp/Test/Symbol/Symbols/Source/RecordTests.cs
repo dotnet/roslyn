@@ -152,7 +152,7 @@ record C(int x, string y)
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
             Assert.False(x.IsReadOnly);
             Assert.False(x.IsWriteOnly);
-            Assert.True(x.IsImplicitlyDeclared);
+            Assert.False(x.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, x.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -186,7 +186,7 @@ record C(int x, string y)
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
             Assert.False(y.IsReadOnly);
             Assert.False(y.IsWriteOnly);
-            Assert.True(y.IsImplicitlyDeclared);
+            Assert.False(y.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
