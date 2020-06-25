@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsValidGetEnumerator(this IMethodSymbol symbol)
             => symbol.Name == WellKnownMemberNames.GetEnumeratorMethodName &&
-            VerifyGetEnumerator(symbol);
+               VerifyGetEnumerator(symbol);
 
         private static bool VerifyGetEnumerator(IMethodSymbol getEnumerator)
         {
@@ -680,11 +680,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // bool MoveNext()
-            if (!members.OfType<IMethodSymbol>().Any(x => x is
+            if (!members.OfType<IMethodSymbol>().Any(x =>
             {
-                Name: WellKnownMemberNames.MoveNextMethodName,
-                ReturnType: { SpecialType: SpecialType.System_Boolean },
-                Parameters: { Length: 0 },
+                var isMoveNext = x is
+                {
+                    Name: WellKnownMemberNames.MoveNextMethodName,
+                    ReturnType: { SpecialType: SpecialType.System_Boolean },
+                    Parameters: { Length: 0 },
+                };
+                return isMoveNext;
             }))
             {
                 return false;
@@ -718,7 +722,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Task<bool> MoveNext()
             // We don't check for the return type, since it can be any awaitable wrapping a boolean, 
-            // which is too complex to be worth checking here
+            // which is too complex to be worth checking here.
+            // We don't check number of parameters since MoveNextAsync allows optional parameters/params
             if (!members.OfType<IMethodSymbol>().Any(x => x.Name == WellKnownMemberNames.MoveNextAsyncMethodName))
             {
                 return false;
