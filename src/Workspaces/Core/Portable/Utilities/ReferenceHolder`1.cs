@@ -5,9 +5,7 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 
 namespace Roslyn.Utilities
 {
@@ -44,7 +42,7 @@ namespace Roslyn.Utilities
                 return Strong(value);
             }
 
-            return new ReferenceHolder<T>(new WeakReference<T>(value), RuntimeHelpers.GetHashCode(value));
+            return new ReferenceHolder<T>(new WeakReference<T>(value), ReferenceEqualityComparer.GetHashCode(value));
         }
 
         [return: MaybeNull]
@@ -71,7 +69,10 @@ namespace Roslyn.Utilities
                 if (_weakReference is object)
                 {
                     // 'x' is a weak reference that was collected. Verify 'y' is a collected weak reference with the
-                    // same runtime hash code.
+                    // same runtime hash code. This code path can fail in an edge case where the references to two
+                    // different objects have both been collected, but the runtime hash codes for the objects were
+                    // equal. Callers can ensure this case is not encountered by structuring equality checks such that
+                    // at least one of the objects is alive at the time Equals is called.
                     return y is null && other._weakReference is object && _hashCode == other._hashCode;
                 }
                 else
@@ -90,26 +91,11 @@ namespace Roslyn.Utilities
             if (_weakReference is object)
                 return _hashCode;
 
-            // RuntimeHelpers.GetHashCode allows null arguments
-            return RuntimeHelpers.GetHashCode(_strongReference!);
+            return ReferenceEqualityComparer.GetHashCode(_strongReference);
         }
 
-        internal TestAccessor GetTestAccessor()
+        internal static class TestAccessor
         {
-            return new TestAccessor(this);
-        }
-
-        internal readonly struct TestAccessor
-        {
-#pragma warning disable IDE0052 // Remove unread private members
-            private readonly ReferenceHolder<T> _referenceHolder;
-#pragma warning restore IDE0052 // Remove unread private members
-
-            internal TestAccessor(ReferenceHolder<T> referenceHolder)
-            {
-                _referenceHolder = referenceHolder;
-            }
-
             /// <summary>
             /// Creates a <see cref="ReferenceHolder{T}"/> for a weakly-held reference that has since been collected.
             /// </summary>

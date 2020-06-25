@@ -29,6 +29,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var first = ReferenceHolder<object?>.Weak(obj);
             var second = ReferenceHolder<object?>.Weak(obj);
 
+            // 📝 There is no need for a GC.KeepAlive(obj) here. 'VerifyEqual' will produce correct results whether
+            // or not the object is still alive. When the object is alive, the equality path is the same as
+            // SameStrongObjectsEqual. When the object is not alive, the equality path is the same as
+            // ExpiredSameValuesEqual.
             VerifyEqual(first, second);
         }
 
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var strongNull = ReferenceHolder<object?>.Strong(null);
             var weakNull = ReferenceHolder<object?>.Weak(null);
-            var expired = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(EqualityComparer<object?>.Default.GetHashCode(null));
+            var expired = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(hashCode: EqualityComparer<object?>.Default.GetHashCode(null));
 
             Assert.Equal(strongNull.GetHashCode(), expired.GetHashCode());
             VerifyNotEqual(strongNull, expired);
@@ -66,8 +70,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ExpiredSameValuesEqual()
         {
-            var first = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(1);
-            var second = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(1);
+            var first = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(hashCode: 1);
+            var second = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(hashCode: 1);
 
             Assert.Null(first.TryGetTarget());
             Assert.Null(second.TryGetTarget());
@@ -77,8 +81,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ExpiredDifferentValuesNotEqual()
         {
-            var first = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(1);
-            var second = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(2);
+            var first = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(hashCode: 1);
+            var second = ReferenceHolder<object?>.TestAccessor.ReleasedWeak(hashCode: 2);
 
             Assert.Null(first.TryGetTarget());
             Assert.Null(second.TryGetTarget());
