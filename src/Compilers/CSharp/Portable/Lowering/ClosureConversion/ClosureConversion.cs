@@ -1598,9 +1598,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // different from the local variable `type`, which has the node's type substituted for the current container.
                         var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
-                        // We cannot reference a type argument from the parent method outside the method
-                        // so if the lambda has such an argument we cannot cache it in a field
-                        if (!HasTypeArgumentsFromReferencedMethod(cacheVariableType))
+                        // Also we want to substitute the type according to the type map for the method that uses the delegate.
+                        // Such substitution handles cases when the delegate type uses a type parameter from the method
+                        // and the parameter is not captured by the container.
+                        cacheVariableType = ((SynthesizedMethodBaseSymbol)(referencedMethod.ConstructedFrom)).TypeMap.SubstituteType(cacheVariableType).Type;
+
+                        var hasTypeParametersFromSynthesizedMethod = cacheVariableType.ContainsTypeParameter(referencedMethod.ConstructedFrom);
+
+                        // We cannot reference type parameters from the parent method outside the method,
+                        // so if the delegate type refers to such type parameter we cannot cache it in a field.
+                        if (!hasTypeParametersFromSynthesizedMethod)
                         {
                             var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
                                 // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already,
@@ -1636,53 +1643,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
-
-            // The method returns true if:
-            //   - symbolToCheck represents a type argument from referencedMethod
-            //   - symbolToCheck represents a constructed generic type with any type argument representing a referencedMethod`s type argument
-            //   - symbolToCheck represents an array type with the element type referencing a referencedMethod`s type argument
-            //
-            // Examples:
-            //
-            // referencedMethod: void TheMethod<T>()
-            // symbolToCheck: Func<T[], int>
-            // returns true
-            //
-            // referencedMethod: void TheMethod<TFirst>()
-            // symbolToCheck: Func<TSecond, int>
-            // returns false
-            bool HasTypeArgumentsFromReferencedMethod(TypeSymbol symbolToCheck)
-            {
-                if (symbolToCheck is TypeParameterSymbol)
-                {
-                    foreach (var typeArgument in referencedMethod.TypeArgumentsWithAnnotations)
-                    {
-                        var referencedMethodTypeArgument = typeArgument.Type;
-                        if (referencedMethodTypeArgument is SubstitutedTypeParameterSymbol substitutedTypeParameterSymbol)
-                        {
-                            referencedMethodTypeArgument = substitutedTypeParameterSymbol.UnderlyingTypeParameter;
-                        }
-
-                        if (referencedMethodTypeArgument.Equals(symbolToCheck, TypeCompareKind.ConsiderEverything))
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                if (symbolToCheck is ConstructedNamedTypeSymbol genericType)
-                {
-                    var typeArguments = genericType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                    return typeArguments.Any(t => HasTypeArgumentsFromReferencedMethod(t.Type));
-                }
-
-                if (symbolToCheck is ArrayTypeSymbol arrayType)
-                {
-                    return HasTypeArgumentsFromReferencedMethod(arrayType.ElementType);
-                }
-
-                return false;
-            }
         }
 
         // This helper checks syntactically whether there is a loop or lambda expression
