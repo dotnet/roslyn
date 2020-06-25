@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
             var paramNameHintsService = document.GetLanguageService<IInlineParamNameHintsService>();
             var paramNameHintSpans = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
 
             foreach (var span in paramNameHintSpans)
             {
