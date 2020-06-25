@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal static partial class Extensions
     {
         public const string ComplexReceiverTypeName = "";
+        // Although they have same value, one constant here is used for the entire name
+        // and the other is just a suffix. Defining separate constants for clarity.
         public const string ComplexArrayReceiverTypeName = "[]";
         public const string ArrayReceiverTypeNameSuffix = "[]";
 

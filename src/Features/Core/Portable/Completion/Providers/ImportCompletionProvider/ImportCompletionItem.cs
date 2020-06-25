@@ -134,13 +134,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var methodSymbol = SymbolKey.ResolveString(methodSymbolKey, compilation).GetAnySymbol() as IMethodSymbol;
 
-                // Get reduced extension method symbol for the given receiver type.
-                if (item.Properties.TryGetValue(ReceiverKey, out var receiverTypeKey))
+                if (methodSymbol != null)
                 {
-                    var receiverTypeSymbol = SymbolKey.ResolveString(receiverTypeKey, compilation).GetAnySymbol() as ITypeSymbol;
-                    if (receiverTypeSymbol != null)
+                    // Get reduced extension method symbol for the given receiver type.
+                    if (item.Properties.TryGetValue(ReceiverKey, out var receiverTypeKey))
                     {
-                        return methodSymbol?.ReduceExtensionMethod(receiverTypeSymbol) ?? methodSymbol;
+                        if (SymbolKey.ResolveString(receiverTypeKey, compilation).GetAnySymbol() is ITypeSymbol receiverTypeSymbol)
+                        {
+                            return methodSymbol.ReduceExtensionMethod(receiverTypeSymbol) ?? methodSymbol;
+                        }
                     }
                 }
 

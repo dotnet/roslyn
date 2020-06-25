@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// - Primitive types
             /// - Types which is not a generic method parameter
             /// - By reference type of any types above
-            /// - Array types of with element of any types above
+            /// - Array types with element of any types above
             /// </summary>
             public readonly bool IsComplexType;
 
