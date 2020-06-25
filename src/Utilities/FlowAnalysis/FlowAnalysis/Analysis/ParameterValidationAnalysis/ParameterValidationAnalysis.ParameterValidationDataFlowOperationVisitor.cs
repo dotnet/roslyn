@@ -432,6 +432,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
+            public override ParameterValidationAbstractValue VisitIsPattern(IIsPatternOperation operation, object? argument)
+            {
+                var value = base.VisitIsPattern(operation, argument);
+
+                // Mark a location as validated on false path where user has performed an IsPattern check with null on true path.
+                // See comments in VisitBinaryOperatorCore override above for further details.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
+                    GetNullAbstractValue(operation.Pattern) == NullAbstractValue.Null)
+                {
+                    MarkValidatedLocations(operation.Value);
+                }
+
+                return value;
+            }
+
             public override ParameterValidationAbstractValue VisitIsType(IIsTypeOperation operation, object? argument)
             {
                 var value = base.VisitIsType(operation, argument);

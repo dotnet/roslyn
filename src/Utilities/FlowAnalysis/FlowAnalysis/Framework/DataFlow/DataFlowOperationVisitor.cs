@@ -3348,7 +3348,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return operandValue;
         }
 
-        public sealed override TAbstractAnalysisValue VisitIsPattern(IIsPatternOperation operation, object? argument)
+        public override TAbstractAnalysisValue VisitIsPattern(IIsPatternOperation operation, object? argument)
         {
             // "c is D d" OR "x is 1"
             var operandValue = Visit(operation.Value, argument);
