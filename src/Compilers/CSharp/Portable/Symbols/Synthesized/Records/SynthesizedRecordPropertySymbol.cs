@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterSymbol backingParameter,
             DiagnosticBag diagnostics)
             : base(containingType,
-                bodyBinder: null,
+                binder: null,
                 backingParameter.GetNonNullSyntaxNode(),
                 RefKind.None,
                 backingParameter.Name,
@@ -141,7 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override bool HasPointerTypeSyntactically
-            => throw ExceptionUtilities.Unreachable;
+            // Since we already bound the type, don't bother looking at syntax
+            => TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
 
         protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
             => null;

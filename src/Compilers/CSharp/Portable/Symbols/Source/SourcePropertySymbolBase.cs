@@ -66,12 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         /// <remarks>
-        /// The <paramref name="bodyBinder" /> is only required for explicit interface implementations or
-        /// overrides, in which case it is passed to <see cref="ComputeType" />
+        /// The <paramref name="binder" /> is passed for explicit interface implementations or
+        /// overrides to <see cref="ComputeType" />. If a binder is not required in this situation
+        /// the parameter can be null.
         /// </remarks>
         protected SourcePropertySymbolBase(
            SourceMemberContainerTypeSymbol containingType,
-           Binder? bodyBinder,
+           Binder? binder,
            CSharpSyntaxNode syntax,
            RefKind refKind,
            string name,
@@ -94,10 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
 
             SyntaxTokenList modifiers = GetModifierTokens(syntax);
-            if (bodyBinder is object)
+            if (binder is object)
             {
-                bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
-                bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+                binder = binder.WithUnsafeRegionIfNecessary(modifiers);
+                binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
             }
 
             var arrowExpression = GetArrowExpression(syntax);
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             string aliasQualifierOpt;
-            string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
+            string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, interfaceSpecifier, name, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
             _sourceName = _sourceName ?? memberName; //sourceName may have been set while loading attributes
             _name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, _explicitInterfaceType, aliasQualifierOpt) : _sourceName;
 
@@ -235,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // lazily since the property name depends on the metadata name of the base property,
                 // and the property name is required to add the property to the containing type, and
                 // the type and parameters are required to determine the override or implementation.
-                var type = this.ComputeType(bodyBinder, syntax, diagnostics);
+                var type = this.ComputeType(binder, syntax, diagnostics);
                 _lazyType = new TypeWithAnnotations.Boxed(type);
-                _lazyParameters = this.ComputeParameters(bodyBinder, syntax, diagnostics);
+                _lazyParameters = this.ComputeParameters(binder, syntax, diagnostics);
 
                 bool isOverride = false;
                 PropertySymbol? overriddenOrImplementedProperty = null;
@@ -802,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location, DiagnosticBag diagnostics, out bool modifierErrors);
 #nullable restore
 
-        
+
 
         private void CheckModifiers(bool isExplicitInterfaceImplementation, Location location, bool isIndexer, DiagnosticBag diagnostics)
         {
@@ -1459,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         protected abstract ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics);
-        
+
         protected abstract TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics);
 
         protected abstract ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax);

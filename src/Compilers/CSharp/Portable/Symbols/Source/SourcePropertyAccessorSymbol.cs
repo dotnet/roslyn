@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 hasBody,
                 hasExpressionBody,
+                isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                 syntax.Modifiers,
                 methodKind,
                 syntax.Keyword.IsKind(SyntaxKind.InitKeyword),
@@ -144,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 hasBody: false,
                 hasExpressionBody: false,
+                isIterator: false,
                 modifiers: new SyntaxTokenList(),
                 methodKind,
                 usesInit,
@@ -259,6 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax,
             bool hasBody,
             bool hasExpressionBody,
+            bool isIterator,
             SyntaxTokenList modifiers,
             MethodKind methodKind,
             bool usesInit,
@@ -268,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType,
                    syntax.GetReference(),
                    location,
-                   isIterator: SyntaxFacts.HasYieldOperations(syntax))
+                   isIterator: isIterator)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;

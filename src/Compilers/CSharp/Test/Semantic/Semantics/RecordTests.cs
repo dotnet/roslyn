@@ -9876,5 +9876,22 @@ record C(int X) : Base(() => 100 + X++)
 303
 ");
         }
+
+        [Fact]
+        public void SynthesizedRecordPointerProperty()
+        {
+            var src = @"
+record R(int P1, int* P2, delegate*<int> P3);";
+
+            var comp = CreateCompilation(src);
+            var p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P1");
+            Assert.Equal(false, p.HasPointerType);
+
+            p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P2");
+            Assert.Equal(true, p.HasPointerType);
+
+            p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P3");
+            Assert.Equal(true, p.HasPointerType);
+        }
     }
 }
