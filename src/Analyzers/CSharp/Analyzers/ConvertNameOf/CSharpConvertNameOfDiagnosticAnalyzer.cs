@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
     {
         public CSharpConvertNameOfDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertNameOfDiagnosticId,
-                   CSharpCodeStyleOptions.PreferBraces,
+                   CSharpCodeStyleOptions.PreferBraces, //TODO: Update code style options
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Convert_type_name_to_nameof), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -52,9 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
                 return;
             }
 
-            // TODO: Check for compiler errors on the typeof(someType).Name declaration
+            // TODO: Check for compiler errors on the declaration
 
-            // TODO: Check that the current span is the case we're looking for
+            // We know that it is a typeof() instance, but we only want to offer the fix if it is a .Name access
+            if (!node.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            {
+                return;
+            }
 
             // TODO: Filter cases that don't work
 
