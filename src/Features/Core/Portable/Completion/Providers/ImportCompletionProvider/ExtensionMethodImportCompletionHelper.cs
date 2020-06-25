@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // Here's SymbolKey for System.String from those two framework as an example:
                     //
                     //  {1 (D "String" (N "System" 0 (N "" 0 (U (S "netstandard" 4) 3) 2) 1) 0 0 (% 0) 0)}
-                    //  {1 (D "String"(N "System" 0(N "" 0(U(S "mscorlib" 4) 3) 2) 1) 0 0(% 0) 0)}
+                    //  {1 (D "String"(N "System" 0 (N "" 0 (U (S "mscorlib" 4) 3) 2) 1) 0 0 (% 0) 0)}
                     //
                     // Also we don't use the "ignoreAssemblyKey" option for SymbolKey resolution because its perfermance doesn't meet our requirement.
                     continue;
