@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
 
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
-            => ((ParameterSyntax)syntax).Modifiers;
+            => new SyntaxTokenList();
 
         protected override ArrowExpressionClauseSyntax? GetArrowExpression(SyntaxNode syntax)
             => null;
@@ -85,20 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!isExplicitInterfaceImplementation);
             Debug.Assert(!isIndexer);
-            var defaultAccess = DeclarationModifiers.Public;
+            modifierErrors = false;
 
-            // No modifiers are allowed on synthesized property symbols
-            var allowedModifiers = DeclarationModifiers.None;
-
-            _ = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                modifiers,
-                defaultAccess,
-                allowedModifiers,
-                location,
-                diagnostics,
-                out modifierErrors);
-
-            return defaultAccess;
+            return DeclarationModifiers.Public;
         }
 
         protected override SourcePropertyAccessorSymbol CreateAccessorSymbol(
@@ -121,10 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _sourceName,
                 ((ParameterSyntax)syntax).Identifier.GetLocation(),
                 syntax,
-                new SyntaxTokenList(), // No tokens on the accessors
-                explicitlyImplementedPropertyOpt,
-                aliasQualifierOpt,
-                isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
