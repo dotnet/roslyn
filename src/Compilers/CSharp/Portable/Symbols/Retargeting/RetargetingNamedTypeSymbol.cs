@@ -120,17 +120,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers());
+            var result = this.RetargetingTranslator.Retarget(_underlyingType.GetMembers());
+            if (!this.IsTupleType)
+            {
+                return result;
+            }
+
+            // For ValueTuple definitions, we may have to re-insert tuple error fields
+            return this.AddOrWrapTupleMembers(result).ToImmutableAndFree();
         }
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
         {
-            return this.RetargetingTranslator.Retarget(_underlyingType.GetMembersUnordered());
+            var result = this.RetargetingTranslator.Retarget(_underlyingType.GetMembersUnordered());
+            if (!this.IsTupleType)
+            {
+                return result;
+            }
+
+            // For ValueTuple definitions, we may have to re-insert tuple error fields
+            return this.AddOrWrapTupleMembers(result).ToImmutableAndFree();
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers(name));
+            if (!this.IsTupleType)
+            {
+                return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers(name));
+            }
+
+            // For ValueTuple definitions, we may have to re-insert tuple error fields
+            return GetMembers().WhereAsArray(m => m.Name == name);
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()

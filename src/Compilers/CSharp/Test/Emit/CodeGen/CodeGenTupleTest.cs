@@ -27477,6 +27477,11 @@ class C
             verify(retargetingValueTupleType.GetMember<FieldSymbol>("Item1"), retargeting: true, index: 0);
             verify(retargetingValueTupleType.GetMember<FieldSymbol>("Item2"), retargeting: true, index: 1);
 
+            AssertEx.SetEqual(new string[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "(T1, T2)..ctor()" },
+                retargetingValueTupleType.GetMembers().ToTestDisplayStrings());
+            AssertEx.SetEqual(new string[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "(T1, T2)..ctor()" },
+                retargetingValueTupleType.GetMembersUnordered().OrderBy(m => m.Name).ToTestDisplayStrings());
+
             static void verifyModule(ModuleSymbol module)
             {
                 var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
@@ -27492,11 +27497,11 @@ class C
             static void verify(FieldSymbol field, bool retargeting, int index)
             {
                 Assert.True(field.IsDefinition);
-                //Assert.True(field.HasUseSiteError); // TODO2, the tuple error element fields have use-site errors, but the retargeted fields don't. We shouldn't retarget fake fields, they should be re-added.
+                Assert.True(field.HasUseSiteError);
                 Assert.True(field.IsTupleElement());
                 Assert.True(field.IsDefaultTupleElement);
                 Assert.Equal(index, field.TupleElementIndex);
-                //Assert.Null(field.TupleUnderlyingField); // TODO2
+                Assert.Null(field.TupleUnderlyingField);
                 Assert.Same(field, field.CorrespondingTupleField);
                 Assert.False(field.IsExplicitlyNamedTupleElement);
             }

@@ -753,7 +753,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 foreach (var s in arr)
                 {
-                    symbols.Add(Retarget(s));
+                    if (!(s is TupleErrorFieldSymbol))
+                    {
+                        symbols.Add(Retarget(s));
+                    }
                 }
 
                 return symbols.ToImmutableAndFree();
