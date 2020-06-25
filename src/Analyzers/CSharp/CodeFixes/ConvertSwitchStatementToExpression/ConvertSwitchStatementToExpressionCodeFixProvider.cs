@@ -82,10 +82,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 }
 
                 var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
+
+                // If the swith statement expression is being implicitly converted then we need to explicitly cast the expression
+                // before rewriting as a switch expression
+                var expressionISymbolType = semanticModel.GetSymbolInfo(switchStatement.Expression).Symbol.GetSymbolType();
+                var expConversionISymbolType = semanticModel.GetTypeInfo(switchStatement.Expression).ConvertedType;
+
+                var needsCast = false;
+                SwitchStatementSyntax newSwitch = null;
+                if (expConversionISymbolType != expressionISymbolType && expConversionISymbolType != null)
+                {
+                    needsCast = true;
+                    newSwitch = switchStatement.Update(switchStatement.SwitchKeyword, switchStatement.OpenParenToken,
+                        switchStatement.Expression.Cast(expConversionISymbolType).WithAdditionalAnnotations(Formatter.Annotation),
+                        switchStatement.CloseParenToken, switchStatement.OpenBraceToken,
+                        switchStatement.Sections, switchStatement.CloseBraceToken);
+                }
+
                 var switchExpression = Rewriter.Rewrite(
-                    switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
-                    shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
-                    generateDeclaration: declaratorToRemoveLocationOpt is object);
+                   needsCast ? newSwitch : switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
+                   shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
+                   generateDeclaration: declaratorToRemoveLocationOpt is object);
 
                 editor.ReplaceNode(switchStatement, switchExpression.WithAdditionalAnnotations(Formatter.Annotation));
 
