@@ -2987,9 +2987,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
                 }
 
-                BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
-                var binder = binderFactory.GetBinder(paramList);
-
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
                 var existingOrAddedMembers = addProperties(ctor.Parameters);
                 addDeconstruct(ctor.Parameters, existingOrAddedMembers);

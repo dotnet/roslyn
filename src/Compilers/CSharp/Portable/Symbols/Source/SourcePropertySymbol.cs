@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return type;
         }
-        
+
         private static ImmutableArray<ParameterSymbol> MakeParameters(
             Binder binder, SourcePropertySymbolBase owner, BaseParameterListSyntax? parameterSyntaxOpt, DiagnosticBag diagnostics, bool addRefReadOnlyModifier)
         {
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return parameters;
         }
-        
+
         protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             binder ??= CreateBinderForTypeAndParameters();
