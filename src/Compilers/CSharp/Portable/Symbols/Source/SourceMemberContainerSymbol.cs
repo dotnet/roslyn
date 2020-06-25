@@ -2991,7 +2991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = binderFactory.GetBinder(paramList);
 
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
-                var existingOrAddedMembers = addProperties(binder, ctor.Parameters);
+                var existingOrAddedMembers = addProperties(ctor.Parameters);
                 addDeconstruct(ctor.Parameters, existingOrAddedMembers);
             }
 
@@ -3055,13 +3055,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            ImmutableArray<PropertySymbol> addProperties(Binder binder, ImmutableArray<ParameterSymbol> recordParameters)
+            ImmutableArray<PropertySymbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
                 var existingOrAddedMembers = ArrayBuilder<PropertySymbol>.GetInstance(recordParameters.Length);
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
-                    var property = new SynthesizedRecordPropertySymbol(this, binder, param, diagnostics);
+                    var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
                     _ = memberSignatures.TryGetValue(property, out var existingMember);
                     existingMember ??= getInheritedMember(property, this);
                     if (existingMember is null)

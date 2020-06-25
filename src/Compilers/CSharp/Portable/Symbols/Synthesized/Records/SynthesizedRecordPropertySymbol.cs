@@ -15,18 +15,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedRecordPropertySymbol : SourcePropertySymbolBase
+    internal sealed class SynthesizedRecordPropertySymbol : SourcePropertySymbolBase, IAttributeTargetSymbol
     {
         public ParameterSymbol BackingParameter { get; }
 
         public SynthesizedRecordPropertySymbol(
             SourceMemberContainerTypeSymbol containingType,
-            Binder binder,
             ParameterSymbol backingParameter,
             DiagnosticBag diagnostics)
             : base(containingType,
-                binder,
+                bodyBinder: null,
                 backingParameter.GetNonNullSyntaxNode(),
+                RefKind.None,
                 backingParameter.Name,
                 backingParameter.Locations[0],
                 diagnostics)
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BackingParameter = backingParameter;
         }
 
-        protected override TypeSyntax GetTypeSyntax(SyntaxNode syntax)
-            => ((ParameterSyntax)syntax).Type!;
+        protected override Location TypeLocation
+            => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
 
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
             => ((ParameterSyntax)syntax).Modifiers;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => true; // Synthesized record properties always have a synthesized initializer
 
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => ((ParameterSyntax)CSharpSyntaxNode).AttributeLists;
+            => new SyntaxList<AttributeListSyntax>();
 
         protected override void GetAccessorDeclarations(
             CSharpSyntaxNode syntax,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // No modifiers are allowed on synthesized property symbols
             var allowedModifiers = DeclarationModifiers.None;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+            _ = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
                 modifiers,
                 defaultAccess,
                 allowedModifiers,
@@ -98,14 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out modifierErrors);
 
-            Debug.Assert(!mods.HasFlag(DeclarationModifiers.Unsafe));
-            return mods;
+            return defaultAccess;
         }
 
         protected override SourcePropertyAccessorSymbol CreateAccessorSymbol(
             bool isGet,
             CSharpSyntaxNode? syntax,
-            PropertySymbol explicitlyImplementedPropertyOpt,
+            PropertySymbol? explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
-            PropertySymbol explicitlyImplementedPropertyOpt,
+            PropertySymbol? explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
@@ -139,6 +138,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // There should be no expression-bodied synthesized record properties
             throw ExceptionUtilities.Unreachable;
         }
+
+        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            return ImmutableArray<ParameterSymbol>.Empty;
+        }
+
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            return BackingParameter.TypeWithAnnotations;
+        }
+
+        protected override bool HasPointerTypeSyntactically
+            => throw ExceptionUtilities.Unreachable;
 
         protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
             => null;

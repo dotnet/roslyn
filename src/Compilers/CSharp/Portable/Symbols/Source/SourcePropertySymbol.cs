@@ -4,7 +4,10 @@
 
 #nullable enable
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -34,12 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            string name,
            Location location,
            DiagnosticBag diagnostics)
-           : base(containingType, bodyBinder, syntax, name, location, diagnostics)
+           : base(containingType, bodyBinder, syntax, syntax.Type.GetRefKind(), name, location, diagnostics)
         {
         }
 
-        protected override TypeSyntax GetTypeSyntax(SyntaxNode syntax)
-            => ((BasePropertyDeclarationSyntax)syntax).Type;
+        private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
+
+        protected override Location TypeLocation
+            => GetTypeSyntax(CSharpSyntaxNode).Location;
 
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
             => ((BasePropertyDeclarationSyntax)syntax).Modifiers;
@@ -234,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SourcePropertyAccessorSymbol? CreateAccessorSymbol(
             bool isGet,
             CSharpSyntaxNode? syntaxOpt,
-            PropertySymbol explicitlyImplementedPropertyOpt,
+            PropertySymbol? explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
@@ -259,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
-            PropertySymbol explicitlyImplementedPropertyOpt,
+            PropertySymbol? explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
@@ -274,6 +279,119 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 aliasQualifierOpt,
                 isExplicitInterfaceImplementation,
                 diagnostics);
+        }
+
+        private Binder CreateBinderForTypeAndParameters()
+        {
+            var compilation = this.DeclaringCompilation;
+            var syntaxTree = SyntaxTree;
+            var syntax = CSharpSyntaxNode;
+            var binderFactory = compilation.GetBinderFactory(syntaxTree);
+            var binder = binderFactory.GetBinder(syntax, syntax, this);
+            SyntaxTokenList modifiers = GetModifierTokens(syntax);
+            binder = binder.WithUnsafeRegionIfNecessary(modifiers);
+            return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+        }
+
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            binder ??= CreateBinderForTypeAndParameters();
+
+            RefKind refKind;
+            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
+            var type = binder.BindType(typeSyntax, diagnostics);
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+
+            if (GetExplicitInterfaceSpecifier(syntax) is null && !this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
+            {
+                // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
+                // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
+                diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), Location, this, type.Type);
+            }
+
+            diagnostics.Add(Location, useSiteDiagnostics);
+
+            if (type.IsVoidType())
+            {
+                ErrorCode errorCode = this.IsIndexer ? ErrorCode.ERR_IndexerCantHaveVoidType : ErrorCode.ERR_PropertyCantHaveVoidType;
+                diagnostics.Add(errorCode, Location, this);
+            }
+
+            return type;
+        }
+        
+        private static ImmutableArray<ParameterSymbol> MakeParameters(
+            Binder binder, SourcePropertySymbolBase owner, BaseParameterListSyntax? parameterSyntaxOpt, DiagnosticBag diagnostics, bool addRefReadOnlyModifier)
+        {
+            if (parameterSyntaxOpt == null)
+            {
+                return ImmutableArray<ParameterSymbol>.Empty;
+            }
+
+            if (parameterSyntaxOpt.Parameters.Count < 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_IndexerNeedsParam, parameterSyntaxOpt.GetLastToken().GetLocation());
+            }
+
+            SyntaxToken arglistToken;
+            var parameters = ParameterHelpers.MakeParameters(
+                binder, owner, parameterSyntaxOpt, out arglistToken,
+                allowRefOrOut: false,
+                allowThis: false,
+                addRefReadOnlyModifier: addRefReadOnlyModifier,
+                diagnostics: diagnostics);
+
+            if (arglistToken.Kind() != SyntaxKind.None)
+            {
+                diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
+            }
+
+            // There is a special warning for an indexer with exactly one parameter, which is optional.
+            // ParameterHelpers already warns for default values on explicit interface implementations.
+            if (parameters.Length == 1 && !owner.IsExplicitInterfaceImplementation)
+            {
+                ParameterSyntax parameterSyntax = parameterSyntaxOpt.Parameters[0];
+                if (parameterSyntax.Default != null)
+                {
+                    SyntaxToken paramNameToken = parameterSyntax.Identifier;
+                    diagnostics.Add(ErrorCode.WRN_DefaultValueForUnconsumedLocation, paramNameToken.GetLocation(), paramNameToken.ValueText);
+                }
+            }
+
+            return parameters;
+        }
+        
+        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            binder ??= CreateBinderForTypeAndParameters();
+
+            var parameterSyntaxOpt = GetParameterListSyntax(syntax);
+            var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addRefReadOnlyModifier: IsVirtual || IsAbstract);
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+
+            foreach (ParameterSymbol param in parameters)
+            {
+                if (GetExplicitInterfaceSpecifier(syntax) == null && !this.IsNoMoreVisibleThan(param.Type, ref useSiteDiagnostics))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type);
+                }
+                else if (SetMethod is object && param.Name == ParameterSymbol.ValueParameterName)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? Location, param.Name);
+                }
+            }
+
+            diagnostics.Add(Location, useSiteDiagnostics);
+            return parameters;
+        }
+
+        protected override bool HasPointerTypeSyntactically
+        {
+            get
+            {
+                var typeSyntax = GetTypeSyntax(CSharpSyntaxNode).SkipRef(out _);
+                return typeSyntax.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false };
+            }
         }
 
         protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)

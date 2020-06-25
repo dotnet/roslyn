@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             SyntaxTokenList modifiers,
-            PropertySymbol explicitlyImplementedPropertyOpt,
+            PropertySymbol? explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
@@ -218,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
             CheckModifiersForBody(syntax, location, diagnostics);
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
@@ -372,8 +373,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // returnsVoid argument to MakeFlags is ignored.
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
-
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasAnyBody || _isAutoPropertyAccessor, diagnostics);
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
