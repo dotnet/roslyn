@@ -514,7 +514,6 @@ namespace A
 
 namespace A.B.C3 { }";
 
-
             // Ideally, all the C* namespaces would be recommended but, because of how the parser
             // recovers from the missing braces, they end up with the following qualified names...
             //
@@ -7462,7 +7461,7 @@ class C
         }
 
         [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TildeOutsideClass()
         {
@@ -7474,7 +7473,8 @@ class C
     }
 }
 ~$$";
-            await VerifyNoItemsExistAsync(markup, SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(markup, "C");
+            await VerifyItemIsAbsentAsync(markup, "N");
         }
 
         [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
@@ -9292,7 +9292,6 @@ class A {
             await VerifyItemExistsAsync(markup, "s_abc");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersInFieldLikeEventInitializer()
         {
@@ -9616,7 +9615,6 @@ class C
 }", "C");
         }
 
-
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TupleTypeInForeach()
@@ -9630,7 +9628,6 @@ class C
     }
 }", "C");
         }
-
 
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

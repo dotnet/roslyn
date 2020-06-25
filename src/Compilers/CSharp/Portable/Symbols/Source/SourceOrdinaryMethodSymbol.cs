@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // Method or delegate cannot return type '{0}'
+                    // The return type of a method, delegate, or function pointer cannot be '{0}'
                     diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType.Type);
                 }
             }
@@ -1149,6 +1149,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
 
+            MethodSymbol constructedDefinition = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations);
+            bool returnTypesEqual = constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
+            if (!returnTypesEqual
+                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(implementation.ReturnType)
+                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(definition.ReturnType))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
+            }
+
+            if (definition.RefKind != implementation.RefKind)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.Locations[0]);
+            }
+
             if (definition.IsStatic != implementation.IsStatic)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodStaticDifference, implementation.Locations[0]);
@@ -1192,15 +1206,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 implementation.DeclaringCompilation,
-                definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations),
+                constructedDefinition,
                 implementation,
                 diagnostics,
-                reportMismatchInReturnType: null,
+                (diagnostics, implementedMethod, implementingMethod, topLevel, returnTypesEqual) =>
+                {
+                    if (returnTypesEqual)
+                    {
+                        // report only if this is an unsafe *nullability* difference
+                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
+                    }
+                },
                 (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
-                extraArgument: (object)null);
+                extraArgument: returnTypesEqual);
         }
 
         private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)

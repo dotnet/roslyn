@@ -711,10 +711,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             position = CheckAndAdjustPosition(position);
 
-            var model = this.GetMemberModel(position);
-            if (model != null)
+            var existingConstructorInitializer = this.Root.FindToken(position).Parent.AncestorsAndSelf().OfType<ConstructorInitializerSyntax>().FirstOrDefault();
+
+            if (existingConstructorInitializer != null)
             {
-                return model.TryGetSpeculativeSemanticModelCore(parentModel, position, constructorInitializer, out speculativeModel);
+                var model = this.GetMemberModel(position);
+                if (model != null)
+                {
+                    return model.TryGetSpeculativeSemanticModelCore(parentModel, position, constructorInitializer, out speculativeModel);
+                }
+            }
+
+            speculativeModel = null;
+            return false;
+        }
+
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
+        {
+            position = CheckAndAdjustPosition(position);
+
+            var existingConstructorInitializer = this.Root.FindToken(position).Parent.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault();
+
+            if (existingConstructorInitializer != null)
+            {
+                var model = this.GetMemberModel(existingConstructorInitializer);
+                if (model != null)
+                {
+                    return model.TryGetSpeculativeSemanticModelCore(parentModel, position, constructorInitializer, out speculativeModel);
+                }
             }
 
             speculativeModel = null;
@@ -764,6 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.RemoveAccessorDeclaration:
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
                         // NOTE: not UnknownAccessorDeclaration since there's no corresponding method symbol from which to build a member model.
                         outsideMemberDecl = !LookupPosition.IsInBody(position, (AccessorDeclarationSyntax)memberDecl);
                         break;
@@ -772,6 +797,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         outsideMemberDecl =
                             !LookupPosition.IsInConstructorParameterScope(position, constructorDecl) &&
                             !LookupPosition.IsInParameterList(position, constructorDecl);
+                        break;
+                    case SyntaxKind.RecordDeclaration:
+                        {
+                            var recordDecl = (RecordDeclarationSyntax)memberDecl;
+
+                            if (recordDecl.ParameterList is null)
+                            {
+                                outsideMemberDecl = true;
+                            }
+                            else
+                            {
+                                var argumentList = recordDecl.PrimaryConstructorBaseType?.ArgumentList;
+                                outsideMemberDecl = argumentList is null || !LookupPosition.IsBetweenTokens(position, argumentList.OpenParenToken, argumentList.CloseParenToken);
+                            }
+                        }
                         break;
                     case SyntaxKind.ConversionOperatorDeclaration:
                     case SyntaxKind.DestructorDeclaration:
@@ -827,6 +867,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                    GetOrAddModel(constructorDecl) : null;
                         }
 
+                    case SyntaxKind.RecordDeclaration:
+                        {
+                            var recordDecl = (RecordDeclarationSyntax)memberDecl;
+                            return recordDecl.ParameterList is object &&
+                                   recordDecl.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments &&
+                                   (node == baseWithArguments || baseWithArguments.ArgumentList.FullSpan.Contains(span)) ? GetOrAddModel(memberDecl) : null;
+                        }
+
                     case SyntaxKind.DestructorDeclaration:
                         {
                             DestructorDeclarationSyntax destructorDecl = (DestructorDeclarationSyntax)memberDecl;
@@ -837,6 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
                     case SyntaxKind.AddAccessorDeclaration:
                     case SyntaxKind.RemoveAccessorDeclaration:
                         // NOTE: not UnknownAccessorDeclaration since there's no corresponding method symbol from which to build a member model.
@@ -1035,8 +1084,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = GetDeclaredSymbol(memberDecl).GetSymbol<SourceMemberMethodSymbol>();
                         return createMethodBodySemanticModel(memberDecl, symbol);
                     }
+
+                case SyntaxKind.RecordDeclaration:
+                    {
+                        var recordType = GetDeclaredSymbol((TypeDeclarationSyntax)node).GetSymbol<NamedTypeSymbol>();
+                        var symbol = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
+
+                        if (symbol?.GetSyntax() != node)
+                        {
+                            return null;
+                        }
+
+                        return createMethodBodySemanticModel(node, symbol);
+                    }
+
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                     {
@@ -1223,15 +1287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Binder GetFieldOrPropertyInitializerBinder(FieldSymbol symbol, Binder outer, EqualsValueClauseSyntax initializer)
         {
-            BinderFlags flags = BinderFlags.None;
-
             // NOTE: checking for a containing script class is sufficient, but the regular C# test is quick and easy.
-            if (this.IsRegularCSharp || !symbol.ContainingType.IsScriptClass)
-            {
-                flags |= BinderFlags.FieldInitializer;
-            }
-
-            outer = new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, symbol);
+            outer = outer.GetFieldInitializerBinder(symbol, suppressBinderFlagsFieldInitializer: !this.IsRegularCSharp && symbol.ContainingType.IsScriptClass);
 
             if (initializer != null)
             {
@@ -1607,6 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return ((BaseTypeDeclarationSyntax)declaration).Identifier.ValueText;
 
                 case SyntaxKind.VariableDeclarator:

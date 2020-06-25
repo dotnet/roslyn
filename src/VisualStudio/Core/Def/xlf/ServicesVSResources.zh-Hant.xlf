@@ -227,6 +227,11 @@
         <target state="new">Index</target>
         <note>Index of parameter in original signature</note>
       </trans-unit>
+      <trans-unit id="Infer_from_context">
+        <source>Infer from context</source>
+        <target state="new">Infer from context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexed_in_organization">
         <source>Indexed in organization</source>
         <target state="new">Indexed in organization</target>
@@ -490,6 +495,11 @@
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">非公用方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
@@ -820,6 +830,16 @@
       <trans-unit id="Visual_Studio_2019">
         <source>Visual Studio 2019</source>
         <target state="translated">Visual Studio 2019</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_duplicate_parameter_name">
+        <source>Warning: duplicate parameter name</source>
+        <target state="new">Warning: duplicate parameter name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_type_does_not_bind">
+        <source>Warning: type does not bind</source>
+        <target state="new">Warning: type does not bind</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">

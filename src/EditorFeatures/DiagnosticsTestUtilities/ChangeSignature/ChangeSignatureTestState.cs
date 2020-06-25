@@ -106,7 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     .WithPart(typeof(CodeAnalysis.CSharp.Editing.CSharpImportAdder))
                     .WithPart(typeof(CodeAnalysis.VisualBasic.Editing.VisualBasicImportAdder))
                     .WithPart(typeof(CodeAnalysis.CSharp.AddImports.CSharpAddImportsService))
-                    .WithPart(typeof(CodeAnalysis.VisualBasic.AddImports.VisualBasicAddImportsService)));
+                    .WithPart(typeof(CodeAnalysis.VisualBasic.AddImports.VisualBasicAddImportsService))
+                    .WithPart(typeof(CodeAnalysis.CSharp.Recommendations.CSharpRecommendationService))
+                    .WithPart(typeof(CodeAnalysis.VisualBasic.Recommendations.VisualBasicRecommendationService)));
 
         public void Dispose()
         {

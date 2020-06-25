@@ -161,6 +161,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Discard:
                     return IsSymbolAccessibleCore(((DiscardSymbol)symbol).TypeWithAnnotations.Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
+                case SymbolKind.FunctionPointerType:
+                    var funcPtr = (FunctionPointerTypeSymbol)symbol;
+                    if (!IsSymbolAccessibleCore(funcPtr.Signature.ReturnType, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    {
+                        return false;
+                    }
+
+                    foreach (var param in funcPtr.Signature.Parameters)
+                    {
+                        if (!IsSymbolAccessibleCore(param.Type, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.
                     return true;

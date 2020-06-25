@@ -149,7 +149,7 @@ End Class";
                 var service = solution.Workspace.Services.GetService<IRemotableDataService>();
 
                 var source = new CancellationTokenSource();
-                using var session = new KeepAliveSession(new InvokeThrowsCancellationConnection(source), service);
+                using var session = new InvokeThrowsCancellationConnection(source);
                 var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(session, solution, source.Token));
                 Assert.Equal(exception.CancellationToken, source.Token);
 
@@ -325,7 +325,7 @@ End Class";
             public override Workspace Workspace => _workspace;
         }
 
-        private sealed class InvokeThrowsCancellationConnection : RemoteHostClient.Connection
+        private sealed class InvokeThrowsCancellationConnection : RemoteServiceConnection
         {
             private readonly CancellationTokenSource _source;
 
@@ -334,22 +334,27 @@ End Class";
                 _source = source;
             }
 
-            public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+            public override void Dispose()
+            {
+            }
+
+            public override Task RunRemoteAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
                 // cancel and throw cancellation exception
                 _source.Cancel();
                 _source.Token.ThrowIfCancellationRequested();
 
-                throw Utilities.ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable;
             }
 
-            public override Task<T> InvokeAsync<T>(
-                string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
+            public override Task<T> RunRemoteAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
+            {
+                // cancel and throw cancellation exception
+                _source.Cancel();
+                _source.Token.ThrowIfCancellationRequested();
 
-            public override Task<T> InvokeAsync<T>(
-                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
+                throw ExceptionUtilities.Unreachable;
+            }
         }
     }
 }

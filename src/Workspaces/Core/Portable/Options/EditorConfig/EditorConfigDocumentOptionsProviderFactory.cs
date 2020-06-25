@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
         public static readonly Option2<bool> UseLegacyEditorConfigSupport =
             new Option2<bool>(nameof(EditorConfigDocumentOptionsProviderFactory), nameof(UseLegacyEditorConfigSupport), defaultValue: false,
-                storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "UseLegacySupport"));
+                storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "UseLegacySupport16.7"));
 
         public static bool ShouldUseNativeEditorConfigSupport(Workspace workspace)
             => !workspace.Options.GetOption(UseLegacyEditorConfigSupport);

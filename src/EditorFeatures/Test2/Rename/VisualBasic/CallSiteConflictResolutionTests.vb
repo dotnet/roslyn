@@ -40,7 +40,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
                 result.AssertLabeledSpansAre("Resolved", type:=RelatedLocationType.ResolvedReferenceConflict)
                 result.AssertLabeledSpansAre("Replacement", "M.Bar(M.Bar(Me, 1), 2)")
             End Using
@@ -72,7 +71,6 @@ End Module
                             ]]></Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
-
 
                 result.AssertLabeledSpansAre("Resolved", type:=RelatedLocationType.ResolvedReferenceConflict)
                 result.AssertLabeledSpansAre("Replacement", "M.Bar(Of Integer)(Me)")
@@ -106,7 +104,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
                 result.AssertLabeledSpansAre("Resolved", type:=RelatedLocationType.ResolvedReferenceConflict)
                 result.AssertLabeledSpansAre("Replacement", "M.Bar(Me, 42)")
             End Using
@@ -132,7 +129,6 @@ End Class
                                </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="F")
-
 
                 result.AssertLabeledSpansAre("stmt1", "Program.F()", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using

@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -59,8 +60,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
-
-        protected abstract int GetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
 
         protected abstract SyntaxToken CommaTokenWithElasticSpace();
 
@@ -177,18 +176,20 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var declarationDocument = solution.GetRequiredDocument(declarationLocation.SourceTree!);
             var declarationChangeSignatureService = declarationDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
-            int insertPosition;
+            int positionForTypeBinding;
             var reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
 
             if (reference != null)
             {
-                insertPosition = declarationChangeSignatureService.GetPositionBeforeParameterListClosingBrace(reference.GetSyntax());
+                var syntax = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                positionForTypeBinding = syntax.SpanStart;
             }
             else
             {
-                // There may be no declaring syntax reference, for example delegate Invoke methods. Use an
-                // insertPosition of 0 and continue on.
-                insertPosition = 0;
+                // There may be no declaring syntax reference, for example delegate Invoke methods.
+                // The user may need to fully-qualify type names, including the type(s) defined in
+                // this document.
+                positionForTypeBinding = 0;
             }
 
             var parameterConfiguration = ParameterConfiguration.Create(
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalysisSucceededContext(
-                declarationDocument, insertPosition, symbol, parameterConfiguration);
+                declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
         }
 
         private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalysisSucceededContext context, CancellationToken cancellationToken)
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
-                context.Document, context.InsertPosition, context.Symbol, context.ParameterConfiguration);
+                context.Document, context.PositionForTypeBinding, context.Symbol, context.ParameterConfiguration);
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
@@ -763,13 +764,16 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return separators.ToImmutable();
         }
 
-        protected virtual SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
+        protected virtual async Task<SeparatedSyntaxList<SyntaxNode>> AddNewArgumentsToListAsync(
             ISymbol declarationSymbol,
             SeparatedSyntaxList<SyntaxNode> newArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
-            bool generateAttributeArguments)
+            bool generateAttributeArguments,
+            Document document,
+            int position,
+            CancellationToken cancellationToken)
         {
             var fullList = ArrayBuilder<SyntaxNode>.GetInstance();
             var separators = ArrayBuilder<SyntaxToken>.GetInstance();
@@ -793,12 +797,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         // Omitting an argument only works in some languages, depending on whether
                         // there is a params array. We sometimes need to reinterpret an requested 
                         // omitted parameter as one with a TODO requested.
-                        var forcedCallsiteErrorDueToParamsArray = addedParameter.IsCallsiteOmitted &&
+                        var forcedCallsiteErrorDueToParamsArray = addedParameter.CallSiteKind == CallSiteKind.Omitted &&
                             declarationSymbol.GetParameters().LastOrDefault()?.IsParams == true &&
                             !SupportsOptionalAndParamsArrayParametersSimultaneously();
 
-                        var isCallsiteActuallyOmitted = addedParameter.IsCallsiteOmitted && !forcedCallsiteErrorDueToParamsArray;
-                        var isCallsiteActuallyErrored = addedParameter.IsCallsiteTodo || forcedCallsiteErrorDueToParamsArray;
+                        var isCallsiteActuallyOmitted = addedParameter.CallSiteKind == CallSiteKind.Omitted && !forcedCallsiteErrorDueToParamsArray;
+                        var isCallsiteActuallyTODO = addedParameter.CallSiteKind == CallSiteKind.Todo || forcedCallsiteErrorDueToParamsArray;
 
                         if (isCallsiteActuallyOmitted)
                         {
@@ -807,16 +811,30 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                             continue;
                         }
 
+                        var expression = await GenerateInferredCallsiteExpressionAsync(
+                                document,
+                                position,
+                                addedParameter,
+                                cancellationToken).ConfigureAwait(false);
+
+                        if (expression == null)
+                        {
+                            // If we tried to infer the expression but failed, use a TODO instead.
+                            isCallsiteActuallyTODO |= addedParameter.CallSiteKind == CallSiteKind.Inferred;
+
+                            expression = Generator.ParseExpression(isCallsiteActuallyTODO ? "TODO" : addedParameter.CallSiteValue);
+                        }
+
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
                         // https://github.com/dotnet/roslyn/issues/43354
                         var argument = generateAttributeArguments ?
                             Generator.AttributeArgument(
-                                name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : null,
-                                expression: Generator.ParseExpression(isCallsiteActuallyErrored ? "TODO" : addedParameter.CallSiteValue)) :
+                                name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
+                                expression: expression) :
                             Generator.Argument(
-                                name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : null,
+                                name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 refKind: RefKind.None,
-                                expression: Generator.ParseExpression(isCallsiteActuallyErrored ? "TODO" : addedParameter.CallSiteValue));
+                                expression: expression);
 
                         fullList.Add(argument);
                         separators.Add(CommaTokenWithElasticSpace());
@@ -897,6 +915,54 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return Generator.SeparatedList(fullList.ToImmutableAndFree(), separators.ToImmutableAndFree());
+        }
+
+        private async Task<SyntaxNode> GenerateInferredCallsiteExpressionAsync(
+            Document document,
+            int position,
+            AddedParameter addedParameter,
+            CancellationToken cancellationToken)
+        {
+            if (addedParameter.CallSiteKind != CallSiteKind.Inferred || !addedParameter.TypeBinds)
+            {
+                return null;
+            }
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
+                semanticModel, position, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
+
+            // For locals, prefer the one with the closest declaration. Because we used the Recommender,
+            // we do not have to worry about filtering out inaccessible locals.
+            // TODO: Support range variables here as well: https://github.com/dotnet/roslyn/issues/44689
+            var orderedLocalAndParameterSymbols = sourceSymbols
+                .Where(s => s.IsKind(SymbolKind.Local) || s.IsKind(SymbolKind.Parameter))
+                .OrderByDescending(s => s.Locations.First().SourceSpan.Start);
+
+            // No particular ordering preference for properties/fields.
+            var orderedPropertiesAndFields = sourceSymbols
+                .Where(s => s.IsKind(SymbolKind.Property) || s.IsKind(SymbolKind.Field));
+
+            var fullyOrderedSymbols = orderedLocalAndParameterSymbols.Concat(orderedPropertiesAndFields);
+
+            foreach (var symbol in fullyOrderedSymbols)
+            {
+                var symbolType = symbol.GetSymbolType();
+                if (symbolType == null)
+                {
+                    continue;
+                }
+
+                if (semanticModel.Compilation.ClassifyCommonConversion(symbolType, addedParameter.Type).IsImplicit)
+                {
+                    return Generator.IdentifierName(symbol.Name);
+                }
+            }
+
+            return null;
         }
 
         protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes)

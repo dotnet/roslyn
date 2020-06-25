@@ -29,6 +29,16 @@
         <target state="translated">次の診断を抑制して、このアナライザーを無効にします: {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
       </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName contains an invalid character '{0}' at position {1}.</source>
+        <target state="new">The hintName contains an invalid character '{0}' at position {1}.</target>
+        <note>{0}: the invalid character, {1} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName of the added source file must be unique within a generator.</source>
+        <target state="new">The hintName of the added source file must be unique within a generator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
         <target state="translated">抑制された診断 ID '{0}' が、指定された抑制記述子の抑制可能な ID '{1}' と一致しません。</target>
@@ -96,8 +106,8 @@
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
         <source>Only a single {0} can be registered per generator.</source>
-        <target state="translated">ジェネレーターごとに登録できるのは 1 つの {0} のみです。</target>
-        <note />
+        <target state="needs-review-translation">ジェネレーターごとに登録できるのは 1 つの {0} のみです。</target>
+        <note>{0}: type name</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>

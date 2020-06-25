@@ -88,7 +88,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
         }
 
-
         public ImmutableArray<ITypeSymbol> InferTypes(
             SemanticModel semanticModel, SyntaxNode expression,
             string nameOpt, CancellationToken cancellationToken)

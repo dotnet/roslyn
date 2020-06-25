@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -56,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Lazy<Imports> _previousSubmissionImports;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
+
+        // The type of host object model if available.
+        private TypeSymbol? _lazyHostObjectTypeSymbol;
 
         // All imports (using directives and extern aliases) in syntax trees in this compilation.
         // NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
@@ -1460,8 +1464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        // The type of host object model if available.
-        private TypeSymbol? _lazyHostObjectTypeSymbol;
+        protected override ITypeSymbol? CommonScriptGlobalsType
+            => GetHostObjectTypeSymbol()?.GetPublicSymbol();
 
         internal TypeSymbol? GetHostObjectTypeSymbol()
         {
@@ -2638,7 +2642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree,
                     diagnostics => FilterDiagnosticsByLocation(diagnostics, syntaxTree, filterSpanWithinTree));
 
-                var syntaxDiagnostics = syntaxTree.GetDiagnostics();
+                var syntaxDiagnostics = syntaxTree.GetDiagnostics(cancellationToken);
                 syntaxDiagnostics = FilterDiagnosticsByLocation(syntaxDiagnostics, syntaxTree, filterSpanWithinTree);
                 builder.AddRange(syntaxDiagnostics);
             }
@@ -3213,6 +3217,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull(nameof(elementType)), elementType.NullableAnnotation.ToInternalAnnotation()).GetPublicSymbol();
         }
 
+        protected override IFunctionPointerTypeSymbol CommonCreateFunctionPointerTypeSymbol(
+            ITypeSymbol returnType,
+            RefKind returnRefKind,
+            ImmutableArray<ITypeSymbol> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds)
+        {
+            if (returnType is null)
+            {
+                throw new ArgumentNullException(nameof(returnType));
+            }
+
+            if (parameterTypes.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(parameterTypes));
+            }
+
+            for (int i = 0; i < parameterTypes.Length; i++)
+            {
+                if (parameterTypes[i] is null)
+                {
+                    throw new ArgumentNullException($"{nameof(parameterTypes)}[{i}]");
+                }
+            }
+
+            if (parameterRefKinds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(parameterRefKinds));
+            }
+
+            if (parameterRefKinds.Length != parameterTypes.Length)
+            {
+                // Given {0} parameter types and {1} parameter ref kinds. These must be the same.
+                throw new ArgumentException(string.Format(CSharpResources.NotSameNumberParameterTypesAndRefKinds, parameterTypes.Length, parameterRefKinds.Length));
+            }
+
+            if (returnRefKind == RefKind.Out)
+            {
+                //'RefKind.Out' is not a valid ref kind for a return type.
+                throw new ArgumentException(CSharpResources.OutIsNotValidForReturn);
+            }
+
+            var returnTypeWithAnnotations = TypeWithAnnotations.Create(returnType.EnsureCSharpSymbolOrNull(nameof(returnType)), returnType.NullableAnnotation.ToInternalAnnotation());
+            var parameterTypesWithAnnotations = parameterTypes.SelectAsArray(
+                type => TypeWithAnnotations.Create(type.EnsureCSharpSymbolOrNull(nameof(parameterTypes)), type.NullableAnnotation.ToInternalAnnotation()));
+
+            return FunctionPointerTypeSymbol.CreateFromParts(returnTypeWithAnnotations, returnRefKind, parameterTypesWithAnnotations, parameterRefKinds, this).GetPublicSymbol();
+        }
+
         protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)
         {
             return CreateNativeIntegerTypeSymbol(signed).GetPublicSymbol();
@@ -3533,6 +3585,54 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
             EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
+        }
+
+        internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
+        {
+            // LanguageVersion should already be mapped to a specific version
+            Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
+            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+
+            if (Options.CheckOverflow)
+            {
+                WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+            }
+
+            if (Options.NullableContextOptions != NullableContextOptions.Disable)
+            {
+                WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+            }
+
+            if (Options.AllowUnsafe)
+            {
+                WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+            }
+
+            var preprocessorSymbols = GetPreprocessorSymbols();
+            if (preprocessorSymbols.Any())
+            {
+                WriteValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
+            }
+
+            void WriteValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
+        }
+
+        private ImmutableArray<string> GetPreprocessorSymbols()
+        {
+            CSharpSyntaxTree firstTree = (CSharpSyntaxTree)SyntaxTrees.FirstOrDefault();
+
+            if (firstTree is null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            return firstTree.Options.PreprocessorSymbolNames.ToImmutableArray();
         }
 
         /// <summary>

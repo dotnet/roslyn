@@ -964,7 +964,6 @@ $@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFile
 ", ReadOutputToEnd());
         }
 
-
         [Fact]
         public void ReferenceDirectives()
         {
