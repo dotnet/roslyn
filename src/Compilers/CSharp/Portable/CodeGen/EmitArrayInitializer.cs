@@ -453,10 +453,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var elementSize = elementType.SpecialType.SizeInBytes();
             if (elementSize == 0)
             {
+                // The type is not a special type and we can not be sure about the element size.
                 data = default;
                 return false;
             }
 
+            // Since we are dealing with zeroes, we do not care about endianness,
+            // so we create just an array filled with zeroes.
             var arraySizeInBytes = elementCount * elementSize;
             data = ImmutableArray.Create(new byte[arraySizeInBytes]);
             return true;
