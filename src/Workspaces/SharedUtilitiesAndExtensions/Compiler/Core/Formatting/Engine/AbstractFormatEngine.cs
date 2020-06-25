@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return operations;
         }
 
-        private TokenPairWithOperations[] CreateTokenOperation(
+        private SegmentedArray<TokenPairWithOperations> CreateTokenOperation(
             TokenStream tokenStream,
             CancellationToken cancellationToken)
         {
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.Formatting_CollectTokenOperation, cancellationToken))
             {
                 // pre-allocate list once. this is cheaper than re-adjusting list as items are added.
-                var list = new TokenPairWithOperations[tokenStream.TokenCount - 1];
+                var list = new SegmentedArray<TokenPairWithOperations>(tokenStream.TokenCount - 1);
 
                 foreach (var (index, currentToken, nextToken) in tokenStream.TokenIterator)
                 {
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void ApplyTokenOperations(
             FormattingContext context,
             NodeOperations nodeOperations,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedArray<TokenPairWithOperations> tokenOperations,
             CancellationToken cancellationToken)
         {
             var applier = new OperationApplier(context, _formattingRules);
@@ -354,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static void ApplyAnchorOperations(
             FormattingContext context,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedArray<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
@@ -411,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static void ApplySpaceAndWrappingOperations(
             FormattingContext context,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedArray<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
