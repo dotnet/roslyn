@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis
         // this lock guards all the mutable fields (do not share lock with derived classes)
         private readonly NonReentrantLock _stateLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
 
+        private readonly CancellationTokenSource _disposedCancellationTokenSource = new CancellationTokenSource();
+
         // Current solution.
         private Solution _latestSolution;
 
@@ -281,14 +283,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
-            => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
+            => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, _disposedCancellationTokenSource.Token);
 
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
-            => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
+            => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, _disposedCancellationTokenSource.Token);
 
         /// <summary>
         /// Override this method to act immediately when the text of a document has changed, as opposed
@@ -371,10 +373,12 @@ namespace Microsoft.CodeAnalysis
                 this.ClearSolutionData();
 
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
-            }
 
-            (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
-            _optionService.UnregisterWorkspace(this);
+                (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
+                _optionService.UnregisterWorkspace(this);
+
+                _disposedCancellationTokenSource.Cancel();
+            }
         }
 
         #region Host API

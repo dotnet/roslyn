@@ -764,13 +764,15 @@ class D { }
 
             // Verifying that an event has not been called is difficult to prove.  
             // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
+            await Task.Delay(TimeSpan.FromSeconds(5));
+
             Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
-                                    string.Format("event handler 'DocumentOpened' was called within {0} seconds though it was removed from the list.",
-                                    shortEventTimeout.Seconds));
+                                    string.Format("event handler 'DocumentOpened' was called within 5 seconds though it was removed from the list.",
+                                    TimeSpan.Zero));
 
             Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
-                                    string.Format("event handler 'DocumentClosed' was called within {0} seconds though it was removed from the list.",
-                                    shortEventTimeout.Seconds));
+                                    string.Format("event handler 'DocumentClosed' was called within 5 seconds though it was removed from the list.",
+                                    TimeSpan.Zero));
         }
 
         [Fact]

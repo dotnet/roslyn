@@ -164,17 +164,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             public void DisconnectFromWorkspace()
             {
-                _reportChangeCancellationSource.Cancel();
-
-                if (_workspace != null)
+                lock (_gate)
                 {
-                    _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
-                    _workspace.DocumentOpened -= this.OnDocumentOpened;
-                    _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
+                    _reportChangeCancellationSource.Cancel();
 
-                    _workspace = null;
+                    if (_workspace != null)
+                    {
+                        _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
+                        _workspace.DocumentOpened -= this.OnDocumentOpened;
+                        _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
 
-                    ResetLastParsedDocument();
+                        _workspace = null;
+
+                        ResetLastParsedDocument();
+                    }
                 }
             }
 
@@ -211,11 +214,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 lock (_gate)
                 {
+                    if (_workspace is null)
+                    {
+                        // This tag computer has been disconnected from the workspace. Do not enqueue additional events.
+                        return;
+                    }
+
                     _lastProcessedSnapshot = snapshot;
                     _lastProcessedDocument = document;
+
+                    _reportChangeCancellationSource = new CancellationTokenSource();
                 }
 
-                _reportChangeCancellationSource = new CancellationTokenSource();
                 _notificationService.RegisterNotification(() =>
                     {
                         _workQueue.AssertIsForeground();
