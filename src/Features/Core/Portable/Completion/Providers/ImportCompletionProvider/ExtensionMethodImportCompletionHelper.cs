@@ -303,45 +303,39 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // This is also affected by the symbol resolving issue mentioned above, which means in case referenced projects
                 // are targeting different framework, we will miss extension methods with any framework type in their signature from those projects.
-                var methodsInCurrentCompilation = methodSymbols.Select(s => SymbolFinder.FindSimilarSymbols(s, semanticModel.Compilation).FirstOrDefault()).WhereNotNull();
-
-                var enumerator = methodsInCurrentCompilation.GetEnumerator();
-                if (!enumerator.MoveNext())
+                var isFirstMethod = true;
+                foreach (var methodInCurrentCompilation in methodSymbols.Select(s => SymbolFinder.FindSimilarSymbols(s, semanticModel.Compilation).FirstOrDefault()).WhereNotNull())
                 {
-                    continue;
-                }
+                    if (isFirstMethod)
+                    {
+                        isFirstMethod = false;
 
-                var methodInCurrentCompilation = enumerator.Current;
+                        // We haven't seen this receiver type yet. Try to check by reducing one extension method
+                        // to the given receiver type and save the result.
+                        if (!cachedResult)
+                        {
+                            // If this is the first symbol we retrived from current compilation,
+                            // try to check if we can apply it to given receiver type, and save result to our cache.
+                            // Since method symbols are grouped by their declared receiver type, they are either all matches to the receiver type
+                            // or all mismatches. So we only need to call ReduceExtensionMethod on one of them.
+                            var reducedMethodSymbol = methodInCurrentCompilation.ReduceExtensionMethod(receiverTypeSymbol);
+                            cachedResult = reducedMethodSymbol != null;
+                            checkedReceiverTypes[declaredReceiverTypeInCurrentCompilation] = cachedResult;
 
-                // We haven't seen this receiver type yet. Try to check by reducing one extension method
-                // to the given receiver type and save the result.
-                if (!cachedResult)
-                {
-                    // If this is the first symbol we retrived from current compilation,
-                    // try to check if we can apply it to given receiver type, and save result to our cache.
-                    var reducedMethodSymbol = methodInCurrentCompilation.ReduceExtensionMethod(receiverTypeSymbol);
-                    cachedResult = reducedMethodSymbol != null;
-                    checkedReceiverTypes[declaredReceiverTypeInCurrentCompilation] = cachedResult;
-                }
-
-                // Now, cachedResult being false means method doesn't match the receiver type,
-                // stop processing methods from this group.
-                if (!cachedResult)
-                {
-                    continue;
-                }
-
-                // Add all methods to item list
-                do
-                {
-                    methodInCurrentCompilation = enumerator.Current;
+                            // Now, cachedResult being false means method doesn't match the receiver type,
+                            // stop processing methods from this group.
+                            if (!cachedResult)
+                            {
+                                break;
+                            }
+                        }
+                    }
 
                     if (semanticModel.IsAccessible(position, methodInCurrentCompilation))
                     {
                         CreateAndAddItem(methodInCurrentCompilation, builder, stringCache);
                     }
                 }
-                while (enumerator.MoveNext());
             }
         }
 
