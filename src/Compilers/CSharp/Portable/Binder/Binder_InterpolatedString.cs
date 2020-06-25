@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
             ConstantValue? resultConstant = null;
+            bool constantEnabled = true;
             foreach (var content in node.Contents)
             {
                 switch (content.Kind())
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
                                 var alignmentConstant = alignment.ConstantValue;
-                                resultConstant = ConstantValue.Bad;
+                                constantEnabled = false;
                                 if (alignmentConstant != null && !alignmentConstant.IsBad)
                                 {
                                     const int magnitudeLimit = 32767;
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var text = interpolation.FormatClause.FormatStringToken.ValueText;
                                 char lastChar;
                                 bool hasErrors = false;
-                                resultConstant = ConstantValue.Bad;
+                                constantEnabled = false;
                                 if (text.Length == 0)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_EmptyFormatSpecifier, interpolation.FormatClause.Location);
@@ -99,17 +100,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if (!value.ConstantValue.IsString || value.ConstantValue.IsBad || value.ConstantValue.IsNull)
                                 {
-                                    resultConstant = ConstantValue.Bad;
+                                    constantEnabled = false;
                                 }
 
-                                if (resultConstant != ConstantValue.Bad)
+                                if (constantEnabled)
                                 {
                                     resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
                                 }
                             }
                             else
                             {
-                                resultConstant = ConstantValue.Bad;
+                                constantEnabled = false;
                             }
                             continue;
                         }
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
                             var constantVal = ConstantValue.Create(text, SpecialType.System_String);
                             builder.Add(new BoundLiteral(content, constantVal, stringType));
-                            if (resultConstant != ConstantValue.Bad)
+                            if (constantEnabled)
                             {
                                 resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), constantVal);
                             }
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (resultConstant == ConstantValue.Bad)
+            if (!constantEnabled)
             {
                 resultConstant = null;
             }
