@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
             {
                 // Recurse until we find a literal
                 // If so, then we should add the adornment
-                IsExpressionWithNoName(cast.Expression);
+                return IsExpressionWithNoName(cast.Expression);
             }
             if (arg is PrefixUnaryExpressionSyntax negation)
             {
                 // Recurse until we find a literal
                 // If so, then we should add the adornment
-                IsExpressionWithNoName(negation.Operand);
+                return IsExpressionWithNoName(negation.Operand);
             }
             return false;
         }
