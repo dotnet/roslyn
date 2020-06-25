@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
                            generatorDriver,
-                           unrootedSymbolSet: null)
+                           GetUnrootedSymbols(declarationCompilation))
                 {
                 }
             }
