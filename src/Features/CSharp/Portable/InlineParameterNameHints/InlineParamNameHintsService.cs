@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
 
             var invocations = node.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
-            foreach (var invo in invocations)
+            foreach (var invocation in invocations)
             {
                 foreach (var argument in invo.ArgumentList.Arguments)
                 {
