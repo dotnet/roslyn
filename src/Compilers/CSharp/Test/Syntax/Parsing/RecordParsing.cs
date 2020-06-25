@@ -1313,7 +1313,7 @@ class C
             EOF();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(CONSTISTR)")]
         public void BadParameterListAndBaseListOnClass()
         {
             var text = @$"
