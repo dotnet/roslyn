@@ -10,6 +10,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 #if DEBUG
 using System.Diagnostics;
@@ -33,8 +36,7 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public static readonly State Empty = new State(
                     compilation: null, declarationOnlyCompilation: null,
-                    generatorDriver: new TrackedGeneratorDriver(null),
-                    unrootedSymbolSet: null);
+                    generatorDriver: new TrackedGeneratorDriver(null));
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -79,16 +81,82 @@ namespace Microsoft.CodeAnalysis
                 protected State(
                     ValueSource<Optional<Compilation>>? compilation,
                     Compilation? declarationOnlyCompilation,
-                    TrackedGeneratorDriver generatorDriver,
-                    ConditionalWeakTable<ISymbol, object?>? unrootedSymbolSet)
+                    TrackedGeneratorDriver generatorDriver)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
 
-                    Compilation = compilation;
+                    Compilation = GetWrappedCompilation(compilation);
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratorDriver = generatorDriver;
-                    UnrootedSymbolSet = unrootedSymbolSet;
+                    if (Compilation != null)
+                        UnrootedSymbolSet = new ConditionalWeakTable<ISymbol, object?>();
+                }
+
+                protected ValueSource<Optional<Compilation>>? GetWrappedCompilation(
+                    ValueSource<Optional<Compilation>>? compilation)
+                {
+                    if (compilation == null)
+                        return null;
+
+                    return new ComputeUnrootedSymbolsValueSource(this, compilation);
+                }
+
+                private class ComputeUnrootedSymbolsValueSource : ValueSource<Optional<Compilation>>
+                {
+                    private readonly State _state;
+                    private readonly ValueSource<Optional<Compilation>> _compilation;
+
+                    // Zero means we haven't computed the values.  Non zero means we have.  Multiple threads can compute
+                    // the values safely.  They'll just stomp over each other with the same results.
+                    private bool _computedUnrootedSymbols;
+
+                    public ComputeUnrootedSymbolsValueSource(State state, ValueSource<Optional<Compilation>> compilation)
+                    {
+                        _state = state;
+                        _compilation = compilation;
+                    }
+
+                    public override Optional<Compilation> GetValue(CancellationToken cancellationToken = default)
+                    {
+                        var result = _compilation.GetValue(cancellationToken);
+                        ComputeUnrootedSymbols(result);
+                        return result;
+                    }
+
+                    public override async Task<Optional<Compilation>> GetValueAsync(CancellationToken cancellationToken = default)
+                    {
+                        var result = await _compilation.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                        ComputeUnrootedSymbols(result);
+                        return result;
+                    }
+
+                    public override bool TryGetValue([MaybeNullWhen(false)] out Optional<Compilation> value)
+                    {
+                        if (!_compilation.TryGetValue(out var temp))
+                        {
+                            value = default;
+                            return false;
+                        }
+
+                        ComputeUnrootedSymbols(temp);
+                        value = temp;
+                        return true;
+                    }
+
+                    private void ComputeUnrootedSymbols(Optional<Compilation> compilationOpt)
+                    {
+                        if (!compilationOpt.HasValue)
+                            return;
+
+                        Contract.ThrowIfNull(_state.UnrootedSymbolSet);
+                        var compilation = compilationOpt.Value;
+                        if (Volatile.Read(ref _computedUnrootedSymbols) == false)
+                        {
+                            AddUnrootedSymbols(compilation, _state.UnrootedSymbolSet);
+                            Volatile.Write(ref _computedUnrootedSymbols, true);
+                        }
+                    }
                 }
 
                 public static State Create(
@@ -115,18 +183,16 @@ namespace Microsoft.CodeAnalysis
                         : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
 
-                public static ConditionalWeakTable<ISymbol, object?> GetUnrootedSymbols(Compilation compilation)
+                public static void AddUnrootedSymbols(Compilation compilation, ConditionalWeakTable<ISymbol, object?> unrootedSymbols)
                 {
-                    var result = new ConditionalWeakTable<ISymbol, object?>();
-
                     var compAssembly = compilation.Assembly;
-                    result.Add(compAssembly, null);
+                    unrootedSymbols.Add(compAssembly, null);
 
                     // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
                     // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
                     // underlying compilation is GC'ed.
                     if (compilation.Language == LanguageNames.CSharp)
-                        result.Add(compilation.DynamicType, null);
+                        unrootedSymbols.Add(compilation.DynamicType, null);
 
                     foreach (var reference in compilation.References)
                     {
@@ -134,10 +200,8 @@ namespace Microsoft.CodeAnalysis
                         if (symbol == null)
                             continue;
 
-                        result.Add(symbol, null);
+                        unrootedSymbols.Add(symbol, null);
                     }
-
-                    return result;
                 }
             }
 
@@ -155,8 +219,7 @@ namespace Microsoft.CodeAnalysis
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
-                           generatorDriver: inProgressGeneratorDriver,
-                           GetUnrootedSymbols(inProgressCompilation))
+                           generatorDriver: inProgressGeneratorDriver)
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
@@ -173,8 +236,7 @@ namespace Microsoft.CodeAnalysis
                 public LightDeclarationState(Compilation declarationOnlyCompilation)
                     : base(compilation: null,
                            declarationOnlyCompilation: declarationOnlyCompilation,
-                           generatorDriver: new TrackedGeneratorDriver(null),
-                           unrootedSymbolSet: null)
+                           generatorDriver: new TrackedGeneratorDriver(null))
                 {
                 }
             }
@@ -188,8 +250,7 @@ namespace Microsoft.CodeAnalysis
                 public FullDeclarationState(Compilation declarationCompilation, TrackedGeneratorDriver generatorDriver)
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
-                           generatorDriver,
-                           GetUnrootedSymbols(declarationCompilation))
+                           generatorDriver)
                 {
                 }
             }
@@ -216,15 +277,13 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     TrackedGeneratorDriver generatorDriver,
-                    bool hasSuccessfullyLoaded,
-                    ConditionalWeakTable<ISymbol, object?>? compilationAssemblies)
+                    bool hasSuccessfullyLoaded)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
-                           generatorDriver,
-                           compilationAssemblies)
+                           generatorDriver)
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
-                    FinalCompilation = finalCompilationSource;
+                    FinalCompilation = GetWrappedCompilation(finalCompilationSource);
 
 #if DEBUG
 
