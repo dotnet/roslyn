@@ -310,8 +310,9 @@ WriteLine(5);
         [Fact]
         public async Task AddReference_Path()
         {
+            var fxDir = await GetHostRuntimeDirectoryAsync();
             Assert.False(await Execute("new System.Data.DataSet()"));
-            Assert.True(await LoadReference(Assembly.Load(new AssemblyName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")).Location));
+            Assert.True(await LoadReference(Path.Combine(fxDir, "System.Data.dll")));
             Assert.True(await Execute("new System.Data.DataSet()"));
         }
 
@@ -500,8 +501,8 @@ WriteLine(5);
 
             var output = await ReadOutputToEnd();
             var error = await ReadErrorOutputToEnd();
-            Assert.Equal("", error.Trim());
-            Assert.Equal("1", output.Trim());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("1", output);
         }
 
         [Fact(Skip = "101161")]
@@ -864,24 +865,6 @@ $@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFile
 ""b""
 ""c""
 ", await ReadOutputToEnd());
-        }
-
-        [Fact]
-        public async Task ReferenceDirectives()
-        {
-            await Execute(@"
-#r ""System.Numerics""
-#r """ + typeof(System.Linq.Expressions.Expression).Assembly.Location + @"""
-
-using static System.Console;
-using System.Linq.Expressions;
-using System.Numerics;
-WriteLine(Expression.Constant(1));
-WriteLine(new Complex(2, 6).Real);
-");
-
-            var output = await ReadOutputToEnd();
-            Assert.Equal("1\r\n2\r\n", output);
         }
 
         [Fact]

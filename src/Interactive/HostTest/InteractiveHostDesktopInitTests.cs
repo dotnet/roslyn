@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             var dll = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01);
             var srcDir = Temp.CreateDirectory();
-            var dllDir = Path.GetDirectoryName(dll.Path);
+            var dllDir = Path.GetDirectoryName(dll.Path)!;
             srcDir.CreateFile("goo.csx").WriteAllText("ReferencePaths.Add(@\"" + dllDir + "\");");
 
             // print default:
