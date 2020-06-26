@@ -520,7 +520,7 @@ class Program
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(CONSTISTR)"), WorkItem(1119878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119878")]
+        [Fact, WorkItem(1119878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119878")]
         public void NoFillIns01()
         {
             string source =
@@ -532,7 +532,7 @@ class Program
         System.Console.WriteLine($@""This is a test"");
     }
 }";
-            string expectedOutput = @"{{ x }}This is a test";
+            string expectedOutput = @"{ x }This is a test";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 

@@ -105,7 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (constantEnabled)
                                 {
-                                    resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), value.ConstantValue);
+                                    resultConstant = (resultConstant is null)
+                                        ? value.ConstantValue
+                                        : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, value.ConstantValue);
                                 }
                             }
                             else
@@ -117,11 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.InterpolatedStringText:
                         {
                             var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
-                            var constantVal = ConstantValue.Create(text, SpecialType.System_String);
-                            builder.Add(new BoundLiteral(content, constantVal, stringType));
+                            builder.Add(new BoundLiteral(content, ConstantValue.Create(text, SpecialType.System_String), stringType));
                             if (constantEnabled)
                             {
-                                resultConstant = FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, (resultConstant ??= ConstantValue.Create(String.Empty, SpecialType.System_String)), constantVal);
+                                var constantVal = ConstantValue.Create(ConstantValueUtils.UnescapeInterpolatedStringLiteral(text), SpecialType.System_String);
+                                resultConstant = (resultConstant is null)
+                                    ? constantVal
+                                    : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, constantVal);
                             }
                             continue;
                         }
