@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 if (_owner.CanAddImportForGetEnumerator(_diagnosticId, _syntaxFacts, _node))
                 {
-                    var type = _owner.GetCollectionExpressionInfo(_semanticModel, _syntaxFacts, _node);
+                    var type = _owner.GetCollectionExpressionType(_semanticModel, _syntaxFacts, _node);
                     if (type != null)
                     {
                         return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetEnumeratorMethodName, type,
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 if (_owner.CanAddImportForGetAsyncEnumerator(_diagnosticId, _syntaxFacts, _node))
                 {
-                    var type = _owner.GetCollectionExpressionInfo(_semanticModel, _syntaxFacts, _node);
+                    var type = _owner.GetCollectionExpressionType(_semanticModel, _syntaxFacts, _node);
                     if (type != null)
                     {
                         return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAsyncEnumeratorMethodName, type,

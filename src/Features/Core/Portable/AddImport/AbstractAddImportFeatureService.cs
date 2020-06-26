@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }
 
-        private ITypeSymbol GetCollectionExpressionInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        private ITypeSymbol GetCollectionExpressionType(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
             var collectionExpression = FirstForeachCollectionExpressionAncester(syntaxFactsService, node);
 
