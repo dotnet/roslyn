@@ -7101,6 +7101,62 @@ public class C
 ");
         }
 
+        [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
+        public void LocalFunction_ValidStatic()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe class FunctionPointer
+{
+    public static void Main()
+    {
+        delegate*<void> a = &local;
+        a();
+
+        static void local() => System.Console.Write(""local"");
+    }
+}
+", expectedOutput: "local");
+
+
+            verifier.VerifyIL("FunctionPointer.Main", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldftn      ""void FunctionPointer.<Main>g__local|0_0()""
+  IL_0006:  calli      ""delegate*<void>""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
+        public void LocalFunction_InvalidNonStatic()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class FunctionPointer
+{
+    public static void M()
+    {
+        int local = 1;
+
+        delegate*<void> first = &noCaptures;
+        delegate*<void> second = &capturesLocal;
+
+        void noCaptures() { }
+        void capturesLocal() { local++; }
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (8,34): error CS8759: Cannot create a function pointer for 'noCaptures()' because it is not a static method
+                //         delegate*<void> first = &noCaptures;
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "noCaptures").WithArguments("noCaptures()").WithLocation(8, 34),
+                // (9,35): error CS8759: Cannot create a function pointer for 'capturesLocal()' because it is not a static method
+                //         delegate*<void> second = &capturesLocal;
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "capturesLocal").WithArguments("capturesLocal()").WithLocation(9, 35)
+            );
+        }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 
