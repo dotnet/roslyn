@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         protected SourcePropertySymbolBase(
            SourceMemberContainerTypeSymbol containingType,
-           Binder? binder,
+           Binder binder,
            CSharpSyntaxNode syntax,
            RefKind refKind,
            string name,
@@ -95,11 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
 
             SyntaxTokenList modifiers = GetModifierTokens(syntax);
-            if (binder is object)
-            {
-                binder = binder.WithUnsafeRegionIfNecessary(modifiers);
-                binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
-            }
+            binder = binder.WithUnsafeRegionIfNecessary(modifiers);
+            binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             var arrowExpression = GetArrowExpression(syntax);
             bool hasExpressionBody = arrowExpression != null;
@@ -242,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyParameters = this.ComputeParameters(binder, syntax, diagnostics);
 
                 bool isOverride = false;
-                PropertySymbol? overriddenOrImplementedProperty = null;
+                PropertySymbol? overriddenOrImplementedProperty;
 
                 if (!isExplicitInterfaceImplementation)
                 {
@@ -381,8 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (explicitlyImplementedProperty is object)
             {
-                CheckExplicitImplementationAccessor(this.GetMethod, explicitlyImplementedProperty.GetMethod, explicitlyImplementedProperty, diagnostics);
-                CheckExplicitImplementationAccessor(this.SetMethod, explicitlyImplementedProperty.SetMethod, explicitlyImplementedProperty, diagnostics);
+                CheckExplicitImplementationAccessor(_getMethod, explicitlyImplementedProperty.GetMethod, explicitlyImplementedProperty, diagnostics);
+                CheckExplicitImplementationAccessor(_setMethod, explicitlyImplementedProperty.SetMethod, explicitlyImplementedProperty, diagnostics);
             }
 
             _explicitInterfaceImplementations =
@@ -402,6 +398,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckForBlockAndExpressionBody(syntax, diagnostics);
+        }
+
+        // Used by SynthesizedRecordPropertySymbol only.
+        protected SourcePropertySymbolBase(
+           SourceMemberContainerTypeSymbol containingType,
+           CSharpSyntaxNode syntax,
+           DeclarationModifiers modifiers,
+           string name,
+           Location location,
+           PropertySymbol? overriddenProperty,
+           TypeWithAnnotations type,
+           DiagnosticBag diagnostics)
+        {
+            Debug.Assert(this is SynthesizedRecordPropertySymbol);
+
+            _syntaxRef = syntax.GetReference();
+            Location = location;
+            _containingType = containingType;
+            _refKind = RefKind.None;
+            _modifiers = modifiers;
+            _sourceName = name;
+            _name = name;
+            _propertyFlags = Flags.IsAutoProperty;
+
+            //issue a diagnostic if the compiler generated attribute ctor is not found.
+            Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+            WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, diagnostics, syntax: syntax);
+
+            string fieldName = GeneratedNames.MakeBackingFieldName(_sourceName);
+            BackingField = new SynthesizedBackingFieldSymbol(this,
+                                                                  fieldName,
+                                                                  isReadOnly: true,
+                                                                  this.IsStatic,
+                                                                  hasInitializer: true);
+
+            _refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+            _lazyType = new TypeWithAnnotations.Boxed(type);
+            _lazyParameters = ImmutableArray<ParameterSymbol>.Empty;
+
+            if (overriddenProperty is object)
+            {
+                TypeWithAnnotations overriddenPropertyType = overriddenProperty.TypeWithAnnotations;
+
+                // We do an extra check before copying the type to handle the case where the overriding
+                // property (incorrectly) has a different type than the overridden property.  In such cases,
+                // we want to retain the original (incorrect) type to avoid hiding the type given in source.
+                if (type.Type.Equals(overriddenPropertyType.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
+                {
+                    type = type.WithTypeAndModifiers(
+                        CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.Type, type.Type, this.ContainingAssembly),
+                        overriddenPropertyType.CustomModifiers);
+
+                    _lazyType = new TypeWithAnnotations.Boxed(type);
+                }
+            }
+
+            _getMethod = CreateAccessorSymbol(isGet: true, syntax, explicitlyImplementedPropertyOpt: null, aliasQualifierOpt: null, isAutoPropertyAccessor: true, isExplicitInterfaceImplementation: false, diagnostics);
+            _setMethod = CreateAccessorSymbol(isGet: false, syntax, explicitlyImplementedPropertyOpt: null, aliasQualifierOpt: null, isAutoPropertyAccessor: true, isExplicitInterfaceImplementation: false, diagnostics);
+
+            if (this.IsAbstract)
+            {
+                // Check abstract property accessors are not private.
+                CheckAbstractPropertyAccessorNotPrivate(_getMethod, diagnostics);
+                CheckAbstractPropertyAccessorNotPrivate(_setMethod, diagnostics);
+            }
+
+            _explicitInterfaceImplementations = ImmutableArray<PropertySymbol>.Empty;
         }
 
         protected abstract Location TypeLocation { get; }
@@ -870,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isGet,
             CSharpSyntaxNode? syntaxOpt,
             PropertySymbol? explicitlyImplementedPropertyOpt,
-            string aliasQualifierOpt,
+            string? aliasQualifierOpt,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics);
@@ -878,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
             PropertySymbol? explicitlyImplementedPropertyOpt,
-            string aliasQualifierOpt,
+            string? aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics);
 #nullable restore

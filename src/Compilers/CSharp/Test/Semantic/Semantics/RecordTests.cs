@@ -5193,9 +5193,13 @@ B");
 
             property = (PropertySymbol)actualMembers[1];
             Assert.Equal("System.Object modopt(System.UInt16) B.P { get; init; }", property.ToTestDisplayString());
-            verifyReturnType(property.GetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
-            verifyReturnType(property.SetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Byte)));
-            verifyParameterType(property.SetMethod, CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
+            verifyReturnType(property.GetMethod,
+                CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
+            verifyReturnType(property.SetMethod,
+                CSharpCustomModifier.CreateRequired(comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit)),
+                CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_Byte)));
+            verifyParameterType(property.SetMethod,
+                CSharpCustomModifier.CreateOptional(comp.GetSpecialType(SpecialType.System_UInt16)));
 
             static void verifyReturnType(MethodSymbol method, params CustomModifier[] expectedModifiers)
             {
