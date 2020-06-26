@@ -1934,6 +1934,16 @@
         <target state="translated">La anotación para tipos de referencia que aceptan valores NULL solo debe usarse en el código dentro de un contexto de anotaciones "#nullable".</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">No se puede convertir un literal NULL en un tipo de referencia que no acepta valores NULL.</target>
@@ -7258,7 +7268,7 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">Esta advertencia puede producirse cuando dos métodos de interfaz solo se diferencian por la marca de un parámetro particular con ref o out. Es mejor cambiar su código para evitar esta advertencia porque no es obvio ni se garantiza qué método se llamará en el tiempo de ejecución.
+        <target state="needs-review-translation">Esta advertencia puede producirse cuando dos métodos de interfaz solo se diferencian por la marca de un parámetro particular con ref o out. Es mejor cambiar su código para evitar esta advertencia porque no es obvio ni se garantiza qué método se llamará en el tiempo de ejecución.
 
 A pesar de que C# distingue entre out y ref, el CLR los ve como iguales. Cuando decida qué método implementa la interfaz, el CLR escoge uno.
 

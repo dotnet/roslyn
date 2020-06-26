@@ -1934,6 +1934,16 @@
         <target state="translated">Adnotacja dla typów referencyjnych dopuszczających wartość null powinna być używana tylko w kodzie z kontekstem adnotacji „#nullable”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Nie można przekonwertować literału o wartości null na nienullowalny typ referencyjny.</target>
@@ -7258,7 +7268,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">To ostrzeżenie może zostać wygenerowane, gdy dwie metody interfejsu różnią się tylko oznaczeniem określonego parametru specyfikatorem ref lub out. Aby zapobiec występowaniu tego ostrzeżenia, zmień kod, ponieważ nie można jednoznacznie określić ani zagwarantować, która metoda zostanie wywołana w czasie wykonywania.
+        <target state="needs-review-translation">To ostrzeżenie może zostać wygenerowane, gdy dwie metody interfejsu różnią się tylko oznaczeniem określonego parametru specyfikatorem ref lub out. Aby zapobiec występowaniu tego ostrzeżenia, zmień kod, ponieważ nie można jednoznacznie określić ani zagwarantować, która metoda zostanie wywołana w czasie wykonywania.
 
 Język C# rozróżnia specyfikatory out i ref, jednak dla środowiska CLR są one takie same. Wybiera ono dowolny z nich podczas określania, która metoda zawiera implementację interfejsu.
 

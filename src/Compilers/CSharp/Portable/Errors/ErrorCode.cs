@@ -984,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InitializerAddHasParamModifiers = 1954,
         ERR_NonInvocableMemberCalled = 1955,
         WRN_MultipleRuntimeImplementationMatches = 1956,
-        // WRN_MultipleRuntimeOverrideMatches = 1957, removed per https://github.com/dotnet/roslyn/issues/44067
+        WRN_MultipleRuntimeOverrideMatches = 1957,
         ERR_ObjectOrCollectionInitializerWithDelegateCreation = 1958,
         ERR_InvalidConstantDeclarationType = 1959,
         ERR_IllegalVarianceSyntax = 1960,

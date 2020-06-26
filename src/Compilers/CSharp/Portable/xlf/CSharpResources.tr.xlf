@@ -1934,6 +1934,16 @@
         <target state="translated">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' ek açıklama bağlamı içinde kullanılmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Null sabit değer, boş değer atanamayan başvuru türüne dönüştürülemiyor.</target>
@@ -7258,7 +7268,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">Bu uyarı iki arabirim yöntemi yalnızca özel bir parametrenin ref veya out ile işaretlenip işaretlenmediğine göre ayrıştırıldığında oluşturulabilir. Çalışma zamanında hangi yöntemin çağrıldığını kesin olmadığından veya garanti edilmediğinden, bu uyarıdan kaçınmak için kodunuzu değiştirmeniz en iyi çözümdür.
+        <target state="needs-review-translation">Bu uyarı iki arabirim yöntemi yalnızca özel bir parametrenin ref veya out ile işaretlenip işaretlenmediğine göre ayrıştırıldığında oluşturulabilir. Çalışma zamanında hangi yöntemin çağrıldığını kesin olmadığından veya garanti edilmediğinden, bu uyarıdan kaçınmak için kodunuzu değiştirmeniz en iyi çözümdür.
 
 C# out ve ref'i ayırsa da, CLR ikisini aynı görür. Hangi yöntemin arabirimi kapsadığına karar verirken, CLR yalnızca birini seçer.
 

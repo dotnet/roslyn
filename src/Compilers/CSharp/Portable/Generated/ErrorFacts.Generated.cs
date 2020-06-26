@@ -113,6 +113,7 @@
                 case ErrorCode.WRN_ReferencedAssemblyReferencesLinkedPIA:
                 case ErrorCode.WRN_CantHaveManifestForModule:
                 case ErrorCode.WRN_MultipleRuntimeImplementationMatches:
+                case ErrorCode.WRN_MultipleRuntimeOverrideMatches:
                 case ErrorCode.WRN_DynamicDispatchToConditionalMethod:
                 case ErrorCode.WRN_IsDynamicIsConfusing:
                 case ErrorCode.WRN_AsyncLacksAwaits:

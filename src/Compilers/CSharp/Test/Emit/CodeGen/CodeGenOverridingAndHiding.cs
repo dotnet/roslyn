@@ -1115,13 +1115,10 @@ class Test
         [Fact]
         public void TestAmbiguousOverridesRefOut()
         {
-            // NOTE: we no longer warn as we produce a methodimpl record to disambiguate for the runtime.
-            // However, due to https://github.com/dotnet/runtime/issues/38119 the runtime does not always obey the metadata
-
             var method1 = @"public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine(""Base<T, U>.Method(ref List<T> x, out List<U> y)""); }";
             var method2 = @"public virtual void Method(out List<U> y, ref List<T> x) { y = null; Console.WriteLine(""Base<T, U>.Method(out List<U> y, ref List<T> x)""); }";
-            var source = @"
-using System;
+            var source =
+@"using System;
 using System.Collections.Generic;
 abstract class Base<T, U>
 {
@@ -1139,15 +1136,15 @@ class Base2<A, B> : Base<A, B>
 }
 class Derived : Base2<int, int>
 {
-    public override void Method(ref List<int> a, out List<int> b) // No warning - the compiler produces a methodimpl record to disambiguate
+    public override void Method(ref List<int> a, out List<int> b)
     {
         b = null;
         Console.WriteLine(""Derived.Method(ref List<int> a, out List<int> b)"");
     }
-    public override void Method(BASEREF List<int> a) // No warning when ambiguous signatures are spread across multiple base types
+    public override void Method(BASEREF List<int> a)
     {
         a = null;
-        Console.WriteLine(""Derived.Method(ref List<int> a)"");
+        Console.WriteLine(""Derived.Method(BASEREF List<int> a)"");
     }
 }
 class Program
@@ -1155,6 +1152,7 @@ class Program
     static void Main()
     {
         List<int> t = null;
+        Console.WriteLine();
         Derived d = new Derived();
         d.Method(ref t, out t);
         d.Method(out t, ref t);
@@ -1174,27 +1172,8 @@ class Program
     }
 }
 ";
-            var expectedOutput = @"
-Derived.Method(ref List<int> a, out List<int> b)
-Base<T, U>.Method(out List<U> y, ref List<T> x)
-Derived.Method(BASEREF List<int> a)
-Base2<A, B>.Method(BASE2REF List<A> x)
-
-Derived.Method(ref List<int> a, out List<int> b)
-Base<T, U>.Method(out List<U> y, ref List<T> x)
-Derived.Method(BASEREF List<int> a)
-Base2<A, B>.Method(BASE2REF List<A> x)
-
-Derived.Method(ref List<int> a, out List<int> b)
-Base<T, U>.Method(out List<U> y, ref List<T> x)
-Derived.Method(BASEREF List<int> a)";
             for (int i = 0; i < 2; i++)
             {
-                if (i == 1)
-                {
-                    // This case is not working due to https://github.com/dotnet/runtime/issues/38119
-                    continue;
-                }
                 var substitutedSource0 = i switch
                 {
                     0 => source.Replace("METHOD1", method1).Replace("METHOD2", method2),
@@ -1202,20 +1181,83 @@ Derived.Method(BASEREF List<int> a)";
                 };
                 for (int j = 0; j < 2; j++)
                 {
-                    if (j == 1)
-                    {
-                        // This case is not working due to https://github.com/dotnet/runtime/issues/38119
-                        continue;
-                    }
                     string subst(string s) => j switch
                     {
                         0 => s.Replace("BASEREF", "ref").Replace("BASE2REF", "out"),
                         _ => s.Replace("BASEREF", "out").Replace("BASE2REF", "ref"),
                     };
+
                     var substitutedSource = subst(substitutedSource0);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe);
+                    string expectedOutput;
+                    if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
+                    {
+                        // Correct runtime behavior with no warning
+                        compilation.VerifyDiagnostics();
+                        expectedOutput = @"
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+";
+                    }
+                    else if (ExecutionConditionUtil.IsCoreClr || ExecutionConditionUtil.IsDesktop)
+                    {
+                        // Imperfect runtime behavior with warning
+                        switch (i)
+                        {
+                            case 0:
+                                compilation.VerifyDiagnostics(
+                                    // (5,25): warning CS1957: Member 'Derived.Method(ref List<int>, out List<int>)' overrides 'Base<int, int>.Method(ref List<int>, out List<int>)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                                    //     public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine("Base<T, U>.Method(ref List<T> x, out List<U> y)"); }
+                                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)", "Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)").WithLocation(5, 25)
+                                    );
+                                break;
+                            default:
+                                compilation.VerifyDiagnostics(
+                                    // (6,25): warning CS1957: Member 'Derived.Method(ref List<int>, out List<int>)' overrides 'Base<int, int>.Method(ref List<int>, out List<int>)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                                    //     public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine("Base<T, U>.Method(ref List<T> x, out List<U> y)"); }
+                                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)", "Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)").WithLocation(6, 25)
+                                    );
+                                break;
+                        }
+                        var (m1, m2) = i switch
+                        {
+                            0 => ("Base<T, U>.Method(ref List<T> x, out List<U> y)", "Derived.Method(ref List<int> a, out List<int> b)"),
+                            _ => ("Derived.Method(ref List<int> a, out List<int> b)", "Base<T, U>.Method(out List<U> y, ref List<T> x)"),
+                        };
+                        expectedOutput = $@"
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)";
+                    }
+                    else
+                    {
+                        // unknown runtime behavior
+                        continue;
+                    }
+
                     var substitutedExpected = subst(expectedOutput);
-                    var verifier = CompileAndVerify(substitutedSource, options: TestOptions.ReleaseExe, expectedOutput: substitutedExpected);
-                    verifier.VerifyDiagnostics();
+                    var verifier = CompileAndVerify(compilation, expectedOutput: substitutedExpected);
                 }
             }
         }

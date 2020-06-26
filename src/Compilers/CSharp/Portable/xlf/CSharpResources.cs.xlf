@@ -1934,6 +1934,16 @@
         <target state="translated">Poznámka u typů odkazů s možnou hodnotou null by se měla v kódu používat jenom v kontextu poznámek #nullable.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Literál null nejde převést na odkazový typ, který nemůže mít hodnotu null.</target>
@@ -7258,7 +7268,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">Toto varování se může vygenerovat, když jsou dvě metody rozhraní odlišené jenom tím, že určitý parametr je označený jednou jako ref a podruhé jako out. Doporučuje se kód změnit tak, aby k tomuto varování nedocházelo, protože není úplně jasné nebo zaručené, která metoda se má za běhu vyvolat.
+        <target state="needs-review-translation">Toto varování se může vygenerovat, když jsou dvě metody rozhraní odlišené jenom tím, že určitý parametr je označený jednou jako ref a podruhé jako out. Doporučuje se kód změnit tak, aby k tomuto varování nedocházelo, protože není úplně jasné nebo zaručené, která metoda se má za běhu vyvolat.
 
 Ačkoli C# rozlišuje mezi out a ref, pro CLR je to totéž. Při rozhodování, která metoda má implementovat rozhraní, modul CLR prostě jednu vybere.
 

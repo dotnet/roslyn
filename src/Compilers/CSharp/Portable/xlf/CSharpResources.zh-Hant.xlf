@@ -1934,6 +1934,16 @@
         <target state="translated">可為 Null 的參考型別註釋應只用於 '#nullable' 註釋內容中的程式碼。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">無法將 null 常值轉換成不可為 Null 的參考型別。</target>
@@ -7258,7 +7268,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">當兩介面方法的差異只在於特定參數的標記方式是 ref 還是 out 時，便可能產生此警告。因為在執行階段所呼叫方法既不明顯，也沒辦法預先確認，所以最好變更程式碼來避免此警告。
+        <target state="needs-review-translation">當兩介面方法的差異只在於特定參數的標記方式是 ref 還是 out 時，便可能產生此警告。因為在執行階段所呼叫方法既不明顯，也沒辦法預先確認，所以最好變更程式碼來避免此警告。
 
 雖然 C# 會區分 out 與 ref，但是 CLR 會將它們視為相同。決定實作介面的方法時，CLR 只會選擇其中一個。
 

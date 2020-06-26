@@ -337,6 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadXMLRefTypeVar:
                 case ErrorCode.WRN_ReferencedAssemblyReferencesLinkedPIA:
                 case ErrorCode.WRN_MultipleRuntimeImplementationMatches:
+                case ErrorCode.WRN_MultipleRuntimeOverrideMatches:
                 case ErrorCode.WRN_FileAlreadyIncluded:
                 case ErrorCode.WRN_NoConfigNotOnCommandLine:
                 case ErrorCode.WRN_AnalyzerCannotBeCreated:

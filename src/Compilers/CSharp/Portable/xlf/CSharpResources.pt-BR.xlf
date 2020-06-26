@@ -1932,6 +1932,16 @@
         <target state="translated">A anotação para tipos de referência anuláveis deve ser usada apenas em código em um contexto de anotações '#nullable'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Não é possível converter um literal nulo em um tipo de referência não anulável.</target>
@@ -7256,7 +7266,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">Esse aviso pode ser gerado quando dois métodos de interface são diferenciados somente por se um determinado parâmetro é marcado com ref ou out. É aconselhável alterar o código para evitar este aviso porque não fica óbvio ou garantido qual método é chamado no runtime.
+        <target state="needs-review-translation">Esse aviso pode ser gerado quando dois métodos de interface são diferenciados somente por se um determinado parâmetro é marcado com ref ou out. É aconselhável alterar o código para evitar este aviso porque não fica óbvio ou garantido qual método é chamado no runtime.
 
 Embora C# faça a distinção entre out e ref, o CLR os vê da mesma forma. Ao decidir qual método implementa a interface, o CLR simplesmente escolhe um deles.
 

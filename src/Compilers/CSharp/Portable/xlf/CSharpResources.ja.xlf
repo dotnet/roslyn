@@ -1934,6 +1934,16 @@
         <target state="translated">'#nullable' 注釈コンテキスト内のコードでのみ、Null 許容参照型の注釈を使用する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">null リテラルを null 非許容参照型に変換できません。</target>
@@ -7258,7 +7268,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">この警告は、2 つのインターフェイス メソッドが、特定のパラメーターが ref または out に設定されているかどうかのみで区別されている場合に生成されます。この警告を回避するには、コードを変更することが最善です。これは、実行時にどのメソッドが呼び出されるかが明確でないか、保証されていないためです。
+        <target state="needs-review-translation">この警告は、2 つのインターフェイス メソッドが、特定のパラメーターが ref または out に設定されているかどうかのみで区別されている場合に生成されます。この警告を回避するには、コードを変更することが最善です。これは、実行時にどのメソッドが呼び出されるかが明確でないか、保証されていないためです。
 
 C# では out と ref を区別しますが、CLR では同じと認識します。インターフェイスを実装するメソッドを決定する際、CLR がどちらか 1 つを選択します。
 

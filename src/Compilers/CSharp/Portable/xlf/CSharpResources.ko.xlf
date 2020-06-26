@@ -1934,6 +1934,16 @@
         <target state="translated">nullable 참조 형식에 대한 주석은 코드에서 '#nullable' 주석 컨텍스트 내에만 사용되어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
         <target state="translated">Null 리터럴을 null을 허용하지 않는 참조 형식으로 변환할 수 없습니다.</target>
@@ -7258,7 +7268,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">이 경고는 두 인터페이스 메서드에서 특정 매개 변수가 ref로 표시되는지 out으로 표시되는지 여부만 다른 경우에 생성될 수 있습니다. 런타임에 호출되는 메서드가 명확하거나 보장되지 않으므로 이 경고를 방지하도록 코드를 변경하는 것이 좋습니다.
+        <target state="needs-review-translation">이 경고는 두 인터페이스 메서드에서 특정 매개 변수가 ref로 표시되는지 out으로 표시되는지 여부만 다른 경우에 생성될 수 있습니다. 런타임에 호출되는 메서드가 명확하거나 보장되지 않으므로 이 경고를 방지하도록 코드를 변경하는 것이 좋습니다.
 
 C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간주합니다. 따라서 인터페이스를 구현할 메서드를 결정할 때 CLR에서는 하나만 선택합니다.
 

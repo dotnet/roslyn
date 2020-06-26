@@ -117,9 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // the small benefit of getting identical answers from "imported" symbols, regardless of whether they
             // are imported as source or metadata symbols.
             //
-            // ACASEY: As of 2013/01/24, we are not aware of any cases where the source and metadata behaviors
-            // disagree *in code that can be emitted*.  (If there are any, they are likely to involved ambiguous
-            // overrides, which typically arise through combinations of ref/out and generics.)  In incorrect code,
+            // We believe that source and metadata behaviors agree for correct code, modulo accomodations for
+            // runtime bugs (such as https://github.com/dotnet/roslyn/issues/45453) on older platforms.
+            // In incorrect code,
             // the source behavior is somewhat more generous (e.g. accepting a method with the wrong return type),
             // but we do not guarantee that incorrect source will be treated in the same way as incorrect metadata.
             bool memberIsFromSomeCompilation = member.Dangerous_IsFromSomeCompilation;
@@ -173,12 +173,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// override. This makes a particular difference when covariant returns are used, in which
         /// case the signature matching rules would not compute the correct overridden method.
         /// </summary>
-        private static MethodSymbol KnownOverriddenClassMethod(MethodSymbol method) => method switch
-        {
-            PEMethodSymbol m => m.ExplicitlyOverriddenClassMethod,
-            RetargetingMethodSymbol m => m.ExplicitlyOverriddenClassMethod,
-            _ => null
-        };
+        private static MethodSymbol KnownOverriddenClassMethod(MethodSymbol method) =>
+            method switch
+            {
+                PEMethodSymbol m => m.ExplicitlyOverriddenClassMethod,
+                RetargetingMethodSymbol m => m.ExplicitlyOverriddenClassMethod,
+                _ => null
+            };
 
         /// <summary>
         /// In the CLI, accessors are just regular methods and their overriding/hiding rules are the same as for
@@ -944,31 +945,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return false;
                 }
+
                 // We can ignore newslot, since we checked IsOverride.
-                // We can ignore interface implementation changes since the method is already metadata virtual (since override).
-                MethodSymbol runtimeOverriddenMethod = method.GetUniqueRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
-                return csharpOverriddenMethod != runtimeOverriddenMethod;
+                MethodSymbol runtimeOverriddenMethod = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(out bool wasAmbiguous);
+                return wasAmbiguous
+                    // See https://github.com/dotnet/roslyn/issues/45453
+                    ? method.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses
+                    : csharpOverriddenMethod != runtimeOverriddenMethod;
             }
 
             return false;
         }
 
         /// <summary>
-        /// Given a method, find a unique method that it overrides from the perspective of the CLI.
+        /// Given a method, find the first method that it overrides from the perspective of the CLI.
         /// Key differences from C#: non-virtual methods are ignored, the RuntimeSignatureComparer
-        /// is used (i.e. consider return types, ignore ref/out distinction).  If fewer or more than
-        /// one method is overridden by CLI rules, returns null.
+        /// is used (i.e. consider return types, ignore ref/out distinction).  Sets <paramref name="wasAmbiguous"/>
+        /// to true if more than one method is overridden by CLI rules.
         /// </summary>
         /// <remarks>
         /// WARN: Must not check method.MethodKind - PEMethodSymbol.ComputeMethodKind uses this method.
         /// NOTE: Does not check whether the given method will be marked "newslot" in metadata (as
         /// "newslot" is used for covariant method overrides).
-        /// WARN: If the method may override a source method and declaration diagnostics have yet to
-        /// be computed, then it is important to pass ignoreInterfaceImplementationChanges: true
-        /// (see MethodSymbol.IsMetadataVirtual for details).
         /// </remarks>
-        internal static MethodSymbol GetUniqueRuntimeOverriddenMethodIgnoringNewSlot(this MethodSymbol method, bool ignoreInterfaceImplementationChanges)
+        internal static MethodSymbol GetFirstRuntimeOverriddenMethodIgnoringNewSlot(this MethodSymbol method, out bool wasAmbiguous)
         {
+            // WARN: If the method may override a source method and declaration diagnostics have yet to
+            // be computed, then it is important for us to pass ignoreInterfaceImplementationChanges: true
+            // (see MethodSymbol.IsMetadataVirtual for details).
+            // Since we are only concerned with overrides (of class methods), interface implementations can be ignored.
+            const bool ignoreInterfaceImplementationChanges = true;
+
+            wasAmbiguous = false;
             if (!method.IsMetadataVirtual(ignoreInterfaceImplementationChanges))
             {
                 return null;
@@ -993,7 +1001,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (candidate is { })
                             {
                                 // found more than one possible override in this type
-                                return null;
+                                wasAmbiguous = true;
+                                return candidate;
                             }
 
                             candidate = overridden;
