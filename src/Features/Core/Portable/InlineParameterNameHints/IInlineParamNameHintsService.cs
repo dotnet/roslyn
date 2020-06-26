@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineParameterNameHints
 {
-    readonly struct InlineParameterHint
+    internal readonly struct InlineParameterHint
     {
         public InlineParameterHint(string name, int pos)
         {

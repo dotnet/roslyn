@@ -24,28 +24,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         public InlineParamNameHintsTag(string text)
             : base(CreateElement(text), removalCallback: null, (PositionAffinity?)PositionAffinity.Successor)
         {
-            TagName = text;
-            if (TagName.Length != 0)
-            {
-                TagName += ": ";
-            }
+            TagName = text + ": " ;
         }
 
         private static UIElement CreateElement(string text)
         {
-            if (text.Length != 0)
-            {
-                text += ": ";
-            }
-
+            text += ": ";
             var block = new TextBlock
             {
                 Text = text,
                 FontStyle = FontStyles.Normal,
                 Padding = new Thickness(0),
             };
-
-            // block.FontStyle = FontStyles.Normal;
 
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 

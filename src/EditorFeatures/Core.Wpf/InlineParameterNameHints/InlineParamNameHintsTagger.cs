@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     {
         private readonly ITagAggregator<InlineParamNameHintDataTag> _tagAggregator;
         private readonly ITextBuffer _buffer;
+
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
         public InlineParamNameHintsTagger(ITextBuffer buffer, ITagAggregator<InlineParamNameHintDataTag> tagAggregator)
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             var spans = e.Span.GetSpans(_buffer);
             foreach (var span in spans)
             {
-                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));//new SnapshotSpan(span.Snapshot, 0, span.Snapshot.Length)));
+                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
             }
         }
 

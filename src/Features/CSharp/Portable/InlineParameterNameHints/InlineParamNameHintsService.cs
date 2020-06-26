@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineParameterNameHints;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
@@ -36,13 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var node = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var spans = new List<InlineParameterHint>();
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var invocations = node.DescendantNodes().OfType<InvocationExpressionSyntax>();
+            var invocations = node.DescendantNodes(textSpan).OfType<InvocationExpressionSyntax>();
 
             foreach (var invocation in invocations)
             {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                     if (argument.NameColon == null && IsExpressionWithNoName(argument.Expression))
                     {
                         var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                        if (param != null)
+                        if (param != null && param.Name != "")
                         {
                             spans.Add(new InlineParameterHint(param.Name, argument.Span.Start));
                         }

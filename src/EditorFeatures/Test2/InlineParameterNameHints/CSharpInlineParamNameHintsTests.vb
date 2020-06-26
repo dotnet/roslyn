@@ -174,7 +174,6 @@ class A
             Await VerifyParamHints(input)
         End Function
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
         Public Async Function TestNegatingACastSimpleCase() As Task
             Dim input =
@@ -198,5 +197,76 @@ class A
 
             Await VerifyParamHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestMissingParameterNameSimpleCase() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int testMethod(int)
+    {
+        return 5;
+    }
+    void Main() 
+    {
+        $$testMethod();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestDelegateParameter() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+delegate void D(int x);
+
+    class C
+    {
+        public static void M1(int i) { }
+    }
+
+    class Test
+    {
+        static void Main()
+        {
+            D cd1 = new D(C.M1);
+            $$cd1({|x:-1|});
+        }
+    }
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestFunctionPointerNoParameter() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AllowUnsafe="true">
+                    <Document>
+unsafe class Example {
+    void Example(delegate*&lt;int, void&gt; f) {
+        $$f(42);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
     End Class
 End Namespace

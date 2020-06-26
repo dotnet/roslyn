@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
+using System;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
@@ -17,6 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         public InlineParamNameHintDataTag(string name)
         {
+            if (name.Length == 0)
+            {
+                throw new ArgumentException("Parameter name must have a length greater than 0");
+            }
             ParameterName = name;
         }
     }
