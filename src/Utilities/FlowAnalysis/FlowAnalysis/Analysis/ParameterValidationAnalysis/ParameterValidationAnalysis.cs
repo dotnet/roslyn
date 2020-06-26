@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
             CancellationToken cancellationToken,
+            PointsToAnalysisKind defaultPointsToAnalysisKind = PointsToAnalysisKind.Complete,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
             uint defaultMaxInterproceduralMethodCallChain = 1, // By default, we only want to track method calls one level down.
             bool pessimisticAnalysis = true)
@@ -43,8 +44,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                    analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
             var performCopyAnalysis = analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: false, cancellationToken);
             var nullCheckValidationMethods = analyzerOptions.GetNullCheckValidationMethodsOption(rule, compilation, cancellationToken);
+            var pointsToAnalysisKind = analyzerOptions.GetPointsToAnalysisKindOption(rule, defaultPointsToAnalysisKind, cancellationToken);
             return GetOrComputeHazardousParameterUsages(topmostBlock, compilation, owningSymbol, analyzerOptions,
-                nullCheckValidationMethods, interproceduralAnalysisConfig, performCopyAnalysis, pessimisticAnalysis);
+                nullCheckValidationMethods, pointsToAnalysisKind, interproceduralAnalysisConfig, performCopyAnalysis, pessimisticAnalysis);
         }
 
         private static ImmutableDictionary<IParameterSymbol, SyntaxNode> GetOrComputeHazardousParameterUsages(
@@ -53,6 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
             SymbolNamesOption nullCheckValidationMethods,
+            PointsToAnalysisKind pointsToAnalysisKind,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool performCopyAnalysis,
             bool pessimisticAnalysis = true)
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
-                interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt: null, pessimisticAnalysis, performCopyAnalysis);
+                pointsToAnalysisKind, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt: null, pessimisticAnalysis, performCopyAnalysis);
             if (pointsToAnalysisResult != null)
             {
                 var result = TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,

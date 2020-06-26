@@ -237,7 +237,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (AnalysisEntityFactory.TryCreate(target, out var targetAnalysisEntity))
             {
-                if (mayBeAssignment)
+                if (!HasCompletePointsToAnalysisResult &&
+                    targetAnalysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis())
+                {
+                    // We are not tracking points to values for fields and properties.
+                    // So, it is not possible to accurately track value changes to target entity which is a member.
+                    // Conservatively assume that the entity is assigned an unknown value.
+                    assignedValue = ValueDomain.UnknownOrMayBeValue;
+                }
+                else if (mayBeAssignment)
                 {
                     assignedValue = ValueDomain.Merge(GetAbstractValue(targetAnalysisEntity), assignedValue);
                 }
@@ -407,11 +415,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity)
         {
+            // PERF: If we do not have complete points to analysis data, then there cannot be any
+            // child entities for reference type entities.
+            if (!HasCompletePointsToAnalysisResult && analysisEntity.Type.IsReferenceType)
+            {
+                return ImmutableHashSet<AnalysisEntity>.Empty;
+            }
+
             return GetChildAnalysisEntities(analysisEntity.InstanceLocation, entity => IsChildAnalysisEntity(entity, analysisEntity));
         }
 
-        protected static IEnumerable<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity, HashSet<AnalysisEntity> allEntities)
+        private static IEnumerable<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity, HashSet<AnalysisEntity> allEntities)
         {
+            Debug.Assert(analysisEntity.Type.HasValueCopySemantics());
+
             foreach (var entity in allEntities)
             {
                 if (IsChildAnalysisEntity(entity, ancestorEntity: analysisEntity))
@@ -428,7 +445,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue? instanceLocationOpt)
-           => GetChildAnalysisEntities(instanceLocationOpt, predicateOpt: null);
+        {
+            return GetChildAnalysisEntities(instanceLocationOpt, predicateOpt: null);
+        }
 
         private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue? instanceLocationOpt, Func<AnalysisEntity, bool>? predicateOpt)
         {
@@ -579,14 +598,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         candidateEntitiesBuilder.ExceptWith(worklistEntities);
 
                         // Add child entities of worklistEntities to childWorklistEntities.
-                        foreach (var candidateEntity in candidateEntitiesBuilder)
+                        // PERF: We cannot have any child entities for PointsToAnalysis if we
+                        // not computing complete PointsToAnalysis data.
+                        if (HasCompletePointsToAnalysisResult || !IsPointsToAnalysis)
                         {
-                            foreach (var ancestorEntity in worklistEntities)
+                            foreach (var candidateEntity in candidateEntitiesBuilder)
                             {
-                                if (IsChildAnalysisEntity(candidateEntity, ancestorEntity))
+                                foreach (var ancestorEntity in worklistEntities)
                                 {
-                                    childWorklistEntities.Add(candidateEntity);
-                                    break;
+                                    if (IsChildAnalysisEntity(candidateEntity, ancestorEntity))
+                                    {
+                                        childWorklistEntities.Add(candidateEntity);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -597,15 +621,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     if (worklistPointsToValues.Count > 0)
                     {
                         // Add child entities which are accessible from PointsTo chain to childWorklistEntities.
-                        foreach (var candidateEntity in candidateEntitiesBuilder)
+                        // PERF: We cannot have any child entities for PointsToAnalysis if we
+                        // not computing complete PointsToAnalysis data.
+                        if (HasCompletePointsToAnalysisResult || !IsPointsToAnalysis)
                         {
-                            foreach (var pointsToValue in worklistPointsToValues)
+                            foreach (var candidateEntity in candidateEntitiesBuilder)
                             {
-                                Debug.Assert(ShouldProcessPointsToValue(pointsToValue));
-                                if (IsChildAnalysisEntity(candidateEntity, pointsToValue))
+                                foreach (var pointsToValue in worklistPointsToValues)
                                 {
-                                    childWorklistEntities.Add(candidateEntity);
-                                    break;
+                                    Debug.Assert(ShouldProcessPointsToValue(pointsToValue));
+                                    if (IsChildAnalysisEntity(candidateEntity, pointsToValue))
+                                    {
+                                        childWorklistEntities.Add(candidateEntity);
+                                        break;
+                                    }
                                 }
                             }
                         }
