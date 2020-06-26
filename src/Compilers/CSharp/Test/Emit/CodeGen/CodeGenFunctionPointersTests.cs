@@ -7197,39 +7197,39 @@ unsafe class Test
 }");
 
             comp.VerifyDiagnostics(
-                // (5,20): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                // (6,20): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         param1(out var l);
-                Diagnostic(ErrorCode.ERR_BadArgRef, "var l").WithArguments("1", "ref").WithLocation(5, 20),
-                // (7,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "var l").WithArguments("1", "ref").WithLocation(6, 20),
+                // (8,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         param1(s);
-                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(7, 16),
-                // (8,19): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(8, 16),
+                // (9,19): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         param1(in s);
-                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(8, 19),
-                // (12,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(9, 19),
+                // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         param2(out var l);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(12, 20),
-                // (15,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(14, 20),
+                // (17,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
                 //         param2(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(15, 20),
-                // (20,16): error CS1620: Argument 1 must be passed with the 'out' keyword
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(17, 20),
+                // (23,16): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         param3(s);
-                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(20, 16),
-                // (21,20): error CS1620: Argument 1 must be passed with the 'out' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(23, 16),
+                // (24,20): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         param3(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(21, 20),
-                // (22,19): error CS1620: Argument 1 must be passed with the 'out' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(24, 20),
+                // (25,19): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         param3(in s);
-                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(22, 19),
-                // (26,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(25, 19),
+                // (30,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         param4(out var l);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(26, 20),
-                // (28,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(30, 20),
+                // (32,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
                 //         param4(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(28, 20),
-                // (29,19): error CS1615: Argument 1 may not be passed with the 'in' keyword
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(32, 20),
+                // (33,19): error CS1615: Argument 1 may not be passed with the 'in' keyword
                 //         param4(in s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "in").WithLocation(29, 19)
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "in").WithLocation(33, 19)
             );
         }
 
