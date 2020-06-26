@@ -458,12 +458,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!(this is TupleElementFieldSymbol));
+                // wrapped tuple fields already have this information and override this property
+                Debug.Assert(!(this is TupleElementFieldSymbol) && !(this is TupleErrorFieldSymbol));
+
                 if (ContainingType.IsTupleType)
                 {
-                    var map = ContainingType.UnwrappedTupleFieldsToIndexMap;
+                    var map = ContainingType.TupleFieldDefinitionsToIndexMap;
                     Debug.Assert(map is object);
-                    if (map.TryGetValue(this, out int index))
+                    if (map.TryGetValue(this.OriginalDefinition, out int index))
                     {
                         return index;
                     }
