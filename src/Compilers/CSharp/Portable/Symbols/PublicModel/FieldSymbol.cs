@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                // TODO2
                 return _underlying.IsExplicitlyNamedTupleElement;
             }
         }

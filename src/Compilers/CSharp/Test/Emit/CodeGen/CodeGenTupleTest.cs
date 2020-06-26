@@ -26841,7 +26841,7 @@ class Program
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43621")]
+        [Fact]
         [WorkItem(43621, "https://github.com/dotnet/roslyn/issues/43621")]
         public void CustomFields_05()
         {
@@ -26870,7 +26870,44 @@ namespace System
 ";
 
             var comp1 = CreateCompilation(source0, options: TestOptions.DebugExe.WithAllowUnsafe(true));
-            CompileAndVerify(comp1, expectedOutput: "12");
+            var verifier = CompileAndVerify(comp1, verify: Verification.Skipped); // unsafe code
+
+            // There is a problem with caller, so execution currently yields the wrong result
+            // Tracked by https://github.com/dotnet/roslyn/issues/43621
+            //var verifier = CompileAndVerify(comp1, expectedOutput: 12, verify: Verification.Skipped); // unsafe code
+
+            verifier.VerifyTypeIL("ValueTuple", @"
+.class public sequential ansi sealed beforefieldinit System.ValueTuple
+    extends [netstandard]System.ValueType
+{
+    // Nested Types
+    .class nested public sequential ansi sealed beforefieldinit '<MessageType>e__FixedBuffer'
+        extends [netstandard]System.ValueType
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void [netstandard]System.Runtime.CompilerServices.UnsafeValueTypeAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .pack 0
+        .size 200
+        // Fields
+        .field public int32 FixedElementField
+    } // end of class <MessageType>e__FixedBuffer
+    // Fields
+    .field public valuetype System.ValueTuple/'<MessageType>e__FixedBuffer' MessageType
+    .custom instance void [netstandard]System.Runtime.CompilerServices.FixedBufferAttribute::.ctor(class [netstandard]System.Type, int32) = (
+        01 00 5c 53 79 73 74 65 6d 2e 49 6e 74 33 32 2c
+        20 6e 65 74 73 74 61 6e 64 61 72 64 2c 20 56 65
+        72 73 69 6f 6e 3d 32 2e 30 2e 30 2e 30 2c 20 43
+        75 6c 74 75 72 65 3d 6e 65 75 74 72 61 6c 2c 20
+        50 75 62 6c 69 63 4b 65 79 54 6f 6b 65 6e 3d 63
+        63 37 62 31 33 66 66 63 64 32 64 64 64 35 31 32
+        00 00 00 00 00
+    )
+} // end of class System.ValueTuple
+");
         }
 
         [Fact]
