@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
             Debug.Assert(value.Kind != PointsToAbstractValueKind.Undefined);
             Debug.Assert(!key.IsLValueFlowCaptureEntity || value.Kind == PointsToAbstractValueKind.KnownLValueCaptures);
-            Debug.Assert(PointsToAnalysis.ShouldBeTracked(key));
+            Debug.Assert(PointsToAnalysis.ShouldBeTracked(key, PointsToAnalysisKind.Complete));
         }
     }
 }

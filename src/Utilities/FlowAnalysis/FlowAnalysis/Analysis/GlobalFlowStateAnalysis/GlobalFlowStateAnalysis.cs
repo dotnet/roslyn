@@ -33,22 +33,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
-            bool performPointsToAnalysis,
             bool performValueContentAnalysis,
             CancellationToken cancellationToken,
-            out PointsToAnalysisResult? pointsToAnalysisResult,
             out ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null)
         {
-            RoslynDebug.Assert(!performValueContentAnalysis || performPointsToAnalysis);
-
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, owningSymbol, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
             return TryGetOrComputeResult(cfg, owningSymbol, createOperationVisitor, wellKnownTypeProvider, analyzerOptions,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicate, pessimisticAnalysis,
-                performPointsToAnalysis, performValueContentAnalysis, out pointsToAnalysisResult, out valueContentAnalysisResult);
+                performValueContentAnalysis, out valueContentAnalysisResult);
         }
 
         private static GlobalFlowStateAnalysisResult? TryGetOrComputeResult(
@@ -60,24 +56,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate,
             bool pessimisticAnalysis,
-            bool performPointsToAnalysis,
             bool performValueContentAnalysis,
-            out PointsToAnalysisResult? pointsToAnalysisResult,
             out ValueContentAnalysisResult? valueContentAnalysisResult)
         {
-            RoslynDebug.Assert(!performValueContentAnalysis || performPointsToAnalysis);
             RoslynDebug.Assert(cfg != null);
             RoslynDebug.Assert(owningSymbol != null);
 
-            pointsToAnalysisResult = performPointsToAnalysis ?
-                PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(
-                    cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
-                    interproceduralAnalysisPredicate, pessimisticAnalysis, performCopyAnalysis: false) :
-                null;
+            PointsToAnalysisResult? pointsToAnalysisResult = null;
+
             valueContentAnalysisResult = performValueContentAnalysis ?
                 ValueContentAnalysis.ValueContentAnalysis.TryGetOrComputeResult(
-                    cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig, out _,
-                    out pointsToAnalysisResult, pessimisticAnalysis, performPointsToAnalysis, performCopyAnalysis: false, interproceduralAnalysisPredicate) :
+                    cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
+                    PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties,
+                    interproceduralAnalysisConfig, out _,
+                    out pointsToAnalysisResult, pessimisticAnalysis,
+                    performCopyAnalysis: false, interproceduralAnalysisPredicate) :
                 null;
 
             var analysisContext = GlobalFlowStateAnalysisContext.Create(

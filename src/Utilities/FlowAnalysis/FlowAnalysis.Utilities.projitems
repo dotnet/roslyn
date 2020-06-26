@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\GlobalFlowStateAnalysis\GlobalFlowStateDataFlowOperationVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\GlobalFlowStateAnalysis\GlobalFlowStateAnalysisContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\GlobalFlowStateAnalysis\GlobalFlowStateBlockAnalysisResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToAnalysisKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\TrackedEntitiesBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractAnalysisData.cs" />
