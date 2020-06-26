@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// with the code that searches for binders.  We don't want the searcher
         /// to skip over any nodes that could have associated binders, especially
         /// if changes are made later.
-        /// 
+        ///
         /// "Local binder" is a term that refers to binders that are
         /// created by LocalBinderFactory.
         /// </summary>
@@ -78,14 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
 
                 case SyntaxKind.RecordDeclaration:
                     return ((RecordDeclarationSyntax)syntax).ParameterList is object;
-                case SyntaxKind.SimpleBaseType:
-                    return ((SimpleBaseTypeSyntax)syntax).ArgumentList is object &&
-                           syntax.Parent?.Parent is RecordDeclarationSyntax recordDecl &&
-                           recordDecl.ParameterList is object && recordDecl.BaseWithArguments == syntax;
 
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
@@ -93,10 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)
+        internal static bool IsValidScopeDesignator(this ExpressionSyntax? expression)
         {
             // All these nodes are valid scope designators due to the pattern matching and out vars features.
-            CSharpSyntaxNode parent = expression?.Parent;
+            CSharpSyntaxNode? parent = expression?.Parent;
             switch (parent?.Kind())
             {
                 case SyntaxKind.SimpleLambdaExpression:
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node = node.Parent;
             }
 
-            SyntaxNode parentNode = node.Parent;
+            SyntaxNode? parentNode = node.Parent;
 
             if (parentNode is null)
             {
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In case of a declaration of a Span<T> variable
                 case SyntaxKind.EqualsValueClause:
                     {
-                        SyntaxNode variableDeclarator = parentNode.Parent;
+                        SyntaxNode? variableDeclarator = parentNode.Parent;
 
                         return variableDeclarator.IsKind(SyntaxKind.VariableDeclarator) &&
                             variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
@@ -234,8 +233,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
-        internal static ExpressionSyntax CheckAndUnwrapRefExpression(
-            this ExpressionSyntax syntax,
+        internal static bool IsPointerType(this TypeSyntax syntax)
+        {
+            syntax = syntax.SkipRef();
+            switch (syntax.Kind())
+            {
+                case SyntaxKind.PointerType:
+                case SyntaxKind.FunctionPointerType:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+
+        internal static ExpressionSyntax? CheckAndUnwrapRefExpression(
+            this ExpressionSyntax? syntax,
             DiagnosticBag diagnostics,
             out RefKind refKind)
         {

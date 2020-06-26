@@ -22279,69 +22279,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal sealed partial class SimpleBaseTypeSyntax : BaseTypeSyntax
     {
         internal readonly TypeSyntax type;
-        internal readonly ArgumentListSyntax? argumentList;
 
-        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax? argumentList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 2;
+            this.SlotCount = 1;
             this.AdjustFlagsAndWidth(type);
             this.type = type;
-            if (argumentList != null)
-            {
-                this.AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
         }
 
-        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax? argumentList, SyntaxFactoryContext context)
+        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 2;
+            this.SlotCount = 1;
             this.AdjustFlagsAndWidth(type);
             this.type = type;
-            if (argumentList != null)
-            {
-                this.AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
         }
 
-        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax? argumentList)
+        internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type)
           : base(kind)
         {
-            this.SlotCount = 2;
+            this.SlotCount = 1;
             this.AdjustFlagsAndWidth(type);
             this.type = type;
-            if (argumentList != null)
-            {
-                this.AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
         }
 
         public override TypeSyntax Type => this.type;
-        public ArgumentListSyntax? ArgumentList => this.argumentList;
 
         internal override GreenNode? GetSlot(int index)
-            => index switch
-            {
-                0 => this.type,
-                1 => this.argumentList,
-                _ => null,
-            };
+            => index == 0 ? this.type : null;
 
         internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.SimpleBaseTypeSyntax(this, parent, position);
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
 
-        public SimpleBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax argumentList)
+        public SimpleBaseTypeSyntax Update(TypeSyntax type)
         {
-            if (type != this.Type || argumentList != this.ArgumentList)
+            if (type != this.Type)
             {
-                var newNode = SyntaxFactory.SimpleBaseType(type, argumentList);
+                var newNode = SyntaxFactory.SimpleBaseType(type);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -22355,24 +22333,117 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new SimpleBaseTypeSyntax(this.Kind, this.type, this.argumentList, diagnostics, GetAnnotations());
+            => new SimpleBaseTypeSyntax(this.Kind, this.type, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new SimpleBaseTypeSyntax(this.Kind, this.type, this.argumentList, GetDiagnostics(), annotations);
+            => new SimpleBaseTypeSyntax(this.Kind, this.type, GetDiagnostics(), annotations);
 
         internal SimpleBaseTypeSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 1;
+            var type = (TypeSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.type);
+        }
+
+        static SimpleBaseTypeSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(SimpleBaseTypeSyntax), r => new SimpleBaseTypeSyntax(r));
+        }
+    }
+
+    internal sealed partial class PrimaryConstructorBaseTypeSyntax : BaseTypeSyntax
+    {
+        internal readonly TypeSyntax type;
+        internal readonly ArgumentListSyntax argumentList;
+
+        internal PrimaryConstructorBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax argumentList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
+        }
+
+        internal PrimaryConstructorBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax argumentList, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
+        }
+
+        internal PrimaryConstructorBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, ArgumentListSyntax argumentList)
+          : base(kind)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
+        }
+
+        public override TypeSyntax Type => this.type;
+        public ArgumentListSyntax ArgumentList => this.argumentList;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.type,
+                1 => this.argumentList,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PrimaryConstructorBaseTypeSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrimaryConstructorBaseType(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPrimaryConstructorBaseType(this);
+
+        public PrimaryConstructorBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax argumentList)
+        {
+            if (type != this.Type || argumentList != this.ArgumentList)
+            {
+                var newNode = SyntaxFactory.PrimaryConstructorBaseType(type, argumentList);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new PrimaryConstructorBaseTypeSyntax(this.Kind, this.type, this.argumentList, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new PrimaryConstructorBaseTypeSyntax(this.Kind, this.type, this.argumentList, GetDiagnostics(), annotations);
+
+        internal PrimaryConstructorBaseTypeSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 2;
             var type = (TypeSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(type);
             this.type = type;
-            var argumentList = (ArgumentListSyntax?)reader.ReadValue();
-            if (argumentList != null)
-            {
-                AdjustFlagsAndWidth(argumentList);
-                this.argumentList = argumentList;
-            }
+            var argumentList = (ArgumentListSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal override void WriteTo(ObjectWriter writer)
@@ -22382,9 +22453,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.argumentList);
         }
 
-        static SimpleBaseTypeSyntax()
+        static PrimaryConstructorBaseTypeSyntax()
         {
-            ObjectBinder.RegisterTypeReader(typeof(SimpleBaseTypeSyntax), r => new SimpleBaseTypeSyntax(r));
+            ObjectBinder.RegisterTypeReader(typeof(PrimaryConstructorBaseTypeSyntax), r => new PrimaryConstructorBaseTypeSyntax(r));
         }
     }
 
@@ -32577,6 +32648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
@@ -32806,6 +32878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
         public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
         public virtual void VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
         public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
@@ -33351,6 +33424,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.ColonToken), VisitList(node.Types));
 
         public override CSharpSyntaxNode VisitSimpleBaseType(SimpleBaseTypeSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type));
+
+        public override CSharpSyntaxNode VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
             => node.Update((TypeSyntax)Visit(node.Type), (ArgumentListSyntax)Visit(node.ArgumentList));
 
         public override CSharpSyntaxNode VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
@@ -36942,17 +37018,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type, ArgumentListSyntax? argumentList)
+        public SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
         {
 #if DEBUG
             if (type == null) throw new ArgumentNullException(nameof(type));
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, argumentList, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, this.context, out hash);
             if (cached != null) return (SimpleBaseTypeSyntax)cached;
 
-            var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type, argumentList, this.context);
+            var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public PrimaryConstructorBaseTypeSyntax PrimaryConstructorBaseType(TypeSyntax type, ArgumentListSyntax argumentList)
+        {
+#if DEBUG
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+#endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.PrimaryConstructorBaseType, type, argumentList, this.context, out hash);
+            if (cached != null) return (PrimaryConstructorBaseTypeSyntax)cached;
+
+            var result = new PrimaryConstructorBaseTypeSyntax(SyntaxKind.PrimaryConstructorBaseType, type, argumentList, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -41707,17 +41803,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type, ArgumentListSyntax? argumentList)
+        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
         {
 #if DEBUG
             if (type == null) throw new ArgumentNullException(nameof(type));
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, argumentList, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, out hash);
             if (cached != null) return (SimpleBaseTypeSyntax)cached;
 
-            var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type, argumentList);
+            var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public static PrimaryConstructorBaseTypeSyntax PrimaryConstructorBaseType(TypeSyntax type, ArgumentListSyntax argumentList)
+        {
+#if DEBUG
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+#endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PrimaryConstructorBaseType, type, argumentList, out hash);
+            if (cached != null) return (PrimaryConstructorBaseTypeSyntax)cached;
+
+            var result = new PrimaryConstructorBaseTypeSyntax(SyntaxKind.PrimaryConstructorBaseType, type, argumentList);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -43248,6 +43364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(EnumMemberDeclarationSyntax),
                 typeof(BaseListSyntax),
                 typeof(SimpleBaseTypeSyntax),
+                typeof(PrimaryConstructorBaseTypeSyntax),
                 typeof(TypeParameterConstraintClauseSyntax),
                 typeof(ConstructorConstraintSyntax),
                 typeof(ClassOrStructConstraintSyntax),

@@ -623,5 +623,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         WithInitializerExpression = 9062,
         RecordDeclaration = 9063,
         DataPropertyDeclaration = 9064,
+        PrimaryConstructorBaseType = 9065,
     }
 }

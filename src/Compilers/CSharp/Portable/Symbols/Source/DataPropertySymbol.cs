@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public new DataPropertyDeclarationSyntax CSharpSyntaxNode
             => (DataPropertyDeclarationSyntax)base.CSharpSyntaxNode;
 
-        protected override bool HasPointerTypeSyntactically => throw new System.NotImplementedException();
+        protected override bool HasPointerTypeSyntactically
+            => CSharpSyntaxNode.Type.IsPointerType();
 
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
             => ((DataPropertyDeclarationSyntax)syntax).Modifiers;

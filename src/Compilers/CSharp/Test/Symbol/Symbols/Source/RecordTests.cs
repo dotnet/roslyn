@@ -159,6 +159,7 @@ record C(int x, string y)
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
             Assert.False(x.IsReadOnly);
             Assert.False(x.IsWriteOnly);
+            Assert.False(x.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, x.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -170,15 +171,18 @@ record C(int x, string y)
             Assert.Equal(x, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             var getAccessor = x.GetMethod;
             Assert.Equal(x, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
 
             var setAccessor = x.SetMethod;
             Assert.Equal(x, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
@@ -190,6 +194,7 @@ record C(int x, string y)
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
             Assert.False(y.IsReadOnly);
             Assert.False(y.IsWriteOnly);
+            Assert.False(y.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -201,14 +206,17 @@ record C(int x, string y)
             Assert.Equal(y, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             getAccessor = y.GetMethod;
             Assert.Equal(y, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
 
             setAccessor = y.SetMethod;
             Assert.Equal(y, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
@@ -1336,20 +1344,24 @@ class X
     public data int B;
     readonly data int C;
     static data int D;
-    data int E;
+    private data int E;
+    new data int F;
 }}
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (5,5): error CS0106: The modifier 'public' is not valid for this item
-                //     public data int B;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public data int B;").WithArguments("public").WithLocation(5, 5),
-                // (6,5): error CS0106: The modifier 'readonly' is not valid for this item
+                // (6,23): error CS0106: The modifier 'readonly' is not valid for this item
                 //     readonly data int C;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly data int C;").WithArguments("readonly").WithLocation(6, 5),
-                // (7,5): error CS0106: The modifier 'static' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("readonly").WithLocation(6, 23),
+                // (7,21): error CS0106: The modifier 'static' is not valid for this item
                 //     static data int D;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static data int D;").WithArguments("static").WithLocation(7, 5)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("static").WithLocation(7, 21),
+                // (8,22): error CS0106: The modifier 'private' is not valid for this item
+                //     private data int E;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("private").WithLocation(8, 22),
+                // (9,18): warning CS0109: The member 'X.F' does not hide an accessible member. The new keyword is not required.
+                //     new data int F;
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "F").WithArguments("X.F").WithLocation(9, 18)
             );
         }
 
@@ -1405,15 +1417,15 @@ unsafe class C
                 options: TestOptions.UnsafeDebugDll,
                 parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,5): error CS0547: 'C.P1': property or indexer cannot have void type
-                //     data void P1;
-                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "data void P1;").WithArguments("C.P1").WithLocation(5, 5),
                 // (5,10): error CS1547: Keyword 'void' cannot be used in this context
                 //     data void P1;
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 10),
-                // (6,5): error CS0053: Inconsistent accessibility: property type 'C.C2' is less accessible than property 'C.P2'
+                // (5,15): error CS0547: 'C.P1': property or indexer cannot have void type
+                //     data void P1;
+                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "P1").WithArguments("C.P1").WithLocation(5, 15),
+                // (6,13): error CS0053: Inconsistent accessibility: property type 'C.C2' is less accessible than property 'C.P2'
                 //     data C2 P2;
-                Diagnostic(ErrorCode.ERR_BadVisPropertyType, "data C2 P2;").WithArguments("C.P2", "C.C2").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_BadVisPropertyType, "P2").WithArguments("C.P2", "C.C2").WithLocation(6, 13),
                 // (13,19): error CS0103: The name 'X' does not exist in the current context
                 //     data int P7 = X;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "X").WithArguments("X").WithLocation(13, 19),
@@ -1658,6 +1670,61 @@ interface I
         }
 
         [Fact]
+        public void DataPropertiesOverride()
+        {
+            var src = @"
+abstract class C1
+{
+    data int P1;
+    virtual data int P2;
+    abstract data int P3;
+}
+abstract class C2 : C1
+{
+    data int P1; // warn 1
+    data int P2; // warn 2
+    data int P3; // error
+}
+class C3 : C1
+{
+    new data int P1;
+    new data int P2;
+    override data int P3;
+}
+class C4 : C1
+{
+    public new int P1 { get; init; }
+    public new virtual int P2 { get; }
+    public override int P3 { get; init; }
+}
+class C5 : C4
+{
+    new data int P1;
+    override data int P2; // error
+    override data int P3;
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (10,14): warning CS0108: 'C2.P1' hides inherited member 'C1.P1'. Use the new keyword if hiding was intended.
+                //     data int P1; // warn 1
+                Diagnostic(ErrorCode.WRN_NewRequired, "P1").WithArguments("C2.P1", "C1.P1").WithLocation(10, 14),
+                // (11,14): warning CS0114: 'C2.P2' hides inherited member 'C1.P2'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     data int P2; // warn 2
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P2").WithArguments("C2.P2", "C1.P2").WithLocation(11, 14),
+                // (12,14): error CS0533: 'C2.P3' hides inherited abstract member 'C1.P3'
+                //     data int P3; // error
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P3").WithArguments("C2.P3", "C1.P3").WithLocation(12, 14),
+                // (12,14): warning CS0114: 'C2.P3' hides inherited member 'C1.P3'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     data int P3; // error
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P3").WithArguments("C2.P3", "C1.P3").WithLocation(12, 14),
+                // (29,14): error CS0546: 'C5.P2.init': cannot override because 'C4.P2' does not have an overridable set accessor
+                //     override data int P2; // error
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "data").WithArguments("C5.P2.init", "C4.P2").WithLocation(29, 14)
+            );
+        }
+
+        [Fact]
         public void GenericRecord()
         {
             var src = @"
@@ -1894,15 +1961,6 @@ class C : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (7,7): error CS0534: 'C' does not implement inherited abstract member 'B.P2.init'
-                // class C : B
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "B.P2.init").WithLocation(7, 7),
-                // (7,7): error CS0534: 'C' does not implement inherited abstract member 'B.P2.get'
-                // class C : B
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "B.P2.get").WithLocation(7, 7),
-                // (10,5): error CS0106: The modifier 'override' is not valid for this item
-                //     override data int P2 = 2;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "override data int P2 = 2;").WithArguments("override").WithLocation(10, 5),
                 // (11,19): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.P1'
                 //     data int P3 = P1;
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("C.P1").WithLocation(11, 19),
@@ -1939,7 +1997,7 @@ class C : B
             Assert.False(p2.IsWriteOnly);
             Assert.True(p2.SetMethod!.IsInitOnly);
             Assert.False(p2.IsAbstract);
-            Assert.False(p2.IsOverride);
+            Assert.True(p2.IsOverride);
             Assert.False(p2.IsVirtual);
 
             var symbolInfo = model.GetSymbolInfo(props[2].Initializer!.Value);

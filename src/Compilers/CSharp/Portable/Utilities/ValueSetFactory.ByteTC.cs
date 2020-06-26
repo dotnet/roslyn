@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             byte INumericTC<byte>.MaxValue => byte.MaxValue;
 
+            byte INumericTC<byte>.Zero => 0;
+
             bool INumericTC<byte>.Related(BinaryOperatorKind relation, byte left, byte right)
             {
                 switch (relation)

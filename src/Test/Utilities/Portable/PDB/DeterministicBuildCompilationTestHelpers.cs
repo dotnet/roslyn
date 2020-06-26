@@ -19,6 +19,15 @@ namespace Roslyn.Test.Utilities.PDB
 {
     internal static partial class DeterministicBuildCompilationTestHelpers
     {
+        public static void VerifyPdbOption<T>(this ImmutableDictionary<string, string> pdbOptions, string pdbName, T expectedValue, Func<T, bool> isDefault = null, Func<T, string> toString = null)
+        {
+            bool expectedIsDefault = (isDefault != null) ? isDefault(expectedValue) : EqualityComparer<T>.Default.Equals(expectedValue, default);
+            var expectedValueString = expectedIsDefault ? null : (toString != null) ? toString(expectedValue) : expectedValue.ToString();
+
+            pdbOptions.TryGetValue(pdbName, out var actualValueString);
+            Assert.Equal(expectedValueString, actualValueString);
+        }
+
         public static IEnumerable<EmitOptions> GetEmitOptions()
         {
             var emitOptions = new EmitOptions(
@@ -34,15 +43,8 @@ namespace Roslyn.Test.Utilities.PDB
 
         internal static void AssertCommonOptions(EmitOptions emitOptions, CompilationOptions compilationOptions, Compilation compilation, ImmutableDictionary<string, string> pdbOptions)
         {
-            if (emitOptions.FallbackSourceFileEncoding != null)
-            {
-                Assert.Equal(emitOptions.FallbackSourceFileEncoding.WebName, pdbOptions["fallback-encoding"]);
-            }
-
-            if (emitOptions.DefaultSourceFileEncoding != null)
-            {
-                Assert.Equal(emitOptions.DefaultSourceFileEncoding.WebName, pdbOptions["default-encoding"]);
-            }
+            pdbOptions.VerifyPdbOption("fallback-encoding", emitOptions.FallbackSourceFileEncoding, toString: v => v.WebName);
+            pdbOptions.VerifyPdbOption("default-encoding", emitOptions.DefaultSourceFileEncoding, toString: v => v.WebName);
 
             int portabilityPolicy = 0;
             if (compilationOptions.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
@@ -51,7 +53,7 @@ namespace Roslyn.Test.Utilities.PDB
                 portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
             }
 
-            Assert.Equal(portabilityPolicy.ToString(), pdbOptions["portability-policy"]);
+            pdbOptions.VerifyPdbOption("portability-policy", portabilityPolicy);
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             Assert.Equal(compilerVersion.ToString(), pdbOptions["compiler-version"]);
@@ -59,7 +61,11 @@ namespace Roslyn.Test.Utilities.PDB
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             Assert.Equal(runtimeVersion, pdbOptions[CompilationOptionNames.RuntimeVersion]);
 
-            Assert.Equal(compilationOptions.OptimizationLevel.ToPdbSerializedString(compilationOptions.DebugPlusMode), pdbOptions["optimization"]);
+            pdbOptions.VerifyPdbOption(
+                "optimization",
+                (compilationOptions.OptimizationLevel, compilationOptions.DebugPlusMode),
+                toString: v => v.OptimizationLevel.ToPdbSerializedString(v.DebugPlusMode));
+
             Assert.Equal(compilation.Language, pdbOptions["language"]);
         }
 

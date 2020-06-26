@@ -2987,9 +2987,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
                 }
 
-                BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
-                var binder = binderFactory.GetBinder(paramList);
-
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
                 var existingOrAddedMembers = addProperties(paramList, ctor.Parameters);
                 addDeconstruct(ctor.Parameters, existingOrAddedMembers);
@@ -3490,7 +3487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.SetMethod, diagnostics);
 
                             FieldSymbol backingField = property.BackingField;
-                            Debug.Assert(backingField is object || IsInterface);
                             if (backingField is object)
                             {
                                 builder.NonTypeNonIndexerMembers.Add(backingField);

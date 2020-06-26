@@ -347,13 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override bool HasPointerTypeSyntactically
-        {
-            get
-            {
-                var typeSyntax = GetTypeSyntax(CSharpSyntaxNode).SkipRef(out _);
-                return typeSyntax.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false };
-            }
-        }
+            => GetTypeSyntax(CSharpSyntaxNode).IsPointerType();
 
         protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
             => ((BasePropertyDeclarationSyntax)syntax).ExplicitInterfaceSpecifier;
