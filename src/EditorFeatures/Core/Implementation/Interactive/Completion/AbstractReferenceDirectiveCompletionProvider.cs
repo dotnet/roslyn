@@ -49,12 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
         protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)
         {
             var resolver = context.Document.Project.CompilationOptions.MetadataReferenceResolver as RuntimeMetadataReferenceResolver;
-            if (resolver == null)
-            {
-                return;
-            }
-
-            if (pathThroughLastSlash.IndexOfAny(s_pathIndicators) < 0)
+            if (resolver != null && pathThroughLastSlash.IndexOfAny(s_pathIndicators) < 0)
             {
                 if (!resolver.TrustedPlatformAssemblies.IsEmpty)
                 {

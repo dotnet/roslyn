@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
@@ -303,13 +304,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886):
                 // - Need to have a way to specify these somewhere in VS options.
-                // - Use RuntimeMetadataReferenceResolver like in InteractiveEvaluator.CreateMetadataReferenceResolver
                 // - Add default namespace imports, default metadata references to match csi.rsp
                 // - Add default script globals available in 'csi goo.csx' environment: CommandLineScriptGlobals
 
-                var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    metadataService,
-                    new RelativePathResolver(scriptEnvironmentService.MetadataReferenceSearchPaths, baseDirectory));
+                var referenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
+                    searchPaths: scriptEnvironmentService.MetadataReferenceSearchPaths,
+                    baseDirectory: baseDirectory,
+                    fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
 
                 compilationOptionsOpt = compilationOptionsOpt.
                     WithMetadataReferenceResolver(referenceResolver).
