@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                        {
                                            SyntaxNode syntax = increment.Syntax;
                                            ITypeSymbol type = increment.Type;
-                                           Optional<object> constantValue = new Optional<object>(1);
+                                           var constantValue = ConstantValue.Create(1);
                                            bool isImplicit = increment.IsImplicit;
                                            var value = new LiteralOperation(increment.SemanticModel, syntax, type, constantValue, isImplicit);
 
