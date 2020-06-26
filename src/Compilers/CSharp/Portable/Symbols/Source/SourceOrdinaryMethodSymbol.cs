@@ -609,7 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
 
-            var compilation = definition.DeclaringCompilation;
             MethodSymbol constructedDefinition = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations);
             bool returnTypesEqual = constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
             if (!returnTypesEqual
@@ -639,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodExtensionDifference, implementation.Locations[0]);
             }
 
-            if (definition.IsUnsafe != implementation.IsUnsafe && !compilation.Options.AllowUnsafe) // Don't cascade.
+            if (definition.IsUnsafe != implementation.IsUnsafe && definition.CompilationAllowsUnsafe()) // Don't cascade.
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.Locations[0]);
             }
@@ -666,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
             SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
-                compilation,
+                implementation.DeclaringCompilation,
                 constructedDefinition,
                 implementation,
                 diagnostics,
