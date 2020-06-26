@@ -5,9 +5,10 @@
 #nullable enable
 
 extern alias InteractiveHost;
-
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,8 +16,6 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Scripting;
 
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
     public sealed class InteractiveHostCoreInitTests : AbstractInteractiveHostTests
@@ -32,10 +31,12 @@ dynamic d = (""home"", Directory.GetCurrentDirectory(), await Task.FromResult(1)
 WriteLine(d.ToString());
 ");
 
+            var dir = Path.GetDirectoryName(typeof(InteractiveHostCoreInitTests).Assembly.Location);
+
             var output = await ReadOutputToEnd();
             var error = await ReadErrorOutputToEnd();
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($"(home, x, 1)", output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($"(home, {dir}, 1)", output);
         }
 
         [Fact]

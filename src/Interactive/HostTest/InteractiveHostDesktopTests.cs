@@ -714,6 +714,7 @@ Print(ReferencePaths);
             rspFile.WriteAllText($"/lib:{directory1.Path} /r:Assembly2.dll {initFile.Path}");
 
             await Host.ResetAsync(new InteractiveHostOptions(Host.OptionsOpt!.HostPath, rspFile.Path, culture: CultureInfo.InvariantCulture, Host.OptionsOpt!.Platform));
+            var fxDir = await GetHostRuntimeDirectoryAsync();
 
             await Execute(@"
 #r ""Assembly1.dll""
@@ -724,7 +725,7 @@ Print(ReferencePaths);
             var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();
 
-            var expectedSearchPaths = PrintSearchPaths(RuntimeEnvironment.GetRuntimeDirectory(), directory1.Path);
+            var expectedSearchPaths = PrintSearchPaths(fxDir, directory1.Path);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
@@ -1023,16 +1024,24 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         public async Task Bitness()
         {
             await Host.ExecuteAsync(@"System.IntPtr.Size");
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("8\r\n", await ReadOutputToEnd());
+
             await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop32));
-            await Host.ExecuteAsync(@"System.IntPtr.Size");
-            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Core));
-            await Host.ExecuteAsync(@"System.IntPtr.Size");
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadOutputToEnd());
 
-            var output = await ReadOutputToEnd();
-            var error = await ReadErrorOutputToEnd();
+            await Host.ExecuteAsync(@"System.IntPtr.Size");
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n", await ReadOutputToEnd());
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("8\r\n4\r\n8\r\n", output);
+            var result = await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Core));
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadOutputToEnd());
+
+            await Host.ExecuteAsync(@"System.IntPtr.Size");
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("8\r\n", await ReadOutputToEnd());
         }
 
         #region Submission result printing - null/void/value.

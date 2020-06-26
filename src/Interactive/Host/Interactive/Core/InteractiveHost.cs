@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal event Action<Process>? InteractiveHostProcessCreated;
 
         // Triggered whenever InteractiveHost process creation fails.
-        internal event Action<Exception?>? InteractiveHostProcessCreationFailed;
+        internal event Action<Exception?, int?>? InteractiveHostProcessCreationFailed;
 
         #endregion
 

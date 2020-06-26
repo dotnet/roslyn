@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Desktop32;
         internal override bool UseDefaultInitializationFile => true;
 
-        private static readonly string s_fxDir = RuntimeEnvironment.GetRuntimeDirectory();
-
         [Fact]
         public async Task SearchPaths1()
         {
+            var fxDir = await GetHostRuntimeDirectoryAsync();
+
             var dll = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01);
             var srcDir = Temp.CreateDirectory();
             var dllDir = Path.GetDirectoryName(dll.Path);
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             // print default:
             await Host.ExecuteAsync(@"ReferencePaths");
             var output = await ReadOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(s_fxDir), output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(fxDir), output);
 
             await Host.ExecuteAsync(@"SourcePaths");
             output = await ReadOutputToEnd();
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             await Host.ExecuteAsync(@"ReferencePaths");
 
             output = await ReadOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(s_fxDir, dllDir), output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(fxDir, dllDir), output);
 
             await Host.AddReferenceAsync(Path.GetFileName(dll.Path));
 
