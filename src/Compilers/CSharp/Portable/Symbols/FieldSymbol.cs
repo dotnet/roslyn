@@ -464,8 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (ContainingType.IsTupleType)
                 {
                     var map = ContainingType.TupleFieldDefinitionsToIndexMap;
-                    Debug.Assert(map is object);
-                    if (map.TryGetValue(this.OriginalDefinition, out int index))
+                    if (map is object && map.TryGetValue(this.OriginalDefinition, out int index))
                     {
                         return index;
                     }

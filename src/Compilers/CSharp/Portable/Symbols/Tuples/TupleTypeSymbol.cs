@@ -569,7 +569,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// For those fields, we map from their definition to an index.
         /// </summary>
         public SmallDictionary<FieldSymbol, int>? TupleFieldDefinitionsToIndexMap
-            => IsTupleType ? TupleData!.GetFieldDefinitionsToIndexMap(this) : null;
+        {
+            get
+            {
+                if (!IsTupleType)
+                {
+                    return null;
+                }
+
+                if (!IsDefinition)
+                {
+                    return this.OriginalDefinition.TupleFieldDefinitionsToIndexMap;
+                }
+
+                return TupleData!.GetFieldDefinitionsToIndexMap(this);
+            }
+        }
 
         public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol
         {
@@ -587,8 +602,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var nonFieldMembers = ArrayBuilder<Symbol>.GetInstance();
 
             // For tuple fields that aren't TupleElementFieldSymbol or TupleErrorFieldSymbol, we cache/map their tuple element index
-            // corresponding to their definition.
-            var fieldDefinitionsToIndexMap = new SmallDictionary<FieldSymbol, int>(SymbolEqualityComparer.ConsiderEverything);
+            // corresponding to their definition. We only need to do that for the definition of ValueTuple types.
+            var fieldDefinitionsToIndexMap = IsDefinition ? new SmallDictionary<FieldSymbol, int>(SymbolEqualityComparer.ConsiderEverything) : null;
 
             NamedTypeSymbol currentValueTuple = this;
             int currentNestingLevel = 0;
@@ -660,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     if (IsDefinition)
                                     {
                                         defaultTupleField = field;
-                                        fieldDefinitionsToIndexMap.Add(field.OriginalDefinition, tupleFieldIndex);
+                                        fieldDefinitionsToIndexMap?.Add(field.OriginalDefinition, tupleFieldIndex);
                                     }
                                     else
                                     {
@@ -670,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         tupleFieldIndex,
                                                                                         locations,
                                                                                         isImplicitlyDeclared: defaultImplicitlyDeclared);
-                                        fieldDefinitionsToIndexMap.Add(fieldSymbol.OriginalDefinition, tupleFieldIndex);
+                                        fieldDefinitionsToIndexMap?.Add(fieldSymbol.OriginalDefinition, tupleFieldIndex);
                                     }
                                 }
 
@@ -802,7 +817,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             elementsMatchedByFields.Free();
             members.AddRange(nonFieldMembers);
             nonFieldMembers.Free();
-            this.TupleData!.SetFieldDefinitionsToIndexMap(fieldDefinitionsToIndexMap);
+            if (fieldDefinitionsToIndexMap is object)
+            {
+                this.TupleData!.SetFieldDefinitionsToIndexMap(fieldDefinitionsToIndexMap);
+            }
             return members;
 
             // Returns the nested type at a certain depth.
@@ -1076,6 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal SmallDictionary<FieldSymbol, int> GetFieldDefinitionsToIndexMap(NamedTypeSymbol tuple)
             {
                 Debug.Assert(tuple.IsTupleType);
+                Debug.Assert(tuple.IsDefinition); // we only store a map for definitions
                 if (_lazyFieldDefinitionsToIndexMap is null)
                 {
                     _ = tuple.GetMembers();

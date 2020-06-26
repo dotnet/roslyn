@@ -27806,6 +27806,7 @@ namespace System
                     var namedType = (NamedTypeSymbol)tuple;
                     Assert.False(namedType.IsTupleType);
                     var item = namedType.GetMember<FieldSymbol>(name);
+                    Assert.Equal(-1, item.TupleElementIndex);
                     if (retargeting)
                     {
                         Assert.IsType<RetargetingFieldSymbol>(item);
