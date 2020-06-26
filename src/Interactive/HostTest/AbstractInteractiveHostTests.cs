@@ -34,17 +34,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         internal readonly InteractiveHost Host;
 
-        static AbstractInteractiveHostTests()
-        {
-            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") == null)
-            {
-                var root =
-                    Environment.GetEnvironmentVariable("DOTNET_INSTALL_DIR") ??
-                    Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator).FirstOrDefault(path => File.Exists(Path.Combine(path, "dotnet.exe")));
-
-                Environment.SetEnvironmentVariable("DOTNET_ROOT", root);
-            }
-        }
+        // DOTNET_ROOT must be set in order to run host process on .NET Core on machines (like CI)
+        // that do not have the required version of the runtime installed globally,
+        // unless the test itself also runs on .NET Core.
+        // 
+        // If it was not set the process would fail with exit code -2147450749:
+        // "A fatal error occurred. The required library hostfxr.dll could not be found."
+        // 
+        // Currently this test project targets netcoreapp. If we were to mutli-target to net472
+        // for any reason in future, we would need to set DOTNET_ROOT.
+#if !NETCOREAPP
+#error Tests must target .NET Core or set DOTNET_ROOT environment variable.
+#endif
 
         protected AbstractInteractiveHostTests()
         {
@@ -184,7 +185,7 @@ STDOUT: {_synchronizedOutput}
             var compilation = CreateEmptyCompilation(
                 new[] { source },
                 assemblyName: assemblyName,
-                references: references.Concat(new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) }),
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20, references),
                 options: fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
 
             var image = compilation.EmitToArray();
