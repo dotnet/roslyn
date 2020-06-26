@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsValidGetAsyncEnumerator(this IMethodSymbol symbol)
             => symbol.Name == WellKnownMemberNames.GetAsyncEnumeratorMethodName &&
-            VerifyGetAsyncEnumerator(symbol);
+                VerifyGetAsyncEnumerator(symbol);
 
         private static bool VerifyGetAsyncEnumerator(IMethodSymbol getAsyncEnumerator)
         {
