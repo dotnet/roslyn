@@ -9,5 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     internal class CodeActionResolveData
     {
         public CodeActionParams CodeActionParams { get; set; }
+
+        public string DistinctTitle { get; set; }
     }
 }

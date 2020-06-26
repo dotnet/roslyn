@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,8 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
-            var codeActionToResolve = codeActions.FirstOrDefault(a => a.Title == codeAction.Title);
+            var codeActionToResolve = codeActions.FirstOrDefault(a => a.Title == data.DistinctTitle);
             if (codeActionToResolve == null)
             {
                 // Check any potential nested actions for a match.
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     foreach (var n in c.NestedCodeActions)
                     {
-                        if (n.Title == codeAction.Title)
+                        if (c.Title + n.Title == data.DistinctTitle)
                         {
                             codeActionToResolve = n;
                             break;
@@ -103,18 +106,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var applyChangesOperations = operations.Where(operation => operation is ApplyChangesOperation);
             if (applyChangesOperations.Any())
             {
-                var workspaceEdit = new LSP.WorkspaceEdit { Changes = new Dictionary<string, LSP.TextEdit[]>() };
+                using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
                 foreach (ApplyChangesOperation applyChangesOperation in applyChangesOperations)
                 {
                     var solution = document!.Project.Solution;
                     var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
-                    var changedDocuments = changes.GetProjectChanges().SelectMany(pc => pc.GetChangedDocuments());
+                    var projectChanges = changes.GetProjectChanges();
 
+                    var changedDocuments = projectChanges.SelectMany(pc => pc.GetChangedDocuments());
                     foreach (var docId in changedDocuments)
                     {
                         var newDoc = applyChangesOperation.ChangedSolution.GetDocument(docId);
                         var oldDoc = solution.GetDocument(docId);
-                        if (oldDoc == null || newDoc == null)   // TODO: perhaps consider changing logic here
+                        if (oldDoc == null || newDoc == null)
                         {
                             continue;
                         }
@@ -122,17 +126,67 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
                         var newText = await newDoc.GetTextChangesAsync(oldDoc).ConfigureAwait(false);
 
-                        var edits = newText.Select(text => new LSP.TextEdit
-                        {
-                            NewText = text.NewText,
-                            Range = ProtocolConversions.TextSpanToRange(text.Span, oldText)
-                        });
-
-                        workspaceEdit.Changes.Add(newDoc.GetURI().AbsoluteUri, edits.ToArray());
+                        var edits = newText.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
+                        var documentIdentifier = new VersionedTextDocumentIdentifier() { Uri = newDoc.GetURI() };
+                        textDocumentEdits.Add(new TextDocumentEdit() { TextDocument = documentIdentifier, Edits = edits.ToArray() });
                     }
+
+                    var changedAnalyzerConfigDocuments = projectChanges.SelectMany(pc => pc.GetChangedAnalyzerConfigDocuments());
+                    foreach (var docId in changedDocuments)
+                    {
+                        var newDoc = applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument(docId);
+                        var oldDoc = solution.GetAnalyzerConfigDocument(docId);
+                        if (oldDoc == null || newDoc == null)
+                        {
+                            continue;
+                        }
+
+                        // TO-DO: Fix this
+                        //var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        //var newText = await newDoc.GetTextChangesAsync(oldDoc).ConfigureAwait(false);
+
+                        //var edits = newText.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
+                        //var documentIdentifier = new VersionedTextDocumentIdentifier() { Uri = newDoc.GetURI() };
+                        //textDocumentEdits.Add(new TextDocumentEdit() { TextDocument = documentIdentifier, Edits = edits.ToArray() });
+                    }
+
+                    var addedDocuments = projectChanges.SelectMany(pc => pc.GetAddedDocuments());
+                    foreach (var docId in addedDocuments)
+                    {
+                        var newDoc = applyChangesOperation.ChangedSolution.GetDocument(docId);
+                        if (newDoc == null)
+                        {
+                            continue;
+                        }
+
+                        var newText = await newDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var edit = new LSP.TextEdit() { NewText = newText.ToString(), Range = new LSP.Range() { Start = new Position(), End = new Position() } };
+                        var documentIdentifier =
+                            new VersionedTextDocumentIdentifier()
+                            {
+                                Uri = new Uri(Path.GetDirectoryName(document.Project.FilePath) + "/" + newDoc.Name, UriKind.Absolute)
+                            };
+                        textDocumentEdits.Add(new TextDocumentEdit() { TextDocument = documentIdentifier, Edits = new TextEdit[] { edit } });
+                    }
+
+                    /* TO-DO: Fix:
+                    var addedAnalyzerConfigDocuments = projectChanges.SelectMany(pc => pc.GetAddedAnalyzerConfigDocuments());
+                    foreach (var docId in addedAnalyzerConfigDocuments)
+                    {
+                        var newDoc = applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument(docId);
+                        if (newDoc == null)
+                        {
+                            continue;
+                        }
+
+                        var newText = await newDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var edit = new LSP.TextEdit() { NewText = newText.ToString(), Range = new LSP.Range() { Start = new Position(), End = new Position() } };
+                        var documentIdentifier = new VersionedTextDocumentIdentifier() { Uri = new Uri(Path.ChangeExtension(document.Project.FilePath, null) + "//" + newDoc.Name, UriKind.Absolute) };
+                        textDocumentEdits.Add(new TextDocumentEdit() { TextDocument = documentIdentifier, Edits = new TextEdit[] { edit } });
+                    } */
                 }
 
-                codeAction.Edit = workspaceEdit;
+                codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
             }
 
             var commandOperations = operations.Where(operation => !(operation is ApplyChangesOperation));

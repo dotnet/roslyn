@@ -95,12 +95,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             static VSCodeAction GenerateVSCodeAction(
                 CodeActionParams request,
                 CodeAction codeAction,
-                CodeActionKind codeActionKind)
+                CodeActionKind codeActionKind,
+                string parentTitle = "")
             {
                 var nestedActions = new List<VSCodeAction>();
                 foreach (var action in codeAction.NestedCodeActions)
                 {
-                    nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind));
+                    nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind, codeAction.Title));
                 }
 
                 return new VSCodeAction
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Kind = codeActionKind,
                     Diagnostics = request.Context.Diagnostics,
                     Children = nestedActions.ToArray(),
-                    Data = new CodeActionResolveData { CodeActionParams = request }
+                    Data = new CodeActionResolveData { CodeActionParams = request, DistinctTitle = parentTitle + codeAction.Title }
                 };
             }
         }
