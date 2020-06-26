@@ -49,14 +49,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
-            var context = new FindUsagesLSPContext(document, position, _metadataAsSourceFileService, cancellationToken);
+            var context = new FindUsagesLSPContext(
+                referenceParams.PartialResultToken, document, position, _metadataAsSourceFileService, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
-            // TODO: Change back FAR to use streaming once the following LSP bug is fixed:
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1094786/
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
+            await context.OnCompletedAsync().ConfigureAwait(false);
 
-            return context.GetReferences().ToArray();
+            // The results have already been reported to the client, so we don't need to return anything here.
+            return Array.Empty<LSP.VSReferenceItem>();
         }
     }
 }
