@@ -7130,6 +7130,90 @@ unsafe class FunctionPointer
         }
 
         [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
+        public void LocalFunction_ValidStatic_NestedInLocalFunction()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe class FunctionPointer
+{
+    public static void Main()
+    {
+        local(true);
+
+        static void local(bool invoke)
+        {
+            if (invoke)
+            {
+                delegate*<bool, void> ptr = &local;
+                ptr(false);
+            }
+            else
+            {
+                System.Console.Write(""local"");
+            }
+        }
+    }
+}
+", expectedOutput: "local");
+
+
+            verifier.VerifyIL("FunctionPointer.<Main>g__local|0_0(bool)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (delegate*<bool, void> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldftn      ""void FunctionPointer.<Main>g__local|0_0(bool)""
+  IL_0009:  stloc.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldloc.0
+  IL_000c:  calli      ""delegate*<bool, void>""
+  IL_0011:  ret
+  IL_0012:  ldstr      ""local""
+  IL_0017:  call       ""void System.Console.Write(string)""
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void LocalFunction_ValidStatic_NestedInLambda()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe class C
+{
+    public static void Main()
+    {
+        int capture = 1;
+        System.Action _ = () =>
+        {
+            System.Console.Write(capture); // Just to ensure that this is emitted as a capture
+            delegate*<void> ptr = &local;
+            ptr();
+
+            static void local() => System.Console.Write(""local"");
+        };
+
+        _();
+    }
+}
+", expectedOutput: "1local");
+
+            verifier.VerifyIL("C.<>c__DisplayClass0_0.<Main>b__0()", expectedIL: @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.capture""
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  ldftn      ""void C.<Main>g__local|0_1()""
+  IL_0011:  calli      ""delegate*<void>""
+  IL_0016:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(45447, "https://github.com/dotnet/roslyn/issues/45447")]
         public void LocalFunction_InvalidNonStatic()
         {
             var comp = CreateCompilationWithFunctionPointers(@"

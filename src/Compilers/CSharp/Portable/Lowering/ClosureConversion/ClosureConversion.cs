@@ -1314,12 +1314,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RemapLocalFunction(
                     node.Syntax,
                     node.TargetMethod,
-                    out var receiver,
-                    out var remappedMethod,
+                    out BoundExpression receiver,
+                    out MethodSymbol remappedMethod,
                     ref arguments,
                     ref argRefKinds);
 
-                Debug.Assert(arguments.IsDefault && argRefKinds.IsDefault && receiver.Kind == BoundKind.TypeExpression);
+                Debug.Assert(arguments.IsDefault &&
+                             argRefKinds.IsDefault &&
+                             receiver.Kind == BoundKind.TypeExpression &&
+                             remappedMethod is { RequiresInstanceReceiver: false, IsStatic: true });
 
                 return node.Update(remappedMethod, node.Type);
             }
