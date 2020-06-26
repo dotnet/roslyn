@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind == SyntaxKind.IdentifierToken || SyntaxFacts.IsKeywordKind(kind);
         }
 
-        // Parsing rule terminating conditions.  This is how we know if it is 
+        // Parsing rule terminating conditions.  This is how we know if it is
         // okay to abort the current parsing rule when unexpected tokens occur.
 
         [Flags]
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal TNode ParseWithStackGuard<TNode>(Func<TNode> parseFunc, Func<TNode> createEmptyNodeFunc) where TNode : CSharpSyntaxNode
         {
-            // If this value is non-zero then we are nesting calls to ParseWithStackGuard which should not be 
+            // If this value is non-zero then we are nesting calls to ParseWithStackGuard which should not be
             // happening.  It's not a bug but it's inefficient and should be changed.
             Debug.Assert(_recursionDepth == 0);
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 //the next character is neither the brace we expect, nor a token that could follow the expected
-                //brace so we assume it's a mistake and replace it with a missing brace 
+                //brace so we assume it's a mistake and replace it with a missing brace
                 openBrace = this.EatTokenWithPrejudice(SyntaxKind.OpenBraceToken);
                 openBrace = this.ConvertToMissingWithTrailingTrivia(openBrace, SyntaxKind.OpenBraceToken);
             }
@@ -396,9 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             break;
 
                         case SyntaxKind.CloseBraceToken:
-                            // A very common user error is to type an additional } 
+                            // A very common user error is to type an additional }
                             // somewhere in the file.  This will cause us to stop parsing
-                            // the root (global) namespace too early and will make the 
+                            // the root (global) namespace too early and will make the
                             // rest of the file unparseable and unusable by intellisense.
                             // We detect that case here and we skip the close curly and
                             // continue parsing as if we did not see the }
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //and they've gone back to add a using directive, but have not finished the
                 //new directive.  e.g.
                 //
-                //    using 
+                //    using
                 //    namespace Goo {
                 //        //...
                 //    }
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //we just want to insert a missing identifier and semicolon and then return to
                 //parsing at the top-level.
                 //
-                //NB: there's no way this could be true for a set of tokens that form a valid 
+                //NB: there's no way this could be true for a set of tokens that form a valid
                 //using directive, so there's no danger in checking the error case first.
 
                 name = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
@@ -1235,27 +1235,27 @@ tryAgain:
 
                 if (ScanType() != ScanTypeFlags.NotType)
                 {
-                    // We've seen "async TypeName".  Now we have to determine if we should we treat 
-                    // 'async' as a modifier.  Or is the user actually writing something like 
+                    // We've seen "async TypeName".  Now we have to determine if we should we treat
+                    // 'async' as a modifier.  Or is the user actually writing something like
                     // "public async Goo" where 'async' is actually the return type.
 
                     if (IsPossibleMemberName())
                     {
-                        // we have: "async Type X" or "async Type this", 'async' is definitely a 
+                        // we have: "async Type X" or "async Type this", 'async' is definitely a
                         // modifier here.
                         return true;
                     }
 
                     var currentTokenKind = this.CurrentToken.Kind;
 
-                    // The file ends with "async TypeName", it's not legal code, and it's much 
+                    // The file ends with "async TypeName", it's not legal code, and it's much
                     // more likely that this is meant to be a modifier.
                     if (currentTokenKind == SyntaxKind.EndOfFileToken)
                     {
                         return true;
                     }
 
-                    // "async TypeName }".  In this case, we just have an incomplete member, and 
+                    // "async TypeName }".  In this case, we just have an incomplete member, and
                     // we should definitely default to 'async' being considered a return type here.
                     if (currentTokenKind == SyntaxKind.CloseBraceToken)
                     {
@@ -1377,7 +1377,7 @@ tryAgain:
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                    // report use of "static class" if feature is unsupported 
+                    // report use of "static class" if feature is unsupported
                     CheckForVersionSpecificModifiers(modifiers, SyntaxKind.StaticKeyword, MessageID.IDS_FeatureStaticClasses);
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
@@ -1661,7 +1661,7 @@ tryAgain:
                         continue;
                     }
 
-                    // <UNDONE>  UNDONE: Seems like this makes sense, 
+                    // <UNDONE>  UNDONE: Seems like this makes sense,
                     // but if this token can start a namespace element, but not a member, then
                     // perhaps we should bail back up to parsing a namespace body somehow...</UNDONE>
 
@@ -2066,7 +2066,7 @@ tryAgain:
 
         /// <summary>
         /// Changes in this function around member parsing should be mirrored in <see cref="ParseMemberDeclarationCore"/>.
-        /// Try keeping structure of both functions similar to simplify this task. The split was made to 
+        /// Try keeping structure of both functions similar to simplify this task. The split was made to
         /// reduce the stack usage during recursive parsing.
         /// </summary>
         /// <returns>Returns null if we can't parse anything (even partially).</returns>
@@ -2103,7 +2103,7 @@ tryAgain:
                 // Doing this before parsing modifiers simplifies further analysis since some of these keywords can act as modifiers as well.
                 //
                 // unsafe { ... }
-                // fixed (...) { ... } 
+                // fixed (...) { ... }
                 // delegate (...) { ... }
                 // delegate { ... }
                 // new { ... }
@@ -2168,10 +2168,10 @@ tryAgain:
                 // Check for constructor form
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                 {
-                    // Script: 
+                    // Script:
                     // Constructor definitions are not allowed. We parse them as method calls with semicolon missing error:
                     //
-                    // Script(...) { ... } 
+                    // Script(...) { ... }
                     //            ^
                     //            missing ';'
                     //
@@ -2284,7 +2284,7 @@ tryAgain:
                     }
 
                     // Everything that's left -- methods, fields, properties, locals,
-                    // indexers, and non-conversion operators -- starts with a type 
+                    // indexers, and non-conversion operators -- starts with a type
                     // (possibly void).
 
                     // Check for misplaced modifiers.  if we see any, then consider this member
@@ -2336,7 +2336,7 @@ parse_member_name:;
                         }
                     }
 
-                    // At this point we can either have indexers, methods, or 
+                    // At this point we can either have indexers, methods, or
                     // properties (or something unknown).  Try to break apart
                     // the following name and determine what to do from there.
                     ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
@@ -2344,7 +2344,7 @@ parse_member_name:;
                     TypeParameterListSyntax typeParameterListOpt;
                     this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
 
-                    // First, check if we got absolutely nothing.  If so, then 
+                    // First, check if we got absolutely nothing.  If so, then
                     // We need to consume a bad member and try again.
                     if (IsNoneOrIncompleteMember(parentKind, attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
@@ -2585,7 +2585,7 @@ parse_member_name:;
 
         /// <summary>
         /// Changes in this function should be mirrored in <see cref="ParseMemberDeclarationOrStatementCore"/>.
-        /// Try keeping structure of both functions similar to simplify this task. The split was made to 
+        /// Try keeping structure of both functions similar to simplify this task. The split was made to
         /// reduce the stack usage during recursive parsing.
         /// </summary>
         /// <returns>Returns null if we can't parse anything (even partially).</returns>
@@ -2668,8 +2668,8 @@ parse_member_name:;
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }
 
-                // Everything that's left -- methods, fields, properties, 
-                // indexers, and non-conversion operators -- starts with a type 
+                // Everything that's left -- methods, fields, properties,
+                // indexers, and non-conversion operators -- starts with a type
                 // (possibly void).
                 TypeSyntax type = ParseReturnType();
 
@@ -2702,7 +2702,7 @@ parse_member_name:;
                         }
                     }
 
-                    // At this point we can either have indexers, methods, or 
+                    // At this point we can either have indexers, methods, or
                     // properties (or something unknown).  Try to break apart
                     // the following name and determine what to do from there.
                     ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
@@ -2710,7 +2710,7 @@ parse_member_name:;
                     TypeParameterListSyntax typeParameterListOpt;
                     this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
 
-                    // First, check if we got absolutely nothing.  If so, then 
+                    // First, check if we got absolutely nothing.  If so, then
                     // We need to consume a bad member and try again.
                     if (IsNoneOrIncompleteMember(parentKind, attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
@@ -3498,7 +3498,7 @@ parse_member_name:;
         private bool IsPossibleAccessorModifier()
         {
             // We only want to accept a modifier as the start of an accessor if the modifiers are
-            // actually followed by "get/set/add/remove".  Otherwise, we might thing think we're 
+            // actually followed by "get/set/add/remove".  Otherwise, we might thing think we're
             // starting an accessor when we're actually starting a normal class member.  For example:
             //
             //      class C {
@@ -3508,7 +3508,7 @@ parse_member_name:;
             // We don't want to think of the "private" in "private DateTime x" as starting an accessor
             // here.  If we do, we'll get totally thrown off in parsing the remainder and that will
             // throw off the rest of the features that depend on a good syntax tree.
-            // 
+            //
             // Note: we allow all modifiers here.  That's because we want to parse things like
             // "abstract get" as an accessor.  This way we can provide a good error message
             // to the user that this is not allowed.
@@ -3743,7 +3743,7 @@ parse_member_name:;
                     // We'll have an UnknownAccessorDeclaration either because we didn't have
                     // an IdentifierToken or because we have an IdentifierToken which is not
                     // add/remove/get/set.  In the former case, we'll already have reported
-                    // an error and will have a missing token.  But in the latter case we need 
+                    // an error and will have a missing token.  But in the latter case we need
                     // to report that the identifier is incorrect.
                     if (!accessorName.IsMissing)
                     {
@@ -3780,10 +3780,10 @@ parse_member_name:;
                 }
                 else
                 {
-                    // We didn't get something we recognized.  If we got an accessor type we 
+                    // We didn't get something we recognized.  If we got an accessor type we
                     // recognized (i.e. get/set/init/add/remove) then try to parse out a block.
                     // Only do this if it doesn't seem like we're at the end of the accessor/property.
-                    // for example, if we have "get set", don't actually try to parse out the 
+                    // for example, if we have "get set", don't actually try to parse out the
                     // block.  Otherwise we'll consume the 'set'.  In that case, just end the
                     // current accessor with a semicolon so we can properly consume the next
                     // in the calling method's loop.
@@ -4099,7 +4099,7 @@ tryAgain:
                 }
                 else
                 {
-                    // We store an __arglist parameter as a parameter with null type and whose 
+                    // We store an __arglist parameter as a parameter with null type and whose
                     // .Identifier has the kind ArgListKeyword.
                     type = null;
                     name = this.EatToken(SyntaxKind.ArgListKeyword);
@@ -4428,7 +4428,7 @@ tryAgain:
 
         private void ParseVariableDeclarators(TypeSyntax type, VariableFlags flags, SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables, SyntaxKind parentKind)
         {
-            // Although we try parse variable declarations in contexts where they are not allowed (non-interactive top-level or a namespace) 
+            // Although we try parse variable declarations in contexts where they are not allowed (non-interactive top-level or a namespace)
             // the reported errors should take into consideration whether or not one expects them in the current context.
             bool variableDeclarationsExpected =
                 parentKind != SyntaxKind.NamespaceDeclaration &&
@@ -4632,8 +4632,8 @@ tryAgain:
                 // Standard greedy parsing will assume that this should be parsed as a variable
                 // declaration: "C Console".  We want to avoid that as it can confused parts of the
                 // system further up.  So, if we see certain things following the identifier, then we can
-                // assume it's not the actual name.  
-                // 
+                // assume it's not the actual name.
+                //
                 // So, if we're after a newline and we see a name followed by the list below, then we
                 // assume that we're accidentally consuming too far into the next statement.
                 //
@@ -4646,16 +4646,16 @@ tryAgain:
                 // C                    //<-- here
                 // Console.WriteLine();
                 //
-                // C                    //<-- here 
+                // C                    //<-- here
                 // Console->WriteLine();
                 //
-                // C 
+                // C
                 // A + B;
                 //
-                // C 
+                // C
                 // A ? B : D;
                 //
-                // C 
+                // C
                 // A()
                 var resetPoint = this.GetResetPoint();
                 try
@@ -4722,7 +4722,7 @@ tryAgain:
 
             // Give better error message in the case where the user did something like:
             //
-            // X x = 1, Y y = 2; 
+            // X x = 1, Y y = 2;
             // using (X x = expr1, Y y = expr2) ...
             //
             // The superfluous type name is treated as variable (it is an identifier) and a missing ',' is injected after it.
@@ -4951,7 +4951,7 @@ tryAgain:
         private DataPropertyDeclarationSyntax ParseDataPropertyDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             var dataKeyword = EatContextualToken(SyntaxKind.DataKeyword);
-            dataKeyword = CheckFeatureAvailability(dataKeyword, MessageID.IDS_FeatureRecords);
+            dataKeyword = CheckFeatureAvailability(dataKeyword, MessageID.IDS_FeatureDataProperties);
             var type = ParseType();
             var id = ParseIdentifierToken();
             EqualsValueClauseSyntax? eq = null;
@@ -5439,8 +5439,8 @@ tryAgain:
                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
             }
 
-            // We're in an expression context, and we have a < token.  This could be a 
-            // type argument list, or it could just be a relational expression.  
+            // We're in an expression context, and we have a < token.  This could be a
+            // type argument list, or it could just be a relational expression.
             //
             // Scan just the type argument list portion (i.e. the part from < to > ) to
             // see what we think it could be.  This will give us one of three possibilities:
@@ -5452,7 +5452,7 @@ tryAgain:
             //      result != ScanTypeFlags.NotType && isDefinitelyTypeArgumentList.
             //
             // This is absolutely a type-argument-list.  Just return that result immediately
-            // 
+            //
             //      result != ScanTypeFlags.NotType && !isDefinitelyTypeArgumentList.
             //
             // This could be a type-argument list, or it could be an expression.  Need to see
@@ -5593,7 +5593,7 @@ tryAgain:
                             // tell though is that if we have a predefined type (like 'int' or 'string')
                             // before a comma or > then this is definitely a type argument list. i.e.
                             // if you have:
-                            // 
+                            //
                             //      var v = ImmutableDictionary<int,
                             //
                             // then there's no legal interpretation of this as an expression (since a
@@ -5613,7 +5613,7 @@ tryAgain:
                             break;
 
                         // case ScanTypeFlags.TupleType:
-                        // It would be nice if we saw a tuple to state that we definitely had a 
+                        // It would be nice if we saw a tuple to state that we definitely had a
                         // type argument list.  However, there are cases where this would not be
                         // true.  For example:
                         //
@@ -5641,8 +5641,8 @@ tryAgain:
                                 result = ScanTypeFlags.GenericTypeOrMethod;
                             }
 
-                            // Note: we intentionally fall out without setting 'result'. 
-                            // Seeing a nullable type (not followed by a , or > ) is not enough 
+                            // Note: we intentionally fall out without setting 'result'.
+                            // Seeing a nullable type (not followed by a , or > ) is not enough
                             // information for us to determine what this is yet.  i.e. the user may have:
                             //
                             //      X < Y ? Z : W
@@ -5759,7 +5759,7 @@ tryAgain:
             {
                 // Here, if we see a "[" that looks like it has something in it, we parse
                 // it as an attribute and then later put an error on the whole type if
-                // it turns out that attributes are not allowed. 
+                // it turns out that attributes are not allowed.
                 // TODO: should there be another flag that controls this behavior? we have
                 // "allowAttrs" but should there also be a "recognizeAttrs" that we can
                 // set to false in an expression context?
@@ -5783,22 +5783,22 @@ tryAgain:
             var result = this.ParseType();
 
             // Consider the case where someone supplies an invalid type argument
-            // Such as Action<0> or Action<static>.  In this case we generate a missing 
-            // identifier in ParseType, but if we continue as is we'll immediately start to 
+            // Such as Action<0> or Action<static>.  In this case we generate a missing
+            // identifier in ParseType, but if we continue as is we'll immediately start to
             // interpret 0 as the start of a new expression when we can tell it's most likely
-            // meant to be part of the type list.  
+            // meant to be part of the type list.
             //
-            // To solve this we check if the current token is not comma or greater than and 
-            // the next token is a comma or greater than. If so we assume that the found 
-            // token is part of this expression and we attempt to recover. This does open 
-            // the door for cases where we have an  incomplete line to be interpretted as 
+            // To solve this we check if the current token is not comma or greater than and
+            // the next token is a comma or greater than. If so we assume that the found
+            // token is part of this expression and we attempt to recover. This does open
+            // the door for cases where we have an  incomplete line to be interpretted as
             // a single expression.  For example:
             //
             // Action< // Incomplete line
             // a>b;
             //
-            // However, this only happens when the following expression is of the form a>... 
-            // or a,... which  means this case should happen less frequently than what we're 
+            // However, this only happens when the following expression is of the form a>...
+            // or a,... which  means this case should happen less frequently than what we're
             // trying to solve here so we err on the side of better error messages
             // for the majority of cases.
             SyntaxKind nextTokenKind = SyntaxKind.None;
@@ -5902,8 +5902,8 @@ tryAgain:
 
                     if (isMemberName)
                     {
-                        // We're past any explicit interface portion and We've 
-                        // gotten to the member name.  
+                        // We're past any explicit interface portion and We've
+                        // gotten to the member name.
                         beforeIdentifierPoint = GetResetPoint();
                         beforeIdentifierPointSet = true;
 
@@ -5938,7 +5938,7 @@ tryAgain:
                         }
                         else
                         {
-                            // Parse out the next part and combine it with the 
+                            // Parse out the next part and combine it with the
                             // current explicit name to form the new explicit name.
                             var tmp = this.ParseQualifiedNameRight(NameOptions.InTypeList, explicitInterfaceName, separator);
                             Debug.Assert(!ReferenceEquals(tmp, explicitInterfaceName), "We should have consumed something and updated explicitInterfaceName");
@@ -7108,7 +7108,7 @@ done:;
                     case SyntaxKind.IfKeyword:
                         return this.ParseIfStatement(attributes);
                     case SyntaxKind.ElseKeyword:
-                        // Including 'else' keyword to handle 'else without if' error cases 
+                        // Including 'else' keyword to handle 'else without if' error cases
                         return this.ParseMisplacedElse(attributes);
                     case SyntaxKind.LockKeyword:
                         return this.ParseLockStatement(attributes);
@@ -7324,7 +7324,7 @@ done:;
             }
 
             // It's common to have code like the following:
-            // 
+            //
             //      Task.
             //      await Task.Delay()
             //
@@ -7332,11 +7332,11 @@ done:;
             //
             //      Task.await Task
             //
-            // This does not represent user intent, and it causes all sorts of problems to higher 
+            // This does not represent user intent, and it causes all sorts of problems to higher
             // layers.  This is because both the parse tree is strange, and the symbol tables have
             // entries that throw things off (like a bogus 'Task' local).
             //
-            // Note that we explicitly do this check when we see that the code spreads over multiple 
+            // Note that we explicitly do this check when we see that the code spreads over multiple
             // lines.  We don't want this if the user has actually written "X.Y z"
             var tk = this.CurrentToken.ContextualKind;
 
@@ -7358,8 +7358,8 @@ done:;
                         //
                         //      X.Y z;
                         //      X.Y z = ...
-                        //      X.Y z, ...  
-                        //      X.Y z( ...      (local function) 
+                        //      X.Y z, ...
+                        //      X.Y z( ...      (local function)
                         //      X.Y z<W...      (local function)
                         //
                         var token4Kind = PeekToken(4).Kind;
@@ -7499,7 +7499,7 @@ done:;
         //   idf;
         //   idf,
         //   idf = <expr>;
-        //   idf = <expr>, 
+        //   idf = <expr>,
         private bool IsPossibleFieldDeclarationFollowingNullableType()
         {
             if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
@@ -7674,7 +7674,7 @@ done:;
                     return false;
                 }
 
-                // class, struct, enum, interface keywords, but also other modifiers that are not allowed after 
+                // class, struct, enum, interface keywords, but also other modifiers that are not allowed after
                 // partial keyword but start class declaration, so we can assume the user just swapped them.
                 if (IsPossibleStartOfTypeDeclaration(PeekToken(2).Kind))
                 {
@@ -8002,15 +8002,15 @@ done:;
             {
                 if (statement == null)
                 {
-                    // The consumers of embedded statements are expecting to receive a non-null statement 
-                    // yet there are several error conditions that can lead ParseStatementCore to return 
+                    // The consumers of embedded statements are expecting to receive a non-null statement
+                    // yet there are several error conditions that can lead ParseStatementCore to return
                     // null.  When that occurs create an error empty Statement and return it to the caller.
                     return SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken));
                 }
 
                 // In scripts, stand-alone expression statements may not be followed by semicolons.
                 // ParseExpressionStatement hides the error.
-                // However, embedded expression statements are required to be followed by semicolon. 
+                // However, embedded expression statements are required to be followed by semicolon.
                 if (statement.Kind == SyntaxKind.ExpressionStatement &&
                     IsScript)
                 {
@@ -8159,7 +8159,7 @@ done:;
                 if (keywordKind == SyntaxKind.IfKeyword)
                 {
                     // The initial design of C# exception filters called for the use of the
-                    // "if" keyword in this position.  We've since changed to "when", but 
+                    // "if" keyword in this position.  We've since changed to "when", but
                     // the error recovery experience for early adopters (and for old source
                     // stored in the symbol server) will be better if we consume "if" as
                     // though it were "when".
@@ -11172,7 +11172,7 @@ tryAgain:
                 case ScanTypeFlags.TupleType:
                     // check for ambiguous type or expression followed by disambiguating token.  i.e.
                     //
-                    // "(A)b" is a cast.  But "(A)+b" is not a cast.  
+                    // "(A)b" is a cast.  But "(A)+b" is not a cast.
                     return CanFollowCast(this.CurrentToken.Kind);
 
                 default:
@@ -11970,12 +11970,12 @@ tryAgain:
             }
 
             // In mismatched braces cases (missing a }) it is possible for delegate declarations to be
-            // parsed as delegate statement expressions.  When this situation occurs all subsequent 
+            // parsed as delegate statement expressions.  When this situation occurs all subsequent
             // delegate declarations will also be parsed as delegate statement expressions.  In a file with
-            // a sufficient number of delegates, common in generated code, it will put considerable 
-            // stack pressure on the parser.  
+            // a sufficient number of delegates, common in generated code, it will put considerable
+            // stack pressure on the parser.
             //
-            // To help avoid this problem we don't recursively descend into a delegate expression unless 
+            // To help avoid this problem we don't recursively descend into a delegate expression unless
             // { } are actually present.  This keeps the stack pressure lower in bad code scenarios.
             if (this.CurrentToken.Kind != SyntaxKind.OpenBraceToken)
             {

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If this symbol represents a partial method definition or implementation part, its other part (if any).
-        /// This should be set, if at all, before this symbol appears among the members of its owner.  
+        /// This should be set, if at all, before this symbol appears among the members of its owner.
         /// The implementation part is not listed among the "members" of the enclosing type.
         /// </summary>
         private SourceOrdinaryMethodSymbol _otherPartOfPartial;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasBody)
             {
-                CheckModifiersForBody(syntax, location, diagnostics);
+                CheckModifiersForBody(location, diagnostics);
             }
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation);
@@ -208,10 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.Arity != 0 && (syntax.ExplicitInterfaceSpecifier != null || IsOverride))
             {
-                // When a generic method overrides a generic method declared in a base class, or is an 
+                // When a generic method overrides a generic method declared in a base class, or is an
                 // explicit interface member implementation of a method in a base interface, the method
                 // shall not specify any type-parameter-constraints-clauses, except for a struct constraint, or a class constraint.
-                // In these cases, the type parameters of the method inherit constraints from the method being overridden or 
+                // In these cases, the type parameters of the method inherit constraints from the method being overridden or
                 // implemented
                 if (syntax.ConstraintClauses.Count > 0)
                 {
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // that there can only be one such method, so there are no conflicts.)  This is
             // unnecessary for implicit implementations because, if the custom modifiers don't match,
             // we'll insert a bridge method (an explicit implementation that delegates to the implicit
-            // implementation) with the correct custom modifiers 
+            // implementation) with the correct custom modifiers
             // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
             // This value may not be correct, but we need something while we compute this.OverriddenMethod.
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns the implementation part of a partial method definition, 
+        /// Returns the implementation part of a partial method definition,
         /// or null if this is not a partial method or it is the definition part.
         /// </summary>
         internal SourceOrdinaryMethodSymbol SourcePartialDefinition
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns the definition part of a partial method implementation, 
+        /// Returns the definition part of a partial method implementation,
         /// or null if this is not a partial method or it is the implementation part.
         /// </summary>
         internal SourceOrdinaryMethodSymbol SourcePartialImplementation
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
         {
-            // Let's overwrite modifiers for interface and explicit interface implementation methods with what they are supposed to be. 
+            // Let's overwrite modifiers for interface and explicit interface implementation methods with what they are supposed to be.
             // Proper errors must have been reported by now.
             if (containingTypeIsInterface)
             {

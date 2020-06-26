@@ -5,11 +5,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.Symbols.SynthesizedAutoPropAccessorSymbol;
 
 #nullable enable
 
@@ -17,121 +14,154 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class DataPropertySymbol : SourcePropertySymbolBase
     {
-        private TypeWithAnnotations.Boxed? _lazyType;
-
-        public override string Name { get; }
-        internal override SynthesizedBackingFieldSymbol BackingField { get; }
-        public override MethodSymbol GetMethod { get; }
-        public override MethodSymbol SetMethod { get; }
-
         public DataPropertySymbol(
             SourceMemberContainerTypeSymbol containingType,
-            Binder bodyBinder,
+            Binder binder,
             DataPropertyDeclarationSyntax syntax,
             DiagnosticBag diagnostics)
-            : base(containingType, syntax.GetReference(), syntax.Location)
+            : base(containingType,
+                binder,
+                syntax,
+                syntax.Type.GetRefKind(),
+                syntax.Identifier.ValueText,
+                syntax.Identifier.GetLocation(),
+                diagnostics)
         {
-            string name = syntax.Identifier.ValueText;
-            Name = name;
-            BackingField = new SynthesizedBackingFieldSymbol(
-                this,
-                GeneratedNames.MakeBackingFieldName(name),
-                isReadOnly: true,
-                isStatic: false,
-                hasInitializer: true);
-            GetMethod = new SynthesizedAutoPropAccessorSymbol(this, name, AccessorKind.Get, diagnostics);
-            SetMethod = new SynthesizedAutoPropAccessorSymbol(this, name, AccessorKind.Init, diagnostics);
-            _ = ModifierUtils.CheckModifiers(
-                syntax.Modifiers.ToDeclarationModifiers(diagnostics),
-                DeclarationModifiers.None,
-                syntax.Location,
-                diagnostics,
-                modifierTokens: syntax.Modifiers,
-                out _);
-
-            if (containingType.IsInterface)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, syntax.Location);
-            }
         }
 
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => SyntaxNode.AttributeLists;
+            => CSharpSyntaxNode.AttributeLists;
 
-        public override RefKind RefKind => RefKind.None;
+        protected override Location TypeLocation => CSharpSyntaxNode.Type.Location;
 
-        public override TypeWithAnnotations TypeWithAnnotations
+        public new DataPropertyDeclarationSyntax CSharpSyntaxNode
+            => (DataPropertyDeclarationSyntax)base.CSharpSyntaxNode;
+
+        protected override bool HasPointerTypeSyntactically => throw new System.NotImplementedException();
+
+        protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
+            => ((DataPropertyDeclarationSyntax)syntax).Modifiers;
+
+        protected override ArrowExpressionClauseSyntax? GetArrowExpression(SyntaxNode syntax)
+            => null;
+
+        protected override bool HasInitializer(SyntaxNode syntax)
+            => ((DataPropertyDeclarationSyntax)syntax).Initializer is object;
+
+        protected override void GetAccessorDeclarations(
+            CSharpSyntaxNode syntax,
+            DiagnosticBag diagnostics,
+            out bool isAutoProperty,
+            out bool hasAccessorList,
+            out bool accessorsHaveImplementation,
+            out bool isInitOnly,
+            out CSharpSyntaxNode? getSyntax,
+            out CSharpSyntaxNode? setSyntax)
         {
-            get
-            {
-                if (_lazyType == null)
-                {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    var compilation = this.DeclaringCompilation;
-                    var syntax = (DataPropertyDeclarationSyntax)SyntaxNode;
-                    var binderFactory = compilation.GetBinderFactory(syntax.SyntaxTree);
-                    var binder = binderFactory.GetBinder(syntax, syntax, this)
-                        .WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
-                    var result = this.ComputeType(binder, syntax.Type, diagnostics);
-                    if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(result), null) == null)
-                    {
-                        this.AddDeclarationDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
-                }
-
-                return _lazyType.Value;
-            }
+            isAutoProperty = true;
+            hasAccessorList = false;
+            getSyntax = setSyntax = syntax;
+            isInitOnly = true;
+            accessorsHaveImplementation = false;
         }
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
-
-        public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
-
-        public override bool IsIndexer => false;
-
-        public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
-
-        public override Accessibility DeclaredAccessibility => Accessibility.Public;
-
-        public override bool IsStatic => false;
-
-        public override bool IsVirtual => false;
-
-        public override bool IsOverride => false;
-
-        public override bool IsAbstract => false;
-
-        public override bool IsSealed => false;
-
-        public override bool IsExtern => false;
-
-        protected override IAttributeTargetSymbol AttributesOwner => this;
-
-        protected override AttributeLocation AllowedAttributeLocations
-            => AttributeLocation.Property | AttributeLocation.Field;
-
-        protected override AttributeLocation DefaultAttributeLocation => AttributeLocation.Property;
-
-        internal override bool IsAutoProperty => true;
-
-        internal override bool HasPointerType
+        protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            get
-            {
-                if (_lazyType != null)
-                {
-                    var hasPointerType = _lazyType.Value.DefaultType.IsPointerOrFunctionPointer();
-                    Debug.Assert(hasPointerType == IsPointerType(SyntaxNode.Type));
-                    return hasPointerType;
-                }
-
-                return IsPointerType(SyntaxNode.Type);
-            }
+            // Nothing to do here
         }
 
-        protected override Location TypeLocation => SyntaxNode.Type.Location;
+        protected override DeclarationModifiers MakeModifiers(
+            SyntaxTokenList modifiers,
+            bool isExplicitInterfaceImplementation,
+            bool isIndexer,
+            bool accessorsHaveImplementation,
+            Location location,
+            DiagnosticBag diagnostics,
+            out bool modifierErrors)
+        {
+            Debug.Assert(CSharpSyntaxNode.Modifiers == modifiers);
+            Debug.Assert(!isExplicitInterfaceImplementation);
+            Debug.Assert(!isIndexer);
+            Debug.Assert(!accessorsHaveImplementation);
 
-        private DataPropertyDeclarationSyntax SyntaxNode => (DataPropertyDeclarationSyntax)SyntaxReference.GetSyntax();
+            bool isInterface = ContainingType.IsInterface;
+            var defaultAccess = DeclarationModifiers.Public;
+
+            var allowed = DeclarationModifiers.Public |
+                DeclarationModifiers.New |
+                DeclarationModifiers.Abstract |
+                DeclarationModifiers.Virtual;
+
+            if (!isInterface)
+            {
+                allowed |= DeclarationModifiers.Override;
+            }
+
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                modifiers,
+                defaultAccess,
+                allowed,
+                location,
+                diagnostics,
+                out modifierErrors);
+
+            if (isInterface)
+            {
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(
+                    mods,
+                    hasBody: false,
+                    isExplicitInterfaceImplementation: false);
+            }
+
+            return mods;
+        }
+
+        protected override SourcePropertyAccessorSymbol? CreateAccessorSymbol(
+            bool isGet,
+            CSharpSyntaxNode? syntaxOpt,
+            PropertySymbol? explicitlyImplementedPropertyOpt,
+            string? aliasQualifierOpt,
+            bool isAutoPropertyAccessor,
+            bool isExplicitInterfaceImplementation,
+            DiagnosticBag diagnostics)
+        {
+            Debug.Assert(syntaxOpt is object);
+            return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
+                isGet,
+                usesInit: !isGet, // the setter is always init-only
+                isAutoPropertyAccessor,
+                ContainingType,
+                this,
+                _modifiers,
+                _sourceName,
+                ((DataPropertyDeclarationSyntax)syntaxOpt).DataKeyword.GetLocation(),
+                syntaxOpt,
+                diagnostics);
+        }
+
+        protected override SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
+            ArrowExpressionClauseSyntax syntax,
+            PropertySymbol? explicitlyImplementedPropertyOpt,
+            string? aliasQualifierOpt,
+            bool isExplicitInterfaceImplementation,
+            DiagnosticBag diagnostics)
+        {
+            // Should never occur
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+            => ImmutableArray<ParameterSymbol>.Empty;
+
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            return ComputeType(binder, ((DataPropertyDeclarationSyntax)syntax).Type, syntax, diagnostics);
+        }
+
+        protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
+            => null;
+
+        protected override BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
+            => null;
     }
 }

@@ -1288,31 +1288,34 @@ enum H : C { }
         [Fact]
         public void DataPropertiesLangVersion()
         {
-            var src = @$"
+            var src = @"
 class X
-{{
+{
     data int A;
     public data int B = 0;
     data C;
-}}
+}
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,5): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,5): error CS8652: The feature 'data properties' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     data int A;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("records").WithLocation(4, 5),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("data properties").WithLocation(4, 5),
+                // (4,5): error CS8652: The feature 'init-only setters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     data int A;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("init-only setters").WithLocation(4, 5),
                 // (4,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
                 //     data int A;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "data int A;").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 5),
-                // (5,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "data").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 5),
+                // (5,12): error CS8652: The feature 'data properties' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public data int B = 0;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public data int B = 0;").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(5, 5),
-                // (5,5): error CS0106: The modifier 'public' is not valid for this item
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("data properties").WithLocation(5, 12),
+                // (5,12): error CS8652: The feature 'init-only setters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public data int B = 0;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public data int B = 0;").WithArguments("public").WithLocation(5, 5),
-                // (5,12): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("init-only setters").WithLocation(5, 12),
+                // (5,12): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
                 //     public data int B = 0;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("records").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "data").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(5, 12),
                 // (6,5): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
                 //     data C;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(6, 5),
@@ -1630,25 +1633,28 @@ unsafe class C
         [Fact]
         public void DataPropertiesInterface()
         {
-            var src = @$"
-interface X
-{{
-    data int A;
-    static data int D;
-}}
-";
+            var src = @"
+interface I
+{
+    data int P1;
+    data int P2 = 0;
+    static data int P3;
+}";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0525: Interfaces cannot contain instance fields
-                //     data int A;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "data int A;").WithLocation(4, 5),
-                // (5,5): error CS0106: The modifier 'static' is not valid for this item
-                //     static data int D;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static data int D;").WithArguments("static").WithLocation(5, 5),
-                // (5,5): error CS0525: Interfaces cannot contain instance fields
-                //     static data int D;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "static data int D;").WithLocation(5, 5)
+                // (5,14): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     data int P2 = 0;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P2").WithArguments("I.P2").WithLocation(5, 14),
+                // (6,21): error CS0106: The modifier 'static' is not valid for this item
+                //     static data int P3;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P3").WithArguments("static").WithLocation(6, 21)
             );
+
+            var p1 = comp.GlobalNamespace.GetTypeMember("I").GetMember<PropertySymbol>("P1");
+            Assert.True(p1.IsAbstract);
+            Assert.True(p1.GetMethod.IsAbstract);
+            Assert.True(p1.SetMethod.IsAbstract);
+            Assert.True(p1.SetMethod.IsInitOnly);
         }
 
         [Fact]

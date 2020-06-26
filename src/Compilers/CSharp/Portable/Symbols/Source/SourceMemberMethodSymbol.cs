@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We currently pack everything into a 32 bit int with the following layout:
             //
             // |                |vvv|yy|s|r|q|z|wwwww|
-            // 
+            //
             // w = method kind.  5 bits.
             // z = isExtensionMethod. 1 bit.
             // q = isMetadataVirtualIgnoringInterfaceChanges. 1 bit.
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet, out bool diagsWritten)
         {
-            //return the diagnostics that were actually saved in the event that there were two threads racing. 
+            //return the diagnostics that were actually saved in the event that there were two threads racing.
             diagsWritten = ImmutableInterlocked.InterlockedInitialize(ref _cachedDiagnostics, newSet);
             return _cachedDiagnostics;
         }
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // allow the same thread to see the return type and parameters from the syntax (though
                         // they do not yet take on their final values), we return here.
 
-                        // Due to the fact that LazyMethodChecks is potentially reentrant, we must use a 
+                        // Due to the fact that LazyMethodChecks is potentially reentrant, we must use a
                         // reentrant lock to avoid deadlock and cannot assert that at this point method checks
                         // have completed (state.HasComplete(CompletionPart.FinishMethodChecks)).
                     }
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Overridden by <see cref="SourceOrdinaryMethodSymbol"/>, 
+        /// Overridden by <see cref="SourceOrdinaryMethodSymbol"/>,
         /// which might return locations of partial methods.
         /// </summary>
         public override ImmutableArray<Location> Locations
@@ -923,7 +923,7 @@ done:
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody(SyntaxNode declarationSyntax, Location location, DiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(Location location, DiagnosticBag diagnostics)
         {
             if (IsExtern && !IsAbstract)
             {
