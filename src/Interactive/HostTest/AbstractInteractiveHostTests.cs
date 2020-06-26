@@ -34,10 +34,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         internal readonly InteractiveHost Host;
 
+        static AbstractInteractiveHostTests()
+        {
+            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") == null)
+            {
+                var root =
+                    Environment.GetEnvironmentVariable("DOTNET_INSTALL_DIR") ??
+                    Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator).FirstOrDefault(path => File.Exists(Path.Combine(path, "dotnet.exe")));
+
+                Environment.SetEnvironmentVariable("DOTNET_ROOT", root);
+            }
+        }
+
         protected AbstractInteractiveHostTests()
         {
             Host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
-            Host.InteractiveHostProcessCreationFailed += exception => Assert.False(true, exception?.Message ?? "Host process terminated unexpectedly");
+
+            Host.InteractiveHostProcessCreationFailed += (exception, exitCode) =>
+                Assert.False(true, (exception?.Message ?? "Host process terminated unexpectedly.") + $" Exit code: {exitCode?.ToString() ?? "<unknown>"}");
 
             RedirectOutput();
         }
@@ -55,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var output = SplitLines(await ReadOutputToEnd());
             var errorOutput = await ReadErrorOutputToEnd();
 
-            Assert.Equal("", errorOutput);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", errorOutput);
 
             var expectedOutput = new List<string>();
             expectedOutput.Add(string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider))));
@@ -136,13 +150,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             // writes mark to the STDOUT/STDERR pipe in the remote process:
             var remoteService = await Host.TryGetServiceAsync().ConfigureAwait(false);
-            Assert.NotNull(remoteService);
+
+            if (remoteService == null)
+            {
+                Assert.True(false, @$"
+Remote service unavailable
+STDERR: {_synchronizedErrorOutput}
+STDOUT: {_synchronizedOutput}
+");
+            }
 
             var writer = isError ? _synchronizedErrorOutput : _synchronizedOutput;
             var markPrefix = '\uFFFF';
             var mark = markPrefix + Guid.NewGuid().ToString();
 
-            await remoteService!.JsonRpc.InvokeAsync<Task>(nameof(InteractiveHost.Service.RemoteConsoleWriteAsync), Encoding.UTF8.GetBytes(mark), isError).ConfigureAwait(false);
+            await remoteService!.JsonRpc.InvokeAsync(nameof(InteractiveHost.Service.RemoteConsoleWriteAsync), Encoding.UTF8.GetBytes(mark), isError).ConfigureAwait(false);
             while (true)
             {
                 var data = writer.Prefix(mark, ref _outputReadPosition[isError ? 0 : 1]);
@@ -173,5 +195,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public static string PrintSearchPaths(params string[] paths)
             => paths.Length == 0 ? "SearchPaths { }" : $"SearchPaths {{ {string.Join(", ", paths.Select(p => "\"" + p.Replace("\\", "\\\\") + "\""))} }}";
+
+        public async Task<string> GetHostRuntimeDirectoryAsync()
+        {
+            var remoteService = await Host.TryGetServiceAsync().ConfigureAwait(false);
+            Assert.NotNull(remoteService);
+            return await remoteService!.JsonRpc.InvokeAsync<string>(nameof(InteractiveHost.Service.GetRuntimeDirectoryAsync)).ConfigureAwait(false);
+        }
     }
 }

@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         string.Format(InteractiveHostResources.Failed_to_create_a_remote_process_for_interactive_code_execution, hostPath),
                         e.Message);
 
-                    Host.InteractiveHostProcessCreationFailed?.Invoke(e);
+                    Host.InteractiveHostProcessCreationFailed?.Invoke(e, TryGetExitCode(newProcess));
                     return null;
                 }
 
@@ -185,7 +185,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                 JsonRpc? jsonRpc = null;
 
                 void ProcessExitedBeforeEstablishingConnection(object sender, EventArgs e)
-                    => _cancellationSource.Cancel();
+                {
+                    Host.InteractiveHostProcessCreationFailed?.Invoke(null, TryGetExitCode(newProcess));
+                    _cancellationSource.Cancel();
+                }
 
                 // Connecting the named pipe client would hang if the process exits before the connection is established,
                 // as the client waits for the server to become available. We signal the cancellation token to abort.
@@ -196,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     if (!CheckAlive(newProcess, hostPath))
                     {
-                        Host.InteractiveHostProcessCreationFailed?.Invoke(null);
+                        Host.InteractiveHostProcessCreationFailed?.Invoke(null, TryGetExitCode(newProcess));
                         return null;
                     }
 
@@ -217,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     jsonRpc?.Dispose();
 
-                    Host.InteractiveHostProcessCreationFailed?.Invoke(e);
+                    Host.InteractiveHostProcessCreationFailed?.Invoke(e, TryGetExitCode(newProcess));
                     return null;
                 }
                 finally
@@ -242,6 +245,18 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 return alive;
+            }
+
+            private static int? TryGetExitCode(Process process)
+            {
+                try
+                {
+                    return process.ExitCode;
+                }
+                catch
+                {
+                    return null;
+                }
             }
         }
     }

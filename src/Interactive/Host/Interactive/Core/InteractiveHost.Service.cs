@@ -239,8 +239,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 // the client can instantiate interactive host now:
                 s_clientExited.Wait();
-
-                Environment.Exit(0);
             }
 
             #endregion
@@ -845,6 +843,12 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return Task.CompletedTask;
             }
+
+            /// <summary>
+            /// Remote API for testing purposes.
+            /// </summary>
+            public Task<string> GetRuntimeDirectoryAsync()
+                => Task.FromResult(RuntimeEnvironment.GetRuntimeDirectory());
 
             #endregion
         }
