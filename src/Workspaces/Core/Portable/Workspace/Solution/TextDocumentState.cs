@@ -97,7 +97,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
-            => new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+        {
+            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+
+            // Ensure the recoverable text is saved in temporary storage
+            result.GetValue();
+
+            return result;
+        }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
         {
