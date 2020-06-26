@@ -3059,7 +3059,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (ParameterSymbol param in recordParameters)
                 {
                     bool isInherited = false;
-                    var property = new SynthesizedRecordPropertySymbol(this, param, overriddenProperty: null, diagnostics);
+                    var syntax = param.GetNonNullSyntaxNode();
+                    var property = new SynthesizedRecordPropertySymbol(this, syntax, param, overriddenProperty: null, diagnostics);
                     if (!memberSignatures.TryGetValue(property, out var existingMember))
                     {
                         existingMember = getInheritedMember(property, this);
@@ -3075,7 +3076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // There already exists a member corresponding to the candidate synthesized property.
                         if (isInherited && prop.IsAbstract)
                         {
-                            addProperty(new SynthesizedRecordPropertySymbol(this, param, overriddenProperty: prop, diagnostics));
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, overriddenProperty: prop, diagnostics));
                         }
                         else
                         {

@@ -19,16 +19,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedRecordPropertySymbol(
             SourceMemberContainerTypeSymbol containingType,
+            CSharpSyntaxNode syntax,
             ParameterSymbol backingParameter,
             PropertySymbol? overriddenProperty,
             DiagnosticBag diagnostics)
-            : base(containingType,
-                backingParameter.GetNonNullSyntaxNode(),
-                DeclarationModifiers.Public | (overriddenProperty is null ? DeclarationModifiers.None : DeclarationModifiers.Override),
+            : base(
+                containingType,
+                binder: null,
+                syntax: syntax,
+                getSyntax: syntax,
+                setSyntax: syntax,
+                arrowExpression: null,
+                explicitInterfaceSpecifier: null,
+                modifiers: DeclarationModifiers.Public | (overriddenProperty is null ? DeclarationModifiers.None : DeclarationModifiers.Override),
+                isIndexer: false,
+                hasInitializer: true, // Synthesized record properties always have a synthesized initializer
+                isAutoProperty: true,
+                hasAccessorList: false,
+                isInitOnly: true,
+                RefKind.None,
                 backingParameter.Name,
                 backingParameter.Locations[0],
-                overriddenProperty,
-                overriddenProperty is null ? backingParameter.TypeWithAnnotations : overriddenProperty.TypeWithAnnotations,
+                (property, binder, syntax, diagnostics) => ComputeType(overriddenProperty, backingParameter),
+                (property, binder, syntax, diagnostics) => ImmutableArray<ParameterSymbol>.Empty,
                 diagnostics)
         {
             _overriddenProperty = overriddenProperty;
@@ -47,43 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
             => new SyntaxTokenList();
 
-        protected override ArrowExpressionClauseSyntax? GetArrowExpression(SyntaxNode syntax)
-            => throw ExceptionUtilities.Unreachable;
-
-        protected override bool HasInitializer(SyntaxNode syntax)
-            => throw ExceptionUtilities.Unreachable; // Synthesized record properties always have a synthesized initializer
-
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => new SyntaxList<AttributeListSyntax>();
 
-        protected override void GetAccessorDeclarations(
-            CSharpSyntaxNode syntax,
-            DiagnosticBag diagnostics,
-            out bool isAutoProperty,
-            out bool hasAccessorList,
-            out bool accessorsHaveImplementation,
-            out bool isInitOnly,
-            out CSharpSyntaxNode? getSyntax,
-            out CSharpSyntaxNode? setSyntax)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
         protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        protected override DeclarationModifiers MakeModifiers(
-            SyntaxTokenList modifiers,
-            bool isExplicitInterfaceImplementation,
-            bool isIndexer,
-            bool accessorsHaveImplementation,
-            Location location,
-            DiagnosticBag diagnostics,
-            out bool modifierErrors)
-        {
-            throw ExceptionUtilities.Unreachable;
+            // Nothing to do here
         }
 
         protected override SourcePropertyAccessorSymbol CreateAccessorSymbol(
@@ -126,24 +108,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        internal override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            throw ExceptionUtilities.Unreachable;
+            return ImmutableArray<ParameterSymbol>.Empty;
         }
 
-        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            throw ExceptionUtilities.Unreachable;
+            return ComputeType(_overriddenProperty, BackingParameter);
         }
+
+        private static TypeWithAnnotations ComputeType(PropertySymbol? overriddenProperty, ParameterSymbol backingParameter)
+            => overriddenProperty is null ? backingParameter.TypeWithAnnotations : overriddenProperty.TypeWithAnnotations;
 
         protected override bool HasPointerTypeSyntactically
             // Since we already bound the type, don't bother looking at syntax
             => TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
-
-        protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
-            => throw ExceptionUtilities.Unreachable;
-
-        protected override BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
-            => throw ExceptionUtilities.Unreachable;
     }
 }
