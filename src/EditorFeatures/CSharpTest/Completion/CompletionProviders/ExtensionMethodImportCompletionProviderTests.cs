@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -1663,7 +1664,7 @@ namespace NS1
                 displayTextSuffix: "<>",
                 glyph: (int)Glyph.ExtensionMethodPublic,
                 inlineDescription: "NS2",
-                expectedDescriptionOrNull: "(extension) bool int.ExtentionMethod<int>()");
+                expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<int>()");
         }
 
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
