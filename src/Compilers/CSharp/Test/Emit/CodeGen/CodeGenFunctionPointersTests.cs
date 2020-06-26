@@ -7157,6 +7157,143 @@ unsafe class FunctionPointer
             );
         }
 
+        [Fact, WorkItem(45418, "https://github.com/dotnet/roslyn/issues/45418")]
+        public void RefMismatchInCall()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Test
+{
+    void M1(delegate*<ref string, void> param1)
+    {
+        param1(out var l);
+        string s = null;
+        param1(s);
+        param1(in s);
+    }
+
+    void M2(delegate*<in string, void> param2)
+    {
+        param2(out var l);
+        string s = null;
+        param2(s);
+        param2(ref s);
+    }
+
+    void M3(delegate*<out string, void> param3)
+    {
+        string s = null;
+        param3(s);
+        param3(ref s);
+        param3(in s);
+    }
+
+    void M4(delegate*<string, void> param4)
+    {
+        param4(out var l);
+        string s = null;
+        param4(ref s);
+        param4(in s);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (5,20): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         param1(out var l);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "var l").WithArguments("1", "ref").WithLocation(5, 20),
+                // (7,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         param1(s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(7, 16),
+                // (8,19): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         param1(in s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(8, 19),
+                // (12,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         param2(out var l);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(12, 20),
+                // (15,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         param2(ref s);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(15, 20),
+                // (20,16): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         param3(s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(20, 16),
+                // (21,20): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         param3(ref s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(21, 20),
+                // (22,19): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         param3(in s);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(22, 19),
+                // (26,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         param4(out var l);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(26, 20),
+                // (28,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         param4(ref s);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(28, 20),
+                // (29,19): error CS1615: Argument 1 may not be passed with the 'in' keyword
+                //         param4(in s);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "in").WithLocation(29, 19)
+            );
+        }
+
+        [Fact]
+        public void MismatchedInferredLambdaReturn()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M(delegate*<System.Func<string>, void> param)
+    {
+        param(a => a);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,15): error CS1593: Delegate 'Func<string>' does not take 1 arguments
+                //         param(a => a);
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "a => a").WithArguments("System.Func<string>", "1").WithLocation(6, 15)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var lambda = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+            Assert.Equal("a => a", lambda.ToString());
+
+            var info = model.GetSymbolInfo(lambda);
+            var lambdaSymbol = (IMethodSymbol)info.Symbol!;
+            Assert.NotNull(lambdaSymbol);
+            Assert.Equal("System.String", lambdaSymbol.ReturnType.ToTestDisplayString(includeNonNullable: false));
+            Assert.True(lambdaSymbol.Parameters.Single().Type.IsErrorType());
+        }
+
+        [Fact, WorkItem(45418, "https://github.com/dotnet/roslyn/issues/45418")]
+        public void OutDeconstructionMismatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Test
+{
+    void M1(delegate*<string, void> param1, object o)
+    {
+        param1(o is var (a, b));
+        param1(o is (var c, var d));
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         param1(o is var (a, b));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a, b)").WithArguments("object", "Deconstruct").WithLocation(6, 25),
+                // (6,25): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         param1(o is var (a, b));
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a, b)").WithArguments("object", "2").WithLocation(6, 25),
+                // (7,21): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         param1(o is (var c, var d));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var c, var d)").WithArguments("object", "Deconstruct").WithLocation(7, 21),
+                // (7,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         param1(o is (var c, var d));
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var c, var d)").WithArguments("object", "2").WithLocation(7, 21)
+            );
+        }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 
