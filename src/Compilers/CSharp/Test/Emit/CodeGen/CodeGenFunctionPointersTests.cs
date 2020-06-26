@@ -31,9 +31,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             MetadataReference[]? references = null,
             Action<ModuleSymbol>? symbolValidator = null,
             string? expectedOutput = null,
-            TargetFramework targetFramework = TargetFramework.Standard)
+            TargetFramework targetFramework = TargetFramework.Standard,
+            CSharpCompilationOptions? options = null)
         {
-            return CompileAndVerify(source, references, parseOptions: TestOptions.RegularPreview, options: expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe, symbolValidator: symbolValidator, expectedOutput: expectedOutput, verify: Verification.Skipped, targetFramework: targetFramework);
+            return CompileAndVerify(
+                source,
+                references,
+                parseOptions: TestOptions.RegularPreview,
+                options: options ?? (expectedOutput is null ? TestOptions.UnsafeReleaseDll : TestOptions.UnsafeReleaseExe),
+                symbolValidator: symbolValidator,
+                expectedOutput: expectedOutput,
+                verify: Verification.Skipped,
+                targetFramework: targetFramework);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointersWithIl(string source, string ilStub, Action<ModuleSymbol>? symbolValidator = null, string? expectedOutput = null)
@@ -7376,6 +7385,42 @@ unsafe class Test
                 //         param1(o is (var c, var d));
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var c, var d)").WithArguments("object", "2").WithLocation(7, 21)
             );
+        }
+
+        [Fact]
+        public void UnusedLoadNotLeftOnStack()
+        {
+            string source = @"
+unsafe class FunctionPointer
+{
+    public static void Main()
+    {
+        delegate*<void> ptr = &Main;
+    }
+}
+";
+            var verifier = CompileAndVerifyFunctionPointers(source, expectedOutput: "", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyIL(@"FunctionPointer.Main", expectedIL: @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+");
+
+            verifier = CompileAndVerifyFunctionPointers(source, expectedOutput: "", options: TestOptions.UnsafeDebugExe);
+            verifier.VerifyIL("FunctionPointer.Main", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (delegate*<void> V_0) //ptr
+  IL_0000:  nop
+  IL_0001:  ldftn      ""void FunctionPointer.Main()""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+");
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
