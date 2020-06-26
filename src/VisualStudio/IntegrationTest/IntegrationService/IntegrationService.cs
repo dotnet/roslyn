@@ -29,8 +29,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public IntegrationService()
         {
-            AppContext.SetSwitch("Switch.System.Diagnostics.IgnorePortablePDBsInStackTraces", false);
-
             PortName = GetPortName(Process.GetCurrentProcess().Id);
             BaseUri = "ipc://" + this.PortName;
         }
