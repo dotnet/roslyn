@@ -1643,6 +1643,33 @@ unsafe class C
         }
 
         [Fact]
+        public void DataProperties9()
+        {
+            var src = @"
+static class C
+{
+    data int P1;
+    data int P2 = 0;
+    static data int P3;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,14): error CS0708: 'C.P1': cannot declare instance members in a static class
+                //     data int P1;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "P1").WithArguments("C.P1").WithLocation(4, 14),
+                // (5,14): error CS0708: 'C.P2': cannot declare instance members in a static class
+                //     data int P2 = 0;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "P2").WithArguments("C.P2").WithLocation(5, 14),
+                // (6,21): error CS0106: The modifier 'static' is not valid for this item
+                //     static data int P3;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P3").WithArguments("static").WithLocation(6, 21),
+                // (6,21): error CS0708: 'C.P3': cannot declare instance members in a static class
+                //     static data int P3;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "P3").WithArguments("C.P3").WithLocation(6, 21)
+            );
+        }
+
+        [Fact]
         public void DataPropertiesInterface()
         {
             var src = @"

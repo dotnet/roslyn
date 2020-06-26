@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Value = value;
             }
             internal string GetDebuggerDisplay() => Value.GetDebuggerDisplay();
-
-            public static implicit operator Boxed(TypeWithAnnotations t) => new Boxed(t);
         }
 
         /// <summary>
