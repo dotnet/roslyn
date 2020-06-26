@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
     {
         public CSharpConvertNameOfDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertNameOfDiagnosticId,
-                   CSharpCodeStyleOptions.PreferBraces,
+                   CSharpCodeStyleOptions.PreferBraces, //TODO: Update code style options
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Convert_type_name_to_nameof), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -44,22 +44,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
             //var cancellationToken = syntaxContext.CancellationToken;
             var node = syntaxContext.Node;
 
-            // TODO: Any relevant style options?
-
-            // nameof was added in CSharp 6.0, so don't offer it for any languages after that time
+            // nameof was added in CSharp 6.0, so don't offer it for any languages before that time
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
             {
                 return;
             }
 
-            // TODO: Check for compiler errors on the typeof(someType).Name declaration
+            // TODO: Check for compiler errors on the declaration
 
-            // TODO: Check that the current span is the case we're looking for
+            var parent = node.Parent;
 
-            // TODO: Filter cases that don't work
+            // We know that it is a typeof() instance, but we only want to offer the fix if it is a .Name access
+            if (!(node.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && parent.IsNameMemberAccess()))
+            {
+                return;
+            }
 
-            // TODO: Create and report the right diagnostic
-            var location = Location.Create(syntaxTree, node.Span);
+            // TODO: if argument is primitive cases
+
+            //TODO: if argument is generic
+
+
+            // Current case can be effectively changed to a nameof instance so report a diagnostic
+            var location = Location.Create(syntaxTree, parent.Span);
             var additionalLocations = ImmutableArray.Create(node.GetLocation());
 
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
@@ -73,6 +80,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        // HELPERS GO HERE
     }
 }
