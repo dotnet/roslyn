@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> declaredConstraintsForOverrideOrImplement) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplement) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
@@ -206,12 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void ExtensionMethodChecks(DiagnosticBag diagnostics)
         {
-            var syntax = GetSyntax();
-            var location = locations[0];
-
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
+                var syntax = GetSyntax();
+                var location = locations[0];
                 var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
                 if (!parameter0Type.Type.IsValidExtensionParameterType())

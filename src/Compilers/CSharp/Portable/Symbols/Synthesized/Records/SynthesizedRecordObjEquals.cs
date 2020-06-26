@@ -4,117 +4,118 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Reflection;
-using Microsoft.Cci;
+using System.Diagnostics;
+using System.Globalization;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedRecordObjEquals : SynthesizedInstanceMethodSymbol
+    internal sealed class SynthesizedRecordObjEquals : SourceOrdinaryMethodSymbolBase
     {
         private readonly MethodSymbol _typedRecordEquals;
         private readonly int _memberOffset;
 
-        public override NamedTypeSymbol ContainingType { get; }
-
-        public override ImmutableArray<ParameterSymbol> Parameters { get; }
-
-        public SynthesizedRecordObjEquals(NamedTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset)
+        public SynthesizedRecordObjEquals(SourceMemberContainerTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset, DiagnosticBag diagnostics)
+            : base(containingType, "Equals", containingType.Locations[0], (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary,
+                   isIterator: false, isExtensionMethod: false, isPartial: false, hasBody: true, diagnostics)
         {
             var compilation = containingType.DeclaringCompilation;
             _typedRecordEquals = typedRecordEquals;
             _memberOffset = memberOffset;
-            ContainingType = containingType;
-            Parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(
-                this,
-                TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), NullableAnnotation.Annotated),
-                ordinal: 0,
-                RefKind.None));
-            ReturnTypeWithAnnotations = TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Boolean));
         }
 
-        public override string Name => "Equals";
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics)
+        {
+            const DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override;
+            Debug.Assert((result & ~allowedModifiers) == 0);
+            return result;
+        }
 
-        public override MethodKind MethodKind => MethodKind.Ordinary;
+        protected override bool HasAnyBody => true;
 
-        public override int Arity => 0;
+        internal override bool IsExpressionBodied => false;
 
-        public override bool IsExtensionMethod => false;
+        public override bool IsImplicitlyDeclared => true;
 
-        public override bool HidesBaseMethodsByName => false;
+        protected override Location ReturnTypeLocation => Locations[0];
+
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplement) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        {
+            var compilation = DeclaringCompilation;
+            var location = ReturnTypeLocation;
+            return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
+                    Parameters: ImmutableArray.Create<ParameterSymbol>(
+                                    new SourceSimpleParameterSymbol(owner: this,
+                                                                    TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Object, location, diagnostics), NullableAnnotation.Annotated),
+                                                                    ordinal: 0, RefKind.None, "obj", isDiscard: false, Locations)),
+                    IsVararg: false,
+                    DeclaredConstraintsForOverrideOrImplement: ImmutableArray<TypeParameterConstraintClause>.Empty);
+        }
+
+        protected override int GetParameterCountFromSyntax() => 1;
+
+        protected override MethodSymbol? FindExplicitlyImplementedMethod(DiagnosticBag diagnostics) => null;
+
+        protected override void MethodChecks(DiagnosticBag diagnostics)
+        {
+            base.MethodChecks(diagnostics);
+
+            var overridden = OverriddenMethod?.OriginalDefinition;
+
+            if (overridden is null || (overridden is SynthesizedRecordObjEquals && overridden.DeclaringCompilation == DeclaringCompilation))
+            {
+                return;
+            }
+
+            MethodSymbol leastOverridden = GetLeastOverriddenMethod(accessingTypeOpt: null);
+
+            if (leastOverridden is object &&
+                leastOverridden.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                leastOverridden.ContainingType.SpecialType != SpecialType.System_Object)
+            {
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideMethodFromObject, Locations[0], this);
+            }
+        }
+
+        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, DiagnosticBag diagnostics) => ImmutableArray<TypeParameterSymbol>.Empty;
+
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses() => ImmutableArray<TypeParameterConstraintClause>.Empty;
+
+
+        protected override void PartialMethodChecks(DiagnosticBag diagnostics)
+        {
+        }
+
+        protected override void ExtensionMethodChecks(DiagnosticBag diagnostics)
+        {
+        }
+
+        protected override void CompleteAsyncMethodChecksBetweenStartAndFinish()
+        {
+        }
+
+        protected override TypeSymbol? ExplicitInterfaceType => null;
+
+        protected override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+        }
+
+        protected override SourceMemberMethodSymbol? BoundAttributesSource => null;
+
+        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations() => OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
+
+        public override string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default) => null;
 
         public override bool IsVararg => false;
-
-        public override bool ReturnsVoid => false;
-
-        public override bool IsAsync => false;
 
         public override RefKind RefKind => RefKind.None;
 
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
-        public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
-
-        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
-
-        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
-            => ImmutableArray<TypeWithAnnotations>.Empty;
-
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
-
-        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
-
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
-
-        public override Symbol? AssociatedSymbol => null;
-
-        public override Symbol ContainingSymbol => ContainingType;
-
-        public override ImmutableArray<Location> Locations => ContainingType.Locations;
-
-        public override Accessibility DeclaredAccessibility => Accessibility.Public;
-
-        public override bool IsStatic => false;
-
-        public override bool IsVirtual => false;
-
-        public override bool IsOverride => true;
-
-        public override bool IsAbstract => false;
-
-        public override bool IsSealed => false;
-
-        public override bool IsExtern => false;
-
-        internal override bool HasSpecialName => false;
-
-        internal override MethodImplAttributes ImplementationAttributes => MethodImplAttributes.Managed;
-
-        internal override bool HasDeclarativeSecurity => false;
-
-        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
-
-        internal override bool RequiresSecurityObject => false;
-
-        internal override CallingConvention CallingConvention => CallingConvention.HasThis;
-
         internal override bool GenerateDebugInfo => false;
-
-        public override DllImportData? GetDllImportData() => null;
-
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-            => ImmutableArray<string>.Empty;
-
-        internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
-            => Array.Empty<SecurityAttribute>();
-
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
-
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => true;
 
         internal override bool SynthesizesLoweredBoundBody => true;
 
@@ -127,18 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression expression;
             if (ContainingType.IsStructType())
             {
-                // For structs:
-                //
-                //      return param is ContainingType i ? this.Equals(in i) : false;
-                expression = F.Conditional(
-                    F.Is(paramAccess, ContainingType),
-                    F.Call(
-                        F.This(),
-                        _typedRecordEquals,
-                        ImmutableArray.Create<RefKind>(RefKind.In),
-                        ImmutableArray.Create<BoundExpression>(F.Convert(ContainingType, paramAccess))),
-                    F.Literal(false),
-                    F.SpecialType(SpecialType.System_Boolean));
+                throw ExceptionUtilities.Unreachable;
             }
             else
             {

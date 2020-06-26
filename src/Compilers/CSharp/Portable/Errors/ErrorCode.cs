@@ -1845,6 +1845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRecordMemberForPositionalParameter = 8866,
         ERR_NoCopyConstructorInBaseType = 8867,
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
+        ERR_DoesNotOverrideMethodFromObject = 8869,
 
         #endregion
 

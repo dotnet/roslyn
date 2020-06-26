@@ -2325,7 +2325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class MembersAndInitializersBuilder
         {
-            public ArrayBuilder<Symbol> NonTypeNonIndexerMembers { get; private set; } = ArrayBuilder<Symbol>.GetInstance();
+            public ArrayBuilder<Symbol> NonTypeNonIndexerMembers { get; set; } = ArrayBuilder<Symbol>.GetInstance();
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> StaticInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>>.GetInstance();
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> InstanceInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>>.GetInstance();
             public readonly ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
@@ -2965,8 +2965,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterListSyntax? paramList = builder.RecordDeclarationWithParameters?.ParameterList;
 
             var memberSignatures = s_duplicateMemberSignatureDictionary.Allocate();
-            var members = builder.NonTypeNonIndexerMembers;
-            foreach (var member in members)
+            var members = ArrayBuilder<Symbol>.GetInstance(builder.NonTypeNonIndexerMembers.Count + 1);
+            foreach (var member in builder.NonTypeNonIndexerMembers)
             {
                 if (!memberSignatures.ContainsKey(member))
                 {
@@ -3009,6 +3009,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             otherEqualsMethods.Free();
             memberSignatures.Free();
+
+
+            // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
+            // go to the record declaration
+            members.AddRange(builder.NonTypeNonIndexerMembers);
+            builder.NonTypeNonIndexerMembers.Free();
+            builder.NonTypeNonIndexerMembers = members;
 
             return;
 
@@ -3131,12 +3138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addObjectEquals(MethodSymbol thisEquals)
             {
-                var objEquals = new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count);
-                if (!memberSignatures.ContainsKey(objEquals))
-                {
-                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
-                    members.Add(objEquals);
-                }
+                var objEquals = new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count, diagnostics);
+                members.Add(objEquals);
             }
 
             void addHashCode(PropertySymbol equalityContract)

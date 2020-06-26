@@ -79,7 +79,7 @@ record C(int x, string y)
                 Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 9)
             );
             var c = comp.GlobalNamespace.GetTypeMember("C");
-            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[1];
             Assert.Equal(2, ctor.ParameterCount);
 
             var a = ctor.Parameters[0];
@@ -209,6 +209,38 @@ record C(int x, string y)
         [Fact]
         public void RecordEquals_01()
         {
+            var comp = CreateCompilation(@"
+record C(int X, int Y)
+{
+    public bool Equals(C c) => throw null;
+    public override bool Equals(object o) => false;
+}
+");
+            comp.VerifyDiagnostics(
+                // (5,26): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
+                //     public override bool Equals(object o) => false;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(5, 26)
+                );
+
+            comp = CreateCompilation(@"
+record C
+{
+    public int Equals(object o) => throw null;
+}
+
+record D : C
+{
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,16): warning CS0114: 'C.Equals(object)' hides inherited member 'object.Equals(object)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public int Equals(object o) => throw null;
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Equals").WithArguments("C.Equals(object)", "object.Equals(object)").WithLocation(4, 16),
+                // (4,16): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
+                //     public int Equals(object o) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(4, 16)
+                );
+
             CompileAndVerify(@"
 using System;
 record C(int X, int Y)
@@ -218,8 +250,7 @@ record C(int X, int Y)
         object c = new C(0, 0);
         Console.WriteLine(c.Equals(c));
     }
-    public bool Equals(C c) => throw null;
-    public override bool Equals(object o) => false;
+    public bool Equals(C c) => false;
 }", expectedOutput: "False");
         }
 
@@ -708,7 +739,7 @@ record C(int x, int y)
             Assert.Equal(0, clone.ParameterCount);
             Assert.Equal(c, clone.ReturnType);
 
-            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[1];
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
@@ -1020,7 +1051,7 @@ record C
                 "System.String! C.Y.get",
                 "void C.Y.init",
                 "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? )",
                 "C.C(C! )",
                 "C.C()",
