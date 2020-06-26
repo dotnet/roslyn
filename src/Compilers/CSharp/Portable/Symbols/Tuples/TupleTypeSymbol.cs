@@ -1109,6 +1109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 case SymbolKind.Event:
                                     var underlyingEvent = (EventSymbol)member;
+                                    var underlyingAssociatedField = underlyingEvent.AssociatedField;
+                                    // The field is not part of the members list
+                                    if (underlyingAssociatedField is object)
+                                    {
+                                        Debug.Assert((object)underlyingAssociatedField.ContainingSymbol == TupleUnderlyingType);
+                                        Debug.Assert(TupleUnderlyingType.GetMembers(underlyingAssociatedField.Name).IndexOf(underlyingAssociatedField) < 0);
+                                        map.Add(underlyingAssociatedField.OriginalDefinition, underlyingAssociatedField);
+                                    }
                                     map.Add(underlyingEvent.OriginalDefinition, member);
                                     break;
 
