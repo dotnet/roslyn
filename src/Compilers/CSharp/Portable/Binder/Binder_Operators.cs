@@ -3896,7 +3896,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 noCommonTypeError = hadMultipleCandidates ? ErrorCode.ERR_AmbigQM : ErrorCode.ERR_InvalidQM;
 
             bool hasErrors = type?.IsErrorType() == true;
-            return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, noCommonTypeError, type, hasErrors);
+
+            var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
+            hasErrors |= constantValue?.IsBad == true;
+            return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, type, hasErrors);
         }
 
         private BoundExpression BindRefConditionalOperator(ConditionalExpressionSyntax node, ExpressionSyntax whenTrue, ExpressionSyntax whenFalse, DiagnosticBag diagnostics)

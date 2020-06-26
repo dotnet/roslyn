@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -363,6 +364,37 @@ delegate int Del(int x);
                 Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenTrue).ConvertedType.ToTestDisplayString(includeNonNullable: false)); //in parent to catch conversion
                 Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenFalse).ConvertedType.ToTestDisplayString(includeNonNullable: false)); //in parent to catch conversion
             }
+        }
+
+        [Fact, WorkItem(45460, "https://github.com/dotnet/roslyn/issues/45460")]
+        public void TestConstantConditional()
+        {
+            var source = @"
+public class Program {
+    public static void Test1() {
+        const bool b = true;
+        uint u1 = M1<uint>(b ? 1 : 0);
+        M2(b ? 2 : 3);
+        uint u2 = b ? 4 : 5;
+        _ = u2;
+
+        static void M2(uint t) { }
+    }
+    public static void Test2() {
+        const bool b = true;
+        short u1 = M1<short>(b ? 1 : 0);
+        M2(b ? 2 : 3);
+        short u2 = b ? 4 : 5;
+        _ = u2;
+
+        static void M2(short t) { }
+    }
+    public static T M1<T>(T t) => t;
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular8)
+                .VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()))
+                .VerifyDiagnostics();
         }
     }
 }

@@ -526,6 +526,7 @@
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundExpression"/>
     <Field Name="Alternative" Type="BoundExpression"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="NoCommonTypeError" Type="ErrorCode"/>
   </Node>
 
