@@ -28,17 +28,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal static BoundStatement AddSequencePoint(PropertyDeclarationSyntax declarationSyntax, BoundStatement rewrittenStatement)
+#nullable enable
+        internal static BoundStatement AddSequencePoint(
+            SyntaxNode breakpointSyntax,
+            EqualsValueClauseSyntax propertyInitializerSyntax,
+            BoundStatement rewrittenStatement)
         {
-            Debug.Assert(declarationSyntax.Initializer != null);
-            int start = declarationSyntax.Initializer.Value.SpanStart;
-            int end = declarationSyntax.Initializer.Span.End;
+            Debug.Assert(propertyInitializerSyntax != null);
+            int start = propertyInitializerSyntax.Value.SpanStart;
+            int end = propertyInitializerSyntax.Span.End;
             TextSpan part = TextSpan.FromBounds(start, end);
 
-            var result = BoundSequencePoint.Create(declarationSyntax, part, rewrittenStatement);
+            var result = BoundSequencePoint.Create(breakpointSyntax, part, rewrittenStatement);
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
             return result;
         }
+#nullable restore
 
         internal static BoundStatement AddSequencePoint(UsingStatementSyntax usingSyntax, BoundStatement rewrittenStatement)
         {

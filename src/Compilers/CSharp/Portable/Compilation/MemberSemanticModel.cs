@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The member symbol 
+        /// The member symbol
         /// </summary>
         internal Symbol MemberSymbol
         {
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override MemberSemanticModel GetMemberModel(SyntaxNode node)
         {
-            // We do have to override this method, but should never call it because it might not do the right thing. 
+            // We do have to override this method, but should never call it because it might not do the right thing.
             Debug.Assert(false);
             return IsInTree(node) ? this : null;
         }
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // type, rather than from the anonymous function expression.  If we use the overload that
             // takes a position, it considers the request speculative and does not use the map.
             // Bonus: Since the other overload will always bind the anonymous function from scratch,
-            // we don't have to worry about it affecting the trial-binding cache in the "real" 
+            // we don't have to worry about it affecting the trial-binding cache in the "real"
             // UnboundLambda node (DevDiv #854548).
             if (expression.IsAnonymousFunction())
             {
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Get the bound node corresponding to the root.
-        /// </summary> 
+        /// </summary>
         internal virtual BoundNode GetBoundRoot()
         {
             return GetUpperBoundNode(GetBindableSyntaxNode(this.Root));
@@ -628,6 +628,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override IPropertySymbol GetDeclaredSymbol(PropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't define property inside member.
+            return null;
+        }
+
+        public override IPropertySymbol GetDeclaredSymbol(DataPropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define property inside member.
             return null;
@@ -1196,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode highestBoundNode;
             GetBoundNodes(node, out _, out _, out highestBoundNode, out _);
 
-            // decide whether we should use highest or lowest bound node here 
+            // decide whether we should use highest or lowest bound node here
             // https://github.com/dotnet/roslyn/issues/22179
             BoundNode result = highestBoundNode;
 
@@ -1345,7 +1351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // In lambda binding scenarios we need to know two things: First,
         // what is the *innermost* lambda that contains the expression we're
-        // interested in?  Second, what is the smallest expression that contains 
+        // interested in?  Second, what is the smallest expression that contains
         // the *outermost* lambda that we can bind in order to get a sensible
         // lambda binding?
         //
@@ -1449,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Adds every syntax/bound pair in a tree rooted at the given bound node to the map, and the
-        // performs a lookup of the given syntax node in the map. 
+        // performs a lookup of the given syntax node in the map.
         private ImmutableArray<BoundNode> GuardedAddBoundTreeAndGetBoundNodeFromMap(CSharpSyntaxNode syntax, BoundNode bound)
         {
             Debug.Assert(_nodeMapLock.IsWriteLockHeld);
@@ -1499,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Note: For speculative model we want to always cache the entire bound tree.
                     // If syntax is a statement, we need to add all its children.
-                    // Node cache assumes that if statement is cached, then all 
+                    // Node cache assumes that if statement is cached, then all
                     // its children are cached too.
                     NodeMapBuilder.AddToMap(bound, _guardedNodeMap, SyntaxTree);
                     Debug.Assert(syntax != _root || _guardedNodeMap.ContainsKey(bound.Syntax));
@@ -1568,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // We want the binder in which this syntax node is going to be bound, NOT the binder which
         // this syntax node *produces*. That is, suppose we have
         //
-        // void M() { int x; { int y; { int z; } } } 
+        // void M() { int x; { int y; { int z; } } }
         //
         // We want the enclosing binder of the syntax node for { int z; }.  We do not want the binder
         // that has local z, but rather the binder that has local y. The inner block is going to be
@@ -1579,7 +1585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssertPositionAdjusted(position);
 
             // If we have a root binder with no tokens in it, position can be outside the span event
-            // after position is adjusted. If this happens, there can't be any 
+            // after position is adjusted. If this happens, there can't be any
             if (!this.Root.FullSpan.Contains(position))
                 return this.RootBinder;
 
@@ -1590,7 +1596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// This overload exists for callers who already have a node in hand 
+        /// This overload exists for callers who already have a node in hand
         /// and don't want to search through the tree.
         /// </summary>
         private Binder GetEnclosingBinderInternal(CSharpSyntaxNode node, int position)
@@ -1612,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the outermost lambda in this context. Therefore the enclosing binder is going to be
             // the enclosing binder of this expression. However, we do not simply want to say
             // "here's the enclosing binder":
-            // 
+            //
             // void M() { Func<int, int> f = x=>x+1; }
             //
             // We should step out to the enclosing statement or expression, if there is one, and
@@ -1623,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetEnclosingBinderInternalWithinRoot(node, position);
             }
 
-            // In the third case, we're in a child lambda. 
+            // In the third case, we're in a child lambda.
             BoundNode boundInnerLambdaOrQuery = GetBoundLambdaOrQuery(innerLambdaOrQuery);
             return GetEnclosingBinderInLambdaOrQuery(position, node, innerLambdaOrQuery, ref boundInnerLambdaOrQuery);
         }
@@ -1895,7 +1901,7 @@ done:
         /// </summary>
         /// <remarks>
         /// CONSIDER: can this share code with MemberSemanticModel.GetEnclosingBinder?
-        /// 
+        ///
         /// Returned binder doesn't need to have <see cref="BinderFlags.SemanticModel"/> set - the caller will add it.
         /// </remarks>
         private static Binder GetLambdaEnclosingBinder(int position, CSharpSyntaxNode startingNode, CSharpSyntaxNode containingLambda, Binder lambdaBinder)
@@ -2041,10 +2047,10 @@ done:
 
             // We have one SemanticModel for each method.
             //
-            // The SemanticModel contains a lazily-built immutable map from scope-introducing 
+            // The SemanticModel contains a lazily-built immutable map from scope-introducing
             // syntactic statements (such as blocks) to binders, but not from lambdas to binders.
             //
-            // The SemanticModel also contains a mutable map from syntax to bound nodes; that is 
+            // The SemanticModel also contains a mutable map from syntax to bound nodes; that is
             // declared here. Since the map is not thread-safe we ensure that it is guarded with a
             // reader-writer lock.
             //
@@ -2313,16 +2319,16 @@ foundParent:;
 
         /// <summary>
         /// The incremental binder is used when binding statements. Whenever a statement
-        /// is bound, it checks the bound node cache to see if that statement was bound, 
-        /// and returns it instead of rebinding it. 
-        /// 
+        /// is bound, it checks the bound node cache to see if that statement was bound,
+        /// and returns it instead of rebinding it.
+        ///
         /// For example, we might have:
         ///    while (x > goo())
         ///    {
         ///      y = y * x;
         ///      z = z + y;
         ///    }
-        /// 
+        ///
         /// We might first get semantic info about "z", and thus bind just the statement
         /// "z = z + y". Later, we might bind the entire While block. While binding the while
         /// block, we can reuse the binding we did of "z = z + y".
@@ -2380,7 +2386,7 @@ foundParent:;
 
                 BoundStatement statement = base.BindStatement(node, diagnostics);
 
-                // Synthesized statements are not added to the _guardedNodeMap, we cache them explicitly here in  
+                // Synthesized statements are not added to the _guardedNodeMap, we cache them explicitly here in
                 // _lazyGuardedSynthesizedStatementsMap
                 if (statement.WasCompilerGenerated && node.SyntaxTree == _semanticModel.SyntaxTree)
                 {
@@ -2413,7 +2419,7 @@ foundParent:;
 
                     if (!boundNodes.IsDefaultOrEmpty)
                     {
-                        // Already bound. Return the top-most bound node associated with the statement. 
+                        // Already bound. Return the top-most bound node associated with the statement.
                         return boundNodes[0];
                     }
                 }

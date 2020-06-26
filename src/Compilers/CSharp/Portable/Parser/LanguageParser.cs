@@ -2007,6 +2007,7 @@ tryAgain:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
                 case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.DataPropertyDeclaration:
                 case SyntaxKind.EventDeclaration:
                 case SyntaxKind.IndexerDeclaration:
                 case SyntaxKind.OperatorDeclaration:
@@ -4535,6 +4536,8 @@ tryAgain:
                         return ((CSharp.Syntax.DestructorDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.PropertyDeclaration:
                         return ((CSharp.Syntax.PropertyDeclarationSyntax)decl).Modifiers;
+                    case SyntaxKind.DataPropertyDeclaration:
+                        return ((CSharp.Syntax.DataPropertyDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.EventFieldDeclaration:
                         return ((CSharp.Syntax.EventFieldDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.AddAccessorDeclaration:

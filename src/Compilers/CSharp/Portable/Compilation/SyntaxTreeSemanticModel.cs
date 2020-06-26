@@ -1139,7 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.PropertyDeclaration:
                             {
                                 var propertyDecl = (PropertyDeclarationSyntax)node.Parent;
-                                var propertySymbol = GetDeclaredSymbol(propertyDecl).GetSymbol<SourcePropertySymbol>();
+                                var propertySymbol = (SourcePropertySymbol)GetDeclaredMemberSymbol(propertyDecl);
                                 return InitializerSemanticModel.Create(
                                     this,
                                     propertyDecl,
@@ -1555,6 +1555,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
         public override IPropertySymbol GetDeclaredSymbol(PropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return ((PropertySymbol)GetDeclaredMemberSymbol(declarationSyntax)).GetPublicSymbol();
+        }
+
+        /// <summary>
+        /// Given a syntax node that declares a data property, get the corresponding declared symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a property, indexer or an event.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public override IPropertySymbol GetDeclaredSymbol(DataPropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((PropertySymbol)GetDeclaredMemberSymbol(declarationSyntax)).GetPublicSymbol();
         }

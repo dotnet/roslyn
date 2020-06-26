@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// This type is responsible for adding debugging sequence points for the executable code.
-    /// It can be combined with other <see cref="Instrumenter"/>s. Usually, this class should be 
+    /// It can be combined with other <see cref="Instrumenter"/>s. Usually, this class should be
     /// the root of the chain in order to ensure sound debugging experience for the instrumented code.
     /// In other words, sequence points are typically applied after all other changes.
     /// </summary>
     internal partial class DebugInfoInjector : CompoundInstrumenter
     {
         /// <summary>
-        /// A singleton object that performs only one type of instrumentation - addition of debugging sequence points. 
+        /// A singleton object that performs only one type of instrumentation - addition of debugging sequence points.
         /// </summary>
         public static readonly DebugInfoInjector Singleton = new DebugInfoInjector(Instrumenter.NoOp);
 
@@ -101,7 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.PropertyDeclaration:
                     var declaration = (PropertyDeclarationSyntax)grandparent;
-                    return AddSequencePoint(declaration, rewritten);
+                    return AddSequencePoint(declaration, declaration.Initializer!, rewritten);
+
+                case SyntaxKind.DataPropertyDeclaration:
+                {
+                    var decl = (DataPropertyDeclarationSyntax)grandparent;
+                    return AddSequencePoint(decl, decl.Initializer!, rewritten);
+                }
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(grandparent.Kind());
@@ -173,14 +179,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundExpression InstrumentDoStatementCondition(BoundDoStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
         {
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case
             // the containing method is edited while methods invoked in the condition are being executed.
             return AddConditionSequencePoint(base.InstrumentDoStatementCondition(original, rewrittenCondition, factory), original.Syntax, factory);
         }
 
         public override BoundExpression InstrumentWhileStatementCondition(BoundWhileStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
         {
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case
             // the containing method is edited while methods invoked in the condition are being executed.
             return AddConditionSequencePoint(base.InstrumentWhileStatementCondition(original, rewrittenCondition, factory), original.Syntax, factory);
         }
@@ -212,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Add sequence point |here|:
-        /// 
+        ///
         /// foreach (Type var in |expr|) { }
         /// </summary>
         /// <remarks>
@@ -233,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Add sequence point |here|:
-        /// 
+        ///
         /// |foreach| (Type var in expr) { }
         /// </summary>
         /// <remarks>
@@ -254,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Add sequence point |here|:
-        /// 
+        ///
         /// foreach (|Type var| in expr) { }
         /// </summary>
         /// <remarks>
@@ -302,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundExpression InstrumentForStatementCondition(BoundForStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
         {
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case
             // the containing method is edited while methods invoked in the condition are being executed.
             return AddConditionSequencePoint(base.InstrumentForStatementCondition(original, rewrittenCondition, factory), original.Syntax, factory);
         }
@@ -321,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundExpression InstrumentIfStatementCondition(BoundIfStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
         {
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case
             // the containing method is edited while methods invoked in the condition are being executed.
             return AddConditionSequencePoint(base.InstrumentIfStatementCondition(original, rewrittenCondition, factory), original.Syntax, factory);
         }
@@ -399,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             rewrittenFilter = base.InstrumentCatchClauseFilter(original, rewrittenFilter, factory);
 
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case
             // the containing method is edited while methods invoked in the condition are being executed.
             CatchFilterClauseSyntax? filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
             Debug.Assert(filterClause is { });
@@ -408,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case
             // the containing method is edited while methods invoked in the expression are being executed.
             return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
         }

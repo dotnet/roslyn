@@ -2184,6 +2184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
                         !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.ConstKeyword);
                 case SyntaxKind.PropertyDeclaration:
+                {
                     // auto-property
                     var propertyDecl = (PropertyDeclarationSyntax)m;
                     return
@@ -2192,6 +2193,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.ExternKeyword) &&
                         propertyDecl.AccessorList != null &&
                         All(propertyDecl.AccessorList.Accessors, a => a.Body == null && a.ExpressionBody == null);
+                }
+                case SyntaxKind.DataPropertyDeclaration:
+                {
+                    // auto-property
+                    var propertyDecl = (DataPropertyDeclarationSyntax)m;
+                    return !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.AbstractKeyword);
+                }
                 case SyntaxKind.EventFieldDeclaration:
                     // field-like event declaration
                     var eventFieldDecl = (EventFieldDeclarationSyntax)m;

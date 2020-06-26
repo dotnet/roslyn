@@ -218,6 +218,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (node.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDecl))
                 return propertyDecl.Modifiers;
 
+            if (node.IsKind(SyntaxKind.DataPropertyDeclaration, out DataPropertyDeclarationSyntax dataDecl))
+                return dataDecl.Modifiers;
+
             return null;
         }
 

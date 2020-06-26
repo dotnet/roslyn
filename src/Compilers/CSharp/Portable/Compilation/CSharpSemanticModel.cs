@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Allows asking semantic questions about a tree of syntax nodes in a Compilation. Typically,
     /// an instance is obtained by a call to <see cref="Compilation"/>.<see
-    /// cref="Compilation.GetSemanticModel"/>. 
+    /// cref="Compilation.GetSemanticModel"/>.
     /// </summary>
     /// <remarks>
     /// <para>An instance of <see cref="CSharpSemanticModel"/> caches local symbols and semantic
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// (e.g. array-of-int) may or may not exhibit reference equality. However, some named symbols
     /// (such as local variables) are not reachable from the root. These symbols are visible as
     /// answers to semantic questions. When the same SemanticModel object is used, the answers
-    /// exhibit reference-equality.  
+    /// exhibit reference-equality.
     /// </para>
     /// </remarks>
     internal abstract class CSharpSemanticModel : SemanticModel
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     // If we are being asked for binding info on a "missing" syntax node
                     // then there's no point in doing any work at all. For example, the user might
-                    // have something like "class C { [] void M() {} }". The caller might obtain 
+                    // have something like "class C { [] void M() {} }". The caller might obtain
                     // the attribute declaration syntax and then attempt to ask for type information
-                    // about the contents of the attribute. But the parser has recovered from the 
+                    // about the contents of the attribute. But the parser has recovered from the
                     // missing attribute type and filled in a "missing" node in its place. There's
                     // nothing we can do with that, so let's not allow it.
                     if (node.IsMissing)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Gets symbol information about the 'Add' method corresponding to an expression syntax <paramref name="node"/> within collection initializer.
-        /// This is the worker function that is overridden in various derived kinds of Semantic Models. It can assume that 
+        /// This is the worker function that is overridden in various derived kinds of Semantic Models. It can assume that
         /// CheckSyntaxNode has already been called and the <paramref name="node"/> is in the right place in the syntax tree.
         /// </summary>
         internal abstract SymbolInfo GetCollectionInitializerSymbolInfoWorker(InitializerExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken));
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //   }
         //
         // If we speculatively bind the attribute "D" with position at the beginning of "class C", it should
-        // bind to DAttribute. 
+        // bind to DAttribute.
         //
         // But GetBinderForPosition won't do that; it only handles the case where position is inside an attribute.
         // This function adds a special case: if the position (after first adjustment) is at the exact beginning
@@ -514,10 +514,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
-        /// 
+        ///
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
         /// returned instead. To get information about aliases, call GetAliasInfo.
-        /// 
+        ///
         /// If binding the type name C in the expression "new C(...)" the actual constructor bound to
         /// will be returned (or all constructor if overload resolution failed). This occurs as long as C
         /// unambiguously binds to a single type that has a constructor. If C ambiguously binds to multiple
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax 
+        /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax
         /// within <see cref="ObjectCreationExpressionSyntax.Initializer"/>.
         /// </summary>
         public SymbolInfo GetCollectionInitializerSymbolInfo(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// The passed in expression is interpreted as a stand-alone expression, as if it
         /// appeared by itself somewhere within the scope that encloses "position".
-        /// 
+        ///
         /// <paramref name="bindingOption"/> is ignored if <paramref name="position"/> is within a documentation
         /// comment cref attribute value.
         /// </remarks>
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind the constructor initializer in the context of the specified location and get semantic information
         /// such as type, symbols and diagnostics. This method is used to get semantic information about a constructor
         /// initializer that did not actually appear in the source code.
-        /// 
+        ///
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and accessibility. This
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind the constructor initializer in the context of the specified location and get semantic information
         /// about symbols. This method is used to get semantic information about a constructor
         /// initializer that did not actually appear in the source code.
-        /// 
+        ///
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and accessibility. This
@@ -1255,10 +1255,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a position, locates the containing token.  If the position is actually within the
         /// leading trivia of the containing token or if that token is EOF, moves one token to the
         /// left.  Returns the start position of the resulting token.
-        /// 
+        ///
         /// This has the effect of moving the position left until it hits the beginning of a non-EOF
         /// token.
-        /// 
+        ///
         /// Throws an ArgumentOutOfRangeException if position is not within the root of this model.
         /// </summary>
         protected int CheckAndAdjustPosition(int position)
@@ -1325,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(position == fullSpan.Start);
                 // At end of zero-width full span. No need to call
-                // CheckAndAdjustPosition since that will simply 
+                // CheckAndAdjustPosition since that will simply
                 // return the original position.
                 return position;
             }
@@ -1400,10 +1400,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
         /// specified, the "position" location is significant for determining which members of "containing" are
-        /// accessible. 
-        /// 
+        /// accessible.
+        ///
         /// Labels are not considered (see <see cref="LookupLabels"/>).
-        /// 
+        ///
         /// Non-reduced extension methods are considered regardless of the value of <paramref name="includeReducedExtensionMethods"/>.
         /// </remarks>
         public ImmutableArray<ISymbol> LookupSymbols(
@@ -1421,14 +1421,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// calling <see cref="LookupSymbols"/> with the container set to the immediate base type of
         /// the type in which <paramref name="position"/> occurs.  However, the accessibility rules
         /// are different: protected members of the base type will be visible.
-        /// 
+        ///
         /// Consider the following example:
-        /// 
+        ///
         ///   public class Base
         ///   {
         ///       protected void M() { }
         ///   }
-        ///   
+        ///
         ///   public class Derived : Base
         ///   {
         ///       void Test(Base b)
@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///           base.M();
         ///       }
         ///   }
-        /// 
+        ///
         /// Protected members of an instance of another type are only accessible if the instance is known
         /// to be "this" instance (as indicated by the "base" keyword).
         /// </summary>
@@ -1448,7 +1448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A list of symbols that were found. If no symbols were found, an empty list is returned.</returns>
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible.
-        /// 
+        ///
         /// Non-reduced extension methods are considered, but reduced extension methods are not.
         /// </remarks>
         public new ImmutableArray<ISymbol> LookupBaseMembers(
@@ -1461,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the available named static member symbols in the context of the specified location and optional container.
         /// Only members that are accessible and visible from the given location are returned.
-        /// 
+        ///
         /// Non-reduced extension methods are considered, since they are static methods.
         /// </summary>
         /// <param name="position">The character position for determining the enclosing declaration scope and
@@ -1474,7 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
         /// specified, the "position" location is significant for determining which members of "containing" are
-        /// accessible. 
+        /// accessible.
         /// </remarks>
         public ImmutableArray<ISymbol> LookupStaticMembers(
             int position,
@@ -1498,8 +1498,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
         /// specified, the "position" location is significant for determining which members of "containing" are
-        /// accessible. 
-        /// 
+        /// accessible.
+        ///
         /// Does not return NamespaceOrTypeSymbol, because there could be aliases.
         /// </remarks>
         public ImmutableArray<ISymbol> LookupNamespacesAndTypes(
@@ -1522,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
         /// specified, the "position" location is significant for determining which members of "containing" are
-        /// accessible. 
+        /// accessible.
         /// </remarks>
         public new ImmutableArray<ISymbol> LookupLabels(
             int position,
@@ -1543,12 +1543,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="name">The name of the symbol to find. If null is specified then symbols
         /// with any names are returned.</param>
         /// <param name="options">Additional options that affect the lookup process.</param>
-        /// <param name="useBaseReferenceAccessibility">Ignore 'throughType' in accessibility checking. 
+        /// <param name="useBaseReferenceAccessibility">Ignore 'throughType' in accessibility checking.
         /// Used in checking accessibility of symbols accessed via 'MyBase' or 'base'.</param>
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if
         /// "container" is specified, the "position" location is significant for determining which
-        /// members of "containing" are accessible. 
+        /// members of "containing" are accessible.
         /// </remarks>
         /// <exception cref="ArgumentException">Throws an argument exception if the passed lookup options are invalid.</exception>
         private ImmutableArray<ISymbol> LookupSymbolsInternal(
@@ -1632,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (name == null)
             {
-                // If they didn't provide a name, then look up all names and associated arities 
+                // If they didn't provide a name, then look up all names and associated arities
                 // and find all the corresponding symbols.
                 foreach (string foundName in info.Names)
                 {
@@ -1695,7 +1695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // The name maps to multiple symbols. Actually do a real lookup so 
+                    // The name maps to multiple symbols. Actually do a real lookup so
                     // that we will properly figure out hiding and whatnot.
                     if (arities != null)
                     {
@@ -1817,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Determines if the symbol is accessible from the specified location. 
+        /// Determines if the symbol is accessible from the specified location.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and
         /// accessibility. This character position must be within the FullSpan of the Root syntax
@@ -2052,9 +2052,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                   boundNodeForSyntacticParent.Syntax.Kind() == SyntaxKind.ObjectCreationExpression &&
                   ((ObjectCreationExpressionSyntax)boundNodeForSyntacticParent.Syntax).Type == boundExpr.Syntax)) // Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
             {
-                // TODO: Should parenthesized expression really not have symbols? At least for C#, I'm not sure that 
+                // TODO: Should parenthesized expression really not have symbols? At least for C#, I'm not sure that
                 // is right. For example, C# allows the assignment statement:
-                //    (i) = 9;  
+                //    (i) = 9;
                 // So I don't assume this code should special case parenthesized expressions.
                 TypeSymbol type = null;
                 NullabilityInfo nullability = boundExpr.TopLevelNullability;
@@ -2105,7 +2105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lambda = (BoundLambda)highestBoundExpr;
                     convertedType = lambda.Type;
                     // The bound tree always fully binds lambda and anonymous functions. From the language point of
-                    // view, however, anonymous functions converted to a real delegate type should only have a 
+                    // view, however, anonymous functions converted to a real delegate type should only have a
                     // ConvertedType, not a Type. So set Type to null here. Otherwise you get the edge case where both
                     // Type and ConvertedType are the same, but the conversion isn't Identity.
                     type = null;
@@ -2136,7 +2136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (convertedType, convertedNullability) = getTypeAndNullability(initializer);
                     (type, nullability) = getTypeAndNullability(initializer.Expression);
 
-                    // the most pertinent conversion is the pointer conversion 
+                    // the most pertinent conversion is the pointer conversion
                     conversion = initializer.ElementPointerTypeConversion;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
@@ -2367,7 +2367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze control-flow within a part of a method body. 
+        /// Analyze control-flow within a part of a method body.
         /// </summary>
         /// <param name="firstStatement">The first statement to be included in the analysis.</param>
         /// <param name="lastStatement">The last statement to be included in the analysis.</param>
@@ -2380,7 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze control-flow within a part of a method body. 
+        /// Analyze control-flow within a part of a method body.
         /// </summary>
         /// <param name="statement">The statement to be included in the analysis.</param>
         /// <returns>An object that can be used to obtain the result of the control flow analysis.</returns>
@@ -2390,7 +2390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression. 
+        /// Analyze data-flow within an expression.
         /// </summary>
         /// <param name="expression">The expression within the associated SyntaxTree to analyze.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
@@ -2401,7 +2401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within a part of a method body. 
+        /// Analyze data-flow within a part of a method body.
         /// </summary>
         /// <param name="firstStatement">The first statement to be included in the analysis.</param>
         /// <param name="lastStatement">The last statement to be included in the analysis.</param>
@@ -2414,7 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within a part of a method body. 
+        /// Analyze data-flow within a part of a method body.
         /// </summary>
         /// <param name="statement">The statement to be included in the analysis.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
@@ -2477,7 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with a type syntax node that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of a type syntax that did not appear in source code. 
+        /// of a type syntax that did not appear in source code.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and accessibility. This
         /// character position must be within the FullSpan of the Root syntax node in this SemanticModel.
@@ -2504,7 +2504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with a statement that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of a statement that did not appear in source code. 
+        /// of a statement that did not appear in source code.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and accessibility. This
         /// character position must be within the FullSpan of the Root syntax node in this SemanticModel.</param>
@@ -2578,8 +2578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of a constructor initializer that did not appear in source code. 
-        /// 
+        /// of a constructor initializer that did not appear in source code.
+        ///
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and accessibility. This
@@ -2606,8 +2606,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of a constructor initializer that did not appear in source code. 
-        /// 
+        /// of a constructor initializer that did not appear in source code.
+        ///
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and accessibility. This
@@ -2633,8 +2633,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with a cref that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of a cref that did not appear in source code. 
-        /// 
+        /// of a cref that did not appear in source code.
+        ///
         /// NOTE: This will only work in locations where there is already a cref.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and accessibility. This
@@ -2661,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get a SemanticModel object that is associated with an attribute that did not appear in
         /// this source code. This can be used to get detailed semantic information about sub-parts
-        /// of an attribute that did not appear in source code. 
+        /// of an attribute that did not appear in source code.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and accessibility. This
         /// character position must be within the FullSpan of the Root syntax node in this SemanticModel.</param>
@@ -2936,6 +2936,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract IPropertySymbol GetDeclaredSymbol(PropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a syntax node that declares a data property, get the corresponding declared symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a property.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract IPropertySymbol GetDeclaredSymbol(DataPropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a syntax node that declares an indexer, get the corresponding declared symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares an indexer.</param>
@@ -2967,7 +2975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The implementation returns the property/field symbol that is declared by the corresponding syntax.
         //
         // Example:
-        //              GetDeclaredSymbol => Type: (int Alice, int Bob) 
+        //              GetDeclaredSymbol => Type: (int Alice, int Bob)
         //             _____ |__________
         //            [                 ]
         // var tuple = (Alice: 1, Bob: 2);
@@ -2976,19 +2984,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // A special note must be made about the locations of the corresponding symbols - they refer to the actual syntax
         // of the literal or the anonymous type creation expression
-        // 
+        //
         // This way IDEs can unambiguously implement such services as "Go to definition"
         //
-        // I.E. GetSymbolInfo for "Bob" in "tuple.Bob" should point to the same field as returned by GetDeclaredSymbol when applied to 
+        // I.E. GetSymbolInfo for "Bob" in "tuple.Bob" should point to the same field as returned by GetDeclaredSymbol when applied to
         // the ArgumentSyntax "Bob: 2", since that is where the field was declared, where renames should be applied and so on.
-        //                 
         //
-        // In comparison to anonymous types, tuples have one special behavior. 
+        //
+        // In comparison to anonymous types, tuples have one special behavior.
         // It is permitted for tuple literals to not have a natural type as long as there is a target type which determines the types of the fields.
-        // As, such for the purpose of GetDeclaredSymbol, the type symbol that is returned for tuple literals has target-typed fields, 
+        // As, such for the purpose of GetDeclaredSymbol, the type symbol that is returned for tuple literals has target-typed fields,
         // but yet with the original names.
         //
-        //                               GetDeclaredSymbol => Type: (string Alice, short Bob) 
+        //                               GetDeclaredSymbol => Type: (string Alice, short Bob)
         //                         ________ |__________
         //                         [                   ]
         // (string, short) tuple = (Alice: null, Bob: 2);
@@ -2998,11 +3006,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // In particular, the location of the field declaration is "Alice: null" and not the "string"
         //                 the location of the type is "(Alice: null, Bob: 2)" and not the "(string, short)"
         //
-        // The reason for this behavior is that, even though there might not be other references to "Alice" field in the code, 
+        // The reason for this behavior is that, even though there might not be other references to "Alice" field in the code,
         // the name "Alice" itself evidently refers to something named "Alice" and should still work with
-        // all the related APIs and services such as "Find all References", "Go to definition", "symbolic rename" etc... 
-        // 
-        //                         GetSymbolInfo => Field: (string Alice, short Bob).Alice 
+        // all the related APIs and services such as "Find all References", "Go to definition", "symbolic rename" etc...
+        //
+        //                         GetSymbolInfo => Field: (string Alice, short Bob).Alice
         //                         __ |__
         //                         [     ]
         // (string, short) tuple = (Alice: null, Bob: 2);
@@ -3185,7 +3193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder foreachBinder = enclosingBinder.GetBinder(forEachStatement);
 
-            // Binder.GetBinder can fail in presence of syntax errors. 
+            // Binder.GetBinder can fail in presence of syntax errors.
             if (foreachBinder == null)
             {
                 return null;
@@ -3202,7 +3210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// if the analysis affects the local.
         /// </summary>
         /// <param name="originalSymbol">The original symbol from initial binding.</param>
-        /// 
+        ///
         /// <returns>The nullability-adjusted local, or the original symbol if the nullability analysis made no adjustments or was not run.</returns>
         internal abstract LocalSymbol GetAdjustedLocalSymbol(SourceLocalSymbol originalSymbol);
 
@@ -3224,7 +3232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder catchBinder = enclosingBinder.GetBinder(catchClause);
 
-            // Binder.GetBinder can fail in presence of syntax errors. 
+            // Binder.GetBinder can fail in presence of syntax errors.
             if (catchBinder == null)
             {
                 return null;
@@ -3517,8 +3525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var errorType = (ErrorTypeSymbol)namedType;
                             var candidateSymbols = errorType.CandidateSymbols;
 
-                            // If error type has a single named type candidate symbol, we want to 
-                            // use that type for symbol info. 
+                            // If error type has a single named type candidate symbol, we want to
+                            // use that type for symbol info.
                             if (candidateSymbols.Length == 1 && candidateSymbols[0] is NamedTypeSymbol)
                             {
                                 namedType = (NamedTypeSymbol)candidateSymbols[0];
@@ -3686,7 +3694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
 
                                 // Fields and properties can't access 'this' since
-                                // initializers are run in the constructor    
+                                // initializers are run in the constructor
                                 case SymbolKind.Field:
                                 case SymbolKind.Property:
                                     resultKind = LookupResultKind.NotReferencable;
@@ -3878,7 +3886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // In cases where we are binding C in "[C(...)]", the bound nodes return the symbol for the type. However, we've
-        // decided that we want this case to return the constructor of the type instead. This affects attributes. 
+        // decided that we want this case to return the constructor of the type instead. This affects attributes.
         // This method checks for this situation and adjusts the syntax and method or property group.
         private void AdjustSymbolsForObjectCreation(
             BoundExpression boundNode,
@@ -4082,15 +4090,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// therefore we leave both in the method group. The overload resolution algorithm has been written
         /// to handle this departure from the specification.
         ///
-        /// Similarly, we might have two methods in the method group where one is a "new" method that hides 
+        /// Similarly, we might have two methods in the method group where one is a "new" method that hides
         /// another. Again, in overload resolution this would be handled by the rule that says that methods
         /// declared on more derived types take priority over methods declared on less derived types. Both
-        /// will be in the method group, but in the IDE we want to only display information about the 
+        /// will be in the method group, but in the IDE we want to only display information about the
         /// hiding method, not the hidden method.
         ///
         /// We can also have "diamond" inheritance of interfaces leading to multiple copies of the same
         /// method ending up in the method group:
-        /// 
+        ///
         /// interface IB { void M(); }
         /// interface IL : IB {}
         /// interface IR : IB {}
@@ -4105,7 +4113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Finally, the interaction of multiple inheritance of interfaces and hiding can lead to some subtle
         /// situations. Suppose we make a slight modification to the scenario above:
         ///
-        /// interface IL : IB { new void M(); } 
+        /// interface IL : IB { new void M(); }
         ///
         /// Again, we only want to display one symbol in the method group. The fact that there is a "path"
         /// to IB.M from ID via IR is irrelevant; if the symbol IB.M is hidden by IL.M then it is hidden
@@ -4144,8 +4152,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Get the symbols and possible method group associated with a method group bound node, as
         // they should be exposed through GetSemanticInfo.
         // NB: It is not safe to pass a null binderOpt during speculative binding.
-        // 
-        // If the parent node of the method group syntax node provides information (such as arguments) 
+        //
+        // If the parent node of the method group syntax node provides information (such as arguments)
         // that allows us to return more specific symbols (a specific overload or applicable candidates)
         // we return these. The complete set of symbols of the method group is then returned in methodGroup parameter.
         private ImmutableArray<Symbol> GetMethodGroupSemanticSymbols(
@@ -4172,7 +4180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(boundNode.Syntax));
             methodGroup = GetReducedAndFilteredMethodGroupSymbols(binder, boundNode).Cast<MethodSymbol, Symbol>();
 
-            // We want to get the actual node chosen by overload resolution, if possible. 
+            // We want to get the actual node chosen by overload resolution, if possible.
             if (boundNodeForSyntacticParent != null)
             {
                 switch (boundNodeForSyntacticParent.Kind)
@@ -4199,7 +4207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case BoundKind.DelegateCreationExpression:
-                        // If we are looking for info on "M" in "new Action(M)" 
+                        // If we are looking for info on "M" in "new Action(M)"
                         // we want to get the symbol that overload resolution chose for M, not the whole method group M.
                         var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
                         if (delegateCreation.Argument == boundNode && (object)delegateCreation.MethodOpt != null)
@@ -4209,7 +4217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case BoundKind.Conversion:
-                        // If we are looking for info on "M" in "(Action)M" 
+                        // If we are looking for info on "M" in "(Action)M"
                         // we want to get the symbol that overload resolution chose for M, not the whole method group M.
                         var conversion = (BoundConversion)boundNodeForSyntacticParent;
 
@@ -4314,7 +4322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The property group needs filtering.
             propertyGroup = boundNode.Properties.Cast<PropertySymbol, Symbol>();
 
-            // We want to get the actual node chosen by overload resolution, if possible. 
+            // We want to get the actual node chosen by overload resolution, if possible.
             if (boundNodeForSyntacticParent != null)
             {
                 switch (boundNodeForSyntacticParent.Kind)
@@ -4688,7 +4696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// If the call represents an extension method with an explicit receiver, return a
-        /// ReducedExtensionMethodSymbol if it can be constructed. Otherwise, return the 
+        /// ReducedExtensionMethodSymbol if it can be constructed. Otherwise, return the
         /// original call method.
         /// </summary>
         private ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundCall call)
@@ -4784,7 +4792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// When binding "C" new C(...), return the constructor of C that was bound to, if C unambiguously
-            /// binds to a single type with at least one constructor. 
+            /// binds to a single type with at least one constructor.
             /// </summary>
             PreferConstructorsToType = 0x2,
 

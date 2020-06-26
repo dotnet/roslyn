@@ -562,6 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.MethodDeclaration:
                     case SyntaxKind.PropertyDeclaration:
+                    case SyntaxKind.DataPropertyDeclaration:
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
                     case SyntaxKind.InitAccessorDeclaration:
@@ -587,6 +588,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PropertyDeclaration:
                     PropertyDeclarationSyntax propertySyntax = (PropertyDeclarationSyntax)syntax;
                     return SkipAttributes(syntax, propertySyntax.AttributeLists, propertySyntax.Modifiers, default(SyntaxToken), propertySyntax.Type);
+
+                case SyntaxKind.DataPropertyDeclaration:
+                {
+                    var dataProp = (DataPropertyDeclarationSyntax)syntax;
+                    return SkipAttributes(syntax, dataProp.AttributeLists, dataProp.Modifiers, dataProp.DataKeyword, dataProp.Type);
+                }
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:

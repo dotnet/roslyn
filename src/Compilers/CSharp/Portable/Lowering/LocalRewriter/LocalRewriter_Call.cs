@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return false;
 
                                 default:
-                                    // when this assert is hit, examine whether such conversion kind is 
+                                    // when this assert is hit, examine whether such conversion kind is
                                     // 1) actually expected to get this far
                                     // 2) figure if it is possibly not producing or consuming any sideeffects (rare case)
                                     // 3) add a case for it
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We need to do a fancy rewrite under the following circumstances:
             // (1) a params array is being used; we need to generate the array.
             // (2) there were named arguments that reordered the arguments; we might
-            //     have to generate temporaries to ensure that the arguments are 
+            //     have to generate temporaries to ensure that the arguments are
             //     evaluated in source code order, not the actual call order.
             // (3) there were optional parameters that had no corresponding arguments.
             //
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We have:
-            // * a list of arguments, already converted to their proper types, 
+            // * a list of arguments, already converted to their proper types,
             //   in source code order. Some optional arguments might be missing.
             // * a map showing which parameter each argument corresponds to. If
             //   this is null, then the argument to parameter mapping is one-to-one.
@@ -439,10 +439,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This will be created as a call with receiver A(), symbol M, argument list ( B()[C()], D() ),
             // name list ( y, x ) and ref list ( ref, out ).  We can rewrite this into temporaries:
             //
-            // A().M( 
+            // A().M(
             //    seq ( ref int temp_y = ref B()[C()], out D() ),
             //    temp_y );
-            // 
+            //
             // Now we have a call with receiver A(), symbol M, argument list as shown, no name list,
             // and ref list ( out, value ). We do not want to pass a *ref* to temp_y; the temporary
             // storage is not the thing being ref'd! We want to pass the *value* of temp_y, which
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Goo(z: this.p, y: this.Q(), x: (object)10)
             //
             // The boxing of 10 can be reordered, but the fetch of this.p has to happen before the
-            // call to this.Q() because the call could change the value of this.p. 
+            // call to this.Q() because the call could change the value of this.p.
             //
             // We start by binding everything that is not obviously reorderable as a temporary, and
             // then run an optimizer to remove unnecessary temporaries.
@@ -486,9 +486,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 storesToTemps);
 
 
-            // all the formal arguments, except missing optionals, are now in place. 
+            // all the formal arguments, except missing optionals, are now in place.
             // Optimize away unnecessary temporaries.
-            // Necessary temporaries have their store instructions merged into the appropriate 
+            // Necessary temporaries have their store instructions merged into the appropriate
             // argument expression.
             OptimizeTemporaries(actualArguments, storesToTemps, temporariesBuilder);
 
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)methodOrIndexer == optionalParametersMethod);
 
             // We need to do a fancy rewrite under the following circumstances:
-            // (1) a params array is being used; we need to generate the array. 
+            // (1) a params array is being used; we need to generate the array.
             // (2) there were optional parameters that had no corresponding arguments.
             //
             // If neither of those are the case then we can just take an early out.
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentsBuilder.Add(operationFactory.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i].GetPublicSymbol(), arguments[i]));
                 }
 
-                // TODO: In case of __arglist, we will have more arguments than parameters, 
+                // TODO: In case of __arglist, we will have more arguments than parameters,
                 //       set the parameter to null for __arglist argument for now.
                 //       https://github.com/dotnet/roslyn/issues/19673
                 for (; i < arguments.Length; ++i)
@@ -644,8 +644,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             isComReceiver = false;
 
             // An applicable "vararg" method could not possibly be applicable in its expanded
-            // form, and cannot possibly have named arguments or used optional parameters, 
-            // because the __arglist() argument has to be positional and in the last position. 
+            // form, and cannot possibly have named arguments or used optional parameters,
+            // because the __arglist() argument has to be positional and in the last position.
 
             if (methodOrIndexer.GetIsVararg())
             {
@@ -714,12 +714,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // order here.
                 //
                 // Fortunately, we do disallow M(x : 123, x : 345, x : 456).
-                // 
+                //
                 // Here's what we'll do. If all the remaining arguments
-                // correspond to elements in the parameter array then 
+                // correspond to elements in the parameter array then
                 // we can bail out here without creating any temporaries.
                 // The next step in the call rewriter will deal with gathering
-                // up the elements. 
+                // up the elements.
                 //
                 // However, if there are other elements after this one
                 // that do not correspond to elements in the parameter array
@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
             }
 
-            // Collect parameters with missing arguments.   
+            // Collect parameters with missing arguments.
             ArrayBuilder<ParameterSymbol> missingParametersBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
             for (int i = 0; i < parameters.Length; ++i)
             {
@@ -888,9 +888,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (tempStoreArgument != null)
             {
                 paramArray.Add(tempStoreArgument);
-                // Special case: see comment in BuildStoresToTemps above; if there 
-                // is an argument already in the slot then it is the only element in 
-                // the params array. 
+                // Special case: see comment in BuildStoresToTemps above; if there
+                // is an argument already in the slot then it is the only element in
+                // the params array.
             }
             else
             {
@@ -908,8 +908,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var paramArrayType = parameters[paramsParam].Type;
             var arrayArgs = paramArray.ToImmutableAndFree();
 
-            // If this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" 
-            // if it's available.  However, we also disable the optimization if we're in an expression lambda, the 
+            // If this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()"
+            // if it's available.  However, we also disable the optimization if we're in an expression lambda, the
             // point of which is just to represent the semantics of an operation, and we don't know that all consumers
             // of expression lambdas will appropriately understand Array.Empty<T>().
             // We disable it for pointer types as well, since they cannot be used as Type Arguments.
@@ -1142,8 +1142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression argument;
                 ArgumentKind kind;
 
-                // In case of indexer access, missing parameters are corresponding to the indexer symbol, we need to 
-                // get default values based on actual accessor method parameter symbols (but still want to tie resulted IArgument 
+                // In case of indexer access, missing parameters are corresponding to the indexer symbol, we need to
+                // get default values based on actual accessor method parameter symbols (but still want to tie resulted IArgument
                 // to the indexer parameter.)
                 ParameterSymbol parameterOfOptionalParametersMethod = parametersOfOptionalParametersMethod[parameter.Ordinal];
 
@@ -1230,22 +1230,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         /// <remarks>
         /// DELIBERATE SPEC VIOLATION: When processing an implicit invocation of an <c>Add</c> method generated
-        /// for an element-initializer in a collection-initializer, the parameter <paramref name="enableCallerInfo"/> 
+        /// for an element-initializer in a collection-initializer, the parameter <paramref name="enableCallerInfo"/>
         /// is set to <see cref="ThreeState.True"/>. It means that if the optional parameter is annotated with <see cref="CallerLineNumberAttribute"/>,
         /// <see cref="CallerFilePathAttribute"/> or <see cref="CallerMemberNameAttribute"/>, and there is no explicit argument corresponding to it,
         /// we will provide caller information as a value of this parameter.
         /// This is done to match the native compiler behavior and user requests (see http://roslyn.codeplex.com/workitem/171). This behavior
         /// does not match the C# spec that currently requires to provide caller information only in explicit invocations and query expressions.
-        /// </remarks>  
+        /// </remarks>
         private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter, ThreeState enableCallerInfo)
         {
             return GetDefaultParameterValue(syntax, parameter, enableCallerInfo, this, null, this._diagnostics);
         }
 
         /// <summary>
-        /// This helper is used by both LocalRewriter and IOperation. 
+        /// This helper is used by both LocalRewriter and IOperation.
         ///   - For lowering, 'localRewriter' must be passed in as an argument, and set 'binder' and 'diagnostics' to null.
-        ///   - For deriving argument expression for IArgument operation, 'localRewriter' must be null, and 'compilation', 'diagnostics' 
+        ///   - For deriving argument expression for IArgument operation, 'localRewriter' must be null, and 'compilation', 'diagnostics'
         ///     must be passed in, where 'callerMemberName' must not be null if 'parameter.IsCallerMemberName' is 'true'.
         /// </summary>
         internal static BoundExpression GetDefaultParameterValue(
@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // TODO: Ideally, the enableCallerInfo parameter would be of just bool type with only 'true' and 'false' values, and all callers
-            // explicitly provided one of those values, so that we do not rely on shape of syntax nodes in the rewriter. There are not many immediate callers, 
+            // explicitly provided one of those values, so that we do not rely on shape of syntax nodes in the rewriter. There are not many immediate callers,
             // but often the immediate caller does not have the required information, so all possible call chains should be analyzed and possibly updated
             // to pass this information, and this might be a big task. We should consider doing this when the time permits.
 
@@ -1338,43 +1338,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // See if the code is actually part of a field, field-like event or property initializer and return the name of the corresponding member.
                             var memberDecl = syntax.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
 
-                            if (memberDecl != null)
+                            memberName = null;
+                            switch (memberDecl)
                             {
-                                BaseFieldDeclarationSyntax? fieldDecl;
+                                case PropertyDeclarationSyntax propDecl when initializerInSpan(propDecl.Initializer, syntax):
+                                    memberName = propDecl.Identifier.ValueText;
+                                    break;
 
-                                if (memberDecl.Kind() == SyntaxKind.PropertyDeclaration)
-                                {
-                                    var propDecl = (PropertyDeclarationSyntax)memberDecl;
-                                    EqualsValueClauseSyntax? initializer = propDecl.Initializer;
+                                case DataPropertyDeclarationSyntax propDecl when initializerInSpan(propDecl.Initializer, syntax):
+                                    memberName = propDecl.Identifier.ValueText;
+                                    break;
 
-                                    if (initializer != null && initializer.Span.Contains(syntax.Span))
+                                case BaseFieldDeclarationSyntax fieldDecl:
+                                    foreach (var varDecl in fieldDecl.Declaration.Variables)
                                     {
-                                        memberName = propDecl.Identifier.ValueText;
-                                        break;
-                                    }
-                                }
-                                else if ((fieldDecl = memberDecl as BaseFieldDeclarationSyntax) != null)
-                                {
-                                    memberName = null;
-
-                                    foreach (VariableDeclaratorSyntax varDecl in fieldDecl.Declaration.Variables)
-                                    {
-                                        EqualsValueClauseSyntax? initializer = varDecl.Initializer;
-
-                                        if (initializer != null && initializer.Span.Contains(syntax.Span))
+                                        if (initializerInSpan(varDecl.Initializer, syntax))
                                         {
                                             memberName = varDecl.Identifier.ValueText;
                                             break;
                                         }
                                     }
+                                    break;
 
-                                    if (memberName != null)
-                                    {
-                                        break;
-                                    }
-                                }
+                                static bool initializerInSpan(EqualsValueClauseSyntax? initializer, SyntaxNode syntax)
+                                    => initializer?.Span.Contains(syntax.Span) == true;
                             }
 
+                            if (memberName is object)
+                            {
+                                break;
+                            }
                             goto default;
 
                         default:
@@ -1450,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol constantType = compilation.GetSpecialType(defaultConstantValue.SpecialType);
                 defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType, localRewriter);
-                // The parameter type might not match the constant type.                                                                                                                    
+                // The parameter type might not match the constant type.
                 defaultValue = MakeConversionNode(defaultValue, parameterType, @checked: false, acceptFailingConversion: true);
             }
 
@@ -1554,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind argRefKind = argsRefKindsBuilder[argIndex];
 
                 // Rewrite only if the argument was passed with no ref/out and the
-                // parameter was declared ref. 
+                // parameter was declared ref.
                 if (argRefKind != RefKind.None || paramRefKind != RefKind.Ref)
                 {
                     continue;
