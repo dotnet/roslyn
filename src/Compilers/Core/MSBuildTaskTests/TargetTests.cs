@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
     <ItemGroup>
         <CompilerVisibleProperty Include=""prop"" />
-        <CompilerVisibleItemMetadata Include=""item"" Metadata=""meta"" />
+        <CompilerVisibleItemMetadata Include=""item"" MetadataName=""meta"" />
     </ItemGroup>
 </Project>
 "));
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
     </PropertyGroup>
     <ItemGroup>
         <CompilerVisibleProperty Include=""prop"" />
-        <CompilerVisibleItemMetadata Include=""item"" Metadata=""meta"" />
+        <CompilerVisibleItemMetadata Include=""item"" MetadataName=""meta"" />
     </ItemGroup>
 </Project>
 "));
