@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
             //var cancellationToken = syntaxContext.CancellationToken;
             var node = syntaxContext.Node;
 
-            // TODO: Any relevant style options?
-
             // nameof was added in CSharp 6.0, so don't offer it for any languages before that time
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
             {
@@ -53,21 +51,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
             }
 
             // TODO: Check for compiler errors on the declaration
-            //var siblings = node.Parent.ChildNodes();
+
             var parent = node.Parent;
-            //var name = siblings.ElementAt(1).SyntaxTo;
 
             // We know that it is a typeof() instance, but we only want to offer the fix if it is a .Name access
-            if (!(node.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && parent.IsDotNameAccess()))
+            if (!(node.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && parent.IsNameMemberAccess()))
             {
                 return;
             }
 
-            // TODO: Filter cases that don't work
+            // TODO: if argument is primitive cases
+
+            //TODO: if argument is generic
 
 
-            // TODO: Create and report the right diagnostic
-            var location = Location.Create(syntaxTree, node.Span);
+            // Current case can be effectively changed to a nameof instance so report a diagnostic
+            var location = Location.Create(syntaxTree, parent.Span);
             var additionalLocations = ImmutableArray.Create(node.GetLocation());
 
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
@@ -81,6 +80,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        // HELPERS GO HERE
     }
 }

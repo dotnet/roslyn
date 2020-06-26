@@ -373,9 +373,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         /// <summary>
-        /// Returns if <paramref name="node"/> is an access to the .Name attribute of a type.
+        /// Returns if <paramref name="node"/> is a member access to the .Name attribute of a type.
         /// </summary>
-        public static bool IsDotNameAccess(this SyntaxNode node)
+        public static bool IsNameMemberAccess(this SyntaxNode node)
         {
             var access = node.IsKind(SyntaxKind.SimpleMemberAccessExpression);
             if (node != null && access)
