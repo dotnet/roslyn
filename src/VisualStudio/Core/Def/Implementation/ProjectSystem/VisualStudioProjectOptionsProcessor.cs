@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -171,21 +172,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            // TODO: #r support, should it include bin path?
-            var referenceSearchPaths = ImmutableArray<string>.Empty;
-
-            // TODO: #load support
-            var sourceSearchPaths = ImmutableArray<string>.Empty;
-
-            var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    _workspaceServices.GetRequiredService<IMetadataService>(),
-                    new RelativePathResolver(referenceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory));
-
             var compilationOptions = _commandLineArgumentsForCommandLine.CompilationOptions
                 .WithConcurrentBuild(concurrent: false)
-                .WithMetadataReferenceResolver(referenceResolver)
                 .WithXmlReferenceResolver(new XmlFileResolver(_commandLineArgumentsForCommandLine.BaseDirectory))
-                .WithSourceReferenceResolver(new SourceFileResolver(sourceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory))
                 .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                 .WithStrongNameProvider(new DesktopStrongNameProvider(_commandLineArgumentsForCommandLine.KeyFileSearchPaths.WhereNotNull().ToImmutableArray()));
 
