@@ -46,21 +46,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
 
             // TODO: Any relevant style options?
 
-            // nameof was added in CSharp 6.0, so don't offer it for any languages after that time
+            // nameof was added in CSharp 6.0, so don't offer it for any languages before that time
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
             {
                 return;
             }
 
             // TODO: Check for compiler errors on the declaration
+            //var siblings = node.Parent.ChildNodes();
+            var parent = node.Parent;
+            //var name = siblings.ElementAt(1).SyntaxTo;
 
             // We know that it is a typeof() instance, but we only want to offer the fix if it is a .Name access
-            if (!node.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (!(node.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && parent.IsDotNameAccess()))
             {
                 return;
             }
 
             // TODO: Filter cases that don't work
+
 
             // TODO: Create and report the right diagnostic
             var location = Location.Create(syntaxTree, node.Span);
