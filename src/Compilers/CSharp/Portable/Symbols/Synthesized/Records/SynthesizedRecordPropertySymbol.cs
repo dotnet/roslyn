@@ -4,285 +4,144 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Reflection;
-using Microsoft.Cci;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedRecordPropertySymbol : SourceOrRecordPropertySymbol
+    internal sealed class SynthesizedRecordPropertySymbol : SourcePropertySymbolBase, IAttributeTargetSymbol
     {
-        private readonly ParameterSymbol _backingParameter;
-
-        internal override SynthesizedBackingFieldSymbol BackingField { get; }
-        public override MethodSymbol GetMethod { get; }
-        public override MethodSymbol SetMethod { get; }
-        public override NamedTypeSymbol ContainingType { get; }
-
-        public SynthesizedRecordPropertySymbol(NamedTypeSymbol containingType, ParameterSymbol backingParameter, PropertySymbol? overriddenProperty, DiagnosticBag diagnostics)
-            : base(backingParameter.Locations[0])
-        {
-            ContainingType = containingType;
-            _backingParameter = backingParameter;
-            string name = backingParameter.Name;
-            BackingField = new SynthesizedBackingFieldSymbol(
-                this,
-                GeneratedNames.MakeBackingFieldName(name),
-                isReadOnly: true,
-                isStatic: false,
-                hasInitializer: true);
-
-            GetMethod = new GetAccessorSymbol(this, getAccessorName(name, overriddenProperty?.GetMethod, getNotSet: true));
-            SetMethod = new InitAccessorSymbol(this, getAccessorName(name, overriddenProperty?.SetMethod, getNotSet: false), diagnostics);
-            IsOverride = !(overriddenProperty is null);
-
-            static string getAccessorName(string paramName, MethodSymbol? overriddenAccessor, bool getNotSet)
-            {
-                return overriddenAccessor?.Name ??
-                    SourcePropertyAccessorSymbol.GetAccessorName(
-                        paramName,
-                        getNotSet,
-                        // https://github.com/dotnet/roslyn/issues/44684
-                        isWinMdOutput: false);
-            }
-        }
-
-        public ParameterSymbol BackingParameter => _backingParameter;
-
-        internal override bool IsAutoProperty => true;
-
-        public override RefKind RefKind => RefKind.None;
-
-        public override TypeWithAnnotations TypeWithAnnotations => _backingParameter.TypeWithAnnotations;
-
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
-
-        public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
-
-        public override bool IsIndexer => false;
-
-        public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
-
-        public override Symbol ContainingSymbol => ContainingType;
-
-        public override ImmutableArray<Location> Locations => _backingParameter.Locations;
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _backingParameter.DeclaringSyntaxReferences;
-
-        public override Accessibility DeclaredAccessibility => Accessibility.Public;
-
-        public override bool IsStatic => false;
-
-        public override bool IsVirtual => false;
-
-        public override bool IsOverride { get; }
-
-        public override bool IsAbstract => false;
-
-        public override bool IsSealed => false;
-
-        public override bool IsExtern => false;
-
-        internal override bool HasSpecialName => false;
-
-        internal override CallingConvention CallingConvention => CallingConvention.HasThis;
-
-        internal override bool MustCallMethodsDirectly => false;
-
-        internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
-
-        public override string Name => _backingParameter.Name;
-
-        protected override IAttributeTargetSymbol AttributesOwner => this;
-
-        protected override AttributeLocation AllowedAttributeLocations => AttributeLocation.None;
-
-        protected override AttributeLocation DefaultAttributeLocation => AttributeLocation.None;
-
-        public override ImmutableArray<CSharpAttributeData> GetAttributes() => ImmutableArray<CSharpAttributeData>.Empty;
-
-        internal override bool HasPointerType => Type.IsPointerType();
-
-        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => new SyntaxList<AttributeListSyntax>();
-
-        private abstract class AccessorSymbol : SynthesizedInstanceMethodSymbol
-        {
-            protected readonly SynthesizedRecordPropertySymbol _property;
-
-            public abstract override string Name { get; }
-
-            protected AccessorSymbol(SynthesizedRecordPropertySymbol property)
-            {
-                _property = property;
-            }
-
-            public abstract override MethodKind MethodKind { get; }
-
-            public override int Arity => 0;
-
-            public override bool IsExtensionMethod => false;
-
-            public override bool HidesBaseMethodsByName => false;
-
-            public override bool IsVararg => false;
-
-            public override bool ReturnsVoid => ReturnType.SpecialType == SpecialType.System_Void;
-
-            public override bool IsAsync => false;
-
-            public override RefKind RefKind => RefKind.None;
-
-            public abstract override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
-
-            public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-
-            public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
-
-            public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
-
-            public abstract override ImmutableArray<ParameterSymbol> Parameters { get; }
-
-            public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
-
-            public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
-
-            public override Symbol AssociatedSymbol => _property;
-
-            public override Symbol ContainingSymbol => _property.ContainingSymbol;
-
-            public override ImmutableArray<Location> Locations => _property.Locations;
-
-            public override Accessibility DeclaredAccessibility => _property.DeclaredAccessibility;
-
-            public override bool IsStatic => _property.IsStatic;
-
-            public override bool IsVirtual => _property.IsVirtual;
-
-            public override bool IsOverride => _property.IsOverride;
-
-            public override bool IsAbstract => _property.IsAbstract;
-
-            public override bool IsSealed => _property.IsSealed;
-
-            public override bool IsExtern => _property.IsExtern;
-
-            public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
-
-            internal override bool HasSpecialName => _property.HasSpecialName;
-
-            internal override MethodImplAttributes ImplementationAttributes => MethodImplAttributes.Managed;
-
-            internal override bool HasDeclarativeSecurity => false;
-
-            internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
-
-            internal override bool RequiresSecurityObject => false;
-
-            internal override CallingConvention CallingConvention => CallingConvention.HasThis;
-
-            internal override bool GenerateDebugInfo => false;
-
-            public override DllImportData? GetDllImportData() => null;
-
-            internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-                => ImmutableArray<string>.Empty;
-
-            internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
-                => Array.Empty<SecurityAttribute>();
-
-            internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => !this.IsOverride;
-
-            internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => this.IsOverride;
-
-            internal override bool SynthesizesLoweredBoundBody => true;
-
-            internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics);
-        }
-
-        private sealed class GetAccessorSymbol : AccessorSymbol
-        {
-            public override string Name { get; }
-
-            public GetAccessorSymbol(SynthesizedRecordPropertySymbol property, string name) : base(property)
-            {
-                Name = name;
-            }
-
-            public override MethodKind MethodKind => MethodKind.PropertyGet;
-
-            public override TypeWithAnnotations ReturnTypeWithAnnotations => _property.TypeWithAnnotations;
-
-            public override ImmutableArray<ParameterSymbol> Parameters => _property.Parameters; // PROTOTYPE: Shouldn't the parameters be owned by this symbol?
-
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
-            {
-                // Method body:
-                //
-                // {
-                //      return this.<>backingField;
-                // }
-
-                var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-
-                F.CurrentFunction = this;
-                F.CloseMethod(F.Block(F.Return(F.Field(F.This(), _property.BackingField))));
-            }
-        }
-
-        private sealed class InitAccessorSymbol : AccessorSymbol
-        {
-            public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
-            public override string Name { get; }
-
-            public InitAccessorSymbol(
-                SynthesizedRecordPropertySymbol property,
-                string name,
-                DiagnosticBag diagnostics) :
-                base(property)
-            {
-                Name = name;
-
-                var comp = property.DeclaringCompilation;
-                var type = TypeWithAnnotations.Create(comp.GetSpecialType(SpecialType.System_Void));
-                var initOnlyType = Binder.GetWellKnownType(
-                    comp,
-                    WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
-                    diagnostics,
-                    property.Location);
-                var modifiers = ImmutableArray.Create<CustomModifier>(CSharpCustomModifier.CreateRequired(initOnlyType));
-
-                ReturnTypeWithAnnotations = type.WithModifiers(modifiers);
-            }
-
-            internal override bool IsInitOnly => true;
-
-            public override MethodKind MethodKind => MethodKind.PropertySet;
-
-            public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray.Create(SynthesizedParameterSymbol.Create(
-                this,
-                _property.TypeWithAnnotations,
-                ordinal: 0,
+        public ParameterSymbol BackingParameter { get; }
+
+        public SynthesizedRecordPropertySymbol(
+            SourceMemberContainerTypeSymbol containingType,
+            ParameterSymbol backingParameter,
+            PropertySymbol? overriddenProperty,
+            DiagnosticBag diagnostics)
+            : base(containingType,
+                binder: null,
+                backingParameter.GetNonNullSyntaxNode(),
                 RefKind.None,
-                name: ParameterSymbol.ValueParameterName));
-
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
-            {
-                // Method body:
-                //
-                // {
-                //      this.<>backingField = value;
-                // }
-
-                var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-
-                F.CurrentFunction = this;
-                F.CloseMethod(F.Block(
-                    F.Assignment(F.Field(F.This(), _property.BackingField), F.Parameter(Parameters[0])),
-                    F.Return()));
-            }
+                backingParameter.Name,
+                backingParameter.Locations[0],
+                diagnostics)
+        {
+            BackingParameter = backingParameter;
         }
+
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
+
+        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.None;
+
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.None;
+
+        protected override Location TypeLocation
+            => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
+
+        protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
+            => new SyntaxTokenList();
+
+        protected override ArrowExpressionClauseSyntax? GetArrowExpression(SyntaxNode syntax)
+            => null;
+
+        protected override bool HasInitializer(SyntaxNode syntax)
+            => true; // Synthesized record properties always have a synthesized initializer
+
+        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+            => new SyntaxList<AttributeListSyntax>();
+
+        protected override void GetAccessorDeclarations(
+            CSharpSyntaxNode syntax,
+            DiagnosticBag diagnostics,
+            out bool isAutoProperty,
+            out bool hasAccessorList,
+            out bool accessorsHaveImplementation,
+            out bool isInitOnly,
+            out CSharpSyntaxNode? getSyntax,
+            out CSharpSyntaxNode? setSyntax)
+        {
+            isAutoProperty = true;
+            hasAccessorList = false;
+            getSyntax = setSyntax = syntax;
+            isInitOnly = true;
+            accessorsHaveImplementation = false;
+        }
+
+        protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            // Nothing to do here
+        }
+
+        protected override DeclarationModifiers MakeModifiers(
+            SyntaxTokenList modifiers,
+            bool isExplicitInterfaceImplementation,
+            bool isIndexer,
+            bool accessorsHaveImplementation,
+            Location location,
+            DiagnosticBag diagnostics,
+            out bool modifierErrors)
+        {
+            Debug.Assert(!isExplicitInterfaceImplementation);
+            Debug.Assert(!isIndexer);
+            modifierErrors = false;
+
+            return DeclarationModifiers.Public;
+        }
+
+        protected override SourcePropertyAccessorSymbol CreateAccessorSymbol(
+            bool isGet,
+            CSharpSyntaxNode? syntax,
+            PropertySymbol? explicitlyImplementedPropertyOpt,
+            string aliasQualifierOpt,
+            bool isAutoPropertyAccessor,
+            bool isExplicitInterfaceImplementation,
+            DiagnosticBag diagnostics)
+        {
+            Debug.Assert(syntax is object);
+            Debug.Assert(isAutoPropertyAccessor);
+            return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
+                isGet,
+                usesInit: !isGet, // the setter is always init-only
+                ContainingType,
+                this,
+                _modifiers,
+                _sourceName,
+                ((ParameterSyntax)syntax).Identifier.GetLocation(),
+                syntax,
+                diagnostics);
+        }
+
+        protected override SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
+            ArrowExpressionClauseSyntax syntax,
+            PropertySymbol? explicitlyImplementedPropertyOpt,
+            string aliasQualifierOpt,
+            bool isExplicitInterfaceImplementation,
+            DiagnosticBag diagnostics)
+        {
+            // There should be no expression-bodied synthesized record properties
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            return ImmutableArray<ParameterSymbol>.Empty;
+        }
+
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            return BackingParameter.TypeWithAnnotations;
+        }
+
+        protected override bool HasPointerTypeSyntactically
+            // Since we already bound the type, don't bother looking at syntax
+            => TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
+
+        protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
+            => null;
+
+        protected override BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
+            => null;
     }
 }

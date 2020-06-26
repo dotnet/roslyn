@@ -3518,5 +3518,73 @@ class B
                     Diagnostic("ID0001", "B").WithLocation(7, 12)
                 });
         }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetAnalysisResultAsync(bool syntax, bool singleAnalyzer)
+        {
+            string source1 = @"
+partial class B
+{
+    private int _field1 = 1;
+}";
+            string source2 = @"
+partial class B
+{
+    private int _field2 = 2;
+}";
+            string source3 = @"
+class C
+{
+    private int _field3 = 3;
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2, source3 });
+            var tree1 = compilation.SyntaxTrees[0];
+            var field1 = tree1.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().Single().Declaration.Variables.Single().Identifier;
+            var semanticModel1 = compilation.GetSemanticModel(tree1);
+            var analyzer1 = new FieldAnalyzer("ID0001", syntax);
+            var analyzer2 = new FieldAnalyzer("ID0002", syntax);
+            var allAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(allAnalyzers);
+
+            // Invoke "GetAnalysisResultAsync" for a single analyzer on a single tree and
+            // ensure that the API respects the requested analysis scope:
+            // 1. It only reports diagnostics for the requested analyzer.
+            // 2. It only reports diagnostics for the requested tree.
+
+            var analyzersToQuery = singleAnalyzer ? ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1) : allAnalyzers;
+
+            AnalysisResult analysisResult;
+            if (singleAnalyzer)
+            {
+                analysisResult = syntax ?
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(tree1, analyzersToQuery, CancellationToken.None) :
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, analyzersToQuery, CancellationToken.None);
+            }
+            else
+            {
+                analysisResult = syntax ?
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(tree1, CancellationToken.None) :
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, CancellationToken.None);
+            }
+
+            var diagnosticsMap = syntax ? analysisResult.SyntaxDiagnostics : analysisResult.SemanticDiagnostics;
+            var diagnostics = diagnosticsMap.TryGetValue(tree1, out var value) ? value : ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
+
+            foreach (var analyzer in allAnalyzers)
+            {
+                if (analyzersToQuery.Contains(analyzer))
+                {
+                    Assert.True(diagnostics.ContainsKey(analyzer));
+                    var diagnostic = Assert.Single(diagnostics[analyzer]);
+                    Assert.Equal(((FieldAnalyzer)analyzer).Descriptor.Id, diagnostic.Id);
+                    Assert.Equal(field1.GetLocation(), diagnostic.Location);
+                }
+                else
+                {
+                    Assert.False(diagnostics.ContainsKey(analyzer));
+                }
+            }
+        }
     }
 }

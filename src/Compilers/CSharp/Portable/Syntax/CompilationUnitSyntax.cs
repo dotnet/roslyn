@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return GetReferenceDirectives(null);
         }
 
-        internal IList<ReferenceDirectiveTriviaSyntax> GetReferenceDirectives(Func<ReferenceDirectiveTriviaSyntax, bool> filter)
+        internal IList<ReferenceDirectiveTriviaSyntax> GetReferenceDirectives(Func<ReferenceDirectiveTriviaSyntax, bool>? filter)
         {
             // #r directives are always on the first token of the compilation unit.
             var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);

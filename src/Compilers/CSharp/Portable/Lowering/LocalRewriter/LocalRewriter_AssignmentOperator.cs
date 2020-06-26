@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (setMethod is null)
             {
-                var autoProp = (SourceOrRecordPropertySymbol)property;
+                var autoProp = (SourcePropertySymbolBase)property;
                 Debug.Assert(autoProp.IsAutoProperty,
                     "only autoproperties can be assignable without having setters");
 

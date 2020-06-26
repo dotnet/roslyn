@@ -6,14 +6,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
-
-#if DEBUG
-using System.Diagnostics;
-#endif
 
 namespace Microsoft.CodeAnalysis
 {
@@ -226,8 +223,6 @@ namespace Microsoft.CodeAnalysis
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilation = finalCompilationSource;
 
-#if DEBUG
-
                     if (generatorDriver.GeneratorDriver == null)
                     {
                         // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
@@ -235,8 +230,6 @@ namespace Microsoft.CodeAnalysis
                         Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilation));
                         Debug.Assert(object.ReferenceEquals(finalCompilation.Value, compilationWithoutGeneratedFiles));
                     }
-
-#endif
                 }
             }
         }

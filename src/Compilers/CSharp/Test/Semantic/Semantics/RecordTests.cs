@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8154,6 +8155,8 @@ record C(int X, int Y) : Base(X, Y)
         var c = new C(1, 2);
         Console.WriteLine(c.Z);
     }
+
+    C(int X, int Y, int Z) : this(X, Y) {}
 }";
             var verifier = CompileAndVerify(src, expectedOutput: @"
 1
@@ -8198,10 +8201,42 @@ record C(int X, int Y) : Base(X, Y)
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
 
-            var baseWithargs = tree.GetRoot().DescendantNodes().OfType<SimpleBaseTypeSyntax>().Single();
-            Assert.Equal("Base(X, Y)", baseWithargs.ToString());
-            Assert.Null(model.GetTypeInfo(baseWithargs).Type);
-            Assert.Null(model.GetSymbolInfo(baseWithargs).Symbol);
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single();
+                Assert.Equal("Base(X, Y)", baseWithargs.ToString());
+                Assert.Equal("Base", model.GetTypeInfo(baseWithargs.Type).Type.ToTestDisplayString());
+                Assert.Equal(TypeInfo.None, model.GetTypeInfo(baseWithargs));
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo((SyntaxNode)baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo(baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", CSharpExtensions.GetSymbolInfo(model, baseWithargs).Symbol.ToTestDisplayString());
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+
+                model = comp.GetSemanticModel(tree);
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo((SyntaxNode)baseWithargs).Symbol.ToTestDisplayString());
+                model = comp.GetSemanticModel(tree);
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo(baseWithargs).Symbol.ToTestDisplayString());
+                model = comp.GetSemanticModel(tree);
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", CSharpExtensions.GetSymbolInfo(model, baseWithargs).Symbol.ToTestDisplayString());
+
+                model = comp.GetSemanticModel(tree);
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                model = comp.GetSemanticModel(tree);
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+                model = comp.GetSemanticModel(tree);
+            }
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+                Assert.Equal(": this(X, Y)", baseWithargs.ToString());
+                Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo((SyntaxNode)baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo(baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", CSharpExtensions.GetSymbolInfo(model, baseWithargs).Symbol.ToTestDisplayString());
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(model.GetMemberGroup(baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(CSharpExtensions.GetMemberGroup(model, baseWithargs).Select(m => m.ToTestDisplayString()));
+            }
         }
 
         [Fact]
@@ -8944,6 +8979,327 @@ record C(int X, int y)
                 //            Test(X + 2, out var z))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "z").WithArguments("z").WithLocation(13, 32)
                 );
+        }
+
+        [Fact]
+        public void BaseArguments_19()
+        {
+            var src = @"
+record Base
+{
+    public Base(int X)
+    {
+    }
+
+    public Base() {}
+}
+
+record C(int X, int Y) : Base(GetInt(X, out var xx) + xx, Y), I
+{
+    C(int X, int Y, int Z) : this(X, Y, Z, 1) { return; }
+
+    static int GetInt(int x1, out int x2)
+    {
+        throw null;
+    }
+}
+
+interface I {}
+";
+
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (11,30): error CS1729: 'Base' does not contain a constructor that takes 2 arguments
+                // record C(int X, int Y) : Base(GetInt(X, out var xx) + xx, Y)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(GetInt(X, out var xx) + xx, Y)").WithArguments("Base", "2").WithLocation(11, 30),
+                // (13,30): error CS1729: 'C' does not contain a constructor that takes 4 arguments
+                //     C(int X, int Y, int Z) : this(X, Y, Z, 1) {}
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "this").WithArguments("C", "4").WithLocation(13, 30)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            SymbolInfo symbolInfo;
+            PrimaryConstructorBaseTypeSyntax speculativePrimaryInitializer;
+            ConstructorInitializerSyntax speculativeBaseInitializer;
+
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single();
+                Assert.Equal("Base(GetInt(X, out var xx) + xx, Y)", baseWithargs.ToString());
+                Assert.Equal("Base", model.GetTypeInfo(baseWithargs.Type).Type.ToTestDisplayString());
+                Assert.Equal(TypeInfo.None, model.GetTypeInfo(baseWithargs));
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                string[] candidates = new[] { "Base..ctor(System.Int32 X)", "Base..ctor()", "Base..ctor(Base )" };
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+
+                model = comp.GetSemanticModel(tree);
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                model = comp.GetSemanticModel(tree);
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                model = comp.GetSemanticModel(tree);
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+
+                model = comp.GetSemanticModel(tree);
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                model = comp.GetSemanticModel(tree);
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+                model = comp.GetSemanticModel(tree);
+
+                SemanticModel speculativeModel;
+                speculativePrimaryInitializer = baseWithargs.WithArgumentList(baseWithargs.ArgumentList.WithArguments(baseWithargs.ArgumentList.Arguments.RemoveAt(1)));
+
+                speculativeBaseInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, speculativePrimaryInitializer.ArgumentList);
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().SpanStart,
+                                                                  speculativeBaseInitializer, out _));
+
+                var otherBasePosition = ((BaseListSyntax)baseWithargs.Parent!).Types[1].SpanStart;
+                Assert.False(model.TryGetSpeculativeSemanticModel(otherBasePosition, speculativePrimaryInitializer, out _));
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(baseWithargs.SpanStart, speculativePrimaryInitializer, out speculativeModel!));
+                Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel!.GetSymbolInfo((SyntaxNode)speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel.GetSymbolInfo(speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X)", CSharpExtensions.GetSymbolInfo(speculativeModel, speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out speculativeModel!));
+
+                var xxDecl = OutVarTests.GetOutVarDeclaration(speculativePrimaryInitializer.SyntaxTree, "xx");
+                var xxRef = OutVarTests.GetReferences(speculativePrimaryInitializer.SyntaxTree, "xx").ToArray();
+                Assert.Equal(1, xxRef.Length);
+                OutVarTests.VerifyModelForOutVar(speculativeModel, xxDecl, xxRef);
+
+                Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel!.GetSymbolInfo((SyntaxNode)speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel.GetSymbolInfo(speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X)", CSharpExtensions.GetSymbolInfo(speculativeModel, speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+
+                Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (PrimaryConstructorBaseTypeSyntax)null!, out _));
+                Assert.Throws<ArgumentException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, baseWithargs, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(otherBasePosition, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, otherBasePosition, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single().ArgumentList.OpenParenToken.SpanStart,
+                                                                         (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+                Assert.Equal(": this(X, Y, Z, 1)", baseWithargs.ToString());
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                string[] candidates = new[] { "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)", "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" };
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(model.GetMemberGroup(baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(CSharpExtensions.GetMemberGroup(model, baseWithargs).Select(m => m.ToTestDisplayString()));
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
+        }
+
+        [Fact]
+        public void BaseArguments_20()
+        {
+            var src = @"
+class Base
+{
+    public Base(int X)
+    {
+    }
+
+    public Base() {}
+}
+
+class C : Base(GetInt(X, out var xx) + xx, Y), I
+{
+    C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
+
+    static int GetInt(int x1, out int x2)
+    {
+        throw null;
+    }
+}
+
+interface I {}
+";
+
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8861: Unexpected argument list.
+                // class C : Base(GetInt(X, out var xx) + xx, Y), I
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(11, 15),
+                // (13,30): error CS1729: 'Base' does not contain a constructor that takes 4 arguments
+                //     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("Base", "4").WithLocation(13, 30)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            SymbolInfo symbolInfo;
+            PrimaryConstructorBaseTypeSyntax speculativePrimaryInitializer;
+            ConstructorInitializerSyntax speculativeBaseInitializer;
+
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single();
+                Assert.Equal("Base(GetInt(X, out var xx) + xx, Y)", baseWithargs.ToString());
+                Assert.Equal("Base", model.GetTypeInfo(baseWithargs.Type).Type.ToTestDisplayString());
+                Assert.Equal(TypeInfo.None, model.GetTypeInfo(baseWithargs));
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+
+                speculativePrimaryInitializer = baseWithargs.WithArgumentList(baseWithargs.ArgumentList.WithArguments(baseWithargs.ArgumentList.Arguments.RemoveAt(1)));
+
+                speculativeBaseInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, speculativePrimaryInitializer.ArgumentList);
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().SpanStart,
+                                                                  speculativeBaseInitializer, out _));
+
+                var otherBasePosition = ((BaseListSyntax)baseWithargs.Parent!).Types[1].SpanStart;
+                Assert.False(model.TryGetSpeculativeSemanticModel(otherBasePosition, speculativePrimaryInitializer, out _));
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.SpanStart, speculativePrimaryInitializer, out _));
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out _));
+
+                Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (PrimaryConstructorBaseTypeSyntax)null!, out _));
+                Assert.Throws<ArgumentException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, baseWithargs, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(otherBasePosition, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, otherBasePosition, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single().ArgumentList.OpenParenToken.SpanStart,
+                                                                         (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+                Assert.Equal(": base(X, Y, Z, 1)", baseWithargs.ToString());
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                string[] candidates = new[] { "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(model.GetMemberGroup(baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(CSharpExtensions.GetMemberGroup(model, baseWithargs).Select(m => m.ToTestDisplayString()));
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
         }
 
         [Fact(Skip = "record struct")]
@@ -10996,6 +11352,23 @@ record C(int X) : Base(() => 100 + X++)
 202
 303
 ");
+        }
+
+        [Fact]
+        public void SynthesizedRecordPointerProperty()
+        {
+            var src = @"
+record R(int P1, int* P2, delegate*<int> P3);";
+
+            var comp = CreateCompilation(src);
+            var p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P1");
+            Assert.False(p.HasPointerType);
+
+            p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P2");
+            Assert.True(p.HasPointerType);
+
+            p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P3");
+            Assert.True(p.HasPointerType);
         }
     }
 }
