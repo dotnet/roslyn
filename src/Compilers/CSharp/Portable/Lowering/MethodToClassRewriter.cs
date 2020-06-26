@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
         {
-            return node.Update(VisitMethodSymbol(node.TargetMethod), node.Type);
+            return node.Update(VisitMethodSymbol(node.TargetMethod), VisitType(node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
