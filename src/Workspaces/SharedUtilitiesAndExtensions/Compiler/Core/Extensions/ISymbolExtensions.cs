@@ -682,13 +682,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // bool MoveNext()
             if (!members.OfType<IMethodSymbol>().Any(x =>
             {
-                var isMoveNext = x is
+                return x is
                 {
                     Name: WellKnownMemberNames.MoveNextMethodName,
                     ReturnType: { SpecialType: SpecialType.System_Boolean },
                     Parameters: { Length: 0 },
                 };
-                return isMoveNext;
             }))
             {
                 return false;
