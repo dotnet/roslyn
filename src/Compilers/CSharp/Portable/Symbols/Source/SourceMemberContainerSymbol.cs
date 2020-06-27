@@ -2992,7 +2992,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addDeconstruct(ctor.Parameters, existingOrAddedMembers);
             }
 
-
             var baseClone = SynthesizedRecordClone.FindValidCloneMethod(BaseTypeNoUseSiteDiagnostics);
 
             addCopyCtor();

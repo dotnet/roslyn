@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode? getSyntax,
             CSharpSyntaxNode? setSyntax,
             ArrowExpressionClauseSyntax? arrowExpression,
-            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
+            ExplicitInterfaceSpecifierSyntax? interfaceSpecifier,
             DeclarationModifiers modifiers,
             bool isIndexer,
             bool hasInitializer,
@@ -86,14 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name,
             Location location,
-            Func<SourcePropertySymbolBase, Binder?, CSharpSyntaxNode, DiagnosticBag, TypeWithAnnotations> getType,
-            Func<SourcePropertySymbolBase, Binder?, CSharpSyntaxNode, DiagnosticBag, ImmutableArray<ParameterSymbol>> getParameters,
+            Func<SourcePropertySymbolBase, Binder?, CSharpSyntaxNode, DiagnosticBag, TypeWithAnnotations> computeType,
+            Func<SourcePropertySymbolBase, Binder?, CSharpSyntaxNode, DiagnosticBag, ImmutableArray<ParameterSymbol>> computeParameters,
             DiagnosticBag diagnostics)
         {
             _syntaxRef = syntax.GetReference();
             Location = location;
 
-            bool isExplicitInterfaceImplementation = explicitInterfaceSpecifier != null;
+            bool isExplicitInterfaceImplementation = interfaceSpecifier != null;
             if (isExplicitInterfaceImplementation)
             {
                 _propertyFlags |= Flags.IsExplicitInterfaceImplementation;
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             string aliasQualifierOpt;
-            string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifier, name, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
+            string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, interfaceSpecifier, name, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
             _sourceName = _sourceName ?? memberName; //sourceName may have been set while loading attributes
             _name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, _explicitInterfaceType, aliasQualifierOpt) : _sourceName;
 
@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // lazily since the property name depends on the metadata name of the base property,
                 // and the property name is required to add the property to the containing type, and
                 // the type and parameters are required to determine the override or implementation.
-                var type = getType(this, binder, syntax, diagnostics);
+                var type = computeType(this, binder, syntax, diagnostics);
                 _lazyType = new TypeWithAnnotations.Boxed(type);
-                _lazyParameters = getParameters(this, binder, syntax, diagnostics);
+                _lazyParameters = computeParameters(this, binder, syntax, diagnostics);
 
                 bool isOverride = false;
                 PropertySymbol? overriddenOrImplementedProperty;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     string interfacePropertyName = isIndexer ? WellKnownMemberNames.Indexer : name;
-                    explicitlyImplementedProperty = this.FindExplicitlyImplementedProperty(_explicitInterfaceType, interfacePropertyName, explicitInterfaceSpecifier, diagnostics);
+                    explicitlyImplementedProperty = this.FindExplicitlyImplementedProperty(_explicitInterfaceType, interfacePropertyName, interfaceSpecifier, diagnostics);
                     this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedProperty, diagnostics);
                     overriddenOrImplementedProperty = explicitlyImplementedProperty;
                 }
@@ -1425,9 +1425,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
 #nullable enable
-        internal abstract ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics);
+        protected abstract ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics);
 
-        internal abstract TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics);
+        protected abstract TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics);
 
         protected static ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
             => (syntax as BasePropertyDeclarationSyntax)?.ExplicitInterfaceSpecifier;

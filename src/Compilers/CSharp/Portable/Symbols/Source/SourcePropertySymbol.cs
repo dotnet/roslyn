@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Type.GetRefKind(),
                 name,
                 location,
-                (property, binder, syntax, diagnostics) => property.ComputeType(binder, syntax, diagnostics),
-                (property, binder, syntax, diagnostics) => property.ComputeParameters(binder, syntax, diagnostics),
+                (property, binder, syntax, diagnostics) => ((SourcePropertySymbol)property).ComputeType(binder, syntax, diagnostics),
+                (property, binder, syntax, diagnostics) => ((SourcePropertySymbol)property).ComputeParameters(binder, syntax, diagnostics),
                 diagnostics)
         {
         }
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
         }
 
-        internal override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             binder ??= CreateBinderForTypeAndParameters();
 
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-        internal override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             binder ??= CreateBinderForTypeAndParameters();
 

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 getSyntax: syntax,
                 setSyntax: syntax,
                 arrowExpression: null,
-                explicitInterfaceSpecifier: null,
+                interfaceSpecifier: null,
                 modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
                 isIndexer: false,
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return ImmutableArray<ParameterSymbol>.Empty;
         }
 
-        internal override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return BackingParameter.TypeWithAnnotations;
         }
