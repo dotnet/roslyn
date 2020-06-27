@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,16 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MethodSymbol _typedRecordEquals;
 
         public SynthesizedRecordObjEquals(SourceMemberContainerTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset, DiagnosticBag diagnostics)
-            : base(containingType, "Equals", memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, diagnostics)
         {
             _typedRecordEquals = typedRecordEquals;
-        }
-
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics)
-        {
-            const DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override;
-            Debug.Assert((result & ~allowedModifiers) == 0);
-            return result;
         }
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplement) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
