@@ -2992,10 +2992,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addDeconstruct(ctor.Parameters, existingOrAddedMembers);
             }
 
-            addCopyCtor();
-            addCloneMethod();
 
-            PropertySymbol equalityContract = addEqualityContract();
+            var baseClone = SynthesizedRecordClone.FindValidCloneMethod(BaseTypeNoUseSiteDiagnostics);
+
+            addCopyCtor();
+            addCloneMethod(baseClone);
+
+            PropertySymbol equalityContract = addEqualityContract(baseClone?.ContainingType);
             var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance();
             getOtherEquals(otherEqualsMethods, equalityContract);
 
@@ -3043,9 +3046,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addCloneMethod()
+            void addCloneMethod(MethodSymbol? baseClone)
             {
-                var clone = new SynthesizedRecordClone(this);
+                var clone = new SynthesizedRecordClone(this, baseClone);
                 if (!memberSignatures.ContainsKey(clone))
                 {
                     members.Add(clone);
@@ -3163,23 +3166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static PropertySymbol? getInheritedEqualityContract(NamedTypeSymbol type)
+            PropertySymbol addEqualityContract(NamedTypeSymbol? baseRecordType)
             {
-                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
-                {
-                    var members = type.GetMembers(SynthesizedRecordEqualityContractProperty.PropertyName);
-                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
-                    if (members.FirstOrDefault(m => m is PropertySymbol property && property.ParameterCount == 0) is PropertySymbol property)
-                    {
-                        return property;
-                    }
-                }
-                return null;
-            }
-
-            PropertySymbol addEqualityContract()
-            {
-                var property = new SynthesizedRecordEqualityContractProperty(this, getInheritedEqualityContract(this));
+                var property = new SynthesizedRecordEqualityContractProperty(this, baseRecordType);
                 // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
                 if (!memberSignatures.ContainsKey(property))
                 {

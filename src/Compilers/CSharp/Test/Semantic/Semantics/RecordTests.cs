@@ -6310,6 +6310,13 @@ public record C : B {
         IL_0001: call instance void [mscorlib]System.Object::.ctor()
         IL_0006: ret
     }
+
+    .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
 }
 ";
 
@@ -6484,6 +6491,13 @@ THROW
     {
         IL_0000: ldnull
         IL_0001: throw
+    }
+
+    .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B`1::get_EqualityContract()
     }
 }
 ";

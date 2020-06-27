@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override NamedTypeSymbol ContainingType { get; }
         public override bool IsOverride { get; }
 
-        public SynthesizedRecordClone(NamedTypeSymbol containingType)
+        public SynthesizedRecordClone(NamedTypeSymbol containingType, MethodSymbol? baseClone)
         {
             ContainingType = containingType;
             var baseType = containingType.BaseTypeNoUseSiteDiagnostics;
-            if (FindValidCloneMethod(baseType) is { } baseClone)
+            if (baseClone is object)
             {
                 // Use covariant returns when available
                 ReturnTypeWithAnnotations = baseClone.ReturnTypeWithAnnotations;

@@ -16,15 +16,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string PropertyName = "EqualityContract";
 
-        public SynthesizedRecordEqualityContractProperty(NamedTypeSymbol containingType, PropertySymbol? overriddenProperty)
+        public SynthesizedRecordEqualityContractProperty(NamedTypeSymbol containingType, NamedTypeSymbol? baseRecordType)
         {
             ContainingType = containingType;
-            IsVirtual = overriddenProperty is null;
-            IsOverride = !(overriddenProperty is null);
-            TypeWithAnnotations = overriddenProperty is null ?
-                TypeWithAnnotations.Create(containingType.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), NullableAnnotation.NotAnnotated) :
-                overriddenProperty.TypeWithAnnotations;
-            GetMethod = new GetAccessorSymbol(this, overriddenProperty?.GetMethod);
+            IsOverride = baseRecordType is object;
+            TypeWithAnnotations = TypeWithAnnotations.Create(containingType.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), NullableAnnotation.NotAnnotated);
+            var overriddenProperty = OverriddenProperty;
+            if (overriddenProperty is object)
+            {
+                TypeWithAnnotations = overriddenProperty.TypeWithAnnotations;
+            }
+            var getAccessorName = overriddenProperty?.GetMethod?.Name ??
+                SourcePropertyAccessorSymbol.GetAccessorName(PropertyName, getNotSet: true, isWinMdOutput: false /* unused for getters */);
+            GetMethod = new GetAccessorSymbol(this, getAccessorName);
         }
 
         public override NamedTypeSymbol ContainingType { get; }
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        public override bool IsVirtual { get; }
+        public override bool IsVirtual => !IsOverride;
 
         public override bool IsOverride { get; }
 
@@ -83,11 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly SynthesizedRecordEqualityContractProperty _property;
 
-            public GetAccessorSymbol(SynthesizedRecordEqualityContractProperty property, MethodSymbol? overriddenMethod)
+            public GetAccessorSymbol(SynthesizedRecordEqualityContractProperty property, string name)
             {
                 _property = property;
-                Name = overriddenMethod?.Name ??
-                    SourcePropertyAccessorSymbol.GetAccessorName(PropertyName, getNotSet: true, isWinMdOutput: false /* unused for getters */);
+                Name = name;
             }
 
             public override string Name { get; }
