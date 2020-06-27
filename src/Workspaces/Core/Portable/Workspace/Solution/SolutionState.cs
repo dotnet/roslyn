@@ -667,10 +667,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the compiler output file path.
         /// </summary>
-        public SolutionState WithProjectCompilationOutputFilePaths(ProjectId projectId, in CompilationOutputFilePaths paths)
+        public SolutionState WithProjectCompilationOutputInfo(ProjectId projectId, in CompilationOutputInfo info)
         {
             var oldProject = GetRequiredProjectState(projectId);
-            var newProject = oldProject.WithCompilationOutputFilePaths(paths);
+            var newProject = oldProject.WithCompilationOutputInfo(info);
 
             if (oldProject == newProject)
             {

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     internal sealed class ActiveStatementSpanTrackerFactory : IActiveStatementSpanTrackerFactory
     {
-        [ExportWorkspaceServiceFactory(typeof(IActiveStatementSpanTracker), ServiceLayer.Editor), Shared]
+        [ExportWorkspaceServiceFactory(typeof(IActiveStatementSpanTrackerFactory), ServiceLayer.Editor), Shared]
         private sealed class Factory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]

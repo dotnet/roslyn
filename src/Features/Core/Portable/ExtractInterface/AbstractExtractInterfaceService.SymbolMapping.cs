@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             public SymbolMapping(
                 Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
                 Solution annotatedSolution,
-                List<DocumentId> documentIds,
+                ImmutableArray<DocumentId> documentIds,
                 SyntaxAnnotation typeNodeAnnotation)
             {
                 SymbolToDeclarationAnnotationMap = symbolToDeclarationAnnotationMap;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             public Dictionary<ISymbol, SyntaxAnnotation> SymbolToDeclarationAnnotationMap { get; }
             public Solution AnnotatedSolution { get; }
-            public List<DocumentId> DocumentIds { get; }
+            public ImmutableArray<DocumentId> DocumentIds { get; }
             public SyntaxAnnotation TypeNodeAnnotation { get; }
         }
     }

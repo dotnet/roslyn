@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return;
             }
 
-            var pickMemberOptions = ArrayBuilder<PickMembersOption>.GetInstance();
+            using var _ = ArrayBuilder<PickMembersOption>.GetInstance(out var pickMemberOptions);
             var canAddNullCheck = viableMembers.Any(
                 m => m.GetSymbolType().CanAddNullCheck());
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             context.RegisterRefactoring(
                 new GenerateConstructorWithDialogCodeAction(
                     this, document, textSpan, containingType, viableMembers,
-                    pickMemberOptions.ToImmutableAndFree()),
+                    pickMemberOptions.ToImmutable()),
                 typeDeclaration.Span);
         }
 
@@ -152,15 +152,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks)
         {
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
             result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks));
             if (state.DelegatedConstructor != null)
-            {
                 result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks));
-            }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)
