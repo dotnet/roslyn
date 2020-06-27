@@ -182,6 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetParameterList(SyntaxNode node)
             => node.GetParameterList();
 
+        public bool IsParameterList(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ParameterList, SyntaxKind.BracketedParameterList);
+
         public SyntaxToken GetIdentifierOfGenericName(SyntaxNode genericName)
         {
             return genericName is GenericNameSyntax csharpGenericName
