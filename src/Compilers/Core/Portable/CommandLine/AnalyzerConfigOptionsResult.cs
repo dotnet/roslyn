@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Options that customize diagnostic severity as reported by the compiler.
         /// </summary>
-        public TreeOptions TreeOptions { get; }
+        public TreeOptions? TreeOptions { get; }
 
         /// <summary>
         /// Options that do not have any special compiler behavior and are passed to analyzers as-is.
         /// </summary>
-        public AnalyzerOptions AnalyzerOptions { get; }
+        public AnalyzerOptions? AnalyzerOptions { get; }
 
         /// <summary>
         /// Any produced diagnostics while applying analyzer configuration.

@@ -56,8 +56,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ObjectPool<List<Section>> _sectionKeyPool = new ObjectPool<List<Section>>(() => new List<Section>());
 
-        private readonly AnalyzerConfigOptionsResult _globalConfigOptions;
-
         private sealed class SequenceEqualComparer : IEqualityComparer<List<Section>>
         {
             public static SequenceEqualComparer Instance { get; } = new SequenceEqualComparer();
@@ -157,7 +155,7 @@ namespace Microsoft.CodeAnalysis
                             GlobalAnalyzerConfigBuilder.GlobalConfigPath,
                             _diagnosticIdCache);
 
-                _globalConfigOptions = new AnalyzerConfigOptionsResult(
+                GlobalConfigOptions = new AnalyzerConfigOptionsResult(
                     treeOptionsBuilder.ToImmutable(),
                     analyzerOptionsBuilder.ToImmutable(),
                     diagnosticBuilder.ToImmutableAndFree());
@@ -172,6 +170,11 @@ namespace Microsoft.CodeAnalysis
 
             _analyzerMatchers = allMatchers.ToImmutableAndFree();
         }
+
+        /// <summary>
+        /// Gets an <see cref="AnalyzerConfigOptionsResult"/> that contain the options that apply globall
+        /// </summary>
+        public AnalyzerConfigOptionsResult GlobalConfigOptions { get; private set; }
 
         /// <summary>
         /// Returns a <see cref="AnalyzerConfigOptionsResult"/> for a source file. This computes which <see cref="AnalyzerConfig"/> rules applies to this file, and correctly applies
@@ -252,10 +255,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (_globalConfig is object)
                 {
-                    treeOptionsBuilder.AddRange(_globalConfigOptions.TreeOptions);
-                    analyzerOptionsBuilder.AddRange(_globalConfigOptions.AnalyzerOptions);
-                    diagnosticBuilder.AddRange(_globalConfigOptions.Diagnostics);
-
+                    analyzerOptionsBuilder.AddRange(GlobalConfigOptions.AnalyzerOptions);
                     foreach (var configSection in _globalConfig.NamedSections)
                     {
                         if (sectionKey.Count > 0 && configSection == sectionKey[sectionKeyIndex])
@@ -336,6 +336,28 @@ namespace Microsoft.CodeAnalysis
                 sectionKey.Clear();
                 pool.Free(sectionKey);
             }
+        }
+
+        internal TreeOptions MergeGlobalTreeOptions(TreeOptions options)
+        {
+            if (GlobalConfigOptions.TreeOptions?.IsEmpty == false)
+            {
+                var treeOptionsBuilder = _treeOptionsPool.Allocate();
+                treeOptionsBuilder.AddRange(options);
+
+                foreach (var (id, option) in GlobalConfigOptions.TreeOptions)
+                {
+                    if (!treeOptionsBuilder.ContainsKey(id))
+                    {
+                        treeOptionsBuilder.Add(id, option);
+                    }
+                }
+
+                options = treeOptionsBuilder.ToImmutable();
+                treeOptionsBuilder.Clear();
+                _treeOptionsPool.Free(treeOptionsBuilder);
+            }
+            return options;
         }
 
         internal static bool TryParseSeverity(string value, out ReportDiagnostic severity)

@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis
             AnalyzerConfigSet analyzerConfigSet = null;
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
 
-            if (Arguments.AnalyzerConfigPaths.Length > 0)
+            if (!Arguments.AnalyzerConfigPaths.IsEmpty)
             {
                 if (!TryGetAnalyzerConfigSet(Arguments.AnalyzerConfigPaths, diagnostics, out analyzerConfigSet))
                 {
@@ -784,12 +784,20 @@ namespace Microsoft.CodeAnalysis
                 {
                     diagnostics.AddRange(sourceFileAnalyzerConfigOption.Diagnostics);
                 }
+                diagnostics.AddRange(analyzerConfigSet.GlobalConfigOptions.Diagnostics);
             }
 
             Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions);
             if (compilation == null)
             {
                 return Failed;
+            }
+
+            // merge the global analyzer and command line diagnostic options
+            if (analyzerConfigSet is object)
+            {
+                var diagnosticOptions = analyzerConfigSet.MergeGlobalTreeOptions(compilation.Options.SpecificDiagnosticOptions);
+                compilation = compilation.WithOptions(compilation.Options.WithSpecificDiagnosticOptions(diagnosticOptions));
             }
 
             var diagnosticInfos = new List<DiagnosticInfo>();
@@ -931,9 +939,9 @@ namespace Microsoft.CodeAnalysis
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
-                if (Arguments.AnalyzerConfigPaths.Length > 0)
+                if (!Arguments.AnalyzerConfigPaths.IsEmpty)
                 {
-                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
+                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(analyzerConfigSet.GlobalConfigOptions.AnalyzerOptions));
 
                     // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
                     // configuring diagnostic reporting on additional text files individually.
@@ -960,7 +968,7 @@ namespace Microsoft.CodeAnalysis
                     compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
 
                     var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length);
-                    if (Arguments.AnalyzerConfigPaths.Length > 0)
+                    if (!Arguments.AnalyzerConfigPaths.IsEmpty)
                     {
                         var generatedSourceFileAnalyzerConfigOptions = generatedSyntaxTrees.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
                         analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
