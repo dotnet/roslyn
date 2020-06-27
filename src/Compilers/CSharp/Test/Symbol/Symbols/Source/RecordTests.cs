@@ -1670,6 +1670,42 @@ static class C
         }
 
         [Fact]
+        public void DataProperties10()
+        {
+            var src = @"
+class C
+{
+    data ref int P1;
+    data ref readonly int P2;
+    data out int P3;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8147: Properties which return by reference cannot have set accessors
+                //     data ref int P1;
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "data").WithArguments("C.P1.init").WithLocation(4, 5),
+                // (4,18): error CS8145: Auto-implemented properties cannot return by reference
+                //     data ref int P1;
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithArguments("C.P1").WithLocation(4, 18),
+                // (5,5): error CS8147: Properties which return by reference cannot have set accessors
+                //     data ref readonly int P2;
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "data").WithArguments("C.P2.init").WithLocation(5, 5),
+                // (5,27): error CS8145: Auto-implemented properties cannot return by reference
+                //     data ref readonly int P2;
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P2").WithArguments("C.P2").WithLocation(5, 27),
+                // (6,10): error CS1519: Invalid token 'out' in class, struct, or interface member declaration
+                //     data out int P3;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "out").WithArguments("out").WithLocation(6, 10),
+                // (6,10): error CS1519: Invalid token 'out' in class, struct, or interface member declaration
+                //     data out int P3;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "out").WithArguments("out").WithLocation(6, 10),
+                // (6,18): warning CS0169: The field 'C.P3' is never used
+                //     data out int P3;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "P3").WithArguments("C.P3").WithLocation(6, 18)
+            );
+        }
+
+        [Fact]
         public void DataPropertiesInterface()
         {
             var src = @"
