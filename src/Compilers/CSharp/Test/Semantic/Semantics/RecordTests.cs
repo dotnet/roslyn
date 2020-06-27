@@ -5052,6 +5052,7 @@ record CB(object P) : B;
             AssertEx.Equal(new[] { "System.Type CB.EqualityContract { get; }" }, GetProperties(comp, "CB").ToTestDisplayStrings());
         }
 
+        // Accessor names that do not match the property name.
         [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
         public void Inheritance_40()
@@ -5107,33 +5108,94 @@ B");
 
             var actualMembers = GetProperties(comp, "B");
             Assert.Equal(2, actualMembers.Length);
-            verifyProperty(actualMembers[0], "System.Type B.EqualityContract { get; }", "GetProperty1", null);
-            verifyProperty(actualMembers[1], "System.Object B.P { get; init; }", "GetProperty2", "SetProperty2");
+            VerifyProperty(actualMembers[0], "System.Type B.EqualityContract { get; }", "GetProperty1", null);
+            VerifyProperty(actualMembers[1], "System.Object B.P { get; init; }", "GetProperty2", "SetProperty2");
+        }
 
-            static void verifyProperty(Symbol symbol, string propertyDescription, string? getterName, string? setterName)
-            {
-                var property = (PropertySymbol)symbol;
-                Assert.Equal(propertyDescription, symbol.ToTestDisplayString());
-                verifyAccessor(property.GetMethod, getterName);
-                verifyAccessor(property.SetMethod, setterName);
-            }
+        // Accessor names that do not match the property name and are not valid C# names.
+        [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
+        [Fact]
+        public void Inheritance_41()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
+}
+.class public abstract A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname abstract virtual instance class A  '<>Clone'() { }
+  .property instance class [mscorlib]System.Type EqualityContract()
+  {
+    .get instance class [mscorlib]System.Type A::'EqualityContract<>get'()
+  }
+  .property instance object P()
+  {
+    .get instance object A::'P<>get'()
+    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::'P<>set'(object)
+  }
+  .method family virtual instance class [mscorlib]System.Type 'EqualityContract<>get'() { ldnull ret }
+  .method public abstract virtual instance object 'P<>get'() { }
+  .method public abstract virtual instance void modreq(System.Runtime.CompilerServices.IsExternalInit) 'P<>set'(object 'value') { }
+}";
+            var refA = CompileIL(sourceA);
 
-            static void verifyAccessor(MethodSymbol? accessor, string? name)
+            var sourceB =
+@"using static System.Console;
+record B(object P) : A
+{
+    static void Main()
+    {
+        B b = new B(3);
+        WriteLine(b.P);
+        WriteLine(((A)b).P);
+        WriteLine(b.EqualityContract.Name);
+    }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"3
+3
+B");
+
+            var actualMembers = GetProperties(comp, "B");
+            Assert.Equal(2, actualMembers.Length);
+            VerifyProperty(actualMembers[0], "System.Type B.EqualityContract { get; }", "EqualityContract<>get", null);
+            VerifyProperty(actualMembers[1], "System.Object B.P { get; init; }", "P<>get", "P<>set");
+        }
+
+        private static void VerifyProperty(Symbol symbol, string propertyDescription, string? getterName, string? setterName)
+        {
+            var property = (PropertySymbol)symbol;
+            Assert.Equal(propertyDescription, symbol.ToTestDisplayString());
+            VerifyAccessor(property.GetMethod, getterName);
+            VerifyAccessor(property.SetMethod, setterName);
+        }
+
+        private static void VerifyAccessor(MethodSymbol? accessor, string? name)
+        {
+            Assert.Equal(name, accessor?.Name);
+            if (accessor is object)
             {
-                Assert.Equal(name, accessor?.Name);
-                if (accessor is object)
+                Assert.True(accessor.HasSpecialName);
+                foreach (var parameter in accessor.Parameters)
                 {
-                    foreach (var parameter in accessor.Parameters)
-                    {
-                        Assert.Same(accessor, parameter.ContainingSymbol);
-                    }
+                    Assert.Same(accessor, parameter.ContainingSymbol);
                 }
             }
         }
 
         [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
-        public void Inheritance_41()
+        public void Inheritance_42()
         {
             var sourceA =
 @".class public System.Runtime.CompilerServices.IsExternalInit
@@ -5218,7 +5280,7 @@ B");
 
         [WorkItem(44618, "https://github.com/dotnet/roslyn/issues/44618")]
         [Fact]
-        public void Inheritance_42()
+        public void Inheritance_43()
         {
             var source =
 @"#nullable enable
@@ -5245,7 +5307,7 @@ record B : A
 
         // No EqualityContract property on base.
         [Fact]
-        public void Inheritance_43()
+        public void Inheritance_44()
         {
             var sourceA =
 @".class public System.Runtime.CompilerServices.IsExternalInit

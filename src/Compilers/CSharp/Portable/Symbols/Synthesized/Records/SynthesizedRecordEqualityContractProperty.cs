@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-            internal override bool HasSpecialName => false;
+            internal override bool HasSpecialName => true;
 
             internal override MethodImplAttributes ImplementationAttributes => MethodImplAttributes.Managed;
 
