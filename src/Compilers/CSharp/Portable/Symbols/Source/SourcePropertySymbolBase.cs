@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name,
             Location location,
-            Func<SourcePropertySymbolBase, Binder?, CSharpSyntaxNode, DiagnosticBag, TypeWithAnnotations> computeType,
-            Func<SourcePropertySymbolBase, Binder?, CSharpSyntaxNode, DiagnosticBag, ImmutableArray<ParameterSymbol>> computeParameters,
+            TypeWithAnnotations typeOpt,
+            ImmutableArray<ParameterSymbol> parametersOpt,
             DiagnosticBag diagnostics)
         {
             _syntaxRef = syntax.GetReference();
@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // lazily since the property name depends on the metadata name of the base property,
                 // and the property name is required to add the property to the containing type, and
                 // the type and parameters are required to determine the override or implementation.
-                var type = computeType(this, binder, syntax, diagnostics);
+                var type = typeOpt.HasType ? typeOpt : this.ComputeType(binder, syntax, diagnostics);
                 _lazyType = new TypeWithAnnotations.Boxed(type);
-                _lazyParameters = computeParameters(this, binder, syntax, diagnostics);
+                _lazyParameters = !parametersOpt.IsDefault ? parametersOpt : this.ComputeParameters(binder, syntax, diagnostics);
 
                 bool isOverride = false;
                 PropertySymbol? overriddenOrImplementedProperty;

@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Type.GetRefKind(),
                 name,
                 location,
-                (property, binder, syntax, diagnostics) => ((SourcePropertySymbol)property).ComputeType(binder, syntax, diagnostics),
-                (property, binder, syntax, diagnostics) => ((SourcePropertySymbol)property).ComputeParameters(binder, syntax, diagnostics),
+                typeOpt: default,
+                parametersOpt: default,
                 diagnostics)
         {
         }

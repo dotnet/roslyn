@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 backingParameter.Name,
                 backingParameter.Locations[0],
-                (property, binder, syntax, diagnostics) => backingParameter.TypeWithAnnotations,
-                (property, binder, syntax, diagnostics) => ImmutableArray<ParameterSymbol>.Empty,
+                typeOpt: backingParameter.TypeWithAnnotations,
+                parametersOpt: ImmutableArray<ParameterSymbol>.Empty,
                 diagnostics)
         {
             BackingParameter = backingParameter;
