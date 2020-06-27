@@ -2992,12 +2992,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addDeconstruct(ctor.Parameters, existingOrAddedMembers);
             }
 
-            var baseClone = SynthesizedRecordClone.FindValidCloneMethod(BaseTypeNoUseSiteDiagnostics);
-
             addCopyCtor();
-            addCloneMethod(baseClone);
+            addCloneMethod();
 
-            PropertySymbol equalityContract = addEqualityContract(baseClone?.ContainingType);
+            PropertySymbol equalityContract = addEqualityContract();
             var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance();
             getOtherEquals(otherEqualsMethods, equalityContract);
 
@@ -3045,9 +3043,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addCloneMethod(MethodSymbol? baseClone)
+            void addCloneMethod()
             {
-                var clone = new SynthesizedRecordClone(this, baseClone);
+                var clone = new SynthesizedRecordClone(this);
                 if (!memberSignatures.ContainsKey(clone))
                 {
                     members.Add(clone);
@@ -3140,9 +3138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            PropertySymbol addEqualityContract(NamedTypeSymbol? baseRecordType)
+            PropertySymbol addEqualityContract()
             {
-                var property = new SynthesizedRecordEqualityContractProperty(this, baseRecordType);
+                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: SynthesizedRecordClone.FindValidCloneMethod(BaseTypeNoUseSiteDiagnostics) is object);
                 // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
                 if (!memberSignatures.ContainsKey(property))
                 {

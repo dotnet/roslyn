@@ -77,19 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(syntax is object);
             Debug.Assert(isAutoPropertyAccessor);
 
-            var overriddenProperty = OverriddenProperty;
-            var overriddenAccessor = overriddenProperty is null ?
-                null :
-                (isGet ? overriddenProperty.GetMethod : overriddenProperty.SetMethod);
-            string name = overriddenAccessor?.Name ??
-                SourcePropertyAccessorSymbol.GetAccessorName(_sourceName, isGet, this.IsCompilationOutputWinMdObj());
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 isGet,
                 usesInit: !isGet, // the setter is always init-only
                 ContainingType,
                 this,
                 _modifiers,
-                name,
+                _sourceName,
                 ((ParameterSyntax)syntax).Identifier.GetLocation(),
                 syntax,
                 diagnostics);

@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string PropertyName = "EqualityContract";
 
-        public SynthesizedRecordEqualityContractProperty(NamedTypeSymbol containingType, NamedTypeSymbol? baseRecordType)
+        public SynthesizedRecordEqualityContractProperty(NamedTypeSymbol containingType, bool isOverride)
         {
             ContainingType = containingType;
-            IsOverride = baseRecordType is object;
+            IsOverride = isOverride;
             TypeWithAnnotations = TypeWithAnnotations.Create(containingType.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), NullableAnnotation.NotAnnotated);
             var overriddenProperty = OverriddenProperty;
             if (overriddenProperty is object)

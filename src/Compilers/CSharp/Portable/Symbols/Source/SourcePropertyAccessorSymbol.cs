@@ -118,18 +118,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol containingType,
             SynthesizedRecordPropertySymbol property,
             DeclarationModifiers propertyModifiers,
-            string name,
+            string propertyName,
             Location location,
             CSharpSyntaxNode syntax,
             DiagnosticBag diagnostics)
         {
+            string name;
+            ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
+            GetNameAndExplicitInterfaceImplementations(
+                explicitlyImplementedPropertyOpt: null,
+                propertyName,
+                property.IsCompilationOutputWinMdObj(),
+                aliasQualifierOpt: null,
+                isGetMethod,
+                out name,
+                out explicitInterfaceImplementations);
+
             var methodKind = isGetMethod ? MethodKind.PropertyGet : MethodKind.PropertySet;
             return new SourcePropertyAccessorSymbol(
                 containingType,
                 name,
                 property,
                 propertyModifiers,
-                explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty,
+                explicitInterfaceImplementations,
                 location,
                 syntax,
                 hasBody: false,

@@ -5243,6 +5243,47 @@ record B : A
             Assert.Equal("System.Type? B.EqualityContract { get; }", GetProperties(comp, "B").Single().ToTestDisplayString(includeNonNullable: true));
         }
 
+        // No EqualityContract property on base.
+        [Fact]
+        public void Inheritance_43()
+        {
+            var sourceA =
+@".class public System.Runtime.CompilerServices.IsExternalInit
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ldnull throw }
+}
+.class public A
+{
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .method family hidebysig specialname rtspecialname instance void .ctor(class A A_1) { ldnull throw }
+  .method public hidebysig newslot specialname virtual instance class A  '<>Clone'() { ldnull throw }
+  .property instance object P()
+  {
+    .get instance object A::get_P()
+    .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) A::set_P(object)
+  }
+  .method public instance object get_P() { ldnull ret }
+  .method public instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(object 'value') { ret }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"record B : A;
+";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // record B : A;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8));
+
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [InlineData(false)]
         [InlineData(true)]
