@@ -3469,15 +3469,23 @@ class C
             string source = @"
 class C
 {
-    static void F()
+    void M()
     {
-        const string S = $""Testing"";
-        const string F = $""{$""{S}""}"";
-        System.Console.WriteLine(F);
+        const string S1 = $""Testing"";
+        const string S2 = $""{""Level 5""} {""Number 3""}"";
+        const string S3 = $""{$""{""Spinning Top""}""}"";
+        const string F = $""{S1}"";
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            var actual = ParseAndGetConstantFoldingSteps(source);
+
+            var expected =
+@"$""Testing"" --> Testing
+$""{""Level 5""} {""Number 3""}"" --> Level 5 Number 3
+$""{$""{""Spinning Top""}""}"" --> Spinning Top
+$""{""Spinning Top""}"" --> Spinning Top
+$""{S1}"" --> Testing";
+            Assert.Equal(expected, actual);
         }
     }
 

@@ -2573,7 +2573,7 @@ End Class"
         End Function
 
         <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <Fact(Skip:="PROTOTYPE(CONSTISTR)"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestIntroduceVariableTextDoesntSpanLines2() As Task
             Dim code = "
 Class C
@@ -2615,7 +2615,7 @@ End Module
         End Function
 
         <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <Fact(Skip:="PROTOTYPE(CONSTISTR)"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNoConstantForInterpolatedStrings2() As Task
             Dim code =
 "
