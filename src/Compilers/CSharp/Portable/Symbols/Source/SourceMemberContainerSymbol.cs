@@ -3063,10 +3063,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     bool isInherited = false;
                     var syntax = param.GetNonNullSyntaxNode();
-                    var property = new SynthesizedRecordPropertySymbol(this, syntax, param, overriddenProperty: null, diagnostics);
+                    var property = new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics);
                     if (!memberSignatures.TryGetValue(property, out var existingMember))
                     {
-                        existingMember = getInheritedMember(property, this);
+                        Debug.Assert(property.OverriddenOrHiddenMembers.OverriddenMembers.Length == 0); // property is not virtual and should not have overrides
+                        existingMember = property.OverriddenOrHiddenMembers.HiddenMembers.FirstOrDefault();
                         isInherited = true;
                     }
                     if (existingMember is null)
@@ -3079,7 +3080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // There already exists a member corresponding to the candidate synthesized property.
                         if (isInherited && prop.IsAbstract)
                         {
-                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, overriddenProperty: prop, diagnostics));
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
                         }
                         else
                         {
@@ -3118,32 +3119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 #endif
                 return existingOrAddedMembers.ToImmutableAndFree();
-            }
-
-            static Symbol? getInheritedMember(Symbol symbol, NamedTypeSymbol type)
-            {
-                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
-                {
-                    OverriddenOrHiddenMembersHelpers.FindOverriddenOrHiddenMembersInType(
-                        symbol,
-                        memberIsFromSomeCompilation: true,
-                        memberContainingType: symbol.ContainingType,
-                        currType: type,
-                        out var bestMatch,
-                        out bool hasSameKindNonMatch,
-                        out var hiddenBuilder);
-                    if (hiddenBuilder is object)
-                    {
-                        var result = hiddenBuilder[0];
-                        hiddenBuilder.Free();
-                        return result;
-                    }
-                    if (bestMatch is object)
-                    {
-                        return bestMatch;
-                    }
-                }
-                return null;
             }
 
             void addObjectEquals(MethodSymbol thisEquals)

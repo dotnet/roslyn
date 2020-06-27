@@ -13,15 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedRecordPropertySymbol : SourcePropertySymbolBase, IAttributeTargetSymbol
     {
-        private readonly PropertySymbol? _overriddenProperty;
-
         public ParameterSymbol BackingParameter { get; }
 
         public SynthesizedRecordPropertySymbol(
             SourceMemberContainerTypeSymbol containingType,
             CSharpSyntaxNode syntax,
             ParameterSymbol backingParameter,
-            PropertySymbol? overriddenProperty,
+            bool isOverride,
             DiagnosticBag diagnostics)
             : base(
                 containingType,
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 setSyntax: syntax,
                 arrowExpression: null,
                 explicitInterfaceSpecifier: null,
-                modifiers: DeclarationModifiers.Public | (overriddenProperty is null ? DeclarationModifiers.None : DeclarationModifiers.Override),
+                modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
                 isIndexer: false,
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
                 isAutoProperty: true,
@@ -40,11 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 backingParameter.Name,
                 backingParameter.Locations[0],
-                (property, binder, syntax, diagnostics) => ComputeType(overriddenProperty, backingParameter),
+                (property, binder, syntax, diagnostics) => backingParameter.TypeWithAnnotations,
                 (property, binder, syntax, diagnostics) => ImmutableArray<ParameterSymbol>.Empty,
                 diagnostics)
         {
-            _overriddenProperty = overriddenProperty;
             BackingParameter = backingParameter;
         }
 
@@ -80,9 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(syntax is object);
             Debug.Assert(isAutoPropertyAccessor);
 
-            var overriddenAccessor = _overriddenProperty is null ?
+            var overriddenProperty = OverriddenProperty;
+            var overriddenAccessor = overriddenProperty is null ?
                 null :
-                (isGet ? _overriddenProperty.GetMethod : _overriddenProperty.SetMethod);
+                (isGet ? overriddenProperty.GetMethod : overriddenProperty.SetMethod);
             string name = overriddenAccessor?.Name ??
                 SourcePropertyAccessorSymbol.GetAccessorName(_sourceName, isGet, this.IsCompilationOutputWinMdObj());
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
@@ -115,11 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            return ComputeType(_overriddenProperty, BackingParameter);
+            return BackingParameter.TypeWithAnnotations;
         }
-
-        private static TypeWithAnnotations ComputeType(PropertySymbol? overriddenProperty, ParameterSymbol backingParameter)
-            => overriddenProperty is null ? backingParameter.TypeWithAnnotations : overriddenProperty.TypeWithAnnotations;
 
         protected override bool HasPointerTypeSyntactically
             // Since we already bound the type, don't bother looking at syntax
