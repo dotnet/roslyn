@@ -35,13 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var edits = ArrayBuilder<LSP.TextEdit>.GetInstance();
             var document = _solutionProvider.GetDocument(request.CodeActionParams.TextDocument);
-            var codeActions = await CodeActionsHandler.GetCodeActionsAndKindAsync(document,
+            var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document,
                 _codeFixService,
                 _codeRefactoringService,
                 request.CodeActionParams.Range,
                 cancellationToken).ConfigureAwait(false);
 
-            var actionToRun = codeActions?.FirstOrDefault(a => a.Key.Title == request.Title);
+            var actionToRun = codeActions?.FirstOrDefault(a => a.Title == request.Title);
 
             if (actionToRun != null)
             {

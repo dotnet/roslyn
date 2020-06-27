@@ -55,15 +55,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             {
                 var runRequest = ((JToken)request.Arguments.Single()).ToObject<RunCodeActionParams>();
                 var document = _solutionProvider.GetDocument(runRequest.CodeActionParams.TextDocument);
-                var codeActions = await CodeActionsHandler.GetCodeActionsAndKindAsync(document, _codeFixService, _codeRefactoringService,
+                var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document, _codeFixService, _codeRefactoringService,
                     runRequest.CodeActionParams.Range, cancellationToken).ConfigureAwait(false);
 
-                var actionToRun = codeActions?.FirstOrDefault(a => a.Key.Title == runRequest.Title);
+                var actionToRun = codeActions?.FirstOrDefault(a => a.Title == runRequest.Title);
 
                 if (actionToRun != null)
                 {
                     // add check here
-                    foreach (var operation in await actionToRun.Value.Key.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
+                    foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
                     {
                         // TODO - This UI thread dependency should be removed.
                         // https://github.com/dotnet/roslyn/projects/45#card-20619668

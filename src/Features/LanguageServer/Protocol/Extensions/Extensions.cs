@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class Extensions
     {
-        public static Uri GetURI(this Document document)
+        public static Uri GetURI(this TextDocument document)
         {
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
