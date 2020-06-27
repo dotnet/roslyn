@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // REVIEW: I would prefer to not expose CloneAsRoot and make the functionality
         // internal to CaaS layer, to ensure that for a given SyntaxTree there can not
         // be multiple trees claiming to be its children.
-        // 
+        //
         // However, as long as we provide GetRoot extensibility point on SyntaxTree
         // the guarantee above cannot be implemented and we have to provide some way for
         // creating root nodes.
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Produces a clone of a <see cref="CSharpSyntaxNode"/> which will have current syntax tree as its parent.
-        /// 
+        ///
         /// Caller must guarantee that if the same instance of <see cref="CSharpSyntaxNode"/> makes multiple calls
         /// to this function, only one result is observable.
         /// </summary>
@@ -313,7 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions? options = null,
             string path = "",
             Encoding? encoding = null,
+            // obsolete parameter -- unused
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
+            // obsolete parameter -- unused
             bool? isGeneratedCode = null)
         {
             if (root == null)
@@ -325,12 +327,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((CompilationUnitSyntax)root).GetConditionalDirectivesStack() :
                 InternalSyntax.DirectiveStack.Empty;
 
-            bool isGenerated = isGeneratedCode ??
-                GeneratedCodeUtilities.IsGeneratedCode(
-                    path,
-                    root,
-                    isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia);
-
             return new ParsedSyntaxTree(
                 textOpt: null,
                 encodingOpt: encoding,
@@ -340,7 +336,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 root: root,
                 directives: directives,
                 diagnosticOptions,
-                isGenerated,
                 cloneRoot: true);
         }
 
@@ -376,7 +371,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 root: root,
                 directives: InternalSyntax.DirectiveStack.Empty,
                 diagnosticOptions: null,
-                isGeneratedCode: null,
                 cloneRoot: false);
         }
 
@@ -425,7 +419,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilationUnit,
                 parser.Directives,
                 diagnosticOptions: diagnosticOptions,
-                isGeneratedCode: isGeneratedCode,
                 cloneRoot: true);
             tree.VerifySource();
             return tree;
@@ -495,7 +488,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable CS0618
                 DiagnosticOptions,
 #pragma warning restore CS0618
-                isGeneratedCode: _isGenerationConfigured ? (bool?)_lazyIsGeneratedCode.Value() : null,
                 cloneRoot: true);
             tree.VerifySource(changes);
             return tree;
@@ -551,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets the location in terms of path, line and column after applying source line mapping directives (<c>#line</c>). 
+        /// Gets the location in terms of path, line and column after applying source line mapping directives (<c>#line</c>).
         /// </summary>
         /// <param name="span">Span within the tree.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
@@ -631,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyPragmaWarningStateMap == null)
             {
                 // Create the warning state map on demand.
-                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this, IsGeneratedCode()), null);
+                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this), null);
             }
 
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
@@ -661,41 +653,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider)
         {
-            if (_isGenerationConfigured)
+            return provider?.IsGenerated(this) ?? isGeneratedHeuristic();
+
+            bool isGeneratedHeuristic()
             {
-                // If the syntax tree was explicitly configured for generation,
-                // respect that configuration over everything else
-                return IsGeneratedCode();
+                if (_lazyIsGeneratedCode == ThreeState.Unknown)
+                {
+                    // Create the generated code status on demand
+                    bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
+                            this,
+                            isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
+                            cancellationToken: default);
+                    _lazyIsGeneratedCode = isGenerated.ToThreeState();
+                }
+
+                return _lazyIsGeneratedCode == ThreeState.True;
             }
 
-            return provider?.IsGenerated(this) ?? IsGeneratedCode();
-        }
-
-        private bool IsGeneratedCode()
-        {
-            if (_lazyIsGeneratedCode == ThreeState.Unknown)
-            {
-                // Create the generated code status on demand
-                bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
-                           this,
-                           isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
-                           cancellationToken: default);
-                _lazyIsGeneratedCode = isGenerated.ToThreeState();
-            }
-
-            return _lazyIsGeneratedCode == ThreeState.True;
         }
 
         private CSharpLineDirectiveMap? _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap? _lazyPragmaWarningStateMap;
         private StrongBox<NullableContextStateMap>? _lazyNullableContextStateMap;
 
-        /// <summary>
-        /// True if this file was marked generated or not generated, in which
-        /// case the value is stored in <see cref="_lazyIsGeneratedCode"/>. False
-        /// if the value was not marked and we're falling back to heuristic.
-        /// </summary>
-        private bool _isGenerationConfigured;
         private ThreeState _lazyIsGeneratedCode = ThreeState.Unknown;
 
         private LinePosition GetLinePosition(int position)
@@ -790,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Gets a list of all the diagnostics in either the sub tree that has the specified node as its root or
-        /// associated with the token and its related trivia. 
+        /// associated with the token and its related trivia.
         /// </summary>
         /// <remarks>
         /// This method does not filter diagnostics based on <c>#pragma</c>s and compiler options
