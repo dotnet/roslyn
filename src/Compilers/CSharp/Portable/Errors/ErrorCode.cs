@@ -1581,6 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
+        ERR_OmittedTypeArgument = 8389,
 
         #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8 = 8400,
@@ -1739,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 8.0
 
-        #region diagnostics introduced in preview
+        #region diagnostics introduced in C# 9.0
 
         ERR_InternalError = 8751,
 
@@ -1817,6 +1818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AddressOfMethodGroupInExpressionTree = 8810,
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
+        ERR_FeatureNotAvailableInVersion9 = 8813,
 
         // Codes 8813, 8814, 8815, 8816 used by features/module-initializers
 
@@ -1845,8 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoCopyConstructorInBaseType = 8867,
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
 
-        #endregion
-
+        #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
