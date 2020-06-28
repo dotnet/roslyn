@@ -45,8 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
             if (actionToRun != null)
             {
-                // add check here
-                var operations = await actionToRun.Value.Key.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                var operations = await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 var applyChangesOperation = operations.OfType<ApplyChangesOperation>().FirstOrDefault();
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

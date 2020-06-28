@@ -95,6 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     JObject.FromObject(new ServerCapabilities
                     {
                         // Uses Roslyn client.
+                        CodeActionProvider = false,
                         ExecuteCommandProvider = new ExecuteCommandOptions(),
                     })));
 

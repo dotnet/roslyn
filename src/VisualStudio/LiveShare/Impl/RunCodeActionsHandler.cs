@@ -33,7 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly ILspSolutionProvider _solutionProvider;
         private readonly IThreadingContext _threadingContext;
 
-        protected RunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, ILspSolutionProvider solutionProvider, IThreadingContext threadingContext)
+        protected RunCodeActionsHandler(
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            ILspSolutionProvider solutionProvider,
+            IThreadingContext threadingContext)
         {
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
@@ -41,7 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             _threadingContext = threadingContext;
         }
 
-        public async Task<object> HandleAsync(LSP.ExecuteCommandParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public async Task<object> HandleAsync(
+            LSP.ExecuteCommandParams request,
+            RequestContext<Solution> requestContext,
+            CancellationToken cancellationToken)
         {
             // Unwrap the command to get the RunCodeActions command.
             if (request.Command.StartsWith("_liveshare.remotecommand"))
