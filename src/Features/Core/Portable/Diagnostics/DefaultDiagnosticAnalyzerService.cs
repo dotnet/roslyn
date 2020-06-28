@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -156,31 +155,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var project = document.Project;
                 var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
+                if (analyzers.IsEmpty)
+                {
+                    return ImmutableArray<DiagnosticData>.Empty;
+                }
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _service._analyzerInfoCache);
 
                 var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 foreach (var analyzer in analyzers)
                 {
-                    builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
-                        document, kind, _service._analyzerInfoCache, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
+                    builder.AddRange(await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();
             }
 
-            private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)
+            private static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)
             {
                 // C# or VB document that supports compiler
                 var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null)
                 {
-                    return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
+                    return ImmutableArray.Create(compilerAnalyzer);
                 }
 
                 // document that doesn't support compiler diagnostics such as FSharp or TypeScript
-                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v);
+                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v).ToImmutableArrayOrEmpty();
             }
 
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)

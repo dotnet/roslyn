@@ -799,10 +799,6 @@ class AnonymousFunctions
             Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
-                ' turn off heuristic
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic, False)))
-
                 Dim solution = workspace.CurrentSolution
                 Dim analyzer = New CompilationEndedAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -815,22 +811,21 @@ class AnonymousFunctions
                 Dim descriptorsMap = solution.State.Analyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache, project)
                 Assert.Equal(1, descriptorsMap.Count)
 
-                ' Ask for document diagnostics multiple times, and verify compilation diagnostics are reported.
+                ' Test "GetDiagnosticsForSpanAsync" used from CodeFixService does not force computation of compilation end diagnostics.
+                ' Ask for document diagnostics for multiple times, and verify compilation end diagnostics are not reported.
                 Dim document = project.Documents.Single()
 
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(1, diagnostics.Count())
-                Assert.Equal(document.Id, diagnostics.First().DocumentId)
+                Assert.Empty(diagnostics)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(1, diagnostics.Count())
-                Assert.Equal(document.Id, diagnostics.First().DocumentId)
+                Assert.Empty(diagnostics)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(1, diagnostics.Count())
-                Assert.Equal(document.Id, diagnostics.First().DocumentId)
+                Assert.Empty(diagnostics)
 
+                ' Test "GetDiagnosticsForIdsAsync" does force computation of compilation end diagnostics.
                 ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
                 Dim projectDiagnostics = diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(2, projectDiagnostics.Count())

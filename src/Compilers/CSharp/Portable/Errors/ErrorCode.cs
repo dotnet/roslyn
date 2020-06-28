@@ -1740,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 8.0
 
-        #region diagnostics introduced in preview
+        #region diagnostics introduced in C# 9.0
 
         ERR_InternalError = 8751,
 
@@ -1818,6 +1818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AddressOfMethodGroupInExpressionTree = 8810,
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
+        ERR_FeatureNotAvailableInVersion9 = 8813,
 
         ERR_ModuleInitializerMethodMustBeOrdinary = 8813,
         ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8814,
@@ -1849,8 +1850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoCopyConstructorInBaseType = 8867,
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
 
-        #endregion
-
+        #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
