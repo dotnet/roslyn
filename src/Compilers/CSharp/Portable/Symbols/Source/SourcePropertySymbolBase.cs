@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             TypeWithAnnotations typeOpt,
-            ImmutableArray<ParameterSymbol> parametersOpt,
+            bool hasParameters,
             DiagnosticBag diagnostics)
         {
             _syntaxRef = syntax.GetReference();
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // the type and parameters are required to determine the override or implementation.
                 var type = typeOpt.HasType ? typeOpt : this.ComputeType(binder, syntax, diagnostics);
                 _lazyType = new TypeWithAnnotations.Boxed(type);
-                _lazyParameters = !parametersOpt.IsDefault ? parametersOpt : this.ComputeParameters(binder, syntax, diagnostics);
+                _lazyParameters = !hasParameters ? ImmutableArray<ParameterSymbol>.Empty : this.ComputeParameters(binder, syntax, diagnostics);
 
                 bool isOverride = false;
                 PropertySymbol? overriddenOrImplementedProperty;

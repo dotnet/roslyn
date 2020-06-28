@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 backingParameter.Name,
                 backingParameter.Locations[0],
                 typeOpt: backingParameter.TypeWithAnnotations,
-                parametersOpt: ImmutableArray<ParameterSymbol>.Empty,
+                hasParameters: false,
                 diagnostics)
         {
             BackingParameter = backingParameter;

@@ -5096,6 +5096,8 @@ record B(object P) : A
         B b = new B(3);
         WriteLine(b.P);
         WriteLine(((A)b).P);
+        b = new B(1) { P = 2 };
+        WriteLine(b.P);
         WriteLine(b.EqualityContract.Name);
     }
 }";
@@ -5104,6 +5106,7 @@ record B(object P) : A
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"3
 3
+2
 B");
 
             var actualMembers = GetProperties(comp, "B");
@@ -5156,6 +5159,8 @@ record B(object P) : A
         B b = new B(3);
         WriteLine(b.P);
         WriteLine(((A)b).P);
+        b = new B(1) { P = 2 };
+        WriteLine(b.P);
         WriteLine(b.EqualityContract.Name);
     }
 }";
@@ -5164,6 +5169,7 @@ record B(object P) : A
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"3
 3
+2
 B");
 
             var actualMembers = GetProperties(comp, "B");
@@ -5236,6 +5242,8 @@ record B(object P) : A
         B b = new B(3);
         WriteLine(b.P);
         WriteLine(((A)b).P);
+        b = new B(1) { P = 2 };
+        WriteLine(b.P);
         WriteLine(b.EqualityContract.Name);
     }
 }";
@@ -5244,6 +5252,7 @@ record B(object P) : A
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"3
 3
+2
 B");
 
             var actualMembers = GetProperties(comp, "B");

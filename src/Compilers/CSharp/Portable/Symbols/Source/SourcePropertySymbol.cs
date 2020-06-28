@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 name,
                 location,
                 typeOpt: default,
-                parametersOpt: default,
+                hasParameters: GetParameterListSyntax(syntax) is object,
                 diagnostics)
         {
         }
