@@ -37,6 +37,21 @@
         <target state="translated">続行しますか。破損状態のコードが生成される可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Downloading_IntelliSense_index_for_0">
+        <source>Downloading IntelliSense index for {0}</source>
+        <target state="new">Downloading IntelliSense index for {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_index_failed">
+        <source>Downloading index failed</source>
+        <target state="new">Downloading index failed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_index_failed_0">
+        <source>Downloading index failed:{0}</source>
+        <target state="new">Downloading index failed:{0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">インポートされていない名前空間の項目</target>
