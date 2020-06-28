@@ -146,12 +146,13 @@ record C(int x, string y)
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
-            var x = (SourceOrRecordPropertySymbol)c.GetProperty("x");
+            var x = (SourcePropertySymbolBase)c.GetProperty("x");
             Assert.NotNull(x.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
             Assert.False(x.IsReadOnly);
             Assert.False(x.IsWriteOnly);
+            Assert.False(x.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, x.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -162,26 +163,30 @@ record C(int x, string y)
             Assert.Equal(x, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             var getAccessor = x.GetMethod;
             Assert.Equal(x, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
 
             var setAccessor = x.SetMethod;
             Assert.Equal(x, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
             Assert.True(setAccessor.IsInitOnly);
 
-            var y = (SourceOrRecordPropertySymbol)c.GetProperty("y");
+            var y = (SourcePropertySymbolBase)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
             Assert.False(y.IsReadOnly);
             Assert.False(y.IsWriteOnly);
+            Assert.False(y.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -192,14 +197,17 @@ record C(int x, string y)
             Assert.Equal(y, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             getAccessor = y.GetMethod;
             Assert.Equal(y, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
 
             setAccessor = y.SetMethod;
             Assert.Equal(y, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
