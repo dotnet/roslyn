@@ -1674,6 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!overloadResolutionResult.Succeeded)
             {
+                ImmutableArray<FunctionPointerMethodSymbol> methods = methodsBuilder.ToImmutableAndFree();
                 overloadResolutionResult.ReportDiagnostics(
                     binder: this,
                     node.Location,
@@ -1683,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundExpression,
                     boundExpression.Syntax,
                     analyzedArguments,
-                    methodsBuilder.ToImmutableAndFree(),
+                    methods,
                     typeContainingConstructor: null,
                     delegateTypeBeingInvoked: null,
                     returnRefKind: funcPtr.Signature.RefKind);
@@ -1691,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundFunctionPointerInvocation(
                     node,
                     boundExpression,
-                    analyzedArguments.Arguments.SelectAsArray((expr, args) => args.binder.BindToNaturalType(expr, args.diagnostics), (binder: this, diagnostics)),
+                    BuildArgumentsForErrorRecovery(analyzedArguments, StaticCast<MethodSymbol>.From(methods)),
                     analyzedArguments.RefKinds.ToImmutableOrNull(),
                     LookupResultKind.OverloadResolutionFailure,
                     funcPtr.Signature.ReturnType,

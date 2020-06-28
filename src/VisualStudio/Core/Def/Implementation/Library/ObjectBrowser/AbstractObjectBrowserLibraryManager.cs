@@ -94,10 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
                     var newDocument = e.NewSolution.GetDocument(e.DocumentId);
 
-                    // make sure we do this in background thread. we don't care about ordering of events
-                    // we just need to refresh OB at some point if it ever needs to be updated
-                    // link to the bug tracking root cause  - https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=169649&_a=edit
-                    Task.Run(() => DocumentChangedAsync(oldDocument, newDocument));
+                    UpdateDocument(oldDocument, newDocument);
                     break;
 
                 case WorkspaceChangeKind.ProjectAdded:
@@ -117,17 +114,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private async Task DocumentChangedAsync(Document oldDocument, Document newDocument)
+        private void UpdateDocument(Document oldDocument, Document newDocument)
         {
             try
             {
-                var oldTextVersion = await oldDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
-                var newTextVersion = await newDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
-
-                if (oldTextVersion != newTextVersion)
+                // If the versions are the same, avoid updating the object browser. However, avoid
+                // loading the document to determine the version because it can cause extreme memory
+                // pressure during batch changes.
+                if (oldDocument.TryGetTextVersion(out var oldTextVersion)
+                    && newDocument.TryGetTextVersion(out var newTextVersion)
+                    && oldTextVersion == newTextVersion)
                 {
-                    UpdateClassAndMemberVersions();
+                    return;
                 }
+
+                UpdateClassAndMemberVersions();
             }
             catch (Exception e) when (FatalError.Report(e))
             {
