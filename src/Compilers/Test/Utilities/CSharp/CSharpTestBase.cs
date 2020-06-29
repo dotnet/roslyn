@@ -1178,7 +1178,7 @@ namespace System.Runtime.CompilerServices
             return createCompilationLambda();
         }
 
-        private static ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(MscorlibRef_v4_0_30316_17626);
+        private static ImmutableArray<MetadataReference> s_scriptRefs = ImmutableArray.Create(TargetFrameworkUtil.Mscorlib45Reference);
 
         public static CSharpCompilation CreateSubmission(
            string code,
@@ -1950,14 +1950,14 @@ namespace System.Runtime.CompilerServices
         {
             var reference = CreateEmptyCompilation(
                 SpanSource,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                references: TargetFrameworkUtil.Mscorlib45AndCSharpReferences,
                 options: TestOptions.UnsafeReleaseDll);
 
             reference.VerifyDiagnostics();
 
             var comp = CreateEmptyCompilation(
                 text,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                references: TargetFrameworkUtil.Mscorlib45AndCSharpReferences.Add(reference.EmitToImageReference()),
                 options: options,
                 parseOptions: parseOptions);
 
@@ -1970,7 +1970,7 @@ namespace System.Runtime.CompilerServices
             var textWitSpan = new string[] { text, SpanSource };
             var comp = CreateEmptyCompilation(
                 textWitSpan,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                references: TargetFrameworkUtil.Mscorlib45AndCSharpReferences,
                 options: options ?? TestOptions.UnsafeReleaseDll,
                 parseOptions: parseOptions);
 

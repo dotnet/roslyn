@@ -503,7 +503,7 @@ End Class"
         Private Function GetConstructedMethod(source As String, methodName As String, serializedTypeArgumentNames() As String, instructionDecoder As VisualBasicInstructionDecoder) As MethodSymbol
             Dim compilation = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
-                references:={MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929},
+                references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 options:=TestOptions.DebugDll,
                 assemblyName:=NameOf(InstructionDecoderTests))
             Dim runtime = CreateRuntimeInstance(compilation)

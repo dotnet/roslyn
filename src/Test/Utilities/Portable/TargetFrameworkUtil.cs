@@ -31,6 +31,8 @@ namespace Roslyn.Test.Utilities
         StandardLatest,
         StandardAndCSharp,
         StandardAndVBRuntime,
+        StandardDesktop,
+        StandardAndCSharpDesktop,
 
         /// <summary>
         /// This is represents the set of tests which must be mscorlib40 on desktop but full net standard on coreclr.
@@ -55,7 +57,6 @@ namespace Roslyn.Test.Utilities
         Mscorlib46Extended,
         Mscorlib461,
         Mscorlib461Extended,
-        DesktopLatestExtended = Mscorlib461Extended,
 
         /// <summary>
         /// Minimal set of required types (<see cref="NetFx.Minimal.mincorlib"/>).
@@ -79,14 +80,17 @@ namespace Roslyn.Test.Utilities
          * https://github.com/dotnet/roslyn/issues/25961
          */
 
+        public static MetadataReference Mscorlib40Reference => TestBase.MscorlibRef;
         public static ImmutableArray<MetadataReference> Mscorlib40References => ImmutableArray.Create(TestBase.MscorlibRef);
         public static ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemCoreRef);
         public static ImmutableArray<MetadataReference> Mscorlib40andVBRuntimeReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.MsvbRef);
+        public static MetadataReference Mscorlib45Reference => TestBase.MscorlibRef_v4_0_30316_17626;
         public static ImmutableArray<MetadataReference> Mscorlib45References => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626);
         public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.CSharpRef);
-        public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.MsvbRef_v4_0_30319_17929);
+        public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.MsvbRef_v4_0_30319_17929);
+        public static MetadataReference Mscorlib46Reference => TestBase.MscorlibRef_v46;
         public static ImmutableArray<MetadataReference> Mscorlib46References => ImmutableArray.Create(TestBase.MscorlibRef_v46);
         public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static ImmutableArray<MetadataReference> Mscorlib461References => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef);
@@ -100,6 +104,9 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> StandardLatestReferences => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp30References : Mscorlib46ExtendedReferences;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
         public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References.Add(NetStandard20.MicrosoftVisualBasicRef) : Mscorlib46ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929);
+        public static MetadataReference StandardMscorlibDesktopReference => Mscorlib46Reference;
+        public static ImmutableArray<MetadataReference> StandardDesktopReferences => Mscorlib46ExtendedReferences;
+        public static ImmutableArray<MetadataReference> StandardAndCSharpDesktopReferences => Mscorlib46ExtendedReferences.Add(TestBase.CSharpDesktopRef);
         public static ImmutableArray<MetadataReference> StandardCompatReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : Mscorlib40References;
         public static ImmutableArray<MetadataReference> DefaultVbReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.MsvbRef);
         public static ImmutableArray<MetadataReference> MinimalReferences => ImmutableArray.Create(TestBase.MinCorlibRef);
@@ -127,6 +134,8 @@ namespace Roslyn.Test.Utilities
             TargetFramework.StandardLatest => StandardLatestReferences,
             TargetFramework.StandardAndCSharp => StandardAndCSharpReferences,
             TargetFramework.StandardAndVBRuntime => StandardAndVBRuntimeReferences,
+            TargetFramework.StandardDesktop => StandardDesktopReferences,
+            TargetFramework.StandardAndCSharpDesktop => StandardAndCSharpDesktopReferences,
             TargetFramework.StandardCompat => StandardCompatReferences,
             TargetFramework.DefaultVb => DefaultVbReferences,
             TargetFramework.Minimal => MinimalReferences,

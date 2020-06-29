@@ -614,10 +614,10 @@ End Class
             Dim comp1 = CreateEmptyCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source1), {MscorlibRef_v20}, TestOptions.DebugDll)
             Dim module1 = comp1.ToModuleInstance()
 
-            Dim comp2 = CreateEmptyCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source2), {MscorlibRef_v4_0_30316_17626, module1.GetReference()}, TestOptions.DebugDll)
+            Dim comp2 = CreateEmptyCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source2), {TargetFrameworkUtil.Mscorlib45Reference, module1.GetReference()}, TestOptions.DebugDll)
             Dim module2 = comp2.ToModuleInstance()
 
-            Dim runtime = CreateRuntimeInstance({module1, module2, MscorlibRef_v4_0_30316_17626.ToModuleInstance(), ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()})
+            Dim runtime = CreateRuntimeInstance({module1, module2, TargetFrameworkUtil.Mscorlib45Reference.ToModuleInstance(), ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()})
             Dim context = CreateMethodContext(runtime, "C1.M")
 
             Dim errorMessage As String = Nothing

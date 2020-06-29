@@ -158,7 +158,7 @@ End Namespace
                     </file></compilation>
             _eventLibRef = CreateEmptyCompilationWithReferences(
                 eventLibSrc,
-                references:={MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929},
+                references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 options:=TestOptions.ReleaseWinMD).EmitToImageReference()
         End Sub
 
@@ -209,18 +209,17 @@ End Class
             Dim dynamicCommonRef As MetadataReference = CreateEmptyCompilationWithReferences(
                 _dynamicCommonSrc,
                 references:={
-                    MscorlibRef_v4_0_30316_17626,
+                    TargetFrameworkUtil.Mscorlib45Reference,
                     _eventLibRef},
                 options:=TestOptions.ReleaseModule).EmitToImageReference()
 
             Dim verifier = CompileAndVerifyOnWin8Only(
                 src,
-                allReferences:={
-                    MscorlibRef_v4_0_30316_17626,
-                    SystemCoreRef_v4_0_30319_17929,
-                    CSharpRef,
+                allReferences:=TargetFrameworkUtil.Mscorlib45AndCSharpReferences.AddRange(
+                {
                     _eventLibRef,
-                    dynamicCommonRef})
+                    dynamicCommonRef
+                }))
             verifier.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      931 (0x3a3)
@@ -582,10 +581,7 @@ Public Partial Class A
 
             Dim verifier = CompileAndVerifyOnWin8Only(
                 src,
-                allReferences:={
-                    MscorlibRef_v4_0_30316_17626,
-                    SystemCoreRef_v4_0_30319_17929,
-                    _eventLibRef})
+                allReferences:=TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(_eventLibRef))
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("A.Scenario1", <![CDATA[
 {

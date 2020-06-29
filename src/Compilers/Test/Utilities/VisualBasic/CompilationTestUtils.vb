@@ -211,7 +211,7 @@ Friend Module CompilationUtils
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
-        Dim allReferences = {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}.Concat(If(references, {}))
+        Dim allReferences = TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences.Concat(If(references, {}))
         Return CreateEmptyCompilationWithReferences(source, allReferences, options, parseOptions:=parseOptions)
     End Function
 

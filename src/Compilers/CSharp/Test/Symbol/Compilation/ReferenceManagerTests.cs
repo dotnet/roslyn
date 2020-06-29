@@ -870,7 +870,7 @@ public class E : bar::C { }
                     t2 = Parse($"#r \"{p3}\"", options: TestOptions.Script),
                     t3 = Parse("#r \"Lib\"", options: TestOptions.Script),
                 },
-                references: new MetadataReference[] { MscorlibRef_v4_0_30316_17626, r1, r2 },
+                references: new MetadataReference[] { TargetFrameworkUtil.Mscorlib45Reference, r1, r2 },
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                     new TestMetadataReferenceResolver(
                         assemblyNames: new Dictionary<string, PortableExecutableReference> { { "Lib", r3 } },
@@ -882,7 +882,7 @@ public class E : bar::C { }
 
             var refs = compilation.ExternalReferences;
             Assert.Equal(3, refs.Length);
-            Assert.Equal(MscorlibRef_v4_0_30316_17626, refs[0]);
+            Assert.Equal(TargetFrameworkUtil.Mscorlib45Reference, refs[0]);
             Assert.Equal(r1, refs[1]);
             Assert.Equal(r2, refs[2]);
 
@@ -2239,7 +2239,7 @@ public class Source
         {
             var c = CreateSubmissionWithExactReferences("new C()", new[]
             {
-                MscorlibRef_v4_0_30316_17626,
+                TargetFrameworkUtil.Mscorlib45Reference,
                 TestReferences.SymbolsTests.Versioning.C2,
                 TestReferences.SymbolsTests.Versioning.C1,
             });
@@ -2257,7 +2257,7 @@ public class Source
         {
             var c = CreateSubmissionWithExactReferences("new C()", new[]
             {
-                MscorlibRef_v4_0_30316_17626,
+                TargetFrameworkUtil.Mscorlib45Reference,
                 CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").EmitToImageReference(),
                 CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
             });
@@ -2275,7 +2275,7 @@ public class Source
         {
             var c = CreateSubmissionWithExactReferences("new C()", new[]
             {
-                MscorlibRef_v4_0_30316_17626,
+                TargetFrameworkUtil.Mscorlib45Reference,
                 CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""0.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
                 CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.1"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
                 CreateEmptyCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { MscorlibRef }, assemblyName: "C").ToMetadataReference(),
@@ -2300,7 +2300,7 @@ public class Source
         {
             var c = CreateSubmissionWithExactReferences("new C()", new[]
             {
-                MscorlibRef_v4_0_30316_17626,
+                TargetFrameworkUtil.Mscorlib45Reference,
                 CreateCompilation(@"[assembly: System.Reflection.AssemblyVersion(""0.0.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference(),
                 CreateCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.1"")] public class C {}", assemblyName: "C").ToMetadataReference(aliases: ImmutableArray.Create("X", "Y")),
                 CreateCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference(),
@@ -2336,7 +2336,7 @@ new B()
 ";
 
             var c = CreateSubmissionWithExactReferences(source,
-                new[] { MscorlibRef_v4_0_30316_17626, bRef.WithAliases(ImmutableArray.Create("X")), aRef },
+                new[] { TargetFrameworkUtil.Mscorlib45Reference, bRef.WithAliases(ImmutableArray.Create("X")), aRef },
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
                 {
@@ -2365,7 +2365,7 @@ new B()
 new B()
 ";
 
-            var c = CreateSubmissionWithExactReferences(source, new[] { MscorlibRef_v4_0_30316_17626, bRef.WithAliases(ImmutableArray.Create("X")), aRef },
+            var c = CreateSubmissionWithExactReferences(source, new[] { TargetFrameworkUtil.Mscorlib45Reference, bRef.WithAliases(ImmutableArray.Create("X")), aRef },
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
                 {
@@ -2655,7 +2655,7 @@ public class C : A
                 { "B, 2.0.0.0", b2Ref },
             });
 
-            var c = CreateSubmissionWithExactReferences(@"public interface C : A, D {  }", new[] { MscorlibRef_v4_0_30316_17626, aRef, dRef },
+            var c = CreateSubmissionWithExactReferences(@"public interface C : A, D {  }", new[] { TargetFrameworkUtil.Mscorlib45Reference, aRef, dRef },
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
 
             c.VerifyEmitDiagnostics();
@@ -2691,7 +2691,7 @@ public class C : A
                 { "B, 2.0.0.0", b4Ref },
             });
 
-            var c = CreateSubmissionWithExactReferences(@"public interface C : A, D {  }", new[] { MscorlibRef_v4_0_30316_17626, aRef, dRef },
+            var c = CreateSubmissionWithExactReferences(@"public interface C : A, D {  }", new[] { TargetFrameworkUtil.Mscorlib45Reference, aRef, dRef },
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
 
             c.VerifyEmitDiagnostics();
@@ -3026,7 +3026,7 @@ public class C : A
                 { "B, 2.0.0.0", b2Ref },
             });
 
-            var c = CreateSubmissionWithExactReferences("public class C : A { }", new[] { MscorlibRef_v4_0_30316_17626, aRef },
+            var c = CreateSubmissionWithExactReferences("public class C : A { }", new[] { TargetFrameworkUtil.Mscorlib45Reference, aRef },
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolverC));
 
             c.VerifyEmitDiagnostics();
@@ -3138,7 +3138,7 @@ public class C : A
                 { "B, 2.0.0.0", b4Ref },
             });
 
-            var c = CreateSubmissionWithExactReferences("public class C : A { }", new[] { MscorlibRef_v4_0_30316_17626, aRef },
+            var c = CreateSubmissionWithExactReferences("public class C : A { }", new[] { TargetFrameworkUtil.Mscorlib45Reference, aRef },
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolverC));
 
             c.VerifyEmitDiagnostics(
@@ -3191,7 +3191,7 @@ public class C : A
             var aRef = CreateEmptyCompilation(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v2_0_50727.System },
                 options: options, assemblyName: "A").EmitToImageReference();
 
-            var bRef = CreateEmptyCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v4_0_30316_17626, TestReferences.NetFx.v4_0_30319.System },
+            var bRef = CreateEmptyCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { TargetFrameworkUtil.Mscorlib45Reference, TestReferences.NetFx.v4_0_30319.System },
                 options: options, assemblyName: "B").EmitToImageReference();
 
             var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
@@ -3200,7 +3200,7 @@ public class C : A
                 { "System, 4.0.0.0", TestReferences.NetFx.v4_0_30319.System },
             });
 
-            var c = CreateSubmissionWithExactReferences("public interface C : A, B { System.Diagnostics.Process PC { get; } }", new[] { MscorlibRef_v4_0_30316_17626, aRef, bRef },
+            var c = CreateSubmissionWithExactReferences("public interface C : A, B { System.Diagnostics.Process PC { get; } }", new[] { TargetFrameworkUtil.Mscorlib45Reference, aRef, bRef },
                 options.WithMetadataReferenceResolver(resolverC));
 
             c.VerifyEmitDiagnostics();
@@ -3240,7 +3240,7 @@ public class C : A
                 { "C, 2.0.0.0", TestReferences.SymbolsTests.Versioning.C2 },
             });
 
-            var c = CreateSubmissionWithExactReferences("public interface D : A, B { C CC { get; } }", new[] { MscorlibRef_v4_0_30316_17626, aRef, bRef },
+            var c = CreateSubmissionWithExactReferences("public interface D : A, B { C CC { get; } }", new[] { TargetFrameworkUtil.Mscorlib45Reference, aRef, bRef },
                 options.WithMetadataReferenceResolver(resolverC));
 
             c.VerifyEmitDiagnostics();

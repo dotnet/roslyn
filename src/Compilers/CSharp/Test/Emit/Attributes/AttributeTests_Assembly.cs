@@ -654,7 +654,7 @@ class Program
 {
     void M(Test x) {}
 }
-", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
+", options: TestOptions.ReleaseDll, references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference, hash_module });
 
             CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
@@ -683,7 +683,7 @@ class Program
 {
     void M(Test x) {}
 }
-", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
+", options: TestOptions.ReleaseDll, references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference, hash_module });
 
             CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
@@ -716,7 +716,7 @@ class Program
 {
     void M(Test x) {}
 }
-", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
+", options: TestOptions.ReleaseDll, references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference, hash_module });
 
             CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,

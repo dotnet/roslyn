@@ -8056,7 +8056,7 @@ End Class
                 End Sub
 
             Dim verifier = CompileAndVerify(src,
-                                            allReferences:={MscorlibRef_v4_0_30316_17626},
+                                            allReferences:={TargetFrameworkUtil.Mscorlib45Reference},
                                             options:=TestOptions.ReleaseWinMD,
                                             sourceSymbolValidator:=srcValidator,
                                             symbolValidator:=mdValidator)

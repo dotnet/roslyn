@@ -772,7 +772,7 @@ class Test
     }
 }";
 
-            var references = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
+            var references = TargetFrameworkUtil.StandardAndCSharpDesktopReferences;
 
             CreateEmptyCompilation(code, references, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (19,14): error CS0315: The type 'NonComparable' cannot be used as type parameter 'T' in the generic type or method 'Span<T>'. There is no boxing conversion from 'NonComparable' to 'System.IComparable'.

@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub CorLibTypes()
             Dim mdTestLib1 = TestReferences.SymbolsTests.MDTestLib1
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={MscorlibRef_v4_0_30316_17626, mdTestLib1})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={TargetFrameworkUtil.Mscorlib45Reference, mdTestLib1})
 
             Dim c107 As TypeSymbol = c1.GlobalNamespace.GetTypeMembers("C107").Single()
 

@@ -62,7 +62,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpErrorFactsGenerator",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpSyntaxGenerator", "src\Tools\Source\CompilerGeneratorTools\Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj", "{288089C5-8721-458E-BE3E-78990DAB5E2D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IOperationGenerator", "src\Tools\Source\CompilerGeneratorTools\Source\IOperationGenerator\CompilersIOperationGenerator.csproj", "{D0A79850-B32A-45E5-9FD5-D43CB345867A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilersIOperationGenerator", "src\Tools\Source\CompilerGeneratorTools\Source\IOperationGenerator\CompilersIOperationGenerator.csproj", "{D0A79850-B32A-45E5-9FD5-D43CB345867A}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicSyntaxGenerator", "src\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj", "{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}"
 EndProject
@@ -303,10 +303,10 @@ Global
 		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Debug|Any CPU.Build.0 = Debug|x64
 		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Release|Any CPU.ActiveCfg = Release|x64
 		{288089C5-8721-458E-BE3E-78990DAB5E2D}.Release|Any CPU.Build.0 = Release|x64
-		{D0A79850-B32A-45E5-9FD5-D43CB345867A}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{D0A79850-B32A-45E5-9FD5-D43CB345867A}.Debug|Any CPU.Build.0 = Debug|x64
-		{D0A79850-B32A-45E5-9FD5-D43CB345867A}.Release|Any CPU.ActiveCfg = Release|x64
-		{D0A79850-B32A-45E5-9FD5-D43CB345867A}.Release|Any CPU.Build.0 = Release|x64
+		{D0A79850-B32A-45E5-9FD5-D43CB345867A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0A79850-B32A-45E5-9FD5-D43CB345867A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0A79850-B32A-45E5-9FD5-D43CB345867A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0A79850-B32A-45E5-9FD5-D43CB345867A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Debug|Any CPU.Build.0 = Debug|x64
 		{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}.Release|Any CPU.ActiveCfg = Release|x64

@@ -883,7 +883,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={TargetFrameworkUtil.Mscorlib45Reference, hash_module})
 
         CompileAndVerify(compilation, verify:=Verification.Fails,
             manifestResources:=hash_resources,
@@ -914,7 +914,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={TargetFrameworkUtil.Mscorlib45Reference, hash_module})
 
         CompileAndVerify(compilation, verify:=Verification.Fails,
             manifestResources:=hash_resources,
@@ -948,7 +948,7 @@ class Program
     End Sub
 end class
     ]]></file>
-</compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
+</compilation>, options:=TestOptions.ReleaseDll, references:={TargetFrameworkUtil.Mscorlib45Reference, hash_module})
 
         CompileAndVerify(compilation, verify:=Verification.Fails,
             manifestResources:=hash_resources,

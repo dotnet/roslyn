@@ -109,7 +109,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -324,7 +324,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>

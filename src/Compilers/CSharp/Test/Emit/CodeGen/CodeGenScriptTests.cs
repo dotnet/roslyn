@@ -542,7 +542,7 @@ public abstract class C
         [ConditionalFact(typeof(DesktopOnly))]
         public void SubmissionEntryPoint()
         {
-            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var references = TargetFrameworkUtil.Mscorlib45References;
             var source0 =
 @"{
     await System.Threading.Tasks.Task.Delay(100);

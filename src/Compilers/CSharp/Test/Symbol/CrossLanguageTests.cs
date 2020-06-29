@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -23,7 +24,7 @@ End Interface
             var vbcomp = VisualBasicCompilation.Create(
                 "Test",
                 new[] { VisualBasicSyntaxTree.ParseText(vbText) },
-                new[] { MscorlibRef_v4_0_30316_17626 },
+                new[] { TargetFrameworkUtil.Mscorlib45Reference },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);

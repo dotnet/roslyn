@@ -689,7 +689,7 @@ namespace System
     }
 }
 
-", references: new[] { MscorlibRef_v4_0_30316_17626 }, TestOptions.ReleaseExe);
+", references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference }, TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {

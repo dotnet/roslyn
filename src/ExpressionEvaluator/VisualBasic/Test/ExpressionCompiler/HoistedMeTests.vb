@@ -546,7 +546,7 @@ End Class
 }}
 "
 
-            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim compOptions = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)
@@ -603,7 +603,7 @@ Module M
 End Module
 "
 
-            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
 
@@ -626,7 +626,7 @@ End Module
         Private Sub VerifyHasMe(source As String, moveNextMethodName As String, expectedType As String, expectedIL As String)
             Dim sourceCompilation = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
-                {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
 
             WithRuntimeInstance(sourceCompilation,
@@ -675,7 +675,7 @@ End Module
         Private Sub VerifyNoMe(source As String, moveNextMethodName As String)
             Dim comp = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
-                {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -808,7 +808,7 @@ End Class
 "
             Dim comp = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
-                {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -896,7 +896,7 @@ End Class
 "
             Dim comp = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
-                {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)

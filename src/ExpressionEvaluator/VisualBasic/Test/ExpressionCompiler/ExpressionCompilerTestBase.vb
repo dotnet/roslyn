@@ -321,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
             Dim compilation0 = CreateEmptyCompilationWithReferences(
                 {Parse(source, SyntaxHelpers.ParseOptions)},
-                {MscorlibRef_v4_0_30316_17626, SystemRef, MsvbRef},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 options:=If(outputKind = OutputKind.DynamicallyLinkedLibrary, TestOptions.DebugDll, TestOptions.DebugExe))
 
             Dim runtime = CreateRuntimeInstance(compilation0, debugFormat:=If(includeSymbols, DebugInformationFormat.Pdb, Nothing))

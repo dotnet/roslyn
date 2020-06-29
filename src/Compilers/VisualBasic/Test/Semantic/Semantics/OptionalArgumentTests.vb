@@ -1369,7 +1369,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
      expectedOutput:=
@@ -1515,7 +1515,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1685,13 +1685,13 @@ Void add_E3(System.Action) - 88, E3, a.vb
 Void Main() - 10, Main, a.vb
 ]]>
 
-            Dim attributeCompilation = CreateEmptyCompilationWithReferences(attributeSource, {MscorlibRef_v4_0_30316_17626}, TestOptions.ReleaseDll)
+            Dim attributeCompilation = CreateEmptyCompilationWithReferences(attributeSource, {TargetFrameworkUtil.Mscorlib45Reference}, TestOptions.ReleaseDll)
             CompileAndVerify(attributeCompilation)
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, New VisualBasicCompilationReference(attributeCompilation)}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences.Add(New VisualBasicCompilationReference(attributeCompilation)), TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput)
 
-            compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, MetadataReference.CreateFromImage(attributeCompilation.EmitToArray())}, TestOptions.ReleaseExe)
+            compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences.Add(MetadataReference.CreateFromImage(attributeCompilation.EmitToArray())), TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput)
         End Sub
 
@@ -1843,7 +1843,7 @@ Void add_E3(System.Action) - 88, E3, a.vb
 Void Main() - 10, Main, a.vb
 ]]>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput)
         End Sub
 
@@ -1949,7 +1949,7 @@ using System.Runtime.CompilerServices;
 public delegate void D(object o = null, [CallerLineNumber]int line = 0);
 ]]>.Value,
                 assemblyName:="1",
-                referencedAssemblies:=New MetadataReference() {MscorlibRef_v4_0_30316_17626})
+                referencedAssemblies:=New MetadataReference() {TargetFrameworkUtil.Mscorlib45Reference})
             compilation1.VerifyDiagnostics()
             Dim reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray())
             Dim compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(
@@ -2032,7 +2032,7 @@ End Module
                     SyntaxFactory.ParseSyntaxTree(source3, path:="*", encoding:=Encoding.UTF8),
                     SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8)
                 },
-                {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default))
 
             CompileAndVerify(compilation, expectedOutput:="
@@ -2113,7 +2113,7 @@ End Module
                     SyntaxFactory.ParseSyntaxTree(source4, path:="C:\x.vb", encoding:=Encoding.UTF8),
                     SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8)
                 },
-                {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
                     searchPaths:=ImmutableArray(Of String).Empty,
                     baseDirectory:="C:\A\B",

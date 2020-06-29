@@ -3211,7 +3211,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp2 = CreateEmptyCompilationWithReferences(source2, {MscorlibRef_v4_0_30316_17626, New VisualBasicCompilationReference(comp1)}, TestOptions.ReleaseDll)
+            Dim comp2 = CreateEmptyCompilationWithReferences(source2, {TargetFrameworkUtil.Mscorlib45Reference, New VisualBasicCompilationReference(comp1)}, TestOptions.ReleaseDll)
 
             Dim c1r As NamedTypeSymbol = comp2.GlobalNamespace.GetTypeMembers("C1").Single
 
@@ -3245,7 +3245,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp2 = CreateEmptyCompilation(ParseSourceXml(source2, Nothing).ToArray(), references:={MscorlibRef_v4_0_30316_17626, New VisualBasicCompilationReference(comp1)}, options:=TestOptions.ReleaseDll)
+            Dim comp2 = CreateEmptyCompilation(ParseSourceXml(source2, Nothing).ToArray(), references:={TargetFrameworkUtil.Mscorlib45Reference, New VisualBasicCompilationReference(comp1)}, options:=TestOptions.ReleaseDll)
 
             Dim c As NamedTypeSymbol = comp2.GlobalNamespace.GetTypeMembers("C").Single
             Assert.IsType(Of RetargetingNamedTypeSymbol)(c)

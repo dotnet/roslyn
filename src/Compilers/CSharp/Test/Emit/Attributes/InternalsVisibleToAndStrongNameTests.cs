@@ -139,7 +139,7 @@ public class Test
             comp = CSharpCompilation.Create(
                 GetUniqueName(),
                 new[] { syntaxTree },
-                new[] { MscorlibRef },
+                new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference },
                 TestOptions.ReleaseDll.WithStrongNameProvider(GetProviderWithPath(keyFileDir)));
 
             comp.VerifyDiagnostics();
@@ -169,7 +169,7 @@ public class Test
             comp = CSharpCompilation.Create(
                 GetUniqueName(),
                 new[] { syntaxTree },
-                new[] { MscorlibRef },
+                new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference },
                 TestOptions.ReleaseDll.WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\"))));
 
             Assert.Empty(comp.GetDiagnostics());
@@ -266,7 +266,7 @@ public class Test
             comp = CSharpCompilation.Create(
                 GetUniqueName(),
                 new[] { syntaxTree },
-                new[] { MscorlibRef },
+                new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference },
                 TestOptions.ReleaseDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(GetProviderWithPath(keyFileDir)));
 
             Assert.Empty(comp.GetDiagnostics());
@@ -313,7 +313,7 @@ public class Test
             comp = CSharpCompilation.Create(
                 GetUniqueName(),
                 new[] { syntaxTree },
-                new[] { MscorlibRef },
+                new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference },
                 TestOptions.ReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(true).WithStrongNameProvider(GetProviderWithPath(publicKeyFileDir)));
             Assert.Empty(comp.GetDiagnostics());
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
@@ -996,7 +996,7 @@ public class Test
 
             var other = VisualBasic.VisualBasicCompilation.Create(
                 syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(s) },
-                references: new[] { MscorlibRef_v4_0_30316_17626 },
+                references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference },
                 assemblyName: "Paul",
                 options: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithStrongNameProvider(DefaultDesktopStrongNameProvider));
             other.VerifyDiagnostics();
@@ -2322,7 +2322,7 @@ public class C
   static void Goo() {}
 }",
                 options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
-                references: new[] { MscorlibRef_v4_0_30316_17626 },
+                references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference },
                 parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
@@ -2350,7 +2350,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2381,7 +2381,7 @@ public class C
 
             var options = TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile);
 
-            var other = CreateEmptyCompilation(source, options: options, references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
+            var other = CreateEmptyCompilation(source, options: options, references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2410,7 +2410,7 @@ public class C
   static void Goo() {}
 }",
                 options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true),
-                references: new[] { MscorlibRef_v4_0_30316_17626 },
+                references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference },
                 parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
@@ -2441,7 +2441,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2466,7 +2466,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2496,7 +2496,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 

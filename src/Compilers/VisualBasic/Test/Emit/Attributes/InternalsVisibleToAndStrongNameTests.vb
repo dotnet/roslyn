@@ -805,7 +805,7 @@ End Class
         Dim other As CSharp.CSharpCompilation = CSharp.CSharpCompilation.Create(
             assemblyName:="Paul",
             syntaxTrees:={CSharp.CSharpSyntaxTree.ParseText(cSource)},
-            references:={MscorlibRef_v4_0_30316_17626},
+            references:={TargetFrameworkUtil.Mscorlib45Reference},
             options:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithStrongNameProvider(DefaultDesktopStrongNameProvider))
 
         other.VerifyDiagnostics()
@@ -1329,7 +1329,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, {MscorlibRef_v4_0_30316_17626}, TestOptions.SigningReleaseDll.WithDelaySign(True).WithCryptoKeyFile(s_keyPairFile), parseOptions:=parseOptions)
+</compilation>, {TargetFrameworkUtil.Mscorlib45Reference}, TestOptions.SigningReleaseDll.WithDelaySign(True).WithCryptoKeyFile(s_keyPairFile), parseOptions:=parseOptions)
 
         ' confirm header has expected SN signature size
         Dim peHeaders = New PEHeaders(other.EmitToStream())
@@ -1721,7 +1721,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, {MscorlibRef_v4_0_30316_17626},
+</compilation>, {TargetFrameworkUtil.Mscorlib45Reference},
         options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions:=parseOptions)
 
         Dim peHeaders = New PEHeaders(other.EmitToStream())
@@ -1744,7 +1744,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, {MscorlibRef_v4_0_30316_17626},
+</compilation>, {TargetFrameworkUtil.Mscorlib45Reference},
         options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions:=parseOptions)
 
         Dim outStrm = New MemoryStream()
@@ -1776,7 +1776,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, {MscorlibRef_v4_0_30316_17626},
+</compilation>, {TargetFrameworkUtil.Mscorlib45Reference},
         options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions:=parseOptions)
 
         Dim outStrm = New MemoryStream()
@@ -1813,7 +1813,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, {MscorlibRef_v4_0_30316_17626},
+</compilation>, {TargetFrameworkUtil.Mscorlib45Reference},
         options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(True), parseOptions:=parseOptions)
 
         Dim outStrm = New MemoryStream()
@@ -1845,7 +1845,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, {MscorlibRef_v4_0_30316_17626},
+</compilation>, {TargetFrameworkUtil.Mscorlib45Reference},
         options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(True), parseOptions:=parseOptions)
 
         CompileAndVerify(other)
@@ -1867,7 +1867,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, {MscorlibRef_v4_0_30316_17626},
+</compilation>, {TargetFrameworkUtil.Mscorlib45Reference},
         options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(True), parseOptions:=parseOptions)
 
         Dim outStrm = New MemoryStream()
@@ -1899,7 +1899,7 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, {MscorlibRef_v4_0_30316_17626},
+</compilation>, {TargetFrameworkUtil.Mscorlib45Reference},
         options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(True), parseOptions:=parseOptions)
 
         CompileAndVerify(other)

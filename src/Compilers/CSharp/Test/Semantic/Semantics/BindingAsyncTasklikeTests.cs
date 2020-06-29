@@ -189,7 +189,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             }
             else
             {
-                CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "better");
+                CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference }, expectedOutput: "better");
             }
             return true;
         }
@@ -511,7 +511,7 @@ class MyTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "1");
+            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference }, expectedOutput: "1");
         }
 
         [Fact]
@@ -562,7 +562,7 @@ public class ValueTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "bbbb");
+            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { TargetFrameworkUtil.StandardMscorlibDesktopReference }, expectedOutput: "bbbb");
         }
     }
 }

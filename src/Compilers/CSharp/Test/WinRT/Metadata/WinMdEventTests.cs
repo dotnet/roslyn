@@ -235,7 +235,7 @@ public partial class B : I
 }";
             _eventLibRef = CreateEmptyCompilation(
                 eventLibSrc,
-                references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929 },
+                references: TargetFrameworkUtil.Mscorlib45ExtendedReferences,
                 options:
                     new CSharpCompilationOptions(
                         OutputKind.WindowsRuntimeMetadata,
@@ -308,7 +308,7 @@ class C
             var dynamicCommon = CreateEmptyCompilation(
                 DynamicCommonSrc,
                 references: new[] {
-                    MscorlibRef_v4_0_30316_17626,
+                    TargetFrameworkUtil.Mscorlib45Reference,
                     _eventLibRef,
                 },
                 options: new CSharpCompilationOptions(OutputKind.NetModule, allowUnsafe: true));
@@ -328,11 +328,8 @@ class C
 
             var verifier = this.CompileAndVerify(
                 src,
-                targetFramework: TargetFramework.Empty,
+                targetFramework: TargetFramework.Mscorlib45Extended,
                 references: new[] {
-                    MscorlibRef_v4_0_30316_17626,
-                    SystemCoreRef_v4_0_30319_17929,
-                    CSharpRef,
                     _eventLibRef,
                     dynamicCommonRef
                 });
@@ -2441,12 +2438,8 @@ public partial class A : I
 }";
             var verifier = CompileAndVerify(
                 new[] { src, DynamicCommonSrc },
-                targetFramework: TargetFramework.Empty,
-                references: new[] {
-                    MscorlibRef_v4_0_30316_17626,
-                    SystemCoreRef_v4_0_30319_17929,
-                    _eventLibRef,
-                },
+                targetFramework: TargetFramework.Mscorlib45Extended,
+                references: new[] { _eventLibRef },
                 verify: OSVersion.IsWin8 ? Verification.Passes : Verification.Fails);
 
             verifier.VerifyDiagnostics(

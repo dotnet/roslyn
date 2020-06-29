@@ -1181,7 +1181,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[21
 0
 0
@@ -1237,7 +1237,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.ReleaseExe)
             CompileAndVerify(compilation)
         End Sub
 

@@ -416,7 +416,7 @@ Public MustInherit Class BasicTestBase
                                             Optional hostObjectType As Type = Nothing) As VisualBasicCompilation
         Return VisualBasicCompilation.CreateScriptCompilation(
                 GetUniqueName(),
-                references:=If(references Is Nothing, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}.Concat(references)),
+                references:=If(references Is Nothing, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences.Concat(references)),
                 options:=options,
                 syntaxTree:=Parse(code, options:=If(parseOptions, TestOptions.Script)),
                 previousScriptCompilation:=previous,

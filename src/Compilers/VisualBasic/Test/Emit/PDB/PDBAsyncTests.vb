@@ -424,7 +424,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
-                    {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                    TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                     TestOptions.DebugDll)
 
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" and "$VB$ResumableLocal_a$1".
@@ -505,7 +505,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
-                    {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                    TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                     TestOptions.ReleaseDll)
 
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" but not "$VB$ResumableLocal_a$1".
@@ -574,7 +574,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
-                    {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                    TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                     TestOptions.DebugDll)
 
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
@@ -653,7 +653,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
-                    {MscorlibRef_v4_0_30316_17626, MsvbRef},
+                    TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                     TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$0" and "$VB$ResumableLocal_y$1".

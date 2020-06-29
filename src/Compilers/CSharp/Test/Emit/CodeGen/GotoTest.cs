@@ -876,7 +876,7 @@ if (Q < 4) goto L;";
         [Fact]
         public void AcrossSubmissions()
         {
-            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var references = TargetFrameworkUtil.StandardDesktopReferences;
             var source0 =
 @"bool b = false;
 L: ;
@@ -982,7 +982,7 @@ L: ;
         [Fact]
         public void DuplicateLabelInSeparateSubmissions()
         {
-            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var references = TargetFrameworkUtil.StandardDesktopReferences;
             var source0 =
 @"bool b = false;
 L: ;

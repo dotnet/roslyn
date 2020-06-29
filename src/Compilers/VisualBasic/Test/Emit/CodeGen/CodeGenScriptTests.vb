@@ -350,7 +350,7 @@ System.Console.Write("complete")
         <Fact>
         Public Sub SubmissionEntryPoint()
             Dim parseOptions = TestOptions.Script
-            Dim references = {MscorlibRef_v4_0_30316_17626, SystemCoreRef, MsvbRef}
+            Dim references = TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences
             Dim source0 = <![CDATA[
 System.Threading.Tasks.Task.Delay(100)
 System.Console.Write("complete")

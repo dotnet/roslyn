@@ -1202,7 +1202,7 @@ namespace System
 }";
             var reference = CreateEmptyCompilation(
                 spanSource,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                references: TargetFrameworkUtil.StandardAndCSharpDesktopReferences,
                 options: TestOptions.ReleaseDll);
 
             reference.VerifyDiagnostics();
@@ -1219,7 +1219,7 @@ class Program
 ";
             var comp = CreateEmptyCompilation(
                 text,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                references: TargetFrameworkUtil.StandardAndCSharpDesktopReferences.Add(reference.EmitToImageReference()),
                 options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics();
@@ -1236,7 +1236,7 @@ namespace System
 }";
             var reference = CreateEmptyCompilation(
                 spanSource,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                references: TargetFrameworkUtil.StandardAndCSharpDesktopReferences,
                 options: TestOptions.ReleaseDll);
 
             reference.VerifyDiagnostics();
@@ -1253,7 +1253,7 @@ class Program
 ";
             var comp = CreateEmptyCompilation(
                 text,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                references: TargetFrameworkUtil.StandardAndCSharpDesktopReferences.Add(reference.EmitToImageReference()),
                 options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
@@ -1280,7 +1280,7 @@ namespace System
 }";
             var reference = CreateEmptyCompilation(
                 spanSource,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                references: TargetFrameworkUtil.StandardAndCSharpDesktopReferences,
                 options: TestOptions.UnsafeReleaseDll);
 
             reference.VerifyDiagnostics();
@@ -1297,7 +1297,7 @@ class Program
 ";
             var comp = CreateEmptyCompilation(
                 text,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                references: TargetFrameworkUtil.StandardAndCSharpDesktopReferences.Add(reference.EmitToImageReference()),
                 options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
@@ -1321,7 +1321,7 @@ namespace System
 }";
             var reference = CreateEmptyCompilation(
                 spanSource,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                references: TargetFrameworkUtil.StandardAndCSharpDesktopReferences,
                 options: TestOptions.UnsafeReleaseDll);
 
             reference.VerifyDiagnostics();
@@ -1338,7 +1338,7 @@ class Program
 ";
             var comp = CreateEmptyCompilation(
                 text,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                references: TargetFrameworkUtil.StandardAndCSharpDesktopReferences.Add(reference.EmitToImageReference()),
                 options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(

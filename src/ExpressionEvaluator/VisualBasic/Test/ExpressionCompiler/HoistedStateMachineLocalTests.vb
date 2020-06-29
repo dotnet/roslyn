@@ -1498,7 +1498,7 @@ End Class
         Private Shared Function CreateCompilation(source As String) As VisualBasicCompilation
             Return CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
-                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 options:=TestOptions.DebugDll,
                 assemblyName:=GetUniqueName())
         End Function

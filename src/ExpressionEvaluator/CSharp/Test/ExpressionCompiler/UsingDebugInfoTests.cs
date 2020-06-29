@@ -1191,14 +1191,14 @@ public class C2 : C1
             var comp1 = CreateEmptyCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll);
             var module1 = comp1.ToModuleInstance();
 
-            var comp2 = CreateEmptyCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, module1.GetReference() }, TestOptions.DebugDll);
+            var comp2 = CreateEmptyCompilation(source2, new[] { TargetFrameworkUtil.Mscorlib45Reference, module1.GetReference() }, TestOptions.DebugDll);
             var module2 = comp2.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[]
             {
                 module1,
                 module2,
-                MscorlibRef_v4_0_30316_17626.ToModuleInstance(),
+                TargetFrameworkUtil.Mscorlib45Reference.ToModuleInstance(),
                 ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()
             });
 

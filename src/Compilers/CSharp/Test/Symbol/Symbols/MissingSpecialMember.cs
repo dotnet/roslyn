@@ -507,7 +507,7 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypes()
         {
-            var comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CreateEmptyCompilation("", new[] { TargetFrameworkUtil.Mscorlib45Reference });
 
             for (var special = SpecialType.None + 1; special <= SpecialType.Count; special++)
             {
@@ -529,7 +529,7 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypeMembers()
         {
-            var comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CreateEmptyCompilation("", new[] { TargetFrameworkUtil.Mscorlib45Reference });
 
             foreach (SpecialMember special in Enum.GetValues(typeof(SpecialMember)))
             {
@@ -551,18 +551,17 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllWellKnownTypes()
         {
-            var refs = new[]
-            {
-                MscorlibRef_v4_0_30316_17626,
-                SystemRef_v4_0_30319_17929,
-                SystemCoreRef_v4_0_30319_17929,
-                MsvbRef_v4_0_30319_17929,
-                CSharpRef,
-                SystemXmlRef,
-                SystemXmlLinqRef,
-                SystemWindowsFormsRef,
-                ValueTupleRef
-            }.Concat(WinRtRefs).ToArray();
+            var refs = TargetFrameworkUtil.Mscorlib45ExtendedReferences
+                .AddRange(new[]
+                {
+                    MsvbRef_v4_0_30319_17929,
+                    CSharpDesktopRef,
+                    SystemXmlRef,
+                    SystemXmlLinqRef,
+                    SystemWindowsFormsRef,
+                    ValueTupleRef
+                })
+                .AddRange(WinRtRefs);
             var comp = CreateEmptyCompilation("", refs);
 
             for (var wkt = WellKnownType.First; wkt < WellKnownType.NextAvailable; wkt++)
@@ -878,18 +877,17 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllWellKnownTypeMembers()
         {
-            var refs = new[]
-            {
-                MscorlibRef_v4_0_30316_17626,
-                SystemRef_v4_0_30319_17929,
-                SystemCoreRef_v4_0_30319_17929,
-                MsvbRef_v4_0_30319_17929,
-                CSharpDesktopRef,
-                SystemXmlRef,
-                SystemXmlLinqRef,
-                SystemWindowsFormsRef,
-                ValueTupleRef
-            }.Concat(WinRtRefs).ToArray();
+            var refs = TargetFrameworkUtil.Mscorlib45ExtendedReferences
+                .AddRange(new[]
+                {
+                    MsvbRef_v4_0_30319_17929,
+                    CSharpDesktopRef,
+                    SystemXmlRef,
+                    SystemXmlLinqRef,
+                    SystemWindowsFormsRef,
+                    ValueTupleRef
+                })
+                .AddRange(WinRtRefs);
             var comp = CreateEmptyCompilation("", refs);
 
             foreach (WellKnownMember wkm in Enum.GetValues(typeof(WellKnownMember)))

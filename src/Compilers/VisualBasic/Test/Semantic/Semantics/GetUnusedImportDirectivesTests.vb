@@ -299,7 +299,7 @@ End Class
         <Fact>
         Public Sub UnusedImportInteractive()
             Dim tree = Parse("Imports System", options:=TestOptions.Script)
-            Dim compilation = VisualBasicCompilation.CreateScriptCompilation("sub1", tree, {MscorlibRef_v4_0_30316_17626})
+            Dim compilation = VisualBasicCompilation.CreateScriptCompilation("sub1", tree, {TargetFrameworkUtil.Mscorlib45Reference})
             compilation.AssertNoDiagnostics(suppressInfos:=False)
         End Sub
 

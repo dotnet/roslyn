@@ -168,9 +168,7 @@ End Namespace
                 </compilation>
 
             ' We need the 4.5 refs here
-            Dim coreRefs45 = {
-            MscorlibRef_v4_0_30316_17626,
-            SystemCoreRef_v4_0_30319_17929}
+            Dim coreRefs45 = TargetFrameworkUtil.Mscorlib45ExtendedReferences
 
             Dim winRtDelegateLibrary = CompilationUtils.CreateEmptyCompilationWithReferences(
                 winRtDelegateLibrarySrc,

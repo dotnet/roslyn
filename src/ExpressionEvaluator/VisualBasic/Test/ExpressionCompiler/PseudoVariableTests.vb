@@ -939,7 +939,7 @@ End Class"
 
             Dim comp = CreateEmptyCompilationWithReferences(
                 {Parse(source)},
-                {MscorlibRef_v4_0_30316_17626, SystemRef, MsvbRef},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 options:=TestOptions.DebugDll)
 
             Dim runtime = CreateRuntimeInstance(comp)

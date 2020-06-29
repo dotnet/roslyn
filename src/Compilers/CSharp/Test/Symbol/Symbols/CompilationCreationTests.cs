@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var mdTestLib1 = TestReferences.SymbolsTests.MDTestLib1;
 
-            var c1 = CSharpCompilation.Create("Test", references: new MetadataReference[] { MscorlibRef_v4_0_30316_17626, mdTestLib1 });
+            var c1 = CSharpCompilation.Create("Test", references: new MetadataReference[] { TargetFrameworkUtil.Mscorlib45Reference, mdTestLib1 });
 
             TypeSymbol c107 = c1.GlobalNamespace.GetTypeMembers("C107").Single();
 

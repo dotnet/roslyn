@@ -356,7 +356,7 @@ using System;
         public void UnusedUsingInteractive()
         {
             var tree = Parse("using System;", options: TestOptions.Script);
-            var comp = CSharpCompilation.CreateScriptCompilation("sub1", tree, new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CSharpCompilation.CreateScriptCompilation("sub1", tree, TargetFrameworkUtil.Mscorlib45References);
 
             comp.VerifyDiagnostics();
         }

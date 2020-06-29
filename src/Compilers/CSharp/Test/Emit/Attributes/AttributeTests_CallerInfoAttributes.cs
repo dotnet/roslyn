@@ -3105,7 +3105,7 @@ Public Class A
     End Property
 End Class";
 
-            var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
+            var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: TargetFrameworkUtil.Mscorlib45References);
 
             const string csSource =
 @"using System;
@@ -3195,7 +3195,7 @@ Public Class A
     End Property
 End Class";
 
-            var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
+            var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: TargetFrameworkUtil.StandardDesktopReferences);
 
             const string csSource =
 @"using System;

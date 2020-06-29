@@ -20151,7 +20151,7 @@ Public Module Async_Regress134668
     End Function ' 5
 End Module
         </file>
-    </compilation>, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
+    </compilation>, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors><![CDATA[

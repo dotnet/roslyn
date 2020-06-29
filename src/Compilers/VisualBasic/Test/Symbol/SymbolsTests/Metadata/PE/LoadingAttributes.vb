@@ -46,13 +46,13 @@ End Class]]>
     </file>
 </compilation>
 
-            Dim comp2 = CreateEmptyCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, ref1})
+            Dim comp2 = CreateEmptyCompilationWithReferences(text2, references:={TargetFrameworkUtil.Mscorlib45Reference, ref1})
 
             Dim it = comp2.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
             Assert.False(it.CoClassType.IsErrorType())
 
             ' Test retargeting symbols by using the compilation itself as a reference
-            Dim comp3 = CreateEmptyCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, comp1.ToMetadataReference()})
+            Dim comp3 = CreateEmptyCompilationWithReferences(text2, references:={TargetFrameworkUtil.Mscorlib45Reference, comp1.ToMetadataReference()})
             Dim it2 = comp3.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
             Assert.Same(comp3.SourceModule.GetReferencedAssemblySymbols()(0), it2.CoClassType.ContainingAssembly)
             Assert.False(it2.CoClassType.IsErrorType())

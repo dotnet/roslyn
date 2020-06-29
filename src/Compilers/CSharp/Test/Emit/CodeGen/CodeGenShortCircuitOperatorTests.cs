@@ -2011,7 +2011,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Mscorlib45, expectedOutput: @"print0
 print1
 print2");
         }
@@ -2068,7 +2068,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Mscorlib45, expectedOutput: @"print0
 print1
 print2");
         }

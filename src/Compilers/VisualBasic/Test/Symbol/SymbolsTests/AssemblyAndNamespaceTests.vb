@@ -559,10 +559,10 @@ End Class
                     </file>
                 </compilation>
 
-            Dim libComp = CreateEmptyCompilationWithReferences([lib], {MscorlibRef_v4_0_30316_17626})
+            Dim libComp = CreateEmptyCompilationWithReferences([lib], {TargetFrameworkUtil.Mscorlib45Reference})
             Dim libRef = libComp.EmitToImageReference(aliases:=ImmutableArray.Create("myTask"))
 
-            Dim comp = CreateEmptyCompilationWithReferences(source, {libRef, MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929})
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.Mscorlib45AndVBRuntime, references:={libRef})
 
             ' NOTE: Unlike in C#, aliases on metadata references are ignored, so the
             ' reference to System.Threading.Tasks is ambiguous.

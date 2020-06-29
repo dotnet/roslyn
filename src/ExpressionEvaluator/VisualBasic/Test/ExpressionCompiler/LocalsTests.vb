@@ -1436,7 +1436,7 @@ End Structure
 "
             Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
-                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
 
             WithRuntimeInstance(comp,
@@ -1527,7 +1527,7 @@ End Class
 "
             Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
-                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
 
             WithRuntimeInstance(comp,
@@ -1604,7 +1604,7 @@ Class C
 End Class"
             Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
-                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
 
             WithRuntimeInstance(comp,
@@ -1664,7 +1664,7 @@ Class C
 End Class"
             Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
-                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
 
             WithRuntimeInstance(comp,
@@ -2134,7 +2134,7 @@ Class C
         Return local
     End Function
 End Class"
-            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, options:=TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim displayClassName As String
@@ -2388,7 +2388,7 @@ Class C(Of T)
         Return x
     End Function
 End Class"
-            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, options:=TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim displayClassName As String
@@ -2535,7 +2535,7 @@ Class C
 End Class"
             Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
-                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
 
             WithRuntimeInstance(comp,
@@ -2595,7 +2595,7 @@ Class C
 End Class"
             Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
-                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -2695,7 +2695,7 @@ Class C
 End Class"
             Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
-                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -2751,7 +2751,7 @@ End Class
 "
             Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
-                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)

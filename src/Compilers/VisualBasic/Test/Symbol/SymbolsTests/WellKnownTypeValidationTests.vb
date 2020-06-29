@@ -448,7 +448,7 @@ End Namespace
         <Fact>
         <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypes()
-            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
+            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {TargetFrameworkUtil.Mscorlib45Reference})
 
             For special As SpecialType = CType(SpecialType.None + 1, SpecialType) To SpecialType.Count
                 Dim symbol = comp.GetSpecialType(special)
@@ -465,7 +465,7 @@ End Namespace
         <Fact>
         <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypeMembers()
-            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
+            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {TargetFrameworkUtil.Mscorlib45Reference})
 
             For Each special As SpecialMember In [Enum].GetValues(GetType(SpecialMember))
                 Select Case special
@@ -493,17 +493,13 @@ End Namespace
         <Fact>
         <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypes()
-            Dim refs As MetadataReference() =
+            Dim refs As MetadataReference() = TargetFrameworkUtil.Mscorlib45AndCSharpReferences.AddRange(
             {
-                MscorlibRef_v4_0_30316_17626,
-                SystemRef_v4_0_30319_17929,
-                SystemCoreRef_v4_0_30319_17929,
-                CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
                 ValueTupleRef
-            }.Concat(WinRtRefs).ToArray()
+            }).Concat(WinRtRefs).ToArray()
 
             Dim lastType = CType(WellKnownType.NextAvailable - 1, WellKnownType)
             Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
@@ -627,17 +623,13 @@ End Namespace
         <Fact>
         <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypeMembers()
-            Dim refs As MetadataReference() =
+            Dim refs As MetadataReference() = TargetFrameworkUtil.Mscorlib45AndCSharpReferences.AddRange(
             {
-                MscorlibRef_v4_0_30316_17626,
-                SystemRef_v4_0_30319_17929,
-                SystemCoreRef_v4_0_30319_17929,
-                CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
                 ValueTupleRef
-            }.Concat(WinRtRefs).ToArray()
+            }).Concat(WinRtRefs).ToArray()
 
             Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
             For Each wkm As WellKnownMember In [Enum].GetValues(GetType(WellKnownMember))

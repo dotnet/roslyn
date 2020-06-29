@@ -554,7 +554,7 @@ BC37220: Name '<%= s_longSymbolName %>3' exceeds the maximum length allowed in m
         Private Function CreateCompilationWithMscorlib45(source As String) As VisualBasicCompilation
             Return VisualBasicCompilation.Create(GetUniqueName(),
                                                  {VisualBasicSyntaxTree.ParseText(source)},
-                                                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929},
+                                                 TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                                                  TestOptions.ReleaseDll)
         End Function
     End Class

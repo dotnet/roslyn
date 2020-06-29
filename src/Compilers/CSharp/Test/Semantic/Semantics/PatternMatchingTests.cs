@@ -3955,7 +3955,7 @@ class Program
 }
 ";
             var compilation = CreateEmptyCompilation(source, options: TestOptions.DebugExe,
-                references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
+                references: TargetFrameworkUtil.StandardDesktopReferences,
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
