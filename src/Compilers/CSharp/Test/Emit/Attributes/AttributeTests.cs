@@ -534,6 +534,27 @@ static class Program
         }
 
         [Fact]
+        public void TestNullAsParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+
+class MarkAttribute : Attribute
+{
+    public MarkAttribute(params object[] b)
+    {
+    }
+}
+
+[Mark(null)]
+static class Program
+{
+}");
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnOrderedObjectParamsArgument()
         {

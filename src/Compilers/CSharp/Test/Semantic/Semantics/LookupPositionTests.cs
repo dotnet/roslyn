@@ -36,7 +36,7 @@ record C(int x, int y)
                     "C"),
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -72,7 +72,7 @@ record C(int x, int y)
                     "System.Int32 C<T>.x { get; init; }",
                     "T C<T>.t { get; init; }",
                     "System.Boolean C<T>.Equals(C<T>? )",
-                    "System.Boolean C<T>.Equals(System.Object? )",
+                    "System.Boolean C<T>.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -103,7 +103,7 @@ record C(int x, int y)
                 "System.Int32 C<T>.x { get; }",
                 "T C<T>.t { get; }",
                 "System.Boolean C<T>.Equals(C<T>? )",
-                "System.Boolean C<T>.Equals(System.Object? )",
+                "System.Boolean C<T>.Equals(System.Object? obj)",
                 "System.Boolean System.Object.Equals(System.Object obj)",
                 "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                 "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1708,7 +1708,7 @@ record C(int X) : Base`(X`)
                     "C"),
                 Add( // Members + parameters
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1724,7 +1724,7 @@ record C(int X) : Base`(X`)
                 s_pop,
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1758,7 +1758,7 @@ record C : Base(X)
                     "C"),
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1794,7 +1794,7 @@ partial record C : Base(X, Y)
                     "C"),
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1810,7 +1810,7 @@ partial record C : Base(X, Y)
                 s_pop,
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1849,7 +1849,7 @@ partial record C : Base(X)
                     "C"),
                 Add( // Members + parameters
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1865,7 +1865,7 @@ partial record C : Base(X)
                 s_pop,
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1881,7 +1881,7 @@ partial record C : Base(X)
                 s_pop,
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1919,7 +1919,7 @@ partial record C(int X) : Base`(X`)
                     "C"),
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1935,7 +1935,7 @@ partial record C(int X) : Base`(X`)
                 s_pop,
                 Add( // Members + parameters
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -1951,7 +1951,7 @@ partial record C(int X) : Base`(X`)
                 s_pop,
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -2071,7 +2071,7 @@ record C(int X)
                     "C"),
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -2112,7 +2112,7 @@ record C(int X)
                     "C"),
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
@@ -2148,7 +2148,7 @@ record C(int X)
                     "C"),
                 Add( // Members
                     "System.Boolean C.Equals(C? )",
-                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean C.Equals(System.Object? obj)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
