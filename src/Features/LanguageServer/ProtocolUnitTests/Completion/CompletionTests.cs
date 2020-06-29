@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             solution = solution.WithOptions(solution.Options
                 .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.CSharp, SnippetsRule.AlwaysInclude));
 
-            var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, CreateCompletionParams(locations["caret"].Single()));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
             var results = await RunGetCompletionsAsync(solution, locations["caret"].Single(), clientCapabilities);
