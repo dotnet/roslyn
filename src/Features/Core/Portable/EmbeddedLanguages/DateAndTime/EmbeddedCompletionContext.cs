@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 AddExample(examples, standard, displayText, secondaryCulture, hideCulture);
             }
 
-            private void AddExample(
+            private static void AddExample(
                 ArrayBuilder<string> examples, bool standard, string displayText, CultureInfo culture, bool hideCulture)
             {
                 // Single letter custom strings need a %, or else they're interpreted as a format
@@ -120,13 +120,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                     examples.Add(example);
             }
 
-            public void AddStandard(string displayText, string suffix, string description)
-                => Add(displayText, suffix, description, standard: true);
+            public void AddStandard(string displayText, string suffix, string description, bool isDefault = false)
+                => Add(displayText, suffix, description, standard: true, isDefault);
 
             public void AddCustom(string displayText, string suffix, string description)
-                => Add(displayText, suffix, description, standard: false);
+                => Add(displayText, suffix, description, standard: false, isDefault: false);
 
-            private void Add(string displayText, string suffix, string description, bool standard)
+            private void Add(string displayText, string suffix, string description, bool standard, bool isDefault)
             {
                 using var _1 = PooledStringBuilder.GetInstance(out var descriptionBuilder);
                 using var _2 = ArrayBuilder<string>.GetInstance(out var examples);
@@ -144,7 +144,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 _items.Add(new DateAndTimeItem(
                     displayText, suffix, descriptionBuilder.ToString(),
                     CompletionChange.Create(
-                        new TextChange(_replacementSpan, displayText))));
+                        new TextChange(_replacementSpan, displayText)),
+                    isDefault));
             }
         }
     }

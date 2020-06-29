@@ -2733,6 +2733,32 @@ class C
             AssertInstrumented(verifier, "C.E2.remove");
         }
 
+        [CompilerTrait(CompilerFeature.InitOnlySetters)]
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_Accessors_Init()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    [ExcludeFromCodeCoverage]
+    int P1 { get => 1; init {} }
+
+    int P2 { get => 1; init {} }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource + IsExternalInitTypeDefinition,
+                options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            AssertNotInstrumented(verifier, "C.P1.get");
+            AssertNotInstrumented(verifier, "C.P1.init");
+
+            AssertInstrumented(verifier, "C.P2.get");
+            AssertInstrumented(verifier, "C.P2.init");
+        }
+
         [Fact]
         public void ExcludeFromCodeCoverageAttribute_CustomDefinition_Good()
         {
@@ -3304,6 +3330,57 @@ True
             verifier.VerifyDiagnostics();
 
             verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.TopLevelStatements)]
+        public void TopLevelStatements_01()
+        {
+            var source = @"
+using System;
+
+Test();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+static void Test()
+{
+    Console.WriteLine(""Test"");
+}
+
+" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, snippet: "", expectBodySpan: false)
+                .True("Test();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();")
+                .True(@"Console.WriteLine(""Test"");");
+            checker.Method(4, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            checker.CompleteCheck(verifier.Compilation, source);
             verifier.VerifyDiagnostics();
         }
 

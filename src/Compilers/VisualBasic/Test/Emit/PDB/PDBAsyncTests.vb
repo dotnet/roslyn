@@ -898,7 +898,7 @@ End Module
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <Fact>
         Public Sub PartialKickoffMethod()
             Dim src = "
 Public Partial Class C
@@ -934,7 +934,7 @@ End Class
             Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
                 Dim mdReader = provider.GetMetadataReader()
                 Dim writer = New StringWriter()
-                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+                Dim visualizer = New MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences)
                 visualizer.WriteMethodDebugInformation()
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("
@@ -943,7 +943,7 @@ MethodDebugInformation (index: 0x31, size: 20):
 1: nil
 2: nil
 3: nil
-4: #4
+4:
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)

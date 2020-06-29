@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool CanBeAssignedNull(this TypeSymbol type)
         {
-            return type.IsReferenceType || type.IsPointerType() || type.IsNullableType();
+            return type.IsReferenceType || type.IsPointerOrFunctionPointer() || type.IsNullableType();
         }
 
         public static bool CanContainNull(this TypeSymbol type)
@@ -282,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Pointer:
                 case TypeKind.Dynamic:
+                case TypeKind.FunctionPointer:
                     return false;
                 default:
                     return true;
@@ -338,6 +339,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert((object)type != null);
             return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).IsSZArray;
+        }
+
+        public static bool IsFunctionPointer(this TypeSymbol type)
+        {
+            return type.TypeKind == TypeKind.FunctionPointer;
+        }
+
+        public static bool IsPointerOrFunctionPointer(this TypeSymbol type)
+        {
+            switch (type.TypeKind)
+            {
+                case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         // If the type is a delegate type, it returns it. If the type is an
@@ -637,12 +656,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+                        var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                        if (typeArguments.IsEmpty)
+                        {
+                            return null;
+                        }
+
+                        int i;
+                        for (i = 0; i < typeArguments.Length - 1; i++)
                         {
                             // Let's try to avoid early resolution of nullable types
+                            (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
                             var result = VisitType(
-                                typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
-                                type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
+                                typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                type: nextType,
                                 typeWithAnnotationsPredicate,
                                 typePredicate,
                                 arg,
@@ -653,7 +680,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return result;
                             }
                         }
-                        return null;
+
+                        next = typeArguments[i];
+                        break;
 
                     case TypeKind.Array:
                         next = ((ArrayTypeSymbol)current).ElementTypeWithAnnotations;
@@ -663,6 +692,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         next = ((PointerTypeSymbol)current).PointedAtTypeWithAnnotations;
                         break;
 
+                    case TypeKind.FunctionPointer:
+                        {
+                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, out next);
+                            if (result is object)
+                            {
+                                return result;
+                            }
+
+                            break;
+                        }
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
                 }
@@ -670,6 +710,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Let's try to avoid early resolution of nullable types
                 typeWithAnnotationsOpt = canDigThroughNullable ? default : next;
                 type = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
+            }
+
+            static (TypeWithAnnotations, TypeSymbol?) getNextIterationElements(TypeWithAnnotations type, bool canDigThroughNullable)
+                => canDigThroughNullable ? (default(TypeWithAnnotations), type.NullableUnderlyingTypeOrSelf) : (type, null);
+
+            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, out TypeWithAnnotations next)
+            {
+                MethodSymbol currentPointer = type.Signature;
+                if (currentPointer.ParameterCount == 0)
+                {
+                    next = currentPointer.ReturnTypeWithAnnotations;
+                    return null;
+                }
+
+                var result = VisitType(
+                    typeWithAnnotationsOpt: canDigThroughNullable ? default : currentPointer.ReturnTypeWithAnnotations,
+                    type: canDigThroughNullable ? currentPointer.ReturnTypeWithAnnotations.NullableUnderlyingTypeOrSelf : null,
+                    typeWithAnnotationsPredicate,
+                    typePredicate,
+                    arg,
+                    canDigThroughNullable,
+                    useDefaultType);
+                if (result is object)
+                {
+                    next = default;
+                    return result;
+                }
+
+                int i;
+                for (i = 0; i < currentPointer.ParameterCount - 1; i++)
+                {
+                    (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(currentPointer.Parameters[i].TypeWithAnnotations, canDigThroughNullable);
+                    result = VisitType(
+                        typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                        type: nextType,
+                        typeWithAnnotationsPredicate,
+                        typePredicate,
+                        arg,
+                        canDigThroughNullable,
+                        useDefaultType);
+                    if (result is object)
+                    {
+                        next = default;
+                        return result;
+                    }
+                }
+
+                next = currentPointer.Parameters[i].TypeWithAnnotations;
+                return null;
             }
         }
 
@@ -1101,6 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Error:
                 case TypeKind.Interface:
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     return true;
 
                 case TypeKind.Enum:
@@ -1137,6 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.TypeKind)
                 {
                     case TypeKind.Pointer:
+                    case TypeKind.FunctionPointer:
                         return true;
                     case TypeKind.Array:
                         type = ((ArrayTypeSymbol)type).ElementType;
@@ -1569,6 +1660,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type = pointerType;
                         return changed;
                     }
+                case SymbolKind.FunctionPointerType:
+                    {
+                        var functionPointerType = (FunctionPointerTypeSymbol)type;
+                        var changed = NormalizeTaskTypesInFunctionPointer(compilation, ref functionPointerType);
+                        type = functionPointerType;
+                        return changed;
+                    }
             }
             return false;
         }
@@ -1663,6 +1761,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        private static bool NormalizeTaskTypesInFunctionPointer(CSharpCompilation compilation, ref FunctionPointerTypeSymbol funcPtrType)
+        {
+            var returnType = funcPtrType.Signature.ReturnTypeWithAnnotations;
+            var madeChanges = NormalizeTaskTypesInType(compilation, ref returnType);
+
+            var paramTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+
+            if (funcPtrType.Signature.ParameterCount > 0)
+            {
+                var paramsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(funcPtrType.Signature.ParameterCount);
+                bool madeParamChanges = false;
+                foreach (var param in funcPtrType.Signature.Parameters)
+                {
+                    var paramType = param.TypeWithAnnotations;
+                    madeParamChanges |= NormalizeTaskTypesInType(compilation, ref paramType);
+                    paramsBuilder.Add(paramType);
+                }
+
+                if (madeParamChanges)
+                {
+                    madeChanges = true;
+                    paramTypes = paramsBuilder.ToImmutableAndFree();
+                }
+                else
+                {
+                    paramTypes = funcPtrType.Signature.ParameterTypesWithAnnotations;
+                    paramsBuilder.Free();
+                }
+            }
+
+            if (madeChanges)
+            {
+                funcPtrType = funcPtrType.SubstituteTypeSymbol(returnType, paramTypes, refCustomModifiers: default, paramRefCustomModifiers: default);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
             this TypeWithAnnotations type,
             Emit.PEModuleBuilder moduleBuilder,
@@ -1699,9 +1838,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
 
-        internal static bool IsWellKnownTypeInAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+        internal static bool IsWellKnownTypeInAttribute(this TypeSymbol typeSymbol)
+            => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
 
-        internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
+        internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol)
+            => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
+
+        internal static bool IsWellKnownTypeIsExternalInit(this TypeSymbol typeSymbol)
+            => typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsExternalInit");
+
+        internal static bool IsWellKnownTypeOutAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("OutAttribute");
 
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)
         {
@@ -1710,26 +1856,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var interopServicesNamespace = typeSymbol.ContainingNamespace;
-            if (interopServicesNamespace?.Name != "InteropServices")
+            return IsContainedInNamespace(typeSymbol, "System", "Runtime", "InteropServices");
+        }
+
+        private static bool IsWellKnownCompilerServicesTopLevelType(this TypeSymbol typeSymbol, string name)
+        {
+            if (typeSymbol.Name != name || typeSymbol.ContainingType is object)
             {
                 return false;
             }
 
-            var runtimeNamespace = interopServicesNamespace.ContainingNamespace;
-            if (runtimeNamespace?.Name != "Runtime")
+            return IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
+        }
+
+        private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
+        {
+            var innerNamespace = typeSymbol.ContainingNamespace;
+            if (innerNamespace?.Name != innerNS)
             {
                 return false;
             }
 
-            var systemNamespace = runtimeNamespace.ContainingNamespace;
-            if (systemNamespace?.Name != "System")
+            var midNamespace = innerNamespace.ContainingNamespace;
+            if (midNamespace?.Name != midNS)
             {
                 return false;
             }
 
-            var globalNamespace = systemNamespace.ContainingNamespace;
+            var outerNamespace = midNamespace.ContainingNamespace;
+            if (outerNamespace?.Name != outerNS)
+            {
+                return false;
+            }
 
+            var globalNamespace = outerNamespace.ContainingNamespace;
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }
 

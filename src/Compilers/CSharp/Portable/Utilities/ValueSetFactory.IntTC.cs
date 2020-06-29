@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int INumericTC<int>.MaxValue => int.MaxValue;
 
+            int INumericTC<int>.Zero => 0;
+
             public bool Related(BinaryOperatorKind relation, int left, int right)
             {
                 switch (relation)
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value - 1;
             }
 
-            public int FromConstantValue(ConstantValue constantValue) => constantValue.Int32Value;
+            public int FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0 : constantValue.Int32Value;
 
             public ConstantValue ToConstantValue(int value) => ConstantValue.Create(value);
 

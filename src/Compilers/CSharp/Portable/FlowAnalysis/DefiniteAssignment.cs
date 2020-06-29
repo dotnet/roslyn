@@ -584,11 +584,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // unless the written value is always a constant. The reasons for this
                     // unusual behavior are:
                     //
-                    // * The debugger does not make it easy to see the returned value of 
+                    // * The debugger does not make it easy to see the returned value of
                     //   a method. Often a call whose returned value would normally be
                     //   discarded is written into a local variable so that it can be
                     //   easily inspected in the debugger.
-                    // 
+                    //
                     // * An otherwise unread local variable that contains a reference to an
                     //   object can keep the object alive longer, particularly if the jitter
                     //   is not optimizing the lifetimes of locals. (Because, for example,
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   the developer to more easily examine its state.
                     //
                     // * A developer who wishes to deliberately discard a value returned by
-                    //   a method can do so in a self-documenting manner via 
+                    //   a method can do so in a self-documenting manner via
                     //   "var unread = M();"
                     //
                     // We suppress the "written but not read" message on locals unless what is
@@ -623,9 +623,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value.ConstantValue != ConstantValue.Null;
             }
 
-            if ((object)type != null && type.IsPointerType())
+            if ((object)type != null && type.IsPointerOrFunctionPointer())
             {
-                // We always suppress the warning for pointer types. 
+                // We always suppress the warning for pointer types.
                 return true;
             }
 
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.CurrentSymbol))
                         {
                             var propSymbol = propAccess.PropertySymbol;
-                            member = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            member = (propSymbol as SourcePropertySymbolBase)?.BackingField;
                             if (member is null)
                             {
                                 return false;
@@ -1023,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.CurrentSymbol))
                         {
                             var property = propertyAccess.PropertySymbol;
-                            var backingField = (property as SourcePropertySymbol)?.BackingField;
+                            var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                             if (backingField != null)
                             {
                                 if (!MayRequireTracking(propertyAccess.ReceiverOpt, backingField) || IsAssigned(propertyAccess.ReceiverOpt, out unassignedSlot))
@@ -2036,7 +2036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (Binder.AccessingAutoPropertyFromConstructor(node, this.CurrentSymbol))
             {
                 var property = node.PropertySymbol;
-                var backingField = (property as SourcePropertySymbol)?.BackingField;
+                var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)
                 {
                     if (MayRequireTracking(node.ReceiverOpt, backingField))

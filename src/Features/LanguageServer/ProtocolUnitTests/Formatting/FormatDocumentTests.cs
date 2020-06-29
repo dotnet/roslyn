@@ -35,7 +35,7 @@ void M()
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var documentURI = locations["caret"].Single().Uri;
-            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(documentURI).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocuments(documentURI).Single().GetTextAsync();
 
             var results = await RunFormatDocumentAsync(workspace.CurrentSolution, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
@@ -43,7 +43,8 @@ void M()
         }
 
         private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(Solution solution, Uri uri)
-            => await GetLanguageServer(solution).FormatDocumentAsync(solution, CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), CancellationToken.None);
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName,
+                CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), null, CancellationToken.None);
 
         private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri)
             => new LSP.DocumentFormattingParams()

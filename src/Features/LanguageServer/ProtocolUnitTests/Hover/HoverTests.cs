@@ -136,8 +136,65 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
             Assert.Null(results);
         }
 
-        private static async Task<LSP.Hover> RunGetHoverAsync(Solution solution, LSP.Location caret)
-            => await GetLanguageServer(solution).GetHoverAsync(solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+        // Test that if we pass a project context along to hover, the right context is chosen. We are using hover
+        // as a general proxy to test that our context tracking works in all cases, although there's nothing specific
+        // about hover that needs to be different here compared to any other feature.
+        [Fact]
+        public async Task TestGetHoverWithProjectContexts()
+        {
+            var source = @"
+using System;
+
+#if NET472
+
+class WithConstant
+{
+    public const string Target = ""Target in net472"";
+}
+
+#else
+
+class WithConstant
+{
+    public const string Target = ""Target in netcoreapp3.1"";
+}
+
+#endif
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(WithConstant.{|caret:Target|});
+    }
+}";
+
+            var workspaceXml =
+$@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Net472"" PreprocessorSymbols=""NET472"">
+        <Document FilePath=""C:\C.cs""><![CDATA[${source}]]></Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""NetCoreApp3"" PreprocessorSymbols=""NETCOREAPP3.1"">
+        <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""Net472""></Document>
+    </Project>
+</Workspace>";
+
+            using var workspace = CreateXmlTestWorkspace(workspaceXml, out var locations);
+            var location = locations["caret"].Single();
+
+            foreach (var project in workspace.Projects)
+            {
+                var result = await RunGetHoverAsync(workspace.CurrentSolution, location, project.Id);
+
+                var expectedConstant = project.Name == "Net472" ? "Target in net472" : "Target in netcoreapp3.1";
+                var expectedHover = CreateHover(location, $"({FeaturesResources.constant}) string WithConstant.Target = \"{expectedConstant}\"");
+                AssertJsonEquals(expectedHover, result);
+            }
+        }
+
+        private static async Task<LSP.Hover> RunGetHoverAsync(Solution solution, LSP.Location caret, ProjectId projectContext = null)
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
+                CreateTextDocumentPositionParams(caret, projectContext), new LSP.ClientCapabilities(), null, CancellationToken.None);
 
         private static LSP.Hover CreateHover(LSP.Location location, string text)
             => new LSP.Hover()

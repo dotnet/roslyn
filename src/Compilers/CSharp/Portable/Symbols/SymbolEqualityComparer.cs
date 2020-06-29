@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly EqualityComparer<Symbol> ObliviousNullableModifierMatchesAny = new SymbolEqualityComparer(TypeCompareKind.ObliviousNullableModifierMatchesAny);
 
+        internal static readonly EqualityComparer<Symbol> AllIgnoreOptions = new SymbolEqualityComparer(TypeCompareKind.AllIgnoreOptions);
+
         internal static readonly EqualityComparer<Symbol> AllIgnoreOptionsPlusNullableWithUnknownMatchesAny =
                                                                   new SymbolEqualityComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 

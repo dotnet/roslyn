@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editing
                   (isWithEvents ? Modifiers.WithEvents : Modifiers.None) |
                   (isPartial ? Modifiers.Partial : Modifiers.None) |
                   (isAsync ? Modifiers.Async : Modifiers.None) |
+                  (isWriteOnly ? Modifiers.WriteOnly : Modifiers.None) |
                   (isRef ? Modifiers.Ref : Modifiers.None) |
                   (isVolatile ? Modifiers.Volatile : Modifiers.None) |
                   (isExtern ? Modifiers.Extern : Modifiers.None))

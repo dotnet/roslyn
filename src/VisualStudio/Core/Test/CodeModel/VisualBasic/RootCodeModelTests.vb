@@ -116,7 +116,6 @@ End Namespace
 
         End Sub
 
-
         <WorkItem(1107453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107453")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeTypeFromFullName_Generated()

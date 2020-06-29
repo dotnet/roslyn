@@ -337,6 +337,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsDeclaredReadOnly { get; }
 
         /// <summary>
+        /// Indicates whether the accessor is marked with the 'init' modifier.
+        /// </summary>
+        internal abstract bool IsInitOnly { get; }
+
+        /// <summary>
         /// Indicates whether the method is effectively readonly,
         /// by either the method or the containing type being marked readonly.
         /// </summary>
@@ -897,8 +902,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinition);
 
             // Check return type, custom modifiers, parameters
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnTypeWithAnnotations) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnTypeWithAnnotations,
+                                                MethodKind == MethodKind.PropertySet ?
+                                                    AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit :
+                                                    AllowedRequiredModifierType.None) ||
+                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
                 return true;
@@ -906,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the member is in an assembly with unified references,
             // we check if its definition depends on a type from a unified reference.
-            if (this.ContainingModule.HasUnifiedReferences)
+            if (this.ContainingModule?.HasUnifiedReferences == true)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
 
@@ -944,11 +952,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal bool IsIterator
+        internal virtual bool IsIterator
         {
             get
             {
-                return !IteratorElementTypeWithAnnotations.IsDefault;
+                return false;
             }
         }
 

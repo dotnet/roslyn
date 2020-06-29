@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
                                  .WithTrailingTrivia(SyntaxFactory.ElasticSpace));
 
-
                 var rightExpression = SyntaxFactory.InterpolatedStringExpression(
                     SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken),
                     SyntaxFactory.List(afterSplitContents),

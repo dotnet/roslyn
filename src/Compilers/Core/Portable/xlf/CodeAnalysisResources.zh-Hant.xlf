@@ -26,8 +26,18 @@
       </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
-        <target state="new">Suppress the following diagnostics to disable this analyzer: {0}</target>
+        <target state="translated">請隱藏下列診斷以停用此分析器: {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName contains an invalid character '{0}' at position {1}.</source>
+        <target state="new">The hintName contains an invalid character '{0}' at position {1}.</target>
+        <note>{0}: the invalid character, {1} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName of the added source file must be unique within a generator.</source>
+        <target state="new">The hintName of the added source file must be unique within a generator.</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
@@ -96,8 +106,8 @@
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
         <source>Only a single {0} can be registered per generator.</source>
-        <target state="new">Only a single {0} can be registered per generator.</target>
-        <note />
+        <target state="needs-review-translation">每個產生器只能註冊一個 {0}。</target>
+        <note>{0}: type name</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -554,6 +564,16 @@
         <target state="translated">分析器組態檔中的嚴重性無效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">無法重新指定 WindowsRuntime 身分識別目標</target>
@@ -586,7 +606,7 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">分析器失敗</target>
+        <target state="translated">分析器失敗</target>
         <note>{0}: Analyzer name
 {1}: Type name
 {2}: Localized exception message
@@ -595,7 +615,7 @@
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+        <target state="translated">分析器 '{0}' 擲回了類型為 '{1}' 的例外狀況。訊息: '{2}'。
 {3}</target>
         <note />
       </trans-unit>

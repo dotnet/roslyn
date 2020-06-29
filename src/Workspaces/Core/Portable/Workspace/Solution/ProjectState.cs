@@ -293,6 +293,9 @@ namespace Microsoft.CodeAnalysis
             public WorkspaceAnalyzerConfigOptionsProvider(ProjectState projectState)
                 => _projectState = projectState;
 
+            public override AnalyzerConfigOptions GlobalOptions
+                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(string.Empty));
+
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
                 => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(tree.FilePath));
 
@@ -359,7 +362,7 @@ namespace Microsoft.CodeAnalysis
         public string? OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public CompilationOutputFilePaths CompilationOutputFilePaths => this.ProjectInfo.CompilationOutputFilePaths;
+        public CompilationOutputInfo CompilationOutputInfo => this.ProjectInfo.CompilationOutputInfo;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public string? DefaultNamespace => this.ProjectInfo.DefaultNamespace;
@@ -511,8 +514,8 @@ namespace Microsoft.CodeAnalysis
         public ProjectState WithOutputRefFilePath(string? outputRefFilePath)
             => (outputRefFilePath == OutputRefFilePath) ? this : WithAttributes(Attributes.With(outputRefPath: outputRefFilePath, version: Version.GetNewerVersion()));
 
-        public ProjectState WithCompilationOutputFilePaths(in CompilationOutputFilePaths paths)
-            => (paths == CompilationOutputFilePaths) ? this : WithAttributes(Attributes.With(compilationOutputPaths: paths, version: Version.GetNewerVersion()));
+        public ProjectState WithCompilationOutputInfo(in CompilationOutputInfo info)
+            => (info == CompilationOutputInfo) ? this : WithAttributes(Attributes.With(compilationOutputInfo: info, version: Version.GetNewerVersion()));
 
         public ProjectState WithDefaultNamespace(string? defaultNamespace)
             => (defaultNamespace == DefaultNamespace) ? this : WithAttributes(Attributes.With(defaultNamespace: defaultNamespace, version: Version.GetNewerVersion()));
@@ -726,7 +729,7 @@ namespace Microsoft.CodeAnalysis
                 latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
         }
 
-        public ProjectState UpdateAnalyzerConfigDocument(AnalyzerConfigDocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
+        public ProjectState UpdateAnalyzerConfigDocument(AnalyzerConfigDocumentState newDocument)
         {
             Debug.Assert(this.ContainsAnalyzerConfigDocument(newDocument.Id));
 

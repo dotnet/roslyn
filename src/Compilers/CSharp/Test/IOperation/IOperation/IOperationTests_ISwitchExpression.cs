@@ -77,9 +77,9 @@ ISwitchExpressionOperation (0 arms) (OperationKind.SwitchExpression, Type: Syste
   Arms(0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         y = /*<bind>*/x switch { }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 25)
             };
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -509,9 +509,9 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
                 //         y = /*<bind>*/x switch { 1 => 2, _ when false => 5 }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(7, 25)
             };
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1448,7 +1448,8 @@ public sealed class MyClass
                       Value: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Char, IsImplicit) (Syntax: 'input')
                       Pattern: 
-                        INegatedPatternOperationNegatedPattern: 
+                        INegatedPatternOperation (OperationKind.NegatedPattern, Type: null) (Syntax: 'not (>= '0' and <= '9')') (InputType: System.Char)
+                          Pattern: 
                             IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= '0' and <= '9'') (InputType: System.Char)
                               LeftPattern: 
                                 IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= '0'') (InputType: System.Char)
@@ -1458,7 +1459,6 @@ public sealed class MyClass
                                 IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= '9'') (InputType: System.Char)
                                   Value: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: 9) (Syntax: ''9'')
-                         (OperationKind.NegatedPattern, Type: null) (Syntax: 'not (>= '0' and <= '9')') (InputType: System.Char)
                 Next (Regular) Block[B6]
             Block[B6] - Block
                 Predecessors: [B5]

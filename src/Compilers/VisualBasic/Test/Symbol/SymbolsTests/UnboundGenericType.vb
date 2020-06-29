@@ -4,6 +4,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -286,6 +287,331 @@ End Class
             Dim c3c6s = u_c3s.GetMember("C6S")
             Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.UnboundGenericType+ConstructedFromSymbol", c3c6s.GetType().FullName)
             Assert.True(DirectCast(c3c6s, INamedTypeSymbol).IsSerializable)
+        End Sub
+
+        <Fact>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
+        Public Sub UnboundGenericType_Bug41779_Original()
+
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Interface I
+    Function GetService() As Object
+End Interface
+
+Module Program
+    <Extension()>
+    Private Function GetService(Of T)(ByVal obj As I) As T
+        Return "default"
+    End Function
+
+    Private Sub M(ByVal provider As I)
+        provider.GetService(Of)()
+        provider.GetService(Of)().ToString()
+        provider.GetService(Of)()
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30311: Value of type 'String' cannot be converted to 'T'.
+        Return "default"
+               ~~~~~~~~~
+BC30182: Type expected.
+        provider.GetService(Of)()
+                              ~
+BC30182: Type expected.
+        provider.GetService(Of)().ToString()
+                              ~
+BC30182: Type expected.
+        provider.GetService(Of)()
+                              ~
+                </expected>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
+        Public Sub UnboundGenericType_Bug41779_DoubleArgs()
+
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Interface I
+    Function GetService() As Object
+End Interface
+
+Module Program
+    <Extension()>
+    Private Function GetService(Of T1, T2)(ByVal obj As I) As T1
+        Return "default"
+    End Function
+
+    Private Sub M(ByVal provider As I)
+        provider.GetService(Of)()
+        provider.GetService(Of)().ToString()
+        provider.GetService(Of)()
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30311: Value of type 'String' cannot be converted to 'T1'.
+        Return "default"
+               ~~~~~~~~~
+BC32087: Overload resolution failed because no accessible 'GetService' accepts this number of type arguments.
+        provider.GetService(Of)()
+                 ~~~~~~~~~~~~~~
+BC30182: Type expected.
+        provider.GetService(Of)()
+                              ~
+BC32087: Overload resolution failed because no accessible 'GetService' accepts this number of type arguments.
+        provider.GetService(Of)().ToString()
+                 ~~~~~~~~~~~~~~
+BC30182: Type expected.
+        provider.GetService(Of)().ToString()
+                              ~
+BC32087: Overload resolution failed because no accessible 'GetService' accepts this number of type arguments.
+        provider.GetService(Of)()
+                 ~~~~~~~~~~~~~~
+BC30182: Type expected.
+        provider.GetService(Of)()
+                              ~
+            </expected>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
+        Public Sub UnboundGenericType_Bug41779_Instance()
+
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+Interface I
+    Function GetService() As Object
+End Interface
+
+Interface J
+    Function GetService(Of T)() As Object
+End Interface
+
+Interface K
+    Function GetService(Of T1, T2)() As Object
+End Interface
+
+Module Program
+    Private Sub M(ByVal provider As I)
+        provider.GetService(Of)()
+        provider.GetService(Of)().ToString()
+    End Sub
+
+    Private Sub M(ByVal provider As J)
+        provider.GetService(Of)()
+        provider.GetService(Of)().ToString()
+    End Sub
+
+    Private Sub M(ByVal provider As K)
+        provider.GetService(Of)()
+        provider.GetService(Of)().ToString()
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC32045: 'Function GetService() As Object' has no type parameters and so cannot have type arguments.
+        provider.GetService(Of)()
+                           ~~~~
+BC30182: Type expected.
+        provider.GetService(Of)()
+                              ~
+BC32045: 'Function GetService() As Object' has no type parameters and so cannot have type arguments.
+        provider.GetService(Of)().ToString()
+                           ~~~~
+BC30182: Type expected.
+        provider.GetService(Of)().ToString()
+                              ~
+BC30182: Type expected.
+        provider.GetService(Of)()
+                              ~
+BC30182: Type expected.
+        provider.GetService(Of)().ToString()
+                              ~
+BC32042: Too few type arguments to 'Function GetService(Of T1, T2)() As Object'.
+        provider.GetService(Of)()
+                           ~~~~
+BC30182: Type expected.
+        provider.GetService(Of)()
+                              ~
+BC32042: Too few type arguments to 'Function GetService(Of T1, T2)() As Object'.
+        provider.GetService(Of)().ToString()
+                           ~~~~
+BC30182: Type expected.
+        provider.GetService(Of)().ToString()
+                              ~
+            </expected>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
+        Public Sub UnboundGenericType_Bug41779_Extension()
+
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Interface I
+End Interface
+
+Module Program
+    <Extension()>
+    Private Sub GetServiceA(ByVal obj As I)
+    End Sub
+
+    <Extension()>
+    Private Function GetServiceB(Of T)(ByVal obj As I) As T
+        Return "default"
+    End Function
+
+    <Extension()>
+    Private Function GetServiceC(Of T1, T2)(ByVal obj As I) As T1
+        Return "default"
+    End Function
+
+    Private Sub M(ByVal provider As I)
+        provider.GetServiceA(Of)()
+        provider.GetServiceA(Of)().ToString()
+        provider.GetServiceB(Of)()
+        provider.GetServiceB(Of)().ToString()
+        provider.GetServiceC(Of)()
+        provider.GetServiceC(Of)().ToString()
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30311: Value of type 'String' cannot be converted to 'T'.
+        Return "default"
+               ~~~~~~~~~
+BC30311: Value of type 'String' cannot be converted to 'T1'.
+        Return "default"
+               ~~~~~~~~~
+BC36907: Extension method 'Private Sub GetServiceA()' defined in 'Program' is not generic (or has no free type parameters) and so cannot have type arguments.
+        provider.GetServiceA(Of)()
+                            ~~~~
+BC30182: Type expected.
+        provider.GetServiceA(Of)()
+                               ~
+BC36907: Extension method 'Private Sub GetServiceA()' defined in 'Program' is not generic (or has no free type parameters) and so cannot have type arguments.
+        provider.GetServiceA(Of)().ToString()
+                            ~~~~
+BC30182: Type expected.
+        provider.GetServiceA(Of)().ToString()
+                               ~
+BC30182: Type expected.
+        provider.GetServiceB(Of)()
+                               ~
+BC30182: Type expected.
+        provider.GetServiceB(Of)().ToString()
+                               ~
+BC36590: Too few type arguments to extension method 'Private Function GetServiceC(Of T1, T2)() As T1' defined in 'Program'.
+        provider.GetServiceC(Of)()
+                            ~~~~
+BC30182: Type expected.
+        provider.GetServiceC(Of)()
+                               ~
+BC36590: Too few type arguments to extension method 'Private Function GetServiceC(Of T1, T2)() As T1' defined in 'Program'.
+        provider.GetServiceC(Of)().ToString()
+                            ~~~~
+BC30182: Type expected.
+        provider.GetServiceC(Of)().ToString()
+                               ~
+            </expected>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")>
+        Public Sub UnboundGenericType_Bug41779_Function()
+
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+Module Program
+    Private Function GetServiceA() As Object
+        Return Nothing
+    End Function
+
+    Private Function GetServiceB(Of T)() As T
+        Return "default"
+    End Function
+
+    Private Function GetServiceC(Of T1, T2)() As T1
+        Return "default"
+    End Function
+
+    Private Sub M()
+        GetServiceA(Of)()
+        GetServiceA(Of)().ToString()
+        GetServiceB(Of)()
+        GetServiceB(Of)().ToString()
+        GetServiceC(Of)()
+        GetServiceC(Of)().ToString()
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30311: Value of type 'String' cannot be converted to 'T'.
+        Return "default"
+               ~~~~~~~~~
+BC30311: Value of type 'String' cannot be converted to 'T1'.
+        Return "default"
+               ~~~~~~~~~
+BC32045: 'Private Function GetServiceA() As Object' has no type parameters and so cannot have type arguments.
+        GetServiceA(Of)()
+                   ~~~~
+BC30182: Type expected.
+        GetServiceA(Of)()
+                      ~
+BC32045: 'Private Function GetServiceA() As Object' has no type parameters and so cannot have type arguments.
+        GetServiceA(Of)().ToString()
+                   ~~~~
+BC30182: Type expected.
+        GetServiceA(Of)().ToString()
+                      ~
+BC30182: Type expected.
+        GetServiceB(Of)()
+                      ~
+BC30182: Type expected.
+        GetServiceB(Of)().ToString()
+                      ~
+BC32042: Too few type arguments to 'Private Function GetServiceC(Of T1, T2)() As T1'.
+        GetServiceC(Of)()
+                   ~~~~
+BC30182: Type expected.
+        GetServiceC(Of)()
+                      ~
+BC32042: Too few type arguments to 'Private Function GetServiceC(Of T1, T2)() As T1'.
+        GetServiceC(Of)().ToString()
+                   ~~~~
+BC30182: Type expected.
+        GetServiceC(Of)().ToString()
+                      ~
+            </expected>)
+
         End Sub
 
     End Class

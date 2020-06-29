@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             _codeIndexProvider = codeIndexProvider;
         }
 
-        public override async IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMoniker(
+        public override async IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMonikerAsync(
             DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (_codeIndexProvider == null)
@@ -100,9 +100,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             var displayPath = obj.Value<string>("displayPath");
             var span = ConvertLinePositionSpan(obj.Value<JObject>("range"));
             var text = obj.Value<string>("text");
+            var repository = obj.Value<string>("repository");
+            var scope = (ExternalScope)obj.Value<int>("scope");
 
             return new CodeIndexExternalReferenceItem(
-                this, definition, obj, projectName, displayPath, span, text);
+                this, definition, obj, repository, scope, projectName, displayPath, span, text);
 
             static LinePositionSpan ConvertLinePositionSpan(JObject obj)
                 => new LinePositionSpan(

@@ -61,13 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifierErrors = true;
             }
 
-            bool isMethod = (allowedModifiers & (DeclarationModifiers.Partial | DeclarationModifiers.Virtual)) == (DeclarationModifiers.Partial | DeclarationModifiers.Virtual);
-            if (isMethod && ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Private)) == (DeclarationModifiers.Partial | DeclarationModifiers.Private)))
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
-                modifierErrors = true;
-            }
-
             if ((result & DeclarationModifiers.PrivateProtected) != 0)
             {
                 modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeaturePrivateProtected, diagnostics, errorLocation);
@@ -213,6 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
                 case DeclarationModifiers.Ref:
                     return SyntaxFacts.GetText(SyntaxKind.RefKeyword);
+                case DeclarationModifiers.Data:
+                    return SyntaxFacts.GetText(SyntaxKind.DataKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -260,6 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Volatile;
                 case SyntaxKind.RefKeyword:
                     return DeclarationModifiers.Ref;
+                case SyntaxKind.DataKeyword:
+                    return DeclarationModifiers.Data;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

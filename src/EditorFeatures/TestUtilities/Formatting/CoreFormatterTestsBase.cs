@@ -26,11 +26,16 @@ using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 {
     public abstract class CoreFormatterTestsBase
     {
+        private readonly ITestOutputHelper _output;
+        public CoreFormatterTestsBase(ITestOutputHelper output)
+            => this._output = output;
+
         protected abstract string GetLanguageName();
         protected abstract SyntaxNode ParseCompilationUnit(string expected);
 
@@ -218,12 +223,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.True(newRootNodeFromString.IsEquivalentTo(newRootNode));
         }
 
-        internal static void AssertFormat(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<AbstractFormattingRule> rules, ITextBuffer clonedBuffer, SyntaxNode root, IEnumerable<TextSpan> spans)
+        internal void AssertFormat(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<AbstractFormattingRule> rules, ITextBuffer clonedBuffer, SyntaxNode root, IEnumerable<TextSpan> spans)
         {
             var result = Formatter.GetFormattedTextChanges(root, spans, workspace, optionSet, rules, CancellationToken.None);
             var actual = ApplyResultAndGetFormattedText(clonedBuffer, result);
 
-            Assert.Equal(expected, actual);
+            if (actual != expected)
+            {
+                _output.WriteLine(actual);
+                Assert.Equal(expected, actual);
+            }
         }
 
         protected void AssertFormatWithPasteOrReturn(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges, bool isPaste = true)

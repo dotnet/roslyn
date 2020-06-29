@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             cancellationToken As CancellationToken
         ) As InvocationExpressionSyntax
 
-            If invocationExpression.CanRemoveEmptyArgumentList(semanticModel, cancellationToken) Then
+            If invocationExpression.CanRemoveEmptyArgumentList(semanticModel) Then
                 Dim resultNode = invocationExpression _
                     .WithArgumentList(Nothing) _
                     .WithTrailingTrivia(invocationExpression.GetTrailingTrivia())
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             cancellationToken As CancellationToken
         ) As ObjectCreationExpressionSyntax
 
-            If objectCreationExpression.CanRemoveEmptyArgumentList(semanticModel) Then
+            If objectCreationExpression.CanRemoveEmptyArgumentList() Then
                 Dim resultNode = objectCreationExpression _
                     .WithArgumentList(Nothing) _
                     .WithTrailingTrivia(objectCreationExpression.GetTrailingTrivia())

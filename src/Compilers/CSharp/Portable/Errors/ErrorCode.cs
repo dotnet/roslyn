@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AnonMethGrpInForEach = 446,
         //ERR_AttrOnTypeArg = 447,      unused in Roslyn. The scenario for which this error exists should, and does generate a parse error.
         ERR_BadIncDecRetType = 448,
-        ERR_RefValBoundMustBeFirst = 449,
+        ERR_TypeConstraintsMustBeUniqueAndFirst = 449,
         ERR_RefValBoundWithClass = 450,
         ERR_NewBoundWithVal = 451,
         ERR_RefConstraintNotSatisfied = 452,
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InconsistentLambdaParameterUsage = 748,
         ERR_PartialMethodInvalidModifier = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
-        ERR_PartialMethodCannotHaveOutParameters = 752,
+        // ERR_PartialMethodCannotHaveOutParameters = 752, Removed as part of 'extended partial methods' feature
         // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
         ERR_PartialMethodNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodStaticDifference = 763,
         ERR_PartialMethodUnsafeDifference = 764,
         ERR_PartialMethodInExpressionTree = 765,
-        ERR_PartialMethodMustReturnVoid = 766,
+        // ERR_PartialMethodMustReturnVoid = 766, Removed as part of 'extended partial methods' feature
         ERR_ExplicitImplCollisionOnRefOut = 767,
         ERR_IndirectRecursiveConstructorCall = 768,
 
@@ -1293,8 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InitializerOnNonAutoProperty = 8050,
         ERR_AutoPropertyMustHaveGetAccessor = 8051,
         // ERR_AutoPropertyInitializerInInterface = 8052,
-        // available 8053
-
+        ERR_InstancePropertyInitializerInInterface = 8053,
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
         // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
@@ -1565,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignNarrower = 8374,
 
         ERR_NewBoundWithUnmanaged = 8375,
-        ERR_UnmanagedConstraintMustBeFirst = 8376,
+        //ERR_UnmanagedConstraintMustBeFirst = 8376,
         ERR_UnmanagedConstraintNotSatisfied = 8377,
         ERR_CantUseInOrOutInArglist = 8378,
         ERR_ConWithUnmanagedCon = 8379,
@@ -1582,6 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
+        ERR_OmittedTypeArgument = 8389,
 
         #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8 = 8400,
@@ -1634,6 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PointerTypeInPatternMatching = 8521,
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
+        // available 8524-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -1729,7 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
         ERR_AbstractEventHasAccessors = 8712,
-        ERR_NotNullConstraintMustBeFirst = 8713,
+        //ERR_NotNullConstraintMustBeFirst = 8713,
         WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
 
         ERR_DuplicateNullSuppression = 8715,
@@ -1739,11 +1740,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 8.0
 
+        #region diagnostics introduced in C# 9.0
+
         ERR_InternalError = 8751,
 
         ERR_TypelessNewIllegalTargetType = 8752,
         ERR_TypelessNewNotValid = 8753,
         ERR_TypelessNewNoTargetType = 8754,
+
+        ERR_BadFuncPointerParamModifier = 8755,
+        ERR_BadFuncPointerArgCount = 8756,
+        ERR_MethFuncPtrMismatch = 8757,
+        ERR_FuncPtrRefMismatch = 8758,
+        ERR_FuncPtrMethMustBeStatic = 8759,
 
         ERR_ExternEventInitializer = 8760,
         ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
@@ -1764,8 +1773,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // available 8773
 
-        #region diagnostics introduced for C# 9.0
-
         WRN_MemberNotNull = 8774,
         WRN_MemberNotNullWhen = 8775,
         WRN_MemberNotNullBadMember = 8776,
@@ -1780,14 +1787,68 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_GeneratorFailedDuringInitialization = 8784,
         WRN_GeneratorFailedDuringGeneration = 8785,
 
+        ERR_WrongFuncPtrCallingConvention = 8786,
+        ERR_MissingAddressOf = 8787,
+        ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
+        ERR_CannotUseFunctionPointerAsFixedLocal = 8789,
+
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
         WRN_GivenExpressionAlwaysMatchesPattern = 8793,
         WRN_IsPatternAlways = 8794,
 
-        #endregion diagnostics introduced for C# 9.0
+        ERR_PartialMethodWithAccessibilityModsMustHaveImplementation = 8795,
+        ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 8796,
+        ERR_PartialMethodWithOutParamMustHaveAccessMods = 8797,
+        ERR_PartialMethodWithExtendedModMustHaveAccessMods = 8798,
+        ERR_PartialMethodAccessibilityDifference = 8799,
+        ERR_PartialMethodExtendedModDifference = 8800,
 
+        ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 8801,
+        ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 8802,
+        ERR_TopLevelStatementAfterNamespaceOrType = 8803,
+        ERR_SimpleProgramDisallowsMainType = 8804,
+        ERR_SimpleProgramNotAnExecutable = 8805,
+
+        ERR_UnsupportedCallingConvention = 8806,
+        ERR_InvalidFunctionPointerCallingConvention = 8807,
+        ERR_InvalidFuncPointerReturnTypeModifier = 8808,
+        ERR_DupReturnTypeMod = 8809,
+        ERR_AddressOfMethodGroupInExpressionTree = 8810,
+        ERR_CannotConvertAddressOfToDelegate = 8811,
+        ERR_AddressOfToNonFunctionPointer = 8812,
+        ERR_FeatureNotAvailableInVersion9 = 8813,
+
+        // Codes 8813, 8814, 8815, 8816 used by features/module-initializers
+
+        ERR_PartialMethodReturnTypeDifference = 8817,
+        ERR_PartialMethodRefReturnDifference = 8818,
+        WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
+
+        // Codes 8820, 8821 used by features/static-lambdas
+
+        ERR_ExpressionTreeContainsWithExpression = 8849,
+        ERR_BadRecordDeclaration = 8850,
+        ERR_DuplicateRecordConstructor = 8851,
+        ERR_AssignmentInitOnly = 8852,
+        ERR_CantChangeInitOnlyOnOverride = 8853,
+        ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8854,
+        ERR_ExplicitPropertyMismatchInitOnly = 8855,
+        ERR_BadInitAccessor = 8856,
+        ERR_InvalidWithReceiverType = 8857,
+        ERR_NoSingleCloneMethod = 8858,
+        ERR_UnexpectedArgumentList = 8861,
+        ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
+        ERR_MultipleRecordParameterLists = 8863,
+        ERR_BadRecordBase = 8864,
+        ERR_BadInheritanceFromRecord = 8865,
+        ERR_BadRecordMemberForPositionalParameter = 8866,
+        ERR_NoCopyConstructorInBaseType = 8867,
+        ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
+        ERR_DoesNotOverrideMethodFromObject = 8869,
+
+        #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

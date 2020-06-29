@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 anonymousObject.Span);
         }
 
-        private async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
+        private static async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             // Gets a `TAnonymousObjectCreationExpressionSyntax` for current selection.
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 updatedDocument, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task ReplacePropertyReferencesAsync(
+        private static async Task ReplacePropertyReferencesAsync(
             Document document, SyntaxEditor editor, SyntaxNode containingMember,
             ImmutableDictionary<IPropertySymbol, string> propertyMap, CancellationToken cancellationToken)
         {
@@ -295,14 +295,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 document, namedTypeWithoutMembers,
                 readonlyProperties, cancellationToken).ConfigureAwait(false);
 
-            var members = ArrayBuilder<ISymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
             members.AddRange(properties);
             members.Add(constructor);
             members.Add(equalsMethod);
             members.Add(getHashCodeMethod);
 
-            var namedTypeSymbol = CreateNamedType(className, capturedTypeParameters, members.ToImmutableAndFree());
-            return namedTypeSymbol;
+            return CreateNamedType(className, capturedTypeParameters, members.ToImmutable());
         }
 
         private static INamedTypeSymbol CreateNamedType(

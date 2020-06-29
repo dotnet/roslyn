@@ -49,12 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             await TestAsync(initialMarkup, initialMarkup, parseOptions); // no change to markup
         }
 
-        private async Task TestLanguageVersionNotUpgradedAsync(string initialMarkup,
-#pragma warning disable IDE0060 // Remove unused parameter
-            LanguageVersion expected,
-#pragma warning restore IDE0060 // Remove unused parameter
-            ParseOptions parseOptions,
-            int index = 0)
+        private async Task TestLanguageVersionNotUpgradedAsync(string initialMarkup, ParseOptions parseOptions, int index = 0)
         {
             var parameters = new TestParameters(parseOptions: parseOptions, index: index);
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
@@ -789,7 +784,6 @@ public interface I1
     </Project>
 </Workspace>
 ",
-                expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
 
