@@ -101,8 +101,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValueOpt);
         protected abstract void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity);
         protected abstract void ResetCurrentAnalysisData();
-        protected bool HasPointsToAnalysisResult => DataFlowAnalysisContext.PointsToAnalysisResultOpt != null || IsPointsToAnalysis;
-        protected virtual bool IsPointsToAnalysis => false;
+
+        /// <summary>
+        /// Indicates if we have any points to analysis data, with or without tracking for fields and properties, i.e. either
+        /// <see cref="PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties"/> or <see cref="PointsToAnalysisKind.Complete"/>
+        /// </summary>
+        protected bool HasPointsToAnalysisResult { get; }
+
+        /// <summary>
+        /// Indicates if we have complete points to analysis data with <see cref="PointsToAnalysisKind.Complete"/>.
+        /// </summary>
+        protected bool HasCompletePointsToAnalysisResult { get; }
+
+        internal virtual bool IsPointsToAnalysis => false;
+
         internal Dictionary<ThrownExceptionInfo, TAnalysisData>? AnalysisDataForUnhandledThrowOperations { get; private set; }
         public ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> InterproceduralResultsMap => _interproceduralResultsBuilder.ToImmutable();
 
@@ -258,10 +270,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 interproceduralInvocationInstanceOpt = null;
             }
 
+            var pointsToAnalysisKind = analysisContext is PointsToAnalysisContext pointsToAnalysisContext
+                ? pointsToAnalysisContext.PointsToAnalysisKind
+                : analysisContext.PointsToAnalysisResultOpt?.PointsToAnalysisKind ?? PointsToAnalysisKind.None;
+            HasPointsToAnalysisResult = pointsToAnalysisKind != PointsToAnalysisKind.None;
+            HasCompletePointsToAnalysisResult = pointsToAnalysisKind == PointsToAnalysisKind.Complete;
+
             AnalysisEntityFactory = new AnalysisEntityFactory(
                 DataFlowAnalysisContext.ControlFlowGraph,
                 DataFlowAnalysisContext.WellKnownTypeProvider,
-                getPointsToAbstractValueOpt: (analysisContext.PointsToAnalysisResultOpt != null || IsPointsToAnalysis) ?
+                getPointsToAbstractValueOpt: HasPointsToAnalysisResult ?
                     GetPointsToAbstractValue :
                     (Func<IOperation, PointsToAbstractValue>?)null,
                 getIsInsideAnonymousObjectInitializer: () => IsInsideAnonymousObjectInitializer,

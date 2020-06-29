@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Analyzer.Utilities.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
@@ -25,11 +26,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// </summary>
         private PooledHashSet<PointsToAbstractValue> PointsToValues { get; }
 
-        public TrackedEntitiesBuilder()
+        public TrackedEntitiesBuilder(PointsToAnalysisKind pointsToAnalysisKind)
         {
+            Debug.Assert(pointsToAnalysisKind != PointsToAnalysisKind.None);
+
+            PointsToAnalysisKind = pointsToAnalysisKind;
             AllEntities = PooledHashSet<AnalysisEntity>.GetInstance();
             PointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
         }
+
+        public PointsToAnalysisKind PointsToAnalysisKind { get; }
 
         public void Dispose()
         {
@@ -39,6 +45,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public void AddEntityAndPointsToValue(AnalysisEntity analysisEntity, PointsToAbstractValue value)
         {
+            Debug.Assert(PointsToAnalysisKind == PointsToAnalysisKind.Complete || !analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis());
+
             AllEntities.Add(analysisEntity);
             AddTrackedPointsToValue(value);
         }
