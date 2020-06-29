@@ -13,8 +13,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,23 +46,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var root = editor.OriginalRoot;
             foreach (var diagnostic in diagnostics)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                ConvertNameOf(editor, diagnostic, cancellationToken);
+                var node = (MemberAccessExpressionSyntax)root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+                await ConvertNameOfAsync(editor, node);
             }
-
-            return Task.CompletedTask;
         }
-        //TODO: Implement ConvertNameOf
-        private static void ConvertNameOf(
-            SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
+
+        internal static async Task ConvertNameOfAsync(
+            SyntaxEditor editor, MemberAccessExpressionSyntax node)
         {
-            throw new NotImplementedException();
+
+            var identifier = node.Expression.ChildNodes().OfType<IdentifierNameSyntax>().First().Identifier.ValueText;
+            var nameOfSyntax = SyntaxFactory.
+                ParseExpression(string.Format("nameof({0})", identifier)).
+                WithLeadingTrivia(node.GetLeadingTrivia()).
+                WithTrailingTrivia(node.GetTrailingTrivia());
+
+            editor.ReplaceNode(node, nameOfSyntax);
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
