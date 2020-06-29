@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
             var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+
+            // PROTOTYPE follow up with Neal on the implementation 
             ConstantValue? resultConstant = null;
             bool constantEnabled = true;
             foreach (var content in node.Contents)

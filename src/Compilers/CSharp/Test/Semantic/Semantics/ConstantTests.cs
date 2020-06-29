@@ -3474,7 +3474,8 @@ class C
         const string S1 = $""Testing"";
         const string S2 = $""{""Level 5""} {""Number 3""}"";
         const string S3 = $""{$""{""Spinning Top""}""}"";
-        const string F = $""{S1}"";
+        const string F1 = $""{S1}"";
+        const string F2 = $""{F1} the {S2}"";
     }
 }";
             var actual = ParseAndGetConstantFoldingSteps(source);
@@ -3484,7 +3485,8 @@ class C
 $""{""Level 5""} {""Number 3""}"" --> Level 5 Number 3
 $""{$""{""Spinning Top""}""}"" --> Spinning Top
 $""{""Spinning Top""}"" --> Spinning Top
-$""{S1}"" --> Testing";
+$""{S1}"" --> Testing
+$""{F1} the {S2}"" --> Testing the Level 5 Number 3";
             Assert.Equal(expected, actual);
         }
     }
