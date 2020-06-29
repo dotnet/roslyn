@@ -1455,7 +1455,7 @@ class C
     {
         (C? a, C b) t = (x, x2) /*T:(C? x, C! x2)*/ /*CT:(C? a, C! b)*/;
         (object a, int b) t2 = (x, (short)0)/*T:(C? x, short)*/ /*CT:(object! a, int b)*/; // 1
-        (object a, int b) t3 = (default, default) /*T:<null>!*/ /*CT:(object! a, int b)*/; // 2
+        (object a, int b) t3 = (default, default) /*T:<null>?*/ /*CT:(object! a, int b)*/; // 2
         (object a, int b) t4 = (default(object), default(int)) /*T:(object?, int)*/ /*CT:(object! a, int b)*/; // 3
     }
 }";
@@ -1466,7 +1466,7 @@ class C
                 //         (object a, int b) t2 = (x, (short)0)/*T:(C? x, short)*/ /*CT:(object! a, int b)*/; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, (short)0)").WithArguments("(object? x, int)", "(object a, int b)").WithLocation(9, 32),
                 // (10,32): warning CS8619: Nullability of reference types in value of type '(object?, int)' doesn't match target type '(object a, int b)'.
-                //         (object a, int b) t3 = (default, default) /*T:<null>!*/ /*CT:(object! a, int b)*/; //2
+                //         (object a, int b) t3 = (default, default) /*T:<null>?*/ /*CT:(object! a, int b)*/; //2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(default, default)").WithArguments("(object?, int)", "(object a, int b)").WithLocation(10, 32),
                 // (11,32): warning CS8619: Nullability of reference types in value of type '(object?, int)' doesn't match target type '(object a, int b)'.
                 //         (object a, int b) t4 = (default(object), default(int)) /*T:(object?, int)*/ /*CT:(object! a, int b)*/; // 3
@@ -4031,7 +4031,7 @@ class B2 : A<int?>
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var exprs = tree.GetRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ToArray();
-            verify(exprs[0], PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.MaybeNull);
+            verify(exprs[0], PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
             verify(exprs[1], PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
 
             void verify(DefaultExpressionSyntax expr, PublicNullableAnnotation expectedAnnotation, PublicNullableFlowState expectedState)

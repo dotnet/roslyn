@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// T where T : IComparable => true
         /// T where T : IComparable? => true
         /// </summary>
-        public static bool IsTypeParameterDisallowingAnnotation(this TypeSymbol type)
+        public static bool IsTypeParameterDisallowingAnnotation(this TypeSymbol type) // The method name is misleading since annotations are allowed always.
         {
             if (type.TypeKind != TypeKind.TypeParameter)
             {

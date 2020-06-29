@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -188,15 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.DeclaringMethod == (object)args.method)
                     {
-                        if (!args.declaredConstraints.IsDefault &&
-                            (args.declaredConstraints[typeParameterSymbol.Ordinal].Constraints & TypeParameterConstraintKind.ReferenceType) != 0)
-                        {
-                            type.TryForceResolveAsNullableReferenceType();
-                        }
-                        else
-                        {
-                            type.TryForceResolveAsNullableValueType();
-                        }
+                        var asValueType = args.declaredConstraints.IsDefault ||
+                            (args.declaredConstraints[typeParameterSymbol.Ordinal].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.Default)) == 0;
+                        type.TryForceResolve(asValueType);
                     }
                     return false;
                 }, typePredicate: null, arg: (method, declaredConstraints), canDigThroughNullable: false, useDefaultType: true);

@@ -935,29 +935,130 @@ class C<T> where T : struct
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8);
 
             comp.VerifyDiagnostics(
-                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
-                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Please use language version 'preview' or greater, or consider adding a 'class', 'struct', or type constraint.
                 //     T? F3;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 5)
-            );
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("preview").WithLocation(10, 5));
 
             // [NonNullTypes] missing
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
-                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Please use language version 'preview' or greater, or consider adding a 'class', 'struct', or type constraint.
                 //     T? F3;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 5)
-            );
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("preview").WithLocation(10, 5));
 
             // https://github.com/dotnet/roslyn/issues/29976: Test with [NonNullTypes(Warnings=false)].
         }
 
-        // https://github.com/dotnet/roslyn/issues/29976: Test `where T : unmanaged`.
+        [Fact]
+        public void GenericType_NoConstraint()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+class C<T>
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     private T F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(5, 15),
+                // (6,16): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
+                //     private T? F2;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(6, 16),
+                // (7,15): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private T P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 15),
+                // (8,16): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
+                //     private T? P2 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(8, 16));
+        }
+
+        [Fact]
+        public void GenericType_NullableClassConstraint()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+class C<T> where T : class?
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     private T F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(5, 15),
+                // (6,16): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
+                //     private T? F2;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(6, 16),
+                // (7,15): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private T P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 15),
+                // (8,16): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
+                //     private T? P2 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(8, 16));
+        }
+
+        [Fact]
+        public void GenericType_NotNullConstraint()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+class C<T> where T : notnull
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
+                //     private T F1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F1").WithArguments("field", "F1").WithLocation(5, 15),
+                // (6,16): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
+                //     private T? F2;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(6, 16),
+                // (7,15): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
+                //     private T P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 15),
+                // (8,16): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
+                //     private T? P2 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(8, 16));
+        }
+
+        [Fact]
+        public void GenericType_UnmanagedConstraint()
+        {
+            var source =
+@"#nullable enable
+#pragma warning disable 0169
+class C<T> where T : unmanaged
+{
+    private T F1;
+    private T? F2;
+    private T P1 { get; }
+    private T? P2 { get; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void TypeParameterConstraints()
         {

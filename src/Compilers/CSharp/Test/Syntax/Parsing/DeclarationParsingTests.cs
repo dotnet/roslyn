@@ -7547,5 +7547,253 @@ b { }";
             }
             EOF();
         }
+
+        [Fact]
+        public void DefaultConstraint_01()
+        {
+            UsingNode(
+@"class C<T> where T : default { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DefaultConstraint_02()
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : default
+    where U : default { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DefaultConstraint_03()
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : struct, default
+    where U : default, class { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DefaultConstraint_04()
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : struct default
+    where U : default class { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

@@ -211,21 +211,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 for (int i = 0; i < declaredConstraints.Length; i++)
                 {
+                    var typeParameter = _typeParameters[i];
                     ErrorCode report;
 
-                    switch (declaredConstraints[i].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType))
+                    switch (declaredConstraints[i].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Default))
                     {
                         case TypeParameterConstraintKind.ReferenceType:
-                            if (!_typeParameters[i].IsReferenceType)
+                            if (!typeParameter.IsReferenceType)
                             {
                                 report = ErrorCode.ERR_OverrideRefConstraintNotSatisfied;
                                 break;
                             }
                             continue;
                         case TypeParameterConstraintKind.ValueType:
-                            if (!_typeParameters[i].IsNonNullableValueType())
+                            if (!typeParameter.IsNonNullableValueType())
                             {
                                 report = ErrorCode.ERR_OverrideValConstraintNotSatisfied;
+                                break;
+                            }
+                            continue;
+                        case TypeParameterConstraintKind.Default:
+                            if (typeParameter.IsReferenceType || typeParameter.IsValueType)
+                            {
+                                report = ErrorCode.ERR_OverrideDefaultConstraintNotSatisfied;
                                 break;
                             }
                             continue;
@@ -233,14 +241,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                     }
 
-                    diagnostics.Add(report, _typeParameters[i].Locations[0], this, _typeParameters[i],
+                    diagnostics.Add(report, typeParameter.Locations[0], this, typeParameter,
                                     overriddenOrExplicitlyImplementedMethod.TypeParameters[i], overriddenOrExplicitlyImplementedMethod);
                 }
             }
 
             CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, isVararg, HasAnyBody, location, diagnostics);
-
-            return;
         }
 
         protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics);
