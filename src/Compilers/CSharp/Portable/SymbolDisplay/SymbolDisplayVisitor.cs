@@ -367,9 +367,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IncludeNamedType(INamedTypeSymbol namedType)
         {
-            return
-                namedType != null &&
-                (!namedType.IsScriptClass || format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType));
+            if (namedType is null)
+            {
+                return false;
+            }
+
+            if (namedType.IsScriptClass && !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
+            {
+                return false;
+            }
+
+            if (namedType == semanticModelOpt?.Compilation.ScriptGlobalsType)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static bool IsEnumMember(ISymbol symbol)

@@ -79,7 +79,7 @@ record C(int x, string y)
                 Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 9)
             );
             var c = comp.GlobalNamespace.GetTypeMember("C");
-            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[1];
             Assert.Equal(2, ctor.ParameterCount);
 
             var a = ctor.Parameters[0];
@@ -146,12 +146,13 @@ record C(int x, string y)
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
-            var x = (SourceOrRecordPropertySymbol)c.GetProperty("x");
+            var x = (SourcePropertySymbolBase)c.GetProperty("x");
             Assert.NotNull(x.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
             Assert.False(x.IsReadOnly);
             Assert.False(x.IsWriteOnly);
+            Assert.False(x.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, x.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -162,26 +163,30 @@ record C(int x, string y)
             Assert.Equal(x, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             var getAccessor = x.GetMethod;
             Assert.Equal(x, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
 
             var setAccessor = x.SetMethod;
             Assert.Equal(x, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
             Assert.True(setAccessor.IsInitOnly);
 
-            var y = (SourceOrRecordPropertySymbol)c.GetProperty("y");
+            var y = (SourcePropertySymbolBase)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
             Assert.False(y.IsReadOnly);
             Assert.False(y.IsWriteOnly);
+            Assert.False(y.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -192,14 +197,17 @@ record C(int x, string y)
             Assert.Equal(y, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             getAccessor = y.GetMethod;
             Assert.Equal(y, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
 
             setAccessor = y.SetMethod;
             Assert.Equal(y, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
@@ -209,6 +217,38 @@ record C(int x, string y)
         [Fact]
         public void RecordEquals_01()
         {
+            var comp = CreateCompilation(@"
+record C(int X, int Y)
+{
+    public bool Equals(C c) => throw null;
+    public override bool Equals(object o) => false;
+}
+");
+            comp.VerifyDiagnostics(
+                // (5,26): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
+                //     public override bool Equals(object o) => false;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(5, 26)
+                );
+
+            comp = CreateCompilation(@"
+record C
+{
+    public int Equals(object o) => throw null;
+}
+
+record D : C
+{
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,16): warning CS0114: 'C.Equals(object)' hides inherited member 'object.Equals(object)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public int Equals(object o) => throw null;
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Equals").WithArguments("C.Equals(object)", "object.Equals(object)").WithLocation(4, 16),
+                // (4,16): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
+                //     public int Equals(object o) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(4, 16)
+                );
+
             CompileAndVerify(@"
 using System;
 record C(int X, int Y)
@@ -218,8 +258,7 @@ record C(int X, int Y)
         object c = new C(0, 0);
         Console.WriteLine(c.Equals(c));
     }
-    public bool Equals(C c) => throw null;
-    public override bool Equals(object o) => false;
+    public bool Equals(C c) => false;
 }", expectedOutput: "False");
         }
 
@@ -708,7 +747,7 @@ record C(int x, int y)
             Assert.Equal(0, clone.ParameterCount);
             Assert.Equal(c, clone.ReturnType);
 
-            var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[1];
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
@@ -1020,7 +1059,7 @@ record C
                 "System.String! C.Y.get",
                 "void C.Y.init",
                 "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? )",
                 "C.C(C! )",
                 "C.C()",
