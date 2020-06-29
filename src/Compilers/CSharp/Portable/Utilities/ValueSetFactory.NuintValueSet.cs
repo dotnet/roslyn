@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class NuintValueSet : IValueSet<uint>, IValueSet
         {
             public readonly static NuintValueSet AllValues = new NuintValueSet(values: NumericValueSet<uint, UIntTC>.AllValues, hasLarge: true);
+
+            public readonly static NuintValueSet NoValues = new NuintValueSet(values: NumericValueSet<uint, UIntTC>.NoValues, hasLarge: false);
 
             private readonly IValueSet<uint> _values;
 
@@ -33,7 +36,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _hasLarge = hasLarge;
             }
 
-            bool IValueSet.IsEmpty => !_hasLarge && _values.IsEmpty;
+            public bool IsEmpty => !_hasLarge && _values.IsEmpty;
+
+            ConstantValue? IValueSet.Sample
+            {
+                get
+                {
+                    if (IsEmpty)
+                        throw new ArgumentException();
+
+                    if (!_values.IsEmpty)
+                        return _values.Sample;
+
+                    // We do not support sampling from a nuint value set without a specific value. The caller
+                    // must arrange another way to get a sample, since we can return no specific value.  This
+                    // occurs when the value set was constructed from a pattern like `> (nuint)uint.MaxValue`.
+                    return null;
+                }
+            }
 
             public bool All(BinaryOperatorKind relation, uint value)
             {

@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly List<MetadataDefinition> _allTypeDefinitions;
 
             // Map from node represents extension method to list of possible parameter type info.
-            // We can have more than one if there's multiple methods with same name but different target type.
+            // We can have more than one if there's multiple methods with same name but different receiver type.
             // e.g.
             //
             //      public static bool AnotherExtensionMethod1(this int x);
@@ -306,12 +306,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var simpleMap = new MultiDictionary<string, ExtensionMethodInfo>();
-                var complexBuilder = ArrayBuilder<ExtensionMethodInfo>.GetInstance();
-                var unsortedNodes = GenerateUnsortedNodes(complexBuilder, simpleMap);
+                var extensionMethodsMap = new MultiDictionary<string, ExtensionMethodInfo>();
+                var unsortedNodes = GenerateUnsortedNodes(extensionMethodsMap);
 
                 return CreateSymbolTreeInfo(
-                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, simpleMap, complexBuilder.ToImmutableAndFree());
+                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, extensionMethodsMap);
             }
 
             public void Dispose()
@@ -372,8 +371,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (definition.Kind == MetadataDefinitionKind.Member)
                         {
-                            // We need to support having multiple methods with same name but different target type.
-                            _extensionMethodToParameterTypeInfo.Add(childNode, definition.TargetTypeInfo);
+                            // We need to support having multiple methods with same name but different receiver type.
+                            _extensionMethodToParameterTypeInfo.Add(childNode, definition.ReceiverTypeInfo);
                         }
 
                         LookupMetadataDefinitions(definition, definitionMap);
@@ -410,6 +409,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
             {
                 // Only bother looking for extension methods in static types.
+                // Note this check means we would ignore extension methods declared in assemblies
+                // compiled from VB code, since a module in VB is compiled into class with 
+                // "sealed" attribute but not "abstract". 
+                // Although this can be addressed by checking custom attributes,
+                // we believe this is not a common scenario to warrant potential perf impact.
                 if ((typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
                     (typeDefinition.Attributes & TypeAttributes.Sealed) != 0)
                 {
@@ -430,7 +434,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             method.GetParameters().Count > 0 &&
                             method.GetCustomAttributes().Count > 0)
                         {
-                            // Decode method signature to get the target type name (i.e. type name for the first parameter)
+                            // Decode method signature to get the receiver type name (i.e. type name for the first parameter)
                             var blob = _metadataReader.GetBlobReader(method.Signature);
                             var decoder = new SignatureDecoder<ParameterTypeInfo, object>(ParameterTypeInfoProvider.Instance, _metadataReader, genericContext: null);
                             var signature = decoder.DecodeMethodSignature(ref blob);
@@ -696,18 +700,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return newChildNode;
             }
 
-            private ImmutableArray<BuilderNode> GenerateUnsortedNodes(ArrayBuilder<ExtensionMethodInfo> complexBuilder, MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToMethodMap)
+            private ImmutableArray<BuilderNode> GenerateUnsortedNodes(MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap)
             {
                 var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
                 unsortedNodes.Add(BuilderNode.RootNode);
 
-                AddUnsortedNodes(unsortedNodes, simpleTypeNameToMethodMap, complexBuilder, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
+                AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
                 return unsortedNodes.ToImmutableAndFree();
             }
 
             private void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
-                MultiDictionary<string, ExtensionMethodInfo> simpleBuilder,
-                ArrayBuilder<ExtensionMethodInfo> complexBuilder,
+                MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap,
                 MetadataNode parentNode,
                 int parentIndex,
                 string fullyQualifiedContainerName)
@@ -722,18 +725,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         foreach (var parameterTypeInfo in _extensionMethodToParameterTypeInfo[child])
                         {
-                            if (parameterTypeInfo.IsComplexType)
+                            // We do not differentiate array of different kinds for simplicity.
+                            // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
+                            // similar for complex receiver types, "[]" means it's an array type, "" otherwise.
+                            var parameterTypeName = (parameterTypeInfo.IsComplexType, parameterTypeInfo.IsArray) switch
                             {
-                                complexBuilder.Add(new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
-                            }
-                            else
-                            {
-                                simpleBuilder.Add(parameterTypeInfo.Name, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
-                            }
+                                (true, true) => Extensions.ComplexArrayReceiverTypeName,                          // complex array type, e.g. "T[,]"
+                                (true, false) => Extensions.ComplexReceiverTypeName,                              // complex non-array type, e.g. "T"
+                                (false, true) => parameterTypeInfo.Name + Extensions.ArrayReceiverTypeNameSuffix, // simple array type, e.g. "int[][,]"
+                                (false, false) => parameterTypeInfo.Name                                          // simple non-array type, e.g. "int"
+                            };
+
+                            receiverTypeNameToMethodMap.Add(parameterTypeName, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
                         }
                     }
 
-                    AddUnsortedNodes(unsortedNodes, simpleBuilder, complexBuilder, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
+                    AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
                 }
 
                 static string Concat(string containerName, string name)
@@ -790,17 +797,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// <summary>
             /// Only applies to member kind. Represents the type info of the first parameter.
             /// </summary>
-            public ParameterTypeInfo TargetTypeInfo { get; }
+            public ParameterTypeInfo ReceiverTypeInfo { get; }
 
             public NamespaceDefinition Namespace { get; private set; }
             public TypeDefinition Type { get; private set; }
 
-            public MetadataDefinition(MetadataDefinitionKind kind, string name, ParameterTypeInfo targetTypeInfo = default)
+            public MetadataDefinition(MetadataDefinitionKind kind, string name, ParameterTypeInfo receiverTypeInfo = default)
                 : this()
             {
                 Kind = kind;
                 Name = name;
-                TargetTypeInfo = targetTypeInfo;
+                ReceiverTypeInfo = receiverTypeInfo;
             }
 
             public static MetadataDefinition Create(
