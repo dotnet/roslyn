@@ -4,42 +4,28 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Xml.Linq;
 using EnvDTE;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TemplateWizard;
 
 public partial class RoslynSDKChildTemplateWizard : IWizard
 {
-    /// <summary>
-    /// Only one wizard will be run by the project system.  
-    /// This means our wizard needs to load and call the nuget wizard for every function.
-    /// </summary>
-    private IWizard NugetWizard => lazyWizard.Value;
-
-    private Lazy<IWizard> lazyWizard = new Lazy<IWizard>(() =>
-    {
-        var asm = Assembly.Load("NuGet.VisualStudio.Interop, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=b03f5f7f11d50a3a");
-        return (IWizard)asm.CreateInstance("NuGet.VisualStudio.TemplateWizard");
-    });
-
-    public void BeforeOpeningFile(ProjectItem projectItem) => NugetWizard.BeforeOpeningFile(projectItem);
+    public void BeforeOpeningFile(ProjectItem projectItem) { }
     public void ProjectFinishedGenerating(Project project)
     {
-        NugetWizard.ProjectFinishedGenerating(project);
         OnProjectFinishedGenerating(project);
     }
-    public void RunFinished() => NugetWizard.RunFinished();
-    public bool ShouldAddProjectItem(string filePath) => NugetWizard.ShouldAddProjectItem(filePath);
-    public void ProjectItemFinishedGenerating(ProjectItem projectItem) => NugetWizard.ProjectItemFinishedGenerating(projectItem);
+    public void RunFinished() { }
+    public bool ShouldAddProjectItem(string filePath) => true;
+    public void ProjectItemFinishedGenerating(ProjectItem projectItem) { }
     public void RunStarted(object automationObject, Dictionary<string, string> replacementsDictionary, WizardRunKind runKind, object[] customParams)
     {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
         WriteOutBetaNugetSource("dotnet.myget.org roslyn", "https://dotnet.myget.org/F/roslyn/api/v3/index.json");
         WriteOutBetaNugetSource("dotnet.myget.org roslyn-analyzers", "https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json");
-        NugetWizard.RunStarted(automationObject, replacementsDictionary, runKind, customParams);
-#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
         OnRunStarted(automationObject as DTE, replacementsDictionary, runKind, customParams);
-#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
     }
 
     private void WriteOutBetaNugetSource(string key, string value)
