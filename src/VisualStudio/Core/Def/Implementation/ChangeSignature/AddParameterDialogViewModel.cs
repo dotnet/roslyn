@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 return false;
             }
 
-            if (!IsParameterTypeSyntacticallyValid(VerbatimTypeName) || TypeSymbol == null)
+            if (TypeSymbol == null || !IsParameterTypeSyntacticallyValid(VerbatimTypeName))
             {
                 message = ServicesVSResources.Parameter_type_contains_invalid_characters;
                 return false;
