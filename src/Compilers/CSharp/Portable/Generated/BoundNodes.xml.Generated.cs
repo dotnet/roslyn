@@ -1703,7 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedConditionalOperator : BoundExpression
     {
-        public BoundUnconvertedConditionalOperator(SyntaxNode syntax, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ErrorCode noCommonTypeError, TypeSymbol? type, bool hasErrors = false)
+        public BoundUnconvertedConditionalOperator(SyntaxNode syntax, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, ErrorCode noCommonTypeError, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.UnconvertedConditionalOperator, syntax, type, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
         {
 
@@ -1714,6 +1714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Condition = condition;
             this.Consequence = consequence;
             this.Alternative = alternative;
+            this.ConstantValueOpt = constantValueOpt;
             this.NoCommonTypeError = noCommonTypeError;
         }
 
@@ -1724,15 +1725,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Alternative { get; }
 
+        public ConstantValue? ConstantValueOpt { get; }
+
         public ErrorCode NoCommonTypeError { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedConditionalOperator(this);
 
-        public BoundUnconvertedConditionalOperator Update(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ErrorCode noCommonTypeError, TypeSymbol? type)
+        public BoundUnconvertedConditionalOperator Update(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, ErrorCode noCommonTypeError, TypeSymbol? type)
         {
-            if (condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || noCommonTypeError != this.NoCommonTypeError || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || noCommonTypeError != this.NoCommonTypeError || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUnconvertedConditionalOperator(this.Syntax, condition, consequence, alternative, noCommonTypeError, type, this.HasErrors);
+                var result = new BoundUnconvertedConditionalOperator(this.Syntax, condition, consequence, alternative, constantValueOpt, noCommonTypeError, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9911,7 +9914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
             BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(condition, consequence, alternative, node.NoCommonTypeError, type);
+            return node.Update(condition, consequence, alternative, node.ConstantValueOpt, node.NoCommonTypeError, type);
         }
         public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
         {
@@ -11407,12 +11410,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(condition, consequence, alternative, node.NoCommonTypeError, infoAndType.Type);
+                updatedNode = node.Update(condition, consequence, alternative, node.ConstantValueOpt, node.NoCommonTypeError, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(condition, consequence, alternative, node.NoCommonTypeError, node.Type);
+                updatedNode = node.Update(condition, consequence, alternative, node.ConstantValueOpt, node.NoCommonTypeError, node.Type);
             }
             return updatedNode;
         }
@@ -13611,6 +13614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
             new TreeDumperNode("consequence", null, new TreeDumperNode[] { Visit(node.Consequence, null) }),
             new TreeDumperNode("alternative", null, new TreeDumperNode[] { Visit(node.Alternative, null) }),
+            new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("noCommonTypeError", node.NoCommonTypeError, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),

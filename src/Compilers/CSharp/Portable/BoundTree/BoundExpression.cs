@@ -497,6 +497,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundUnconvertedConditionalOperator
+    {
+        public override ConstantValue? ConstantValue
+        {
+            get
+            {
+                return this.ConstantValueOpt;
+            }
+        }
+    }
+
     internal partial class BoundSizeOfOperator
     {
         public override ConstantValue? ConstantValue

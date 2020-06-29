@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -363,6 +364,57 @@ delegate int Del(int x);
                 Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenTrue).ConvertedType.ToTestDisplayString(includeNonNullable: false)); //in parent to catch conversion
                 Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenFalse).ConvertedType.ToTestDisplayString(includeNonNullable: false)); //in parent to catch conversion
             }
+        }
+
+        [Fact, WorkItem(45460, "https://github.com/dotnet/roslyn/issues/45460")]
+        public void TestConstantConditional()
+        {
+            var source = @"
+using System;
+public class Program {
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    public static void Test1() {
+        const bool b = true;
+        uint u1 = M1<uint>(b ? 1 : 0);
+        Console.WriteLine(u1); // 1
+        uint s1 = M2(b ? 2 : 3);
+        Console.WriteLine(s1); // 2
+        uint u2 = b ? 4 : 5;
+        Console.WriteLine(u2); // 4
+
+        static uint M2(uint t) => t;
+    }
+    public static void Test2() {
+        const bool b = true;
+        short s1 = M1<short>(b ? 1 : 0);
+        Console.WriteLine(s1); // 1
+        short s2 = M2(b ? 2 : 3);
+        Console.WriteLine(s2); // 2
+        short s3 = b ? 4 : 5;
+        Console.WriteLine(s3); // 4
+
+        static short M2(short t) => t;
+    }
+    public static T M1<T>(T t) => t;
+}";
+            var expectedOutput = @"
+1
+2
+4
+1
+2
+4";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe)
+                .VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()), options: TestOptions.DebugExe)
+                .VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
     }
 }
