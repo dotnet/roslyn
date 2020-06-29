@@ -12676,7 +12676,7 @@ is_global = true
 dotnet_diagnostic.Warning01.severity = error;
 ");
 
-       //     VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
 
             VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:Warning01", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
         }

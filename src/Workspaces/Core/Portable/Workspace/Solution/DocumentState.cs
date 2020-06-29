@@ -761,7 +761,8 @@ namespace Microsoft.CodeAnalysis
             {
                 var analyzerConfigSet = await _analyzerConfigSetSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-                return analyzerConfigSet.GetOptionsForSourcePath(effectiveFilePath).AnalyzerOptions;
+                return analyzerConfigSet.GetOptionsForSourcePath(effectiveFilePath).AnalyzerOptions
+                    ?? ImmutableDictionary<string, string>.Empty;
             }
             else
             {

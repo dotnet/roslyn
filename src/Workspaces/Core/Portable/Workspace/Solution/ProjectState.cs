@@ -283,7 +283,8 @@ namespace Microsoft.CodeAnalysis
                     return ImmutableDictionary<string, ReportDiagnostic>.Empty;
             }
 
-            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath).TreeOptions;
+            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath).TreeOptions
+                ?? ImmutableDictionary<string, ReportDiagnostic>.Empty;
         }
 
         private sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
@@ -311,7 +312,7 @@ namespace Microsoft.CodeAnalysis
                 private readonly ImmutableDictionary<string, string> _backing;
 
                 public WorkspaceAnalyzerConfigOptions(AnalyzerConfigOptionsResult analyzerConfigOptions)
-                    => _backing = analyzerConfigOptions.AnalyzerOptions;
+                    => _backing = analyzerConfigOptions.AnalyzerOptions ?? ImmutableDictionary<string, string>.Empty;
 
                 public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
             }
