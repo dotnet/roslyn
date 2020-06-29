@@ -3,7 +3,7 @@ trigger:
 - master
 - master-vs-deps
 - release/*
-- features/*
+- feature/convertNameOf
 - demos/*
 
 # Branches that trigger builds on PR
@@ -12,6 +12,7 @@ pr:
 - master-vs-deps
 - release/*
 - features/*
+- feature/convertNameOf
 - demos/*
 
 jobs:
