@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             {
                 var dataTagSpans = tag.Span.GetSpans(spans[0].Snapshot);
                 var textTag = tag.Tag;
-                if (dataTagSpans.Count > 0)
+                if (dataTagSpans.Count == 1)
                 {
                     var dataTagSpan = dataTagSpans[0];
                     var adornmentSpan = new SnapshotSpan(dataTagSpan.Start, 0);

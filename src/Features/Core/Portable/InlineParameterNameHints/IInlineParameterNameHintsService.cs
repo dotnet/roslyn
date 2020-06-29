@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
         public InlineParameterHint(string name, int position)
         {
             Name = name;
-            Pos = position;
+            Position = position;
         }
         public string Name { get; }
-        public int Pos { get; }
+        public int Position { get; }
     }
 
     internal interface IInlineParameterNameHintsService : ILanguageService

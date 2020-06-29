@@ -38,43 +38,44 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
             CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var node = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var spans = new List<InlineParameterHint>();
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var invocations = node.DescendantNodes(textSpan).OfType<InvocationExpressionSyntax>();
+            var nodes = root.DescendantNodes(textSpan);
 
-            foreach (var invocation in invocations)
+            foreach (var node in nodes)
             {
-                foreach (var argument in invocation.ArgumentList.Arguments)
+                if (node is InvocationExpressionSyntax invocation)
                 {
-                    if (argument.NameColon == null && IsExpressionWithNoName(argument.Expression))
+                    foreach (var argument in invocation.ArgumentList.Arguments)
                     {
-                        var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                        if (param != null && param.Name != "")
+                        if (argument.NameColon == null && IsExpressionWithNoName(argument.Expression))
                         {
-                            spans.Add(new InlineParameterHint(param.Name, argument.Span.Start));
+                            var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                            if (param != null && param.Name != "")
+                            {
+                                spans.Add(new InlineParameterHint(param.Name, argument.Span.Start));
+                            }
                         }
                     }
                 }
-            }
-
-            var attributeLists = node.DescendantNodes(textSpan).OfType<AttributeListSyntax>();
-            foreach (var attributeList in attributeLists)
-            {
-                foreach (var attributeSyntax in attributeList.Attributes)
+                else if (node is AttributeListSyntax attributeList)
                 {
-                    if (attributeSyntax.ArgumentList != null)
+                    foreach (var attributeSyntax in attributeList.Attributes)
                     {
-                        foreach (var attribute in attributeSyntax.ArgumentList.Arguments)
+                        if (attributeSyntax.ArgumentList != null)
                         {
-                            if (attribute.NameEquals == null && attribute.NameColon == null && IsExpressionWithNoName(attribute.Expression))
+                            foreach (var attribute in attributeSyntax.ArgumentList.Arguments)
                             {
-                                var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                                if (param != null && param.Name != "")
+                                if (attribute.NameEquals == null && attribute.NameColon == null && IsExpressionWithNoName(attribute.Expression))
                                 {
-                                    spans.Add(new InlineParameterHint(param.Name, attribute.SpanStart));
+                                    var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                                    if (param != null && param.Name != "")
+                                    {
+                                        spans.Add(new InlineParameterHint(param.Name, attribute.SpanStart));
+                                    }
                                 }
                             }
                         }

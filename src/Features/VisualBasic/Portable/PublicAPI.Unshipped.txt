@@ -1,1 +1,8 @@
-
+InlineParameterNameHintsService
+InlineParameterNameHintsService.New() -> Void
+Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints.InlineParameterNameHintsService
+Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints.InlineParameterNameHintsService.GetInlineParameterNameHintsAsync(document As Microsoft.CodeAnalysis.Document, textSpan As Microsoft.CodeAnalysis.Text.TextSpan, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Threading.Tasks.Task(Of System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.InlineParameterNameHints.InlineParameterHint))
+Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints.InlineParameterNameHintsService.New() -> Void
+Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHintsService.InlineParameterNameHintsService
+Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHintsService.InlineParameterNameHintsService.GetInlineParameterNameHintsAsync(document As Microsoft.CodeAnalysis.Document, textSpan As Microsoft.CodeAnalysis.Text.TextSpan, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Threading.Tasks.Task(Of System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.InlineParameterNameHints.InlineParameterHint))
+Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHintsService.InlineParameterNameHintsService.New() -> Void
