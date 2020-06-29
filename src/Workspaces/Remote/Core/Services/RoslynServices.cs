@@ -10,19 +10,14 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.CodingConventions;
-using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
     /// Various Roslyn services provider.
-    /// 
-    /// TODO: change all these services to WorkspaceServices
     /// </summary>
     internal sealed class RoslynServices
     {
-        private static TelemetrySession? s_telemetrySession;
-
         private static readonly object s_hostServicesGuard = new object();
 
         /// <summary>
@@ -55,26 +50,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 lock (s_hostServicesGuard)
                 {
-                    return s_hostServices ?? (s_hostServices = MefHostServices.Create(RemoteHostAssemblies));
+                    return s_hostServices ??= MefHostServices.Create(RemoteHostAssemblies);
                 }
             }
         }
-
-        /// <summary>
-        /// Set default telemetry session
-        /// </summary>
-        public static void SetTelemetrySession(TelemetrySession session)
-            => s_telemetrySession = session;
-
-        /// <summary>
-        /// Default telemetry session
-        /// </summary>
-        public static TelemetrySession? TelemetrySession => s_telemetrySession;
-
-        /// <summary>
-        /// Check whether current user is microsoft internal or not
-        /// </summary>
-        public static bool IsUserMicrosoftInternal => TelemetrySession?.IsUserMicrosoftInternal ?? false;
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);

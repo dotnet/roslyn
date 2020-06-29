@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal static class UnitTestingRemoteHostOptionsAccessor
     {
-        public static Option<bool> OOP64Bit => RemoteHostOptions.OOP64Bit;
+        private const string LocalRegistryPath = @"Roslyn\Internal\RemoteServices\";
+
+        public static Option<bool> OOP64Bit => new Option<bool>(
+            nameof(RemoteHostOptions), nameof(OOP64Bit), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOP64Bit)));
     }
 }

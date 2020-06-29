@@ -154,7 +154,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)
         {
             var serializer = new JsonSerializer();
-            serializer.Converters.Add(hub::Microsoft.CodeAnalysis.Remote.AggregateJsonConverter.Instance);
+            serializer.Converters.Add(AggregateJsonConverter.Instance);
 
             using (var writer = new StringWriter())
             {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -18,5 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
             => Logger.Log(FunctionId.Extension_Exception, message);
+
+        public void ShowRemoteHostCrashedErrorInfo(Exception? exception)
+            => Logger.Log(FunctionId.Extension_Exception, exception?.Message);
     }
 }

@@ -8,10 +8,12 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote.Telemetry
@@ -30,19 +32,21 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new Analyzer();
+            => new Analyzer(workspace.Services);
 
         private sealed class Analyzer : IIncrementalAnalyzer
         {
+            private readonly HostWorkspaceServices _services;
+
             // maximum number of symbols to report per project.
             private const int Max = 2000;
 
-            private const string EventName = "vs/compilers/api";
-            private const string ApiPropertyName = "vs.compilers.api.pii";
-            private const string ProjectIdPropertyName = "vs.solution.project.projectid";
-            private const string SessionIdPropertyName = "vs.solution.solutionsessionid";
-
             private readonly HashSet<ProjectId> _reported = new HashSet<ProjectId>();
+
+            public Analyzer(HostWorkspaceServices services)
+            {
+                _services = services;
+            }
 
             public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
@@ -56,6 +60,12 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
 
             public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
+                var telemetryService = _services.GetRequiredService<IWorkspaceTelemetryService>();
+                if (!telemetryService.HasActiveSession)
+                {
+                    return;
+                }
+
                 lock (_reported)
                 {
                     // to make sure that we don't report while solution load, we do this heuristic.
@@ -65,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     // used. and this data is approximation not precise information. and we don't care much on how many times
                     // APIs used in the same solution. we are rather more interested in number of solutions or users APIs are used.
                     if (reasons.Contains(PredefinedInvocationReasons.DocumentAdded) ||
-                        _reported.Contains(project.Id))
+                        !_reported.Add(project.Id))
                     {
                         return;
                     }
@@ -101,50 +111,10 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     }
                 }
 
-                var groupByAssembly = metadataSymbolUsed.GroupBy(symbol => symbol.ContainingAssembly);
-                var apiPerAssembly = groupByAssembly.Select(assemblyGroup => new
-                {
-                    // mark all string as PII (customer data)
-                    AssemblyName = new TelemetryPiiProperty(assemblyGroup.Key.Identity.Name),
-                    AssemblyVersion = assemblyGroup.Key.Identity.Version.ToString(),
-                    Namespaces = assemblyGroup.GroupBy(symbol => symbol.ContainingNamespace)
-                        .Select(namespaceGroup =>
-                        {
-                            var namespaceName = namespaceGroup.Key?.ToString() ?? string.Empty;
+                var solutionSessionId = project.Solution.State.SolutionAttributes.TelemetryId;
+                var projectGuid = project.State.ProjectInfo.Attributes.TelemetryId;
 
-                            return new
-                            {
-                                Namespace = new TelemetryPiiProperty(namespaceName),
-                                Symbols = namespaceGroup.Select(symbol => symbol.GetDocumentationCommentId())
-                                    .Where(id => id != null)
-                                    .Select(id => new TelemetryPiiProperty(id))
-                            };
-                        })
-                });
-
-                lock (_reported)
-                {
-                    if (_reported.Add(project.Id))
-                    {
-                        var solutionSessionId = project.Solution.State.SolutionAttributes.TelemetryId.ToString("B");
-                        var projectGuid = project.State.ProjectInfo.Attributes.TelemetryId.ToString("B");
-
-                        // use telemetry API directly rather than Logger abstraction for PII data
-                        var telemetryEvent = new TelemetryEvent(EventName);
-                        telemetryEvent.Properties[ApiPropertyName] = new TelemetryComplexProperty(apiPerAssembly);
-                        telemetryEvent.Properties[SessionIdPropertyName] = new TelemetryPiiProperty(solutionSessionId);
-                        telemetryEvent.Properties[ProjectIdPropertyName] = new TelemetryPiiProperty(projectGuid);
-
-                        try
-                        {
-                            RoslynServices.TelemetrySession?.PostEvent(telemetryEvent);
-                        }
-                        catch
-                        {
-                            // don't crash OOP because we failed to send telemetry
-                        }
-                    }
-                }
+                telemetryService.ReportApiUsage(metadataSymbolUsed, solutionSessionId, projectGuid);
 
                 return;
 

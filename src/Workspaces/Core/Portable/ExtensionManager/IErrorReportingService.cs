@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.Host;
 
@@ -25,5 +27,11 @@ namespace Microsoft.CodeAnalysis.Extensions
         void ShowGlobalErrorInfo(string message, params InfoBarUI[] items);
 
         void ShowDetailedErrorInfo(Exception exception);
+
+        /// <summary>
+        /// Shows info-bar reporting ServiceHub process crash.
+        /// "Unfortunately a process used by Visual Studio has encountered an unrecoverable error".
+        /// </summary>
+        void ShowRemoteHostCrashedErrorInfo(Exception? exception);
     }
 }

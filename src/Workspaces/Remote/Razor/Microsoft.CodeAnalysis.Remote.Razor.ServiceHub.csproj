@@ -14,6 +14,7 @@
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
@@ -32,17 +33,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonTraceListener.cs" Link="Shared\WatsonTraceListener.cs" />
-    <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.cs">
-      <Link>Shared\RoslynJsonConverter.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
-      <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
-    </Compile>
     <Compile Include="..\ServiceHub\Shared\ServiceBase.cs">
       <Link>Shared\ServiceBase.cs</Link>
-    </Compile>
-    <Compile Include="..\ServiceHub\Shared\RemoteEndPoint.cs">
-      <Link>Shared\RemoteEndPoint.cs</Link>
     </Compile>
   </ItemGroup>
 </Project>

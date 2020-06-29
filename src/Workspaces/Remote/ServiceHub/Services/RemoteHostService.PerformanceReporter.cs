@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.VisualStudio.Telemetry;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -28,8 +29,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private readonly IPerformanceTrackerService _diagnosticAnalyzerPerformanceTracker;
             private readonly TraceSource _logger;
+            private readonly TelemetrySession _telemetrySession;
 
-            public PerformanceReporter(TraceSource logger, IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker, IGlobalOperationNotificationService globalOperationNotificationService, TimeSpan reportingInterval, CancellationToken shutdownToken)
+            public PerformanceReporter(
+                TraceSource logger,
+                TelemetrySession telemetrySession,
+                IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker,
+                IGlobalOperationNotificationService globalOperationNotificationService,
+                TimeSpan reportingInterval,
+                CancellationToken shutdownToken)
                 : base(
                     AsynchronousOperationListenerProvider.NullListener,
                     globalOperationNotificationService,
@@ -40,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _reported = new HashSet<string>();
 
                 _logger = logger;
+                _telemetrySession = telemetrySession;
                 _diagnosticAnalyzerPerformanceTracker = diagnosticAnalyzerPerformanceTracker;
                 _diagnosticAnalyzerPerformanceTracker.SnapshotAdded += OnSnapshotAdded;
                 Start();
@@ -64,16 +73,17 @@ namespace Microsoft.CodeAnalysis.Remote
                     foreach (var analyzerInfo in pooledObject.Object)
                     {
                         var newAnalyzer = _reported.Add(analyzerInfo.AnalyzerId);
-                        var internalUser = RoslynServices.IsUserMicrosoftInternal;
+
+                        var isInternalUser = _telemetrySession.IsUserMicrosoftInternal;
 
                         // we only report same analyzer once unless it is internal user
-                        if (internalUser || newAnalyzer)
+                        if (isInternalUser || newAnalyzer)
                         {
                             // this will report telemetry under VS. this will let us see how accurate our performance tracking is
                             RoslynLogger.Log(FunctionId.Diagnostics_BadAnalyzer, KeyValueLogMessage.Create(m =>
                             {
                                 // since it is telemetry, we hash analyzer name if it is not builtin analyzer
-                                m[nameof(analyzerInfo.AnalyzerId)] = internalUser ? analyzerInfo.AnalyzerId : analyzerInfo.PIISafeAnalyzerId;
+                                m[nameof(analyzerInfo.AnalyzerId)] = isInternalUser ? analyzerInfo.AnalyzerId : analyzerInfo.PIISafeAnalyzerId;
                                 m[nameof(analyzerInfo.LocalOutlierFactor)] = analyzerInfo.LocalOutlierFactor;
                                 m[nameof(analyzerInfo.Average)] = analyzerInfo.Average;
                                 m[nameof(analyzerInfo.AdjustedStandardDeviation)] = analyzerInfo.AdjustedStandardDeviation;

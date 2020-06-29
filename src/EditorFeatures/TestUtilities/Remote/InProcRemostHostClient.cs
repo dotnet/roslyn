@@ -39,13 +39,12 @@ namespace Roslyn.Test.Utilities.Remote
             var instance = new InProcRemoteHostClient(clientId, services, inprocServices, remoteHostStream);
 
             // make sure connection is done right
-            string? telemetrySession = null;
             var uiCultureLCIDE = 0;
             var cultureLCID = 0;
 
             await instance._endPoint.InvokeAsync(
                 nameof(IRemoteHostService.InitializeGlobalState),
-                new object?[] { clientId, uiCultureLCIDE, cultureLCID, telemetrySession },
+                new object?[] { uiCultureLCIDE, cultureLCID },
                 CancellationToken.None).ConfigureAwait(false);
 
             instance.Started();
@@ -121,6 +120,7 @@ namespace Roslyn.Test.Utilities.Remote
         public class ServiceProvider : IServiceProvider
         {
             private static readonly TraceSource s_traceSource = new TraceSource("inprocRemoteClient");
+            private static readonly RemoteHostService.TestDataProvider s_testDataProvider = new RemoteHostService.TestDataProvider(isInProc: true);
 
             private readonly AssetStorage _storage;
 
@@ -143,6 +143,11 @@ namespace Roslyn.Test.Utilities.Remote
                 if (typeof(AssetStorage) == serviceType)
                 {
                     return _storage;
+                }
+
+                if (typeof(RemoteHostService.TestDataProvider) == serviceType)
+                {
+                    return s_testDataProvider;
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(serviceType);

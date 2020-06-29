@@ -48,6 +48,7 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonTraceListener.cs" Link="Telemetry\WatsonTraceListener.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryCache.cs" Link="Telemetry\VSTelemetryCache.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs" Link="Telemetry\VSTelemetryLogger.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Telemetry\AbstractWorkspaceTelemetryService.cs" />
   </ItemGroup>
   <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" />

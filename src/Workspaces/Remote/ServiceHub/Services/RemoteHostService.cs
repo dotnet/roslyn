@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -61,6 +62,16 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _shutdownCancellationSource = new CancellationTokenSource();
 
+            // test data are only available when running tests:
+            var testDataProvider = (TestDataProvider)serviceProvider.GetService(typeof(TestDataProvider));
+            if (testDataProvider == null || !testDataProvider.IsInProc)
+            {
+                // Set this process's priority BelowNormal.
+                // this should let us to freely try to use all resources possible without worrying about affecting
+                // host's work such as responsiveness or build.
+                Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+
             // this service provide a way for client to make sure remote host is alive
             StartService();
         }
@@ -68,18 +79,32 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API. Initializes ServiceHub process global state.
         /// </summary>
-        public void InitializeGlobalState(string host, int uiCultureLCID, int cultureLCID, string? serializedSession, CancellationToken cancellationToken)
+        public void InitializeGlobalState(int uiCultureLCID, int cultureLCID, CancellationToken cancellationToken)
         {
             RunService(() =>
             {
                 // initialize global asset storage
                 AssetStorage.Initialize(this);
 
-                // serializedSession may be null for testing
-                if (serializedSession != null)
-                {
-                    SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
-                }
+                EnsureCulture(uiCultureLCID, cultureLCID);
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Remote API. Initializes ServiceHub process global state.
+        /// </summary>
+        public void InitializeTelemetrySession(string host, string serializedSession, CancellationToken cancellationToken)
+        {
+            RunService(() =>
+            {
+                var services = SolutionService.PrimaryWorkspace.Services;
+
+                var telemetryService = (RemoteWorkspaceTelemetryService)services.GetRequiredService<IWorkspaceTelemetryService>();
+                var telemetrySession = new TelemetrySession(serializedSession);
+                telemetrySession.Start();
+
+                telemetryService.InitializeTelemetrySession(telemetrySession);
+                telemetryService.RegisterUnexpectedExceptionLogger(Logger);
 
                 // log telemetry that service hub started
                 RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
@@ -88,12 +113,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     m["InstanceId"] = InstanceId;
                 }));
 
-                if (serializedSession != null)
+                // start performance reporter
+                var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();
+                if (diagnosticAnalyzerPerformanceTracker != null)
                 {
-                    // Set this process's priority BelowNormal.
-                    // this should let us to freely try to use all resources possible without worrying about affecting
-                    // host's work such as responsiveness or build.
-                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+                    var globalOperationNotificationService = services.GetService<IGlobalOperationNotificationService>();
+                    _performanceReporter = new PerformanceReporter(Logger, telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, _shutdownCancellationSource.Token);
                 }
             }, cancellationToken);
         }
@@ -176,30 +201,6 @@ namespace Microsoft.CodeAnalysis.Remote
             else
             {
                 RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
-            }
-        }
-
-        private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
-        {
-            var session = new TelemetrySession(serializedSession);
-            session.Start();
-
-            EnsureCulture(uiCultureLCID, cultureLCID);
-
-            WatsonReporter.InitializeFatalErrorHandlers(session);
-            WatsonReporter.InitializeLogger(Logger);
-
-            // set roslyn loggers
-            RoslynServices.SetTelemetrySession(session);
-
-            RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
-
-            // start performance reporter
-            var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
-            if (diagnosticAnalyzerPerformanceTracker != null)
-            {
-                var globalOperationNotificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>();
-                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, _shutdownCancellationSource.Token);
             }
         }
 
