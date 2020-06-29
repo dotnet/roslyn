@@ -1,23 +1,17 @@
-﻿Imports $saferootprojectname$
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.VisualStudio.TestTools.UnitTesting
-Imports System.Threading
-Imports System.Threading.Tasks
-Imports Verify = Microsoft.CodeAnalysis.VisualBasic.Testing.MSTest.CodeFixVerifier(
+﻿Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Imports VerifyVB = $safeprojectname$.VisualBasicCodeFixVerifier(
     Of $saferootprojectname$.$saferootidentifiername$Analyzer,
     $saferootprojectname$.$saferootidentifiername$CodeFixProvider)
 
 Namespace $safeprojectname$
     <TestClass>
-    Public Class UnitTest
+    Public Class $saferootidentifiername$UnitTest
 
         'No diagnostics expected to show up
         <TestMethod>
         Public Async Function TestMethod1() As Task
             Dim test = ""
-            Await Verify.VerifyAnalyzerAsync(test)
+            Await VerifyVB.VerifyAnalyzerAsync(test)
         End Function
 
         'Diagnostic And CodeFix both triggered And checked for
@@ -25,26 +19,25 @@ Namespace $safeprojectname$
         Public Async Function TestMethod2() As Task
 
             Dim test = "
-Module Module1
+Class {|#0:TypeName|}
 
     Sub Main()
 
     End Sub
 
-End Module"
+End Class"
 
             Dim fixtest = "
-Module MODULE1
+Class TYPENAME
 
     Sub Main()
 
     End Sub
 
-End Module"
+End Class"
 
-            Dim expected = Verify.Diagnostic("$saferootidentifiername$").WithLocation(2, 8).WithArguments("Module1")
-            Await Verify.VerifyCodeFixAsync(test, expected, fixtest)
+            Dim expected = VerifyVB.Diagnostic("$saferootidentifiername$").WithLocation(0).WithArguments("TypeName")
+            Await VerifyVB.VerifyCodeFixAsync(test, expected, fixtest)
         End Function
-
     End Class
 End Namespace

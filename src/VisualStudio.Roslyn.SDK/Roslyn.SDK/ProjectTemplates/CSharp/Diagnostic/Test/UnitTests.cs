@@ -1,19 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Threading;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
-using $saferootprojectname$;
-using Verify = Microsoft.CodeAnalysis.CSharp.Testing.MSTest.CodeFixVerifier<
+using VerifyCS = $safeprojectname$.CSharpCodeFixVerifier<
     $saferootprojectname$.$saferootidentifiername$Analyzer,
     $saferootprojectname$.$saferootidentifiername$CodeFixProvider>;
 
 namespace $safeprojectname$
 {
     [TestClass]
-    public class UnitTest
+    public class $saferootidentifiername$UnitTest
     {
         //No diagnostics expected to show up
         [TestMethod]
@@ -21,7 +15,7 @@ namespace $safeprojectname$
         {
             var test = @"";
 
-            await Verify.VerifyAnalyzerAsync(test);
+            await VerifyCS.VerifyAnalyzerAsync(test);
         }
 
         //Diagnostic and CodeFix both triggered and checked for
@@ -38,7 +32,7 @@ namespace $safeprojectname$
 
     namespace ConsoleApplication1
     {
-        class TypeName
+        class {|#0:TypeName|}
         {   
         }
     }";
@@ -58,8 +52,8 @@ namespace $safeprojectname$
         }
     }";
 
-            var expected = Verify.Diagnostic("$saferootidentifiername$").WithLocation(11, 15).WithArguments("TypeName");
-            await Verify.VerifyCodeFixAsync(test, expected, fixtest);
+            var expected = VerifyCS.Diagnostic("$saferootidentifiername$").WithLocation(0).WithArguments("TypeName");
+            await VerifyCS.VerifyCodeFixAsync(test, expected, fixtest);
         }
     }
 }
