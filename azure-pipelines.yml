@@ -3,6 +3,7 @@ trigger:
 - master
 - master-vs-deps
 - release/*
+- features/*
 - feature/convertNameOf
 - demos/*
 
