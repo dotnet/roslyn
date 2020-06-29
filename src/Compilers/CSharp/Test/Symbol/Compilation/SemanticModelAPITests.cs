@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -812,7 +813,7 @@ public class A
 
             var typeA = mems.Where(s => s.Name == "A").Select(s => s);
             Assert.Equal(1, typeA.Count());
-            var invalid = mems.Where(s => s.Name == "<invalid-global-code>").Select(s => s);
+            var invalid = mems.Where(s => s.Name == SimpleProgramNamedTypeSymbol.UnspeakableName).Select(s => s);
             Assert.Equal(1, invalid.Count());
         }
 
@@ -2144,7 +2145,7 @@ class C
 
             SemanticModel speculativeModel;
             Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, statement: null, speculativeModel: out speculativeModel));
-            Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, constructorInitializer: null, speculativeModel: out speculativeModel));
+            Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, constructorInitializer: (ConstructorInitializerSyntax)null, speculativeModel: out speculativeModel));
             Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, attribute: null, speculativeModel: out speculativeModel));
 
             // Speculate on a node from the same syntax tree.

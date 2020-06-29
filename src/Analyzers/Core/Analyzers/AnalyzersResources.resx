@@ -307,4 +307,19 @@
   <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
     <value>Conditional expression can be simplified</value>
   </data>
+  <data name="Invalid_global_SuppressMessageAttribute" xml:space="preserve">
+    <value>Invalid global 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Invalid_scope_for_SuppressMessageAttribute" xml:space="preserve">
+    <value>Invalid scope for 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Invalid_or_missing_target_for_SuppressMessageAttribute" xml:space="preserve">
+    <value>Invalid or missing target for 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Avoid_legacy_format_target_in_SuppressMessageAttribute" xml:space="preserve">
+    <value>Avoid legacy format target in 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Avoid_legacy_format_target_0_in_SuppressMessageAttribute" xml:space="preserve">
+    <value>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</value>
+  </data>
 </root>

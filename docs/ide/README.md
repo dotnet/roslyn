@@ -2,6 +2,7 @@
 
 ## TOC
  * [Dev16](#prod-16)
+   * [Dev 16.6](#prod-16-6)
    * [Dev 16.5](#prod-16-5)
    * [Dev 16.4](#prod-16-4)
    * [Dev 16.3](#prod-16-3)
@@ -18,12 +19,21 @@
 
 ## <a id="prod-16"></a> dev16
 
-### <a id="prod-16-5"></a> 16.5 preview ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-preview))
+### <a id="prod-16-6"></a> 16.6 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes))
+* Add explicit cast code fix
+* Simplify conditional expressions refactoring
+* Convert regular string literals to verbatim string literals (and back) refactoring
+* Bulk configure the severity level of analyzer categories directly through the editor
+* Quick Info style support for XML comments that contain returns and value tags
+* Add file headers to existing files, projects, and solutions with EditorConfig
+* [Microsoft Fakes support for .NET Core](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes#microsoft-fakes-for-net-core-and-sdk-style-projects) and SDK-style projects
+
+### <a id="prod-16-5"></a> 16.5 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-archive-v16.5))
 * You can now use System.HashCode to implement the GetHashCode method when System.HashCode is available.
 * Refactoring to convert if statements to switch statements or switch expressions.
 * IntelliSense completion for unimported extension methods. You will first need to turn this option on in **Tools > Options > Text Editor > C# > Intellisense > and select Show items from unimported namespaces**.
 
-### <a id="prod-16-4"></a> 16.4 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes))
+### <a id="prod-16-4"></a> 16.4 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.4))
 * You can now configure the severity level of a code style rule directly through the editor (through the **Ctrl+.** menu) or the error list (right-click on the error, warning, or message). This will also update EditorConfig and works for 3rd party analyzers.
 * Find All References now allows you to group by type and member.
 * Refactoring make local function static

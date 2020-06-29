@@ -84,7 +84,6 @@ struct $$S : System.IDisposable { }
             TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
         End Sub
 
-
 #End Region
 
 #Region "DataTypeKind tests"

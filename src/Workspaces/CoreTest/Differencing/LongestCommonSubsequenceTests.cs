@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
                 => ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
         }
 
-        private void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
+        private static void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
         {
             var sb = new StringBuilder(expectedPairsStr.Length);
             foreach (var actPair in actualPairs)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             Assert.Equal(expectedPairsStr, actualPairsStr);
         }
 
-        private void VerifyEdits(string oldStr, string newStr, IEnumerable<SequenceEdit> edits)
+        private static void VerifyEdits(string oldStr, string newStr, IEnumerable<SequenceEdit> edits)
         {
             var oldChars = oldStr.ToCharArray();
             var newChars = new char[newStr.Length];
@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
         }
-
 
         [Fact]
         public void InsertAtBeginning()

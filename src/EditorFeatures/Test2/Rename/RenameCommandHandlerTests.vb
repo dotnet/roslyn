@@ -135,7 +135,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Function
 
-
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TypingOutsideRenameSpanCommitsAndPreservesVirtualSelection(host As TestHost)
@@ -242,7 +241,6 @@ End Class
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-
 
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(

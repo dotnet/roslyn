@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
 
                         case TypeKind.Pointer:
+                        case TypeKind.FunctionPointer:
                             // Such a constraint can only be introduced by type substitution,
                             // in which case it is already reported elsewhere, so we ignore this constraint.
                             continue;
@@ -816,7 +817,7 @@ hasRelatedInterfaces:
                 return true;
             }
 
-            if (typeArgument.Type.IsPointerType() || typeArgument.IsRestrictedType() || typeArgument.IsVoidType())
+            if (typeArgument.Type.IsPointerOrFunctionPointer() || typeArgument.IsRestrictedType() || typeArgument.IsVoidType())
             {
                 // "The type '{0}' may not be used as a type argument"
                 diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_BadTypeArgument, typeArgument.Type)));

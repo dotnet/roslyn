@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
-            internal CodeAction TryGetCodeAction(
+            internal (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
                 Document document, SourceText text, TextSpan userSpan,
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
@@ -308,12 +308,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                                 trackingSession.OriginalName,
                                 snapshotSpan.GetText());
 
-                            return new RenameTrackingCodeAction(
-                                document, title, refactorNotifyServices, undoHistoryRegistry);
+                            return (new RenameTrackingCodeAction(
+                                        document, title, refactorNotifyServices, undoHistoryRegistry),
+                                    snapshotSpan.Span.ToTextSpan());
                         }
                     }
 
-                    return null;
+                    return default;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {

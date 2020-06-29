@@ -55,11 +55,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return id;
             }
 
-            public void Resolve(IList<ISymbol> results)
+            /// <summary>
+            /// Attempts to resolve the "Target" argument of the global SuppressMessageAttribute to symbols in compilation.
+            /// </summary>
+            /// <param name="resolvedWithDocCommentIdFormat">Indicates if resolved "Target" argument is in Roslyn's <see cref="DocumentationCommentId"/> format.</param>
+            /// <returns>Resolved symbols for the the "Target" argument of the global SuppressMessageAttribute.</returns>
+            public ImmutableArray<ISymbol> Resolve(out bool resolvedWithDocCommentIdFormat)
             {
+                resolvedWithDocCommentIdFormat = false;
                 if (string.IsNullOrEmpty(_name))
                 {
-                    return;
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // Try to parse the name as declaration ID generated from symbol's documentation comment Id.
@@ -67,13 +73,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(nameWithoutPrefix, _compilation);
                 if (docIdResults.Length > 0)
                 {
-                    foreach (var result in docIdResults)
-                    {
-                        results.Add(result);
-                    }
-
-                    return;
+                    resolvedWithDocCommentIdFormat = true;
+                    return docIdResults;
                 }
+
+                var results = ArrayBuilder<ISymbol>.GetInstance();
 
                 // Parse 'e:' prefix used by FxCop to differentiate between event and non-event symbols of the same name.
                 bool isEvent = false;
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var candidateMembers = containingSymbol.GetMembers(segment);
                     if (candidateMembers.Length == 0)
                     {
-                        return;
+                        break;
                     }
 
                     if (segmentIsNamedTypeName.HasValue)
@@ -135,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (parameters == null)
                         {
                             // Failed to resolve parameter list
-                            return;
+                            break;
                         }
                     }
                     else if (nextChar == '.' || nextChar == '+')
@@ -159,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             // If we cannot resolve the name on the left of the delimiter, we have no 
                             // hope of finding the symbol.
-                            return;
+                            break;
                         }
 
                         if (containingSymbol.Kind == SymbolKind.NamedType)
@@ -186,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             results.Add(method);
                         }
 
-                        return;
+                        break;
                     }
 
                     ISymbol singleResult;
@@ -226,9 +230,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         results.Add(singleResult);
                     }
-
-                    return;
                 }
+
+                return results.ToImmutableAndFree();
             }
 
             private string ParseNextNameSegment()

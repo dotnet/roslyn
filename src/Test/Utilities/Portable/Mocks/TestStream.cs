@@ -51,7 +51,8 @@ namespace Roslyn.Test.Utilities
         {
             get
             {
-                if (!CanSeek) throw new NotSupportedException();
+                if (!CanSeek)
+                    throw new NotSupportedException();
                 if (_getPosition != null)
                 {
                     return _getPosition();

@@ -9,7 +9,6 @@
 
 Imports System.IO
 
-
 Friend Class WriteDumper
     Inherits WriteUtils
 

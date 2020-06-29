@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,12 +25,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    [ExportLanguageService(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
     internal sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpEditAndContinueAnalyzer()
+        [ExportLanguageServiceFactory(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
+        internal sealed class Factory : ILanguageServiceFactory
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory()
+            {
+            }
+
+            public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            {
+                return new CSharpEditAndContinueAnalyzer(languageServices.WorkspaceServices.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            }
+        }
+
+        // Public for testing purposes
+        public CSharpEditAndContinueAnalyzer(IActiveStatementSpanTracker activeStatementSpanTracker)
+            : base(activeStatementSpanTracker)
         {
         }
 
@@ -256,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, TextSpan span, SyntaxNode? partnerDeclarationBody, out SyntaxNode? partner, out int statementPart)
         {
-            int position = span.Start;
+            var position = span.Start;
 
             SyntaxUtilities.AssertIsBody(declarationBody, allowLambda: false);
 
@@ -306,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             while (true)
             {
-                bool isBody = node == declarationBody || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
+                var isBody = node == declarationBody || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
 
                 if (isBody || StatementSyntaxComparer.HasLabel(node))
                 {
@@ -513,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var root = GetEncompassingAncestor(container);
 
-            SyntaxNode? current = node;
+            var current = node;
             while (current != root && current != null)
             {
                 if (LambdaUtilities.IsLambdaBodyStatementOrExpression(current, out var body))
@@ -530,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
             => SpecializedCollections.SingletonEnumerable(lambdaBody);
 
-        protected override SyntaxNode TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
+        protected override SyntaxNode? TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
             => LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
@@ -1068,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsNestedFunction(SyntaxNode node)
             => node is LambdaExpressionSyntax || node is LocalFunctionStatementSyntax;
 
-        internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
+        internal override bool TryGetLambdaBodies(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? body1, out SyntaxNode? body2)
             => LambdaUtilities.TryGetLambdaBodies(node, out body1, out body2);
 
         internal override SyntaxNode GetLambda(SyntaxNode lambdaBody)
@@ -2578,7 +2593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     containingType: (TypeDeclarationSyntax?)newNode.Parent);
             }
 
-            private bool ClassifyMethodModifierUpdate(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
+            private static bool ClassifyMethodModifierUpdate(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
             {
                 // Ignore async keyword when matching modifiers.
                 // async checks are done in ComputeBodyMatch.
@@ -2981,7 +2996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var result = new List<SyntaxNode>();
 
-            SyntaxNode? current = node;
+            var current = node;
             while (current != null)
             {
                 var kind = current.Kind();

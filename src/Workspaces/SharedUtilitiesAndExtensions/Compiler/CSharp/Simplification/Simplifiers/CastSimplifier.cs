@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return !expressionToOuterType.IsExplicit &&
                         (HaveSameUserDefinedConversion(expressionToCastType, expressionToOuterType) ||
                          HaveSameUserDefinedConversion(castToOuterType, expressionToOuterType)) &&
-                         UserDefinedConversionIsAllowed(castNode, semanticModel);
+                         UserDefinedConversionIsAllowed(castNode);
                 }
                 else if (expressionToOuterType.IsUserDefined)
                 {
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsObjectCastInInterpolation(castNode, castType))
                 return true;
 
-            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
+            if (IsEnumToNumericCastThatCanDefinitelyBeRemoved(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
                 return true;
 
             return false;
@@ -276,7 +276,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsEnumToNumericCastThatCanDefinitelyBeRemoved(
             ExpressionSyntax castNode,
-            ExpressionSyntax castedExpressionNode,
             ITypeSymbol castType,
             ITypeSymbol castedExpressionType,
             SemanticModel semanticModel,
@@ -363,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // `dynamic` changes the semantics of everything and is rarely safe to remove. We could consider removing
             // absolutely safe casts (i.e. `(dynamic)(dynamic)a`), but it's likely not worth the effort, so we just
             // disallow touching them entirely.
-            if (InvolvesDynamic(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, cancellationToken))
+            if (InvolvesDynamic(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
                 return true;
 
             // If removing the cast would cause the compiler to issue a specific warning, then we have to preserve it.
@@ -389,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // This cast can be removed with no runtime or static-semantics change.  However, the compiler warns here
             // that this could be confusing (since it's not clear it's calling `==(object,object)` instead of
             // `==(string,string)`), so we have to preserve this.
-            if (CastIsRequiredToPreventUnintendedComparisonWarning(castNode, castedExpressionNode, castType, semanticModel, conversion, cancellationToken))
+            if (CastIsRequiredToPreventUnintendedComparisonWarning(castNode, castedExpressionNode, castType, semanticModel, cancellationToken))
                 return true;
 
             // Identity fp-casts can actually change the runtime value of the fp number.  This can happen because the
@@ -399,19 +398,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IdentityFloatingPointCastMustBePreserved(castNode, castedExpressionNode, castType, castedExpressionType, semanticModel, conversion, cancellationToken))
                 return true;
 
-            if (PointerOrIntPtrCastMustBePreserved(castType, conversion))
+            if (PointerOrIntPtrCastMustBePreserved(conversion))
                 return true;
 
             // If we have something like `((int)default).ToString()`. `default` has no type of it's own, but instead can
             // be target typed.  However `(...).ToString()` is not a location where a target type can appear.  So don't
             // even bother removing this.
-            if (IsTypeLessExpressionNotInTargetTypedLocation(castNode, castedExpressionNode, castType, castedExpressionType))
+            if (IsTypeLessExpressionNotInTargetTypedLocation(castNode, castedExpressionType))
                 return true;
 
             return false;
         }
 
-        private static bool IsTypeLessExpressionNotInTargetTypedLocation(ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode, ITypeSymbol castType, ITypeSymbol castedExpressionType)
+        private static bool IsTypeLessExpressionNotInTargetTypedLocation(ExpressionSyntax castNode, ITypeSymbol castedExpressionType)
         {
             // If we have something like `((int)default).ToString()`. `default` has no type of it's own, but instead can
             // be target typed.  However `(...).ToString()` is not a location where a target type can appear.  So don't
@@ -516,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool PointerOrIntPtrCastMustBePreserved(ITypeSymbol castType, Conversion conversion)
+        private static bool PointerOrIntPtrCastMustBePreserved(Conversion conversion)
         {
             if (!conversion.IsIdentity)
                 return false;
@@ -532,7 +531,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool InvolvesDynamic(
             ExpressionSyntax castNode,
-            ExpressionSyntax castedExpressionNode,
             ITypeSymbol castType,
             ITypeSymbol castedExpressionType,
             SemanticModel semanticModel,
@@ -847,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax arrayInitializer))
             {
                 // Identity fp conversion is safe if this is in an array initializer.
-                var typeInfo = semanticModel.GetTypeInfo(arrayInitializer);
+                var typeInfo = semanticModel.GetTypeInfo(arrayInitializer, cancellationToken);
                 return typeInfo.Type?.Kind == SymbolKind.ArrayType;
             }
             else if (castNode.Parent is EqualsValueClauseSyntax equalsValue &&
@@ -982,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool CastIsRequiredToPreventUnintendedComparisonWarning(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode, ITypeSymbol castType,
-            SemanticModel semanticModel, Conversion conversion, CancellationToken cancellationToken)
+            SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // Based on the check in DiagnosticPass.CheckRelationals.
 
@@ -1103,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType);
         }
 
-        private static bool UserDefinedConversionIsAllowed(ExpressionSyntax expression, SemanticModel semanticModel)
+        private static bool UserDefinedConversionIsAllowed(ExpressionSyntax expression)
         {
             expression = expression.WalkUpParentheses();
 

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public abstract CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
         public abstract ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
 
-        protected void WriteCompilationOptionsTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        protected static void WriteCompilationOptionsTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // StrongNameProvider strongNameProvider
         }
 
-        protected void ReadCompilationOptionsFrom(
+        protected static void ReadCompilationOptionsFrom(
             ObjectReader reader,
             out OutputKind outputKind,
             out bool reportSuppressedDiagnostics,
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Execution
             strongNameProvider = new DesktopStrongNameProvider();
         }
 
-        protected void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        protected static void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        protected void ReadParseOptionsFrom(
+        protected static void ReadParseOptionsFrom(
             ObjectReader reader,
             out SourceCodeKind kind,
             out DocumentationMode documentationMode,

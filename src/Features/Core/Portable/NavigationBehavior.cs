@@ -4,7 +4,6 @@
 
 #nullable enable
 
-
 namespace Microsoft.CodeAnalysis
 {
     internal enum NavigationBehavior

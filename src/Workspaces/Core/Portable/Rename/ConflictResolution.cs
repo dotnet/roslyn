@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal readonly partial struct ConflictResolution
     {
-        public readonly string ErrorMessage;
+        public readonly string? ErrorMessage;
 
         private readonly Solution _newSolutionWithoutRenamedDocument;
         private readonly (DocumentId documentId, string newName) _renamedDocument;

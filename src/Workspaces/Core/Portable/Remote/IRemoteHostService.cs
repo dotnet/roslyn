@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal interface IRemoteHostService
     {
-        string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken);
+        void InitializeGlobalState(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken);
 
         /// <summary>
         /// This is only for debugging

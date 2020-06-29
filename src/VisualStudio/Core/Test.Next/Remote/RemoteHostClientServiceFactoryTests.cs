@@ -33,48 +33,24 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     public class RemoteHostClientServiceFactoryTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public void Creation()
-        {
-            var service = CreateRemoteHostClientService();
-            Assert.NotNull(service);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task Enable_Disable()
-        {
-            var service = CreateRemoteHostClientService();
-
-            service.Enable();
-
-            var enabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            Assert.NotNull(enabledClient);
-
-            service.Disable();
-
-            var disabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            Assert.Null(disabledClient);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task UpdaterService()
         {
             var exportProvider = TestHostServices.CreateMinimalExportProvider();
+            using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
 
-            var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
+            var options = workspace.CurrentSolution.Options
+                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)
+                .WithChangedOption(Microsoft.CodeAnalysis.Test.Utilities.RemoteHost.RemoteHostOptions.RemoteHostTest, true);
 
-            var options = workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
-            var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
-            var service = CreateRemoteHostClientService(workspace, listenerProvider);
-
-            service.Enable();
+            var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
+            var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
             // make sure client is ready
-            _ = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             // add solution
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
@@ -83,81 +59,68 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
             await workspaceListener.ExpeditedWaitAsync();
 
-            var listener = listenerProvider.GetWaiter(FeatureAttribute.RemoteHostClient);
+            var listener = listenerProvider.GetWaiter(FeatureAttribute.SolutionChecksumUpdater);
             await listener.ExpeditedWaitAsync();
 
             // checksum should already exist
             Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out _));
 
-            service.Disable();
+            checksumUpdater.Shutdown();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestSessionWithNoSolution()
         {
-            var service = CreateRemoteHostClientService();
+            using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
 
-            service.Enable();
+            var options = workspace.CurrentSolution.Options
+                .WithChangedOption(Microsoft.CodeAnalysis.Test.Utilities.RemoteHost.RemoteHostOptions.RemoteHostTest, true);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
+
+            var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
             var mock = new MockLogAndProgressService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
-            await session.RunRemoteAsync(
+            using var connection = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
+            await connection.RunRemoteAsync(
                 nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                 solution: null,
                 new object[] { "emptySource", Path.GetTempPath() },
                 CancellationToken.None);
-
-            service.Disable();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestSessionClosed()
         {
-            // enable local remote host service
-            var service = CreateRemoteHostClientService();
-            service.Enable();
+            using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
 
-            var client = (InProcRemoteHostClient)await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false).ConfigureAwait(false);
+            var serviceName = new RemoteServiceName("Test");
 
             // register local service
             TestService testService = null;
-            client.RegisterService("Test", (s, p) =>
+            client.RegisterService(serviceName, (s, p) =>
             {
                 testService = new TestService(s, p);
                 return testService;
             });
 
             // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
-            using var session = await client.TryCreateKeepAliveSessionAsync("Test", callbackTarget: null, CancellationToken.None);
+            using var connection = await client.CreateConnectionAsync(serviceName, callbackTarget: null, CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = session.RunRemoteAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);
+            var task = connection.RunRemoteAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);
 
             // make client to go away
-            service.Disable();
+            client.Dispose();
 
             // let the service to return
             testService.Event.Set();
 
             // make sure task finished gracefully
             await task;
-        }
-
-        private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(
-            Workspace workspace = null,
-            IAsynchronousOperationListenerProvider listenerProvider = null)
-        {
-            workspace ??= new AdhocWorkspace(TestHostServices.CreateHostServices());
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                                                 .WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
-                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
-
-            var threadingContext = ((IMefHostExportProvider)workspace.Services.HostServices).GetExports<IThreadingContext>().Single().Value;
-            var factory = new RemoteHostClientServiceFactory(threadingContext, listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider);
-            return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
         private class TestService : ServiceBase

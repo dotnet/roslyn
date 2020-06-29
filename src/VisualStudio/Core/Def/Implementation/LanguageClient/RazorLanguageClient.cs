@@ -4,7 +4,6 @@
 
 #nullable enable
 
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -32,8 +31,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     {
         public const string ClientName = "RazorCSharp";
 
-        protected override bool SupportsHover => true;
-
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
@@ -41,7 +38,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RazorLanguageClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService)
+        public RazorLanguageClient(LanguageServerProtocol languageServerProtocol,
+            VisualStudioWorkspace workspace,
+            IDiagnosticService diagnosticService)
             : base(languageServerProtocol, workspace, diagnosticService, ClientName)
         {
         }

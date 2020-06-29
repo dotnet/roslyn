@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return _tokenComparer.Compare(x.GetFirstToken(), y.GetFirstToken())
         End Function
 
-        Private Function UnwrapType(type As TypeSyntax) As TypeSyntax
+        Private Shared Function UnwrapType(type As TypeSyntax) As TypeSyntax
             While True
                 Select Case type.Kind
                     Case SyntaxKind.ArrayType
