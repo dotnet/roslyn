@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// The simple tag that only holds information regarding the associated parameter name
     /// for the argument
     /// </summary>
-    class InlineParamNameHintDataTag : ITag
+    class InlineParameterNameHintDataTag : ITag
     {
         public readonly string ParameterName;
 
-        public InlineParamNameHintDataTag(string name)
+        public InlineParameterNameHintDataTag(string name)
         {
             if (name.Length == 0)
             {
-                throw new ArgumentException("Parameter name must have a length greater than 0");
+                throw new ArgumentException("Must have a length greater than 0", name);
             }
             ParameterName = name;
         }

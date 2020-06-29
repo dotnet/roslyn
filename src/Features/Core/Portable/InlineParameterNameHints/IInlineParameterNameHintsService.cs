@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
 {
     internal readonly struct InlineParameterHint
     {
-        public InlineParameterHint(string name, int pos)
+        public InlineParameterHint(string name, int position)
         {
             Name = name;
-            Pos = pos;
+            Pos = position;
         }
         public string Name { get; }
         public int Pos { get; }
     }
 
-    internal interface IInlineParamNameHintsService : ILanguageService
+    internal interface IInlineParameterNameHintsService : ILanguageService
     {
         Task<IEnumerable<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);
     }

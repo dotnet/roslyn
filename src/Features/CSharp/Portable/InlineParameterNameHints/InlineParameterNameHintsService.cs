@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
     /// The service to locate the positions in which the adornments should appear
     /// as well as associate the adornments back to the parameter name
     /// </summary>
-    [ExportLanguageService(typeof(IInlineParamNameHintsService), LanguageNames.CSharp), Shared]
-    internal class InlineParamNameHintsService : IInlineParamNameHintsService
+    [ExportLanguageService(typeof(IInlineParameterNameHintsService), LanguageNames.CSharp), Shared]
+    internal class InlineParameterNameHintsService : IInlineParameterNameHintsService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParamNameHintsService()
+        public InlineParameterNameHintsService()
         {
         }
 
@@ -60,6 +60,27 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                 }
             }
 
+            var attributeLists = node.DescendantNodes(textSpan).OfType<AttributeListSyntax>();
+            foreach (var attributeList in attributeLists)
+            {
+                foreach (var attributeSyntax in attributeList.Attributes)
+                {
+                    if (attributeSyntax.ArgumentList != null)
+                    {
+                        foreach (var attribute in attributeSyntax.ArgumentList.Arguments)
+                        {
+                            if (attribute.NameEquals == null && attribute.NameColon == null && IsExpressionWithNoName(attribute.Expression))
+                            {
+                                var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                                if (param != null && param.Name != "")
+                                {
+                                    spans.Add(new InlineParameterHint(param.Name, attribute.SpanStart));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             return spans;
         }
 

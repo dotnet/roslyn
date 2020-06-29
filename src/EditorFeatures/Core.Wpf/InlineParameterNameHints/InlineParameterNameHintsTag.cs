@@ -13,18 +13,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// This is the tag which implements the IntraTextAdornmentTag and is meant to create the UIElements that get shown
     /// in the editor
     /// </summary>
-    internal class InlineParamNameHintsTag : IntraTextAdornmentTag
+    internal class InlineParameterNameHintsTag : IntraTextAdornmentTag
     {
-        public readonly string TagName;
-
         /// <summary>
         /// Creates the UIElement on call
         /// </summary>
         /// <param name="text">The name of the parameter associated with the argument</param>
-        public InlineParamNameHintsTag(string text)
+        public InlineParameterNameHintsTag(string text)
             : base(CreateElement(text), removalCallback: null, (PositionAffinity?)PositionAffinity.Successor)
         {
-            TagName = text + ": " ;
         }
 
         private static UIElement CreateElement(string text)

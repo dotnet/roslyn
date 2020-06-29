@@ -19,22 +19,22 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [TagType(typeof(IntraTextAdornmentTag))]
-    [Name(nameof(InlineParamNameHintsTaggerProvider))]
-    class InlineParamNameHintsTaggerProvider : ITaggerProvider
+    [Name(nameof(InlineParameterNameHintsTaggerProvider))]
+    class InlineParameterNameHintsTaggerProvider : ITaggerProvider
     {
         private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParamNameHintsTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService)
+        public InlineParameterNameHintsTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService)
         {
             _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            var tagAggregator = _bufferTagAggregatorFactoryService.CreateTagAggregator<InlineParamNameHintDataTag>(buffer);
-            return new InlineParamNameHintsTagger(buffer, tagAggregator) as ITagger<T>;
+            var tagAggregator = _bufferTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(buffer);
+            return new InlineParameterNameHintsTagger(buffer, tagAggregator) as ITagger<T>;
         }
     }
 }

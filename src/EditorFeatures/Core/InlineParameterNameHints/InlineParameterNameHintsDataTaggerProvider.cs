@@ -27,33 +27,35 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// </summary>
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    [TagType(typeof(InlineParamNameHintDataTag))]
-    [Name(nameof(InlineParamNameHintsDataTaggerProvider))]
-    internal class InlineParamNameHintsDataTaggerProvider : AsynchronousTaggerProvider<InlineParamNameHintDataTag>
+    [TagType(typeof(InlineParameterNameHintDataTag))]
+    [Name(nameof(InlineParameterNameHintsDataTaggerProvider))]
+    internal class InlineParameterNameHintsDataTaggerProvider : AsynchronousTaggerProvider<InlineParameterNameHintDataTag>
     {
-        // [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        private readonly IAsynchronousOperationListener _listener;
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
-        public InlineParamNameHintsDataTaggerProvider(
+        public InlineParameterNameHintsDataTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
             IForegroundNotificationService notificationService)
             : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints), notificationService)
         {
+            _listener = listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints);
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // TaggerDelay is NearImmediate because we want the renaming and tag creation to be instantaneous
-            return TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
+            return TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.NearImmediate, _listener);
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<InlineParamNameHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(TaggerContext<InlineParameterNameHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
 
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var paramNameHintsService = document.GetRequiredLanguageService<IInlineParamNameHintsService>();
+            var paramNameHintsService = document.GetRequiredLanguageService<IInlineParameterNameHintsService>();
             var paramNameHintSpans = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
 
             foreach (var span in paramNameHintSpans)
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     return;
                 }
 
-                context.AddTag(new TagSpan<InlineParamNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, span.Pos, 0), new InlineParamNameHintDataTag(span.Name)));
+                context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, span.Pos, 0), new InlineParameterNameHintDataTag(span.Name)));
             }
         }
     }
