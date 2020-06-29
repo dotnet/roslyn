@@ -48,7 +48,7 @@ class C
             }
         }
 
-        /// Data model: the following type heirarchy represents a simple
+        /// Data model: the following type hierarchy represents a simple
         /// statement list, where a statement is either a variable
         /// declaration, variable use, or a function, which is either a
         /// lambda or local function which is immediately declared and
