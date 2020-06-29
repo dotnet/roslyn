@@ -370,31 +370,51 @@ delegate int Del(int x);
         public void TestConstantConditional()
         {
             var source = @"
+using System;
 public class Program {
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
     public static void Test1() {
         const bool b = true;
         uint u1 = M1<uint>(b ? 1 : 0);
-        M2(b ? 2 : 3);
+        Console.WriteLine(u1); // 1
+        uint s1 = M2(b ? 2 : 3);
+        Console.WriteLine(s1); // 2
         uint u2 = b ? 4 : 5;
-        _ = u2;
+        Console.WriteLine(u2); // 4
 
-        static void M2(uint t) { }
+        static uint M2(uint t) => t;
     }
     public static void Test2() {
         const bool b = true;
-        short u1 = M1<short>(b ? 1 : 0);
-        M2(b ? 2 : 3);
-        short u2 = b ? 4 : 5;
-        _ = u2;
+        short s1 = M1<short>(b ? 1 : 0);
+        Console.WriteLine(s1); // 1
+        short s2 = M2(b ? 2 : 3);
+        Console.WriteLine(s2); // 2
+        short s3 = b ? 4 : 5;
+        Console.WriteLine(s3); // 4
 
-        static void M2(short t) { }
+        static short M2(short t) => t;
     }
     public static T M1<T>(T t) => t;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular8)
+            var expectedOutput = @"
+1
+2
+4
+1
+2
+4";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe)
                 .VerifyDiagnostics();
-            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()))
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()), options: TestOptions.DebugExe)
                 .VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
     }
 }
