@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// <summary>
         /// Operation visitor to flow the data values across a given statement in a basic block.
         /// </summary>
-        private sealed class ValueContentDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
+        private sealed class ValueContentDataFlowOperationVisitor : PredicateAnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
         {
             private readonly ValueContentAnalysisDomain _valueContentAnalysisDomain;
 

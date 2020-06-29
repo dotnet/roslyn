@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// <summary>
         /// Operation visitor to flow the copy values across a given statement in a basic block.
         /// </summary>
-        private sealed class CopyDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyAbstractValue>
+        private sealed class CopyDataFlowOperationVisitor : PredicateAnalysisEntityDataFlowOperationVisitor<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyAbstractValue>
         {
             public CopyDataFlowOperationVisitor(CopyAnalysisContext analysisContext)
                 : base(analysisContext)

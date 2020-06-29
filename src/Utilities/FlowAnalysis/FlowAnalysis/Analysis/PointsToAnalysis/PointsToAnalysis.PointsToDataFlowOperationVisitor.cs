@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// Operation visitor to flow the PointsTo values across a given statement in a basic block.
         /// </summary>
         private sealed class PointsToDataFlowOperationVisitor :
-            AnalysisEntityDataFlowOperationVisitor<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToAbstractValue>
+            PredicateAnalysisEntityDataFlowOperationVisitor<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToAbstractValue>
         {
             private readonly DefaultPointsToValueGenerator _defaultPointsToValueGenerator;
             private readonly PointsToAnalysisDomain _pointsToAnalysisDomain;
