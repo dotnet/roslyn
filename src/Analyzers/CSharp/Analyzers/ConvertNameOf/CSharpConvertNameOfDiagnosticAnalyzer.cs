@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -34,15 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeSyntaxAction, SyntaxKind.TypeOfExpression);
+            context.RegisterOperationAction(AnalyzeTypeOfAction, OperationKind.TypeOf);
         }
 
-        private void AnalyzeSyntaxAction(SyntaxNodeAnalysisContext syntaxContext)
+        private void AnalyzeTypeOfAction(OperationAnalysisContext typeofOp)
         {
             //var options = syntaxContext.Options;
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
+            var syntaxTree = typeofOp.Operation.Syntax.SyntaxTree;
             //var cancellationToken = syntaxContext.CancellationToken;
-            var node = syntaxContext.Node;
+            var node = typeofOp.Operation.Syntax;
+
+            // Verify it's a typeof expression
 
             // nameof was added in CSharp 6.0, so don't offer it for any languages before that time
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
@@ -60,16 +63,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
                 return;
             }
 
-            // TODO: if argument is primitive cases
+            // Analyze the argument to determine if argument is generic
+            if (ArgumentIsGeneric(typeofOp.Operation))
+            {
+                return;
+            }
 
-            //TODO: if argument is generic
+
+            //TODO: if argument is primitive
+            if (ArgumentIsPrimitive(typeofOp.Operation))
+            {
+                return;
+            }
 
 
             // Current case can be effectively changed to a nameof instance so report a diagnostic
             var location = Location.Create(syntaxTree, parent.Span);
             var additionalLocations = ImmutableArray.Create(node.GetLocation());
 
-            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+            typeofOp.ReportDiagnostic(DiagnosticHelper.Create(
                      Descriptor,
                      location,
                      ReportDiagnostic.Hidden,
@@ -79,6 +91,40 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
         // TODO: Overwrite GetAnalyzerCategory
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        private static bool ArgumentIsGeneric(IOperation op)
+        {
+            // verify it is a typeof operation
+            if (!(op.Type is ITypeOfOperation))
+            {
+                return true;
+            }
+            // Cast it to a ITypeOfOperation
+            var tOp = (ITypeOfOperation)op;
+
+            if (((INamedTypeSymbol)(tOp).TypeOperand).IsGenericType)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private static bool ArgumentIsPrimitive(IOperation op)
+        {
+            // verify it is a typeof operation
+            if (!(op.Type is ITypeOfOperation))
+            {
+                return true;
+            }
+            // Cast it to a ITypeOfOperation
+            var tOp = (ITypeOfOperation)op;
+
+            if (((INamedTypeSymbol)(tOp).TypeOperand).IsGenericType)
+            {
+                return true;
+            }
+            return false;
+        }
 
     }
 }
