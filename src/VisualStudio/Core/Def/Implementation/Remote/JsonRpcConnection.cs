@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -64,6 +65,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 #endif
+
+        internal void SetPoolReclamation(IPooledConnectionReclamation poolReclamation)
+        {
+            Contract.ThrowIfNull(poolReclamation);
+
+            // Atomically transition from null to not-null, and verify that it was successful.
+            var previousPoolReclamation = Interlocked.CompareExchange(ref _poolReclamation, poolReclamation, null);
+            Contract.ThrowIfFalse(previousPoolReclamation is null);
+        }
+
         public override void Dispose()
         {
             // If the connection was taken from a pool, return it to the pool.

@@ -53,6 +53,7 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9 = 900 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver.CSharpGeneratorDriver(Microsoft.CodeAnalysis.ParseOptions parseOptions, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator> generators, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider optionsProvider, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText> additionalTexts) -> void
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.AddParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax

@@ -2122,7 +2122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The starting state is the top state, but with captured
             // variables set according to Joining the state at all the
             // local function use sites
-            State = TopState().Clone();
+            State = TopState();
             for (int slot = 1; slot < localFunctionState.StartingState.Capacity; slot++)
             {
                 var symbol = variableBySlot[RootSlot(slot)].Symbol;
