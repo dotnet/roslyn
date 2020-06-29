@@ -449,6 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation:
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation:
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
+                case ErrorCode.WRN_ConstOutOfRangeChecked:
                 case ErrorCode.WRN_MemberNotNull:
                 case ErrorCode.WRN_MemberNotNullBadMember:
                 case ErrorCode.WRN_MemberNotNullWhen:
