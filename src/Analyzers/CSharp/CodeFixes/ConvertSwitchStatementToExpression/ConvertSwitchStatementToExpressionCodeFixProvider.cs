@@ -84,10 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                 var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-                var expressionCastType = semanticModel.GetTypeInfo(switchStatement.Expression).ConvertedType;
-
                 var switchExpression = Rewriter.Rewrite(
-                   switchStatement, expressionCastType, declaratorToRemoveTypeOpt, nodeToGenerate,
+                   switchStatement, semanticModel, declaratorToRemoveTypeOpt, nodeToGenerate,
                    shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
                    generateDeclaration: declaratorToRemoveLocationOpt is object);
 
