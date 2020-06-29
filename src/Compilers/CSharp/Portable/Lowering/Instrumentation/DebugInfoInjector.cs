@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return AddSequencePoint(declaration, declaration.Initializer!, rewritten);
 
                 case SyntaxKind.DataPropertyDeclaration:
-                {
-                    var decl = (DataPropertyDeclarationSyntax)grandparent;
-                    return AddSequencePoint(decl, decl.Initializer!, rewritten);
-                }
+                    {
+                        var decl = (DataPropertyDeclarationSyntax)grandparent;
+                        return AddSequencePoint(decl, decl.Initializer!, rewritten);
+                    }
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(grandparent.Kind());

@@ -1360,8 +1360,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                     break;
 
-                                static bool initializerInSpan(EqualsValueClauseSyntax? initializer, SyntaxNode syntax)
-                                    => initializer?.Span.Contains(syntax.Span) == true;
+                                    static bool initializerInSpan(EqualsValueClauseSyntax? initializer, SyntaxNode syntax)
+                                        => initializer?.Span.Contains(syntax.Span) == true;
                             }
 
                             if (memberName is object)
