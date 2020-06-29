@@ -47,6 +47,11 @@ try {
   Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
   Exec-Console dotnet "format . --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --check -f"
   Write-Host ""
+
+  Write-Host "Running BuildValidator"
+  $buildValidatorPath = GetProjectOutputBinary "BuildValidator.exe"
+  Exec-Console $buildValidatorPath
+  Write-Host ""
   
   # Verify the state of creating run settings for OptProf
   Write-Host "Checking OptProf run settings generation"

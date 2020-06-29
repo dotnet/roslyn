@@ -460,6 +460,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Code
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdeCoreBenchmarks", "src\Tools\IdeCoreBenchmarks\IdeCoreBenchmarks.csproj", "{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildValidator", "src\Tools\BuildValidator\BuildValidator.csproj", "{8D22FC91-BDFE-4342-999B-D695E1C57E85}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -1207,6 +1209,10 @@ Global
 		{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D22FC91-BDFE-4342-999B-D695E1C57E85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D22FC91-BDFE-4342-999B-D695E1C57E85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D22FC91-BDFE-4342-999B-D695E1C57E85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D22FC91-BDFE-4342-999B-D695E1C57E85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1421,6 +1427,7 @@ Global
 		{B64766CD-1A1F-4C1B-B11F-C30F82B8E41E} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{2D5E2DE4-5DA8-41C1-A14F-49855DCCE9C5} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
 		{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{8D22FC91-BDFE-4342-999B-D695E1C57E85} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
