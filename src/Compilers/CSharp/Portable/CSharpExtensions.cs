@@ -538,6 +538,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns what symbol(s), if any, the given constructor initializer syntax bound to in the program.
+        /// </summary>
+        public static SymbolInfo GetSymbolInfo(this SemanticModel? semanticModel, PrimaryConstructorBaseTypeSyntax constructorInitializer, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetSymbolInfo(constructorInitializer, cancellationToken);
+            }
+            else
+            {
+                return SymbolInfo.None;
+            }
+        }
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given attribute syntax bound to in the program.
         /// </summary>
         public static SymbolInfo GetSymbolInfo(this SemanticModel? semanticModel, AttributeSyntax attributeSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -631,6 +647,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
         public static SymbolInfo GetSpeculativeSymbolInfo(this SemanticModel? semanticModel, int position, ConstructorInitializerSyntax constructorInitializer)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetSpeculativeSymbolInfo(position, constructorInitializer);
+            }
+            else
+            {
+                return SymbolInfo.None;
+            }
+        }
+
+        /// <summary>
+        /// Bind the constructor initializer in the context of the specified location and get semantic information
+        /// about symbols. This method is used to get semantic information about a constructor
+        /// initializer that did not actually appear in the source code.
+        ///
+        /// NOTE: This will only work in locations where there is already a constructor initializer.
+        /// <see cref="PrimaryConstructorBaseTypeSyntax"/>.
+        /// </summary>
+        public static SymbolInfo GetSpeculativeSymbolInfo(this SemanticModel? semanticModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1165,6 +1202,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
         public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, ConstructorInitializerSyntax constructorInitializer, [NotNullWhen(true)] out SemanticModel? speculativeModel)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.TryGetSpeculativeSemanticModel(position, constructorInitializer, out speculativeModel);
+            }
+            else
+            {
+                speculativeModel = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
+        /// this source code. This can be used to get detailed semantic information about sub-parts
+        /// of a constructor initializer that did not appear in source code.
+        ///
+        /// NOTE: This will only work in locations where there is already a constructor initializer.
+        /// </summary>
+        public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, [NotNullWhen(true)] out SemanticModel? speculativeModel)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)

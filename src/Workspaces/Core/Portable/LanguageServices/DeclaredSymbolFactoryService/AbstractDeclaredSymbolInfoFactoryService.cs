@@ -32,6 +32,35 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected static List<Dictionary<string, string>> AllocateAliasMapList()
             => s_aliasMapListPool.Allocate();
 
+        // We do not differentiate arrays of different kinds for simplicity.
+        // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
+        protected static string CreateReceiverTypeString(string typeName, bool isArray)
+        {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                return isArray
+                    ? FindSymbols.Extensions.ComplexArrayReceiverTypeName
+                    : FindSymbols.Extensions.ComplexReceiverTypeName;
+            }
+            else
+            {
+                return isArray
+                    ? typeName + FindSymbols.Extensions.ArrayReceiverTypeNameSuffix
+                    : typeName;
+            }
+        }
+
+        protected static string CreateValueTupleTypeString(int elementCount)
+        {
+            const string ValueTupleName = "ValueTuple";
+            if (elementCount == 0)
+            {
+                return ValueTupleName;
+            }
+            // A ValueTuple can have up to 8 type parameters.
+            return ValueTupleName + GetMetadataAritySuffix(elementCount > 8 ? 8 : elementCount);
+        }
+
         protected static void FreeAliasMapList(List<Dictionary<string, string>> list)
         {
             if (list != null)
@@ -95,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// on `node` should return a `DeclaredSymbolInfo` of kind `ExtensionMethod`. 
         /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
-        public abstract string GetTargetTypeName(SyntaxNode node);
+        public abstract string GetReceiverTypeName(SyntaxNode node);
 
         public abstract bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
 
