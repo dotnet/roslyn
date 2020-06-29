@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DocumentHighlightProvider = true,
                     ReferencesProvider = true,
                     ProjectContextProvider = true,
+                    ExecuteCommandProvider = new ExecuteCommandOptions(),
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {
                         Change = LSP.TextDocumentSyncKind.None

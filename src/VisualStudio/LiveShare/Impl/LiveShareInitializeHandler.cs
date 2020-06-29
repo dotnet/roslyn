@@ -23,7 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
             Capabilities = new ServerCapabilities
             {
                 CodeActionProvider = false,
-                ExecuteCommandProvider = new ExecuteCommandOptions(),
                 ReferencesProvider = true,
                 RenameProvider = false,
                 Experimental = new RoslynExperimentalCapabilities { SyntacticLspProvider = true },
