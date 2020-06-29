@@ -4549,7 +4549,7 @@ BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protec
                                                                   </errors>, suppressInfos:=False)
         End Sub
 
-        <Fact(Skip:="PROTOTYPE(CONSTISTR)"), WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
+        <Fact, WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
         Public Sub ConstantValueOfInterpolatedString()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GetSemanticInfo">
