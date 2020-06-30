@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (!speculativeBindingSpan.Contains(span))
                 return document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken);
+            return semanticModelService.ReuseExistingSpeculativeModelAsync(document, node, cancellationToken);
         }
 
 #if DEBUG

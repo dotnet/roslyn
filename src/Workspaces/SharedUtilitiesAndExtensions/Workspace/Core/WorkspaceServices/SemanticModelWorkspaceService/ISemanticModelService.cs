@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 {
@@ -17,10 +18,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
     internal interface ISemanticModelService : IWorkspaceService
     {
         /// <summary>
-        /// Don't call this directly. use Document extension method GetSemanticModelForNodeAsync or GetSemanticModelForSpanAsync instead.
-        /// 
-        /// see the descriptions on the extension methods
+        /// Don't call this directly. use <see cref="DocumentExtensions.ReuseExistingSpeculativeModelAsync(Document, SyntaxNode, CancellationToken)"/> (or an overload).
         /// </summary>
-        Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+        Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
     }
 }

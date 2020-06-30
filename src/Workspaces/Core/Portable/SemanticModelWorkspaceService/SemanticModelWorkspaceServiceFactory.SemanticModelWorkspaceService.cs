@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
             private readonly ReaderWriterLockSlim _gate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
-            public async Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
+            public async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
             {
                 var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
