@@ -984,8 +984,19 @@ namespace Roslyn.SyntaxVisualizer.Control
                 convertedTypeSymbolDetailsMenuItem.Visibility = symbolDetailsMenuItem.Visibility;
                 aliasSymbolDetailsMenuItem.Visibility = symbolDetailsMenuItem.Visibility;
                 constantValueDetailsMenuItem.Visibility = symbolDetailsMenuItem.Visibility;
-                menuItemSeparator1.Visibility = symbolDetailsMenuItem.Visibility;
-                menuItemSeparator2.Visibility = symbolDetailsMenuItem.Visibility;
+
+                if (directedSyntaxGraphEnabled)
+                {
+                    // The first group is the DGML commands group
+                    menuItemSeparator1.Visibility = symbolDetailsMenuItem.Visibility;
+                    menuItemSeparator2.Visibility = symbolDetailsMenuItem.Visibility;
+                }
+                else
+                {
+                    // The first group is the symbol details group
+                    menuItemSeparator1.Visibility = Visibility.Collapsed;
+                    menuItemSeparator2.Visibility = symbolDetailsMenuItem.Visibility;
+                }
             }
         }
 
