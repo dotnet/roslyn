@@ -30,7 +30,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences({source.Tree}, references:=LatestVbReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateEmptyCompilationWithReferences({source.Tree}, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source.Tree)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -179,8 +179,8 @@ End Class
     </file>
 </compilation>
 
-            Dim debug = CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
-            Dim release = CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.ReleaseDll)
+            Dim debug = CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
+            Dim release = CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(debug).VerifyPdb("C.M",
 <symbols>
@@ -479,7 +479,7 @@ End Class
     </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -584,7 +584,7 @@ End Class
     </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -756,7 +756,7 @@ End Class
                 </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)

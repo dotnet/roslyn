@@ -73,11 +73,6 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] DefaultVbReferences => s_lazyDefaultVbReferences.Value;
 
-        private static readonly Lazy<MetadataReference[]> s_lazyLatestVbReferences = new Lazy<MetadataReference[]>(
-            () => new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929 },
-            LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference[] LatestVbReferences => s_lazyLatestVbReferences.Value;
-
         public static readonly AssemblyName RuntimeCorLibName = RuntimeUtilities.IsCoreClrRuntime
             ? new AssemblyName("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
             : new AssemblyName("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
@@ -202,8 +197,6 @@ namespace Roslyn.Test.Utilities
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.mscorlib).GetReference(display: "mscorlib.v2.0.50727.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRef_v20 => s_mscorlibRef_v20.Value;
-
-        public static MetadataReference MscorlibRef_v4_0_30316_17626 => TestReferences.NetFx.v4_0_30319_17626.mscorlib;
 
         private static readonly Lazy<MetadataReference> s_mscorlibRef_v46 = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_6_1038_0.mscorlib).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),

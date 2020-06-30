@@ -527,7 +527,7 @@ Public Module M
 End Module
 ",
                 referencedCompilations:={csharpComp},
-                referencedAssemblies:=LatestVbReferences,
+                referencedAssemblies:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 compilationOptions:=TestOptions.DebugDll)
 
             vbComp.AssertTheseDiagnostics(

@@ -37,7 +37,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
             Dim options As VisualBasicCompilationOptions
 
             options = TestOptions.ReleaseExe
@@ -2442,7 +2442,7 @@ Class CLAZZ
     End Function
 End Class
     </file>
-</compilation>, references:=LatestVbReferences).VerifyDiagnostics()
+</compilation>, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences).VerifyDiagnostics()
 
             Using stream As New MemoryStream()
                 Dim emitResult = compilation.Emit(stream, options:=New EmitOptions(metadataOnly:=True))
@@ -8277,7 +8277,7 @@ Module Module1
 End Module]]>,
                 compilationOptions:=TestOptions.ReleaseExe,
                 referencedCompilations:={csCompilation},
-                referencedAssemblies:=LatestVbReferences)
+                referencedAssemblies:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             Dim vbexeVerifier = CompileAndVerify(vbexeCompilation, expectedOutput:="12")
             vbexeVerifier.VerifyDiagnostics()
@@ -8744,7 +8744,7 @@ End Class
             Dim expectedOutput = <![CDATA[Before 12
 After 12]]>
 
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
 
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
@@ -8796,7 +8796,7 @@ disposed
 Post
 result]]>
 
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -8850,7 +8850,7 @@ disposed
 Post
 result]]>
 
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -8906,7 +8906,7 @@ disposed
 Post
 result]]>
 
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -8963,7 +8963,7 @@ disposed
 Post
 result]]>
 
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -9089,7 +9089,7 @@ End Class
 
             Dim expectedOutput = <![CDATA[System.Int32]]>
 
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -9134,7 +9134,7 @@ False
 True
 False
 ]]>
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -9174,7 +9174,7 @@ End Module
 
             Dim expectedOutput = "success"
 
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub

@@ -31,7 +31,7 @@ End Class
     </file>
 </compilation>
 
-            Dim v = CompileAndVerify(source, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerify(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
 
             v.VerifyIL("C.VB$StateMachine_1_M.MoveNext", "
 {
@@ -209,7 +209,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
 
             compilation.VerifyPdb("Module1.F",
 <symbols>
@@ -718,7 +718,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim c = CreateEmptyCompilationWithReferences(source, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
             c.AssertNoErrors()
 
             ' NOTE: No <local> for the return variable "M".
@@ -779,7 +779,7 @@ End Module
     </file>
 </compilation>
 
-            Dim v = CompileAndVerify(source, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerify(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
 
             v.VerifyIL("M.VB$StateMachine_0_F.MoveNext", "
 {
@@ -909,7 +909,7 @@ Public Partial Class C
     End Sub
 End Class
 "
-            Dim compilation = CreateEmptyCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CreateEmptyCompilation(src, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
             Dim v = CompileAndVerify(compilation)
             v.VerifyPdb("C.M", "
 <symbols>
@@ -978,7 +978,7 @@ Class C
         End Try
     End Function
 End Class"
-            Dim v = CompileAndVerifyEx(src, references:=LatestVbReferences, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.Empty)
+            Dim v = CompileAndVerifyEx(src, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.Empty)
 
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>

@@ -41,7 +41,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
             Dim bytes0 = compilation0.EmitToArray()
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
@@ -92,7 +92,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -143,7 +143,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -195,7 +195,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -247,7 +247,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -325,7 +325,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -407,7 +407,7 @@ Module C
 End Module
 ")
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -507,7 +507,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -603,7 +603,7 @@ Partial Class C
 End Class
 ")
 
-            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0.Tree, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)

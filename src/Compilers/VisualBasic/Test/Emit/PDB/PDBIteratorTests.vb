@@ -540,7 +540,7 @@ Public Class C
        Yield 1
     End Function
 End Class"
-            Dim compilation = CreateEmptyCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CreateEmptyCompilation(src, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim peStream = New MemoryStream()

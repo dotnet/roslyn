@@ -5264,7 +5264,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, LatestVbReferences, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>

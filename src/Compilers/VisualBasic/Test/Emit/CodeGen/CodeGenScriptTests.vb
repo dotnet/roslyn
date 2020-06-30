@@ -25,7 +25,7 @@ End Class
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             Dim typeSyntax = DirectCast(DirectCast(tree.GetCompilationUnitRoot().Members(0), ClassBlockSyntax).Members(0), FieldDeclarationSyntax).Declarators(0).AsClause.Type
 
@@ -44,7 +44,7 @@ System.Console.WriteLine(1+1)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             CompileAndVerify(c, expectedOutput:="2")
         End Sub
@@ -89,7 +89,7 @@ Me.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             c.VerifyDiagnostics(Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "Me").WithArguments("Me"),
                                 Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "Me").WithArguments("Me"))
@@ -110,7 +110,7 @@ MyBase.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             c.VerifyDiagnostics(Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "MyClass").WithArguments("MyClass"),
                                 Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "MyBase").WithArguments("MyBase"))
@@ -127,7 +127,7 @@ Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             CompileAndVerify(c, expectedOutput:="2")
         End Sub
@@ -157,7 +157,7 @@ System.Console.WriteLine(Goo)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             CompileAndVerify(c, expectedOutput:="3")
         End Sub
@@ -171,14 +171,14 @@ Next
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             CompileAndVerify(c, expectedOutput:="012")
         End Sub
 
         <Fact>
         Public Sub ChainingAnonymousTypeTemplates()
-            Dim references = LatestVbReferences
+            Dim references = TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences
 
             Dim s0 = VisualBasicCompilation.CreateScriptCompilation("s0.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(

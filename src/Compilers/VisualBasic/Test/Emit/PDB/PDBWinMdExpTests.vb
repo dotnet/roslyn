@@ -158,7 +158,7 @@ End Namespace
             Dim compilation =
                 CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
-                    LatestVbReferences,
+                    TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                     options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
             CompilationUtils.AssertNoDiagnostics(compilation)
 

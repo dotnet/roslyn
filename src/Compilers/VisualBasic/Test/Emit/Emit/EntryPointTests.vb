@@ -548,7 +548,7 @@ End Class
 System.Console.WriteLine(1)
 </text>
             Dim compilation = CreateEmptyCompilation(
-                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
+                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseExe, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
@@ -568,7 +568,7 @@ End Class
 </text>
             Dim compilation = CreateEmptyCompilation(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -595,7 +595,7 @@ End Class
 </text>
             Dim compilation = CreateEmptyCompilation(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"), Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("D.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")

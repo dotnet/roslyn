@@ -2389,7 +2389,7 @@ Module Module1
 End Module
 ",
                 referencedCompilations:={comp1},
-                referencedAssemblies:=LatestVbReferences,
+                referencedAssemblies:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 compilationOptions:=TestOptions.DebugExe)
 
             comp2.AssertTheseDiagnostics()
@@ -2452,7 +2452,7 @@ Module Module1
 End Module
 ",
                 referencedCompilations:={comp1},
-                referencedAssemblies:=LatestVbReferences,
+                referencedAssemblies:=TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                 compilationOptions:=TestOptions.DebugExe)
 
             comp2.AssertTheseDiagnostics()

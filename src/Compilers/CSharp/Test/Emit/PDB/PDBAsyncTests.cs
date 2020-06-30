@@ -2059,7 +2059,7 @@ class C
         }
     }
 }");
-            var v = CreateEmptyCompilation(src, LatestVbReferences, options: TestOptions.DebugDll);
+            var v = CreateEmptyCompilation(src, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences, options: TestOptions.DebugDll);
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>

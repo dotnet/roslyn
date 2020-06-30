@@ -2813,7 +2813,7 @@ True
 
         Private Overloads Function CompileAndVerify(source As XElement, Optional expectedOutput As XCData = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
             Return CompileAndVerify(source,
-                                    LatestVbReferences,
+                                    TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                                     XCDataToString(expectedOutput),
                                     options:=If(options, TestOptions.ReleaseExe).WithDeterministic(True),
                                     emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
@@ -2821,7 +2821,7 @@ True
 
         Private Overloads Function CompileAndVerify(source As XElement, Optional expectedOutput As String = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
             Return CompileAndVerify(source,
-                                    LatestVbReferences,
+                                    TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                                     expectedOutput,
                                     options:=If(options, TestOptions.ReleaseExe).WithDeterministic(True),
                                     emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
@@ -2829,7 +2829,7 @@ True
 
         Private Overloads Function CompileAndVerify(source As String, Optional expectedOutput As String = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
             Return CompileAndVerifyEx(source,
-                                    LatestVbReferences,
+                                    TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences,
                                     expectedOutput,
                                     options:=If(options, TestOptions.ReleaseExe).WithDeterministic(True),
                                     emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)),

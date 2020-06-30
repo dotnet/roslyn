@@ -777,7 +777,7 @@ End Class
 
             Dim comp = CreateEmptyCompilationWithReferences(
             src,
-            references:={MscorlibRef_v4_0_30316_17626},
+            references:={TargetFrameworkUtil.Mscorlib45Reference},
             options:=TestOptions.ReleaseWinMD)
             comp.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_WinRTEventWithoutDelegate, "E"))
         End Sub

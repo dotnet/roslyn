@@ -133,7 +133,7 @@ Public MustInherit Class BasicTestBase
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
 
-        Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
+        Dim defaultRefs = If(useLatestFramework, TargetFrameworkUtil.Mscorlib45AndVBRuntimeReferences.ToArray(), DefaultVbReferences)
         Dim allReferences = If(references IsNot Nothing, defaultRefs.Concat(references), defaultRefs)
 
         Return Me.CompileAndVerify(source,
