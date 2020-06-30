@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         [Fact]
         public async Task TestRuntime()
         {
-            await Execute("Environment.GetEnvironmentVariable(\"DOTNET_ROOT\") + '|' + RuntimeEnvironment.GetRuntimeDirectory()");
+            await Execute("Write(Environment.GetEnvironmentVariable(\"DOTNET_ROOT\") + '|' + System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory())");
+            var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();
 
             Host.Dispose();
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var log = @$"
 DOTNET_ROOT: '{Environment.GetEnvironmentVariable("DOTNET_ROOT")}'
 RuntimeDirectory: '{RuntimeEnvironment.GetRuntimeDirectory()}'
+Error: '{error}'
 Output: '{output}'
 Trace:
 ===
