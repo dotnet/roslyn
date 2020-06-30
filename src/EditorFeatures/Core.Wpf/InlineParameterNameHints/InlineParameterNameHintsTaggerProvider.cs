@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// can be used to create the UI tag
     /// </summary>
     [Export(typeof(ITaggerProvider))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IntraTextAdornmentTag))]
     [Name(nameof(InlineParameterNameHintsTaggerProvider))]
-    class InlineParameterNameHintsTaggerProvider : ITaggerProvider
+    internal class InlineParameterNameHintsTaggerProvider : ITaggerProvider
     {
         private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
 

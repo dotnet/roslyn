@@ -17,19 +17,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     {
         /// <summary>
         /// Creates the UIElement on call
+        /// Uses PositionAffinity.Successor because we want the tag to be associated with the following character
         /// </summary>
         /// <param name="text">The name of the parameter associated with the argument</param>
         public InlineParameterNameHintsTag(string text)
-            : base(CreateElement(text), removalCallback: null, (PositionAffinity?)PositionAffinity.Successor)
+            : base(CreateElement(text), removalCallback: null, PositionAffinity.Successor)
         {
         }
 
         private static UIElement CreateElement(string text)
         {
-            text += ": ";
+            // Constructs the hint block which gets assigned parameter name, a normal fontstyle, and sets the padding 
+            // space around the block to 0
             var block = new TextBlock
             {
-                Text = text,
+                Text = text + ": ",
                 FontStyle = FontStyles.Normal,
                 Padding = new Thickness(0),
             };

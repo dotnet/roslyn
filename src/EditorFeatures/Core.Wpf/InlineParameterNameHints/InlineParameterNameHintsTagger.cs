@@ -40,30 +40,35 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         public IEnumerable<ITagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            var tagsList = new List<ITagSpan<IntraTextAdornmentTag>>();
             if (spans.Count <= 0)
             {
-                return tagsList;
+                return Array.Empty<ITagSpan<IntraTextAdornmentTag>>();
             }
 
+            var tagsList = new List<ITagSpan<IntraTextAdornmentTag>>();
             var dataTags = _tagAggregator.GetTags(spans);
+            var snapshot = spans[0].Snapshot;
             foreach (var tag in dataTags)
             {
-                var dataTagSpans = tag.Span.GetSpans(spans[0].Snapshot);
+                // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
+                // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
+                // occuring 
+                var dataTagSpans = tag.Span.GetSpans(snapshot);
                 var textTag = tag.Tag;
                 if (dataTagSpans.Count == 1)
                 {
                     var dataTagSpan = dataTagSpans[0];
-                    var adornmentSpan = new SnapshotSpan(dataTagSpan.Start, 0);
-                    tagsList.Add(new TagSpan<IntraTextAdornmentTag>(adornmentSpan, new InlineParameterNameHintsTag(textTag.ParameterName)));
+                    tagsList.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), new InlineParameterNameHintsTag(textTag.ParameterName)));
                 }
             }
+
             return tagsList;
         }
 
         public void Dispose()
         {
             _tagAggregator.Dispose();
+            _tagAggregator.TagsChanged -= OnTagAggregatorTagsChanged;
         }
     }
 }

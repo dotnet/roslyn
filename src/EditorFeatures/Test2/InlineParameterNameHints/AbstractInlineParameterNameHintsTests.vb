@@ -33,17 +33,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
 
                 Dim expectedTags As New List(Of String)
 
-                For Each hostDocument In workspace.Documents
-                    Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
-                        Function(name) name.Value,
-                        Function(name, span) _
-                        New With {.Name = name.Key,
-                                  .Span = span
-                        })
+                Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
+                    Function(name) name.Value,
+                    Function(name, span) _
+                    New With {.Name = name.Key,
+                              .Span = span
+                    })
 
-                    For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
-                        expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.Start.ToString())
-                    Next
+                For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.Span.Start)
+                    expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.Span.Start.ToString())
                 Next
 
                 AssertEx.Equal(expectedTags, producedTags)

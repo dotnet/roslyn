@@ -277,13 +277,13 @@ unsafe class Example {
 class A
 {
     public void UseParams(params int[] list)
-        {
-        }
+    {
+    }
 
-        public void Main(string[] args)
-        {
-            UseParams({|list:1|}, 2, 3, 4, 5, 6); 
-        } 
+    public void Main(string[] args)
+    {
+        UseParams({|list:1|}, 2, 3, 4, 5, 6); 
+    } 
 }
                     </Document>
                 </Project>

@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -37,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var spans = new List<InlineParameterHint>();
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -47,37 +45,25 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
 
             foreach (var node in nodes)
             {
-                if (node is InvocationExpressionSyntax invocation)
+                if (node is ArgumentSyntax argument)
                 {
-                    foreach (var argument in invocation.ArgumentList.Arguments)
+                    if (argument.NameColon == null && IsExpressionWithNoName(argument.Expression))
                     {
-                        if (argument.NameColon == null && IsExpressionWithNoName(argument.Expression))
+                        var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                        if (param != null && param.Name != "")
                         {
-                            var param = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                            if (param != null && param.Name != "")
-                            {
-                                spans.Add(new InlineParameterHint(param.Name, argument.Span.Start));
-                            }
+                            spans.Add(new InlineParameterHint(param.Name, argument.Span.Start));
                         }
                     }
                 }
-                else if (node is AttributeListSyntax attributeList)
+                else if (node is AttributeArgumentSyntax attribute)
                 {
-                    foreach (var attributeSyntax in attributeList.Attributes)
+                    if (attribute.NameEquals == null && attribute.NameColon == null && IsExpressionWithNoName(attribute.Expression))
                     {
-                        if (attributeSyntax.ArgumentList != null)
+                        var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                        if (param != null && param.Name != "")
                         {
-                            foreach (var attribute in attributeSyntax.ArgumentList.Arguments)
-                            {
-                                if (attribute.NameEquals == null && attribute.NameColon == null && IsExpressionWithNoName(attribute.Expression))
-                                {
-                                    var param = attribute.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                                    if (param != null && param.Name != "")
-                                    {
-                                        spans.Add(new InlineParameterHint(param.Name, attribute.SpanStart));
-                                    }
-                                }
-                            }
+                            spans.Add(new InlineParameterHint(param.Name, attribute.SpanStart));
                         }
                     }
                 }
@@ -94,10 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
         {
             if (arg is LiteralExpressionSyntax)
             {
+                // We want to adorn literals no matter what
                 return true;
             }
             if (arg is ObjectCreationExpressionSyntax)
             {
+                // We want to adorn object invocations that exist as arguments because they are not declared anywhere
+                // else in the file
+                // Example: testMethod(^new Object()); should show the adornment at the caret  
                 return true;
             }
             if (arg is CastExpressionSyntax cast)
@@ -112,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                 // If so, then we should add the adornment
                 return IsExpressionWithNoName(negation.Operand);
             }
+
             return false;
         }
     }

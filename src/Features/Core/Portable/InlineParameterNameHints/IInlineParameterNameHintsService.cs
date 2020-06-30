@@ -17,12 +17,13 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
             Name = name;
             Position = position;
         }
-        public string Name { get; }
-        public int Position { get; }
+
+        public readonly string Name { get; }
+        public readonly int Position { get; }
     }
 
     internal interface IInlineParameterNameHintsService : ILanguageService
     {
-        Task<IEnumerable<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);
+        Task<IEnumerable<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
     }
 }

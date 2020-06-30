@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -26,12 +27,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// The TaggerProvider that calls upon the service in order to locate the spans and names
     /// </summary>
     [Export(typeof(ITaggerProvider))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(InlineParameterNameHintDataTag))]
     [Name(nameof(InlineParameterNameHintsDataTaggerProvider))]
     internal class InlineParameterNameHintsDataTaggerProvider : AsynchronousTaggerProvider<InlineParameterNameHintDataTag>
     {
         private readonly IAsynchronousOperationListener _listener;
+
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
         public InlineParameterNameHintsDataTaggerProvider(
@@ -55,17 +57,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             var document = documentSnapshotSpan.Document;
 
             var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var paramNameHintsService = document.GetRequiredLanguageService<IInlineParameterNameHintsService>();
-            var paramNameHintSpans = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-
-            foreach (var span in paramNameHintSpans)
+            var paramNameHintsService = document.GetLanguageService<IInlineParameterNameHintsService>();
+            if (paramNameHintsService != null)
             {
-                if (cancellationToken.IsCancellationRequested)
+                var paramNameHintSpans = await paramNameHintsService.GetInlineParameterNameHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                foreach (var span in paramNameHintSpans)
                 {
-                    return;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, span.Position, 0), new InlineParameterNameHintDataTag(span.Name)));
                 }
-
-                context.AddTag(new TagSpan<InlineParameterNameHintDataTag>(new SnapshotSpan(snapshotSpan.Snapshot, span.Position, 0), new InlineParameterNameHintDataTag(span.Name)));
             }
         }
     }
