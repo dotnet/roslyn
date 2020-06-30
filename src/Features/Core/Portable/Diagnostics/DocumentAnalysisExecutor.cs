@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>? _lazySyntaxDiagnostics;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>? _lazySemanticDiagnostics;
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>? _lazyAdditionalFileDiagnostics;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>? _lazyAdditionalDocumentDiagnostics;
 
         public DocumentAnalysisExecutor(
             DocumentAnalysisScope analysisScope,
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, _compilationWithAnalyzers.Compilation).Count());
-            return diagnostics.ConvertToLocalDiagnostics(textDocument);
+            return diagnostics.ConvertToLocalDiagnostics(textDocument, span);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetSyntaxDiagnosticsAsync(SyntaxTree tree, DiagnosticAnalyzer analyzer, bool isCompilerAnalyzer, CancellationToken cancellationToken)
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            if (_lazyAdditionalFileDiagnostics == null)
+            if (_lazyAdditionalDocumentDiagnostics == null)
             {
                 var filePath = document.FilePath ?? document.Name;
                 var additionalFile = _compilationWithAnalyzers.AnalysisOptions.Options?.AdditionalFiles.FirstOrDefault(a => PathUtilities.Comparer.Equals(a.Path, filePath));
@@ -238,10 +238,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     diagnosticsMap = analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFile, out var value) ? value : ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
                 }
 
-                Interlocked.CompareExchange(ref _lazyAdditionalFileDiagnostics, diagnosticsMap, null);
+                Interlocked.CompareExchange(ref _lazyAdditionalDocumentDiagnostics, diagnosticsMap, null);
             }
 
-            return _lazyAdditionalFileDiagnostics.TryGetValue(analyzer, out var diagnostics) ?
+            return _lazyAdditionalDocumentDiagnostics.TryGetValue(analyzer, out var diagnostics) ?
                 diagnostics :
                 ImmutableArray<Diagnostic>.Empty;
         }
