@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
 
-            if (containingSlot > 0 && !IsSlotMember(containingSlot, symbol))
+            if ((containingSlot > 0 && !IsSlotMember(containingSlot, symbol)) || symbol is null)
                 return -1;
 
             return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty);

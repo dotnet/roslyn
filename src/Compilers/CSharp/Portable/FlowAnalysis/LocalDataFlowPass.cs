@@ -120,7 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(containingSlot >= 0);
 
-            if (symbol is null) return -1;
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);

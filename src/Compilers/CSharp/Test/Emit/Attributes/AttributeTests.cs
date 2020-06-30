@@ -9089,45 +9089,6 @@ public class C2
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(null)").WithLocation(20, 6));
         }
 
-        [Fact]
-        [WorkItem(44049, "https://github.com/dotnet/roslyn/issues/44049")]
-        public void MemberNotNullAnnotationCrashes()
-        {
-            var source =
-@"using System.Diagnostics.CodeAnalysis;
-
-class C
-{
-    public string? field;
-  
-    [MemberNotNull(""field"")]
-    public static void M()
-    {
-    }
-
-    public void Test()
-    {
-        M();
-        field.ToString();
-    }
-}";
-            var comp = CreateCompilation(
-                new[]
-                {
-                    source, MemberNotNullAttributeDefinition
-                },
-                options: WithNonNullTypesTrue(),
-                targetFramework: TargetFramework.NetCoreApp30,
-                parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (5,20): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
-                //     public string? field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(5, 20),
-                // (15,9): warning CS8602: Dereference of a possibly null reference.
-                //         field.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(15, 9));
-        }
-
         #endregion
     }
 }
