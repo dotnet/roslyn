@@ -4,18 +4,11 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -42,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             public async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(
                 Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
-                var reuseService = document.GetRequiredLanguageService<ISemanticModelReuseService>();
+                var reuseService = document.GetRequiredLanguageService<ISemanticModelReuseLanguageService>();
 
                 // See if we're asking about a node actually in a method body.  If so, see if we can reuse the
                 // existing semantic model.  If not, return the current semantic model for the file.
@@ -126,7 +119,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 if (cachedBodyNode == bodyNode)
                     return cachedSemanticModel;
 
-                var reuseService = document.GetRequiredLanguageService<ISemanticModelReuseService>();
+                var reuseService = document.GetRequiredLanguageService<ISemanticModelReuseLanguageService>();
                 return await reuseService.TryGetSpeculativeSemanticModelAsync(cachedSemanticModel, bodyNode, cancellationToken).ConfigureAwait(false);
             }
 

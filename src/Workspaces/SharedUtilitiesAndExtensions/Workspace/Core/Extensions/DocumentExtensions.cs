@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
+using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -131,8 +131,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(
             Document document, SyntaxNode node, TextSpan span, CancellationToken cancellationToken)
         {
+            var workspace = document.Project.Solution.Workspace;
             var syntaxFactService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModelService = document.Project.Solution.Workspace.Services.GetRequiredService<ISemanticModelService>();
+            var semanticModelService = workspace.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
 
             // check whether given span is a valid span to do speculative binding
             var speculativeBindingSpan = syntaxFactService.GetMemberBodySpanForSpeculativeBinding(node);
