@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var expression = (ExpressionSyntax)context.Node;
+            if (expression.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
+                return;
 
             // Bail if this is not a topmost expression
             // to avoid overlapping diagnostics.
@@ -45,16 +47,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return;
 
             var syntaxTree = expression.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
             if (!((CSharpParseOptions)syntaxTree.Options).LanguageVersion.IsCSharp9OrAbove())
                 return;
 
+            var cancellationToken = context.CancellationToken;
             var styleOption = context.Options.GetOption(CSharpCodeStyleOptions.PreferPatternMatching, syntaxTree, cancellationToken);
             if (!styleOption.Value)
                 return;
 
-            var operation = context.SemanticModel.GetOperation(expression, cancellationToken);
+            var semanticModel = context.SemanticModel;
+            var expressionTypeOpt = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+            if (expression.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken))
+                return;
+
+            var operation = semanticModel.GetOperation(expression, cancellationToken);
             if (operation is null)
                 return;
 

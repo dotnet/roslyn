@@ -89,13 +89,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     Token(p.Token.LeadingTrivia, p.IsDisjunctive ? SyntaxKind.OrKeyword : SyntaxKind.AndKeyword,
                         TriviaList(p.Token.GetAllTrailingTrivia())),
                     AsPatternSyntax(p.Right).Parenthesize()),
-                Constant p => ConstantPattern(p.ExpressionSyntax.Parenthesize()),
+                Constant p => ConstantPattern(AsExpressionSyntax(p)),
                 Source p => p.PatternSyntax,
                 Type p => TypePattern(p.TypeSyntax),
                 Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), p.Value.Parenthesize()),
                 Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
+        }
+
+        private static ExpressionSyntax AsExpressionSyntax(Constant constant)
+        {
+            var expr = constant.ExpressionSyntax;
+            if (expr.IsKind(SyntaxKind.DefaultLiteralExpression))
+            {
+                // default literals are not permitted in patterns
+                var convertedType = constant.Target.SemanticModel.GetTypeInfo(expr).ConvertedType;
+                if (convertedType != null)
+                {
+                    return DefaultExpression(convertedType.GenerateTypeSyntax());
+                }
+            }
+
+            return expr.Parenthesize();
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
