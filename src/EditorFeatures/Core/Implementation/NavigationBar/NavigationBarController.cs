@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _selectedItemInfoTaskCancellationSource.Cancel();
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
+        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
         {
             // We're getting an event for a workspace we already disconnected from
             if (args.NewSolution.Workspace != _workspace)
@@ -188,26 +188,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
         }
 
-        private void OnSubjectBufferPostChanged(object sender, EventArgs e)
+        private void OnSubjectBufferPostChanged(object? sender, EventArgs e)
         {
             AssertIsForeground();
 
             StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: TaggerConstants.MediumDelay, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
         }
 
-        private void OnCaretMoved(object sender, EventArgs e)
+        private void OnCaretMoved(object? sender, EventArgs e)
         {
             AssertIsForeground();
             StartSelectedItemUpdateTask(delay: TaggerConstants.NearImmediateDelay, updateUIWhenDone: true);
         }
 
-        private void OnViewFocused(object sender, EventArgs e)
+        private void OnViewFocused(object? sender, EventArgs e)
         {
             AssertIsForeground();
             StartSelectedItemUpdateTask(delay: TaggerConstants.ShortDelay, updateUIWhenDone: true);
         }
 
-        private void OnDropDownFocused(object sender, EventArgs e)
+        private void OnDropDownFocused(object? sender, EventArgs e)
         {
             AssertIsForeground();
 
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _versionStampOfFullListPushedToPresenter = null;
         }
 
-        private void OnItemSelected(object sender, NavigationBarItemSelectedEventArgs e)
+        private void OnItemSelected(object? sender, NavigationBarItemSelectedEventArgs e)
         {
             AssertIsForeground();
 
