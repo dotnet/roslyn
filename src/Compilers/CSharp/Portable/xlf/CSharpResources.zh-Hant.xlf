@@ -232,6 +232,11 @@
         <target state="translated">捨棄模式不可為 switch 陳述式中的 case 標籤。針對捨棄模式，請使用 'case var _:'，針對名為 '_' 的常數，則請使用 'case @_:'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
+        <source>'{0}' does not override the method from 'object'.</source>
+        <target state="new">'{0}' does not override the method from 'object'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
         <source>A return type can only have one '{0}' modifier.</source>
         <target state="new">A return type can only have one '{0}' modifier.</target>
@@ -340,6 +345,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">C# 8.0 中無法使用功能 '{0}'。請使用 {1} 或更新的語言版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion9">
+        <source>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">

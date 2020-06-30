@@ -131,16 +131,7 @@
       "vsBranch": "rel/d16.6",
       "vsMajorVersion": 16
     },
-    "release/dev16.7-preview3-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.7.*",
-      "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
-      "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-      "channels": [ "dev16.7", "dev16.7p3" ],
-      "vsBranch": "master",
-      "vsMajorVersion": 16
-    },
-    "master-vs-deps": {
+    "release/dev16.7-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.7.*",
       "packageFeeds": "default",
@@ -149,9 +140,9 @@
       "vsBranch": "master",
       "vsMajorVersion": 16
     },
-    "release/dev16.8-preview1-vs-deps": {
+    "master-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.7.*",
+      "version": "3.8.*",
       "packageFeeds": "default",
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dev16.8", "dev16.8p1" ],

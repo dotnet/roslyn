@@ -1949,8 +1949,6 @@ done:
 
             upgradeableLock.EnterWrite();
 
-            Debug.Assert(Root == bindableRoot);
-
             NullableWalker.SnapshotManager snapshotManager;
             var remappedSymbols = _parentRemappedSymbolsOpt;
             BoundNode boundRoot;
@@ -1977,10 +1975,10 @@ done:
                 rewriteAndCache();
             }
 
-            void bind(CSharpSyntaxNode bindableRoot, out Binder binder, out BoundNode boundRoot)
+            void bind(CSharpSyntaxNode root, out Binder binder, out BoundNode boundRoot)
             {
-                binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
-                boundRoot = Bind(binder, bindableRoot, getDiagnosticBag());
+                binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
+                boundRoot = Bind(binder, root, getDiagnosticBag());
             }
 
             void rewriteAndCache()
@@ -2145,20 +2143,27 @@ done:
 
             while (true)
             {
-                switch (node.Kind())
+                switch (node)
                 {
-                    case SyntaxKind.ParenthesizedExpression:
-                        node = ((ParenthesizedExpressionSyntax)node).Expression;
+                    case ParenthesizedExpressionSyntax n:
+                        node = n.Expression;
                         continue;
 
-                    case SyntaxKind.CheckedExpression:
-                    case SyntaxKind.UncheckedExpression:
-                        node = ((CheckedExpressionSyntax)node).Expression;
+                    case CheckedExpressionSyntax n:
+                        node = n.Expression;
                         continue;
 
                     // Simple mitigation to give a result for suppressions. Public API tracked by https://github.com/dotnet/roslyn/issues/26198
-                    case SyntaxKind.SuppressNullableWarningExpression:
-                        node = ((PostfixUnaryExpressionSyntax)node).Operand;
+                    case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } n:
+                        node = n.Operand;
+                        continue;
+
+                    case UnsafeStatementSyntax n:
+                        node = n.Block;
+                        continue;
+
+                    case CheckedStatementSyntax n:
+                        node = n.Block;
                         continue;
                 }
 
