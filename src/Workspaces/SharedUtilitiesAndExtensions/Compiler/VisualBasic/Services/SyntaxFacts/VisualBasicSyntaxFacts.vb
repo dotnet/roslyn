@@ -202,6 +202,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.GetParameterList()
         End Function
 
+        Public Function IsParameterList(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterList
+            Return node.IsKind(SyntaxKind.ParameterList)
+        End Function
+
         Public Function ISyntaxFacts_HasIncompleteParentMember(node As SyntaxNode) As Boolean Implements ISyntaxFacts.HasIncompleteParentMember
             Return HasIncompleteParentMember(node)
         End Function
