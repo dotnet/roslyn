@@ -182,13 +182,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             }
         }
 
-        private bool IsNew(IFieldSymbol field)
+        private static bool IsNew(IFieldSymbol field)
             => field.DeclaringSyntaxReferences.Any(d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
 
-        private string GenerateFieldName(string correspondingPropertyName)
+        private static string GenerateFieldName(string correspondingPropertyName)
             => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName.Substring(1);
 
-        protected string MakeUnique(string baseName, INamedTypeSymbol containingType)
+        protected static string MakeUnique(string baseName, INamedTypeSymbol containingType)
         {
             var containingTypeMemberNames = containingType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(containingType).Select(m => m.Name);
             return NameGenerator.GenerateUniqueName(baseName, containingTypeMemberNames.ToSet(), StringComparer.Ordinal);

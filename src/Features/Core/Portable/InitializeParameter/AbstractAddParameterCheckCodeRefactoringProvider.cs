@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             // Great.  There was no null check.  Offer to add one.
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
                 c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c)));
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c)));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private async Task<Document> UpdateDocumentForRefactoringAsync(
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document;
         }
 
-        private IParameterSymbol GetParameterAtOrdinal(int index, IReadOnlyList<SyntaxNode> parameterNodes, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static IParameterSymbol GetParameterAtOrdinal(int index, IReadOnlyList<SyntaxNode> parameterNodes, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             foreach (var parameterNode in parameterNodes)
             {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private bool ContainsNullCoalesceCheck(
+        private static bool ContainsNullCoalesceCheck(
             ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
             IOperation statement, IParameterSymbol parameter,
             CancellationToken cancellationToken)
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private bool IsIfNullCheck(IOperation statement, IParameterSymbol parameter)
+        private static bool IsIfNullCheck(IOperation statement, IParameterSymbol parameter)
         {
             if (statement is IConditionalOperation ifStatement)
             {
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return true;
         }
 
-        private bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
+        private static bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
         {
             if (condition is IInvocationOperation invocation &&
                 invocation.Arguments.Length == 1 &&
@@ -286,9 +286,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private bool IsNullCheck(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
+        private static bool IsNullCheck(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
             => UnwrapImplicitConversion(operand1).IsNullLiteral() && IsParameterReference(operand2, parameter);
-
 
         private async Task<Document> AddNullCheckAsync(
             Document document,
@@ -383,7 +382,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         CreateArgumentException(compilation, generator, parameter, methodName))));
         }
 
-        private SyntaxNode GetStatementToAddNullCheckAfter(
+        private static SyntaxNode GetStatementToAddNullCheckAfter(
             SemanticModel semanticModel,
             IParameterSymbol parameter,
             IBlockOperation blockStatementOpt,
@@ -431,7 +430,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         /// in some way.  If we find a match, we'll place our new null-check statement before/after
         /// this statement as appropriate.
         /// </summary>
-        private IOperation TryFindParameterCheckStatement(
+        private static IOperation TryFindParameterCheckStatement(
             SemanticModel semanticModel,
             IParameterSymbol parameterSymbol,
             IBlockOperation blockStatementOpt,

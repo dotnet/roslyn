@@ -142,7 +142,8 @@ class Program
         }
 
         [WorkItem(545138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [WorkItem(44422, "https://github.com/dotnet/roslyn/issues/44422")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44422"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveTypeParameterCastToObject()
         {
             var source =
@@ -173,7 +174,8 @@ class Program
         }
 
         [WorkItem(545139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545139")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [WorkItem(44422, "https://github.com/dotnet/roslyn/issues/44422")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44422"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastInIsTest()
         {
             var source =
@@ -8032,6 +8034,28 @@ class Program
         Console.WriteLine((object)a2 != a1);
     }
 }";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(44382, "https://github.com/dotnet/roslyn/issues/44382")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastOnParameterInitializer1()
+        {
+            var source =
+@"enum E : byte { }
+class C { void F() { void f(E e = (E)byte.MaxValue) { } } }";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(44382, "https://github.com/dotnet/roslyn/issues/44382")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastOnParameterInitializer2()
+        {
+            var source =
+@"enum E : byte { }
+class C { void f(E e = (E)byte.MaxValue) { } }";
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }

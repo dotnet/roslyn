@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private int? GetElementIndex(CSharpSyntaxContext context)
+        private static int? GetElementIndex(CSharpSyntaxContext context)
         {
             var token = context.TargetToken;
             if (token.IsKind(SyntaxKind.OpenParenToken))
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private void AddItems(ImmutableArray<INamedTypeSymbol> inferredTypes, int index, CompletionContext context, int spanStart)
+        private static void AddItems(ImmutableArray<INamedTypeSymbol> inferredTypes, int index, CompletionContext context, int spanStart)
         {
             foreach (var type in inferredTypes)
             {

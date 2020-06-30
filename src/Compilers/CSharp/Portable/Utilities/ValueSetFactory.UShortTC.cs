@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ushort INumericTC<ushort>.MaxValue => ushort.MaxValue;
 
+            ushort INumericTC<ushort>.Zero => 0;
+
             bool INumericTC<ushort>.Related(BinaryOperatorKind relation, ushort left, ushort right)
             {
                 switch (relation)
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (ushort)(value + 1);
             }
 
-            ushort INumericTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt16Value;
+            ushort INumericTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (ushort)0 : constantValue.UInt16Value;
 
             ConstantValue INumericTC<ushort>.ToConstantValue(ushort value) => ConstantValue.Create(value);
 

@@ -216,7 +216,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return reader != null && Checksum.ReadFrom(reader) == checksum;
             }
 
+#pragma warning disable CA1822 // Mark members as static - instance members used in Debug
             protected bool GetAndVerifyRowId(SqlConnection connection, Database database, long dataId, out long rowId)
+#pragma warning restore CA1822 // Mark members as static
             {
                 // For the Document and Project tables, our dataId is our rowId:
                 // 

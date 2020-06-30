@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     attributes: default,
                     accessibility: accessibility,
-                    statements: GenerateStatements(factory, isAbstract, cancellationToken));
+                    statements: GenerateStatements(factory, isAbstract));
 
                 var setMethod = includeSetter ? getMethod : null;
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     name: State.IdentifierToken.ValueText,
                     typeParameters: DetermineTypeParameters(cancellationToken),
                     parameters: parameters,
-                    statements: GenerateStatements(factory, isAbstract, cancellationToken),
+                    statements: GenerateStatements(factory, isAbstract),
                     handlesExpressions: default,
                     returnTypeAttributes: default,
                     methodKind: State.MethodKind);
@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
             private ImmutableArray<SyntaxNode> GenerateStatements(
                 SyntaxGenerator factory,
-                bool isAbstract,
-                CancellationToken cancellationToken)
+                bool isAbstract)
             {
                 var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(factory, Document, "System.NotImplementedException");
 
@@ -206,7 +205,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var optionality = DetermineParameterOptionality(cancellationToken);
                 var names = DetermineParameterNames(cancellationToken);
 
-                var result = ArrayBuilder<IParameterSymbol>.GetInstance();
+                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
                 for (var i = 0; i < modifiers.Length; i++)
                 {
                     result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         name: names[i].BestNameForParameter));
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private Accessibility DetermineAccessibility(bool isAbstract)

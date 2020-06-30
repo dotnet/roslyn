@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
         private static async Task<LSP.Command[]> RunGetCodeActionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)
         {
-            var results = await GetLanguageServer(solution).GetCodeActionsAsync(solution, CreateCodeActionParams(caret), clientCapabilities, CancellationToken.None);
+            var results = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>(LSP.Methods.TextDocumentCodeActionName,
+                CreateCodeActionParams(caret), clientCapabilities, null, CancellationToken.None);
             return results.Select(r => (LSP.Command)r).ToArray();
         }
 

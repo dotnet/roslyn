@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -841,6 +842,93 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask modopt(MyTask) *[]", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task modopt(MyTask) *[]", normalized.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_FunctionPointers()
+        {
+            string source =
+@"
+using System.Runtime.CompilerServices;
+unsafe class C<T>
+{
+#pragma warning disable CS0169
+    static delegate*<int, int, C<MyTask<int>>> F0;
+    static delegate*<C<MyTask<int>>, int, int> F1;
+    static delegate*<int, C<MyTask<int>>, int> F2;
+    static delegate*<int, int, int> F3;
+#pragma warning restore CS0169
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+struct MyTask<T> { }
+struct MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>();
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+
+            assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
+            assert("F1", "delegate*<C<MyTask<System.Int32>>, System.Int32, System.Int32>", "delegate*<C<System.Threading.Tasks.Task<System.Int32>>, System.Int32, System.Int32>");
+            assert("F2", "delegate*<System.Int32, C<MyTask<System.Int32>>, System.Int32>", "delegate*<System.Int32, C<System.Threading.Tasks.Task<System.Int32>>, System.Int32>");
+            assert("F3", "delegate*<System.Int32, System.Int32, System.Int32>", normalized: null);
+
+            void assert(string fieldName, string original, string normalized)
+            {
+                var type = compilation.GetMember<FieldSymbol>($"C.{fieldName}").Type;
+                FunctionPointerUtilities.CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)type);
+                var normalizedType = type.NormalizeTaskTypes(compilation);
+                Assert.Equal(original, type.ToTestDisplayString());
+                if (normalized is object)
+                {
+                    Assert.Equal(normalized, normalizedType.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Same(type, normalizedType);
+                }
+            }
+        }
+
+        [Fact]
+        public void NormalizeTaskTypes_FunctionPointersCustomModifiers()
+        {
+            var ilSource =
+@".class public C
+{
+  .field public static method class MyTask modopt(class MyTask) *(class MyTask modopt(class MyTask)) F0
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTask
+{
+  .custom instance void System.Runtime.CompilerServices.AsyncMethodBuilderAttribute::.ctor(class [mscorlib]System.Type) = { type(MyTaskMethodBuilder) }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public MyTaskMethodBuilder
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.namespace System.Runtime.CompilerServices
+{
+  .class public AsyncMethodBuilderAttribute extends [mscorlib]System.Attribute
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor(class [mscorlib]System.Type t) cil managed { ret }
+  }
+}
+";
+            var source =
+@"";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyDiagnostics();
+
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            var normalized = type.NormalizeTaskTypes(compilation);
+            Assert.Equal("delegate*<MyTask modopt(MyTask), MyTask modopt(MyTask)>", type.ToTestDisplayString());
+            Assert.Equal("delegate*<System.Threading.Tasks.Task modopt(MyTask), System.Threading.Tasks.Task modopt(MyTask)>", normalized.ToTestDisplayString());
         }
 
         [Fact]

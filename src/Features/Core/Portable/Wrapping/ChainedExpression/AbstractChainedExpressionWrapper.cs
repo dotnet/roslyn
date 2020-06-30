@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // nodes and tokens we want to treat as individual elements.  i.e. an 
             // element that would be kept together.  For example, the arg-list of an
             // invocation is an element we do not want to ever break-up/wrap. 
-            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var pieces);
+            using var _1 = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var pieces);
             Decompose(node, pieces);
 
             // Now that we have the pieces, find 'chunks' similar to the form:
@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // 
             // Here 'remainder' is everything up to the next <c>. Name (...)</c> chunk.
 
-            var chunks = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance();
+            using var _2 = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance(out var chunks);
             BreakPiecesIntoChunks(pieces, chunks);
-            return chunks.ToImmutableAndFree();
+            return chunks.ToImmutable();
         }
 
         private void BreakPiecesIntoChunks(
@@ -219,19 +219,19 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             return -1;
         }
 
-        private bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsNode &&
                piece.AsNode() is TNode;
 
-        private bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsToken &&
                piece.AsToken().RawKind == tokenKind;
 
-        private ImmutableArray<SyntaxNodeOrToken> GetSubRange(
+        private static ImmutableArray<SyntaxNodeOrToken> GetSubRange(
             ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
         {
             using var resultDisposer = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);

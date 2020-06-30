@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -529,6 +530,27 @@ static class Program
                 // (12,7): error CS8323: Named argument 'b' is used out-of-position but is followed by an unnamed argument
                 // [Mark(b: "Hello", true)]
                 Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(12, 7)
+                );
+        }
+
+        [Fact]
+        public void TestNullAsParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+
+class MarkAttribute : Attribute
+{
+    public MarkAttribute(params object[] b)
+    {
+    }
+}
+
+[Mark(null)]
+static class Program
+{
+}");
+            comp.VerifyDiagnostics(
                 );
         }
 

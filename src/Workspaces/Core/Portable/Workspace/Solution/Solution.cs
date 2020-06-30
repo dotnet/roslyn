@@ -116,10 +116,13 @@ namespace Microsoft.CodeAnalysis
             return new Project(solution, state);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter 'cancellationToken' - shipped public API
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
-        public Project? GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default)
+        public Project? GetProject(IAssemblySymbol assemblySymbol,
+            CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var projectState = _state.GetProjectState(assemblySymbol);
 
@@ -365,11 +368,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the compiler output file path.
         /// </summary>
-        public Solution WithProjectCompilationOutputFilePaths(ProjectId projectId, in CompilationOutputFilePaths paths)
+        public Solution WithProjectCompilationOutputInfo(ProjectId projectId, in CompilationOutputInfo info)
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectCompilationOutputFilePaths(projectId, paths);
+            var newState = _state.WithProjectCompilationOutputInfo(projectId, info);
             if (newState == _state)
             {
                 return this;
@@ -1905,8 +1908,8 @@ namespace Microsoft.CodeAnalysis
         {
             var projectState = _state.GetRequiredProjectState(projectId);
 
-            bool isSubmission = projectState.IsSubmission;
-            bool hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
+            var isSubmission = projectState.IsSubmission;
+            var hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
 
             foreach (var projectReference in projectReferences)
             {

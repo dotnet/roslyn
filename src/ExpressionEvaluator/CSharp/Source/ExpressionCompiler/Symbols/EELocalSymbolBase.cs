@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var type = this.TypeWithAnnotations;
             DiagnosticInfo result = null;
-            if (!DeriveUseSiteDiagnosticFromType(ref result, type) && this.ContainingModule.HasUnifiedReferences)
+            if (!DeriveUseSiteDiagnosticFromType(ref result, type, AllowedRequiredModifierType.None) && this.ContainingModule.HasUnifiedReferences)
             {
                 // If the member is in an assembly with unified references, 
                 // we check if its definition depends on a type from a unified reference.

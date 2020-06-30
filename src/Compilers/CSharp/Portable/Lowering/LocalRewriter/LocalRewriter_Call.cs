@@ -337,11 +337,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.ImplicitNumeric:
                                 case ConversionKind.ImplicitReference:
                                 case ConversionKind.Unboxing:
-                                case ConversionKind.PointerToInteger:
-                                case ConversionKind.PointerToPointer:
-                                case ConversionKind.PointerToVoid:
-                                case ConversionKind.NullToPointer:
-                                case ConversionKind.IntegerToPointer:
+                                case ConversionKind.ExplicitPointerToInteger:
+                                case ConversionKind.ExplicitPointerToPointer:
+                                case ConversionKind.ImplicitPointerToVoid:
+                                case ConversionKind.ImplicitNullToPointer:
+                                case ConversionKind.ExplicitIntegerToPointer:
                                     current = conv.Operand;
                                     break;
 
@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arrayArgs.Length == 0
                 && !_inExpressionLambda
                 && paramArrayType is ArrayTypeSymbol ats // could be false if there's a semantic error, e.g. the params parameter type isn't an array
-                && !ats.ElementType.IsPointerType())
+                && !ats.ElementType.IsPointerOrFunctionPointer())
             {
                 MethodSymbol? arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
                 if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
@@ -1197,6 +1197,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
                     return new SourceLocation(((ConstructorInitializerSyntax)syntax).ArgumentList.OpenParenToken);
+                case SyntaxKind.PrimaryConstructorBaseType:
+                    return new SourceLocation(((PrimaryConstructorBaseTypeSyntax)syntax).ArgumentList.OpenParenToken);
                 case SyntaxKind.ElementAccessExpression:
                     return new SourceLocation(((ElementAccessExpressionSyntax)syntax).ArgumentList.OpenBracketToken);
                 case SyntaxKind.FromClause:

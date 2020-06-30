@@ -10,18 +10,24 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
     {
+        public SmartTokenFormatterFormatTokenTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task EmptyFile1()
         {
             var code = @"{";
 
-            await ExpectException_SmartTokenFormatterOpenBraceAsync(
+            await AssertSmartTokenFormatterOpenBraceAsync(
                 code,
                 indentationLine: 0,
                 expectedSpace: 0);

@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly ImmutableArray<AnalyzerConfig> _analyzerConfigs;
 
+        private readonly GlobalAnalyzerConfig? _globalConfig;
+
         /// <summary>
         /// <see cref="SectionNameMatcher"/>s for each section. The entries in the outer array correspond to entries in <see cref="_analyzerConfigs"/>, and each inner array
         /// corresponds to each <see cref="AnalyzerConfig.NamedSections"/>.
@@ -93,18 +95,34 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
 
+        private readonly static DiagnosticDescriptor MultipleGlobalAnalyzerKeysDescriptor
+            = new DiagnosticDescriptor(
+                "MultipleGlobalAnalyzerKeys",
+                CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys_Title,
+                CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys,
+                "AnalyzerConfig",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
         public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs) where TList : IReadOnlyCollection<AnalyzerConfig>
+        {
+            return Create(analyzerConfigs, out _);
+        }
+
+        public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs, out ImmutableArray<Diagnostic> diagnostics) where TList : IReadOnlyCollection<AnalyzerConfig>
         {
             var sortedAnalyzerConfigs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigs.Count);
             sortedAnalyzerConfigs.AddRange(analyzerConfigs);
             sortedAnalyzerConfigs.Sort(AnalyzerConfig.DirectoryLengthComparer);
 
-            return new AnalyzerConfigSet(sortedAnalyzerConfigs.ToImmutableAndFree());
+            var globalConfig = MergeGlobalConfigs(sortedAnalyzerConfigs, out diagnostics);
+            return new AnalyzerConfigSet(sortedAnalyzerConfigs.ToImmutableAndFree(), globalConfig);
         }
 
-        private AnalyzerConfigSet(ImmutableArray<AnalyzerConfig> analyzerConfigs)
+        private AnalyzerConfigSet(ImmutableArray<AnalyzerConfig> analyzerConfigs, GlobalAnalyzerConfig? globalConfig)
         {
             _analyzerConfigs = analyzerConfigs;
+            _globalConfig = globalConfig;
 
             var allMatchers = ArrayBuilder<ImmutableArray<SectionNameMatcher?>>.GetInstance(_analyzerConfigs.Length);
 
@@ -146,6 +164,19 @@ namespace Microsoft.CodeAnalysis
 
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
 
+            // If we have a global config, add any sections that match the full path 
+            if (_globalConfig is object)
+            {
+                foreach (var section in _globalConfig.NamedSections)
+                {
+                    if (normalizedPath.Equals(section.Name, Section.NameComparer))
+                    {
+                        sectionKey.Add(section);
+                    }
+                }
+            }
+            int globalConfigOptionsCount = sectionKey.Count;
+
             // The editorconfig paths are sorted from shortest to longest, so matches
             // are resolved from most nested to least nested, where last setting wins
             for (int analyzerConfigIndex = 0; analyzerConfigIndex < _analyzerConfigs.Length; analyzerConfigIndex++)
@@ -158,7 +189,7 @@ namespace Microsoft.CodeAnalysis
                     // to this source file.
                     if (config.IsRoot)
                     {
-                        sectionKey.Clear();
+                        sectionKey.RemoveRange(globalConfigOptionsCount, sectionKey.Count - globalConfigOptionsCount);
                     }
 
                     int dirLength = config.NormalizedDirectory.Length;
@@ -192,6 +223,36 @@ namespace Microsoft.CodeAnalysis
                 var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
 
                 int sectionKeyIndex = 0;
+
+                if (_globalConfig is object)
+                {
+                    addOptions(_globalConfig.GlobalSection,
+                                treeOptionsBuilder,
+                                analyzerOptionsBuilder,
+                                diagnosticBuilder,
+                                GlobalAnalyzerConfigBuilder.GlobalConfigPath,
+                                _diagnosticIdCache);
+
+                    foreach (var configSection in _globalConfig.NamedSections)
+                    {
+                        if (sectionKey.Count > 0 && configSection == sectionKey[sectionKeyIndex])
+                        {
+                            addOptions(
+                                sectionKey[sectionKeyIndex],
+                                treeOptionsBuilder,
+                                analyzerOptionsBuilder,
+                                diagnosticBuilder,
+                                GlobalAnalyzerConfigBuilder.GlobalConfigPath,
+                                _diagnosticIdCache);
+                            sectionKeyIndex++;
+                            if (sectionKeyIndex == sectionKey.Count)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 for (int analyzerConfigIndex = 0;
                     analyzerConfigIndex < _analyzerConfigs.Length && sectionKeyIndex < sectionKey.Count;
                     analyzerConfigIndex++)
@@ -348,6 +409,181 @@ namespace Microsoft.CodeAnalysis
 
             severity = default;
             return false;
+        }
+
+        /// <summary>
+        /// Merge any partial global configs into a single global config, and remove the partial configs
+        /// </summary>
+        /// <param name="analyzerConfigs">An <see cref="ArrayBuilder{T}"/> of <see cref="AnalyzerConfig"/> containing a mix of regular and unmerged partial global configs</param>
+        /// <param name="diagnostics">Diagnostics produced during merge will be added to this bag</param>
+        /// <returns>A <see cref="GlobalAnalyzerConfig" /> that contains the merged partial configs, or <c>null</c> if there were no partial configs</returns>
+        internal static GlobalAnalyzerConfig? MergeGlobalConfigs(ArrayBuilder<AnalyzerConfig> analyzerConfigs, out ImmutableArray<Diagnostic> diagnostics)
+        {
+            GlobalAnalyzerConfigBuilder globalAnalyzerConfigBuilder = new GlobalAnalyzerConfigBuilder();
+            for (int i = 0; i < analyzerConfigs.Count; i++)
+            {
+                if (analyzerConfigs[i].IsGlobal)
+                {
+                    globalAnalyzerConfigBuilder.MergeIntoGlobalConfig(analyzerConfigs[i]);
+                    analyzerConfigs.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            DiagnosticBag diagnosticBag = DiagnosticBag.GetInstance();
+            var globalConfig = globalAnalyzerConfigBuilder.Build(diagnosticBag);
+            diagnostics = diagnosticBag.ToReadOnlyAndFree();
+            return globalConfig;
+        }
+
+        /// <summary>
+        /// Builds a global analyzer config from a series of partial configs
+        /// </summary>
+        internal struct GlobalAnalyzerConfigBuilder
+        {
+            private ImmutableDictionary<string, ImmutableDictionary<string, (string value, string configPath)>.Builder>.Builder? _values;
+            private ImmutableDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>.Builder? _duplicates;
+
+            internal const string GlobalConfigPath = "<Global Config>";
+            internal const string GlobalSectionName = "Global Section";
+
+            internal void MergeIntoGlobalConfig(AnalyzerConfig config)
+            {
+                if (_values is null)
+                {
+                    _values = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, (string, string)>.Builder>(Section.NameEqualityComparer);
+                    _duplicates = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>(Section.NameEqualityComparer);
+                }
+
+                MergeSection(config.PathToFile, config.GlobalSection, isGlobalSection: true);
+                foreach (var section in config.NamedSections)
+                {
+                    MergeSection(config.PathToFile, section, isGlobalSection: false);
+                }
+            }
+
+            internal GlobalAnalyzerConfig? Build(DiagnosticBag diagnostics)
+            {
+                if (_values is null || _duplicates is null)
+                {
+                    return null;
+                }
+
+                // issue diagnostics for any duplicate keys
+                foreach ((var section, var keys) in _duplicates)
+                {
+                    bool isGlobalSection = string.IsNullOrWhiteSpace(section);
+                    string sectionName = isGlobalSection ? GlobalSectionName : section;
+                    foreach ((var keyName, var configPaths) in keys)
+                    {
+                        diagnostics.Add(Diagnostic.Create(
+                             MultipleGlobalAnalyzerKeysDescriptor,
+                             Location.None,
+                             keyName,
+                             sectionName,
+                             string.Join(", ", configPaths)));
+                    }
+                }
+                _duplicates = null;
+
+                // gather the global and named sections
+                Section globalSection = GetSection(string.Empty);
+                _values.Remove(string.Empty);
+
+                ArrayBuilder<Section> namedSectionBuilder = new ArrayBuilder<Section>(_values.Count);
+                foreach (var sectionName in _values.Keys.Order())
+                {
+                    namedSectionBuilder.Add(GetSection(sectionName));
+                }
+
+                // create the global config
+                GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree());
+                _values = null;
+                return globalConfig;
+            }
+
+            private Section GetSection(string sectionName)
+            {
+                Debug.Assert(_values is object);
+
+                var dict = _values[sectionName];
+                var result = dict.ToImmutableDictionary(d => d.Key, d => d.Value.value, Section.PropertiesKeyComparer);
+                return new Section(sectionName, result);
+            }
+
+            private void MergeSection(string configPath, Section section, bool isGlobalSection)
+            {
+                Debug.Assert(_values is object);
+                Debug.Assert(_duplicates is object);
+
+                if (!_values.TryGetValue(section.Name, out var sectionDict))
+                {
+                    sectionDict = ImmutableDictionary.CreateBuilder<string, (string, string)>(Section.PropertiesKeyComparer);
+                    _values.Add(section.Name, sectionDict);
+                }
+
+                _duplicates.TryGetValue(section.Name, out var duplicateDict);
+                foreach ((var key, var value) in section.Properties)
+                {
+                    if (isGlobalSection && Section.PropertiesKeyComparer.Equals(key, GlobalKey))
+                    {
+                        continue;
+                    }
+
+                    bool keyInSection = sectionDict.ContainsKey(key);
+                    bool keyDuplicated = duplicateDict?.ContainsKey(key) ?? false;
+
+                    // if this key is neither already present, or already duplicate, we can add it
+                    if (!keyInSection && !keyDuplicated)
+                    {
+                        sectionDict.Add(key, (value, configPath));
+                    }
+                    else
+                    {
+                        if (duplicateDict is null)
+                        {
+                            duplicateDict = ImmutableDictionary.CreateBuilder<string, ArrayBuilder<string>>(Section.PropertiesKeyComparer);
+                            _duplicates.Add(section.Name, duplicateDict);
+                        }
+
+                        // record that this key is now a duplicate
+                        ArrayBuilder<string> configList = keyDuplicated ? duplicateDict[key] : ArrayBuilder<string>.GetInstance();
+                        configList.Add(configPath);
+                        duplicateDict[key] = configList;
+
+                        // if we'd previously added this key, remove it and remember the extra duplicate location
+                        if (keyInSection)
+                        {
+                            var originalConfigPath = sectionDict[key].configPath;
+                            sectionDict.Remove(key);
+                            duplicateDict[key].Insert(0, originalConfigPath);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Represents a combined global analyzer config.
+        /// </summary>
+        /// <remarks>
+        /// We parse all <see cref="AnalyzerConfig"/>s as individual files, according to the editorconfig spec.
+        /// 
+        /// However, when viewing the configs as an <see cref="AnalyzerConfigSet"/> if multiple files have the
+        /// <c>is_global</c> property set to <c>true</c> we combine those files and treat them as a single 
+        /// 'logical' global config file. This type represents that combined file. 
+        /// </remarks>
+        internal sealed class GlobalAnalyzerConfig
+        {
+            internal AnalyzerConfig.Section GlobalSection { get; }
+
+            internal ImmutableArray<AnalyzerConfig.Section> NamedSections { get; }
+
+            public GlobalAnalyzerConfig(AnalyzerConfig.Section globalSection, ImmutableArray<AnalyzerConfig.Section> namedSections)
+            {
+                GlobalSection = globalSection;
+                NamedSections = namedSections;
+            }
         }
     }
 }

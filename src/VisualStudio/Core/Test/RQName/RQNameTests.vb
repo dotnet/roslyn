@@ -178,7 +178,6 @@ class MyClass
             Await TestWorkerAsync(markup, LanguageNames.CSharp, expectedRQName)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Async Function TestRQNameForAnonymousTypeReturnsNull() As Task
             Dim markup = <Text><![CDATA[
@@ -264,7 +263,6 @@ class G<T>
                 If symbol Is Nothing Then
                     AssertEx.Fail("Could not find symbol")
                 End If
-
 
                 If expectedRQName IsNot Nothing Then
                     Dim refactoringQualifiedName = RQName.From(symbol)
