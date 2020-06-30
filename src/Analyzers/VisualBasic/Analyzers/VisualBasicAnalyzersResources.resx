@@ -129,4 +129,8 @@
   <data name="If_statement_can_be_simplified" xml:space="preserve">
     <value>'If' statement can be simplified</value>
   </data>
+  <data name="Remove_ByVal" xml:space="preserve">
+    <value>'ByVal' keyword is unnecessary and can be removed.</value>
+    <comment>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</comment>
+  </data>
 </root>
