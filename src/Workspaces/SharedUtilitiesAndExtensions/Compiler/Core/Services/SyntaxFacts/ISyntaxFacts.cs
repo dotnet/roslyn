@@ -373,8 +373,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
-        int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
-        SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId);
         TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
         /// <summary>

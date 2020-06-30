@@ -81,11 +81,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool LastEnumValueHasInitializer(INamedTypeSymbol namedTypeSymbol);
 
         /// <summary>
-        /// return speculative semantic model for supported node. otherwise, it will return null
-        /// </summary>
-        bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel);
-
-        /// <summary>
         /// get all alias names defined in the semantic model
         /// </summary>
         ImmutableHashSet<string> GetAliasNameSet(SemanticModel model, CancellationToken cancellationToken);

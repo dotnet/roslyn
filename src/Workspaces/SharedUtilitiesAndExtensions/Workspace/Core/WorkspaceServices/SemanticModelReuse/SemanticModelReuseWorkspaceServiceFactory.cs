@@ -9,18 +9,18 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
+namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
-    [ExportWorkspaceServiceFactory(typeof(ISemanticModelService), ServiceLayer.Default), Shared]
-    internal partial class SemanticModelWorkspaceServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(ISemanticModelReuseWorkspaceService), ServiceLayer.Default), Shared]
+    internal partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public SemanticModelWorkspaceServiceFactory()
+        public SemanticModelReuseWorkspaceServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new SemanticModelService();
+            => new SemanticModelReuseWorkspaceService();
     }
 }
