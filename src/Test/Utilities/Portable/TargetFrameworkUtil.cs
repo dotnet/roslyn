@@ -85,7 +85,7 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemCoreRef);
         public static ImmutableArray<MetadataReference> Mscorlib40andVBRuntimeReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.MsvbRef);
-        public static MetadataReference Mscorlib45Reference => TestReferences.NetFx.v4_0_30319_17626.mscorlib;
+        public static MetadataReference Mscorlib45Reference => TestReferences.Net45.Mscorlib;
         public static ImmutableArray<MetadataReference> Mscorlib45References => ImmutableArray.Create(Mscorlib45Reference);
         public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences => ImmutableArray.Create(Mscorlib45Reference, TestBase.SystemRef, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences => ImmutableArray.Create(Mscorlib45Reference, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.CSharpRef);

@@ -216,17 +216,17 @@ public static class TestReferences
         LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference System_Runtime_Serialization => s_system_Runtime_Serialization.Value;
         }
+    }
 
-        /// <summary>
-        /// References here map to net45 beta.
-        /// </summary>
-        public static class v4_0_30319_17626
-        {
-            private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib).GetReference(display: @"mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference mscorlib => s_mscorlib.Value;
-        }
+    /// <summary>
+    /// References here map to net45 beta.
+    /// </summary>
+    public static class Net45
+    {
+        private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
+    () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib).GetReference(display: @"mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
+    LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference Mscorlib => s_mscorlib.Value;
     }
 
     public static class NetStandard13
