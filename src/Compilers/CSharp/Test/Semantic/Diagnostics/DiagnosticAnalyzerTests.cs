@@ -3650,13 +3650,13 @@ class C
             var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, CancellationToken.None);
             verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
             analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, CancellationToken.None);
-            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile2), diagnosticSpan, additionalFilesHaveSamePaths);
 
             var singleAnalyzerArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1);
             analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, singleAnalyzerArray, CancellationToken.None);
             verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
             analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, singleAnalyzerArray, CancellationToken.None);
-            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile2), diagnosticSpan, additionalFilesHaveSamePaths);
 
             analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
             verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
