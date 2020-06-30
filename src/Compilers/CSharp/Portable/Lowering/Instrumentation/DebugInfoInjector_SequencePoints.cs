@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        internal static BoundStatement AddSequencePoint(PropertyDeclarationSyntax declarationSyntax, BoundStatement rewrittenStatement)
+            => AddSequencePoint(declarationSyntax, declarationSyntax.Initializer!, rewrittenStatement);
+
+        internal static BoundStatement AddSequencePoint(DataPropertyDeclarationSyntax declarationSyntax, BoundStatement rewrittenStatement)
+            => AddSequencePoint(declarationSyntax, declarationSyntax.Initializer!, rewrittenStatement);
+
         internal static BoundStatement AddSequencePoint(
             SyntaxNode breakpointSyntax,
             EqualsValueClauseSyntax propertyInitializerSyntax,

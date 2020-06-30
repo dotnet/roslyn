@@ -101,12 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.PropertyDeclaration:
                     var declaration = (PropertyDeclarationSyntax)grandparent;
-                    return AddSequencePoint(declaration, declaration.Initializer!, rewritten);
+                    return AddSequencePoint(declaration, rewritten);
 
                 case SyntaxKind.DataPropertyDeclaration:
                     {
                         var decl = (DataPropertyDeclarationSyntax)grandparent;
-                        return AddSequencePoint(decl, decl.Initializer!, rewritten);
+                        return AddSequencePoint(decl, rewritten);
                     }
 
                 default:
