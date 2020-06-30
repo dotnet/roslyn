@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -22,8 +21,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     /// <summary>
-    /// Run code actions handler.  Called when lightbulb invoked.
-    /// Code actions must be applied from the UI thread in VS.
+    /// Runs code actions as a command on the server.
+    /// Commands must be applied from the UI thread in VS.
     /// </summary>
     [ExportExecuteWorkspaceCommand(CodeActionsHandler.RunCodeActionCommandName)]
     internal class RunCodeActionsHandler : IExecuteWorkspaceCommandHandler
@@ -56,12 +55,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var document = _solutionProvider.GetDocument(runRequest.CodeActionParams.TextDocument);
             var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document, _codeFixService, _codeRefactoringService,
                 runRequest.CodeActionParams.Range, cancellationToken).ConfigureAwait(false);
+            if (codeActions == null)
+            {
+                return false;
+            }
 
-            var actionToRun = codeActions?.FirstOrDefault(a => a.Title == runRequest.Title);
-
+            var actionToRun = CodeActionResolveHandler.GetCodeActionToResolve(runRequest.DistinctTitle, codeActions);
             if (actionToRun != null)
             {
-                // add check here
                 foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // TODO - This UI thread dependency should be removed.
@@ -69,9 +70,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     operation.Apply(document.Project.Solution.Workspace, cancellationToken);
                 }
+
+                return true;
             }
 
-            return true;
+            return false;
         }
     }
 }

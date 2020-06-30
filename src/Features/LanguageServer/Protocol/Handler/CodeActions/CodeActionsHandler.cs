@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -63,34 +64,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
             codeActions = codeActions.Where(c => !(c.Key is CodeActionWithOptions));
 
-            var suppressionActions = codeActions.Where(
-                a => a.Key is AbstractConfigurationActionWithNestedActions &&
-                (a.Key as AbstractConfigurationActionWithNestedActions)?.IsBulkConfigurationAction == false);
+            return GetVSCodeActions(request, codeActions);
 
-            var results = new List<VSCodeAction>();
-            foreach (var codeAction in codeActions)
+            // Local functions
+            static VSCodeAction[] GetVSCodeActions(
+                CodeActionParams request,
+                IEnumerable<KeyValuePair<CodeAction, CodeActionKind>> codeActions)
             {
-                // Temporarily filter out suppress and configure code actions, as we'll later combine them under a top-level
-                // code action.
-                if (codeAction.Key is AbstractConfigurationActionWithNestedActions)
+                var suppressionActions = codeActions.Where(
+                    a => a.Key is AbstractConfigurationActionWithNestedActions &&
+                    (a.Key as AbstractConfigurationActionWithNestedActions)?.IsBulkConfigurationAction == false);
+
+                using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var results);
+                foreach (var codeAction in codeActions)
                 {
-                    continue;
+                    // Temporarily filter out suppress and configure code actions, as we'll later combine them under a top-level
+                    // code action.
+                    if (codeAction.Key is AbstractConfigurationActionWithNestedActions)
+                    {
+                        continue;
+                    }
+
+                    results.Add(GenerateVSCodeAction(request, codeAction.Key, codeAction.Value));
                 }
 
-                results.Add(GenerateVSCodeAction(request, codeAction.Key, codeAction.Value));
-            }
+                // Special case (also dealt with specially in local Roslyn): 
+                // If we have configure/suppress code actions, combine them under one top-level code action.
+                var configureSuppressActions = codeActions.Where(a => a.Key is AbstractConfigurationActionWithNestedActions);
+                if (configureSuppressActions.Any())
+                {
+                    results.Add(GenerateVSCodeAction(request, new CodeActionWithNestedActions(
+                        CodeFixesResources.Suppress_or_Configure_issues,
+                        configureSuppressActions.Select(a => a.Key).ToImmutableArray(), true), CodeActionKind.QuickFix));
+                }
 
-            // Special case (also dealt with specially in local Roslyn): 
-            // If we have configure/suppress code actions, combine them under one top-level code action.
-            var configureSuppressActions = codeActions.Where(a => a.Key is AbstractConfigurationActionWithNestedActions);
-            if (configureSuppressActions.Any())
-            {
-                results.Add(GenerateVSCodeAction(request, new CodeActionWithNestedActions(
-                    "Suppress or Configure issues",
-                    configureSuppressActions.Select(a => a.Key).ToImmutableArray(), true), CodeActionKind.QuickFix));
+                return results.ToArray();
             }
-
-            return results.ToArray();
 
             static VSCodeAction GenerateVSCodeAction(
                 CodeActionParams request,
@@ -98,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CodeActionKind codeActionKind,
                 string parentTitle = "")
             {
-                var nestedActions = new List<VSCodeAction>();
+                using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var nestedActions);
                 foreach (var action in codeAction.NestedCodeActions)
                 {
                     nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind, codeAction.Title));

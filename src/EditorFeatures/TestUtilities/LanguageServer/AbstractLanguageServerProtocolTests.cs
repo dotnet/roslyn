@@ -216,7 +216,7 @@ namespace Roslyn.Test.Utilities
                     Range = location.Range,
                     Context = new LSP.CodeActionContext()
                 },
-                Title = codeActionTitle
+                DistinctTitle = codeActionTitle
             };
 
         /// <summary>

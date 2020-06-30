@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 request.CodeActionParams.Range,
                 cancellationToken).ConfigureAwait(false);
 
-            var actionToRun = codeActions?.FirstOrDefault(a => a.Title == request.Title);
+            var actionToRun = codeActions?.FirstOrDefault(a => a.Title == request.DistinctTitle);
 
             if (actionToRun != null)
             {

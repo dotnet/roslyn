@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Newtonsoft.Json.Linq;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     public class CodeActionsTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
-        public async Task TestGetCodeActionsAsync()
+        public async Task TestCodeActionHandlerAsync()
         {
             var markup =
 @"class A
@@ -27,31 +29,68 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     }
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
-            var expected = CreateCommand(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single());
-            var clientCapabilities = CreateClientCapabilitiesWithExperimentalValue("supportsWorkspaceEdits", JToken.FromObject(false));
 
-            var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, locations["caret"].Single(), clientCapabilities);
-            var useImplicitTypeResult = results.Single(r => r.Title == CSharpAnalyzersResources.Use_implicit_type);
-            AssertJsonEquals(expected, useImplicitTypeResult);
-        }
-
-        private static async Task<LSP.Command[]> RunGetCodeActionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)
-        {
-            var results = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>(LSP.Methods.TextDocumentCodeActionName,
-                CreateCodeActionParams(caret), clientCapabilities, null, CancellationToken.None);
-            return results.Select(r => (LSP.Command)r).ToArray();
-        }
-
-        private static LSP.ClientCapabilities CreateClientCapabilitiesWithExperimentalValue(string experimentalProperty, JToken value)
-            => new LSP.ClientCapabilities()
-            {
-                Experimental = new JObject
+            var expected = CreateCodeAction(
+                title: CSharpAnalyzersResources.Use_implicit_type,
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSCodeAction>(),
+                data: new CodeActionResolveData
                 {
-                    { experimentalProperty, value }
-                }
-            };
+                    CodeActionParams = CreateCodeActionParams(locations["caret"].Single()),
+                    DistinctTitle = CSharpAnalyzersResources.Use_implicit_type
+                },
+                diagnostics: null);
 
-        private static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
+            var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var useImplicitType = results.FirstOrDefault(r => r.Title == CSharpAnalyzersResources.Use_implicit_type);
+
+            AssertJsonEquals(expected, useImplicitType);
+        }
+
+        [Fact]
+        public async Task TestCodeActionHandlerAsync_NestedAction()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        int {|caret:|}i = 1;
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+
+            var expected = CreateCodeAction(
+                title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSCodeAction>(),
+                data: new CodeActionResolveData
+                {
+                    CodeActionParams = CreateCodeActionParams(locations["caret"].Single()),
+                    DistinctTitle = FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+                },
+                diagnostics: null);
+
+            var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var introduceConstant = results[0].Children.FirstOrDefault(
+                r => ((CodeActionResolveData)r.Data).DistinctTitle == FeaturesResources.Introduce_constant
+                + string.Format(FeaturesResources.Introduce_constant_for_0, "1"));
+
+            AssertJsonEquals(expected, introduceConstant);
+        }
+
+        private static async Task<LSP.VSCodeAction[]> RunGetCodeActionsAsync(
+            Solution solution,
+            LSP.Location caret,
+            LSP.ClientCapabilities clientCapabilities = null)
+        {
+            var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CodeActionParams, LSP.VSCodeAction[]>(
+                LSP.Methods.TextDocumentCodeActionName, CreateCodeActionParams(caret),
+                clientCapabilities, null, CancellationToken.None);
+            return result;
+        }
+
+        internal static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
             => new LSP.CodeActionParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
@@ -62,15 +101,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 }
             };
 
-        private static LSP.Command CreateCommand(string title, LSP.Location location)
-            => new LSP.Command()
+        internal static LSP.VSCodeAction CreateCodeAction(
+            string title, LSP.CodeActionKind kind, LSP.VSCodeAction[] children,
+            CodeActionResolveData data, LSP.Diagnostic[] diagnostics,
+            LSP.WorkspaceEdit edit = null, LSP.Command command = null)
+        {
+            var action = new LSP.VSCodeAction
             {
                 Title = title,
-                CommandIdentifier = "Roslyn.RunCodeAction",
-                Arguments = new object[]
-                {
-                    CreateRunCodeActionParams(title, location)
-                }
+                Kind = kind,
+                Children = children,
+                Data = data,
+                Diagnostics = diagnostics,
             };
+
+            if (edit != null)
+            {
+                action.Edit = edit;
+            }
+
+            if (command != null)
+            {
+                action.Command = command;
+            }
+
+            return action;
+        }
     }
 }

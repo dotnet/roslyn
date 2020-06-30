@@ -25,7 +25,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Handles the get code actions command.
+    /// Resolves a code action by filling out its Edit or Command property.
     /// </summary>
     [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName), Shared]
     internal class CodeActionResolveHandler : AbstractRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
-            var codeActionToResolve = GetCodeActionToResolve(data, codeActions);
+            var codeActionToResolve = GetCodeActionToResolve(data.DistinctTitle, codeActions);
 
             // We didn't find a matching action, so just return the action without an edit or command.
             if (codeActionToResolve == null)
@@ -88,33 +88,79 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
-            // TO-DO: We currently must execute code actions which add new documents on the server as commands,
-            // since there is  no LSP support for adding documents yet. In the future, we should move these actions
-            // to primarily executing on the client.
+            // TO-DO:
+            // 1) We currently must execute code actions which add new documents on the server as commands,
+            // since there is no LSP support for adding documents yet. In the future, we should move these actions
+            // to execute on the client.
+            // 2) There is also a bug (same tracking item) where code actions that edit documents other than the
+            // one where the code action was invoked from do not work. We must temporarily execute these as commands
+            // as well.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
             var runAsCommand = false;
 
             var applyChangesOperations = operations.Where(operation => operation is ApplyChangesOperation);
             if (applyChangesOperations.Any())
             {
+                var workspaceEdits = await ComputeWorkspaceEdits(applyChangesOperations, document!, cancellationToken).ConfigureAwait(false);
+                if (workspaceEdits.Any())
+                {
+                    codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = workspaceEdits };
+                }
+                else
+                {
+                    // The workspace edit is something we don't currently support, like adding a new document.
+                    runAsCommand = true;
+                }
+            }
+
+            // Set up to run as command on the server instead of using WorkspaceEdits.
+            var commandOperations = operations.All(operation => !(operation is ApplyChangesOperation));
+            if (commandOperations || runAsCommand)
+            {
+                codeAction.Command = SetCommand(codeAction, data);
+            }
+
+            return codeAction;
+
+            // Local functions
+            static async Task<TextDocumentEdit[]> ComputeWorkspaceEdits(
+                IEnumerable<CodeActionOperation> applyChangesOperations,
+                Document document,
+                CancellationToken cancellationToken)
+            {
                 using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
                 foreach (ApplyChangesOperation applyChangesOperation in applyChangesOperations)
                 {
-                    var solution = document!.Project.Solution;
+                    var solution = document.Project.Solution;
                     var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
                     var projectChanges = changes.GetProjectChanges();
 
-                    // If the change involves adding a document, execute via command instead of WorkspaceEdit.
+                    // TO-DO: If the change involves adding a document, execute via command instead of WorkspaceEdit
+                    // until adding documents is supported in LSP: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
+                    // After support is added, remove the below if-statement and add code to support adding documents.
                     var addedDocuments = projectChanges.SelectMany(
                         pc => pc.GetAddedDocuments().Concat(pc.GetAddedAdditionalDocuments().Concat(pc.GetAddedAnalyzerConfigDocuments())));
                     if (addedDocuments.Any())
                     {
-                        runAsCommand = true;
-                        break;
+                        return textDocumentEdits.ToArray();
+                    }
+
+                    var changedDocuments = projectChanges.SelectMany(pc => pc.GetChangedDocuments());
+                    var changedAnalyzerConfigDocuments = projectChanges.SelectMany(pc => pc.GetChangedAnalyzerConfigDocuments());
+                    var changedAdditionalDocuments = projectChanges.SelectMany(pc => pc.GetChangedAdditionalDocuments());
+
+                    // TO-DO: If the change involves modifying any document besides the document where the code action
+                    // was invoked, temporarily execute via command instead of WorkspaceEdit until LSP bug is fixed:
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
+                    // After bug is fixed, remove the below if-statement and the existing code should work.
+                    if (changedDocuments.Any(d => d != document.Id) ||
+                        changedAnalyzerConfigDocuments.Any() ||
+                        changedAdditionalDocuments.Any())
+                    {
+                        return textDocumentEdits.ToArray();
                     }
 
                     // Changed documents
-                    var changedDocuments = projectChanges.SelectMany(pc => pc.GetChangedDocuments());
                     foreach (var docId in changedDocuments)
                     {
                         var newDoc = applyChangesOperation.ChangedSolution.GetDocument(docId);
@@ -128,7 +174,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
 
                     // Changed analyzer config documents
-                    var changedAnalyzerConfigDocuments = projectChanges.SelectMany(pc => pc.GetChangedAnalyzerConfigDocuments());
+                    // This for loop won't currently execute until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
+                    // is fixed.
                     foreach (var docId in changedAnalyzerConfigDocuments)
                     {
                         var newDoc = applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument(docId);
@@ -140,36 +187,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                         await GetTextDocumentEdits(textDocumentEdits, newDoc, oldDoc, cancellationToken).ConfigureAwait(false);
                     }
-                }
 
-                if (!runAsCommand)
-                {
-                    codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
-                }
-            }
-
-            // Running as command instead
-            var commandOperations = operations.Where(operation => !(operation is ApplyChangesOperation));
-            if (commandOperations.Any() || runAsCommand)
-            {
-                codeAction.Command = new LSP.Command
-                {
-                    CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
-                    Title = codeAction.Title,
-                    Arguments = new object[]
+                    // Changed additional documents
+                    // This for loop won't currently execute until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
+                    // is fixed.
+                    foreach (var docId in changedAdditionalDocuments)
                     {
-                        new RunCodeActionParams
+                        var newDoc = applyChangesOperation.ChangedSolution.GetAdditionalDocument(docId);
+                        var oldDoc = solution.GetAdditionalDocument(docId);
+                        if (oldDoc == null || newDoc == null)
                         {
-                            CodeActionParams = data.CodeActionParams,
-                            Title = codeAction.Title
+                            continue;
                         }
+
+                        await GetTextDocumentEdits(textDocumentEdits, newDoc, oldDoc, cancellationToken).ConfigureAwait(false);
                     }
-                };
+                }
+
+                return textDocumentEdits.ToArray();
             }
 
-            return codeAction;
-
-            // Local functions
             static async Task GetTextDocumentEdits(
                 ArrayBuilder<TextDocumentEdit> textDocumentEdits,
                 TextDocument newDoc,
@@ -186,43 +223,57 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 textDocumentEdits.Add(new TextDocumentEdit() { TextDocument = documentIdentifier, Edits = edits.ToArray() });
             }
 
-            static CodeAction? GetCodeActionToResolve(CodeActionResolveData data, IEnumerable<CodeAction> codeActions)
+            static LSP.Command SetCommand(VSCodeAction codeAction, CodeActionResolveData data) => new LSP.Command
             {
-                // First, we search for the matching code action. We compare against the distinct title
-                // instead of the regular title since there's a chance that multiple code actions may have
-                // the same name, e.g. configure code actions ("None", "Warning", etc.).
-                CodeAction? codeActionToResolve = null;
-                foreach (var c in codeActions)
+                CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
+                Title = codeAction.Title,
+                Arguments = new object[]
                 {
-                    var action = CheckForMatchingAction(c, data.DistinctTitle, currentTitle: "");
-                    if (action != null)
+                    new RunCodeActionParams
                     {
-                        codeActionToResolve = action;
-                        break;
+                        CodeActionParams = data.CodeActionParams,
+                        DistinctTitle = data.DistinctTitle
                     }
                 }
+            };
+        }
 
-                return codeActionToResolve;
-            }
-
-            static CodeAction? CheckForMatchingAction(CodeAction codeAction, string goalTitle, string currentTitle)
+        internal static CodeAction? GetCodeActionToResolve(string distinctTitle, IEnumerable<CodeAction> codeActions)
+        {
+            // Searching for the matching code action. We compare against the distinct title (e.g. "Suppress IDExxxxNone")
+            // instead of the regular title (e.g. "None") since there's a chance that multiple code actions may have
+            // the same regular title.
+            CodeAction? codeActionToResolve = null;
+            foreach (var c in codeActions)
             {
-                if (currentTitle + codeAction.Title == goalTitle)
+                var action = CheckForMatchingAction(c, distinctTitle, currentTitle: "");
+                if (action != null)
                 {
-                    return codeAction;
+                    codeActionToResolve = action;
+                    break;
                 }
-
-                foreach (var nestedAction in codeAction.NestedCodeActions)
-                {
-                    var match = CheckForMatchingAction(nestedAction, goalTitle, currentTitle + codeAction.Title);
-                    if (match != null)
-                    {
-                        return match;
-                    }
-                }
-
-                return null;
             }
+
+            return codeActionToResolve;
+        }
+
+        private static CodeAction? CheckForMatchingAction(CodeAction codeAction, string goalTitle, string currentTitle)
+        {
+            if (currentTitle + codeAction.Title == goalTitle)
+            {
+                return codeAction;
+            }
+
+            foreach (var nestedAction in codeAction.NestedCodeActions)
+            {
+                var match = CheckForMatchingAction(nestedAction, goalTitle, currentTitle + codeAction.Title);
+                if (match != null)
+                {
+                    return match;
+                }
+            }
+
+            return null;
         }
     }
 }

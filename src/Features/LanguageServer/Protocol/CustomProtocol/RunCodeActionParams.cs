@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// <summary>
         /// Title of the action to execute.
         /// </summary>
-        public string Title { get; set; }
+        public string DistinctTitle { get; set; }
     }
 }
