@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(invocationExpression, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(invocationExpression, cancellationToken).ConfigureAwait(False)
             Dim within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken)
             If within Is Nothing Then
                 Return Nothing

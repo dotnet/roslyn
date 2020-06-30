@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return null;
                 }
 
-                var semanticModel = await _document.GetSemanticModelForNodeAsync(startToken.Parent, _cancellationToken).ConfigureAwait(false);
+                var semanticModel = await _document.ReuseExistingSpeculativeModelAsync(startToken.Parent, _cancellationToken).ConfigureAwait(false);
                 if (!_provider.TryDetermineReturnType(startToken, semanticModel, _cancellationToken, out var returnType, out var tokenAfterReturnType) ||
                     !_provider.TryDetermineModifiers(tokenAfterReturnType, _text, _startLineNumber, out var seenAccessibility, out var modifiers) ||
                     !TryDetermineOverridableMembers(semanticModel, startToken, seenAccessibility, out var overridableMembers))

@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Dim beforeDotExpression = If(genericName.IsRightSideOfDotOrBang(), genericName.GetLeftSideOfDot(), Nothing)
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(If(beforeDotExpression, genericName), cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(If(beforeDotExpression, genericName), cancellationToken).ConfigureAwait(False)
 
             Dim leftSymbol = If(beforeDotExpression Is Nothing, Nothing,
                                 TryCast(semanticModel.GetSymbolInfo(beforeDotExpression, cancellationToken).GetAnySymbol(), INamespaceOrTypeSymbol))

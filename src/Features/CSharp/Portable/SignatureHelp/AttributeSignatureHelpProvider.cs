@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(attribute, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attribute, cancellationToken).ConfigureAwait(false);
             if (!(semanticModel.GetTypeInfo(attribute, cancellationToken).Type is INamedTypeSymbol attributeType))
             {
                 return null;

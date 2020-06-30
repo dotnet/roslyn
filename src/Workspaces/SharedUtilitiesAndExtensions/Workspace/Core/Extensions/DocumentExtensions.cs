@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var token = root.FindToken(span.Start);
             var node = token.Parent!.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
 
-            return await GetSemanticModelForNodeAsync(document, node, span, cancellationToken).ConfigureAwait(false);
+            return await ReuseExistingSpeculativeModelAsync(document, node, span, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -120,15 +120,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <para/>
         /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
+        public static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
         {
             if (node == null)
                 return document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            return GetSemanticModelForNodeAsync(document, node, node.FullSpan, cancellationToken);
+            return ReuseExistingSpeculativeModelAsync(document, node, node.FullSpan, cancellationToken);
         }
 
-        private static Task<SemanticModel> GetSemanticModelForNodeAsync(
+        private static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(
             Document document, SyntaxNode node, TextSpan span, CancellationToken cancellationToken)
         {
             var syntaxFactService = document.GetRequiredLanguageService<ISyntaxFactsService>();
