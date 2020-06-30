@@ -39,6 +39,7 @@ Option Strict On
 Imports System.Drawing
 Module M
     Sub Main()
+       ' test PredefinedCastExpressionSyntax and WalkDownParentheses
         Dim x As New Point([|CInt((System.Math.Floor(1.1)))|], 1)
     End Sub
 End Module
@@ -51,10 +52,11 @@ End Module
         Public Async Function TestDontRemoveCastSimpleArgument2() As Task
             Dim markup =
 <File>
-Option Strict On
+Option Strict On    
 Imports System.Drawing
 Module M
     Sub Main()
+      ' test CastExpressionSyntax
        Dim y As New Point([|CType(1.1, Integer)|], 1)
     End Sub
 End Module
