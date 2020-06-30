@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                    shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
                    generateDeclaration: declaratorToRemoveLocationOpt is object);
 
-                editor.ReplaceNode(switchStatement, switchExpression.WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation));
+                editor.ReplaceNode(switchStatement, switchExpression.WithAdditionalAnnotations(Formatter.Annotation));
 
                 if (declaratorToRemoveLocationOpt is object)
                 {
