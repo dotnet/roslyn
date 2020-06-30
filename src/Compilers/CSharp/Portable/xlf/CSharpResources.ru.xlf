@@ -232,6 +232,11 @@
         <target state="translated">Шаблон отмены запрещено использовать как метку case в операторе switch. Используйте "case var _:" в качестве шаблона отмены или "case @_:" в качестве константы "_".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
+        <source>'{0}' does not override the method from 'object'.</source>
+        <target state="new">'{0}' does not override the method from 'object'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
         <source>A return type can only have one '{0}' modifier.</source>
         <target state="new">A return type can only have one '{0}' modifier.</target>
