@@ -61,19 +61,16 @@ class Derived : Base
             OverriddenOrHiddenMembersResult derivedPropertyOverriddenOrHidden = derivedProperty.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedPropertyOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseProperty, derivedPropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseProperty, derivedPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Same(baseProperty, derivedProperty.OverriddenProperty);
 
             OverriddenOrHiddenMembersResult derivedGetterOverriddenOrHidden = derivedGetter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedGetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseGetter, derivedGetterOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseGetter, derivedGetterOverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Same(baseGetter, derivedGetter.OverriddenMethod);
 
             OverriddenOrHiddenMembersResult derivedSetterOverriddenOrHidden = derivedSetter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedSetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseSetter, derivedSetterOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseSetter, derivedSetterOverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Same(baseSetter, derivedSetter.OverriddenMethod);
         }
 
@@ -119,22 +116,18 @@ class Derived2 : Derived1
             OverriddenOrHiddenMembersResult derived1PropertyOverriddenOrHidden = derived1Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1PropertyOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseProperty, derived1PropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseProperty, derived1PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived1GetterOverriddenOrHidden = derived1Getter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1GetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseGetter, derived1GetterOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseGetter, derived1GetterOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived2PropertyOverriddenOrHidden = derived2Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived2PropertyOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(derived1Property, derived2PropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(derived1Property, derived2PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived2SetterOverriddenOrHidden = derived2Setter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived2SetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseSetter, derived2SetterOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseSetter, derived2SetterOverriddenOrHidden.RuntimeOverriddenMembers.Single());
         }
 
         [Fact]
@@ -168,17 +161,14 @@ class Derived : Base
 
             OverriddenOrHiddenMembersResult derivedPropertyOverriddenOrHidden = derivedProperty.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedPropertyOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derivedPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseProperty, derivedPropertyOverriddenOrHidden.HiddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derivedGetterOverriddenOrHidden = derivedGetter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedGetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derivedGetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseGetter, derivedGetterOverriddenOrHidden.HiddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derivedSetterOverriddenOrHidden = derivedSetter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedSetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derivedSetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseSetter, derivedSetterOverriddenOrHidden.HiddenMembers.Single());
         }
 
@@ -230,23 +220,19 @@ class Derived : Base
 
             OverriddenOrHiddenMembersResult derived1PropertyOverriddenOrHidden = derived1Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1PropertyOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derived1PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseProperty, derived1PropertyOverriddenOrHidden.HiddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived1GetterOverriddenOrHidden = derived1Getter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1GetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derived1GetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseGetter, derived1GetterOverriddenOrHidden.HiddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived2PropertyOverriddenOrHidden = derived2Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived2PropertyOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(derived1Property, derived2PropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(derived1Property, derived2PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived2SetterOverriddenOrHidden = derived2Setter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived2SetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Equal(0, derived2SetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derived2SetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
         }
 
         [WorkItem(540145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540145")]
@@ -725,22 +711,18 @@ interface I4 : I3
 
             var interface3PropertyOverriddenOrHidden = interface3Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface3PropertyOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, interface3PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             AssertEx.SetEqual(interface3PropertyOverriddenOrHidden.HiddenMembers, interface1Property, interface2Property);
 
             var interface3GetterOverriddenOrHidden = interface3Getter.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface3GetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, interface3GetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             AssertEx.SetEqual(interface3GetterOverriddenOrHidden.HiddenMembers, interface1Getter, interface2Getter);
 
             var interface4PropertyOverriddenOrHidden = interface4Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface4PropertyOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, interface4PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Equal(interface3Property, interface4PropertyOverriddenOrHidden.HiddenMembers.Single());
 
             var interface4SetterOverriddenOrHidden = interface4Setter.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface4SetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, interface4SetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Equal(0, interface4SetterOverriddenOrHidden.HiddenMembers.Length);
         }
 

@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get
             {
                 return
-                    _underlyingMethod.RequiresExplicitOverride()
+                    _underlyingMethod.RequiresExplicitOverride(out _)
                         ? this.RetargetingTranslator.Retarget(_underlyingMethod.OverriddenMethod, MemberSignatureComparer.RetargetedExplicitImplementationComparer)
                         : null;
             }

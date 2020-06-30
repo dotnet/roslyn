@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // override explicitly (see GetExplicitImplementationOverrides
             // in NamedTypeSymbolAdapter.cs).
             return this.IsOverride ?
-                this.RequiresExplicitOverride() :
+                this.RequiresExplicitOverride(out _) :
                 this.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
 
