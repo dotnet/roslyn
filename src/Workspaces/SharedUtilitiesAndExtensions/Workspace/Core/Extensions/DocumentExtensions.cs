@@ -91,22 +91,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             Contract.ThrowIfFalse(document.SupportsSemanticModel);
 
-            var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
-            if (semanticModelService == null || syntaxFactService == null)
-            {
-                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
-            }
+            var syntaxFactService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticModelService = document.Project.Solution.Workspace.Services.GetRequiredService<ISemanticModelService>();
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(root, "We shouldn't have a null root if the document supports semantic models");
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
-            if (token.Parent == null)
-            {
-                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
-            }
-
             var node = token.Parent.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
+
             return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
         }
 
