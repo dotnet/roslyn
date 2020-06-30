@@ -21,9 +21,7 @@ namespace Analyzer.Utilities
         internal const char WildcardChar = '*';
 
         public static readonly SymbolNamesWithValueOption<TValue> Empty = new SymbolNamesWithValueOption<TValue>();
-#pragma warning disable CA1805 // Do not initialize unnecessarily - Removing this suppression causes CS0649 (Field is never assigned to, and will always have its default value)
-        internal static readonly KeyValuePair<string, TValue> NoWildcardMatch = default;
-#pragma warning restore CA1805 // Do not initialize unnecessarily
+        internal static KeyValuePair<string, TValue> NoWildcardMatch => default;
 
 #pragma warning disable CA1051 // Do not declare visible instance fields
         internal /* for testing purposes */ readonly ImmutableDictionary<string, TValue> _names;
