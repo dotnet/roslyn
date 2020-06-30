@@ -134,7 +134,7 @@
     "release/dev16.7-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.7.*",
-      "packageFeeds": "default",
+      "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dev16.7", "dev16.7p4" ],
       "vsBranch": "master",
