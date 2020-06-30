@@ -54,7 +54,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                             AnalyzeInitializerExpression(((ImplicitArrayCreationExpressionSyntax)expression).Initializer, context.ReportDiagnostic);
                             break;
                         case SyntaxKind.SimpleMemberAccessExpression:
-                            AnalyzeMemberAccessName(((MemberAccessExpressionSyntax)expression).Name, context.SemanticModel, context.ReportDiagnostic);
+                            AnalyzeMemberAccessName(((MemberAccessExpressionSyntax)expression).Name, context.SemanticModel, context.ReportDiagnostic, context.CancellationToken);
                             break;
                     }
                 }
