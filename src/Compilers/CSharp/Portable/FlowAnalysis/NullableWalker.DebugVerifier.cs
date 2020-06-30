@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -143,6 +142,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
+            {
+                // We're not correctly visiting the right side of object creation initializers when
+                // the symbol is null (such as for dynamic)
+                // https://github.com/dotnet/roslyn/issues/45088
+                if (node.Left is BoundObjectInitializerMember { MemberSymbol: null })
+                {
+                    VerifyExpression(node);
+                    Visit(node.Left);
+                    return null;
+                }
+
+                return base.VisitAssignmentOperator(node);
+            }
+
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
             {
                 VisitBinaryOperatorChildren(node);
@@ -185,6 +199,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ignore any dimensions
                 VerifyExpression(node);
                 Visit(node.BoundContainingTypeOpt);
+                return null;
+            }
+
+            public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+            {
+                this.Visit(node.Pattern);
+                // If the constant value of a when clause is true, it can be skipped by the dag
+                // generator as an optimization. In that case, it's a value type and will be set
+                // as not nullable in the output.
+                if (node.WhenClause?.ConstantValue != ConstantValue.True)
+                {
+                    this.Visit(node.WhenClause);
+                }
+                this.Visit(node.Value);
+                return null;
+            }
+
+            public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
+            {
+                // We're not handling nopia object creations correctly
+                // https://github.com/dotnet/roslyn/issues/45082
+                if (node.InitializerExpressionOpt is object)
+                {
+                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
+                }
                 return null;
             }
         }
