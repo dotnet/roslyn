@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyTree(tree);
 
-            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(SourceOrNonSourceFile.Create(tree), Analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(tree, Analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -486,72 +486,98 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            try
-            {
-                VerifyTree(tree);
-                VerifyExistingAnalyzersArgument(analyzers);
+            VerifyTree(tree);
+            VerifyExistingAnalyzersArgument(analyzers);
 
-                return await GetAnalyzerSyntaxDiagnosticsCoreAsync(SourceOrNonSourceFile.Create(tree), analyzers, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(tree, analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Returns diagnostics produced by all <see cref="Analyzers"/> from analyzing the given additional <paramref name="file"/>.
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SyntaxDiagnostics"/> produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="tree"/>.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
+        /// </summary>
+        /// <param name="tree">Syntax tree to analyze.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public Task<AnalysisResult> GetAnalysisResultAsync(SyntaxTree tree, CancellationToken cancellationToken)
+        {
+            VerifyTree(tree);
+
+            return GetAnalysisResultCoreAsync(SourceOrNonSourceFile.Create(tree), Analyzers, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SyntaxDiagnostics"/> produced by given <paramref name="analyzers"/> from analyzing the given <paramref name="tree"/>.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
+        /// </summary>
+        /// <param name="tree">Syntax tree to analyze.</param>
+        /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public Task<AnalysisResult> GetAnalysisResultAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        {
+            VerifyTree(tree);
+            VerifyExistingAnalyzersArgument(analyzers);
+
+            return GetAnalysisResultCoreAsync(SourceOrNonSourceFile.Create(tree), analyzers, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.AdditionalFileDiagnostics"/> produced by all <see cref="Analyzers"/> from analyzing the given additional <paramref name="file"/>.
         /// The given <paramref name="file"/> must be part of <see cref="AnalyzerOptions.AdditionalFiles"/> for the <see cref="AnalysisOptions"/> for this CompilationWithAnalyzers instance.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the file,
-        /// and some diagnostics that would be reported for the file by an analysis of the complete compilation
-        /// can be absent.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the file by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="file">Additional file to analyze.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerAdditionalFileDiagnosticsAsync(AdditionalText file, CancellationToken cancellationToken)
+        public async Task<AnalysisResult> GetAnalysisResultAsync(AdditionalText file, CancellationToken cancellationToken)
         {
             VerifyAdditionalFile(file);
 
-            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(SourceOrNonSourceFile.Create(file), Analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalysisResultCoreAsync(SourceOrNonSourceFile.Create(file), Analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Returns diagnostics produced by given <paramref name="analyzers"/> from analyzing the given additional <paramref name="file"/>.
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.AdditionalFileDiagnostics"/> produced by given <paramref name="analyzers"/> from analyzing the given additional <paramref name="file"/>.
         /// The given <paramref name="file"/> must be part of <see cref="AnalyzerOptions.AdditionalFiles"/> for the <see cref="AnalysisOptions"/> for this CompilationWithAnalyzers instance.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the file,
-        /// and some diagnostics that would be reported for the file by an analysis of the complete compilation
-        /// can be absent.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the file by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="file">Additional file to analyze.</param>
         /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerAdditionalFileDiagnosticsAsync(AdditionalText file, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        public async Task<AnalysisResult> GetAnalysisResultAsync(AdditionalText file, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
             VerifyAdditionalFile(file);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return await GetAnalyzerSyntaxDiagnosticsCoreAsync(SourceOrNonSourceFile.Create(file), analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalysisResultCoreAsync(SourceOrNonSourceFile.Create(file), analyzers, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsCoreAsync(SourceOrNonSourceFile file, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SourceOrNonSourceFile file, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        {
+            var analysisScope = new AnalysisScope(analyzers, file, filterSpan: null, syntaxAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            await ComputeAnalyzerSyntaxDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
+            return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
+        }
+
+        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsCoreAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        {
+            var analysisScope = new AnalysisScope(analyzers, SourceOrNonSourceFile.Create(tree), filterSpan: null, syntaxAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            await ComputeAnalyzerSyntaxDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
+            return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
+        }
+
+        private async Task ComputeAnalyzerSyntaxDiagnosticsAsync(AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             try
             {
                 var taskToken = Interlocked.Increment(ref _currentToken);
 
-                var analysisScope = new AnalysisScope(analyzers, file, filterSpan: null, syntaxAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
-
-                var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analyzers);
+                var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analysisScope.Analyzers);
                 if (pendingAnalyzers.Length > 0)
                 {
-                    var pendingAnalysisScope = pendingAnalyzers.Length < analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers) : analysisScope;
+                    var pendingAnalysisScope = pendingAnalyzers.Length < analysisScope.Analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers) : analysisScope;
 
                     // Compute the analyzer diagnostics for the pending analysis scope.
                     await ComputeAnalyzerDiagnosticsAsync(pendingAnalysisScope, getPendingEventsOpt: null, taskToken, cancellationToken).ConfigureAwait(false);
                 }
-
-                // Return computed analyzer diagnostics for the given analysis scope.
-                return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -561,32 +587,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns semantic diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
-        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
-        /// can be absent.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="model">Semantic model representing the syntax tree to analyze.</param>
         /// <param name="filterSpan">An optional span within the tree to scope analysis.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsAsync(SemanticModel model, TextSpan? filterSpan, CancellationToken cancellationToken)
         {
-            try
-            {
-                VerifyModel(model);
+            VerifyModel(model);
 
-                return await GetAnalyzerSemanticDiagnosticsCoreAsync(model, filterSpan, Analyzers, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            return await GetAnalyzerSemanticDiagnosticsCoreAsync(model, filterSpan, Analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Returns semantic diagnostics produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
-        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the tree,
-        /// and some diagnostics that would be reported for the tree by an analysis of the complete compilation
-        /// can be absent.
+        /// Returns semantic diagnostics produced by the given <paramref name="analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
         /// </summary>
         /// <param name="model">Semantic model representing the syntax tree to analyze.</param>
         /// <param name="filterSpan">An optional span within the tree to scope analysis.</param>
@@ -600,21 +615,62 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return await GetAnalyzerSemanticDiagnosticsCoreAsync(model, filterSpan, analyzers, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken, bool forceCompletePartialTrees = true)
+        /// <summary>
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SemanticDiagnostics"/> produced by all <see cref="Analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
+        /// </summary>
+        /// <param name="model">Semantic model representing the syntax tree to analyze.</param>
+        /// <param name="filterSpan">An optional span within the tree to scope analysis.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public Task<AnalysisResult> GetAnalysisResultAsync(SemanticModel model, TextSpan? filterSpan, CancellationToken cancellationToken)
+        {
+            VerifyModel(model);
+
+            return GetAnalysisResultCoreAsync(model, filterSpan, this.Analyzers, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.SemanticDiagnostics"/> produced by the given <paramref name="analyzers"/> from analyzing the given <paramref name="model"/>, optionally scoped to a <paramref name="filterSpan"/>.
+        /// Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
+        /// </summary>
+        /// <param name="model">Semantic model representing the syntax tree to analyze.</param>
+        /// <param name="filterSpan">An optional span within the tree to scope analysis.</param>
+        /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public Task<AnalysisResult> GetAnalysisResultAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        {
+            VerifyModel(model);
+            VerifyExistingAnalyzersArgument(analyzers);
+
+            return GetAnalysisResultCoreAsync(model, filterSpan, analyzers, cancellationToken);
+        }
+
+        private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        {
+            var analysisScope = new AnalysisScope(analyzers, SourceOrNonSourceFile.Create(model.SyntaxTree), filterSpan, syntaxAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            await ComputeAnalyzerSemanticDiagnosticsAsync(model, analysisScope, cancellationToken).ConfigureAwait(false);
+            return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
+        }
+
+        private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        {
+            var analysisScope = new AnalysisScope(analyzers, SourceOrNonSourceFile.Create(model.SyntaxTree), filterSpan, syntaxAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            await ComputeAnalyzerSemanticDiagnosticsAsync(model, analysisScope, cancellationToken).ConfigureAwait(false);
+            return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
+        }
+
+        private async Task ComputeAnalyzerSemanticDiagnosticsAsync(SemanticModel model, AnalysisScope analysisScope, CancellationToken cancellationToken, bool forceCompletePartialTrees = true)
         {
             try
             {
                 var taskToken = Interlocked.Increment(ref _currentToken);
 
-                var file = SourceOrNonSourceFile.Create(model.SyntaxTree);
-                var analysisScope = new AnalysisScope(analyzers, file, filterSpan, syntaxAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
-
-                var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analyzers);
+                var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analysisScope.Analyzers);
                 if (pendingAnalyzers.Length > 0)
                 {
-                    var pendingAnalysisScope = pendingAnalyzers.Length < analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers) : analysisScope;
+                    var pendingAnalysisScope = pendingAnalyzers.Length < analysisScope.Analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers) : analysisScope;
 
-                    Func<ImmutableArray<CompilationEvent>> getPendingEvents = () => _analysisState.GetPendingEvents(analyzers, model.SyntaxTree, cancellationToken);
+                    Func<ImmutableArray<CompilationEvent>> getPendingEvents = () => _analysisState.GetPendingEvents(analysisScope.Analyzers, model.SyntaxTree, cancellationToken);
 
                     // Compute the analyzer diagnostics for the given analysis scope.
                     // We need to loop till symbol analysis is complete for any partial symbols being processed for other tree diagnostic requests.
@@ -635,9 +691,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         await WaitForActiveAnalysisTasksAsync(waitForTreeTasks: true, waitForCompilationOrNonConcurrentTask: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     }
                 }
-
-                // Return computed analyzer diagnostics for the given analysis scope.
-                return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -684,7 +737,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             Task.Run(() =>
                             {
                                 var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
-                                return GetAnalyzerSemanticDiagnosticsCoreAsync(treeModel, filterSpan: null, analysisScope.Analyzers, cancellationToken, forceCompletePartialTrees: false);
+                                analysisScope = new AnalysisScope(analysisScope.Analyzers, SourceOrNonSourceFile.Create(tree), filterSpan: null, syntaxAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
+                                return ComputeAnalyzerSemanticDiagnosticsAsync(treeModel, analysisScope, cancellationToken, forceCompletePartialTrees: false);
                             }, cancellationToken))).ConfigureAwait(false);
                     }
                     else
@@ -693,7 +747,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
-                            await GetAnalyzerSemanticDiagnosticsCoreAsync(treeModel, filterSpan: null, analysisScope.Analyzers, cancellationToken, forceCompletePartialTrees: false).ConfigureAwait(false);
+                            analysisScope = new AnalysisScope(analysisScope.Analyzers, SourceOrNonSourceFile.Create(tree), filterSpan: null, syntaxAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
+                            await ComputeAnalyzerSemanticDiagnosticsAsync(treeModel, analysisScope, cancellationToken, forceCompletePartialTrees: false).ConfigureAwait(false);
                         }
                     }
                 }

@@ -2145,6 +2145,48 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public sealed class FieldAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly bool _syntaxTreeAction;
+            public FieldAnalyzer(string diagnosticId, bool syntaxTreeAction)
+            {
+                _syntaxTreeAction = syntaxTreeAction;
+                Descriptor = new DiagnosticDescriptor(
+                    diagnosticId,
+                    "Title",
+                    "Message",
+                    "Category",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_syntaxTreeAction)
+                {
+                    context.RegisterSyntaxTreeAction(context =>
+                    {
+                        var fields = context.Tree.GetRoot().DescendantNodes().OfType<CSharp.Syntax.FieldDeclarationSyntax>();
+                        foreach (var variable in fields.SelectMany(f => f.Declaration.Variables))
+                        {
+                            context.ReportDiagnostic(Diagnostic.Create(Descriptor, variable.Identifier.GetLocation()));
+                        }
+                    });
+                }
+                else
+                {
+                    context.RegisterSymbolAction(
+                        context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
+                        SymbolKind.Field);
+                }
+            }
+        }
+
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class AdditionalFileAnalyzer : DiagnosticAnalyzer
         {

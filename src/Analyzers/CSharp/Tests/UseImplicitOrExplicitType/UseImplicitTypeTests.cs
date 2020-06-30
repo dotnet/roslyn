@@ -2735,5 +2735,35 @@ static class Program
 }",
 options: ImplicitTypeEverywhere());
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(44507, "https://github.com/dotnet/roslyn/issues/44507")]
+        public async Task DoNotSuggestVarInAmbiguousSwitchExpression()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var i = 1;
+        [||]C x = i switch
+        {
+            0 => new A(),
+            1 => new B(),
+            _ => throw new ArgumentException(),
+        };
+    }
+}
+
+class A : C
+{
+}
+
+class B : C
+{
+}", parameters: new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }

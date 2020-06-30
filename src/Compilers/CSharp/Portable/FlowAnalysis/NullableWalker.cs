@@ -771,6 +771,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+#if DEBUG
+        /// <summary>
+        /// Analyzes a set of bound nodes, recording updated nullability information. This method is only
+        /// used during debug runs when nullability is disabled to verify that correct semantic information
+        /// is being recorded for all bound nodes. The results are thrown away.
+        /// </summary>
+        internal static void AnalyzeWithoutRewrite(
+            CSharpCompilation compilation,
+            Symbol symbol,
+            BoundNode node,
+            Binder binder,
+            DiagnosticBag diagnostics,
+            bool createSnapshots)
+        {
+            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, diagnostics, createSnapshots);
+        }
+#endif
+
+        /// <summary>
+        /// Analyzes a set of bound nodes, recording updated nullability information, and returns an
+        /// updated BoundNode with the information populated..
+        /// </summary>
         internal static BoundNode AnalyzeAndRewrite(
             CSharpCompilation compilation,
             Symbol symbol,
@@ -780,6 +802,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool createSnapshots,
             out SnapshotManager? snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
+        {
+            ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilitiesMap;
+            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, diagnostics, createSnapshots);
+            return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);
+        }
+
+        private static (SnapshotManager?, ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>) AnalyzeWithSemanticInfo(
+            CSharpCompilation compilation,
+            Symbol symbol,
+            BoundNode node,
+            Binder binder,
+            DiagnosticBag diagnostics,
+            bool createSnapshots)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
 
@@ -802,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnTypesOpt: null);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
-            snapshotManager = snapshotBuilder?.ToManagerAndFree();
+            var snapshotManager = snapshotBuilder?.ToManagerAndFree();
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
@@ -811,7 +846,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
 #endif
-            return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);
+
+            return (snapshotManager, analyzedNullabilitiesMap);
         }
 
         internal static BoundNode AnalyzeAndRewriteSpeculation(
@@ -2122,7 +2158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The starting state is the top state, but with captured
             // variables set according to Joining the state at all the
             // local function use sites
-            State = TopState().Clone();
+            State = TopState();
             for (int slot = 1; slot < localFunctionState.StartingState.Capacity; slot++)
             {
                 var symbol = variableBySlot[RootSlot(slot)].Symbol;
@@ -7039,14 +7075,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return accessor.Parameters.Last().FlowAnalysisAnnotations;
                 }
-                if (property is SourcePropertySymbol sourceProperty)
+                if (property is SourcePropertySymbolBase sourceProperty)
                 {
                     return getPropertyAnnotations(sourceProperty);
                 }
                 return FlowAnalysisAnnotations.None;
             }
 
-            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbol property)
+            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbolBase property)
             {
                 var annotations = FlowAnalysisAnnotations.None;
                 if (property.HasAllowNull)

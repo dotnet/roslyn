@@ -3522,6 +3522,74 @@ class B
         }
 
         [Theory, CombinatorialData]
+        public async Task TestGetAnalysisResultAsync(bool syntax, bool singleAnalyzer)
+        {
+            string source1 = @"
+partial class B
+{
+    private int _field1 = 1;
+}";
+            string source2 = @"
+partial class B
+{
+    private int _field2 = 2;
+}";
+            string source3 = @"
+class C
+{
+    private int _field3 = 3;
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2, source3 });
+            var tree1 = compilation.SyntaxTrees[0];
+            var field1 = tree1.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().Single().Declaration.Variables.Single().Identifier;
+            var semanticModel1 = compilation.GetSemanticModel(tree1);
+            var analyzer1 = new FieldAnalyzer("ID0001", syntax);
+            var analyzer2 = new FieldAnalyzer("ID0002", syntax);
+            var allAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(allAnalyzers);
+
+            // Invoke "GetAnalysisResultAsync" for a single analyzer on a single tree and
+            // ensure that the API respects the requested analysis scope:
+            // 1. It only reports diagnostics for the requested analyzer.
+            // 2. It only reports diagnostics for the requested tree.
+
+            var analyzersToQuery = singleAnalyzer ? ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1) : allAnalyzers;
+
+            AnalysisResult analysisResult;
+            if (singleAnalyzer)
+            {
+                analysisResult = syntax ?
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(tree1, analyzersToQuery, CancellationToken.None) :
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, analyzersToQuery, CancellationToken.None);
+            }
+            else
+            {
+                analysisResult = syntax ?
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(tree1, CancellationToken.None) :
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, CancellationToken.None);
+            }
+
+            var diagnosticsMap = syntax ? analysisResult.SyntaxDiagnostics : analysisResult.SemanticDiagnostics;
+            var diagnostics = diagnosticsMap.TryGetValue(tree1, out var value) ? value : ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
+
+            foreach (var analyzer in allAnalyzers)
+            {
+                if (analyzersToQuery.Contains(analyzer))
+                {
+                    Assert.True(diagnostics.ContainsKey(analyzer));
+                    var diagnostic = Assert.Single(diagnostics[analyzer]);
+                    Assert.Equal(((FieldAnalyzer)analyzer).Descriptor.Id, diagnostic.Id);
+                    Assert.Equal(field1.GetLocation(), diagnostic.Location);
+                }
+                else
+                {
+                    Assert.False(diagnostics.ContainsKey(analyzer));
+                }
+            }
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestAdditionalFileAnalyzer(bool registerFromInitialize)
         {
             var tree = CSharpSyntaxTree.ParseText(string.Empty);
@@ -3537,10 +3605,11 @@ class B
             var diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None);
             verifyDiagnostics(diagnostics);
 
-            diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerAdditionalFileDiagnosticsAsync(additionalFile, CancellationToken.None);
-            verifyDiagnostics(diagnostics);
+            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile, CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics());
+            verifyDiagnostics(analysisResult.AdditionalFileDiagnostics[additionalFile][analyzer]);
 
-            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
             verifyDiagnostics(analysisResult.GetAllDiagnostics());
             verifyDiagnostics(analysisResult.AdditionalFileDiagnostics[additionalFile][analyzer]);
 
@@ -3576,43 +3645,35 @@ class B
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
 
             var diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None);
-            verifyDiagnostics(diagnostics, analyzers, additionalFiles);
+            verifyDiagnostics(diagnostics, analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
 
-            diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerAdditionalFileDiagnosticsAsync(additionalFile1, CancellationToken.None);
-            verifyDiagnostics(diagnostics, analyzers, ImmutableArray.Create(additionalFile1));
-            diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerAdditionalFileDiagnosticsAsync(additionalFile2, CancellationToken.None);
-            verifyDiagnostics(diagnostics, analyzers, ImmutableArray.Create(additionalFile2));
+            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
 
             var singleAnalyzerArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1);
-            diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerAdditionalFileDiagnosticsAsync(additionalFile1, singleAnalyzerArray, CancellationToken.None);
-            verifyDiagnostics(diagnostics, singleAnalyzerArray, ImmutableArray.Create(additionalFile1));
-            diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerAdditionalFileDiagnosticsAsync(additionalFile2, singleAnalyzerArray, CancellationToken.None);
-            verifyDiagnostics(diagnostics, singleAnalyzerArray, ImmutableArray.Create(additionalFile2));
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, singleAnalyzerArray, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, singleAnalyzerArray, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
 
-            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
-            verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
 
             if (!additionalFilesHaveSamePaths)
             {
-                verifyDiagnostics(getReportedDiagnostics(analysisResult, analyzer1, additionalFile1), singleAnalyzerArray, ImmutableArray.Create(additionalFile1));
-                verifyDiagnostics(getReportedDiagnostics(analysisResult, analyzer1, additionalFile2), singleAnalyzerArray, ImmutableArray.Create(additionalFile2));
-                singleAnalyzerArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer2);
-                verifyDiagnostics(getReportedDiagnostics(analysisResult, analyzer2, additionalFile1), singleAnalyzerArray, ImmutableArray.Create(additionalFile1));
-                verifyDiagnostics(getReportedDiagnostics(analysisResult, analyzer2, additionalFile2), singleAnalyzerArray, ImmutableArray.Create(additionalFile2));
+                verifyAnalysisResult(analysisResult, analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths, verifyGetAllDiagnostics: false);
             }
 
-            static ImmutableArray<Diagnostic> getReportedDiagnostics(AnalysisResult analysisResult, DiagnosticAnalyzer analyzer, AdditionalText additionalFile)
-            {
-                if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFile, out var diagnosticsMap) &&
-                    diagnosticsMap.TryGetValue(analyzer, out var diagnostics))
-                {
-                    return diagnostics;
-                }
+            return;
 
-                return ImmutableArray<Diagnostic>.Empty;
-            }
-
-            void verifyDiagnostics(ImmutableArray<Diagnostic> diagnostics, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<AdditionalText> additionalFiles)
+            static void verifyDiagnostics(
+                ImmutableArray<Diagnostic> diagnostics,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<AdditionalText> additionalFiles,
+                TextSpan diagnosticSpan,
+                bool additionalFilesHaveSamePaths)
             {
                 foreach (AdditionalFileAnalyzer analyzer in analyzers)
                 {
@@ -3646,6 +3707,43 @@ class B
                 }
 
                 Assert.Empty(diagnostics);
+            }
+
+            static void verifyAnalysisResult(
+                AnalysisResult analysisResult,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<AdditionalText> additionalFiles,
+                TextSpan diagnosticSpan,
+                bool additionalFilesHaveSamePaths,
+                bool verifyGetAllDiagnostics = true)
+            {
+                if (verifyGetAllDiagnostics)
+                {
+                    verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+                }
+
+                foreach (var analyzer in analyzers)
+                {
+                    var singleAnalyzerArray = ImmutableArray.Create(analyzer);
+                    foreach (var additionalFile in additionalFiles)
+                    {
+                        var reportedDiagnostics = getReportedDiagnostics(analysisResult, analyzer, additionalFile);
+                        verifyDiagnostics(reportedDiagnostics, singleAnalyzerArray, ImmutableArray.Create(additionalFile), diagnosticSpan, additionalFilesHaveSamePaths);
+                    }
+                }
+
+                return;
+
+                static ImmutableArray<Diagnostic> getReportedDiagnostics(AnalysisResult analysisResult, DiagnosticAnalyzer analyzer, AdditionalText additionalFile)
+                {
+                    if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFile, out var diagnosticsMap) &&
+                        diagnosticsMap.TryGetValue(analyzer, out var diagnostics))
+                    {
+                        return diagnostics;
+                    }
+
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
             }
         }
     }

@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 460, // 270
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1310, // 1290
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 260, // 170
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 750, // 730
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
@@ -227,7 +227,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void NestedIfStatements()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
@@ -273,7 +273,7 @@ $@"        if (F({i}))
         }
 
         [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void Constraints()
         {
             int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
