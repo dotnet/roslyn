@@ -280,6 +280,62 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter10()
+        {
+            var markup = @"
+public class DbContext { }
+public class C
+{
+    void Goo(DbContext context) {
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter11()
+        {
+            var markup = @"
+public class DbContext { }
+public class C
+{
+    void Goo() {
+        DbContext context;
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter12()
+        {
+            var markup = @"
+public class DbContext { }
+public class C
+{
+    DbContext dbContext;
+    void Goo(DbContext context) {
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+        }
+
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EscapeKeywords1()
