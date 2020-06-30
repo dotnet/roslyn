@@ -9089,48 +9089,43 @@ public class C2
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(null)").WithLocation(20, 6));
         }
 
-        [Fact, WorkItem(44049, "https://github.com/dotnet/roslyn/issues/44049")]
-        public void AttributeCrashRepro_44049()
+        [Fact]
+        [WorkItem(44049, "https://github.com/dotnet/roslyn/issues/44049")]
+        public void MemberNotNullAnnotationCrashes()
         {
-            string source = @"
-using System.Diagnostics.CodeAnalysis;
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
 
 class C
 {
-  public string? field;
+    public string? field;
   
-  [MemberNotNull('field')]
-  public static void M()
-            {
-            }
+    [MemberNotNull(""field"")]
+    public static void M()
+    {
+    }
 
-            public void Test()
-            {
-                M();
-                field.ToString();
-            }
-        }
-";
-            var comp = CreateCompilation(source);
+    public void Test()
+    {
+        M();
+        field.ToString();
+    }
+}";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    source, MemberNotNullAttributeDefinition
+                },
+                options: WithNonNullTypesTrue(),
+                targetFramework: TargetFramework.NetCoreApp30,
+                parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using System.Diagnostics.CodeAnalysis;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Diagnostics.CodeAnalysis;").WithLocation(2, 1),
-                // (6,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //   public string? field;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 16),
-                // (6,18): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
-                //   public string? field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(6, 18),
-                // (8,4): error CS0246: The type or namespace name 'MemberNotNullAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //   [MemberNotNull('field')]
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MemberNotNull").WithArguments("MemberNotNullAttribute").WithLocation(8, 4),
-                // (8,4): error CS0246: The type or namespace name 'MemberNotNull' could not be found (are you missing a using directive or an assembly reference?)
-                //   [MemberNotNull('field')]
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MemberNotNull").WithArguments("MemberNotNull").WithLocation(8, 4),
-                // (8,18): error CS1012: Too many characters in character literal
-                //   [MemberNotNull('field')]
-                Diagnostic(ErrorCode.ERR_TooManyCharsInConst, "").WithLocation(8, 18));
+                // (5,20): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
+                //     public string? field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(5, 20),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         field.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(15, 9));
         }
 
         #endregion
