@@ -232,7 +232,7 @@ End Class
             var accessor = root.DescendantNodes().OfType<VisualBasic.Syntax.AccessorBlockSyntax>().Last();
             var factory = new SemanticModelWorkspaceServiceFactory();
             var service = (ISemanticModelService)factory.CreateService(document.Project.Solution.Workspace.Services);
-            var newSemanticModel = await service.GetSemanticModelForNodeAsync(document, accessor, CancellationToken.None);
+            var newSemanticModel = await service.ReuseExistingSpeculativeModelAsync(document, accessor, CancellationToken.None);
             Assert.NotNull(newSemanticModel);
             var newDocument = CreateDocument(code, LanguageNames.VisualBasic);
             var newRoot = await newDocument.GetSyntaxRootAsync();
@@ -240,7 +240,7 @@ End Class
             root = root.ReplaceNode(accessor, newAccessor);
             document = document.WithSyntaxRoot(root);
             accessor = root.DescendantNodes().OfType<VisualBasic.Syntax.AccessorBlockSyntax>().Last();
-            newSemanticModel = await service.GetSemanticModelForNodeAsync(document, accessor, CancellationToken.None);
+            newSemanticModel = await service.ReuseExistingSpeculativeModelAsync(document, accessor, CancellationToken.None);
             Assert.NotNull(newSemanticModel);
             var cleanDocument = await CodeCleaner.CleanupAsync(document);
             Assert.Equal(document, cleanDocument);
