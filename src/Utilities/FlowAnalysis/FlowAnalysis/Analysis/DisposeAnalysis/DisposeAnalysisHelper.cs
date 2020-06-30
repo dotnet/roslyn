@@ -122,6 +122,7 @@ namespace Analyzer.Utilities
                     defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
                 if (disposeAnalysisResult != null)
                 {
+                    RoslynDebug.Assert(pointsToAnalysisResult is object);
                     return true;
                 }
             }
