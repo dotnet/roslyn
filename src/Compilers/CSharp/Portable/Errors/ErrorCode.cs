@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -1821,28 +1819,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
 
-        [Obsolete("used by features/module-initializers")]
-        ERR_8813 = 8813,
+        ERR_8813 = 8813, // used by features/module-initializers
 
-        [Obsolete("used by features/module-initializers")]
-        ERR_8814 = 8814,
+        ERR_8814 = 8814, // used by features/module-initializers
 
-        [Obsolete("used by features/module-initializers")]
-        ERR_8815 = 8815,
+        ERR_8815 = 8815, // used by features/module-initializers
 
-        [Obsolete("used by features/module-initializers")]
-        ERR_8816 = 8816,
+        ERR_8816 = 8816, // used by features/module-initializers
 
         ERR_PartialMethodReturnTypeDifference = 8817,
         ERR_PartialMethodRefReturnDifference = 8818,
         WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
 
 
-        [Obsolete("used by features/static-lambdas")]
-        ERR_8820 = 8820,
+        ERR_8820 = 8820, // used by features/static-lambdas
 
-        [Obsolete("used by features/static-lambdas")]
-        ERR_8821 = 8821,
+        ERR_8821 = 8821, // used by features/static-lambdas
 
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
