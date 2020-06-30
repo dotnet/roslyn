@@ -65,15 +65,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// this will return either regular semantic model or speculative semantic based on context. 
-        /// any feature that is involved in typing or run on UI thread should use this to take advantage of speculative semantic model 
+        /// This will return either regular semantic model or speculative semantic based on context. any feature that is
+        /// involved in typing or run on UI thread should use this to take advantage of speculative semantic model
         /// whenever possible automatically.
-        /// 
-        /// when using this API, semantic model should only be used to ask node inside of the given span. 
-        /// otherwise, it might throw if semantic model returned by this API is a speculative semantic model.
-        /// 
-        /// also, symbols from the semantic model returned by this API might have out of date location information. 
-        /// if exact location (not relative location) is needed from symbol, regular GetSemanticModel should be used.
+        /// <para/>
+        /// When using this API, semantic model should only be used to ask questions about nodes inside of the member
+        /// that contains the given <paramref name="position"/>.  If the span is not inside a member
+        /// <para/>
+        /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
+        /// </summary>
+        public static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, int position, CancellationToken cancellationToken)
+            => GetSemanticModelForSpanAsync(document, new TextSpan(position, 0), cancellationToken);
+
+        /// <summary>
+        /// This will return either regular semantic model or speculative semantic based on context. any feature that is
+        /// involved in typing or run on UI thread should use this to take advantage of speculative semantic model
+        /// whenever possible automatically.
+        /// <para/>
+        /// When using this API, semantic model should only be used to ask questions about nodes inside of the member
+        /// that contains the given span.  If the span is not inside a member
+        /// <para/>
+        /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
         public static async Task<SemanticModel> GetSemanticModelForSpanAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
