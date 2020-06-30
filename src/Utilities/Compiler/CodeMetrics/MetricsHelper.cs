@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 if (symbol.Kind == SymbolKind.Namespace)
                 {
                     var model = semanticModelProvider.GetSemanticModel(declSyntax);
-                    if (model.GetDeclaredSymbol(declSyntax, cancellationToken) != (object)symbol)
+                    if (!Equals(model.GetDeclaredSymbol(declSyntax, cancellationToken), symbol))
                     {
                         continue;
                     }
