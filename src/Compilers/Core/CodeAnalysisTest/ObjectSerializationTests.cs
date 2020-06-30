@@ -1135,21 +1135,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public void Encoding_UTF8(bool byteOrderMark)
         {
-            TestRoundripEncoding(new UTF8Encoding(byteOrderMark));
+            TestRoundtripEncoding(new UTF8Encoding(byteOrderMark));
         }
 
         [Theory]
         [CombinatorialData]
         public void Encoding_UTF32(bool bigEndian, bool byteOrderMark)
         {
-            TestRoundripEncoding(new UTF32Encoding(bigEndian, byteOrderMark));
+            TestRoundtripEncoding(new UTF32Encoding(bigEndian, byteOrderMark));
         }
 
         [Theory]
         [CombinatorialData]
         public void Encoding_Unicode(bool bigEndian, bool byteOrderMark)
         {
-            TestRoundripEncoding(new UnicodeEncoding(bigEndian, byteOrderMark));
+            TestRoundtripEncoding(new UnicodeEncoding(bigEndian, byteOrderMark));
         }
 
         [Fact]
@@ -1157,11 +1157,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             foreach (var info in Encoding.GetEncodings())
             {
-                TestRoundripEncoding(Encoding.GetEncoding(info.Name));
+                TestRoundtripEncoding(Encoding.GetEncoding(info.Name));
             }
         }
 
-        private static void TestRoundripEncoding(Encoding encoding)
+        private static void TestRoundtripEncoding(Encoding encoding)
         {
             using var stream = new MemoryStream();
 
