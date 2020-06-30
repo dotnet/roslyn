@@ -35,14 +35,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
             public async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
-                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
-
-                if (syntaxFactsService == null || semanticFactsService == null)
-                {
-                    // it only works if we can track member
-                    return await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                }
+                var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
 
                 if (IsPrimaryBranch(document) && !document.IsOpen())
                 {
