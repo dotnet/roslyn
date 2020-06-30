@@ -95,17 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             builder.Add(new BoundStringInsert(interpolation, value, alignment, format, null));
                             if (value.ConstantValue == null ||
-                                !(interpolation is { FormatClause: null, AlignmentClause: null }))
+                                !(interpolation is { FormatClause: null, AlignmentClause: null }) ||
+                                !(value.ConstantValue is { IsString: true, IsBad: false }))
                             {
                                 isResultConstant = false;
                                 continue;
                             }
-                            if (value.ConstantValue is { IsString: true, IsBad: false})
-                            {
-                                resultConstant = (resultConstant is null)
-                                    ? value.ConstantValue
-                                    : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, value.ConstantValue);
-                            }
+                            resultConstant = (resultConstant is null)
+                                ? value.ConstantValue
+                                : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, value.ConstantValue);
                             continue;
                         }
                     case SyntaxKind.InterpolatedStringText:

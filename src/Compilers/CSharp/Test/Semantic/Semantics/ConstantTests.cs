@@ -3489,6 +3489,39 @@ $""{S1}"" --> Testing
 $""{F1} the {S2}"" --> Testing the Level 5 Number 3";
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void ConstantInterpolatedStringsError()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""Testing"";
+        const string S2 = $""{""Level 5""} {3}"";
+        const string S3 = $""{$""{""Spinning Top"", 10}""}"";
+        const int I1 = 0;
+        const string F1 = $""{I1}"";
+        const string F2 = $""{I1} the {S1}"";
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS0133: The expression being assigned to 'S2' must be constant
+                //         const string S2 = $"{"Level 5"} {3}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{""Level 5""} {3}""").WithArguments("S2").WithLocation(7, 27),
+                // (8,27): error CS0133: The expression being assigned to 'S3' must be constant
+                //         const string S3 = $"{$"{"Spinning Top", 10}"}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{$""{""Spinning Top"", 10}""}""").WithArguments("S3").WithLocation(8, 27),
+                // (10,27): error CS0133: The expression being assigned to 'F1' must be constant
+                //         const string F1 = $"{I1}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1}""").WithArguments("F1").WithLocation(10, 27),
+                // (11,27): error CS0133: The expression being assigned to 'F2' must be constant
+                //         const string F2 = $"{I1} the {S1}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1} the {S1}""").WithArguments("F2").WithLocation(11, 27)
+            );
+        }
     }
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard
