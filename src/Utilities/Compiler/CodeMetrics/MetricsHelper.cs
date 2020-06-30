@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 if (symbol.Kind == SymbolKind.Namespace)
                 {
                     var model = context.GetSemanticModel(declSyntax);
-                    if (model.GetDeclaredSymbol(declSyntax, context.CancellationToken) != (object)symbol)
+                    if (!Equals(model.GetDeclaredSymbol(declSyntax, context.CancellationToken), symbol))
                     {
                         continue;
                     }

@@ -11,7 +11,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     Public NotInheritable Class VisualBasicExposeMemberForTestingFixer
         Inherits ExposeMemberForTestingFixer
 
-        Protected Overrides ReadOnly Property HasRefReturns As Boolean = False
+        Protected Overrides ReadOnly Property HasRefReturns As Boolean
 
         Protected Overrides Function GetTypeDeclarationForNode(reportedNode As SyntaxNode) As SyntaxNode
             Return reportedNode.FirstAncestorOrSelf(Of TypeStatementSyntax)()?.Parent
