@@ -1578,10 +1578,11 @@ End Namespace
             Dim diagnostics = Await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None)
             TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics, diagnosticSpan, analyzer, additionalFile)
 
-            diagnostics = Await compilation.WithAnalyzers(analyzers, options).GetAnalyzerAdditionalFileDiagnosticsAsync(additionalFile, CancellationToken.None)
-            TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics, diagnosticSpan, analyzer, additionalFile)
+            Dim analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile, CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
 
-            Dim analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None)
+            analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None)
             TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
             TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
         End Function
