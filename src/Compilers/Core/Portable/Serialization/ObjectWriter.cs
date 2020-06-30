@@ -837,9 +837,9 @@ namespace Roslyn.Utilities
 
             static bool HasPreamble(Encoding encoding)
 #if NETCOREAPP
-            => !encoding.Preamble.IsEmpty;
+                => !encoding.Preamble.IsEmpty;
 #else
-            => !encoding.GetPreamble().IsEmpty();
+                => !encoding.GetPreamble().IsEmpty();
 #endif
         }
 
@@ -1312,9 +1312,6 @@ namespace Roslyn.Utilities
             EncodingUnicode_BE_BOM,
             EncodingUnicode_LE,
             EncodingUnicode_LE_BOM,
-
-            FirstEncoding = EncodingUTF8,
-            LastEncoding = EncodingUnicode_LE_BOM,
 
             Last,
         }
