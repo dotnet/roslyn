@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
                 throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
             }
 
-            var semanticModel = await document.GetSemanticModelForSpanAsync(spans.Collapse(), cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(spans.Collapse(), cancellationToken).ConfigureAwait(false);
 
             var newRoot = CaseCorrect(semanticModel, root, spans, document.Project.Solution.Workspace, cancellationToken);
             return (root == newRoot) ? document : document.WithSyntaxRoot(newRoot);

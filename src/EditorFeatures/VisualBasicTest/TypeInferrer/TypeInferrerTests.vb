@@ -27,9 +27,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TypeInferrer
             Dim inferredType As ITypeSymbol
 
             If testMode = TestMode.Position Then
-                inferredType = typeInference.InferType(Await document.GetSemanticModelForSpanAsync(New TextSpan(node.SpanStart, 0), CancellationToken.None), node.SpanStart, objectAsDefault:=True, cancellationToken:=CancellationToken.None)
+                inferredType = typeInference.InferType(Await document.ReuseExistingSpeculativeModelAsync(New TextSpan(node.SpanStart, 0), CancellationToken.None), node.SpanStart, objectAsDefault:=True, cancellationToken:=CancellationToken.None)
             Else
-                inferredType = typeInference.InferType(Await document.GetSemanticModelForSpanAsync(node.Span, CancellationToken.None), node, objectAsDefault:=True, cancellationToken:=CancellationToken.None)
+                inferredType = typeInference.InferType(Await document.ReuseExistingSpeculativeModelAsync(node.Span, CancellationToken.None), node, objectAsDefault:=True, cancellationToken:=CancellationToken.None)
             End If
 
             Dim typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace()

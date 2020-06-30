@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
         public static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, int position, CancellationToken cancellationToken)
-            => GetSemanticModelForSpanAsync(document, new TextSpan(position, 0), cancellationToken);
+            => ReuseExistingSpeculativeModelAsync(document, new TextSpan(position, 0), cancellationToken);
 
         /// <summary>
         /// This will return either regular semantic model or speculative semantic based on context. any feature that is
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <para/>
         /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static async Task<SemanticModel> GetSemanticModelForSpanAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
+        public static async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.SupportsSemanticModel);
 
