@@ -232,6 +232,11 @@
         <target state="translated">Das discard-Muster ist als case-Bezeichnung in einer switch-Anweisung unzulässig. Verwenden Sie "case var _:" für ein discard-Muster oder "case @_:" für eine Konstante namens "_".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
+        <source>'{0}' does not override the method from 'object'.</source>
+        <target state="new">'{0}' does not override the method from 'object'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
         <source>A return type can only have one '{0}' modifier.</source>
         <target state="new">A return type can only have one '{0}' modifier.</target>

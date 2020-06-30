@@ -1847,6 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRecordMemberForPositionalParameter = 8866,
         ERR_NoCopyConstructorInBaseType = 8867,
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
+        ERR_DoesNotOverrideMethodFromObject = 8869,
 
         #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
