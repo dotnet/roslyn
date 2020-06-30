@@ -384,11 +384,7 @@ function TestUsingOptimizedRunner() {
   $args += " -tfm:net472"
 
   if ($testDesktop -or $testIOperation) {
-    if ($test32) {
-      $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" $binDir
-    } else {
-      $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" -Exclude "*InteractiveHost*" $binDir
-    }
+    $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" $binDir
   } elseif ($testVsi) {
     # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
     # integration tests in CI.
