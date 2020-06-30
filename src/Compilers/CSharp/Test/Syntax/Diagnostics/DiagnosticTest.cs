@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ErrorCode.Unknown,
                 ErrorCode.WRN_ALinkWarn, // Not reported, but retained to allow configuring class of related warnings. See CSharpDiagnosticFilter.Filter.
 
+                // The following error codes are reserved by feature branches
                 ErrorCode.ERR_8813,
                 ErrorCode.ERR_8814,
                 ErrorCode.ERR_8815,
