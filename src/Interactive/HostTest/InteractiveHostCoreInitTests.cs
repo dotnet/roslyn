@@ -6,6 +6,7 @@
 
 extern alias InteractiveHost;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -15,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
+    using System;
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
@@ -22,6 +24,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
     {
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Core;
         internal override bool UseDefaultInitializationFile => true;
+
+        [Fact]
+        public async Task TestRuntime()
+        {
+            await Execute("Environment.GetEnvironmentVariable(\"DOTNET_ROOT\") + '|' + RuntimeEnvironment.GetRuntimeDirectory()");
+            var output = await ReadOutputToEnd();
+
+            Host.Dispose();
+
+            var log = @$"
+DOTNET_ROOT: '{Environment.GetEnvironmentVariable("DOTNET_ROOT")}'
+RuntimeDirectory: '{RuntimeEnvironment.GetRuntimeDirectory()}'
+Output: '{output}'
+Trace:
+===
+{File.ReadAllText(TraceFile.Path)}
+===
+";
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", log);
+        }
 
         [Fact]
         public async Task DefaultReferencesAndImports()

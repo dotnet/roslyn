@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private SynchronizedStringWriter _synchronizedErrorOutput = null!;
         private int[] _outputReadPosition = new int[] { 0, 0 };
 
+        internal readonly TempFile TraceFile;
+
         internal readonly InteractiveHost Host;
 
         // DOTNET_ROOT must be set in order to run host process on .NET Core on machines (like CI)
@@ -63,6 +65,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         protected AbstractInteractiveHostTests()
         {
+            TraceFile = Temp.CreateFile();
+
+            Environment.SetEnvironmentVariable("COREHOST_TRACE", "1");
+            Environment.SetEnvironmentVariable("COREHOST_TRACEFILE", TraceFile.Path);
+
             Host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
 
             Host.InteractiveHostProcessCreationFailed += (exception, exitCode) =>
