@@ -3955,7 +3955,7 @@ class Program
 }
 ";
             var compilation = CreateEmptyCompilation(source, options: TestOptions.DebugExe,
-                references: TargetFrameworkUtil.StandardDesktopReferences,
+                references: TargetFrameworkUtil.StandardDesktopReferences);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:

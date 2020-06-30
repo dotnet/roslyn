@@ -806,7 +806,7 @@ class Program {
     }
 }";
             CompileAndVerify(
-                source, references: TargetFrameworkUtil.StandardDesktopReferences, world!", targetFramework: TargetFramework.Empty);
+                source, references: TargetFrameworkUtil.StandardDesktopReferences, expectedOutput: "Hello world!", targetFramework: TargetFramework.Empty);
         }
 
         [Fact]
