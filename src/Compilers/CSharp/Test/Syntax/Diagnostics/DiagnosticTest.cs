@@ -31,6 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ErrorCode.Void,
                 ErrorCode.Unknown,
                 ErrorCode.WRN_ALinkWarn, // Not reported, but retained to allow configuring class of related warnings. See CSharpDiagnosticFilter.Filter.
+
+#pragma warning disable 618
+                ErrorCode.ERR_8813,
+                ErrorCode.ERR_8814,
+                ErrorCode.ERR_8815,
+                ErrorCode.ERR_8816,
+
+                ErrorCode.ERR_8820,
+                ErrorCode.ERR_8821,
+#pragma warning restore 618
             };
             foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
             {
