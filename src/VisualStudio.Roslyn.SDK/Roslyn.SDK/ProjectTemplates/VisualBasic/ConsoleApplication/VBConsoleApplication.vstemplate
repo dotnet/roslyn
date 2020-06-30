@@ -31,6 +31,6 @@
   </TemplateContent>
   <WizardExtension>
     <Assembly>Roslyn.SDK.Template.Wizard, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
-    <FullClassName>RoslynSDKAnalyzerTemplateWizard</FullClassName>
+    <FullClassName>RoslynSDKRootTemplateWizard</FullClassName>
   </WizardExtension>
 </VSTemplate>
