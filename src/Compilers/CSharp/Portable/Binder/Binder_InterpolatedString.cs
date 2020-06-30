@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
             var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-
-            // PROTOTYPE follow up with Neal on the implementation 
             ConstantValue? resultConstant = null;
-            bool constantEnabled = true;
+            bool isResultConstant = true;
             foreach (var content in node.Contents)
             {
                 switch (content.Kind())
@@ -58,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
                                 var alignmentConstant = alignment.ConstantValue;
-                                constantEnabled = false;
                                 if (alignmentConstant != null && !alignmentConstant.IsBad)
                                 {
                                     const int magnitudeLimit = 32767;
@@ -82,7 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var text = interpolation.FormatClause.FormatStringToken.ValueText;
                                 char lastChar;
                                 bool hasErrors = false;
-                                constantEnabled = false;
                                 if (text.Length == 0)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_EmptyFormatSpecifier, interpolation.FormatClause.Location);
@@ -98,23 +94,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             builder.Add(new BoundStringInsert(interpolation, value, alignment, format, null));
-                            if (value.ConstantValue != null)
+                            if (value.ConstantValue == null ||
+                                !(interpolation is { FormatClause: null, AlignmentClause: null }))
                             {
-                                if (!value.ConstantValue.IsString || value.ConstantValue.IsBad || value.ConstantValue.IsNull)
-                                {
-                                    constantEnabled = false;
-                                }
-
-                                if (constantEnabled)
-                                {
-                                    resultConstant = (resultConstant is null)
-                                        ? value.ConstantValue
-                                        : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, value.ConstantValue);
-                                }
+                                isResultConstant = false;
+                                continue;
                             }
-                            else
+                            if (value.ConstantValue is { IsString: true, IsBad: false})
                             {
-                                constantEnabled = false;
+                                resultConstant = (resultConstant is null)
+                                    ? value.ConstantValue
+                                    : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, value.ConstantValue);
                             }
                             continue;
                         }
@@ -122,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
                             builder.Add(new BoundLiteral(content, ConstantValue.Create(text, SpecialType.System_String), stringType));
-                            if (constantEnabled)
+                            if (isResultConstant)
                             {
                                 var constantVal = ConstantValue.Create(ConstantValueUtils.UnescapeInterpolatedStringLiteral(text), SpecialType.System_String);
                                 resultConstant = (resultConstant is null)
@@ -136,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!constantEnabled)
+            if (!isResultConstant)
             {
                 resultConstant = null;
             }

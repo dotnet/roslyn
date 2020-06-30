@@ -3990,7 +3990,7 @@ class C
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
-        [Fact(Skip = "PROTOTYPE(CONSTISTR)")]
+        [Fact(Skip = "PROTOTYPE(CONSTISTR) - Asserts that Interpolated Strings are not constant, but the first can be.")]
         public void ConstantValueOfInterpolatedString()
         {
             var source = @"
