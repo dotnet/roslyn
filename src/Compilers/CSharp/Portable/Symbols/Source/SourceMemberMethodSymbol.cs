@@ -923,7 +923,7 @@ done:
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody(SyntaxNode declarationSyntax, Location location, DiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(Location location, DiagnosticBag diagnostics)
         {
             if (IsExtern && !IsAbstract)
             {

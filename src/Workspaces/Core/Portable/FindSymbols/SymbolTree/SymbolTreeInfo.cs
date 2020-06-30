@@ -54,37 +54,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly OrderPreservingMultiDictionary<int, int> _inheritanceMap;
 
         /// <summary>
-        /// Maps the name of target type name of simple extension methods to its <see cref="ExtensionMethodInfo" />.
+        /// Maps the name of receiver type name to its <see cref="ExtensionMethodInfo" />.
         /// <see cref="ParameterTypeInfo"/> for the definition of simple/complex methods.
+        /// For non-array simple types, the receiver type name would be its metadata name, e.g. "Int32".
+        /// For any array types with simple type as element, the receiver type name would be just "ElementTypeName[]", e.g. "Int32[]" for int[][,]
+        /// For non-array complex types, the receiver type name is "".
+        /// For any array types with complex type as element, the receier type name is "[]"
         /// </summary>
-        private readonly MultiDictionary<string, ExtensionMethodInfo>? _simpleTypeNameToExtensionMethodMap;
+        private readonly MultiDictionary<string, ExtensionMethodInfo>? _receiverTypeNameToExtensionMethodMap;
 
-        /// <summary>
-        /// A list of <see cref="ExtensionMethodInfo" /> for complex extension methods.
-        /// <see cref="ParameterTypeInfo"/> for the definition of simple/complex methods.
-        /// </summary>
-        private readonly ImmutableArray<ExtensionMethodInfo> _extensionMethodOfComplexType;
+        public MultiDictionary<string, ExtensionMethodInfo>.ValueSet GetExtensionMethodInfoForReceiverType(string typeName)
+            => _receiverTypeNameToExtensionMethodMap != null
+                ? _receiverTypeNameToExtensionMethodMap[typeName]
+                : new MultiDictionary<string, ExtensionMethodInfo>.ValueSet(null, null);
 
-        public bool ContainsExtensionMethod => _simpleTypeNameToExtensionMethodMap?.Count > 0 || _extensionMethodOfComplexType.Length > 0;
-
-        public ImmutableArray<ExtensionMethodInfo> GetMatchingExtensionMethodInfo(ImmutableArray<string> parameterTypeNames)
-        {
-            if (_simpleTypeNameToExtensionMethodMap == null)
-            {
-                return _extensionMethodOfComplexType;
-            }
-
-            var builder = ArrayBuilder<ExtensionMethodInfo>.GetInstance();
-            builder.AddRange(_extensionMethodOfComplexType);
-
-            foreach (var parameterTypeName in parameterTypeNames)
-            {
-                var simpleMethods = _simpleTypeNameToExtensionMethodMap[parameterTypeName];
-                builder.AddRange(simpleMethods);
-            }
-
-            return builder.ToImmutableAndFree();
-        }
+        public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 
         /// <summary>
         /// The task that produces the spell checker we use for fuzzy match queries.
@@ -123,11 +107,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ImmutableArray<Node> sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
-            ImmutableArray<ExtensionMethodInfo> extensionMethodOfComplexType,
-            MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToExtensionMethodMap)
+            MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap)
             : this(checksum, concatenatedNames, sortedNodes, spellCheckerTask,
                    CreateIndexBasedInheritanceMap(concatenatedNames, sortedNodes, inheritanceMap),
-                   extensionMethodOfComplexType, simpleTypeNameToExtensionMethodMap)
+                   receiverTypeNameToExtensionMethodMap)
         {
         }
 
@@ -137,16 +120,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ImmutableArray<Node> sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
-            ImmutableArray<ExtensionMethodInfo> extensionMethodOfComplexType,
-            MultiDictionary<string, ExtensionMethodInfo>? simpleTypeNameToExtensionMethodMap)
+            MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
             Checksum = checksum;
             _concatenatedNames = concatenatedNames;
             _nodes = sortedNodes;
             _spellCheckerTask = spellCheckerTask;
             _inheritanceMap = inheritanceMap;
-            _extensionMethodOfComplexType = extensionMethodOfComplexType;
-            _simpleTypeNameToExtensionMethodMap = simpleTypeNameToExtensionMethodMap;
+            _receiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
         }
 
         public static SymbolTreeInfo CreateEmpty(Checksum checksum)
@@ -157,14 +138,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return new SymbolTreeInfo(checksum, concatenatedNames, sortedNodes,
                 CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
                 new OrderPreservingMultiDictionary<string, string>(),
-                ImmutableArray<ExtensionMethodInfo>.Empty,
                 new MultiDictionary<string, ExtensionMethodInfo>());
         }
 
         public SymbolTreeInfo WithChecksum(Checksum checksum)
         {
             return new SymbolTreeInfo(
-                checksum, _concatenatedNames, _nodes, _spellCheckerTask, _inheritanceMap, _extensionMethodOfComplexType, _simpleTypeNameToExtensionMethodMap);
+                checksum, _concatenatedNames, _nodes, _spellCheckerTask, _inheritanceMap, _receiverTypeNameToExtensionMethodMap);
         }
 
         public Task<ImmutableArray<ISymbol>> FindAsync(
@@ -558,8 +538,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution, Checksum checksum,
             string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
-            MultiDictionary<string, ExtensionMethodInfo> simpleMethods,
-            ImmutableArray<ExtensionMethodInfo> complexMethods)
+            MultiDictionary<string, ExtensionMethodInfo> simpleMethods)
         {
             SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
             var createSpellCheckerTask = GetSpellCheckerAsync(
@@ -568,7 +547,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return new SymbolTreeInfo(
                 checksum, concatenatedNames,
                 sortedNodes, createSpellCheckerTask, inheritanceMap,
-                complexMethods, simpleMethods);
+                simpleMethods);
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

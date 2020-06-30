@@ -2158,7 +2158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The starting state is the top state, but with captured
             // variables set according to Joining the state at all the
             // local function use sites
-            State = TopState().Clone();
+            State = TopState();
             for (int slot = 1; slot < localFunctionState.StartingState.Capacity; slot++)
             {
                 var symbol = variableBySlot[RootSlot(slot)].Symbol;
@@ -7075,14 +7075,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return accessor.Parameters.Last().FlowAnalysisAnnotations;
                 }
-                if (property is SourcePropertySymbol sourceProperty)
+                if (property is SourcePropertySymbolBase sourceProperty)
                 {
                     return getPropertyAnnotations(sourceProperty);
                 }
                 return FlowAnalysisAnnotations.None;
             }
 
-            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbol property)
+            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbolBase property)
             {
                 var annotations = FlowAnalysisAnnotations.None;
                 if (property.HasAllowNull)
