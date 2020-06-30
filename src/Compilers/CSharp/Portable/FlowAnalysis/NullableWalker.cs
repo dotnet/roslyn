@@ -1268,6 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
 
@@ -1276,6 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty);
         }
+#nullable restore
 
         private void VisitAndUnsplitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
         {

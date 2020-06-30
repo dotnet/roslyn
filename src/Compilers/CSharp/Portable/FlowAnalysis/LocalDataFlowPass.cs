@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _emptyStructTypeCache.IsEmptyStructType(type);
         }
 
+#nullable enable
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(containingSlot >= 0);
 
+            if (symbol is null) return -1;
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
@@ -169,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return slot;
         }
+#nullable restore
 
         private int GetSlotDepth(int slot)
         {
