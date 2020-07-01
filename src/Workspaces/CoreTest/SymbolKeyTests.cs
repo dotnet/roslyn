@@ -673,7 +673,7 @@ class C
             // Ensure we prime the reuse cache with the true semantic model.
             var firstReusedModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
 
-           // Modify the document so we can use the old semantic model as a base.
+            // Modify the document so we can use the old semantic model as a base.
             var updated = sourceText.WithChanges(new TextChange(new TextSpan(position, 0), "insertion"));
             workspace.TryApplyChanges(document.WithText(updated).Project.Solution);
 
