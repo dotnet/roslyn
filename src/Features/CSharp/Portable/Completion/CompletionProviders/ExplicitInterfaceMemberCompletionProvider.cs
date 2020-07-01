@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
