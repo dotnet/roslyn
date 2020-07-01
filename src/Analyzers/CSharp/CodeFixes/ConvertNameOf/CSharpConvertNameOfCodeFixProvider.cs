@@ -5,22 +5,18 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
 {
@@ -46,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
@@ -54,22 +50,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             foreach (var diagnostic in diagnostics)
             {
                 var node = (MemberAccessExpressionSyntax)root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                await ConvertNameOfAsync(editor, node);
+                ConvertNameOf(editor, node);
             }
+
+            return Task.CompletedTask;
         }
 
-        internal static async Task ConvertNameOfAsync(
+        internal static void ConvertNameOf(
             SyntaxEditor editor, MemberAccessExpressionSyntax node)
         {
-            var expression = node.Expression;
-            var idName = expression is TypeOfExpressionSyntax identifierName
-                ? identifierName.Type.ToString()
-                : expression.ToString();
+            var exp = (TypeOfExpressionSyntax)node.Expression;
+            var idName = exp.Type.ToString();
 
-            var nameOfSyntax = SyntaxFactory.
-                ParseExpression(string.Format("nameof({0})", idName)).
-                WithLeadingTrivia(node.GetLeadingTrivia()).
-                WithTrailingTrivia(node.GetTrailingTrivia());
+            var nameOfSyntax = InvocationExpression(IdentifierName("nameof")).
+                WithArgumentList(
+                ArgumentList(
+                    SingletonSeparatedList<ArgumentSyntax>(
+                        Argument(
+                            IdentifierName(idName)))));
 
             editor.ReplaceNode(node, nameOfSyntax);
         }
