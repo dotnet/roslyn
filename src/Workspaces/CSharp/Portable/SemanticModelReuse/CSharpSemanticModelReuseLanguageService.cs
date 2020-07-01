@@ -7,6 +7,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -30,14 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
 
         public override SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node)
         {
-            for (var current = node; current != null; current = current.Parent)
+            for (SyntaxNode? previous = node, current = node; current != null; previous = current, current = current.Parent)
             {
                 // These are the exact types that SemanticModel.TryGetSpeculativeSemanticModelForMethodBody accepts.
-                if (current is BaseMethodDeclarationSyntax baseMethod && baseMethod.Body != null)
-                    return current;
+                if (current is BaseMethodDeclarationSyntax baseMethod)
+                    return baseMethod.Body == previous ? baseMethod : null;
 
-                if (current is AccessorDeclarationSyntax accessor && accessor.Body != null)
-                    return current;
+                if (current is AccessorDeclarationSyntax accessor)
+                    return accessor.Body == previous ? accessor : null;
             }
 
             return null;

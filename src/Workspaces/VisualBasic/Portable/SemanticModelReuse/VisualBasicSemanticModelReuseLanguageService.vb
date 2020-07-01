@@ -23,12 +23,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Public Overrides Function TryGetContainingMethodBodyForSpeculation(node As SyntaxNode) As SyntaxNode
+            Dim previous = node
             While node IsNot Nothing
                 Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
                 If methodBlock IsNot Nothing Then
-                    Return If(methodBlock.Statements.IsEmpty AndAlso methodBlock.EndBlockStatement.IsMissing, Nothing, methodBlock)
+                    Return If(methodBlock.Statements.Contains(TryCast(previous, StatementSyntax)), methodBlock, Nothing)
                 End If
 
+                previous = node
                 node = node.Parent
             End While
 
