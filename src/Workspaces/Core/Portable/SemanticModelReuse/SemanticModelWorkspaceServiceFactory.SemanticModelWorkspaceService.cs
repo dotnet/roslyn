@@ -112,7 +112,6 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 var builder = ImmutableDictionary.CreateBuilder<DocumentId, SemanticModelReuseInfo?>();
 
                 // Note: we are intentionally storing the semanticmodel instance in the speculative location as well.
-                //
                 builder.Add(document.Id, new SemanticModelReuseInfo(semanticModel, semanticModel, bodyNode, topLevelSemanticVersion));
 
                 foreach (var linkedId in linkedIds)
