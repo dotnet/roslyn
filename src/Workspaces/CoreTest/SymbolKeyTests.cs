@@ -623,6 +623,10 @@ class C
             var document = workspace.AddDocument(project.Id, "testdocument", sourceText);
 
             var firstModel = await document.GetSemanticModelAsync();
+
+            // Ensure we prime the reuse cache with the true semantic model.
+            var firstReusedModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
+
             var tree1 = await document.GetSyntaxTreeAsync();
             var basemethod1 = tree1.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
@@ -631,10 +635,8 @@ class C
             workspace.TryApplyChanges(document.WithText(updated).Project.Solution);
 
             document = workspace.CurrentSolution.GetDocument(document.Id);
-            var tree2 = await document.GetSyntaxTreeAsync();
-            var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
-            var service = CSharp.CSharpSemanticFactsService.Instance;
+            // Now, the second time we try to get a speculative model, we should succeed.
             var testModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
             Assert.True(testModel.IsSpeculativeSemanticModel);
 
