@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
     {
         private sealed class SemanticModelReuseWorkspaceService : ISemanticModelReuseWorkspaceService
         {
-            public Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
+            public Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 // TODO: port the GetSemanticModelForNodeAsync implementation from Workspaces layer,
                 // which currently relies on a bunch of internal APIs.
