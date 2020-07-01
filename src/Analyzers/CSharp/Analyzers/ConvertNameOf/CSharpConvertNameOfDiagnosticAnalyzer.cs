@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
                 return;
             }
 
-
-            //TODO: if argument is primitive
+            // Analyze the argument to determine if argument is primitive
             if (ArgumentIsPrimitive(typeofOp.Operation))
             {
                 return;
@@ -94,11 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
 
         private static bool ArgumentIsGeneric(IOperation op)
         {
-            // verify it is a typeof operation
-            if (!(op.Type is ITypeOfOperation))
-            {
-                return true;
-            }
+            // TODO: verify it is a typeof operation
+
             // Cast it to a ITypeOfOperation
             var tOp = (ITypeOfOperation)op;
 
@@ -111,15 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
 
         private static bool ArgumentIsPrimitive(IOperation op)
         {
-            // verify it is a typeof operation
-            if (!(op.Type is ITypeOfOperation))
-            {
-                return true;
-            }
+            // TODO: verify it is a typeof operation
+            //kind is named type for string
+
             // Cast it to a ITypeOfOperation
             var tOp = (ITypeOfOperation)op;
+            var child = op.Syntax.ChildNodes().ElementAt(0);
 
-            if (((INamedTypeSymbol)(tOp).TypeOperand).IsGenericType)
+            if (child.IsKind(SyntaxKind.PredefinedType))
             {
                 return true;
             }
