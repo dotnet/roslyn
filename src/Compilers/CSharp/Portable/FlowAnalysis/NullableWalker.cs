@@ -715,6 +715,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isStatic)
                 {
+                    if (MethodThisParameter is null)
+                    {
+                        return -1;
+                    }
                     thisSlot = GetOrCreateSlot(MethodThisParameter);
                     if (thisSlot < 0)
                     {
@@ -1272,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
 
-            if ((containingSlot > 0 && !IsSlotMember(containingSlot, symbol)) || symbol is null)
+            if (containingSlot > 0 && !IsSlotMember(containingSlot, symbol))
                 return -1;
 
             return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty);

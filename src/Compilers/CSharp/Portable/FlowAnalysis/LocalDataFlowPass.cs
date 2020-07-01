@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
             Debug.Assert(containingSlot >= 0);
+            Debug.Assert(symbol != null);
 
-            if (symbol is null) return -1;
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
