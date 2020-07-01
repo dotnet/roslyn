@@ -168,8 +168,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 if (semanticModel == null)
                     return null;
 
-                return new SemanticModelReuseInfo(
-                    reuseInfo.PreviousNonSpeculativeSemanticModel, semanticModel, bodyNode, topLevelSemanticVersion);
+                return new SemanticModelReuseInfo(reuseInfo.PreviousNonSpeculativeSemanticModel, semanticModel, bodyNode, topLevelSemanticVersion);
             }
         }
     }
