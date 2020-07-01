@@ -6712,7 +6712,8 @@ done:;
             try
             {
                 var omittedArraySizeExpressionInstance = _syntaxFactory.OmittedArraySizeExpression(SyntaxFactory.Token(SyntaxKind.OmittedArraySizeExpressionToken));
-                while (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
+                int lastTokenPosition = -1;
+                while (IsMakingProgress(ref lastTokenPosition) && this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
                 {
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
@@ -9557,6 +9558,8 @@ tryAgain:
                 case SyntaxKind.DotDotToken:
                 case SyntaxKind.RefKeyword:
                     return true;
+                case SyntaxKind.StaticKeyword:
+                    return IsPossibleAnonymousMethodExpression() || IsPossibleLambdaExpression(Precedence.Expression);
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
@@ -10598,7 +10601,8 @@ tryAgain:
                         list.Add(this.ParseArgumentExpression(isIndexer));
 
                         // additional arguments
-                        while (true)
+                        var lastTokenPosition = -1;
+                        while (IsMakingProgress(ref lastTokenPosition))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
                                 this.CurrentToken.Kind == SyntaxKind.CloseBracketToken ||
