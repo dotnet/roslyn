@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 #nullable enable
@@ -17,10 +18,11 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly DiagnosticBag _diagnostics;
 
-        internal SourceGeneratorContext(Compilation compilation, ImmutableArray<AdditionalText> additionalTexts, ISyntaxReceiver? syntaxReceiver, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
+        internal SourceGeneratorContext(Compilation compilation, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             AdditionalFiles = additionalTexts;
+            AnalyzerConfigOptions = optionsProvider;
             SyntaxReceiver = syntaxReceiver;
             CancellationToken = cancellationToken;
             AdditionalSources = new AdditionalSourcesCollection();
@@ -41,6 +43,11 @@ namespace Microsoft.CodeAnalysis
         /// A set of additional non-code text files that can be used by generators.
         /// </summary>
         public ImmutableArray<AdditionalText> AdditionalFiles { get; }
+
+        /// <summary>
+        /// Allows access to options provided by an analyzer config
+        /// </summary>
+        public AnalyzerConfigOptionsProvider AnalyzerConfigOptions { get; }
 
         /// <summary>
         /// If the generator registered an <see cref="ISyntaxReceiver"/> during initialization, this will be the instance created for this generation pass.

@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
@@ -399,6 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:

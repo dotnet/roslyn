@@ -67,7 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.Equal("System.Runtime.CompilerServices.IsConst", p2Mod.Modifier.ToTestDisplayString());
             }
 
-            Assert.Equal(SymbolKind.ErrorType, p4.Type.Kind);
+            Assert.Equal("System.Int32 modopt(System.Int32) modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsConst) p", modifiers.GetMembers("F3").OfType<MethodSymbol>().Single().Parameters[0].ToTestDisplayString());
+
+            Assert.Equal("System.Int32 modreq(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsConst) p", p4.ToTestDisplayString());
+            Assert.True(p4.HasUnsupportedMetadata);
+            Assert.True(p4.ContainingSymbol.HasUnsupportedMetadata);
 
             Assert.True(m5.ReturnsVoid);
             Assert.Equal(1, m5.ReturnTypeWithAnnotations.CustomModifiers.Length);

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 return ImmutableArray<TodoCommentDescriptor>.Empty;
 
             var tuples = data.Split('|');
-            var result = ArrayBuilder<TodoCommentDescriptor>.GetInstance();
+            using var _ = ArrayBuilder<TodoCommentDescriptor>.GetInstance(out var result);
 
             foreach (var tuple in tuples)
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 result.Add(new TodoCommentDescriptor(pair[0].Trim(), priority));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
     }
 }

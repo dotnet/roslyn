@@ -14714,16 +14714,16 @@ class C
 }
 ";
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-// (5,5): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
+// (5,5): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
 //     ArgIterator M(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-// (11,12): error CS1599: Method or delegate cannot return type 'System.RuntimeArgumentHandle'
+// (11,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.RuntimeArgumentHandle'
 //     public RuntimeArgumentHandle Test2() // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle"),
-// (17,19): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
+// (17,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
 //     public static ArgIterator operator +(C c1, C c2) // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-// (9,21): error CS1599: Method or delegate cannot return type 'System.TypedReference'
+// (9,21): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.TypedReference'
 //     public delegate TypedReference Test1(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference")
                 );
@@ -14758,13 +14758,13 @@ class C
 }
 ";
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (6,9): error CS1599: Method or delegate cannot return type 'TypedReference'
+                // (6,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //         System.TypedReference local1() // 1599
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(6, 9),
-                // (12,9): error CS1599: Method or delegate cannot return type 'RuntimeArgumentHandle'
+                // (12,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
                 //         System.RuntimeArgumentHandle local2() // 1599
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(12, 9),
-                // (18,9): error CS1599: Method or delegate cannot return type 'ArgIterator'
+                // (18,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
                 //         System.ArgIterator local3() // 1599
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(18, 9));
         }

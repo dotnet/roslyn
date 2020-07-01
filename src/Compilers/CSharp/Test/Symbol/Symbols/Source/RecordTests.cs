@@ -146,12 +146,13 @@ record C(int x, string y)
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
-            var x = (SourceOrRecordPropertySymbol)c.GetProperty("x");
+            var x = (SourcePropertySymbolBase)c.GetProperty("x");
             Assert.NotNull(x.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
             Assert.False(x.IsReadOnly);
             Assert.False(x.IsWriteOnly);
+            Assert.False(x.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, x.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -162,26 +163,30 @@ record C(int x, string y)
             Assert.Equal(x, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             var getAccessor = x.GetMethod;
             Assert.Equal(x, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
 
             var setAccessor = x.SetMethod;
             Assert.Equal(x, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
             Assert.True(setAccessor.IsInitOnly);
 
-            var y = (SourceOrRecordPropertySymbol)c.GetProperty("y");
+            var y = (SourcePropertySymbolBase)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
             Assert.False(y.IsReadOnly);
             Assert.False(y.IsWriteOnly);
+            Assert.False(y.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
@@ -192,14 +197,17 @@ record C(int x, string y)
             Assert.Equal(y, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
 
             getAccessor = y.GetMethod;
             Assert.Equal(y, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, getAccessor.ContainingSymbol);
             Assert.Equal(c, getAccessor.ContainingType);
 
             setAccessor = y.SetMethod;
             Assert.Equal(y, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
@@ -694,7 +702,11 @@ True");
             var comp = CreateCompilation(@"
 record C(int x, int y)
 {
-    public C(C other) : this(other.x, other.y) { }
+    public C(C other)
+    {
+        x = other.x;
+        y = other.y;
+    }
 }");
             comp.VerifyDiagnostics();
 
@@ -720,17 +732,36 @@ record C(int x, int y)
 ");
             verifier.VerifyIL("C..ctor(C)", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  3
+  // Code size       31 (0x1f)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  callvirt   ""int C.x.get""
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
   IL_0007:  ldarg.1
-  IL_0008:  callvirt   ""int C.y.get""
-  IL_000d:  call       ""C..ctor(int, int)""
-  IL_0012:  ret
+  IL_0008:  callvirt   ""int C.x.get""
+  IL_000d:  call       ""void C.x.init""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  callvirt   ""int C.y.get""
+  IL_0019:  call       ""void C.y.init""
+  IL_001e:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void RecordClone2_0_WithThisInitializer()
+        {
+            var comp = CreateCompilation(@"
+record C(int x, int y)
+{
+    public C(C other) : this(other.x, other.y) { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,25): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public C(C other) : this(other.x, other.y) { }
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithLocation(4, 25)
+                );
         }
 
         [Fact]
@@ -742,11 +773,7 @@ record C(int x, int y)
 {
     public C(C other) { }
 }");
-            comp.VerifyDiagnostics(
-                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
-                //     public C(C other) { }
-                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -758,11 +785,7 @@ record C(int x, int y)
 {
     public C(C other) : base() { }
 }");
-            comp.VerifyDiagnostics(
-                // (4,25): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
-                //     public C(C other) : base() { }
-                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(4, 25)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1196,6 +1219,9 @@ enum G : C { }";
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
@@ -1209,7 +1235,7 @@ enum G : C { }";
                 // struct F : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(7, 12),
                 // (8,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
-                // enum G : C
+                // enum G : C { }
                 Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(8, 10)
             );
         }
@@ -1240,17 +1266,20 @@ enum H : C { }
             });
 
             comp2.VerifyDiagnostics(
+                // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("A").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
                 // (4,15): error CS0527: Type 'C' in interface list is not an interface
-                // interface E : C { }
+                // interface F : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(4, 15),
                 // (5,12): error CS0527: Type 'C' in interface list is not an interface
-                // struct F : C { }
+                // struct G : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(5, 12),
                 // (6,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
-                // enum G : C
+                // enum H : C { }
                 Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(6, 10)
             );
         }

@@ -485,7 +485,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.BaseList(InternalSyntaxFactory.Token(SyntaxKind.ColonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.BaseTypeSyntax>());
 
         private static Syntax.InternalSyntax.SimpleBaseTypeSyntax GenerateSimpleBaseType()
-            => InternalSyntaxFactory.SimpleBaseType(GenerateIdentifierName(), null);
+            => InternalSyntaxFactory.SimpleBaseType(GenerateIdentifierName());
+
+        private static Syntax.InternalSyntax.PrimaryConstructorBaseTypeSyntax GeneratePrimaryConstructorBaseType()
+            => InternalSyntaxFactory.PrimaryConstructorBaseType(GenerateIdentifierName(), GenerateArgumentList());
 
         private static Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax GenerateTypeParameterConstraintClause()
             => InternalSyntaxFactory.TypeParameterConstraintClause(InternalSyntaxFactory.Token(SyntaxKind.WhereKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.ColonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.TypeParameterConstraintSyntax>());
@@ -1329,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateWithExpression();
 
-            Assert.NotNull(node.Receiver);
+            Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.WithKeyword, node.WithKeyword.Kind);
             Assert.NotNull(node.Initializer);
 
@@ -2690,7 +2693,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateSimpleBaseType();
 
             Assert.NotNull(node.Type);
-            Assert.Null(node.ArgumentList);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestPrimaryConstructorBaseTypeFactoryAndProperties()
+        {
+            var node = GeneratePrimaryConstructorBaseType();
+
+            Assert.NotNull(node.Type);
+            Assert.NotNull(node.ArgumentList);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -7701,6 +7714,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestPrimaryConstructorBaseTypeTokenDeleteRewriter()
+        {
+            var oldNode = GeneratePrimaryConstructorBaseType();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPrimaryConstructorBaseTypeIdentityRewriter()
+        {
+            var oldNode = GeneratePrimaryConstructorBaseType();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestTypeParameterConstraintClauseTokenDeleteRewriter()
         {
             var oldNode = GenerateTypeParameterConstraintClause();
@@ -9870,7 +9909,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.BaseList(SyntaxFactory.Token(SyntaxKind.ColonToken), new SeparatedSyntaxList<BaseTypeSyntax>());
 
         private static SimpleBaseTypeSyntax GenerateSimpleBaseType()
-            => SyntaxFactory.SimpleBaseType(GenerateIdentifierName(), default(ArgumentListSyntax));
+            => SyntaxFactory.SimpleBaseType(GenerateIdentifierName());
+
+        private static PrimaryConstructorBaseTypeSyntax GeneratePrimaryConstructorBaseType()
+            => SyntaxFactory.PrimaryConstructorBaseType(GenerateIdentifierName(), GenerateArgumentList());
 
         private static TypeParameterConstraintClauseSyntax GenerateTypeParameterConstraintClause()
             => SyntaxFactory.TypeParameterConstraintClause(SyntaxFactory.Token(SyntaxKind.WhereKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.ColonToken), new SeparatedSyntaxList<TypeParameterConstraintSyntax>());
@@ -10714,10 +10756,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateWithExpression();
 
-            Assert.NotNull(node.Receiver);
+            Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.WithKeyword, node.WithKeyword.Kind());
             Assert.NotNull(node.Initializer);
-            var newNode = node.WithReceiver(node.Receiver).WithWithKeyword(node.WithKeyword).WithInitializer(node.Initializer);
+            var newNode = node.WithExpression(node.Expression).WithWithKeyword(node.WithKeyword).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
         }
 
@@ -12075,7 +12117,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateSimpleBaseType();
 
             Assert.NotNull(node.Type);
-            Assert.Null(node.ArgumentList);
+            var newNode = node.WithType(node.Type);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestPrimaryConstructorBaseTypeFactoryAndProperties()
+        {
+            var node = GeneratePrimaryConstructorBaseType();
+
+            Assert.NotNull(node.Type);
+            Assert.NotNull(node.ArgumentList);
             var newNode = node.WithType(node.Type).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
         }
@@ -17079,6 +17131,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSimpleBaseTypeIdentityRewriter()
         {
             var oldNode = GenerateSimpleBaseType();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestPrimaryConstructorBaseTypeTokenDeleteRewriter()
+        {
+            var oldNode = GeneratePrimaryConstructorBaseType();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPrimaryConstructorBaseTypeIdentityRewriter()
+        {
+            var oldNode = GeneratePrimaryConstructorBaseType();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
