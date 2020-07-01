@@ -12,12 +12,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 
 namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
 {
     [ExportLanguageService(typeof(ISemanticModelReuseLanguageService), LanguageNames.CSharp), Shared]
-    internal class CSharpSemanticModelReuseLanguageService : ISemanticModelReuseLanguageService
+    internal class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,7 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
         {
         }
 
-        public SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node)
+        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
+        public override SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node)
         {
             for (var current = node; current != null; current = current.Parent)
             {
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
             return null;
         }
 
-        public async Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(
+        public override async Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(
             SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
         {
             var previousRoot = await previousSemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -67,32 +70,22 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
             return null;
         }
 
-        private static SyntaxNode? GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
+        protected override SyntaxNode? GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
         {
-            var currentMembers = CSharpSyntaxFacts.Instance.GetMethodLevelMembers(currentRoot);
-            var index = currentMembers.IndexOf(currentBodyNode is AccessorDeclarationSyntax
-                ? currentBodyNode.Parent!.Parent
-                : currentBodyNode);
-            if (index < 0)
-            {
-                Debug.Fail("Unhandled member type in GetPreviousBodyNode");
-                return null;
-            }
-
-            var previousMembers = CSharpSyntaxFacts.Instance.GetMethodLevelMembers(previousRoot);
-            if (currentMembers.Count != previousMembers.Count)
-            {
-                Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
-                return null;
-            }
-
-            var previousBodyNode = previousMembers[index];
             if (!(currentBodyNode is AccessorDeclarationSyntax currentAccessor))
-                return previousBodyNode;
+                return base.GetPreviousBodyNode(previousRoot, currentRoot, currentBodyNode);
+
+            // for an accessor, we need to find the containing prop/event, find the corresponding member for that,
+            // then find the corresponding accessor in that prop/even.
+            var currentAccessorList = (AccessorListSyntax)currentAccessor.Parent!;
+            var currentPropOrEvent = currentAccessorList.Parent!;
+
+            Debug.Assert(currentPropOrEvent is PropertyDeclarationSyntax || currentPropOrEvent is EventDeclarationSyntax);
+            var previousPropOrEvent = base.GetPreviousBodyNode(previousRoot, currentRoot, currentPropOrEvent);
 
             // in the case of an accessor, have to find the previous accessor in the previous prop/event corresponding
             // to the current prop/event.
-            var previousAccessorList = previousBodyNode switch
+            var previousAccessorList = previousPropOrEvent switch
             {
                 PropertyDeclarationSyntax previousProperty => previousProperty.AccessorList,
                 EventDeclarationSyntax previousEvent => previousEvent.AccessorList,
@@ -105,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
                 return null;
             }
 
-            var accessorIndex = ((AccessorListSyntax)currentAccessor.Parent!).Accessors.IndexOf(currentAccessor);
+            var accessorIndex = currentAccessorList.Accessors.IndexOf(currentAccessor);
             return previousAccessorList.Accessors[accessorIndex];
         }
     }
