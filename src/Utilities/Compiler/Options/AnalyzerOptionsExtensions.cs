@@ -238,6 +238,24 @@ namespace Analyzer.Utilities
             return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, uint.TryParse, defaultValue);
         }
 
+        public static string GetStringOptionValue(
+            this AnalyzerOptions options,
+            string optionName,
+            DiagnosticDescriptor rule,
+            SyntaxTree tree,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation, cancellationToken);
+            return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, TryParseValue, string.Empty);
+
+            static bool TryParseValue(string value, out string result)
+            {
+                result = value;
+                return !string.IsNullOrEmpty(value);
+            }
+        }
+
         public static SymbolNamesWithValueOption<Unit> GetNullCheckValidationMethodsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
