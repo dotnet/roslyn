@@ -63,8 +63,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             /// </summary>
             private ImmutableDictionary<DocumentId, SemanticModelReuseInfo?> _semanticModelMap = ImmutableDictionary<DocumentId, SemanticModelReuseInfo?>.Empty;
 
-            public async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(
-                Document document, SyntaxNode node, CancellationToken cancellationToken)
+            public async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 var reuseService = document.GetRequiredLanguageService<ISemanticModelReuseLanguageService>();
 
