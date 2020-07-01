@@ -293,11 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (IsSwitchExpressionAndCannotUseVar(typeName, initializer, semanticModel))
-            {
-                return false;
-            }
-
             // variables declared using var cannot be used further in the same initialization expression.
             if (initializer.DescendantNodesAndSelf()
                 .Where(n => n is IdentifierNameSyntax id && id.Identifier.ValueText.Equals(identifier.ValueText))
@@ -355,48 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // The base analyzer may impose further limitations
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
-        }
-
-        private static bool IsSwitchExpressionAndCannotUseVar(TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel)
-        {
-            if (initializer.IsKind(SyntaxKind.SwitchExpression))
-            {
-                // We compare the variable declaration type to each arm's type to see if there is an exact match, or if the
-                // arm type inherits from the variable declaration type. If not, we must use the explicit type instead of var.
-                // Even if 'true' is returned from this method, it is not guaranteed that we can use var. Further checks should occur
-                // after this method is called, such as checking if multiple implicit coversions exist.
-                var declarationType = semanticModel.GetTypeInfo(typeName).Type;
-                var noValidTypeExpressions = true;
-                if (declarationType != null)
-                {
-                    foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
-                    {
-                        var expression = arm.Expression;
-                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax? parenExpression))
-                        {
-                            expression = parenExpression.WalkDownParentheses();
-                        }
-
-                        if (!expression.IsKind(SyntaxKind.ThrowExpression) && !expression.IsKind(SyntaxKind.NullLiteralExpression) && !expression.IsKind(SyntaxKind.DefaultLiteralExpression))
-                        {
-                            noValidTypeExpressions = false;
-                            var expressionType = semanticModel.GetTypeInfo(expression).Type;
-                            if (expressionType != null && !expressionType.InheritsFromOrEquals(declarationType))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-                // If all arms are either throw statements, null literal expressions, or default literal expressions, return true.
-                if (noValidTypeExpressions)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

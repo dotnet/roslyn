@@ -2182,11 +2182,12 @@ public record C(int i)
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.i.init",
                 "System.Int32 C.i { get; init; }",
                 "void C.M()",
-                "void C.Deconstruct(out System.Int32 i)",
                 "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? )",
-                "C..ctor(C )" }, cMembers.ToTestDisplayStrings());
+                "C..ctor(C )",
+                "void C.Deconstruct(out System.Int32 i)",
+                }, cMembers.ToTestDisplayStrings());
 
             foreach (var member in cMembers)
             {
@@ -2751,25 +2752,29 @@ public class D
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (4,25): error CS0569: 'Derived.Property': cannot override 'C.Property' because it is not supported by the language
+                // (4,36): error CS0570: 'C.Property.set' is not supported by the language
                 //     public override int Property { set { throw null; } }
-                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived.Property", "C.Property").WithLocation(4, 25),
-                // (8,25): error CS0569: 'Derived2.Property': cannot override 'C.Property' because it is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("C.Property.set").WithLocation(4, 36),
+                // (8,25): error CS8853: 'Derived2.Property' must match by init-only of overridden member 'C.Property'
                 //     public override int Property { init { throw null; } }
-                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25),
-                // (14,11): error CS1546: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor method 'C.set_Property(?)'
+                Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25),
+                // (8,36): error CS0570: 'C.Property.set' is not supported by the language
+                //     public override int Property { init { throw null; } }
+                Diagnostic(ErrorCode.ERR_BindToBogus, "init").WithArguments("C.Property.set").WithLocation(8, 36),
+                // (14,11): error CS0570: 'C.Property.set' is not supported by the language
                 //         c.Property = 42;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Property").WithArguments("C.Property", "C.set_Property(?)").WithLocation(14, 11),
-                // (15,11): error CS0570: 'C.set_Property(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Property").WithArguments("C.Property.set").WithLocation(14, 11),
+                // (15,11): error CS0571: 'C.Property.set': cannot explicitly call operator or accessor
                 //         c.set_Property(42);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(?)").WithLocation(15, 11)
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Property").WithArguments("C.Property.set").WithLocation(15, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.Null(property0.GetMethod);
-            Assert.True(property0.MustCallMethodsDirectly);
+            Assert.False(property0.MustCallMethodsDirectly);
             Assert.True(property0.SetMethod.HasUseSiteError);
-            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
+            Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
 
             var property1 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived.Property");
             Assert.Null(property1.GetMethod);
@@ -2844,21 +2849,23 @@ public class D
                 // (8,25): error CS0569: 'Derived2.Property': cannot override 'C.Property' because it is not supported by the language
                 //     public override int Property { init { throw null; } }
                 Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25),
-                // (14,11): error CS1546: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor method 'C.set_Property(?)'
+                // (14,11): error CS1546: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor method 'C.set_Property(int)'
                 //         c.Property = 42;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Property").WithArguments("C.Property", "C.set_Property(?)").WithLocation(14, 11),
-                // (15,11): error CS0570: 'C.set_Property(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Property").WithArguments("C.Property", "C.set_Property(int)").WithLocation(14, 11),
+                // (15,11): error CS0570: 'C.set_Property(int)' is not supported by the language
                 //         c.set_Property(42);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(?)").WithLocation(15, 11)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(int)").WithLocation(15, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
-            Assert.False(property0.HasUseSiteError); // https://github.com/dotnet/roslyn/issues/44671: expect use-site error
+            Assert.True(property0.HasUseSiteError);
+            Assert.True(property0.HasUnsupportedMetadata);
             Assert.True(property0.MustCallMethodsDirectly);
             Assert.Equal("System.Int32", property0.Type.ToTestDisplayString());
             Assert.Null(property0.GetMethod);
             Assert.True(property0.SetMethod.HasUseSiteError);
-            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
+            Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
 
             var property1 = (PropertySymbol)comp.GlobalNamespace.GetMember("Derived.Property");
             Assert.False(property1.HasUseSiteError);
@@ -2954,18 +2961,18 @@ public class D
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (4,25): error CS0115: 'Derived.this[int]': no suitable method found to override
+                // (4,25): error CS0569: 'Derived.this[int]': cannot override 'C.this[int]' because it is not supported by the language
                 //     public override int this[int i] { set { throw null; } }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived.this[int]").WithLocation(4, 25),
-                // (8,25): error CS0115: 'Derived2.this[int]': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "this").WithArguments("Derived.this[int]", "C.this[int]").WithLocation(4, 25),
+                // (8,25): error CS0569: 'Derived2.this[int]': cannot override 'C.this[int]' because it is not supported by the language
                 //     public override int this[int i] { init { throw null; } }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived2.this[int]").WithLocation(8, 25),
-                // (14,9): error CS1546: Property, indexer, or event 'C.this[?]' is not supported by the language; try directly calling accessor method 'C.set_Item(?, ?)'
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "this").WithArguments("Derived2.this[int]", "C.this[int]").WithLocation(8, 25),
+                // (14,9): error CS1546: Property, indexer, or event 'C.this[int]' is not supported by the language; try directly calling accessor method 'C.set_Item(int, int)'
                 //         c[42] = 43;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "c[42]").WithArguments("C.this[?]", "C.set_Item(?, ?)").WithLocation(14, 9),
-                // (15,11): error CS0570: 'C.set_Item(?, ?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "c[42]").WithArguments("C.this[int]", "C.set_Item(int, int)").WithLocation(14, 9),
+                // (15,11): error CS0570: 'C.set_Item(int, int)' is not supported by the language
                 //         c.set_Item(42, 43);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("C.set_Item(?, ?)").WithLocation(15, 11)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("C.set_Item(int, int)").WithLocation(15, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.this[]");
@@ -2973,7 +2980,8 @@ public class D
             Assert.True(property0.MustCallMethodsDirectly);
             Assert.Null(property0.GetMethod);
             Assert.True(property0.SetMethod.HasUseSiteError);
-            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
+            Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
         }
 
         [Fact]
@@ -3049,20 +3057,24 @@ public class Derived2 : C
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (4,25): error CS0569: 'Derived.this[int]': cannot override 'C.this[int]' because it is not supported by the language
+                // (4,39): error CS0570: 'C.this[int].set' is not supported by the language
                 //     public override int this[int i] { set { throw null; } }
-                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "this").WithArguments("Derived.this[int]", "C.this[int]").WithLocation(4, 25),
-                // (8,25): error CS0569: 'Derived2.this[int]': cannot override 'C.this[int]' because it is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("C.this[int].set").WithLocation(4, 39),
+                // (8,25): error CS8853: 'Derived2.this[int]' must match by init-only of overridden member 'C.this[int]'
                 //     public override int this[int i] { init { throw null; } }
-                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "this").WithArguments("Derived2.this[int]", "C.this[int]").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_CantChangeInitOnlyOnOverride, "this").WithArguments("Derived2.this[int]", "C.this[int]").WithLocation(8, 25),
+                // (8,39): error CS0570: 'C.this[int].set' is not supported by the language
+                //     public override int this[int i] { init { throw null; } }
+                Diagnostic(ErrorCode.ERR_BindToBogus, "init").WithArguments("C.this[int].set").WithLocation(8, 39)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.this[]");
             Assert.False(property0.HasUseSiteError);
-            Assert.True(property0.MustCallMethodsDirectly);
+            Assert.False(property0.MustCallMethodsDirectly);
             Assert.Null(property0.GetMethod);
             Assert.True(property0.SetMethod.HasUseSiteError);
-            Assert.True(property0.SetMethod.Parameters[1].Type.IsErrorType());
+            Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[1].HasUnsupportedMetadata);
         }
 
         [Fact]
@@ -3105,14 +3117,17 @@ public class D
 
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(); // expect error diagnostics
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0570: 'C.M()' is not supported by the language
+                //         C.M();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("C.M()").WithLocation(6, 11)
+                );
 
-            // https://github.com/dotnet/roslyn/issues/44671: decoding should be more restrictive
             var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
             Assert.False(method.IsInitOnly);
             Assert.False(method.GetPublicSymbol().IsInitOnly);
-            Assert.False(method.HasUseSiteError); // expect true
-            Assert.False(method.ReturnType.IsErrorType()); // expect true
+            Assert.True(method.HasUseSiteError);
+            Assert.True(method.HasUnsupportedMetadata);
         }
 
         [Fact]
@@ -3160,7 +3175,8 @@ public class Derived : C
 
             var method0 = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
             Assert.True(method0.HasUseSiteError);
-            Assert.True(method0.Parameters[0].Type.IsErrorType());
+            Assert.True(method0.HasUnsupportedMetadata);
+            Assert.True(method0.Parameters[0].HasUnsupportedMetadata);
         }
 
         [Fact]
@@ -3220,15 +3236,15 @@ public class D
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,11): error CS0570: 'C.set_Property(?)' is not supported by the language
+                // (7,11): error CS0570: 'C.set_Property(ref int)' is not supported by the language
                 //         c.set_Property(i); // 1
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(?)").WithLocation(7, 11),
-                // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(ref int)").WithLocation(7, 11),
+                // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref int)'
                 //         _ = c.Property; // 2
-                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(9, 15),
-                // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref int)").WithLocation(9, 15),
+                // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref int)'
                 //         c.Property = i; // 3
-                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(10, 11)
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref int)").WithLocation(10, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
@@ -3236,6 +3252,7 @@ public class D
             Assert.True(property0.MustCallMethodsDirectly);
             Assert.False(property0.GetMethod.HasUseSiteError);
             Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
             Assert.False(property0.SetMethod.IsInitOnly);
             Assert.False(property0.GetPublicSymbol().SetMethod.IsInitOnly);
         }
@@ -3300,15 +3317,15 @@ public class D
                 // (6,15): error CS0570: 'C.get_Property()' is not supported by the language
                 //         _ = c.get_Property(); // 1
                 Diagnostic(ErrorCode.ERR_BindToBogus, "get_Property").WithArguments("C.get_Property()").WithLocation(6, 15),
-                // (7,11): error CS0570: 'C.set_Property(?)' is not supported by the language
+                // (7,11): error CS0570: 'C.set_Property(ref int)' is not supported by the language
                 //         c.set_Property(i); // 2
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(?)").WithLocation(7, 11),
-                // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(ref int)").WithLocation(7, 11),
+                // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref int)'
                 //         _ = c.Property; // 3
-                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(9, 15),
-                // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(?)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref int)").WithLocation(9, 15),
+                // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref int)'
                 //         c.Property = i; // 4
-                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(?)").WithLocation(10, 11)
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref int)").WithLocation(10, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
@@ -3318,13 +3335,14 @@ public class D
             Assert.Empty(property0.TypeWithAnnotations.CustomModifiers);
 
             Assert.True(property0.GetMethod.HasUseSiteError);
+            Assert.True(property0.GetMethod.HasUnsupportedMetadata);
             Assert.True(property0.GetMethod.ReturnsByRef);
-            Assert.True(property0.GetMethod.ReturnType.IsErrorType());
 
             Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
             Assert.False(property0.SetMethod.IsInitOnly);
             Assert.False(property0.GetPublicSymbol().SetMethod.IsInitOnly);
-            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
         }
 
         [Fact]
@@ -3381,39 +3399,39 @@ public class D
 }
 ";
 
-            // https://github.com/dotnet/roslyn/issues/44671: when decoding PE for a ref property, we don't allow IsExternalInit on the return (as opposed to ref return). We don't allow such properties in source.
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0570: 'C.get_Property()' is not supported by the language
                 //         _ = c.get_Property(); // 1
                 Diagnostic(ErrorCode.ERR_BindToBogus, "get_Property").WithArguments("C.get_Property()").WithLocation(6, 15),
-                // (7,11): error CS0570: 'C.set_Property(ref ?)' is not supported by the language
+                // (7,11): error CS0570: 'C.set_Property(ref int)' is not supported by the language
                 //         c.set_Property(i); // 2
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(ref ?)").WithLocation(7, 11),
-                // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref ?)'
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Property").WithArguments("C.set_Property(ref int)").WithLocation(7, 11),
+                // (9,15): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref int)'
                 //         _ = c.Property; // 3
-                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref ?)").WithLocation(9, 15),
-                // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref ?)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref int)").WithLocation(9, 15),
+                // (10,11): error CS1545: Property, indexer, or event 'C.Property' is not supported by the language; try directly calling accessor methods 'C.get_Property()' or 'C.set_Property(ref int)'
                 //         c.Property = i; // 4
-                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref ?)").WithLocation(10, 11)
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Property").WithArguments("C.Property", "C.get_Property()", "C.set_Property(ref int)").WithLocation(10, 11)
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.True(property0.HasUseSiteError);
             Assert.True(property0.MustCallMethodsDirectly);
             Assert.Empty(property0.RefCustomModifiers);
-            Assert.Empty(property0.TypeWithAnnotations.CustomModifiers);
-            Assert.True(property0.TypeWithAnnotations.Type.IsErrorType());
+            Assert.Equal("System.Runtime.CompilerServices.IsExternalInit", property0.TypeWithAnnotations.CustomModifiers.Single().Modifier.ToTestDisplayString());
+            Assert.Equal("System.Int32", property0.TypeWithAnnotations.Type.ToTestDisplayString());
 
             Assert.True(property0.GetMethod.HasUseSiteError);
+            Assert.True(property0.GetMethod.HasUnsupportedMetadata);
             Assert.True(property0.GetMethod.ReturnsByRef);
-            Assert.True(property0.GetMethod.ReturnType.IsErrorType());
 
             Assert.True(property0.SetMethod.HasUseSiteError);
+            Assert.True(property0.SetMethod.HasUnsupportedMetadata);
+            Assert.True(property0.SetMethod.Parameters[0].HasUnsupportedMetadata);
             Assert.False(property0.SetMethod.IsInitOnly);
             Assert.False(property0.GetPublicSymbol().SetMethod.IsInitOnly);
-            Assert.True(property0.SetMethod.Parameters[0].Type.IsErrorType());
         }
 
         [Fact]
@@ -3466,14 +3484,17 @@ public class Derived : C
 
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            // https://github.com/dotnet/roslyn/issues/44671 make this more restrictive (ie. disallow aside from the return value of an instance setter)
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,36): error CS0570: 'C.Property.get' is not supported by the language
+                //     public override int Property { get { throw null; } }
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("C.Property.get").WithLocation(4, 36)
+                );
 
-            // getter should have use-site error
             var property = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.GetMethod.IsInitOnly);
             Assert.False(property.GetPublicSymbol().GetMethod.IsInitOnly);
-            Assert.False(property.GetMethod.HasUseSiteError);
+            Assert.True(property.GetMethod.HasUseSiteError);
+            Assert.True(property.GetMethod.HasUnsupportedMetadata);
             Assert.False(property.SetMethod.IsInitOnly);
             Assert.False(property.GetPublicSymbol().SetMethod.IsInitOnly);
             Assert.False(property.SetMethod.HasUseSiteError);

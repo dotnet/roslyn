@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -44,32 +45,64 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
-                var compilation = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
 
+                // We split the diagnostic computation for document into following steps:
+                //  1. Try to get cached diagnostics for each analyzer, while computing the set of analyzers that do not have cached diagnostics.
+                //  2. Execute all the non-cached analyzers with a single invocation into CompilationWithAnalyzers.
+                //  3. Fetch computed diagnostics per-analyzer from the above invocation, and cache and raise diagnostic reported events.
+                // In near future, the diagnostic computation invocation into CompilationWithAnalyzers will be moved to OOP.
+                // This should help simplify and/or remove the IDE layer diagnostic caching in devenv process.
+
+                // First attempt to fetch diagnostics from the cache, while computing the state sets for analyzers that are not cached.
+                using var _ = ArrayBuilder<StateSet>.GetInstance(out var nonCachedStateSets);
                 foreach (var stateSet in stateSets)
                 {
-                    var analyzer = stateSet.Analyzer;
-
-                    var result = await GetDocumentAnalysisDataAsync(compilation, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
-                    if (result.FromCache)
+                    var data = await TryGetCachedDocumentAnalysisDataAsync(document, stateSet, kind, cancellationToken).ConfigureAwait(false);
+                    if (data.HasValue)
                     {
-                        RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.Items);
-                        continue;
+                        // We need to persist and raise diagnostics for suppressed analyzer.
+                        PersistAndRaiseDiagnosticsIfNeeded(data.Value, stateSet);
                     }
-
-                    // no cancellation after this point.
-                    var state = stateSet.GetOrCreateActiveFileState(document.Id);
-                    state.Save(kind, result.ToPersistData());
-
-                    RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
+                    else
+                    {
+                        nonCachedStateSets.Add(stateSet);
+                    }
                 }
 
-                var asyncToken = AnalyzerService.Listener.BeginAsyncOperation(nameof(AnalyzeDocumentForKindAsync));
-                var _ = ReportAnalyzerPerformanceAsync(document, compilation, cancellationToken).CompletesAsyncOperation(asyncToken);
+                // Then, compute the diagnostics for non-cached state sets, and cache and raise diagnostic reported events for these diagnostics.
+                if (nonCachedStateSets.Count > 0)
+                {
+                    var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
+                    var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, DiagnosticAnalyzerInfoCache);
+                    foreach (var stateSet in nonCachedStateSets)
+                    {
+                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, cancellationToken).ConfigureAwait(false);
+                        PersistAndRaiseDiagnosticsIfNeeded(computedData, stateSet);
+                    }
+
+                    var asyncToken = AnalyzerService.Listener.BeginAsyncOperation(nameof(AnalyzeDocumentForKindAsync));
+                    var _2 = ReportAnalyzerPerformanceAsync(document, compilationWithAnalyzers, cancellationToken).CompletesAsyncOperation(asyncToken);
+                }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            void PersistAndRaiseDiagnosticsIfNeeded(DocumentAnalysisData result, StateSet stateSet)
+            {
+                if (result.FromCache == true)
+                {
+                    RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.Items);
+                    return;
+                }
+
+                // no cancellation after this point.
+                var state = stateSet.GetOrCreateActiveFileState(document.Id);
+                state.Save(kind, result.ToPersistData());
+
+                RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
             }
         }
 
@@ -122,7 +155,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var state = stateSet.GetOrCreateProjectState(project.Id);
 
                     await state.SaveAsync(PersistentStorageService, project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
-                    stateSet.ComputeCompilationEndAnalyzer(project, compilation);
                 }
 
                 RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);

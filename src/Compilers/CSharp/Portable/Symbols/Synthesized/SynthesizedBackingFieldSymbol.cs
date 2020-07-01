@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedBackingFieldSymbol : FieldSymbolWithAttributesAndModifiers
     {
-        private readonly SourceOrRecordPropertySymbol _property;
+        private readonly SourcePropertySymbolBase _property;
         private readonly string _name;
         internal bool HasInitializer { get; }
         protected override DeclarationModifiers Modifiers { get; }
 
         public SynthesizedBackingFieldSymbol(
-            SourceOrRecordPropertySymbol property,
+            SourcePropertySymbolBase property,
             string name,
             bool isReadOnly,
             bool isStatic,

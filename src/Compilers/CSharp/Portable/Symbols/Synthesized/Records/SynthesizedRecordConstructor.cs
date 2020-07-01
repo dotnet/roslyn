@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              SourceMemberContainerTypeSymbol containingType,
              RecordDeclarationSyntax syntax,
              DiagnosticBag diagnostics) :
-             base(containingType, syntax.ParameterList!.GetLocation(), syntax, MethodKind.Constructor, diagnostics)
+             base(containingType, syntax.ParameterList!.GetLocation(), syntax)
         {
             this.MakeFlags(MethodKind.Constructor, containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);
         }
@@ -33,14 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override CSharpSyntaxNode? GetInitializer()
         {
-            var baseTypeSyntax = GetSyntax().BaseList?.Types.FirstOrDefault() as SimpleBaseTypeSyntax;
-
-            if (baseTypeSyntax?.ArgumentList is object)
-            {
-                return baseTypeSyntax;
-            }
-
-            return null;
+            return GetSyntax().PrimaryConstructorBaseType;
         }
 
         internal override bool IsExpressionBodied

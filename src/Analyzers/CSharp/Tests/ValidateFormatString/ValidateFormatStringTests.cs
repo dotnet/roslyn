@@ -134,6 +134,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task LiteralArray()
+        {
+            await TestDiagnosticMissingAsync(@" class Program
+{
+    static void Main(string[] args)
+    {
+        string.Format(""This {0[||]} {1} {2} {3} works"", new [] {""test1"", ""test2"", ""test3"", ""test4""}); 
+    }     
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
         public async Task StringArrayOutOfBounds_NoDiagnostic()
         {
             await TestDiagnosticMissingAsync(@" class Program

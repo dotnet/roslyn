@@ -4,6 +4,9 @@
 
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;

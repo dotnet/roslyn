@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                     .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(),
                         maxResultsPerDiagnostic: 2, symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
 
-            var fixes = ArrayBuilder<AddImportFixData>.GetInstance();
+            using var _ = ArrayBuilder<AddImportFixData>.GetInstance(out var fixes);
             foreach (var getFixesForDiagnosticsTask in getFixesForDiagnosticsTasks)
             {
                 var fixesForDiagnostics = await getFixesForDiagnosticsTask.ConfigureAwait(false);
@@ -112,13 +112,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                     // fix this diagnostic and instead leave it for the user to resolve since they
                     // will have more context for determining the proper fix.
                     if (fixesForDiagnostic.Fixes.Length == 1)
-                    {
                         fixes.Add(fixesForDiagnostic.Fixes[0]);
-                    }
                 }
             }
 
-            return fixes.ToImmutableAndFree();
+            return fixes.ToImmutable();
         }
 
         private static async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, CancellationToken cancellationToken)

@@ -110,7 +110,7 @@
         <MetadataName>%(CompilerVisibleItemMetadata.MetadataName)</MetadataName>
       </_GeneratedEditorConfigMetadata>
 
-      <!-- Record that we'll write a file, and add it to the editorconfig inputs -->
+      <!-- Record that we'll write a file, and add it to the analyzerconfig inputs -->
       <FileWrites Include="$(GeneratedMSBuildEditorConfigFile)" />
       <EditorConfigFiles Include="$(GeneratedMSBuildEditorConfigFile)" />
     </ItemGroup>
@@ -224,6 +224,22 @@
       -->
       <PathMap>@(_TopLevelSourceRoot->'%(EscapedKey)=%(EscapedValue)', ','),$(PathMap)</PathMap>
     </PropertyGroup>
+  </Target>
+
+  <!--
+    =======
+    CopyAdditionalFiles
+    =======
+
+    If a user requests that any @(AdditionalFiles) items are copied to the output directory
+    we add them to the @(None) group to ensure they will be copied.
+ -->
+ 
+   <Target Name="CopyAdditionalFiles" 
+           BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <None Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.CopyToOutputDirectory)' != ''" />
+    </ItemGroup>
   </Target>
 
 </Project>
