@@ -21,23 +21,96 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var nameToken = syntax.Identifier;
             var location = nameToken.GetLocation();
-            return new SourcePropertySymbol(containingType, bodyBinder, syntax, nameToken.ValueText, location, diagnostics);
+            return Create(containingType, bodyBinder, syntax, nameToken.ValueText, location, diagnostics);
         }
 
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, IndexerDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             var location = syntax.ThisKeyword.GetLocation();
-            return new SourcePropertySymbol(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics);
+            return Create(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics);
+        }
+
+        private static SourcePropertySymbol Create(
+            SourceMemberContainerTypeSymbol containingType,
+            Binder bodyBinder,
+            BasePropertyDeclarationSyntax syntax,
+            string name,
+            Location location,
+            DiagnosticBag diagnostics)
+        {
+            GetAccessorDeclarations(
+                syntax,
+                diagnostics,
+                out bool isAutoProperty,
+                out bool hasAccessorList,
+                out bool accessorsHaveImplementation,
+                out bool isInitOnly,
+                out var getSyntax,
+                out var setSyntax);
+            // This has the value that IsIndexer will ultimately have, once we've populated the fields of this object.
+            bool isIndexer = syntax.Kind() == SyntaxKind.IndexerDeclaration;
+            var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
+            var modifiers = MakeModifiers(
+                containingType,
+                GetModifierTokensSyntax(syntax),
+                isExplicitInterfaceImplementation: explicitInterfaceSpecifier is object,
+                isIndexer: isIndexer,
+                accessorsHaveImplementation: accessorsHaveImplementation,
+                location,
+                diagnostics,
+                out _);
+            return new SourcePropertySymbol(
+                containingType,
+                bodyBinder,
+                syntax,
+                getSyntax: getSyntax,
+                setSyntax: setSyntax,
+                explicitInterfaceSpecifier,
+                modifiers,
+                isIndexer: isIndexer,
+                isAutoProperty: isAutoProperty,
+                hasAccessorList: hasAccessorList,
+                isInitOnly: isInitOnly,
+                name,
+                location,
+                diagnostics);
         }
 
         private SourcePropertySymbol(
            SourceMemberContainerTypeSymbol containingType,
            Binder bodyBinder,
            BasePropertyDeclarationSyntax syntax,
+            CSharpSyntaxNode? getSyntax,
+            CSharpSyntaxNode? setSyntax,
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
+            DeclarationModifiers modifiers,
+            bool isIndexer,
+            bool isAutoProperty,
+            bool hasAccessorList,
+            bool isInitOnly,
            string name,
            Location location,
            DiagnosticBag diagnostics)
-           : base(containingType, bodyBinder, syntax, syntax.Type.GetRefKind(), name, location, diagnostics)
+           : base(
+                containingType,
+                bodyBinder,
+                syntax,
+                getSyntax: getSyntax,
+                setSyntax: setSyntax,
+                arrowExpression: GetArrowExpression(syntax),
+                explicitInterfaceSpecifier,
+                modifiers,
+                isIndexer: isIndexer,
+                hasInitializer: HasInitializer(syntax),
+                isAutoProperty: isAutoProperty,
+                hasAccessorList: hasAccessorList,
+                isInitOnly: isInitOnly,
+                syntax.Type.GetRefKind(),
+                name,
+                location,
+                typeOpt: default,
+                hasParameters: GetParameterListSyntax(syntax) is object,
+                diagnostics)
         {
         }
 
@@ -47,9 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => GetTypeSyntax(CSharpSyntaxNode).Location;
 
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
+            => GetModifierTokensSyntax(syntax);
+
+        private static SyntaxTokenList GetModifierTokensSyntax(SyntaxNode syntax)
             => ((BasePropertyDeclarationSyntax)syntax).Modifiers;
 
-        protected override ArrowExpressionClauseSyntax? GetArrowExpression(SyntaxNode syntax)
+        private static ArrowExpressionClauseSyntax? GetArrowExpression(SyntaxNode syntax)
             => syntax switch
             {
                 PropertyDeclarationSyntax p => p.ExpressionBody,
@@ -57,13 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
             };
 
-        protected override bool HasInitializer(SyntaxNode syntax)
+        private static bool HasInitializer(SyntaxNode syntax)
             => syntax is PropertyDeclarationSyntax { Initializer: { } };
 
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => ((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists;
 
-        protected override void GetAccessorDeclarations(
+        private static void GetAccessorDeclarations(
             CSharpSyntaxNode syntaxNode,
             DiagnosticBag diagnostics,
             out bool isAutoProperty,
@@ -148,7 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override DeclarationModifiers MakeModifiers(
+        private static DeclarationModifiers MakeModifiers(
+            NamedTypeSymbol containingType,
             SyntaxTokenList modifiers,
             bool isExplicitInterfaceImplementation,
             bool isIndexer,
@@ -157,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics,
             out bool modifierErrors)
         {
-            bool isInterface = this.ContainingType.IsInterface;
+            bool isInterface = containingType.IsInterface;
             var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
@@ -201,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Abstract;
             }
 
-            if (ContainingType.IsStructType())
+            if (containingType.IsStructType())
             {
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
@@ -210,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
-            this.CheckUnsafeModifier(mods, diagnostics);
+            containingType.CheckUnsafeModifier(mods, location, diagnostics);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(accessorsHaveImplementation, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -235,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isGet,
             CSharpSyntaxNode? syntaxOpt,
             PropertySymbol? explicitlyImplementedPropertyOpt,
-            string aliasQualifierOpt,
+            string? aliasQualifierOpt,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
@@ -260,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
             PropertySymbol? explicitlyImplementedPropertyOpt,
-            string aliasQualifierOpt,
+            string? aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
@@ -389,10 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
-            => ((BasePropertyDeclarationSyntax)syntax).ExplicitInterfaceSpecifier;
-
-        protected override BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
+        private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
     }
 }

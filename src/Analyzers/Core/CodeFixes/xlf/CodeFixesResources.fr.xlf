@@ -27,11 +27,6 @@
         <target state="translated">Supprimer l'attribution redondante</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_redundant_suppression">
-        <source>Remove redundant suppression</source>
-        <target state="new">Remove redundant suppression</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Update_suppression_format">
         <source>Update suppression format</source>
         <target state="new">Update suppression format</target>
