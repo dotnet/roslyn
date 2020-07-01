@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             if (syntax != null)
                             {
                                 SemanticModel semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
-                                descriptorFields = GetReferencedDescriptorFields(syntax, semanticModel);
+                                descriptorFields = GetReferencedDescriptorFields(syntax, semanticModel, cancellationToken);
                             }
                         }
                     }
@@ -174,12 +174,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return ImmutableInterlocked.GetOrAdd(ref _supportedDescriptorFieldsMap, analyzer, descriptorFields);
             }
 
-            private ImmutableArray<IFieldSymbol> GetReferencedDescriptorFields(SyntaxNode syntax, SemanticModel semanticModel)
+            private ImmutableArray<IFieldSymbol> GetReferencedDescriptorFields(SyntaxNode syntax, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 ImmutableArray<IFieldSymbol>.Builder builder = ImmutableArray.CreateBuilder<IFieldSymbol>();
                 foreach (TIdentifierNameSyntax identifier in syntax.DescendantNodes().OfType<TIdentifierNameSyntax>())
                 {
-                    ISymbol symbol = semanticModel.GetSymbolInfo(identifier).Symbol;
+                    ISymbol symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
                     if (symbol != null && symbol.Kind == SymbolKind.Field)
                     {
                         var field = (IFieldSymbol)symbol;
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                             if (diagnosticInitializerOpt != null)
                             {
-                                ImmutableArray<IFieldSymbol> descriptorFields = GetReferencedDescriptorFields(diagnosticInitializerOpt, semanticModel);
+                                ImmutableArray<IFieldSymbol> descriptorFields = GetReferencedDescriptorFields(diagnosticInitializerOpt, semanticModel, symbolContext.CancellationToken);
                                 if (descriptorFields.Length == 1 &&
                                     !_supportedDescriptorFieldsMap[(INamedTypeSymbol)symbolContext.Symbol].Contains(descriptorFields[0]))
                                 {

@@ -182,5 +182,11 @@ namespace Analyzer.Utilities
         ///      with an optional "M:" prefix.
         /// </summary>
         public const string AdditionalUseResultsMethods = "additional_use_results_methods";
+
+        /// <summary>
+        /// String option to configure allowed suffixed (separated by '|').
+        /// Configurable rule: CA1711 (https://docs.microsoft.com/visualstudio/code-quality/ca1711).
+        /// </summary>
+        public const string AllowedSuffixes = "allowed_suffixes";
     }
 }

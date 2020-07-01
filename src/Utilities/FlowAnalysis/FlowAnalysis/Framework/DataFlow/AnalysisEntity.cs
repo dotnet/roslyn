@@ -156,6 +156,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
+        internal bool IsChildOrInstanceMemberNeedingCompletePointsToAnalysis()
+        {
+            if (!IsChildOrInstanceMember)
+            {
+                return false;
+            }
+
+            // PERF: This is the core performance optimization for partial PointsToAnalysisKind.
+            // We avoid tracking PointsToValues for all entities that are child or instance members,
+            // except when they are fields or members of a value type (for example, tuple elements or struct members).
+            return ParentOpt == null || !ParentOpt.Type.HasValueCopySemantics();
+        }
+
         public bool HasConstantValue
         {
             get

@@ -360,4 +360,7 @@
   <data name="AvoidOptSuffixForNullableEnableCodeCodeFixTitle" xml:space="preserve">
     <value>Remove the 'Opt' suffix</value>
   </data>
+  <data name="NamedTypeFullNameNotNullSuppressorJustification" xml:space="preserve">
+    <value>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</value>
+  </data>
 </root>

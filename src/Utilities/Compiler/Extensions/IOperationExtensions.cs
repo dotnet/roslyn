@@ -512,6 +512,10 @@ namespace Analyzer.Utilities.Extensions
         {
             return pattern switch
             {
+#if CODEANALYSIS_V3_OR_BETTER
+                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                IRecursivePatternOperation recursivePattern => recursivePattern.MatchedType,
+#else
                 IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
                 {
                     ILocalSymbol local => local.Type,
@@ -520,7 +524,7 @@ namespace Analyzer.Utilities.Extensions
 
                     _ => null,
                 },
-
+#endif
                 IConstantPatternOperation constantPattern => constantPattern.Value.Type,
 
                 _ => null,

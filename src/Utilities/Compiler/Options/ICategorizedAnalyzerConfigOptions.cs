@@ -9,32 +9,49 @@ namespace Analyzer.Utilities
 
     /// <summary>
     /// Analyzer configuration options that are parsed into general and specific configuration options.
-    /// 
-    /// .editorconfig format:
-    ///  1) General configuration option:
-    ///     (a) "dotnet_code_quality.OptionName = OptionValue"
-    ///  2) Specific configuration option:
-    ///     (a) "dotnet_code_quality.RuleId.OptionName = OptionValue"
-    ///     (b) "dotnet_code_quality.RuleCategory.OptionName = OptionValue"
-    ///    
-    /// .editorconfig examples to configure API surface analyzed by analyzers:
-    ///  1) General configuration option:
-    ///     (a) "dotnet_code_quality.api_surface = all"
-    ///  2) Specific configuration option:
-    ///     (a) "dotnet_code_quality.CA1040.api_surface = public, internal"
-    ///     (b) "dotnet_code_quality.Naming.api_surface = public"
-    ///  See <see cref="SymbolVisibilityGroup"/> for allowed symbol visibility value combinations.
+    ///
+    /// <para><strong>.editorconfig</strong> format:</para>
+    /// <list type="number">
+    /// <item><description>General configuration option:
+    /// <list type="number">
+    /// <item><description><c>dotnet_code_quality.<em>OptionName</em> = <em>OptionValue</em></c></description></item>
+    /// </list>
+    /// </description></item>
+    /// <item><description>Specific configuration option:
+    /// <list type="number">
+    /// <item><description><c>dotnet_code_quality.<em>RuleId</em>.<em>OptionName</em> = <em>OptionValue</em></c></description></item>
+    /// <item><description><c>dotnet_code_quality.<em>RuleCategory</em>.<em>OptionName</em> = <em>OptionValue</em></c></description></item>
+    /// </list>
+    /// </description></item>
+    /// </list>
+    ///
+    /// <para><strong>.editorconfig</strong> examples to configure API surface analyzed by analyzers:</para>
+    /// <list type="number">
+    /// <item><description>General configuration option:
+    /// <list type="number">
+    /// <item><description><c>dotnet_code_quality.api_surface = all</c></description></item>
+    /// </list>
+    /// </description></item>
+    /// <item><description>Specific configuration option:
+    /// <list type="number">
+    /// <item><description><c>dotnet_code_quality.CA1040.api_surface = public, internal</c></description></item>
+    /// <item><description><c>dotnet_code_quality.Naming.api_surface = public</c></description></item>
+    /// </list>
+    /// </description></item>
+    /// </list>
+    ///
+    /// <para>See <see cref="SymbolVisibilityGroup"/> for allowed symbol visibility value combinations.</para>
     /// </summary>
     internal interface ICategorizedAnalyzerConfigOptions
     {
         bool IsEmpty { get; }
 
-        [return: MaybeNull]
-        T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality);
+        [return: MaybeNull, NotNullIfNotNull("defaultValue")]
+        T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality);
     }
 
     internal static class CategorizedAnalyzerConfigOptionsExtensions
     {
-        public delegate bool TryParseValue<T>(string value, [MaybeNull, NotNullWhen(returnValue: true)] out T parsedValue);
+        public delegate bool TryParseValue<T>(string value, [MaybeNullWhen(returnValue: false)] out T parsedValue);
     }
 }

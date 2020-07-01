@@ -6,24 +6,24 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
+namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
-    using FlightEnabledAnalysisData = DictionaryAnalysisData<AnalysisEntity, FlightEnabledAbstractValue>;
-    using FlightEnabledAnalysisResult = DataFlowAnalysisResult<FlightEnabledBlockAnalysisResult, FlightEnabledAbstractValue>;
+    using GlobalFlowStateAnalysisData = DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>;
+    using GlobalFlowStateAnalysisResult = DataFlowAnalysisResult<GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>;
 
-    internal partial class FlightEnabledAnalysis : ForwardDataFlowAnalysis<FlightEnabledAnalysisData, FlightEnabledAnalysisContext, FlightEnabledAnalysisResult, FlightEnabledBlockAnalysisResult, FlightEnabledAbstractValue>
+    internal partial class GlobalFlowStateAnalysis : ForwardDataFlowAnalysis<GlobalFlowStateAnalysisData, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>
     {
-        private class FlightEnabledAbstractValueDomain : AbstractValueDomain<FlightEnabledAbstractValue>
+        internal class GlobalFlowStateAnalysisValueSetDomain : AbstractValueDomain<GlobalFlowStateAnalysisValueSet>
         {
-            public static FlightEnabledAbstractValueDomain Instance = new FlightEnabledAbstractValueDomain();
+            public static GlobalFlowStateAnalysisValueSetDomain Instance = new GlobalFlowStateAnalysisValueSetDomain();
 
-            private FlightEnabledAbstractValueDomain() { }
+            private GlobalFlowStateAnalysisValueSetDomain() { }
 
-            public override FlightEnabledAbstractValue Bottom => FlightEnabledAbstractValue.Unset;
+            public override GlobalFlowStateAnalysisValueSet Bottom => GlobalFlowStateAnalysisValueSet.Unset;
 
-            public override FlightEnabledAbstractValue UnknownOrMayBeValue => FlightEnabledAbstractValue.Unknown;
+            public override GlobalFlowStateAnalysisValueSet UnknownOrMayBeValue => GlobalFlowStateAnalysisValueSet.Unknown;
 
-            public override int Compare(FlightEnabledAbstractValue oldValue, FlightEnabledAbstractValue newValue, bool assertMonotonicity)
+            public override int Compare(GlobalFlowStateAnalysisValueSet oldValue, GlobalFlowStateAnalysisValueSet newValue, bool assertMonotonicity)
             {
                 if (ReferenceEquals(oldValue, newValue))
                 {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                 }
             }
 
-            public override FlightEnabledAbstractValue Merge(FlightEnabledAbstractValue value1, FlightEnabledAbstractValue value2)
+            public override GlobalFlowStateAnalysisValueSet Merge(GlobalFlowStateAnalysisValueSet value1, GlobalFlowStateAnalysisValueSet value2)
             {
                 if (value1 == null)
                 {
@@ -55,34 +55,34 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                 {
                     return value1;
                 }
-                else if (value1.Kind == FlightEnabledAbstractValueKind.Unset)
+                else if (value1.Kind == GlobalFlowStateAnalysisValueSetKind.Unset)
                 {
                     return value2;
                 }
-                else if (value2.Kind == FlightEnabledAbstractValueKind.Unset)
+                else if (value2.Kind == GlobalFlowStateAnalysisValueSetKind.Unset)
                 {
                     return value1;
                 }
-                else if (value1.Kind == FlightEnabledAbstractValueKind.Unknown || value2.Kind == FlightEnabledAbstractValueKind.Unknown)
+                else if (value1.Kind == GlobalFlowStateAnalysisValueSetKind.Unknown || value2.Kind == GlobalFlowStateAnalysisValueSetKind.Unknown)
                 {
-                    return FlightEnabledAbstractValue.Unknown;
+                    return GlobalFlowStateAnalysisValueSet.Unknown;
                 }
-                else if (value1.Kind == FlightEnabledAbstractValueKind.Empty)
+                else if (value1.Kind == GlobalFlowStateAnalysisValueSetKind.Empty)
                 {
                     return value2;
                 }
-                else if (value2.Kind == FlightEnabledAbstractValueKind.Empty)
+                else if (value2.Kind == GlobalFlowStateAnalysisValueSetKind.Empty)
                 {
                     return value1;
                 }
 
-                Debug.Assert(value1.Kind == FlightEnabledAbstractValueKind.Known);
-                Debug.Assert(value2.Kind == FlightEnabledAbstractValueKind.Known);
+                Debug.Assert(value1.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
+                Debug.Assert(value2.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
 
-                return new FlightEnabledAbstractValue(value1, value2);
+                return new GlobalFlowStateAnalysisValueSet(value1, value2);
             }
 
-            public static FlightEnabledAbstractValue Intersect(FlightEnabledAbstractValue value1, FlightEnabledAbstractValue value2)
+            public static GlobalFlowStateAnalysisValueSet Intersect(GlobalFlowStateAnalysisValueSet value1, GlobalFlowStateAnalysisValueSet value2)
             {
                 if (value1 == null)
                 {
@@ -92,37 +92,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                 {
                     return value1;
                 }
-                else if (value1.Kind == FlightEnabledAbstractValueKind.Unset)
+                else if (value1.Kind == GlobalFlowStateAnalysisValueSetKind.Unset)
                 {
                     return value2;
                 }
-                else if (value2.Kind == FlightEnabledAbstractValueKind.Unset)
+                else if (value2.Kind == GlobalFlowStateAnalysisValueSetKind.Unset)
                 {
                     return value1;
                 }
-                else if (value1.Kind == FlightEnabledAbstractValueKind.Unknown || value2.Kind == FlightEnabledAbstractValueKind.Unknown)
+                else if (value1.Kind == GlobalFlowStateAnalysisValueSetKind.Unknown || value2.Kind == GlobalFlowStateAnalysisValueSetKind.Unknown)
                 {
-                    return FlightEnabledAbstractValue.Unknown;
+                    return GlobalFlowStateAnalysisValueSet.Unknown;
                 }
-                else if (value1.Kind == FlightEnabledAbstractValueKind.Empty || value2.Kind == FlightEnabledAbstractValueKind.Empty)
+                else if (value1.Kind == GlobalFlowStateAnalysisValueSetKind.Empty || value2.Kind == GlobalFlowStateAnalysisValueSetKind.Empty)
                 {
-                    return FlightEnabledAbstractValue.Empty;
+                    return GlobalFlowStateAnalysisValueSet.Empty;
                 }
                 else if (value1 == value2)
                 {
                     return value1;
                 }
 
-                Debug.Assert(value1.Kind == FlightEnabledAbstractValueKind.Known);
-                Debug.Assert(value2.Kind == FlightEnabledAbstractValueKind.Known);
+                Debug.Assert(value1.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
+                Debug.Assert(value2.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
 
                 if (value1.Height == 0 && value2.Height == 0)
                 {
                     return Intersect(value1, value2);
                 }
 
-                var currentNodes = new Queue<FlightEnabledAbstractValue>();
-                using var candidateNodes = PooledHashSet<FlightEnabledAbstractValue>.GetInstance();
+                var currentNodes = new Queue<GlobalFlowStateAnalysisValueSet>();
+                using var candidateNodes = PooledHashSet<GlobalFlowStateAnalysisValueSet>.GetInstance();
                 int candidateHeight = 0;
                 if (value1.Height <= value2.Height)
                 {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                     return candidateNodes.Single();
                 }
 
-                FlightEnabledAbstractValue? result = null;
+                GlobalFlowStateAnalysisValueSet? result = null;
                 foreach (var candidate in candidateNodes)
                 {
                     if (result == null)
@@ -183,39 +183,39 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.FlightEnabledAnalysis
                     }
                     else if (!TryIntersect(candidate, result, out result))
                     {
-                        return FlightEnabledAbstractValue.Empty;
+                        return GlobalFlowStateAnalysisValueSet.Empty;
                     }
                 }
 
                 return result!;
 
-                static FlightEnabledAbstractValue Intersect(FlightEnabledAbstractValue value1, FlightEnabledAbstractValue value2)
+                static GlobalFlowStateAnalysisValueSet Intersect(GlobalFlowStateAnalysisValueSet value1, GlobalFlowStateAnalysisValueSet value2)
                 {
                     _ = TryIntersect(value1, value2, out var result);
                     return result;
                 }
 
-                static bool TryIntersect(FlightEnabledAbstractValue value1, FlightEnabledAbstractValue value2, out FlightEnabledAbstractValue result)
+                static bool TryIntersect(GlobalFlowStateAnalysisValueSet value1, GlobalFlowStateAnalysisValueSet value2, out GlobalFlowStateAnalysisValueSet result)
                 {
                     Debug.Assert(value1.Height == value2.Height);
-                    var sets = value1.EnabledFlights.IntersectSet(value2.EnabledFlights);
+                    var sets = value1.AnalysisValues.IntersectSet(value2.AnalysisValues);
                     if (sets.IsEmpty)
                     {
-                        result = FlightEnabledAbstractValue.Empty;
+                        result = GlobalFlowStateAnalysisValueSet.Empty;
                         return false;
                     }
 
-                    if (sets.Count == value1.EnabledFlights.Count)
+                    if (sets.Count == value1.AnalysisValues.Count)
                     {
                         result = value1;
                     }
-                    else if (sets.Count == value2.EnabledFlights.Count)
+                    else if (sets.Count == value2.AnalysisValues.Count)
                     {
                         result = value2;
                     }
                     else
                     {
-                        result = new FlightEnabledAbstractValue(sets, value1.Parents, value1.Height, FlightEnabledAbstractValueKind.Known);
+                        result = new GlobalFlowStateAnalysisValueSet(sets, value1.Parents, value1.Height, GlobalFlowStateAnalysisValueSetKind.Known);
                     }
 
                     return true;
