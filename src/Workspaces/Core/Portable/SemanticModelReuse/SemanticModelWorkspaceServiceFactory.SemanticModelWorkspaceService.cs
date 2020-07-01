@@ -76,6 +76,17 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 // We were in a method body. Compute the updated map that will contain the appropriate semantic model
                 // for this document.
                 var originalMap = _semanticModelMap;
+
+                // If we already have a cached *real* semantic model for this body, then just provide that. Note: this
+                // is also a requirement as you cannot speculate on a semantic model using a node from that same
+                // semantic model.
+                if (originalMap.TryGetValue(document.Id, out var reuseInfoOpt) &&
+                    reuseInfoOpt.HasValue &&
+                    reuseInfoOpt.Value.PreviousNonSpeculativeSemanticModel.SyntaxTree == bodyNode.SyntaxTree)
+                {
+                    return reuseInfoOpt.Value.PreviousNonSpeculativeSemanticModel;
+                }
+
                 var updatedMap = await ComputeUpdatedMapAsync(originalMap, document, bodyNode, cancellationToken).ConfigureAwait(false);
 
                 // Grab the resultant semantic model and then overwrite the existing map.
