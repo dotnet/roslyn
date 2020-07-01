@@ -15,7 +15,38 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
-    using SemanticModelMap = ImmutableDictionary<DocumentId, (SemanticModel semanticModel, SyntaxNode body, VersionStamp topLevelSemanticVersion)?>;
+    internal readonly struct SemanticModelReuseInfo
+    {
+        /// <summary>
+        /// The original *non-speculative* semantic model we retrieved for this document at some point.
+        /// </summary>
+        public readonly SemanticModel PreviousNonSpeculativeSemanticModel;
+
+        /// <summary>
+        /// The current semantic model we retrieved <see cref="SemanticModel"/> for the <see cref="BodyNode"/>.  Could
+        /// be speculative or non-speculative.
+        /// </summary>
+        public readonly SemanticModel CurrentSemanticModel;
+
+        /// <summary>
+        /// The current method body we retrieved the <see cref="CurrentSemanticModel"/> for.
+        /// </summary>
+        public readonly SyntaxNode BodyNode;
+
+        /// <summary>
+        /// The top level version of the project when we retrieved <see cref="SemanticModel"/>.  As long as this is the
+        /// same we can continue getting speculative models to use.
+        /// </summary>
+        public readonly VersionStamp TopLevelSementicVersion;
+
+        public SemanticModelReuseInfo(SemanticModel previousNonSpeculativeSemanticModel, SemanticModel currentSemanticModel, SyntaxNode bodyNode, VersionStamp topLevelSementicVersion)
+        {
+            PreviousNonSpeculativeSemanticModel = previousNonSpeculativeSemanticModel;
+            CurrentSemanticModel = currentSemanticModel;
+            BodyNode = bodyNode;
+            TopLevelSementicVersion = topLevelSementicVersion;
+        }
+    }
 
     internal partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
     {
@@ -30,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             /// documents, there will be a key-value pair for each of the independent document links that a document
             /// has.
             /// </summary>
-            private SemanticModelMap _semanticModelMap = SemanticModelMap.Empty;
+            private ImmutableDictionary<DocumentId, SemanticModelReuseInfo?> _semanticModelMap = ImmutableDictionary<DocumentId, SemanticModelReuseInfo?>.Empty;
 
             public async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(
                 Document document, SyntaxNode node, CancellationToken cancellationToken)
@@ -50,14 +81,15 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                     originalMap, document, bodyNode, cancellationToken).ConfigureAwait(false);
 
                 // Grab the resultant semantic model and then overwrite the existing map.
-                var semanticModel = updatedMap[document.Id].Value.semanticModel;
+                var info = updatedMap[document.Id]!.Value;
+                var semanticModel = info.CurrentSemanticModel;
                 Interlocked.CompareExchange(ref _semanticModelMap, updatedMap, originalMap);
 
                 return semanticModel;
             }
 
-            private static async Task<SemanticModelMap> ComputeUpdatedMapAsync(
-                SemanticModelMap map, Document document, SyntaxNode bodyNode, CancellationToken cancellationToken)
+            private static async Task<ImmutableDictionary<DocumentId, SemanticModelReuseInfo?>> ComputeUpdatedMapAsync(
+                ImmutableDictionary<DocumentId, SemanticModelReuseInfo?> map, Document document, SyntaxNode bodyNode, CancellationToken cancellationToken)
             {
                 var linkedIds = document.GetLinkedDocumentIds();
 
@@ -68,16 +100,20 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
                 // If we are able to reuse a semantic model, then ensure that this is now the semantic model we're now
                 // pointing at for this document.
-                var reusedSemanticModel = await TryReuseCachedSemanticModelAsync(
+                var reuseInfo = await TryReuseCachedSemanticModelAsync(
                     map, document, bodyNode, linkedIds, topLevelSemanticVersion, cancellationToken).ConfigureAwait(false);
-                if (reusedSemanticModel != null)
-                    return map.Add(document.Id, (reusedSemanticModel, bodyNode, topLevelSemanticVersion));
+                if (reuseInfo != null)
+                    return map.Add(document.Id, reuseInfo.Value);
 
-                // Otherwise, we couldn't reuse anything from the cache.  Return a fresh map with just the value in it.
+                // Otherwise, we couldn't reuse anything from the cache.  Return a fresh map with just the real semantic
+                // model value in it.
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                var builder = ImmutableDictionary.CreateBuilder<DocumentId, (SemanticModel semanticModel, SyntaxNode body, VersionStamp topLevelSemanticVersion)?>();
-                builder.Add(document.Id, (semanticModel, bodyNode, topLevelSemanticVersion));
+                var builder = ImmutableDictionary.CreateBuilder<DocumentId, SemanticModelReuseInfo?>();
+
+                // Note: we are intentionally storing the semanticmodel instance in the speculative location as well.
+                //
+                builder.Add(document.Id, new SemanticModelReuseInfo(semanticModel, semanticModel, bodyNode, topLevelSemanticVersion));
 
                 foreach (var linkedId in linkedIds)
                     builder.Add(linkedId, null);
@@ -85,8 +121,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 return builder.ToImmutable();
             }
 
-            private static async Task<SemanticModel?> TryReuseCachedSemanticModelAsync(
-                SemanticModelMap map,
+            private static async Task<SemanticModelReuseInfo?> TryReuseCachedSemanticModelAsync(
+                ImmutableDictionary<DocumentId, SemanticModelReuseInfo?> map,
                 Document document,
                 SyntaxNode bodyNode,
                 ImmutableArray<DocumentId> linkedIds,
@@ -104,23 +140,28 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                     return null;
 
                 // see if this doc matches the docs we're caching information for.
-                if (!map.TryGetValue(document.Id, out var cachedData) || !cachedData.HasValue)
+                if (!map.TryGetValue(document.Id, out var reuseInfoOpt) || !reuseInfoOpt.HasValue)
                     return null;
 
-                var (cachedSemanticModel, cachedBodyNode, cachedTopLevelSemanticVersion) = cachedData.Value;
+                var reuseInfo = reuseInfoOpt.Value;
 
                 // can only reuse the cache if nothing top level changed.
-                if (cachedTopLevelSemanticVersion != topLevelSemanticVersion)
+                if (reuseInfo.TopLevelSementicVersion != topLevelSemanticVersion)
                     return null;
 
                 // If multiple callers are asking for the exact same body, they can share the exact same semantic model.
                 // This is valuable when several clients (like completion providers) get called at the same time on the
                 // same method body edit.
-                if (cachedBodyNode == bodyNode)
-                    return cachedSemanticModel;
+                if (reuseInfo.BodyNode == bodyNode)
+                    return reuseInfo;
 
                 var reuseService = document.GetRequiredLanguageService<ISemanticModelReuseLanguageService>();
-                return await reuseService.TryGetSpeculativeSemanticModelAsync(cachedSemanticModel, bodyNode, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await reuseService.TryGetSpeculativeSemanticModelAsync(reuseInfo.PreviousNonSpeculativeSemanticModel, bodyNode, cancellationToken).ConfigureAwait(false);
+                if (semanticModel == null)
+                    return null;
+
+                return new SemanticModelReuseInfo(
+                    reuseInfo.PreviousNonSpeculativeSemanticModel, semanticModel, bodyNode, topLevelSemanticVersion);
             }
 
             //    private static readonly ConditionalWeakTable<Workspace, ConditionalWeakTable<BranchId, Dictionary<ProjectId, CompilationSet>>> s_map =

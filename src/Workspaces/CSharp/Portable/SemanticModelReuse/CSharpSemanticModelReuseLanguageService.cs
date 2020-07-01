@@ -4,17 +4,27 @@
 
 #nullable enable
 
+using System;
+using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 
 namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
 {
+    [ExportLanguageService(typeof(ISemanticModelReuseLanguageService), LanguageNames.CSharp), Shared]
     internal class CSharpSemanticModelReuseLanguageService : ISemanticModelReuseLanguageService
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpSemanticModelReuseLanguageService()
+        {
+        }
+
         public SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node)
         {
             for (var current = node; current != null; current = current.Parent)
