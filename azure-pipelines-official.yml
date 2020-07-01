@@ -68,6 +68,11 @@ stages:
       inputs:
         versionSpec: '4.9.2'
 
+    # Authenticate with service connections to be able to publish packages to external nuget feeds.
+    - task: NuGetAuthenticate@0
+      inputs:
+        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
+
     - task: NuGetCommand@2
       displayName: Restore internal tools
       inputs:
