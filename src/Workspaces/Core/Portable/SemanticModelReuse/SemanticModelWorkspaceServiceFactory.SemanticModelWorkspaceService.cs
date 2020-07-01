@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 var reuseInfo = await TryReuseCachedSemanticModelAsync(
                     map, document, bodyNode, linkedIds, topLevelSemanticVersion, cancellationToken).ConfigureAwait(false);
                 if (reuseInfo != null)
-                    return map.Add(document.Id, reuseInfo.Value);
+                    return map.SetItem(document.Id, reuseInfo.Value);
 
                 // Otherwise, we couldn't reuse anything from the cache.  Return a fresh map with just the real semantic
                 // model value in it.

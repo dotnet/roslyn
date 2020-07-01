@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
             for (var current = node; current != null; current = current.Parent)
             {
                 // These are the exact types that SemanticModel.TryGetSpeculativeSemanticModelForMethodBody accepts.
-                if (node is BaseMethodDeclarationSyntax baseMethod && baseMethod.Body != null)
-                    return node;
+                if (current is BaseMethodDeclarationSyntax baseMethod && baseMethod.Body != null)
+                    return current;
 
-                if (node is AccessorDeclarationSyntax accessor && accessor.Body != null)
-                    return node;
+                if (current is AccessorDeclarationSyntax accessor && accessor.Body != null)
+                    return current;
             }
 
             return null;

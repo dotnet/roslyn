@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
             End If
 
             Dim speculativeModel As SemanticModel = Nothing
-            If previousSemanticModel.TryGetSpeculativeSemanticModelForMethodBody(previousBodyNode.BlockStatement.FullSpan.End, previousBodyNode, speculativeModel) Then
+            If previousSemanticModel.TryGetSpeculativeSemanticModelForMethodBody(previousBodyNode.BlockStatement.FullSpan.End, currentBodyNode, speculativeModel) Then
                 Return speculativeModel
             End If
 
