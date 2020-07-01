@@ -1771,7 +1771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoOutputDirectory = 8771,
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8772,
 
-        // available 8773
+        ERR_FeatureNotAvailableInVersion9 = 8773,
 
         WRN_MemberNotNull = 8774,
         WRN_MemberNotNullWhen = 8775,
@@ -1818,7 +1818,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AddressOfMethodGroupInExpressionTree = 8810,
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
-        ERR_FeatureNotAvailableInVersion9 = 8813,
 
         ERR_ModuleInitializerMethodMustBeOrdinary = 8813,
         ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8814,
@@ -1829,7 +1828,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodRefReturnDifference = 8818,
         WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
 
-        // Codes 8820, 8821 used by features/static-lambdas
+
+        ERR_8820 = 8820, // used by features/static-lambdas
+
+        ERR_8821 = 8821, // used by features/static-lambdas
 
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
@@ -1849,6 +1851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRecordMemberForPositionalParameter = 8866,
         ERR_NoCopyConstructorInBaseType = 8867,
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
+        ERR_DoesNotOverrideMethodFromObject = 8869,
 
         #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

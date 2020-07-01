@@ -1661,6 +1661,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
+            // If this is going to cause a circular reference, also disallow it
+            if (CurrentSolution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(referencedProjectId).Contains(projectIdWithMetadataReference))
+            {
+                return false;
+            }
+
             return true;
         }
 
