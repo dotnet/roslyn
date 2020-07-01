@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         public void Dispose()
         {
-            _tagAggregator.Dispose();
             _tagAggregator.TagsChanged -= OnTagAggregatorTagsChanged;
+            _tagAggregator.Dispose();
         }
     }
 }
