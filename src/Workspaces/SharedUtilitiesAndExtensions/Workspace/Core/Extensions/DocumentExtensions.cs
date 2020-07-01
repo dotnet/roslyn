@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var token = root.FindToken(span.Start);
             var node = token.Parent!.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
 
-            return await ReuseExistingSpeculativeModelAsync(document, node, span, cancellationToken).ConfigureAwait(false);
+            return await ReuseExistingSpeculativeModelAsync(document, node, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -125,20 +125,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (node == null)
                 return document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            return ReuseExistingSpeculativeModelAsync(document, node, node.FullSpan, cancellationToken);
-        }
-
-        private static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(
-            Document document, SyntaxNode node, TextSpan span, CancellationToken cancellationToken)
-        {
             var workspace = document.Project.Solution.Workspace;
-            var syntaxFactService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModelService = workspace.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
-
-            // check whether given span is a valid span to do speculative binding
-            var speculativeBindingSpan = syntaxFactService.GetMemberBodySpanForSpeculativeBinding(node);
-            if (!speculativeBindingSpan.Contains(span))
-                return document.GetRequiredSemanticModelAsync(cancellationToken);
 
             return semanticModelService.ReuseExistingSpeculativeModelAsync(document, node, cancellationToken);
         }

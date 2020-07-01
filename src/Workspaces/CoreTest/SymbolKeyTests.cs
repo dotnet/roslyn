@@ -627,10 +627,53 @@ class C
             // Ensure we prime the reuse cache with the true semantic model.
             var firstReusedModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
 
-            var tree1 = await document.GetSyntaxTreeAsync();
-            var basemethod1 = tree1.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
-
             // Modify the document so we can use the old semantic model as a base.
+            var updated = sourceText.WithChanges(new TextChange(new TextSpan(position, 0), "insertion"));
+            workspace.TryApplyChanges(document.WithText(updated).Project.Solution);
+
+            document = workspace.CurrentSolution.GetDocument(document.Id);
+
+            // Now, the second time we try to get a speculative model, we should succeed.
+            var testModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
+            Assert.True(testModel.IsSpeculativeSemanticModel);
+
+            var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
+
+            // This should not throw an exception.
+            Assert.NotEqual(default, SymbolKey.Create(xSymbol));
+        }
+
+        [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
+        public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel_InProperty()
+        {
+            var markup = @"
+class C
+{
+    int Prop
+    {
+        get
+        {
+            System.Func<int> lambda = () => 
+            {
+                int x;
+                $$
+            }
+        }
+    }
+}";
+            MarkupTestFile.GetPosition(markup, out var text, out int position);
+
+            var sourceText = SourceText.From(text);
+            var workspace = new AdhocWorkspace();
+            var project = workspace.AddProject("Test", LanguageNames.CSharp);
+            var document = workspace.AddDocument(project.Id, "testdocument", sourceText);
+
+            var firstModel = await document.GetSemanticModelAsync();
+
+            // Ensure we prime the reuse cache with the true semantic model.
+            var firstReusedModel = await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None);
+
+           // Modify the document so we can use the old semantic model as a base.
             var updated = sourceText.WithChanges(new TextChange(new TextSpan(position, 0), "insertion"));
             workspace.TryApplyChanges(document.WithText(updated).Project.Solution);
 
