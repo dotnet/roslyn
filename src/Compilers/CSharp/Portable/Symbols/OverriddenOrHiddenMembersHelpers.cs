@@ -948,7 +948,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // method, then the runtime overridden method could not possibly resolve correctly to the overridden method.
             // In this case we might as well produce a methodimpl. At least it has a chance of being correctly resolved
             // by the runtime, where the runtime resolution without the methodimpl would definitely be wrong.
-            return !overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod;
+            return
+                !overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod ||
+                // This is the historical test, preserved since the days of the native compiler in case it turns out to affect compatibility
+                csharpOverriddenMethod != runtimeOverriddenMethod && method.IsAccessor() != runtimeOverriddenMethod.IsAccessor();
         }
 
         internal static bool MethodHasRuntimeCollisionInSubstututedForm(this MethodSymbol method)
