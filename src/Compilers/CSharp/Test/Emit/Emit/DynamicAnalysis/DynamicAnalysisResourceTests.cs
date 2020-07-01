@@ -281,7 +281,7 @@ public class C
     {
         Fred();
     }
-            
+
     [Obsolete()]
     static void Fred()                              // Method 1
     {
@@ -341,7 +341,7 @@ public class C
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' A3-08-94-55-7C-64-8D-C7-61-7A-11-0B-4B-68-2C-3B-51-C3-C4-58 (SHA1)");
+                @"'C:\myproject\doc1.cs' A4-02-50-34-9F-CD-91-F7-CB-94-31-74-4C-E6-71-07-8E-8A-F9-DD (SHA1)");
 
             Assert.Equal(15, reader.Methods.Length);
 
@@ -404,7 +404,7 @@ public class C
         s.GPA = 2.3;
         Operate(s);
     }
-     
+
     static string Operate(Person p)                             // Method 1
     {
         switch (p)
@@ -611,10 +611,13 @@ public class C
 
     int Prop1 { get; } = 15;
     static int Prop2 { get; } = 255;
+    [Obsolete]
+    data int Prop3 = 16;
 }
 ";
 
-            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + IsExternalInitTypeDefinition + InstrumentationHelperSource,
+                @"C:\myproject\doc1.cs", options: TestOptions.RegularPreview));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -640,6 +643,7 @@ public class C
                 new SpanResult(27, 13, 27, 19, "Init()"),
                 new SpanResult(28, 13, 28, 24, "Init() + 12"),
                 new SpanResult(44, 25, 44, 27, "15"),
+                new SpanResult(47, 21, 47, 23, "16"),
                 new SpanResult(19, 8, 19, 16, "_z = 12"));
 
             VerifySpans(reader, reader.Methods[4], sourceLines,
@@ -654,6 +658,7 @@ public class C
                 new SpanResult(27, 13, 27, 19, "Init()"),
                 new SpanResult(28, 13, 28, 24, "Init() + 12"),
                 new SpanResult(44, 25, 44, 27, "15"),
+                new SpanResult(47, 21, 47, 23, "16"),
                 new SpanResult(36, 8, 36, 15, "_z = x"));
 
             VerifySpans(reader, reader.Methods[6], sourceLines,
@@ -661,6 +666,7 @@ public class C
                 new SpanResult(27, 13, 27, 19, "Init()"),
                 new SpanResult(28, 13, 28, 24, "Init() + 12"),
                 new SpanResult(44, 25, 44, 27, "15"),
+                new SpanResult(47, 21, 47, 23, "16"),
                 new SpanResult(41, 8, 41, 19, "_z = a + b"));
         }
 

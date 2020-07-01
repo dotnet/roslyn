@@ -590,10 +590,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SkipAttributes(syntax, propertySyntax.AttributeLists, propertySyntax.Modifiers, default(SyntaxToken), propertySyntax.Type);
 
                 case SyntaxKind.DataPropertyDeclaration:
-                    {
-                        var dataProp = (DataPropertyDeclarationSyntax)syntax;
-                        return SkipAttributes(syntax, dataProp.AttributeLists, dataProp.Modifiers, dataProp.DataKeyword, dataProp.Type);
-                    }
+                    Debug.Assert(false, "data properties cannot contain bodies");
+                    break;
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:

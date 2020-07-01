@@ -196,8 +196,8 @@ record C(int x, string y)
             Assert.False(y.IsWriteOnly);
             Assert.False(y.IsImplicitlyDeclared);
             Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
-            Assert.False(x.IsVirtual);
-            Assert.False(x.IsStatic);
+            Assert.False(y.IsVirtual);
+            Assert.False(y.IsStatic);
             Assert.Equal(c, y.ContainingType);
             Assert.Equal(c, y.ContainingSymbol);
 
@@ -1737,6 +1737,150 @@ class C
         }
 
         [Fact]
+        public void DataProperties11()
+        {
+            var comp = CreateCompilation(@"
+abstract class C
+{
+    data int P1;
+    virtual data int P2;
+    abstract data int P3;
+}");
+            comp.VerifyDiagnostics();
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            var p1 = (SourcePropertySymbolBase)c.GetProperty("P1");
+            Assert.NotNull(p1.GetMethod);
+            Assert.Equal(MethodKind.PropertyGet, p1.GetMethod.MethodKind);
+            Assert.Equal(SpecialType.System_Int32, p1.Type.SpecialType);
+            Assert.False(p1.IsReadOnly);
+            Assert.False(p1.IsWriteOnly);
+            Assert.False(p1.IsImplicitlyDeclared);
+            Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+            Assert.False(p1.IsVirtual);
+            Assert.False(p1.IsStatic);
+            Assert.Equal(c, p1.ContainingType);
+            Assert.Equal(c, p1.ContainingSymbol);
+
+            var backing = p1.BackingField;
+            Debug.Assert(backing != null);
+            Assert.Equal(p1, backing.AssociatedSymbol);
+            Assert.Equal(c, backing.ContainingSymbol);
+            Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
+
+            var getAccessor = p1.GetMethod;
+            Assert.Equal(p1, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
+            Assert.Equal(c, getAccessor.ContainingSymbol);
+            Assert.Equal(c, getAccessor.ContainingType);
+            Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
+
+            var setAccessor = p1.SetMethod;
+            Assert.Equal(p1, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
+            Assert.Equal(c, setAccessor.ContainingSymbol);
+            Assert.Equal(c, setAccessor.ContainingType);
+            Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
+            Assert.True(setAccessor.IsInitOnly);
+
+            var p2 = (SourcePropertySymbolBase)c.GetProperty("P2");
+            Assert.NotNull(p2.GetMethod);
+            Assert.Equal(MethodKind.PropertyGet, p2.GetMethod.MethodKind);
+            Assert.Equal(SpecialType.System_Int32, p2.Type.SpecialType);
+            Assert.False(p2.IsReadOnly);
+            Assert.False(p2.IsWriteOnly);
+            Assert.False(p2.IsImplicitlyDeclared);
+            Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
+            Assert.True(p2.IsVirtual);
+            Assert.False(p2.IsStatic);
+            Assert.Equal(c, p2.ContainingType);
+            Assert.Equal(c, p2.ContainingSymbol);
+
+            backing = p2.BackingField;
+            Debug.Assert(backing != null);
+            Assert.Equal(p2, backing.AssociatedSymbol);
+            Assert.Equal(c, backing.ContainingSymbol);
+            Assert.Equal(c, backing.ContainingType);
+            Assert.True(backing.IsImplicitlyDeclared);
+
+            getAccessor = p2.GetMethod;
+            Assert.Equal(p2, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
+            Assert.Equal(c, getAccessor.ContainingSymbol);
+            Assert.Equal(c, getAccessor.ContainingType);
+
+            setAccessor = p2.SetMethod;
+            Assert.Equal(p2, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
+            Assert.Equal(c, setAccessor.ContainingSymbol);
+            Assert.Equal(c, setAccessor.ContainingType);
+            Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
+            Assert.True(setAccessor.IsInitOnly);
+
+            var p3 = (SourcePropertySymbolBase)c.GetProperty("P3");
+            Assert.NotNull(p3.GetMethod);
+            Assert.Equal(MethodKind.PropertyGet, p3.GetMethod.MethodKind);
+            Assert.Equal(SpecialType.System_Int32, p3.Type.SpecialType);
+            Assert.False(p3.IsReadOnly);
+            Assert.False(p3.IsWriteOnly);
+            Assert.False(p3.IsImplicitlyDeclared);
+            Assert.Equal(Accessibility.Public, p3.DeclaredAccessibility);
+            Assert.False(p3.IsVirtual);
+            Assert.True(p3.IsAbstract);
+            Assert.False(p3.IsStatic);
+            Assert.Equal(c, p3.ContainingType);
+            Assert.Equal(c, p3.ContainingSymbol);
+
+            Assert.Null(p3.BackingField);
+
+            getAccessor = p3.GetMethod;
+            Assert.True(getAccessor.IsAbstract);
+            Assert.Equal(p3, getAccessor.AssociatedSymbol);
+            Assert.True(getAccessor.IsImplicitlyDeclared);
+            Assert.Equal(c, getAccessor.ContainingSymbol);
+            Assert.Equal(c, getAccessor.ContainingType);
+
+            setAccessor = p3.SetMethod;
+            Assert.True(setAccessor.IsAbstract);
+            Assert.Equal(p3, setAccessor.AssociatedSymbol);
+            Assert.True(setAccessor.IsImplicitlyDeclared);
+            Assert.Equal(c, setAccessor.ContainingSymbol);
+            Assert.Equal(c, setAccessor.ContainingType);
+            Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
+            Assert.True(setAccessor.IsInitOnly);
+        }
+
+        [Fact]
+        public void DataProperties12()
+        {
+            var src = @"
+class C
+{
+    data dynamic P;
+}";
+            var comp = CreateCompilation(src);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DynamicAttribute);
+            comp.VerifyDiagnostics(
+                // (4,10): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                //     data dynamic P;
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 10)
+            );
+
+            CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: m =>
+            {
+                var p = m.GlobalNamespace.GetTypeMember("C").GetMember("P");
+                var attr = Assert.Single(p.GetAttributes()).AttributeClass!;
+                Assert.Equal(
+                    "System.Runtime.CompilerServices.DynamicAttribute",
+                    attr.ToTestDisplayString());
+                Assert.NotEqual(m.ContainingAssembly, attr.ContainingAssembly);
+            });
+        }
+
+        [Fact]
         public void DataPropertiesInterface()
         {
             var src = @"
@@ -1815,6 +1959,27 @@ class C5 : C4
                 // (29,14): error CS0546: 'C5.P2.init': cannot override because 'C4.P2' does not have an overridable set accessor
                 //     override data int P2; // error
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "data").WithArguments("C5.P2.init", "C4.P2").WithLocation(29, 14)
+            );
+        }
+
+        [Fact]
+        public void DataPropertiesSealed()
+        {
+            var src = @"
+abstract class C1
+{
+    abstract data int P1;
+}
+class C2 : C1
+{
+    sealed override data int P1;
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,30): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed override data int P1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("sealed").WithLocation(8, 30)
             );
         }
 

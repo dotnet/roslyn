@@ -17,6 +17,65 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
     public class DynamicInstrumentationTests : CSharpTestBase
     {
         [Fact]
+        public void DataPropertyInitializer()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    data int P1;
+    data int P2 = 25;
+
+    public static void Main(string[] args)
+    {
+        new C();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource + IsExternalInitTypeDefinition,
+                options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+
+            // data accessors are implicit, therefore not instrumented
+            AssertNotInstrumented(verifier, "C.P1.get");
+            AssertNotInstrumented(verifier, "C.P1.init");
+
+            verifier.VerifyIL("C..ctor()", @"
+{
+  // Code size       71 (0x47)
+  .maxstack  5
+  .locals init (bool[] V_0)
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""C..ctor()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_0034
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""C..ctor()""
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0023:  ldtoken    ""C..ctor()""
+  IL_0028:  ldelema    ""bool[]""
+  IL_002d:  ldc.i4.1
+  IL_002e:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  IL_0038:  ldarg.0
+  IL_0039:  ldc.i4.s   25
+  IL_003b:  stfld      ""int C.<P2>k__BackingField""
+  IL_0040:  ldarg.0
+  IL_0041:  call       ""object..ctor()""
+  IL_0046:  ret
+}");
+        }
+
+        [Fact]
         public void HelpersInstrumentation()
         {
             string source = @"
@@ -766,7 +825,7 @@ public class Program
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
-    
+
     static void TestMain()                                                  // Method 2
     {
         int x = Count;
@@ -873,11 +932,11 @@ public class Program
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
-    
+
     static void TestMain()                                                  // Method 2
     {
         new D().M1();
-    } 
+    }
 }
 
 public class D
@@ -971,7 +1030,7 @@ public class Program
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
-    
+
 #line 20 ""File2.cs""
     static void TestMain()                                                  // Method 2
     {
@@ -1442,7 +1501,7 @@ public class C
         s.GPA = s.Name switch { _ => 2.3 }; // switch expression is not instrumented
         Operate(s);
     }
-     
+
     static string Operate(Person p)                         // Method 3
     {
         switch (p)
@@ -1866,7 +1925,7 @@ True
         public void IteratorCoverage()
         {
             string source = @"
-using System;                 
+using System;
 
 public class Program
 {
@@ -1879,11 +1938,11 @@ public class Program
     static void TestMain()                                                  // Method 2
     {
         foreach (var i in Goo())
-        {    
+        {
             Console.WriteLine(i);
-        }  
+        }
         foreach (var i in Goo())
-        {    
+        {
             Console.WriteLine(i);
         }
     }
@@ -2280,14 +2339,14 @@ True
             string source = @"
 namespace System
 {
-    public class Object { }  
-    public struct Int32 { }  
-    public struct Boolean { }  
-    public class String { }  
-    public class Exception { }  
-    public class ValueType { }  
-    public class Enum { }  
-    public struct Void { }  
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Exception { }
+    public class ValueType { }
+    public class Enum { }
+    public struct Void { }
     public class Guid { }
 }
 
@@ -2397,7 +2456,7 @@ class C
 {
     [ExcludeFromCodeCoverage]
     static void M1() { L1(); void L1() { new Action(() => { Console.WriteLine(1); }).Invoke(); } }
-                                                      
+
     static void M2() { L2(); void L2() { new Action(() => { Console.WriteLine(2); }).Invoke(); } }
 }
 ";
@@ -2561,16 +2620,16 @@ using System.Diagnostics.CodeAnalysis;
 class C
 {
     [ExcludeFromCodeCoverage]
-    int P1 
-    { 
-        get { L1(); void L1() { Console.WriteLine(1); } return 1; } 
-        set { L2(); void L2() { Console.WriteLine(2); } } 
+    int P1
+    {
+        get { L1(); void L1() { Console.WriteLine(1); } return 1; }
+        set { L2(); void L2() { Console.WriteLine(2); } }
     }
 
     int P2
-    { 
-        get { L3(); void L3() { Console.WriteLine(3); } return 3; } 
-        set { L4(); void L4() { Console.WriteLine(4); } } 
+    {
+        get { L3(); void L3() { Console.WriteLine(3); } return 3; }
+        set { L4(); void L4() { Console.WriteLine(4); } }
     }
 }
 ";
@@ -2712,10 +2771,10 @@ class C
 {
     [ExcludeFromCodeCoverage]
     int P1 { get => 1; set {} }
-          
+
     [ExcludeFromCodeCoverage]
     event Action E1 { add { } remove { } }
-                                            
+
     int P2 { get => 1; set {} }
     event Action E2 { add { } remove { } }
 }
@@ -2842,7 +2901,7 @@ using System;
 public partial class Class1<T>
 {
     partial void Method1<U>(int x);
-    public void Method2(int x) 
+    public void Method2(int x)
     {
         Console.WriteLine($""Method2: x = {x}"");
         Method1<T>(x);
@@ -2944,7 +3003,7 @@ using System;
 public partial class Class1<T>
 {
     partial void Method1<U>(int x);
-    public void Method2(int x) 
+    public void Method2(int x)
     {
         Console.WriteLine($""Method2: x = {x}"");
         Method1<T>(x);
@@ -3391,7 +3450,7 @@ static void Test()
         {
             string il = verifier.VisualizeIL(qualifiedMethodName);
 
-            // Tests using this helper are constructed such that instrumented methods contain a call to CreatePayload, 
+            // Tests using this helper are constructed such that instrumented methods contain a call to CreatePayload,
             // lambdas a reference to payload bool array.
             bool instrumented = il.Contains("CreatePayload") || il.Contains("bool[]");
 

@@ -174,6 +174,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case PropertyDeclaration:
                         return ((PropertyDeclarationSyntax)parent).Type == node;
 
+                    case DataPropertyDeclaration:
+                        return ((DataPropertyDeclarationSyntax)parent).Type == node;
+
                     case DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)parent).ReturnType == node;
 
@@ -254,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Is the node the name of a named argument of an invocation, object creation expression, 
+        /// Is the node the name of a named argument of an invocation, object creation expression,
         /// constructor initializer, or element access, but not an attribute.
         /// </summary>
         public static bool IsNamedArgumentName(SyntaxNode node)
