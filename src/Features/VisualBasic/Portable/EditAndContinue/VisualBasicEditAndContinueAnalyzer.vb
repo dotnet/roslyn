@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend NotInheritable Class VisualBasicEditAndContinueAnalyzer
         Inherits AbstractEditAndContinueAnalyzer
 
-        <ExportLanguageServiceFactory(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic), [Shared]>
+        <ExportLanguageServiceFactory(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic, WorkspaceKind.RemoteWorkspace), [Shared]>
         Private NotInheritable Class Factory
             Implements ILanguageServiceFactory
 

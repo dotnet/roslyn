@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
-        private readonly IDebuggeeModuleMetadataProvider _debugeeModuleMetadataProvider;
         private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
         private readonly EditSessionTelemetry _editSessionTelemetry;
         private readonly DebuggingSessionTelemetry _debuggingSessionTelemetry;
@@ -52,14 +51,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
-            IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
             Func<Project, CompilationOutputs>? testCompilationOutputsProvider = null,
             Action<DebuggingSessionTelemetry.Data>? testReportTelemetry = null)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
-            _debugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
             _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
@@ -99,12 +96,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
-        public void StartEditSession(ActiveStatementProvider activeStatementsProvider)
+        public void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider)
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, _debugeeModuleMetadataProvider);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, debuggeeModuleMetadataProvider);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
@@ -222,7 +219,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (debuggingSession.AddModulePreparedForUpdate(mvid))
                     {
                         // fire and forget:
-                        _ = Task.Run(() => _debugeeModuleMetadataProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
+                        _ = Task.Run(() => editSession.DebugeeModuleMetadataProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
                     }
                 }
 

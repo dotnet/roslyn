@@ -12,11 +12,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService), ServiceLayer.Default), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService), WorkspaceKind.RemoteWorkspace), Shared]
     internal sealed class EditAndContinueWorkspaceServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IDiagnosticAnalyzerService _diagnosticService;
-        private readonly IDebuggeeModuleMetadataProvider? _debugeeModuleMetadataProvider;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
 
         [ImportingConstructor]
@@ -28,22 +27,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
-            _debugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
         }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (_debugeeModuleMetadataProvider == null)
-            {
-                return null;
-            }
-
             return new EditAndContinueWorkspaceService(
                 workspaceServices.Workspace,
                 _diagnosticService,
-                _diagnosticUpdateSource,
-                _debugeeModuleMetadataProvider);
+                _diagnosticUpdateSource);
         }
     }
 }

@@ -5,6 +5,7 @@
 #nullable enable 
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,15 +14,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal class MockDebuggeeModuleMetadataProvider : IDebuggeeModuleMetadataProvider
     {
         public Func<Guid, (int errorCode, string? errorMessage)?>? IsEditAndContinueAvailable;
-        public Func<Guid, DebuggeeModuleInfo>? TryGetBaselineModuleInfo;
+        public Dictionary<Guid, (int errorCode, string? errorMessage)?>? LoadedModules;
 
         public Task<(int errorCode, string? errorMessage)?> GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
-            => Task.FromResult((IsEditAndContinueAvailable ?? throw new NotImplementedException())(mvid));
+        {
+            if (IsEditAndContinueAvailable != null)
+            {
+                return Task.FromResult(IsEditAndContinueAvailable(mvid));
+            }
 
-        Task IDebuggeeModuleMetadataProvider.PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
+            if (LoadedModules != null)
+            {
+               return Task.FromResult(LoadedModules.TryGetValue(mvid, out var result) ? result : null);
+            }
+
+            throw new NotImplementedException();
+        }
+
+        public Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
             => Task.CompletedTask;
-
-        DebuggeeModuleInfo IDebuggeeModuleMetadataProvider.TryGetBaselineModuleInfo(Guid mvid)
-            => (TryGetBaselineModuleInfo ?? throw new NotImplementedException())(mvid);
     }
 }

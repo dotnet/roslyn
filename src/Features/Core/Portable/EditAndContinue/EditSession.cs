@@ -752,131 +752,91 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var projectChanges = await GetProjectChangesAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
-                    var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(project, readers, out var createBaselineDiagnostics, out var baseline))
+                    {
+                        Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
-                    // project must support compilations since it supports EnC
-                    Contract.ThrowIfNull(currentCompilation);
+                        // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
+                        // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
+                        diagnostics.Add((project.Id, createBaselineDiagnostics));
+                        Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics);
+                        isBlocked = true;
+                        continue;
+                    }
+
+                    EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", project.Id.DebugName, project.Id);
 
                     // Exception regions of active statements in changed documents are calculated (non-default),
                     // since we already checked that no changed document is out-of-sync above.
                     var baseActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(cancellationToken).ConfigureAwait(false);
+                    var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
+                    var projectChanges = await GetProjectChangesAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
                     var lineEdits = projectChanges.LineChanges.SelectAsArray((lineChange, p) => (p.GetDocument(lineChange.DocumentId)!.FilePath, lineChange.Changes), project);
 
-                    // Dispatch to a background thread - the compiler reads symbols and ISymUnmanagedReader requires MTA thread.
-                    // We also don't want to block the UI thread - emit might perform IO.
-                    if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
+                    using var pdbStream = SerializableBytes.CreateWritableStream();
+                    using var metadataStream = SerializableBytes.CreateWritableStream();
+                    using var ilStream = SerializableBytes.CreateWritableStream();
+
+                    var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
+
+                    var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                    // project must support compilations since it supports EnC
+                    Contract.ThrowIfNull(currentCompilation);
+
+                    var emitResult = currentCompilation.EmitDifference(
+                        baseline,
+                        projectChanges.SemanticEdits,
+                        projectChanges.AddedSymbols.Contains,
+                        metadataStream,
+                        ilStream,
+                        pdbStream,
+                        updatedMethods,
+                        cancellationToken);
+
+                    if (emitResult.Success)
                     {
-                        await Task.Factory.StartNew(() =>
-                        {
-                            try
-                            {
-                                Emit();
-                            }
-                            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
-                            {
-                                throw ExceptionUtilities.Unreachable;
-                            }
-                        }, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default).ConfigureAwait(false);
+                        var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+
+                        // Determine all active statements whose span changed and exception region span deltas.
+                        GetActiveStatementAndExceptionRegionSpans(
+                            mvid,
+                            baseActiveStatements,
+                            baseActiveExceptionRegions,
+                            updatedMethodTokens,
+                            _nonRemappableRegions,
+                            projectChanges.NewActiveStatements,
+                            out var activeStatementsInUpdatedMethods,
+                            out var nonRemappableRegions);
+
+                        deltas.Add(new Deltas(
+                            mvid,
+                            ilStream.ToImmutableArray(),
+                            metadataStream.ToImmutableArray(),
+                            pdbStream.ToImmutableArray(),
+                            updatedMethodTokens,
+                            lineEdits,
+                            nonRemappableRegions,
+                            activeStatementsInUpdatedMethods));
+
+                        emitBaselines.Add((project.Id, emitResult.Baseline));
                     }
                     else
                     {
-                        Emit();
+                        // error
+                        isBlocked = true;
                     }
 
-                    void Emit()
-                    {
-                        Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
-
-                        // TODO: Use moduleLoaded to determine whether or not to create an initial baseline, once we move OOP.
-                        var baseline = DebuggingSession.GetOrCreateEmitBaseline(project.Id, mvid, DebugeeModuleMetadataProvider);
-
-                        // The metadata blob is guaranteed to not be disposed while "continue" operation is being executed.
-                        // If it is disposed it means it had been disposed when "continue" operation started.
-                        if (baseline == null || baseline.OriginalMetadata.IsDisposed)
-                        {
-                            // If we have no baseline the module has not been loaded yet.
-                            // We need to create the baseline from compiler outputs.
-                            var outputs = DebuggingSession.GetCompilationOutputs(project);
-                            if (CreateInitialBaselineForDeferredModuleUpdate(outputs, out var createBaselineDiagnostics, out baseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
-                            {
-                                readers.Add(metadataReaderProvider);
-                                readers.Add(debugInfoReaderProvider);
-                            }
-                            else
-                            {
-                                // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
-                                // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
-                                diagnostics.Add((project.Id, createBaselineDiagnostics));
-                                Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics);
-                                isBlocked = true;
-                                return;
-                            }
-                        }
-
-                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", project.Id.DebugName, project.Id);
-
-                        using var pdbStream = SerializableBytes.CreateWritableStream();
-                        using var metadataStream = SerializableBytes.CreateWritableStream();
-                        using var ilStream = SerializableBytes.CreateWritableStream();
-
-                        var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
-
-                        var emitResult = currentCompilation.EmitDifference(
-                            baseline,
-                            projectChanges.SemanticEdits,
-                            projectChanges.AddedSymbols.Contains,
-                            metadataStream,
-                            ilStream,
-                            pdbStream,
-                            updatedMethods,
-                            cancellationToken);
-
-                        if (emitResult.Success)
-                        {
-                            var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
-
-                            // Determine all active statements whose span changed and exception region span deltas.
-                            GetActiveStatementAndExceptionRegionSpans(
-                                mvid,
-                                baseActiveStatements,
-                                baseActiveExceptionRegions,
-                                updatedMethodTokens,
-                                _nonRemappableRegions,
-                                projectChanges.NewActiveStatements,
-                                out var activeStatementsInUpdatedMethods,
-                                out var nonRemappableRegions);
-
-                            deltas.Add(new Deltas(
-                                mvid,
-                                ilStream.ToImmutableArray(),
-                                metadataStream.ToImmutableArray(),
-                                pdbStream.ToImmutableArray(),
-                                updatedMethodTokens,
-                                lineEdits,
-                                nonRemappableRegions,
-                                activeStatementsInUpdatedMethods));
-
-                            emitBaselines.Add((project.Id, emitResult.Baseline));
-                        }
-                        else
-                        {
-                            // error
-                            isBlocked = true;
-                        }
-
-                        // TODO: https://github.com/dotnet/roslyn/issues/36061
-                        // We should only report diagnostics from emit phase.
-                        // Syntax and semantic diagnostics are already reported by the diagnostic analyzer.
-                        // Currently we do not have means to distinguish between diagnostics reported from compilation and emit phases.
-                        // Querying diagnostics of the entire compilation or just the updated files migth be slow.
-                        // In fact, it is desirable to allow emitting deltas for symbols affected by the change while allowing untouched
-                        // method bodies to have errors.
-                        diagnostics.Add((project.Id, emitResult.Diagnostics));
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics);
-                    }
+                    // TODO: https://github.com/dotnet/roslyn/issues/36061
+                    // We should only report diagnostics from emit phase.
+                    // Syntax and semantic diagnostics are already reported by the diagnostic analyzer.
+                    // Currently we do not have means to distinguish between diagnostics reported from compilation and emit phases.
+                    // Querying diagnostics of the entire compilation or just the updated files migth be slow.
+                    // In fact, it is desirable to allow emitting deltas for symbols affected by the change while allowing untouched
+                    // method bodies to have errors.
+                    diagnostics.Add((project.Id, emitResult.Diagnostics));
+                    Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics);
                 }
 
                 if (isBlocked)
@@ -900,74 +860,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private static unsafe bool CreateInitialBaselineForDeferredModuleUpdate(
-            CompilationOutputs compilationOutputs,
-            out ImmutableArray<Diagnostic> diagnostics,
-            [NotNullWhen(true)] out EmitBaseline? baseline,
-            [NotNullWhen(true)] out DebugInformationReaderProvider? debugInfoReaderProvider,
-            [NotNullWhen(true)] out MetadataReaderProvider? metadataReaderProvider)
-        {
-            // Since the module has not been loaded to the debuggee the debugger does not have its metadata or symbols available yet.
-            // Read the metadata and symbols from the disk. Close the files as soon as we are done emitting the delta to minimize 
-            // the time when they are being locked. Since we need to use the baseline that is produced by delta emit for the subsequent
-            // delta emit we need to keep the module metadata and symbol info backing the symbols of the baseline alive in memory. 
-            // Alternatively, we could drop the data once we are done with emitting the delta and re-emit the baseline again 
-            // when we need it next time and the module is loaded.
-
-            diagnostics = default;
-            baseline = null;
-            debugInfoReaderProvider = null;
-            metadataReaderProvider = null;
-
-            var success = false;
-            var fileBeingRead = compilationOutputs.PdbDisplayPath;
-            try
-            {
-                debugInfoReaderProvider = compilationOutputs.OpenPdb();
-                if (debugInfoReaderProvider == null)
-                {
-                    throw new FileNotFoundException();
-                }
-
-                var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
-
-                fileBeingRead = compilationOutputs.AssemblyDisplayPath;
-
-                metadataReaderProvider = compilationOutputs.OpenAssemblyMetadata(prefetch: true);
-                if (metadataReaderProvider == null)
-                {
-                    throw new FileNotFoundException();
-                }
-
-                var metadataReader = metadataReaderProvider.GetMetadataReader();
-                var moduleMetadata = ModuleMetadata.CreateFromMetadata((IntPtr)metadataReader.MetadataPointer, metadataReader.MetadataLength);
-
-                baseline = EmitBaseline.CreateInitialBaseline(
-                    moduleMetadata,
-                    debugInfoReader.GetDebugInfo,
-                    debugInfoReader.GetLocalSignature,
-                    debugInfoReader.IsPortable);
-
-                success = true;
-                return true;
-            }
-            catch (Exception e)
-            {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
-                diagnostics = ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { fileBeingRead, e.Message }));
-            }
-            finally
-            {
-                if (!success)
-                {
-                    debugInfoReaderProvider?.Dispose();
-                    metadataReaderProvider?.Dispose();
-                }
-            }
-
-            return false;
         }
 
         // internal for testing

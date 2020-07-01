@@ -8,11 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Symbols;
-
+using Roslyn.Utilities;
 using Dbg = Microsoft.VisualStudio.Debugger.UI.Interfaces;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
@@ -21,34 +22,64 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     internal sealed class VisualStudioActiveStatementTracker : Dbg.IManagedActiveStatementTracker
     {
         private readonly Workspace _workspace;
-        private readonly IEditAndContinueWorkspaceService _encService;
-        private readonly IActiveStatementTrackingService _activeStatementTrackingService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioActiveStatementTracker(VisualStudioWorkspace workspace)
         {
             _workspace = workspace;
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-            _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
         }
 
         public async Task<DkmTextSpan?> GetCurrentActiveStatementPositionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
         {
-            var solution = _workspace.CurrentSolution;
-
-            var activeStatementSpanProvider = new SolutionActiveStatementSpanProvider(async (documentId, cancellationToken) =>
+            try
             {
-                var document = solution.GetRequiredDocument(documentId);
-                return await _activeStatementTrackingService.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
-            });
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    return null;
+                }
 
-            var instructionId = new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset);
-            var span = await _encService.GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instructionId, cancellationToken).ConfigureAwait(false);
-            return span?.ToDebuggerSpan();
+                var span = await client.RunRemoteAsync<LinePositionSpan?>(
+                    WellKnownServiceHubService.RemoteEditAndContinueService,
+                    nameof(IRemoteEditAndContinueService.GetCurrentActiveStatementPositionAsync),
+                    solution: _workspace.CurrentSolution,
+                    new object[] { new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset) },
+                    callbackTarget: null,
+                    cancellationToken).ConfigureAwait(false);
+
+                return span?.ToDebuggerSpan();
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                return null;
+            }
         }
 
-        public Task<bool?> IsActiveStatementInExceptionRegionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
-            => _encService.IsActiveStatementInExceptionRegionAsync(new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset), cancellationToken);
+        public async Task<bool?> IsActiveStatementInExceptionRegionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    return null;
+                }
+
+                var result = await client.RunRemoteAsync<bool?>(
+                    WellKnownServiceHubService.RemoteEditAndContinueService,
+                    nameof(IRemoteEditAndContinueService.IsActiveStatementInExceptionRegionAsync),
+                    solution: null,
+                    new object[] { moduleId, methodToken, methodVersion, ilOffset },
+                    callbackTarget: null,
+                    cancellationToken).ConfigureAwait(false);
+
+                return result;
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                return null;
+            }
+        }
     }
 }

@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 (WellKnownServiceHubService.RemoteProjectTelemetryService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService) + Suffix64,
                 (WellKnownServiceHubService.RemoteTodoCommentsService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService),
                 (WellKnownServiceHubService.RemoteTodoCommentsService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService) + Suffix64,
+                (WellKnownServiceHubService.RemoteEditAndContinueService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteEditAndContinueService),
+                (WellKnownServiceHubService.RemoteEditAndContinueService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteEditAndContinueService) + Suffix64,
                 (WellKnownServiceHubService.LanguageServer, false) => Prefix + nameof(WellKnownServiceHubService.LanguageServer),
                 (WellKnownServiceHubService.LanguageServer, true) => Prefix + nameof(WellKnownServiceHubService.LanguageServer) + Suffix64,
 

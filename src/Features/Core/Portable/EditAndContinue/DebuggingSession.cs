@@ -6,11 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 #nullable enable
@@ -174,11 +179,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (!update.ModuleReaders.IsEmpty)
                 {
-                    if (_lazyBaselineModuleReaders == null)
-                    {
-                        _lazyBaselineModuleReaders = new List<IDisposable>();
-                    }
-
+                    _lazyBaselineModuleReaders ??= new List<IDisposable>();
                     _lazyBaselineModuleReaders.AddRange(update.ModuleReaders);
                 }
             }
@@ -237,48 +238,114 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Get <see cref="EmitBaseline"/> for given project.
-        /// Must be called on MTA thread.
         /// </summary>
-        /// <returns>Null if the module corresponding to he project hasn't been loaded yet</returns>
-        /// <exception cref="IOException">Error reading project's binary.</exception>
-        public EmitBaseline? GetOrCreateEmitBaseline(ProjectId projectId, Guid mvid, IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
+        /// <returns>True unless the project outputs can't be read.</returns>
+        public bool TryGetOrCreateEmitBaseline(
+            Project project,
+            ArrayBuilder<IDisposable> readers,
+            out ImmutableArray<Diagnostic> diagnostics,
+            [NotNullWhen(true)] out EmitBaseline? baseline)
         {
-            Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
-
-            EmitBaseline? baseline;
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectEmitBaselines.TryGetValue(projectId, out baseline))
+                if (_projectEmitBaselines.TryGetValue(project.Id, out baseline))
                 {
-                    return baseline;
+                    diagnostics = ImmutableArray<Diagnostic>.Empty;
+                    return true;
                 }
             }
 
-            var moduleInfo = debugeeModuleMetadataProvider.TryGetBaselineModuleInfo(mvid);
-            if (moduleInfo == null)
+            var outputs = GetCompilationOutputs(project);
+            if (!TryCreateInitialBaseline(outputs, out diagnostics, out var newBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
             {
-                // Module not loaded.
-                // Do not cache this result as the module may be loaded in the next edit session.
-                return null;
+                // Unable to read the DLL/PDB at this point (it might be open by another process).
+                // Don't cache the failure so that the user can attempt to apply changes again.
+                return false;
             }
-
-            var infoReader = EditAndContinueMethodDebugInfoReader.Create(moduleInfo.SymReader, version: 1);
-
-            var newBaseline = EmitBaseline.CreateInitialBaseline(
-                moduleInfo.Metadata,
-                infoReader.GetDebugInfo,
-                infoReader.GetLocalSignature,
-                infoReader.IsPortable);
 
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectEmitBaselines.TryGetValue(projectId, out baseline))
+                if (_projectEmitBaselines.TryGetValue(project.Id, out baseline))
                 {
-                    return baseline;
+                    metadataReaderProvider.Dispose();
+                    debugInfoReaderProvider.Dispose();
+                    return true;
                 }
 
-                return _projectEmitBaselines[projectId] = newBaseline;
+                _projectEmitBaselines[project.Id] = newBaseline;
             }
+
+            readers.Add(metadataReaderProvider);
+            readers.Add(debugInfoReaderProvider);
+            baseline = newBaseline;
+            return true;
+        }
+
+        private static unsafe bool TryCreateInitialBaseline(
+            CompilationOutputs compilationOutputs,
+            out ImmutableArray<Diagnostic> diagnostics,
+            [NotNullWhen(true)] out EmitBaseline? baseline,
+            [NotNullWhen(true)] out DebugInformationReaderProvider? debugInfoReaderProvider,
+            [NotNullWhen(true)] out MetadataReaderProvider? metadataReaderProvider)
+        {
+            // Read the metadata and symbols from the disk. Close the files as soon as we are done emitting the delta to minimize 
+            // the time when they are being locked. Since we need to use the baseline that is produced by delta emit for the subsequent
+            // delta emit we need to keep the module metadata and symbol info backing the symbols of the baseline alive in memory. 
+            // Alternatively, we could drop the data once we are done with emitting the delta and re-emit the baseline again 
+            // when we need it next time and the module is loaded.
+
+            diagnostics = default;
+            baseline = null;
+            debugInfoReaderProvider = null;
+            metadataReaderProvider = null;
+
+            var success = false;
+            var fileBeingRead = compilationOutputs.PdbDisplayPath;
+            try
+            {
+                debugInfoReaderProvider = compilationOutputs.OpenPdb();
+                if (debugInfoReaderProvider == null)
+                {
+                    throw new FileNotFoundException();
+                }
+
+                var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
+
+                fileBeingRead = compilationOutputs.AssemblyDisplayPath;
+
+                metadataReaderProvider = compilationOutputs.OpenAssemblyMetadata(prefetch: true);
+                if (metadataReaderProvider == null)
+                {
+                    throw new FileNotFoundException();
+                }
+
+                var metadataReader = metadataReaderProvider.GetMetadataReader();
+                var moduleMetadata = ModuleMetadata.CreateFromMetadata((IntPtr)metadataReader.MetadataPointer, metadataReader.MetadataLength);
+
+                baseline = EmitBaseline.CreateInitialBaseline(
+                    moduleMetadata,
+                    debugInfoReader.GetDebugInfo,
+                    debugInfoReader.GetLocalSignature,
+                    debugInfoReader.IsPortable);
+
+                success = true;
+                return true;
+            }
+            catch (Exception e)
+            {
+                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
+                diagnostics = ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { fileBeingRead, e.Message }));
+            }
+            finally
+            {
+                if (!success)
+                {
+                    debugInfoReaderProvider?.Dispose();
+                    metadataReaderProvider?.Dispose();
+                }
+            }
+
+            return false;
         }
 
         private static ImmutableDictionary<K, ImmutableArray<V>> GroupToImmutableDictionary<K, V>(IEnumerable<IGrouping<K, V>> items)

@@ -9,14 +9,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Roslyn.Utilities;
+
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
@@ -24,34 +25,37 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class VisualStudioManagedModuleUpdateProvider : IEditAndContinueManagedModuleUpdateProvider
     {
-        private readonly IEditAndContinueWorkspaceService _encService;
         private readonly Workspace _workspace;
-        private readonly IActiveStatementTrackingService _activeStatementTrackingService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioManagedModuleUpdateProvider(VisualStudioWorkspace workspace)
-        {
-            _workspace = workspace;
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-            _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
-        }
-
-        private SolutionActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
-            => new SolutionActiveStatementSpanProvider((documentId, cancellationToken) =>
-                _activeStatementTrackingService.GetSpansAsync(solution.GetRequiredDocument(documentId), cancellationToken));
+            => _workspace = workspace;
 
         /// <summary>
         /// Returns true if any changes have been made to the source since the last changes had been applied.
         /// </summary>
         public async Task<bool> HasChangesAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
-            var solution = _workspace.CurrentSolution;
-
             try
             {
-                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                return await _encService.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
+                var solution = _workspace.CurrentSolution;
+
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    return true;
+                }
+
+                var result = await client.RunRemoteAsync<bool>(
+                    WellKnownServiceHubService.RemoteEditAndContinueService,
+                    nameof(IRemoteEditAndContinueService.HasChangesAsync),
+                    solution,
+                    new object[] { sourceFilePath },
+                    callbackTarget: null,
+                    cancellationToken).ConfigureAwait(false);
+
+                return result;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -61,37 +65,80 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         public async Task<ManagedModuleUpdates> GetManagedModuleUpdatesAsync(CancellationToken cancellationToken)
         {
-            var solution = _workspace.CurrentSolution;
-
             try
             {
-                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                var solution = _workspace.CurrentSolution;
+
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<DkmManagedModuleUpdate>.Empty.ToReadOnlyCollection());
+                }
+
+                var (summary, deltas) = await client.RunRemoteAsync<(SolutionUpdateStatus, ImmutableArray<Deltas>)>(
+                    WellKnownServiceHubService.RemoteEditAndContinueService,
+                    nameof(IRemoteEditAndContinueService.EmitSolutionUpdateAsync),
+                    solution,
+                    Array.Empty<object>(),
+                    callbackTarget: null,
+                    cancellationToken).ConfigureAwait(false);
+
                 return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate).ToReadOnlyCollection());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                _encService.ReportApplyChangesException(solution, e.Message);
                 return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<DkmManagedModuleUpdate>.Empty.ToReadOnlyCollection());
             }
         }
 
+#pragma warning disable VSTHRD102 // TODO: Implement internal logic asynchronously
         public void CommitUpdates()
+            => ThreadHelper.JoinableTaskFactory.Run(() => CommitUpdatesAsync(CancellationToken.None));
+
+        public void DiscardUpdates()
+            => ThreadHelper.JoinableTaskFactory.Run(() => DiscardUpdatesAsync(CancellationToken.None));
+#pragma warning restore
+
+        private async Task CommitUpdatesAsync(CancellationToken cancellationToken)
         {
             try
             {
-                _encService.CommitSolutionUpdate();
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    return;
+                }
+
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.RemoteEditAndContinueService,
+                    nameof(IRemoteEditAndContinueService.CommitUpdateAsync),
+                    solution: null,
+                    Array.Empty<object>(),
+                    callbackTarget: null,
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
             }
         }
 
-        public void DiscardUpdates()
+        private async Task DiscardUpdatesAsync(CancellationToken cancellationToken)
         {
             try
             {
-                _encService.DiscardSolutionUpdate();
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    return;
+                }
+
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.RemoteEditAndContinueService,
+                    nameof(IRemoteEditAndContinueService.DiscardUpdatesAsync),
+                    solution: null,
+                    Array.Empty<object>(),
+                    callbackTarget: null,
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {

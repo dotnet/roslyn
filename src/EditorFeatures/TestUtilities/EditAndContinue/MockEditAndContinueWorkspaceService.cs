@@ -6,12 +6,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -54,6 +51,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public void StartDebuggingSession(Solution solution) => throw new NotImplementedException();
 
-        public void StartEditSession(ActiveStatementProvider activeStatementsProvider) => throw new NotImplementedException();
+        public void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider) => throw new NotImplementedException();
     }
 }

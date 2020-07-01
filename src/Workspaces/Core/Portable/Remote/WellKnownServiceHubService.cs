@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Remote
         RemoteDesignerAttributeService,
         RemoteProjectTelemetryService,
         RemoteTodoCommentsService,
+        RemoteEditAndContinueService,
+
         LanguageServer,
         IntelliCode,
         Razor,

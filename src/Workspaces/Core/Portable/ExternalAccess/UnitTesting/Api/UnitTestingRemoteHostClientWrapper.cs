@@ -25,6 +25,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         [MemberNotNullWhen(false, nameof(UnderlyingObject))]
         public bool IsDefault => UnderlyingObject == null;
 
+        private static WellKnownServiceHubService ToWellKnownService(UnitTestingServiceHubService service)
+            => service switch
+            {
+                UnitTestingServiceHubService.LiveUnitTestingBuildService => WellKnownServiceHubService.LiveUnitTestingBuildService,
+                UnitTestingServiceHubService.UnitTestingAnalysisService => WellKnownServiceHubService.UnitTestingAnalysisService,
+                UnitTestingServiceHubService.UnitTestingSourceLookupService => WellKnownServiceHubService.UnitTestingSourceLookupService,
+                _ => throw ExceptionUtilities.UnexpectedValue(service)
+            };
+
         public static async Task<UnitTestingRemoteHostClientWrapper?> TryGetClientAsync(HostWorkspaceServices services, CancellationToken cancellationToken = default)
         {
             var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
@@ -37,20 +46,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public async Task<bool> TryRunRemoteAsync(UnitTestingServiceHubService service, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(IsDefault);
-            await UnderlyingObject.RunRemoteAsync((WellKnownServiceHubService)service, targetName, solution, arguments, callbackTarget, cancellationToken).ConfigureAwait(false);
+            await UnderlyingObject.RunRemoteAsync(ToWellKnownService(service), targetName, solution, arguments, callbackTarget, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
         public async Task<Optional<T>> TryRunRemoteAsync<T>(UnitTestingServiceHubService service, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(IsDefault);
-            return await UnderlyingObject.RunRemoteAsync<T>((WellKnownServiceHubService)service, targetName, solution, arguments, callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await UnderlyingObject.RunRemoteAsync<T>(ToWellKnownService(service), targetName, solution, arguments, callbackTarget, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<UnitTestingRemoteServiceConnectionWrapper> CreateConnectionAsync(UnitTestingServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(IsDefault);
-            return new UnitTestingRemoteServiceConnectionWrapper(await UnderlyingObject.CreateConnectionAsync((WellKnownServiceHubService)service, callbackTarget, cancellationToken).ConfigureAwait(false));
+            return new UnitTestingRemoteServiceConnectionWrapper(await UnderlyingObject.CreateConnectionAsync(ToWellKnownService(service), callbackTarget, cancellationToken).ConfigureAwait(false));
         }
 
         [Obsolete]

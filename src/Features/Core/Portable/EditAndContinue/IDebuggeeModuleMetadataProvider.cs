@@ -16,14 +16,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal interface IDebuggeeModuleMetadataProvider
     {
         /// <summary>
-        /// Finds a module of given MVID in one of the processes being debugged and returns its baseline metadata and symbols.
-        /// Shall only be called while in debug mode.
-        /// Shall only be called on MTA thread.
-        /// </summary>
-        /// <returns>Null, if the module with the specified MVID is not loaded.</returns>
-        DebuggeeModuleInfo? TryGetBaselineModuleInfo(Guid mvid);
-
-        /// <summary>
         /// Checks whether EnC is allowed for all loaded instances of module with specified <paramref name="mvid"/>.
         /// </summary>
         /// <returns>
