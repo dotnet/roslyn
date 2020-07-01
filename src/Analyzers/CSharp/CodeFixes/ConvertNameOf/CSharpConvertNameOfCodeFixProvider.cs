@@ -61,10 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
         internal static async Task ConvertNameOfAsync(
             SyntaxEditor editor, MemberAccessExpressionSyntax node)
         {
+            var expression = node.Expression;
+            var idName = expression is TypeOfExpressionSyntax identifierName
+                ? identifierName.Type.ToString()
+                : expression.ToString();
 
-            var identifier = node.Expression.ChildNodes().OfType<IdentifierNameSyntax>().First().Identifier.ValueText;
             var nameOfSyntax = SyntaxFactory.
-                ParseExpression(string.Format("nameof({0})", identifier)).
+                ParseExpression(string.Format("nameof({0})", idName)).
                 WithLeadingTrivia(node.GetLeadingTrivia()).
                 WithTrailingTrivia(node.GetTrailingTrivia());
 
