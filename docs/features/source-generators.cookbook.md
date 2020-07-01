@@ -456,7 +456,7 @@ public class MyGenerator : ISourceGenerator
 - As a generator author I want to make decisions based on the values contained in the project file
 - As a user of a generator I want to be able to customize the generated code and override defaults.
 
-**Solution:** MSBuild will automatically translate specified properties and metadata into a global analyzer config that can be read by a generator. A generator author specifies the properties and metadata they want to make available by adding items to the `CompilerVisibleProperty` and `CompilerVisibleMetadata` item groups. These can be added via a props or targets file when packaging the generator as a NuGet package.
+**Solution:** MSBuild will automatically translate specified properties and metadata into a global analyzer config that can be read by a generator. A generator author specifies the properties and metadata they want to make available by adding items to the `CompilerVisibleProperty` and `CompilerVisibleItemMetadata` item groups. These can be added via a props or targets file when packaging the generator as a NuGet package.
 
 For example, consider a generator that creates source based on additional files, and wants to allow a user to enable or disable logging via the project file. The author would specify in their props file that they want to make the specified MSBuild property visible to the compiler:
 
@@ -474,11 +474,11 @@ context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.MyGenera
 
 A user can thus enable, or disable logging, by setting a property in their project file.
 
-Now, consider that the generator author wants to optionally allow opting in/out of logging on a per-additional file basis. The author can request that MSBuild emit the value of metadata for the specified file, by adding to the `CompilerVisibleMetadata` item group. The author specifies both the MSBuild itemType they want to read the metadata from, in this case `AdditionalFiles`, and the name of the metadata that they want to retrieve for them.
+Now, consider that the generator author wants to optionally allow opting in/out of logging on a per-additional file basis. The author can request that MSBuild emit the value of metadata for the specified file, by adding to the `CompilerVisibleItemMetadata` item group. The author specifies both the MSBuild itemType they want to read the metadata from, in this case `AdditionalFiles`, and the name of the metadata that they want to retrieve for them.
 
 ```xml
 <ItemGroup>
-    <CompilerVisibleMetadata Include="AdditionalFiles" MetadataName="MyGenerator_EnableLogging" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="MyGenerator_EnableLogging" />
 </ItemGroup>
 ```
 

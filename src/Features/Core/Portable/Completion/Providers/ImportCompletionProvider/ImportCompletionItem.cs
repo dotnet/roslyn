@@ -20,22 +20,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
-        private const string SymbolKeyData = nameof(SymbolKeyData);
+        private const string MethodKey = nameof(MethodKey);
+        private const string ReceiverKey = nameof(ReceiverKey);
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
-            => Create(typeSymbol.Name, typeSymbol.Arity, containingNamespace, typeSymbol.GetGlyph(), genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, symbolKeyData: null);
+            => Create(typeSymbol.Name, typeSymbol.Arity, containingNamespace, typeSymbol.GetGlyph(), genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, extensionMethodData: null);
 
-        public static CompletionItem Create(string name, int arity, string containingNamespace, Glyph glyph, string genericTypeSuffix, CompletionItemFlags flags, string? symbolKeyData)
+        public static CompletionItem Create(string name, int arity, string containingNamespace, Glyph glyph, string genericTypeSuffix, CompletionItemFlags flags, (string methodSymbolKey, string receiverTypeSymbolKey)? extensionMethodData)
         {
             ImmutableDictionary<string, string>? properties = null;
 
-            if (symbolKeyData != null || arity > 0)
+            if (extensionMethodData != null || arity > 0)
             {
                 var builder = PooledDictionary<string, string>.GetInstance();
 
-                if (symbolKeyData != null)
+                if (extensionMethodData.HasValue)
                 {
-                    builder.Add(SymbolKeyData, symbolKeyData);
+                    builder.Add(MethodKey, extensionMethodData.Value.methodSymbolKey);
+                    builder.Add(ReceiverKey, extensionMethodData.Value.receiverTypeSymbolKey);
                 }
                 else
                 {
@@ -128,9 +130,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static ISymbol? GetSymbol(CompletionItem item, Compilation compilation)
         {
             // If we have SymbolKey data (i.e. this is an extension method item), use it to recover symbol
-            if (item.Properties.TryGetValue(SymbolKeyData, out var symbolId))
+            if (item.Properties.TryGetValue(MethodKey, out var methodSymbolKey))
             {
-                return SymbolKey.ResolveString(symbolId, compilation).GetAnySymbol();
+                var methodSymbol = SymbolKey.ResolveString(methodSymbolKey, compilation).GetAnySymbol() as IMethodSymbol;
+
+                if (methodSymbol != null)
+                {
+                    // Get reduced extension method symbol for the given receiver type.
+                    if (item.Properties.TryGetValue(ReceiverKey, out var receiverTypeKey))
+                    {
+                        if (SymbolKey.ResolveString(receiverTypeKey, compilation).GetAnySymbol() is ITypeSymbol receiverTypeSymbol)
+                        {
+                            return methodSymbol.ReduceExtensionMethod(receiverTypeSymbol) ?? methodSymbol;
+                        }
+                    }
+                }
+
+                return methodSymbol;
             }
 
             // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all

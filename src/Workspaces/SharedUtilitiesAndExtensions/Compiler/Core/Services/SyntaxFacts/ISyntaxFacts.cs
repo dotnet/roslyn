@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
+        bool IsParameterList(SyntaxNode node);
 
         bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
