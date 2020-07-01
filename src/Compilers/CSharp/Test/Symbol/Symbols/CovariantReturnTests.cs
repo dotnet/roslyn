@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -3502,12 +3500,14 @@ public class Base2<Ptring> : Base1<Ptring>
 {{
     public virtual string M(out string x, ref Ptring y) {{ x = null; return null; }}
     {(methodRuntimeOverriddenSignatureAmbiguity ? "public virtual string M(out string x, out string y) { x = y = null; return null; }" : "")}
-}}";
+}}
+";
             var source = $@"
 public class Derived : Base2<string>
 {{
     public override string M(ref string x, out string y) {{ y = null; return null; }}
-}}";
+}}
+";
             var parseOptions = withCovariantReturnFeatureEnabled ? TestOptions.WithCovariantReturns : TestOptions.WithoutCovariantReturns;
             var corlibSource = withCovariantCapableRuntime ? corlibWithCovariantSupport : corlibWithoutCovariantSupport;
 
@@ -3519,7 +3519,6 @@ public class Derived : Base2<string>
             baseCompilation.VerifyDiagnostics();
             var baseMetadata = baseCompilation.ToMetadataReference();
 
-            var comp = CreateCompilation(source, references: new[] { corlibRef, baseMetadata }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
             var expectedDiagnostics = new DiagnosticDescription[0];
             bool anyErrors = false;
             if (useCovariantReturns)
@@ -3529,7 +3528,7 @@ public class Derived : Base2<string>
                     expectedDiagnostics = expectedDiagnostics.Append(
                         // (4,28): error CS8778: 'Derived.M(ref string, out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base1<string>.M(ref string, out string)'
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base1<string>.M(ref string, out string)", "object").WithLocation(4, 28)
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base1<string>.M(ref string, out string)", "object")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -3538,7 +3537,7 @@ public class Derived : Base2<string>
                     expectedDiagnostics = expectedDiagnostics.Append(
                         // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -3553,23 +3552,47 @@ public class Derived : Base2<string>
                     ).ToArray();
                 warned = true;
             }
-            comp.VerifyDiagnostics(expectedDiagnostics);
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.Equal(warned, shouldWarn);
             // All of the overrides in this test require a methodimpl because they are on a different class from the runtime override.
             bool requiresMethodImpl = true;
-            Assert.Equal(requiresMethodImpl, useMethodImpl);
 
-            verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
-            // PROTOTYPE(ngafter): for some reason retargeting is not working here when covariant returns are used.
-            // The return type of the method in base is being reported as 'System.Object[missing]'
-            if (!useCovariantReturns)
-                verify(RetargetingView(comp, "", references: new[] { corlib2Ref, baseMetadata }, targetFramework: TargetFramework.Empty));
-            if (!anyErrors)
-                verify(MetadataView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+            {
+                var comp = CreateCompilation(source, references: new[] { corlibRef, baseMetadata }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.Equal(warned, shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+                // PROTOTYPE(ngafter): for some reason retargeting is not working here when covariant returns are used.
+                // The return type of the method in base is being reported as 'System.Object[missing]'
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref, baseMetadata }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+            }
+
+            {
+                var comp = CreateCompilation(baseSource + source, references: new[] { corlibRef }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.Equal(warned, shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+                // PROTOTYPE(ngafter): for some reason retargeting is not working here when covariant returns are used.
+                // The return type of the method in base is being reported as 'System.Object[missing]'
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+            }
 
             void verify(CSharpCompilation compilation)
             {
@@ -3602,12 +3625,14 @@ public class Base2<Ptring> : Base1<Ptring>
 {{
     {(methodRuntimeOverriddenSignatureAmbiguity ? "public virtual string M(out string x, out string y) { x = y = null; return null; }" : "")}
     public virtual string M(out string x, ref Ptring y) {{ x = null; return null; }}
-}}";
+}}
+";
             var source = $@"
 public class Derived : Base2<string>
 {{
     public override string M(ref string x, out string y) {{ y = null; return null; }}
-}}";
+}}
+";
             var parseOptions = withCovariantReturnFeatureEnabled ? TestOptions.WithCovariantReturns : TestOptions.WithoutCovariantReturns;
             var corlibSource = withCovariantCapableRuntime ? corlibWithCovariantSupport : corlibWithoutCovariantSupport;
 
@@ -3619,7 +3644,6 @@ public class Derived : Base2<string>
             baseCompilation.VerifyDiagnostics();
             var baseMetadata = baseCompilation.ToMetadataReference();
 
-            var comp = CreateCompilation(source, references: new[] { corlibRef, baseMetadata }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
             var expectedDiagnostics = new DiagnosticDescription[0];
             bool anyErrors = false;
             if (useCovariantReturns)
@@ -3629,7 +3653,7 @@ public class Derived : Base2<string>
                     expectedDiagnostics = expectedDiagnostics.Append(
                         // (4,28): error CS8778: 'Derived.M(ref string, out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base1<string>.M(ref string, out string)'
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base1<string>.M(ref string, out string)", "object").WithLocation(4, 28)
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base1<string>.M(ref string, out string)", "object")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -3638,7 +3662,7 @@ public class Derived : Base2<string>
                     expectedDiagnostics = expectedDiagnostics.Append(
                         // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -3653,21 +3677,43 @@ public class Derived : Base2<string>
                     ).ToArray();
                 warned = true;
             }
-            comp.VerifyDiagnostics(expectedDiagnostics);
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.Equal(warned, shouldWarn);
             // All of the overrides in this test require a methodimpl because they are on a different class from the runtime override.
             bool requiresMethodImpl = true;
-            Assert.Equal(requiresMethodImpl, useMethodImpl);
 
-            verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
-            if (!useCovariantReturns)
-                verify(RetargetingView(comp, "", references: new[] { corlib2Ref, baseMetadata }, targetFramework: TargetFramework.Empty));
-            if (!anyErrors)
-                verify(MetadataView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+            {
+                var comp = CreateCompilation(source, references: new[] { corlibRef, baseMetadata }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.Equal(warned, shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref, baseMetadata }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+            }
+
+            {
+                var comp = CreateCompilation(baseSource + source, references: new[] { corlibRef }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.Equal(warned, shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+            }
 
             void verify(CSharpCompilation compilation)
             {
@@ -3704,12 +3750,14 @@ public class Base<Ptring>
     {(overriddenRuntimeSignatureAmbiguity ? @$"public virtual {overriddenMethodReturnType} M(ref Ptring x, ref Ptring y) {{ return null; }}" : "")}
     public virtual string M(out string x, ref Ptring y) {{ x = null; return null; }}
     {(methodRuntimeOverriddenSignatureAmbiguity ? "public virtual string M(out string x, out string y) { x = y = null; return null; }" : "")}
-}}";
+}}
+";
             var source = $@"
 public class Derived : Base<string>
 {{
     public override string M(ref string x, out string y) {{ y = null; return null; }}
-}}";
+}}
+";
             var parseOptions = withCovariantReturnFeatureEnabled ? TestOptions.WithCovariantReturns : TestOptions.WithoutCovariantReturns;
             var corlibSource = withCovariantCapableRuntime ? corlibWithCovariantSupport : corlibWithoutCovariantSupport;
 
@@ -3721,7 +3769,6 @@ public class Derived : Base<string>
             baseCompilation.VerifyDiagnostics();
             var baseMetadata = baseCompilation.ToMetadataReference();
 
-            var comp = CreateCompilation(source, references: new[] { corlibRef, baseMetadata }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
             var expectedDiagnostics = new DiagnosticDescription[0];
             bool anyErrors = false;
             if (useCovariantReturns)
@@ -3731,7 +3778,7 @@ public class Derived : Base<string>
                     expectedDiagnostics = expectedDiagnostics.Append(
                         // (4,28): error CS8778: 'Derived.M(ref string, out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base<string>.M(ref string, out string)'
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base<string>.M(ref string, out string)", "object").WithLocation(4, 28)
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base<string>.M(ref string, out string)", "object")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -3740,7 +3787,7 @@ public class Derived : Base<string>
                     expectedDiagnostics = expectedDiagnostics.Append(
                         // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -3755,23 +3802,47 @@ public class Derived : Base<string>
                     ).ToArray();
                 warned = true;
             }
-            comp.VerifyDiagnostics(expectedDiagnostics);
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.Equal(warned, shouldWarn);
             // Only if we warned did we not produce a methodimpl due to https://github.com/dotnet/roslyn/issues/45453
             bool requiresMethodImpl = !warned;
-            Assert.Equal(requiresMethodImpl, useMethodImpl);
 
-            verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
-            // PROTOTYPE(ngafter): for some reason retargeting is not working here when covariant returns are used.
-            // The return type of the method in base is being reported as 'System.Object[missing]'
-            if (!useCovariantReturns)
-                verify(RetargetingView(comp, "", references: new[] { corlib2Ref, baseMetadata }, targetFramework: TargetFramework.Empty));
-            if (!anyErrors)
-                verify(MetadataView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+            {
+                var comp = CreateCompilation(source, references: new[] { corlibRef, baseMetadata }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.Equal(warned, shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+                // PROTOTYPE(ngafter): for some reason retargeting is not working here when covariant returns are used.
+                // The return type of the method in base is being reported as 'System.Object[missing]'
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref, baseMetadata }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+            }
+
+            {
+                var comp = CreateCompilation(baseSource + source, references: new[] { corlibRef }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.Equal(warned, shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+                // PROTOTYPE(ngafter): for some reason retargeting is not working here when covariant returns are used.
+                // The return type of the method in base is being reported as 'System.Object[missing]'
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+            }
 
             void verify(CSharpCompilation compilation)
             {
@@ -3801,12 +3872,14 @@ public class Base<Ptring>
     public virtual {overriddenMethodReturnType} M(ref Ptring x, out string y) {{ y = null; return null; }}
     {(methodRuntimeOverriddenSignatureAmbiguity ? "public virtual string M(out string x, out string y) { x = y = null; return null; }" : "")}
     public virtual string M(out string x, ref Ptring y) {{ x = null; return null; }}
-}}";
+}}
+";
             var source = $@"
 public class Derived : Base<string>
 {{
     public override string M(ref string x, out string y) {{ y = null; return null; }}
-}}";
+}}
+";
             var parseOptions = withCovariantReturnFeatureEnabled ? TestOptions.WithCovariantReturns : TestOptions.WithoutCovariantReturns;
             var corlibSource = withCovariantCapableRuntime ? corlibWithCovariantSupport : corlibWithoutCovariantSupport;
 
@@ -3818,7 +3891,6 @@ public class Derived : Base<string>
             baseCompilation.VerifyDiagnostics();
             var baseMetadata = baseCompilation.ToMetadataReference();
 
-            var comp = CreateCompilation(source, references: new[] { corlibRef, baseMetadata }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
             var expectedDiagnostics = new DiagnosticDescription[0];
             bool anyErrors = false;
             if (useCovariantReturns)
@@ -3828,7 +3900,7 @@ public class Derived : Base<string>
                     expectedDiagnostics = expectedDiagnostics.Append(
                         // (4,28): error CS8778: 'Derived.M(ref string, out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base<string>.M(ref string, out string)'
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base<string>.M(ref string, out string)", "object").WithLocation(4, 28)
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(ref string, out string)", "Base<string>.M(ref string, out string)", "object")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -3837,7 +3909,7 @@ public class Derived : Base<string>
                     expectedDiagnostics = expectedDiagnostics.Append(
                         // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                         //     public override string M(ref string x, out string y) { y = null; return null; }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
                         ).ToArray();
                     anyErrors = true;
                 }
@@ -3852,21 +3924,43 @@ public class Derived : Base<string>
                     ).ToArray();
                 warned = true;
             }
-            comp.VerifyDiagnostics(expectedDiagnostics);
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.Equal(warned, shouldWarn);
             // Only if we warned did we not produce a methodimpl due to https://github.com/dotnet/roslyn/issues/45453
             bool requiresMethodImpl = !warned;
-            Assert.Equal(requiresMethodImpl, useMethodImpl);
 
-            verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
-            if (!useCovariantReturns)
-                verify(RetargetingView(comp, "", references: new[] { corlib2Ref, baseMetadata }, targetFramework: TargetFramework.Empty));
-            if (!anyErrors)
-                verify(MetadataView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+            {
+                var comp = CreateCompilation(source, references: new[] { corlibRef, baseMetadata }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.Equal(warned, shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref, baseMetadata }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+            }
+
+            {
+                var comp = CreateCompilation(baseSource + source, references: new[] { corlibRef }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.Equal(warned, shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+            }
 
             void verify(CSharpCompilation compilation)
             {
@@ -3881,6 +3975,114 @@ public class Derived : Base<string>
                     methodName: "Derived.M",
                     overridingMemberDisplay: "System.String Derived.M(ref System.String x, out System.String y)",
                     overriddenMemberDisplay: $"System.{(useCovariantReturns ? "Object" : "String")} Base<System.String>.M(ref System.String x, out System.String y)",
+                    requiresMethodimpl: requiresMethodImpl);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void OverrideAmbiguities_05(
+            [CombinatorialValues(true, false)] bool withCovariantReturnFeatureEnabled,
+            [CombinatorialValues(true, false)] bool withCovariantCapableRuntime
+            )
+        {
+            var baseSource = $@"
+public class Base1<Ptring>
+{{
+    public virtual string M(out string y) {{ y = null; return null; }}
+    public virtual string M(ref Ptring y) {{ return null; }}
+}}
+public class Base2<Ptring> : Base1<Ptring>
+{{
+    public virtual new object M(out string y) {{ y = null; return null; }}
+}}
+";
+            var source = $@"
+public class Derived : Base2<string>
+{{
+    public override string M(out string y) {{ y = null; return null; }}
+}}
+";
+            var parseOptions = withCovariantReturnFeatureEnabled ? TestOptions.WithCovariantReturns : TestOptions.WithoutCovariantReturns;
+            var corlibSource = withCovariantCapableRuntime ? corlibWithCovariantSupport : corlibWithoutCovariantSupport;
+
+            var corlibComp = CreateEmptyCompilation(new string[] { corlibSource }, assemblyName: "corlib1").VerifyDiagnostics();
+            var corlibRef = corlibComp.EmitToImageReference();
+            var corlib2Ref = CreateEmptyCompilation(new string[] { corlibSource }, assemblyName: "corlib2").EmitToImageReference();
+
+            var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty);
+            baseCompilation.VerifyDiagnostics();
+            var baseMetadata = baseCompilation.ToMetadataReference();
+
+            var expectedDiagnostics = new DiagnosticDescription[0];
+            bool anyErrors = false;
+            if (!withCovariantCapableRuntime)
+            {
+                expectedDiagnostics = expectedDiagnostics.Append(
+                    // (4,28): error CS8778: 'Derived.M(out string)': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base2<string>.M(out string)'
+                    //     public override string M(out string y) { y = null; return null; }
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M(out string)", "Base2<string>.M(out string)", "object")
+                    ).ToArray();
+                anyErrors = true;
+            }
+            else if (!withCovariantReturnFeatureEnabled)
+            {
+                expectedDiagnostics = expectedDiagnostics.Append(
+                    // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public override string M(out string y) { y = null; return null; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns")
+                    ).ToArray();
+                anyErrors = true;
+            }
+
+            // All of the overrides in this test require a methodimpl because they are on a different class from the runtime override.
+            bool requiresMethodImpl = true;
+            bool useCovariantReturns = true;
+
+            {
+                var comp = CreateCompilation(source, references: new[] { corlibRef, baseMetadata }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+                // PROTOTYPE(ngafter): for some reason retargeting is not working here when covariant returns are used.
+                // The return type of the method in base is being reported as 'System.Object[missing]'
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref, baseMetadata }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
+            }
+
+            {
+                var comp = CreateCompilation(baseSource + source, references: new[] { corlibRef }, parseOptions: parseOptions, targetFramework: TargetFramework.Empty);
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.Equal(requiresMethodImpl, useMethodImpl);
+
+                verify(SourceView(comp, ""));
+                verify(CompilationReferenceView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+                // PROTOTYPE(ngafter): for some reason retargeting is not working here when covariant returns are used.
+                // The return type of the method in base is being reported as 'System.Object[missing]'
+                if (!useCovariantReturns)
+                    verify(RetargetingView(comp, "", references: new[] { corlib2Ref }, targetFramework: TargetFramework.Empty));
+                if (!anyErrors)
+                    verify(MetadataView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+            }
+
+            void verify(CSharpCompilation compilation)
+            {
+                VerifyOverride(compilation,
+                    methodName: "Derived.M",
+                    overridingMemberDisplay: "System.String Derived.M(out System.String y)",
+                    overriddenMemberDisplay: $"System.Object Base2<System.String>.M(out System.String y)",
                     requiresMethodimpl: requiresMethodImpl);
             }
         }
