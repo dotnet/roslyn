@@ -149,8 +149,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
                 // having to add explicit file watches everywhere.
-                var projectDirectoryToWatch = new FileChangeWatcher.WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
-                _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
+                var directoryName = Path.GetDirectoryName(filePath);
+                _documentFileChangeContext = directoryName != null
+                    ? _workspace.FileChangeWatcher.CreateContext(new FileChangeWatcher.WatchedDirectory(directoryName, fileExtensionToWatch))
+                    : workspace.FileChangeWatcher.CreateContext();
             }
             else
             {

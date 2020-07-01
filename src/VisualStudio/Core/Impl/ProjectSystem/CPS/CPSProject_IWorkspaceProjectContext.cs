@@ -119,7 +119,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                                         ? Path.GetDirectoryName(_visualStudioProject.FilePath)
                                         : Path.GetTempPath();
 
-                    _visualStudioProject.OutputFilePath = Path.Combine(rootDirectory, value);
+                    if (rootDirectory != null)
+                    {
+                        _visualStudioProject.OutputFilePath = Path.Combine(rootDirectory, value!);
+                    }
                 }
                 else
                 {
@@ -128,10 +131,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
                 // Compute the ref path based on the non-ref path. Ideally this should come from the
                 // project system but we don't have a way to fetch that.
-                _visualStudioProject.OutputRefFilePath =
-                    Path.Combine(Path.GetDirectoryName(_visualStudioProject.OutputFilePath),
-                    "ref",
-                    Path.GetFileName(_visualStudioProject.OutputFilePath));
+                var outputDirectory = Path.GetDirectoryName(_visualStudioProject.OutputFilePath);
+                var outputFileName = Path.GetFileName(_visualStudioProject.OutputFilePath);
+                if (outputDirectory != null && outputFileName != null)
+                {
+                    _visualStudioProject.OutputRefFilePath = Path.Combine(outputDirectory, "ref", outputFileName);
+                }
             }
         }
 

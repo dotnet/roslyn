@@ -269,11 +269,17 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var remoteExternalRoot = GetRemoteExternalRoot(filePath);
             if (!string.IsNullOrEmpty(remoteWorkspaceRoot))
             {
-                return AddDocumentToProject(filePath, language, Path.GetFileName(Path.GetDirectoryName(remoteWorkspaceRoot)));
+                var fileName = Path.GetFileName(Path.GetDirectoryName(remoteWorkspaceRoot));
+                return fileName != null
+                    ? AddDocumentToProject(filePath, language, fileName)
+                    : null;
             }
             else if (!string.IsNullOrEmpty(remoteExternalRoot))
             {
-                return AddDocumentToProject(filePath, language, Path.GetFileName(Path.GetDirectoryName(remoteExternalRoot)));
+                var fileName = Path.GetFileName(Path.GetDirectoryName(remoteExternalRoot));
+                return fileName != null
+                    ? AddDocumentToProject(filePath, language, fileName)
+                    : null;
             }
             else
             {
