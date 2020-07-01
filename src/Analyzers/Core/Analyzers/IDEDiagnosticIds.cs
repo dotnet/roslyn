@@ -135,6 +135,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UsePatternCombinatorsDiagnosticId = "IDE0078";
 
+        public const string RemoveUnnecessarySuppressionDiagnosticId = "IDE0079";
+
         public const string RemoveConfusingSuppressionForIsExpressionDiagnosticId = "IDE0080";
         public const string RemoveUnnecessaryByValDiagnosticId = "IDE0081";
 
