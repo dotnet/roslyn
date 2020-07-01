@@ -7999,12 +7999,6 @@ record B(int X, int Y) : A
         IL_0001: throw
     } // end of method A::'<>Clone'
 
-    .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type A::get_EqualityContract()
-    }
-
     .method public final hidebysig virtual 
         instance bool Equals (
             object other
@@ -8098,12 +8092,6 @@ public record B : A {
         IL_0000: ldnull
         IL_0001: throw
     } // end of method A::'<>Clone'
-
-    .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type A::get_EqualityContract()
-    }
 
     .method public newslot hidebysig virtual 
         instance bool Equals (
@@ -8199,12 +8187,6 @@ public record B : A {
         IL_0001: throw
     } // end of method A::'<>Clone'
 
-    .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type A::get_EqualityContract()
-    }
-
     .method public newslot hidebysig 
         instance bool Equals (
             object other
@@ -8298,12 +8280,6 @@ public record B : A {
         IL_0000: ldnull
         IL_0001: throw
     } // end of method A::'<>Clone'
-
-    .method family virtual instance class [mscorlib]System.Type get_EqualityContract() { ldnull ret }
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type A::get_EqualityContract()
-    }
 
     .method public newslot hidebysig virtual 
         instance int32 Equals (
