@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CreateDescriptors(typeof(IRemoteDependentTypeFinderService)),
             CreateDescriptors(typeof(IRemoteGlobalNotificationDeliveryService)),
             CreateDescriptors(typeof(IRemoteCodeLensReferencesService)),
+            CreateDescriptors(typeof(IRemoteEditAndContinueService), callbackInterface: typeof(IRemoteEditAndContinueService.ICallback)),
         });
 
         internal static string GetServiceName(Type serviceInterface)

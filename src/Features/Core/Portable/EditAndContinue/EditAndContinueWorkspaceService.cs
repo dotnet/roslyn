@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -13,8 +14,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -25,12 +28,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
+        [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService)), Shared]
+        private sealed class Factory : IWorkspaceServiceFactory
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory()
+            {
+            }
+
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+            public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
+                => new EditAndContinueWorkspaceService(workspaceServices.Workspace);
+        }
+
         internal static readonly TraceLog Log = new(2048, "EnC");
 
         private readonly Workspace _workspace;
-        private readonly IDiagnosticAnalyzerService _diagnosticService;
-        private readonly IDebuggeeModuleMetadataProvider _debugeeModuleMetadataProvider;
-        private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
         private readonly EditSessionTelemetry _editSessionTelemetry;
         private readonly DebuggingSessionTelemetry _debuggingSessionTelemetry;
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
@@ -48,16 +62,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal EditAndContinueWorkspaceService(
             Workspace workspace,
-            IDiagnosticAnalyzerService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
-            IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
             Func<Project, CompilationOutputs>? testCompilationOutputsProvider = null,
             Action<DebuggingSessionTelemetry.Data>? testReportTelemetry = null)
         {
             _workspace = workspace;
-            _diagnosticService = diagnosticService;
-            _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
-            _debugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
             _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
@@ -69,9 +77,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal DebuggingSession? Test_GetDebuggingSession() => _debuggingSession;
         internal EditSession? Test_GetEditSession() => _editSession;
         internal Workspace Test_GetWorkspace() => _workspace;
-
-        public bool IsDebuggingSessionInProgress
-            => _debuggingSession != null;
 
         private static CompilationOutputs GetCompilationOutputs(Project project)
         {
@@ -97,21 +102,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
-        public void StartEditSession(ActiveStatementProvider activeStatementsProvider)
+        public void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, _debugeeModuleMetadataProvider);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, debuggeeModuleMetadataProvider);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
 
             // clear diagnostics reported during run mode:
-            ClearReportedRunModeDiagnostics();
+            ClearReportedRunModeDiagnostics(out documentsToReanalyze);
         }
 
-        public void EndEditSession()
+        public void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             // first, publish null session:
             var session = Interlocked.Exchange(ref _editSession, null);
@@ -120,15 +125,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // then cancel all ongoing work bound to the session:
             session.Cancel();
 
-            // then clear all reported rude edits:
-            _diagnosticService.Reanalyze(_workspace, documentIds: session.GetDocumentsWithReportedDiagnostics());
+            // clear all reported rude edits:
+            documentsToReanalyze = session.GetDocumentsWithReportedDiagnostics();
 
             _debuggingSessionTelemetry.LogEditSession(_editSessionTelemetry.GetDataAndClear());
 
             session.Dispose();
         }
 
-        public void EndDebuggingSession()
+        public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var debuggingSession = Interlocked.Exchange(ref _debuggingSession, null);
             Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
@@ -138,11 +143,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             _reportTelemetry(_debuggingSessionTelemetry.GetDataAndClear());
 
-            // clear emit/apply diagnostics reported previously:
-            _emitDiagnosticsUpdateSource.ClearDiagnostics();
-
             // clear diagnostics reported during run mode:
-            ClearReportedRunModeDiagnostics();
+            ClearReportedRunModeDiagnostics(out documentsToReanalyze);
 
             debuggingSession.Dispose();
         }
@@ -150,7 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static bool SupportsEditAndContinue(Project project)
             => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
 
-        public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             try
             {
@@ -220,7 +222,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (debuggingSession.AddModulePreparedForUpdate(mvid))
                     {
                         // fire and forget:
-                        _ = Task.Run(() => _debugeeModuleMetadataProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
+                        _ = Task.Run(() => editSession.DebugeeModuleMetadataProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
                     }
                 }
 
@@ -329,18 +331,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void ClearReportedRunModeDiagnostics()
+        private void ClearReportedRunModeDiagnostics(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             // clear diagnostics reported during run mode:
-            ImmutableArray<DocumentId> documentsToReanalyze;
             lock (_documentsWithReportedDiagnosticsDuringRunModeGuard)
             {
                 documentsToReanalyze = _documentsWithReportedDiagnosticsDuringRunMode.ToImmutableArray();
                 _documentsWithReportedDiagnosticsDuringRunMode.Clear();
             }
-
-            // clear all reported run mode diagnostics:
-            _diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
         }
 
         /// <summary>
@@ -356,7 +354,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
         /// the update is valid or not.
         /// </returns>
-        public Task<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
+        public ValueTask<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
         {
             // GetStatusAsync is called outside of edit session when the debugger is determining 
             // whether a source file checksum matches the one in PDB.
@@ -364,19 +362,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSession = _editSession;
             if (editSession == null)
             {
-                return SpecializedTasks.False;
+                return default;
             }
 
             return editSession.HasChangesAsync(solution, solutionActiveStatementSpanProvider, sourceFilePath, cancellationToken);
         }
 
-        public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(
-            Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<DiagnosticData> Diagnostics)>
+            EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
             {
-                return (SolutionUpdateStatus.None, ImmutableArray<Deltas>.Empty);
+                return (SolutionUpdateStatus.None, ImmutableArray<Deltas>.Empty, ImmutableArray<DiagnosticData>.Empty);
             }
 
             var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -385,18 +383,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 editSession.StorePendingUpdate(solution, solutionUpdate);
             }
 
-            // clear emit/apply diagnostics reported previously:
-            _emitDiagnosticsUpdateSource.ClearDiagnostics();
-
-            // report emit/apply diagnostics:
-            foreach (var (projectId, diagnostics) in solutionUpdate.Diagnostics)
-            {
-                _emitDiagnosticsUpdateSource.ReportDiagnostics(_workspace, solution, projectId, diagnostics);
-            }
-
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return (solutionUpdate.Summary, solutionUpdate.Deltas);
+            return (solutionUpdate.Summary, solutionUpdate.Deltas, ToDiagnosticData(solution, solutionUpdate.Diagnostics));
+        }
+
+        private static ImmutableArray<DiagnosticData> ToDiagnosticData(Solution solution, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnosticsByProject)
+        {
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
+
+            foreach (var (projectId, diagnostics) in diagnosticsByProject)
+            {
+                var project = solution.GetRequiredProject(projectId);
+
+                foreach (var diagnostic in diagnostics)
+                {
+                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
+                    var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(diagnostic, project);
+                    result.Add(data);
+                }
+            }
+
+            return result.ToImmutable();
         }
 
         public void CommitSolutionUpdate()
@@ -421,7 +429,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
@@ -453,7 +461,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return spans.ToImmutable();
         }
 
-        public async Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
@@ -483,7 +491,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return analysis.ActiveStatements.SelectAsArray(s => (s.Span, s.Flags));
         }
 
-        public async Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
         {
             try
             {
@@ -544,7 +552,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement 
         /// or the exception regions can't be determined.
         /// </returns>
-        public async Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
         {
             try
             {
@@ -573,17 +581,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 return null;
             }
-        }
-
-        public void ReportApplyChangesException(Solution solution, string message)
-        {
-            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
-
-            _emitDiagnosticsUpdateSource.ReportDiagnostics(
-                _workspace,
-                solution,
-                projectId: null,
-                new[] { Diagnostic.Create(descriptor, Location.None, new[] { message }) });
         }
 
         private static void ReportTelemetry(DebuggingSessionTelemetry.Data data)

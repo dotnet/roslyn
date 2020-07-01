@@ -6,19 +6,39 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
+using System.Xml;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
+    [DataContract]
     internal sealed class Deltas
     {
+        [DataMember(Order = 0)]
         public readonly Guid Mvid;
-        public readonly ILDelta IL;
-        public readonly MetadataDelta Metadata;
 
+        [DataMember(Order = 1)]
+        public readonly ImmutableArray<byte> IL;
+
+        [DataMember(Order = 2)]
+        public readonly ImmutableArray<byte> Metadata;
+
+        [DataMember(Order = 3)]
+        public readonly ImmutableArray<byte> Pdb;
+
+        // Tokens of updated methods. The debugger enumerates this list 
+        // updated methods containing active statements.
+        [DataMember(Order = 4)]
+        public readonly ImmutableArray<int> UpdatedMethods;
+
+        [DataMember(Order = 5)]
         public readonly ImmutableArray<(string SourceFilePath, ImmutableArray<LineChange> Deltas)> LineEdits;
-        public readonly PdbDelta Pdb;
+
+        [DataMember(Order = 6)]
         public readonly ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> NonRemappableRegions;
+
+        [DataMember(Order = 7)]
         public readonly ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> ActiveStatementsInUpdatedMethods;
 
         public Deltas(
@@ -32,9 +52,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods)
         {
             Mvid = mvid;
-            IL = new ILDelta(il);
-            Metadata = new MetadataDelta(metadata);
-            Pdb = new PdbDelta(pdb, updatedMethods);
+            IL = il;
+            Metadata = metadata;
+            Pdb = pdb;
+            UpdatedMethods = updatedMethods;
             NonRemappableRegions = nonRemappableRegions;
             ActiveStatementsInUpdatedMethods = activeStatementsInUpdatedMethods;
             LineEdits = lineEdits;

@@ -14,14 +14,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal interface IDebuggeeModuleMetadataProvider
     {
         /// <summary>
-        /// Finds a module of given MVID in one of the processes being debugged and returns its baseline metadata and symbols.
-        /// Shall only be called while in debug mode.
-        /// Shall only be called on MTA thread.
-        /// </summary>
-        /// <returns>Null, if the module with the specified MVID is not loaded.</returns>
-        DebuggeeModuleInfo? TryGetBaselineModuleInfo(Guid mvid);
-
-        /// <summary>
         /// Checks whether EnC is allowed for all loaded instances of module with specified <paramref name="mvid"/>.
         /// </summary>
         /// <returns>
@@ -29,11 +21,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Returns <code>(0, null)</code> if all loaded instances allow EnC.
         /// Returns error code and a corresponding localized error message otherwise.
         /// </returns>
-        Task<(int errorCode, string? errorMessage)?> GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken);
+        ValueTask<(int errorCode, string? errorMessage)?> GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken);
 
         /// <summary>
         /// Notifies the debugger that a document changed that may affect the given module when the change is applied.
         /// </summary>
-        Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken);
+        ValueTask PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken);
     }
 }

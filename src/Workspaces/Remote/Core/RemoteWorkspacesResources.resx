@@ -183,4 +183,7 @@
   <data name="FeatureName_TodoCommentsDiscovery" xml:space="preserve">
     <value>TODO comments discovery</value>
   </data>
+  <data name="FeatureName_EditAndContinue" xml:space="preserve">
+    <value>Edit and Continue</value>
+  </data>
 </root>

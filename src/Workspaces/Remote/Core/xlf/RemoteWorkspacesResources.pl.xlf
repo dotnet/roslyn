@@ -32,6 +32,11 @@
         <target state="new">Document higlights</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
         <source>Encapsulate field refactoring</source>
         <target state="new">Encapsulate field refactoring</target>

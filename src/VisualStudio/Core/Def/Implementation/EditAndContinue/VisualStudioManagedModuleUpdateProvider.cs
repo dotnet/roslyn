@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -20,27 +19,31 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Roslyn.Utilities;
 
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
+
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     [Export(typeof(IEditAndContinueManagedModuleUpdateProvider)), Shared]
     [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class VisualStudioManagedModuleUpdateProvider : IEditAndContinueManagedModuleUpdateProvider
     {
-        private readonly IEditAndContinueWorkspaceService _encService;
-        private readonly Workspace _workspace;
+        private readonly RemoteEditAndContinueServiceProxy _proxy;
+        private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
         private readonly IActiveStatementTrackingService _activeStatementTrackingService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioManagedModuleUpdateProvider(VisualStudioWorkspace workspace)
+        public VisualStudioManagedModuleUpdateProvider(
+            VisualStudioWorkspace workspace,
+            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
-            _workspace = workspace;
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            _proxy = new RemoteEditAndContinueServiceProxy(workspace);
+            _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
             _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
         }
 
         private SolutionActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
-            => new((documentId, cancellationToken) =>
+            => new SolutionActiveStatementSpanProvider((documentId, cancellationToken) =>
                 _activeStatementTrackingService.GetSpansAsync(solution.GetRequiredDocument(documentId), cancellationToken));
 
         /// <summary>
@@ -48,12 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         /// </summary>
         public async Task<bool> HasChangesAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
-            var solution = _workspace.CurrentSolution;
-
             try
             {
+                var solution = _proxy.Workspace.CurrentSolution;
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                return await _encService.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
+                return await _proxy.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -63,41 +65,43 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         public async Task<ManagedModuleUpdates> GetManagedModuleUpdatesAsync(CancellationToken cancellationToken)
         {
-            var solution = _workspace.CurrentSolution;
-
             try
             {
+                var solution = _proxy.Workspace.CurrentSolution;
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                var (summary, deltas) = await _proxy.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _emitDiagnosticsUpdateSource, cancellationToken).ConfigureAwait(false);
                 return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate).ToReadOnlyCollection());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                _encService.ReportApplyChangesException(solution, e.Message);
-                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<DkmManagedModuleUpdate>.Empty.ToReadOnlyCollection());
+                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, new ReadOnlyCollection<DkmManagedModuleUpdate>(Array.Empty<DkmManagedModuleUpdate>()));
             }
         }
 
+#pragma warning disable VSTHRD102 // TODO: Implement internal logic asynchronously
         public void CommitUpdates()
-        {
-            try
+            => ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                _encService.CommitSolutionUpdate();
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-            {
-            }
-        }
+                try
+                {
+                    await _proxy.CommitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+            });
 
         public void DiscardUpdates()
-        {
-            try
+            => ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                _encService.DiscardSolutionUpdate();
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-            {
-            }
-        }
+                try
+                {
+                    await _proxy.DiscardSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+            });
+#pragma warning restore
     }
 }
