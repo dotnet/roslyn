@@ -6,9 +6,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.IO;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem

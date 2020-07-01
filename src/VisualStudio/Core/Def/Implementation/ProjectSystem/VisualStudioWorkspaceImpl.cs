@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -26,6 +25,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.IO;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -902,7 +902,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (initialText != null)
             {
-                using var writer = new StreamWriter(filePath, append: false, encoding: initialText.Encoding ?? Encoding.UTF8);
+                using var writer = new System.IO.StreamWriter(filePath, append: false, encoding: initialText.Encoding ?? Encoding.UTF8);
                 initialText.Write(writer);
             }
 

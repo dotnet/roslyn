@@ -9,9 +9,14 @@ using Microsoft.Build.Utilities;
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Reflection;
 using System.Security;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -137,7 +142,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             e is NotSupportedException ||
             (e is ArgumentException && !(e is ArgumentNullException)) ||
             e is SecurityException ||
-            e is IOException;
+            e is System.IO.IOException;
 
         internal static Exception GetLocalizedArgumentException(Exception e,
                                                                 string errorString,

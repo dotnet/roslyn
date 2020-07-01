@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
@@ -16,6 +15,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.IO;
 using Microsoft.VisualStudio.RemoteControl;
 using Roslyn.Utilities;
 using static System.FormattableString;
@@ -663,9 +663,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var text = contentsAttribute.Value;
                 var compressedBytes = Convert.FromBase64String(text);
 
-                using var outStream = new MemoryStream();
+                using var outStream = new System.IO.MemoryStream();
 
-                using (var inStream = new MemoryStream(compressedBytes))
+                using (var inStream = new System.IO.MemoryStream(compressedBytes))
                 using (var deflateStream = new DeflateStream(inStream, CompressionMode.Decompress))
                 {
                     await deflateStream.CopyToAsync(outStream).ConfigureAwait(false);

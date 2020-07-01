@@ -10,11 +10,17 @@ using System.Reflection;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
+
 #endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks

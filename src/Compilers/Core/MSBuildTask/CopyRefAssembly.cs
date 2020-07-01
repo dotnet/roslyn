@@ -5,9 +5,14 @@
 #nullable enable
 
 using System;
-using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -98,7 +103,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private Guid ExtractMvid(string path)
         {
-            using (FileStream source = File.OpenRead(path))
+            using (System.IO.FileStream source = File.OpenRead(path))
             {
                 return MvidReader.ReadAssemblyMvidOrEmpty(source);
             }

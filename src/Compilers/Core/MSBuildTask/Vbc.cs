@@ -6,7 +6,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Globalization;
@@ -15,6 +14,12 @@ using Microsoft.Build.Utilities;
 using Microsoft.Build.Tasks.Hosting;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {

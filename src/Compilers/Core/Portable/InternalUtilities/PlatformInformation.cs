@@ -5,7 +5,12 @@
 #nullable enable
 
 using System;
+
+#if NET472
+using Microsoft.IO;
+#else
 using System.IO;
+#endif
 
 namespace Roslyn.Utilities
 {

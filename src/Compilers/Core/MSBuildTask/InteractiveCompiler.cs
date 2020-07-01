@@ -4,11 +4,16 @@
 
 #nullable enable
 
-using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {

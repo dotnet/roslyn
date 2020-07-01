@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.IO;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;

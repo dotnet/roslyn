@@ -2,9 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
+
+#If NET472 Then
+Imports Microsoft.IO
+#Else
+Imports System.IO
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 

@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.IO;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences
 {

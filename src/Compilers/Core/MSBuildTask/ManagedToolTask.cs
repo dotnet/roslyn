@@ -5,8 +5,13 @@
 #nullable enable
 
 using System;
-using System.IO;
 using Microsoft.Build.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {

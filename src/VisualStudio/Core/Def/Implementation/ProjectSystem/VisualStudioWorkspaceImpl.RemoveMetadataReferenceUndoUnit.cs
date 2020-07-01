@@ -5,10 +5,10 @@
 #nullable enable
 
 using System;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.IO;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem

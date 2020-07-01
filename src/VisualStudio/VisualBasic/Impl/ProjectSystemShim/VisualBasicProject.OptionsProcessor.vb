@@ -4,11 +4,11 @@
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
-Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.IO
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 

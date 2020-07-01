@@ -5,13 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 #if NET472
+using Microsoft.IO;
 using System.Runtime;
 #else
+using System.IO;
 using System.Runtime.Loader;
 #endif
 using System.Runtime.InteropServices;
@@ -21,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
-    internal delegate int CompileFunc(string[] arguments, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerAssemblyLoader);
+    internal delegate int CompileFunc(string[] arguments, BuildPaths buildPaths, System.IO.TextWriter textWriter, IAnalyzerAssemblyLoader analyzerAssemblyLoader);
 
     internal readonly struct RunCompilationResult
     {
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
-        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null, string pipeName = null)
+        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, System.IO.TextWriter textWriter = null, string pipeName = null)
         {
             textWriter = textWriter ?? Console.Out;
 
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return true;
         }
 
-        public Task<RunCompilationResult> RunCompilationAsync(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null)
+        public Task<RunCompilationResult> RunCompilationAsync(IEnumerable<string> originalArguments, BuildPaths buildPaths, System.IO.TextWriter textWriter = null)
         {
             var tcs = new TaskCompletionSource<RunCompilationResult>();
             ThreadStart action = () =>
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return tcs.Task;
         }
 
-        private int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
+        private int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, System.IO.TextWriter textWriter)
         {
             var loader = new DefaultAnalyzerAssemblyLoader();
             return _compileFunc(arguments, buildPaths, textWriter, loader);
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null
         /// will be returned.
         /// </summary>
-        private RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string sessionName, string keepAlive)
+        private RunCompilationResult? RunServerCompilation(System.IO.TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string sessionName, string keepAlive)
         {
             BuildResponse buildResponse;
 

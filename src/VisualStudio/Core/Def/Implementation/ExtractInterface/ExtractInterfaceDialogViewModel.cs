@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.IO;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 return false;
             }
 
-            if (!System.IO.Path.GetExtension(trimmedFileName).Equals(_fileExtension, StringComparison.OrdinalIgnoreCase))
+            if (!Microsoft.IO.Path.GetExtension(trimmedFileName).Equals(_fileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 SendFailureNotification(string.Format(ServicesVSResources.File_name_must_have_the_0_extension, _fileExtension));
                 return false;

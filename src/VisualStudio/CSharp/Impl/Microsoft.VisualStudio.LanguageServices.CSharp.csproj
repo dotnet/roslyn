@@ -46,6 +46,7 @@
   <ItemGroup>
     <Reference Include="System.Design" />
     <Reference Include="System.Windows.Forms" />
+    <PackageReference Include="Microsoft.IO.Redist" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />

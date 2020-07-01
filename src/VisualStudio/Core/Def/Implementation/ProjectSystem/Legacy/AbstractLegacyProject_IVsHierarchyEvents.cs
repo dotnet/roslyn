@@ -4,7 +4,7 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
+using Microsoft.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy

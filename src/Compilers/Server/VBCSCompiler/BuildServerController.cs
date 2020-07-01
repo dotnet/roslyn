@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +12,12 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.Runtime.InteropServices;
 using System.Collections.Specialized;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -112,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
         }
 
-        private async Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
+        private async Task<System.IO.Stream> ConnectForShutdownAsync(string pipeName, int timeout)
         {
             return await BuildServerConnection.TryConnectToServerAsync(pipeName, timeout, cancellationToken: default).ConfigureAwait(false);
         }

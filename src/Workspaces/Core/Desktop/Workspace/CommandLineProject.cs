@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.IO;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using var appConfigStream = new FileStream(commandLineArguments.AppConfigPath, FileMode.Open, FileAccess.Read);
+                    using var appConfigStream = new System.IO.FileStream(commandLineArguments.AppConfigPath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
 
                     assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
                 }

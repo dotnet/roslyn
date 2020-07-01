@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
@@ -14,6 +13,12 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {

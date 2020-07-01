@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -20,6 +19,12 @@ using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -329,7 +334,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             var buildManager = new ProjectBuildManager(_loader.Properties);
                             _applyChangesProjectFile = fileLoader.LoadProjectFileAsync(projectPath, buildManager, CancellationToken.None).Result;
                         }
-                        catch (IOException exception)
+                        catch (System.IO.IOException exception)
                         {
                             _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                         }
@@ -346,7 +351,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         _applyChangesProjectFile.Save();
                     }
-                    catch (IOException exception)
+                    catch (System.IO.IOException exception)
                     {
                         _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                     }
@@ -379,14 +384,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             try
             {
-                using var stream = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var stream = new System.IO.FileStream(document.FilePath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
                 var onDiskText = EncodedStringText.Create(stream);
                 return onDiskText.Encoding;
             }
-            catch (IOException)
+            catch (System.IO.IOException)
             {
             }
-            catch (InvalidDataException)
+            catch (System.IO.InvalidDataException)
             {
             }
 
@@ -438,10 +443,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
 
                 Debug.Assert(encoding != null);
-                using var writer = new StreamWriter(fullPath, append: false, encoding: encoding);
+                using var writer = new System.IO.StreamWriter(fullPath, append: false, encoding: encoding);
                 newText.Write(writer);
             }
-            catch (IOException exception)
+            catch (System.IO.IOException exception)
             {
                 _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
             }
@@ -469,7 +474,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     File.Delete(fullPath);
                 }
             }
-            catch (IOException exception)
+            catch (System.IO.IOException exception)
             {
                 _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }

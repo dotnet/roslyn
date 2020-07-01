@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.IO;
 using Microsoft.VisualStudio.Editor.CodeCleanup;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             else if (hierarchy.GetCanonicalName(itemId, out var path) == 0)
             {
                 var attr = File.GetAttributes(path);
-                if (attr.HasFlag(FileAttributes.Directory))
+                if (attr.HasFlag(System.IO.FileAttributes.Directory))
                 {
                     // directory
                     // TODO: this one will be implemented later

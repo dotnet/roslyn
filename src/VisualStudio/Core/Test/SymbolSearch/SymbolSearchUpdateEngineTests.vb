@@ -2,13 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
 Imports System.IO.Compression
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.IO
 Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
 
@@ -375,7 +375,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' Simulate a failure doing the first 'replace' of the database file.
                 ioMock.Setup(Sub(s) s.Replace(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Boolean))).
-                    Throws(New IOException())
+                    Throws(New System.IO.IOException())
 
                 ' We'll expect to have to replay the write.  So we should get a call to 'FileWriteDelay'
                 delayMock.SetupGet(Function(s) s.FileWriteDelay).Returns(TimeSpan.Zero)
@@ -664,7 +664,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Return CreateClientMock(CreateFullDownloadElementStream())
         End Function
 
-        Private Function CreateClientMock(stream As Stream) As Mock(Of IRemoteControlClient)
+        Private Function CreateClientMock(stream As System.IO.Stream) As Mock(Of IRemoteControlClient)
             Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
 
             ' Return a full database element when the service asks for it.
@@ -683,7 +683,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
         Private Function CreatePatchElementStream(Optional isUpToDate As Boolean = False,
                                                   Optional isTooOld As Boolean = False,
-                                                  Optional contents As String = Nothing) As Stream
+                                                  Optional contents As String = Nothing) As System.IO.Stream
             Dim element = New XElement("Patch",
                 If(isUpToDate, New XAttribute(SymbolSearchUpdateEngine.UpToDateAttributeName, True), Nothing),
                 If(isTooOld, New XAttribute(SymbolSearchUpdateEngine.TooOldAttributeName, True), Nothing),
@@ -692,8 +692,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Return CreateStream(element)
         End Function
 
-        Private Function CreateFullDownloadElementStream() As Stream
-            Dim saveStream = New MemoryStream()
+        Private Function CreateFullDownloadElementStream() As System.IO.Stream
+            Dim saveStream = New System.IO.MemoryStream()
             Dim zipStream = New DeflateStream(saveStream, CompressionMode.Compress)
             zipStream.Write(New Byte() {0}, 0, 1)
             zipStream.Flush()
@@ -703,8 +703,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 New XAttribute(SymbolSearchUpdateEngine.ContentAttributeName, contents)))
         End Function
 
-        Private Function CreateStream(element As XElement) As Stream
-            Dim stream = New MemoryStream()
+        Private Function CreateStream(element As XElement) As System.IO.Stream
+            Dim stream = New System.IO.MemoryStream()
             element.Save(stream)
             stream.Position = 0
             Return stream

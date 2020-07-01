@@ -5,11 +5,16 @@
 #nullable enable
 
 using System;
-using System.IO;
 using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Roslyn.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis
 {
@@ -123,7 +128,7 @@ namespace Microsoft.CodeAnalysis
                 inBufferSize,
                 outBufferSize,
                 CreatePipeSecurity(),
-                HandleInheritability.None);
+                System.IO.HandleInheritability.None);
 
         /// <summary>
         /// Check to ensure that the named pipe server we connected to is owned by the same

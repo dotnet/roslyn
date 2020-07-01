@@ -4,9 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {

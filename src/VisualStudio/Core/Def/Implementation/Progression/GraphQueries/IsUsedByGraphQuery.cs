@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                                         new Position(span.StartLinePosition.Line, span.StartLinePosition.Character),
                                         new Position(span.EndLinePosition.Line, span.EndLinePosition.Character));
             var label = string.Format("{0} ({1}, {2}): {3}",
-                                        System.IO.Path.GetFileName(filePath),
+                                        Microsoft.IO.Path.GetFileName(filePath),
                                         span.StartLinePosition.Line + 1,
                                         span.StartLinePosition.Character + 1,
                                         lineText.TrimStart());

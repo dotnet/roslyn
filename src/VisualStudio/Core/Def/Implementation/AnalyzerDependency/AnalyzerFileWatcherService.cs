@@ -7,11 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.IO;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return writeTimeUtc > creationTimeUtc ? writeTimeUtc : creationTimeUtc;
             }
-            catch (IOException)
+            catch (System.IO.IOException)
             {
                 return null;
             }

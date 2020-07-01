@@ -100,9 +100,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // We are doing string comparisons with this path, so ensure it has a trailing \ so we don't get confused with sibling
                 // paths that won't actually be covered.
-                if (!path.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
+                if (!path.EndsWith(Microsoft.IO.Path.DirectorySeparatorChar.ToString()))
                 {
-                    path += System.IO.Path.DirectorySeparatorChar;
+                    path += Microsoft.IO.Path.DirectorySeparatorChar;
                 }
 
                 if (extensionFilter != null && !extensionFilter.StartsWith("."))

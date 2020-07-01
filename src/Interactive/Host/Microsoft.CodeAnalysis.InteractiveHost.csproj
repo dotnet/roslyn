@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="Microsoft.IO.Redist" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>    <Compile Update="InteractiveHostResources.Designer.cs">
       <DependentUpon>InteractiveHostResources.resx</DependentUpon>

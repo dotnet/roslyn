@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.IO;
+using Microsoft.IO;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             public void WriteAndFlushAllBytes(string path, byte[] bytes)
             {
-                using var fileStream = new FileStream(path, FileMode.Create);
+                using var fileStream = new System.IO.FileStream(path, System.IO.FileMode.Create);
                 fileStream.Write(bytes, 0, bytes.Length);
                 fileStream.Flush(flushToDisk: true);
             }

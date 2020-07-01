@@ -3,8 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using Roslyn.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -35,7 +40,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _diagnosticReporter.Report(
                     reportingMode,
                     string.Format(WorkspacesResources.Solution_file_not_found_colon_0, absolutePath),
-                    msg => new FileNotFoundException(msg));
+                    msg => new System.IO.FileNotFoundException(msg));
                 return false;
             }
 
@@ -60,7 +65,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _diagnosticReporter.Report(
                     reportingMode,
                     string.Format(WorkspacesResources.Project_file_not_found_colon_0, absolutePath),
-                    msg => new FileNotFoundException(msg));
+                    msg => new System.IO.FileNotFoundException(msg));
                 return false;
             }
 

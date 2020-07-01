@@ -9,8 +9,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Roslyn.Utilities
 {
@@ -720,9 +725,9 @@ namespace Roslyn.Utilities
                 return !string.IsNullOrEmpty(fileInfo.Name);
             }
             catch (Exception ex) when (
-                ex is ArgumentException ||          // The file name is empty, contains only white spaces, or contains invalid characters.
-                ex is PathTooLongException ||       // The specified path, file name, or both exceed the system-defined maximum length.
-                ex is NotSupportedException)        // fileName contains a colon (:) in the middle of the string.
+                ex is ArgumentException ||              // The file name is empty, contains only white spaces, or contains invalid characters.
+                ex is System.IO.PathTooLongException || // The specified path, file name, or both exceed the system-defined maximum length.
+                ex is NotSupportedException)            // fileName contains a colon (:) in the middle of the string.
             {
                 return false;
             }

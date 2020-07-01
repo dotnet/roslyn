@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <PackageReference Include="Microsoft.IO.Redist" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />

@@ -7,7 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+
+#if NET472
+using Microsoft.IO;
+#else
 using System.IO;
+#endif
 
 namespace Roslyn.Utilities
 {
@@ -237,7 +242,7 @@ namespace Roslyn.Utilities
         /// Normalizes an absolute path.
         /// </summary>
         /// <param name="path">Path to normalize.</param>
-        /// <exception cref="IOException"/>
+        /// <exception cref="System.IO.IOException"/>
         /// <returns>Normalized path.</returns>
         internal static string NormalizeAbsolutePath(string path)
         {
@@ -250,15 +255,15 @@ namespace Roslyn.Utilities
             }
             catch (ArgumentException e)
             {
-                throw new IOException(e.Message, e);
+                throw new System.IO.IOException(e.Message, e);
             }
             catch (System.Security.SecurityException e)
             {
-                throw new IOException(e.Message, e);
+                throw new System.IO.IOException(e.Message, e);
             }
             catch (NotSupportedException e)
             {
-                throw new IOException(e.Message, e);
+                throw new System.IO.IOException(e.Message, e);
             }
         }
 
@@ -281,29 +286,29 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static Stream OpenRead(string fullPath)
+        internal static System.IO.Stream OpenRead(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
             try
             {
-                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                return new System.IO.FileStream(fullPath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read);
             }
-            catch (IOException)
+            catch (System.IO.IOException)
             {
                 throw;
             }
             catch (Exception e)
             {
-                throw new IOException(e.Message, e);
+                throw new System.IO.IOException(e.Message, e);
             }
         }
 
-        internal static Stream OpenAsyncRead(string fullPath)
+        internal static System.IO.Stream OpenAsyncRead(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
-            return RethrowExceptionsAsIOException(() => new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous));
+            return RethrowExceptionsAsIOException(() => new System.IO.FileStream(fullPath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read, 4096, System.IO.FileOptions.Asynchronous));
         }
 
         internal static T RethrowExceptionsAsIOException<T>(Func<T> operation)
@@ -312,13 +317,13 @@ namespace Roslyn.Utilities
             {
                 return operation();
             }
-            catch (IOException)
+            catch (System.IO.IOException)
             {
                 throw;
             }
             catch (Exception e)
             {
-                throw new IOException(e.Message, e);
+                throw new System.IO.IOException(e.Message, e);
             }
         }
 
@@ -326,7 +331,7 @@ namespace Roslyn.Utilities
         /// Used to create a file given a path specified by the user.
         /// paramName - Provided by the Public surface APIs to have a clearer message. Internal API just rethrow the exception
         /// </summary>
-        internal static Stream CreateFileStreamChecked(Func<string, Stream> factory, string path, string? paramName = null)
+        internal static System.IO.Stream CreateFileStreamChecked(Func<string, System.IO.Stream> factory, string path, string? paramName = null)
         {
             try
             {
@@ -354,17 +359,17 @@ namespace Roslyn.Utilities
                     throw new ArgumentException(e.Message, paramName);
                 }
             }
-            catch (IOException)
+            catch (System.IO.IOException)
             {
                 throw;
             }
             catch (Exception e)
             {
-                throw new IOException(e.Message, e);
+                throw new System.IO.IOException(e.Message, e);
             }
         }
 
-        /// <exception cref="IOException"/>
+        /// <exception cref="System.IO.IOException"/>
         internal static DateTime GetFileTimeStamp(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
@@ -372,17 +377,17 @@ namespace Roslyn.Utilities
             {
                 return File.GetLastWriteTimeUtc(fullPath);
             }
-            catch (IOException)
+            catch (System.IO.IOException)
             {
                 throw;
             }
             catch (Exception e)
             {
-                throw new IOException(e.Message, e);
+                throw new System.IO.IOException(e.Message, e);
             }
         }
 
-        /// <exception cref="IOException"/>
+        /// <exception cref="System.IO.IOException"/>
         internal static long GetFileLength(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
@@ -391,17 +396,17 @@ namespace Roslyn.Utilities
                 var info = new FileInfo(fullPath);
                 return info.Length;
             }
-            catch (IOException)
+            catch (System.IO.IOException)
             {
                 throw;
             }
             catch (Exception e)
             {
-                throw new IOException(e.Message, e);
+                throw new System.IO.IOException(e.Message, e);
             }
         }
 
-        internal static Stream OpenFileStream(string path)
+        internal static System.IO.Stream OpenFileStream(string path)
         {
             try
             {
@@ -411,17 +416,17 @@ namespace Roslyn.Utilities
             {
                 throw;
             }
-            catch (DirectoryNotFoundException e)
+            catch (System.IO.DirectoryNotFoundException e)
             {
-                throw new FileNotFoundException(e.Message, path, e);
+                throw new System.IO.FileNotFoundException(e.Message, path, e);
             }
-            catch (IOException)
+            catch (System.IO.IOException)
             {
                 throw;
             }
             catch (Exception e)
             {
-                throw new IOException(e.Message, e);
+                throw new System.IO.IOException(e.Message, e);
             }
         }
     }

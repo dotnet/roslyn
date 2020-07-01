@@ -4,8 +4,13 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {

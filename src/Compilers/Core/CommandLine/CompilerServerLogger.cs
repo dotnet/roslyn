@@ -8,10 +8,15 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -28,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         // Environment variable, if set, to enable logging and set the file to log to.
         private const string environmentVariable = "RoslynCommandLineLogFile";
 
-        private static readonly Stream? s_loggingStream;
+        private static readonly System.IO.Stream? s_loggingStream;
         private static string s_prefix = "---";
 
         /// <summary>
@@ -54,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
 
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
-                    s_loggingStream = new FileStream(loggingFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+                    s_loggingStream = new System.IO.FileStream(loggingFileName, System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite);
                 }
             }
             catch (Exception e)
@@ -119,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 // Because multiple processes might be logging to the same file, we always seek to the end,
                 // write, and flush.
-                s_loggingStream.Seek(0, SeekOrigin.End);
+                s_loggingStream.Seek(0, System.IO.SeekOrigin.End);
                 s_loggingStream.Write(bytes, 0, bytes.Length);
                 s_loggingStream.Flush();
             }

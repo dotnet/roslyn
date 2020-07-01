@@ -7,13 +7,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Composition;
-using System.IO;
 using System.Threading;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.IO;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 return File.Exists(filePath);
             }
-            catch (IOException)
+            catch (System.IO.IOException)
             {
                 return null;
             }

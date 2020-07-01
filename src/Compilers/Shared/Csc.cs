@@ -3,9 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CommandLine;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
@@ -16,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
         {
         }
 
-        internal static int Run(string[] args, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
+        internal static int Run(string[] args, BuildPaths buildPaths, System.IO.TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
         {
             FatalError.Handler = FailFast.OnFatalException;
 

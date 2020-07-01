@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.IO;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects

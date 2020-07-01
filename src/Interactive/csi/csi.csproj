@@ -16,6 +16,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="Microsoft.IO.Redist" Version="4.7.0" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="csi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp3.1'">

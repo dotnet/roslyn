@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -16,6 +15,12 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {

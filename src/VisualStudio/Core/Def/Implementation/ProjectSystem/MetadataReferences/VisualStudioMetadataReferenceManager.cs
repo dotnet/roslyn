@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
@@ -18,6 +17,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }).Select(FileUtilities.NormalizeDirectoryPath).ToImmutableArray();
         }
 
-        /// <exception cref="IOException"/>
+        /// <exception cref="System.IO.IOException"/>
         /// <exception cref="BadImageFormatException" />
         internal Metadata GetMetadata(string fullPath, DateTime snapshotTimestamp)
         {
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        /// <exception cref="IOException"/>
+        /// <exception cref="System.IO.IOException"/>
         /// <exception cref="BadImageFormatException" />
         private AssemblyMetadata CreateAssemblyMetadataFromTemporaryStorage(FileKey fileKey, List<ITemporaryStreamStorage> storages)
         {
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        private void GetStorageInfoFromTemporaryStorage(FileKey moduleFileKey, out ITemporaryStreamStorage storage, out Stream stream, out IntPtr pImage)
+        private void GetStorageInfoFromTemporaryStorage(FileKey moduleFileKey, out ITemporaryStreamStorage storage, out System.IO.Stream stream, out IntPtr pImage)
         {
             int size;
             using (var copyStream = SerializableBytes.CreateWritableStream())
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             pImage = directAccess.GetPointer();
         }
 
-        private void StreamCopy(Stream source, Stream destination, int start, int length)
+        private void StreamCopy(System.IO.Stream source, System.IO.Stream destination, int start, int length)
         {
             source.Position = start;
 
@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SharedPools.ByteArray.Free(buffer);
         }
 
-        /// <exception cref="IOException"/>
+        /// <exception cref="System.IO.IOException"/>
         /// <exception cref="BadImageFormatException" />
         private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out AssemblyMetadata? metadata)
         {
@@ -311,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        /// <exception cref="IOException"/>
+        /// <exception cref="System.IO.IOException"/>
         /// <exception cref="BadImageFormatException" />
         private AssemblyMetadata CreateAssemblyMetadata(
             FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage>? storages,

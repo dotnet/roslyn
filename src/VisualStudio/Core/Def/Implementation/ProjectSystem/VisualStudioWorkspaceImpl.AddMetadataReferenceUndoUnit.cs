@@ -5,9 +5,9 @@
 #nullable enable
 
 using System;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.IO;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         {
                             reference = MetadataReference.CreateFromFile(_filePath);
                         }
-                        catch (IOException)
+                        catch (System.IO.IOException)
                         {
                             return;
                         }

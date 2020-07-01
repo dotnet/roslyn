@@ -7,11 +7,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
@@ -126,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             Log($"****Running {request.Language} compiler...");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            System.IO.TextWriter output = new System.IO.StringWriter(CultureInfo.InvariantCulture);
             int returnCode = compiler.Run(output, cancellationToken);
             Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
             return new CompletedBuildResponse(returnCode, utf8output, output.ToString());

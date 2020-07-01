@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Runtime.InteropServices.ComTypes
 Imports System.Threading
@@ -12,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.IO
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem

@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -22,6 +21,12 @@ using Microsoft.Win32.SafeHandles;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -370,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // TaskScheduler (i.e., on a threadpool thread) which was the intent all along.
                     await Task.Run(() => pipeStream.ConnectAsync(timeoutMs, cancellationToken), cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (e is IOException || e is TimeoutException)
+                catch (Exception e) when (e is System.IO.IOException || e is TimeoutException)
                 {
                     // Note: IOException can also indicate timeout. From docs:
                     // TimeoutException: Could not connect to the server within the
@@ -648,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </summary>
     internal sealed class FileMutex : IDisposable
     {
-        public readonly FileStream Stream;
+        public readonly System.IO.FileStream Stream;
         public readonly string FilePath;
 
         public bool IsLocked { get; private set; }
@@ -664,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public FileMutex(string name)
         {
             FilePath = Path.Combine(GetMutexDirectory(), name);
-            Stream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            Stream = new System.IO.FileStream(FilePath, System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);
         }
 
         public bool TryLock(int timeoutMs)
@@ -681,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     IsLocked = true;
                     return true;
                 }
-                catch (IOException)
+                catch (System.IO.IOException)
                 {
                     // Lock currently held by someone else.
                     // We want to sleep for a short period of time to ensure that other processes

@@ -3,12 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports System.Runtime.InteropServices.ComTypes
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.IO
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
 

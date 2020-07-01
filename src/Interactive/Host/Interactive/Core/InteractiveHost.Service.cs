@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -21,6 +20,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.IO;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     ScriptOptions scriptOptions,
                     ImmutableArray<string> sourceSearchPaths,
                     ImmutableArray<string> referenceSearchPaths,
-                    string workingDirectory)
+                    string? workingDirectory)
                 {
                     Debug.Assert(!sourceSearchPaths.IsDefault);
                     Debug.Assert(!referenceSearchPaths.IsDefault);
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     ScriptOptions = scriptOptions;
                     SourceSearchPaths = sourceSearchPaths;
                     ReferenceSearchPaths = referenceSearchPaths;
-                    WorkingDirectory = workingDirectory;
+                    WorkingDirectory = workingDirectory!;
                 }
 
                 internal EvaluationState WithScriptState(ScriptState<object> state)
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return _serviceState;
             }
 
-            private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+            private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string? baseDirectory)
             {
                 return new RuntimeMetadataReferenceResolver(
                     new RelativePathResolver(searchPaths, baseDirectory),
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     fileReferenceProvider: (path, properties) => new ShadowCopyReference(GetServiceState().MetadataFileProvider, path, properties));
             }
 
-            private SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+            private SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string? baseDirectory)
             {
                 return new SourceFileResolver(searchPaths, baseDirectory);
             }
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private void DisplayException(Exception e)
             {
-                if (e is FileLoadException && e.InnerException is InteractiveAssemblyLoaderException)
+                if (e is System.IO.FileLoadException && e.InnerException is InteractiveAssemblyLoaderException)
                 {
                     Console.Error.WriteLine(e.InnerException.Message);
                 }
@@ -767,16 +767,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return await ExecuteOnUIThreadAsync(script, state.ScriptState, displayResult: false).ConfigureAwait(false);
             }
 
-            private static void DisplaySearchPaths(TextWriter writer, List<string> attemptedFilePaths)
+            private static void DisplaySearchPaths(System.IO.TextWriter writer, List<string> attemptedFilePaths)
             {
                 var directories = attemptedFilePaths.Select(path => Path.GetDirectoryName(path)).ToArray();
-                var uniqueDirectories = new HashSet<string>(directories);
+                var uniqueDirectories = new HashSet<string?>(directories);
 
                 writer.WriteLine(uniqueDirectories.Count == 1 ?
                     InteractiveHostResources.Searched_in_directory_colon :
                     InteractiveHostResources.Searched_in_directories_colon);
 
-                foreach (string directory in directories)
+                foreach (string? directory in directories)
                 {
                     if (uniqueDirectories.Remove(directory))
                     {
@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }))).ConfigureAwait(false);
             }
 
-            private void DisplayInteractiveErrors(ImmutableArray<Diagnostic> diagnostics, TextWriter output)
+            private void DisplayInteractiveErrors(ImmutableArray<Diagnostic> diagnostics, System.IO.TextWriter output)
             {
                 var displayedDiagnostics = new List<Diagnostic>();
                 const int MaxErrorCount = 5;

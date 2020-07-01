@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.IO;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;

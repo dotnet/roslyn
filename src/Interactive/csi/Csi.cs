@@ -3,9 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {

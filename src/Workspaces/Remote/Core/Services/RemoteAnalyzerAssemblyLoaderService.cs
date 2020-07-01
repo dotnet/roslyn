@@ -6,9 +6,14 @@
 
 using System;
 using System.Composition;
-using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {

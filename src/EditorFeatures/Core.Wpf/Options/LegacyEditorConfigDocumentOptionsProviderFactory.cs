@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -15,6 +14,12 @@ using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.CodingConventions;
 using Roslyn.Utilities;
+
+#if NET472
+using Microsoft.IO;
+#else
+using System.IO;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                     return FileUtilities.GetFileTimeStamp(fullFilePath);
                 }
-                catch (IOException)
+                catch (System.IO.IOException)
                 {
                     return null;
                 }

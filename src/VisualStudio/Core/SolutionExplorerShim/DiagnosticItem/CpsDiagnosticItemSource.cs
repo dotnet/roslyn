@@ -4,11 +4,11 @@
 
 using System;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.IO;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer

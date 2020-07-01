@@ -216,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             try
             {
                 // don't throw exception when either path1 or path2 contains illegal path char
-                result = System.IO.Path.Combine(path1, path2);
+                result = Microsoft.IO.Path.Combine(path1, path2);
                 return true;
             }
             catch
