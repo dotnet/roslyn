@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 _ when ExecutionConditionUtil.IsCoreClrUnix => 1200, // 1200
                 _ when ExecutionConditionUtil.IsMonoDesktop => 730, // 730
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 450, // 270
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1320, // 1290
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1310, // 1290
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 250, // 170
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 750, // 730
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 

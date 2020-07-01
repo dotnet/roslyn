@@ -14,17 +14,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class DataPropertySymbol : SourcePropertySymbolBase
     {
-        public DataPropertySymbol(
+        public static DataPropertySymbol Create(
             SourceMemberContainerTypeSymbol containingType,
-            Binder binder,
             DataPropertyDeclarationSyntax syntax,
             DiagnosticBag diagnostics)
-            : base(containingType,
-                binder,
+        {
+            return new DataPropertySymbol(
+                containingType,
                 syntax,
-                syntax.Type.GetRefKind(),
+                makeModifiers(syntax.Modifiers, syntax.Identifier.GetLocation()),
                 syntax.Identifier.ValueText,
                 syntax.Identifier.GetLocation(),
+                diagnostics);
+
+            DeclarationModifiers makeModifiers(
+                SyntaxTokenList modifiers,
+                Location location)
+            {
+                bool isInterface = containingType.IsInterface;
+                var defaultAccess = DeclarationModifiers.Public;
+
+                var allowed = DeclarationModifiers.Public |
+                    DeclarationModifiers.New |
+                    DeclarationModifiers.Abstract |
+                    DeclarationModifiers.Virtual;
+
+                if (!isInterface)
+                {
+                    allowed |= DeclarationModifiers.Override;
+                }
+
+                var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                    modifiers,
+                    defaultAccess,
+                    allowed,
+                    location,
+                    diagnostics,
+                    out _);
+
+                if (isInterface)
+                {
+                    mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(
+                        mods,
+                        hasBody: false,
+                        isExplicitInterfaceImplementation: false);
+                }
+
+                return mods;
+            }
+        }
+
+        private DataPropertySymbol(
+            SourceMemberContainerTypeSymbol containingType,
+            DataPropertyDeclarationSyntax syntax,
+            DeclarationModifiers modifiers,
+            string name,
+            Location location,
+            DiagnosticBag diagnostics)
+           : base(
+                containingType,
+                binder: null,
+                syntax,
+                getSyntax: syntax,
+                setSyntax: syntax,
+                arrowExpression: null,
+                interfaceSpecifier: null,
+                modifiers,
+                isIndexer: false,
+                hasInitializer: HasInitializer(syntax),
+                isAutoProperty: true,
+                hasAccessorList: false,
+                isInitOnly: true,
+                syntax.Type.GetRefKind(),
+                name,
+                location,
+                typeOpt: default,
+                hasParameters: false,
                 diagnostics)
         {
         }
@@ -43,78 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
             => ((DataPropertyDeclarationSyntax)syntax).Modifiers;
 
-        protected override ArrowExpressionClauseSyntax? GetArrowExpression(SyntaxNode syntax)
-            => null;
-
-        protected override bool HasInitializer(SyntaxNode syntax)
-            => ((DataPropertyDeclarationSyntax)syntax).Initializer is object;
-
-        protected override void GetAccessorDeclarations(
-            CSharpSyntaxNode syntax,
-            DiagnosticBag diagnostics,
-            out bool isAutoProperty,
-            out bool hasAccessorList,
-            out bool accessorsHaveImplementation,
-            out bool isInitOnly,
-            out CSharpSyntaxNode? getSyntax,
-            out CSharpSyntaxNode? setSyntax)
-        {
-            isAutoProperty = true;
-            hasAccessorList = false;
-            getSyntax = setSyntax = syntax;
-            isInitOnly = true;
-            accessorsHaveImplementation = false;
-        }
+        private static bool HasInitializer(DataPropertyDeclarationSyntax syntax)
+            => syntax.Initializer is object;
 
         protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             // Nothing to do here
-        }
-
-        protected override DeclarationModifiers MakeModifiers(
-            SyntaxTokenList modifiers,
-            bool isExplicitInterfaceImplementation,
-            bool isIndexer,
-            bool accessorsHaveImplementation,
-            Location location,
-            DiagnosticBag diagnostics,
-            out bool modifierErrors)
-        {
-            Debug.Assert(CSharpSyntaxNode.Modifiers == modifiers);
-            Debug.Assert(!isExplicitInterfaceImplementation);
-            Debug.Assert(!isIndexer);
-            Debug.Assert(!accessorsHaveImplementation);
-
-            bool isInterface = ContainingType.IsInterface;
-            var defaultAccess = DeclarationModifiers.Public;
-
-            var allowed = DeclarationModifiers.Public |
-                DeclarationModifiers.New |
-                DeclarationModifiers.Abstract |
-                DeclarationModifiers.Virtual;
-
-            if (!isInterface)
-            {
-                allowed |= DeclarationModifiers.Override;
-            }
-
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                modifiers,
-                defaultAccess,
-                allowed,
-                location,
-                diagnostics,
-                out modifierErrors);
-
-            if (isInterface)
-            {
-                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(
-                    mods,
-                    hasBody: false,
-                    isExplicitInterfaceImplementation: false);
-            }
-
-            return mods;
         }
 
         protected override SourcePropertyAccessorSymbol? CreateAccessorSymbol(
@@ -158,11 +157,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ComputeType(binder, ((DataPropertyDeclarationSyntax)syntax).Type, syntax, diagnostics);
         }
-
-        protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
-            => null;
-
-        protected override BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
-            => null;
     }
 }
