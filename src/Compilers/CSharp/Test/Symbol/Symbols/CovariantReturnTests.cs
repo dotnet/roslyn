@@ -3543,6 +3543,7 @@ public class Derived : Base2<string>
                     anyErrors = true;
                 }
             }
+            bool warned = false;
             if (overriddenRuntimeSignatureAmbiguity && !withCovariantCapableRuntime && !useCovariantReturns)
             {
                 expectedDiagnostics = expectedDiagnostics.Append(
@@ -3550,8 +3551,16 @@ public class Derived : Base2<string>
                     //     public virtual string M(ref Ptring x, out string y) { y = null; return null; }
                     Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Base1<string>.M(ref string, out string)", "Derived.M(ref string, out string)").WithLocation(4, 27)
                     ).ToArray();
+                warned = true;
             }
             comp.VerifyDiagnostics(expectedDiagnostics);
+
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.Equal(warned, shouldWarn);
+            // All of the overrides in this test require a methodimpl because they are on a different class from the runtime override.
+            bool requiresMethodImpl = true;
+            Assert.Equal(requiresMethodImpl, useMethodImpl);
 
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
@@ -3564,8 +3573,6 @@ public class Derived : Base2<string>
 
             void verify(CSharpCompilation compilation)
             {
-                // All of the overrides in this test require a methodimpl because they are on a different class from the runtime override.
-                bool requiresMethodImpl = true;
                 VerifyOverride(compilation,
                     methodName: "Derived.M",
                     overridingMemberDisplay: "System.String Derived.M(ref System.String x, out System.String y)",
@@ -3636,6 +3643,7 @@ public class Derived : Base2<string>
                     anyErrors = true;
                 }
             }
+            bool warned = false;
             if (overriddenRuntimeSignatureAmbiguity && !withCovariantCapableRuntime && !useCovariantReturns)
             {
                 expectedDiagnostics = expectedDiagnostics.Append(
@@ -3643,8 +3651,16 @@ public class Derived : Base2<string>
                     //     public virtual string M(ref Ptring x, out string y) { y = null; return null; }
                     Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Base1<string>.M(ref string, out string)", "Derived.M(ref string, out string)").WithLocation(5, 27)
                     ).ToArray();
+                warned = true;
             }
             comp.VerifyDiagnostics(expectedDiagnostics);
+
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.Equal(warned, shouldWarn);
+            // All of the overrides in this test require a methodimpl because they are on a different class from the runtime override.
+            bool requiresMethodImpl = true;
+            Assert.Equal(requiresMethodImpl, useMethodImpl);
 
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
@@ -3655,8 +3671,6 @@ public class Derived : Base2<string>
 
             void verify(CSharpCompilation compilation)
             {
-                // All of the overrides in this test require a methodimpl because they are on a different class from the runtime override.
-                bool requiresMethodImpl = true;
                 var lastReference = compilation.GetAssemblyOrModuleSymbol(compilation.References.Last());
                 // Due to https://github.com/dotnet/roslyn/issues/45566 retargeting methods do not resolve properly for this scenario
                 var isRetargeting = lastReference is RetargetingAssemblySymbol;
@@ -3743,6 +3757,13 @@ public class Derived : Base<string>
             }
             comp.VerifyDiagnostics(expectedDiagnostics);
 
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.Equal(warned, shouldWarn);
+            // Only if we warned did we not produce a methodimpl due to https://github.com/dotnet/roslyn/issues/45453
+            bool requiresMethodImpl = !warned;
+            Assert.Equal(requiresMethodImpl, useMethodImpl);
+
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
             // PROTOTYPE(ngafter): for some reason retargeting is not working here when covariant returns are used.
@@ -3754,7 +3775,6 @@ public class Derived : Base<string>
 
             void verify(CSharpCompilation compilation)
             {
-                bool requiresMethodImpl = !warned;
                 VerifyOverride(compilation,
                     methodName: "Derived.M",
                     overridingMemberDisplay: "System.String Derived.M(ref System.String x, out System.String y)",
@@ -3834,6 +3854,13 @@ public class Derived : Base<string>
             }
             comp.VerifyDiagnostics(expectedDiagnostics);
 
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.Equal(warned, shouldWarn);
+            // Only if we warned did we not produce a methodimpl due to https://github.com/dotnet/roslyn/issues/45453
+            bool requiresMethodImpl = !warned;
+            Assert.Equal(requiresMethodImpl, useMethodImpl);
+
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, "", references: new[] { corlibRef, baseMetadata }, targetFramework: TargetFramework.Empty));
             if (!useCovariantReturns)
@@ -3843,7 +3870,6 @@ public class Derived : Base<string>
 
             void verify(CSharpCompilation compilation)
             {
-                bool requiresMethodImpl = !warned;
                 var lastReference = compilation.GetAssemblyOrModuleSymbol(compilation.References.Last());
                 // Due to https://github.com/dotnet/roslyn/issues/45566 retargeting methods do not resolve properly for this scenario
                 var isRetargeting = lastReference is RetargetingAssemblySymbol;
