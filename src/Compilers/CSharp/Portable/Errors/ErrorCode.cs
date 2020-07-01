@@ -1771,7 +1771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoOutputDirectory = 8771,
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8772,
 
-        // available 8773
+        ERR_FeatureNotAvailableInVersion9 = 8773,
 
         WRN_MemberNotNull = 8774,
         WRN_MemberNotNullWhen = 8775,
@@ -1818,15 +1818,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AddressOfMethodGroupInExpressionTree = 8810,
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
-        ERR_FeatureNotAvailableInVersion9 = 8813,
 
-        // Codes 8813, 8814, 8815, 8816 used by features/module-initializers
+        ERR_8813 = 8813, // used by features/module-initializers
+
+        ERR_8814 = 8814, // used by features/module-initializers
+
+        ERR_8815 = 8815, // used by features/module-initializers
+
+        ERR_8816 = 8816, // used by features/module-initializers
 
         ERR_PartialMethodReturnTypeDifference = 8817,
         ERR_PartialMethodRefReturnDifference = 8818,
         WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
 
-        // Codes 8820, 8821 used by features/static-lambdas
+
+        ERR_8820 = 8820, // used by features/static-lambdas
+
+        ERR_8821 = 8821, // used by features/static-lambdas
 
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
