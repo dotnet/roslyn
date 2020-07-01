@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsRegularComment(SyntaxTrivia trivia);
         bool IsDocumentationComment(SyntaxTrivia trivia);
         bool IsElastic(SyntaxTrivia trivia);
+        bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes);
 
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
@@ -208,6 +209,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
+        bool IsParameterList(SyntaxNode node);
 
         bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
