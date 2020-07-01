@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
+    [Guid(Guids.CSharpOptionPageFormattingNewLinesIdString)]
     internal class FormattingNewLinesPage : AbstractOptionPage
     {
         public FormattingNewLinesPage()

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -351,7 +352,7 @@ record C(int X, int Y)
                 "System.Int32 C.get_Y(System.Int32 value)",
                 "System.Int32 C.set_Y(System.Int32 value)",
                 "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? )",
                 "C..ctor(C )",
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)"
@@ -403,15 +404,16 @@ record C1(object O1)
                 // (1,17): error CS0102: The type 'C' already contains a definition for 'P1'
                 // record C(object P1, object P2, object P3, object P4)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(1, 17),
-                // (1,28): error CS0102: The type 'C' already contains a definition for 'P2'
-                // record C(object P1, object P2, object P3, object P4)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(1, 28),
-                // (1,39): error CS0102: The type 'C' already contains a definition for 'P3'
-                // record C(object P1, object P2, object P3, object P4)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(1, 39),
-                // (1,50): error CS0102: The type 'C' already contains a definition for 'P4'
-                // record C(object P1, object P2, object P3, object P4)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P4").WithArguments("C", "P4").WithLocation(1, 50));
+                // (4,12): error CS0102: The type 'C' already contains a definition for 'P2'
+                //     object P2 = 2;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(4, 12),
+                // (5,9): error CS0102: The type 'C' already contains a definition for 'P3'
+                //     int P3(object o) => 3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(5, 9),
+                // (6,9): error CS0102: The type 'C' already contains a definition for 'P4'
+                //     int P4<T>(T t) => 4;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P4").WithArguments("C", "P4").WithLocation(6, 9)
+                );
         }
 
         [Fact]
@@ -424,9 +426,9 @@ record C1(object O1)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (1,17): error CS0102: The type 'C' already contains a definition for 'P'
-                // record C(object P)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(1, 17)
+                // (3,15): error CS0102: The type 'C' already contains a definition for 'P'
+                //     const int P = 4;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(3, 15)
                 );
         }
 
@@ -1451,7 +1453,7 @@ X");
             var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
             comp.VerifyOperationTree(withExpr1, @"
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -1976,7 +1978,7 @@ record C(int X, string Y)
 
             comp.VerifyOperationTree(withExpr, @"
 IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { X = 2 }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -2081,7 +2083,7 @@ class C
 
             comp.VerifyOperationTree(withExpr, @"
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { X = 2 }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
   CloneMethod: null
   Initializer:
@@ -2204,7 +2206,7 @@ record C(int X, int Y)
             var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
             comp.VerifyOperationTree(withExpr1, @"
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -2217,7 +2219,7 @@ IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
             var withExpr2 = root.DescendantNodes().OfType<WithExpressionSyntax>().Skip(1).Single();
             comp.VerifyOperationTree(withExpr2, @"
 IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { ')
-  Value:
+  Operand:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
   Initializer:
@@ -3262,7 +3264,7 @@ record C(int X, int Y, int Z) : B
                 "System.Int32 C.Y { get; }",
                 "System.Int32 C.Y.get",
                 "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? )",
                 "C..ctor(C )",
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)"
@@ -3776,7 +3778,7 @@ record C(object P)
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Q.init",
                 "System.Object B.Q { get; init; }",
                 "System.Int32 B.GetHashCode()",
-                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
@@ -3797,7 +3799,7 @@ record C(object P)
                 "System.Object C.get_P()",
                 "System.Object C.set_Q()",
                 "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? )",
                 "C..ctor(C )",
                 "void C.Deconstruct(out System.Object P)"
@@ -4883,7 +4885,7 @@ public sealed record C(int j) : B(0)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
-            var copyCtor = comp.GetMembers("C..ctor")[0];
+            var copyCtor = comp.GetMembers("C..ctor")[1];
             Assert.Equal("C..ctor(C c)", copyCtor.ToTestDisplayString());
             Assert.True(copyCtor.DeclaredAccessibility == Accessibility.Private);
         }
@@ -4912,11 +4914,11 @@ public record Unsealed(object P1, object P2) : B(0, 1)
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var sealedCopyCtor = comp.GetMembers("Sealed..ctor")[0];
+            var sealedCopyCtor = comp.GetMembers("Sealed..ctor")[1];
             Assert.Equal("Sealed..ctor(Sealed s)", sealedCopyCtor.ToTestDisplayString());
             Assert.True(sealedCopyCtor.DeclaredAccessibility == Accessibility.Internal);
 
-            var unsealedCopyCtor = comp.GetMembers("Unsealed..ctor")[0];
+            var unsealedCopyCtor = comp.GetMembers("Unsealed..ctor")[1];
             Assert.Equal("Unsealed..ctor(Unsealed s)", unsealedCopyCtor.ToTestDisplayString());
             Assert.True(unsealedCopyCtor.DeclaredAccessibility == Accessibility.Internal);
         }
@@ -5596,9 +5598,10 @@ record B(int X, int Y)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,14): error CS0102: The type 'B' already contains a definition for 'X'
-                // record B(int X, int Y)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("B", "X").WithLocation(2, 14));
+                // (4,16): error CS0102: The type 'B' already contains a definition for 'X'
+                //     public int X() => 3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("B", "X").WithLocation(4, 16)
+                );
 
             Assert.Equal(
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
@@ -5708,9 +5711,10 @@ record C(int X, int Y)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,14): error CS0102: The type 'C' already contains a definition for 'X'
-                // record C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 14));
+                // (4,16): error CS0102: The type 'C' already contains a definition for 'X'
+                //     public int X(int arg) => 3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(4, 16)
+                );
 
             Assert.Equal(
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
@@ -5745,9 +5749,9 @@ record C(int X)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,14): error CS0102: The type 'C' already contains a definition for 'X'
-                // record C(int X)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(4, 14));
+                // (6,9): error CS0102: The type 'C' already contains a definition for 'X'
+                //     int X;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 9));
 
             Assert.Equal(
                 "void C.Deconstruct(out System.Int32 X)",
@@ -5782,9 +5786,10 @@ record C(Action X)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,17): error CS0102: The type 'C' already contains a definition for 'X'
-                // record C(Action X)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(4, 17));
+                // (6,18): error CS0102: The type 'C' already contains a definition for 'X'
+                //     event Action X;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 18)
+                );
 
             Assert.Equal(
                 "void C.Deconstruct(out System.Action X)",
@@ -6363,8 +6368,8 @@ record B(int X, int Y)
 
             var expectedSymbols = new[]
             {
-                "void B.Deconstruct(out System.Int32 Z)",
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                "void B.Deconstruct(out System.Int32 Z)",
             };
             Assert.Equal(expectedSymbols, verifier.Compilation.GetMembers("B.Deconstruct").Select(s => s.ToTestDisplayString(includeNonNullable: false)));
         }
@@ -6437,8 +6442,8 @@ record B(int X)
 
             var expectedSymbols = new[]
             {
-                "void B.Deconstruct(System.Int32 X)",
                 "void B.Deconstruct(out System.Int32 X)",
+                "void B.Deconstruct(System.Int32 X)",
             };
             Assert.Equal(expectedSymbols, verifier.Compilation.GetMembers("B.Deconstruct").Select(s => s.ToTestDisplayString(includeNonNullable: false)));
         }
@@ -6639,12 +6644,13 @@ record B(int X, int Y) : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
+                //     public sealed override bool Equals(object other) => false;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
                 // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
                 // record B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8),
-                // (7,8): error CS0239: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is sealed
-                // record B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(7, 8));
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
+                );
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -6662,7 +6668,7 @@ record B(int X, int Y) : A
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
                 "System.Int32 B.GetHashCode()",
-                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
@@ -6686,9 +6692,16 @@ record B(int X, int Y) : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
+                //     public abstract override bool Equals(object other);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 35),
                 // (7,8): error CS0534: 'B' does not implement inherited abstract member 'A.ToString()'
                 // record B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.ToString()").WithLocation(7, 8));
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.ToString()").WithLocation(7, 8),
+                // (7,8): error CS0534: 'B' does not implement inherited abstract member 'A.Equals(object)'
+                // record B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.Equals(object)").WithLocation(7, 8)
+                );
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -6706,13 +6719,333 @@ record B(int X, int Y) : A
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
                 "System.Int32 B.GetHashCode()",
-                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Overrides_03()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '<>Clone' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'<>Clone'
+
+    .method public final hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0239: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is sealed
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void Overrides_04()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '<>Clone' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'<>Clone'
+
+    .method public newslot hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8869: 'B.Equals(object?)' does not override the method from 'object'.
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.Equals(object?)").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void Overrides_05()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '<>Clone' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'<>Clone'
+
+    .method public newslot hidebysig 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0506: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is not marked virtual, abstract, or override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void Overrides_06()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '<>Clone' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'<>Clone'
+
+    .method public newslot hidebysig virtual 
+        instance int32 Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0508: 'B.Equals(object?)': return type must be 'int' to match overridden member 'A.Equals(object)'
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "B").WithArguments("B.Equals(object?)", "A.Equals(object)", "int").WithLocation(2, 15)
+                );
         }
 
         [WorkItem(44692, "https://github.com/dotnet/roslyn/issues/44692")]
@@ -7033,6 +7366,8 @@ record C(int X, int Y) : Base(X, Y)
         var c = new C(1, 2);
         Console.WriteLine(c.Z);
     }
+
+    C(int X, int Y, int Z) : this(X, Y) {}
 }";
             var verifier = CompileAndVerify(src, expectedOutput: @"
 1
@@ -7077,10 +7412,42 @@ record C(int X, int Y) : Base(X, Y)
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
 
-            var baseWithargs = tree.GetRoot().DescendantNodes().OfType<SimpleBaseTypeSyntax>().Single();
-            Assert.Equal("Base(X, Y)", baseWithargs.ToString());
-            Assert.Null(model.GetTypeInfo(baseWithargs).Type);
-            Assert.Null(model.GetSymbolInfo(baseWithargs).Symbol);
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single();
+                Assert.Equal("Base(X, Y)", baseWithargs.ToString());
+                Assert.Equal("Base", model.GetTypeInfo(baseWithargs.Type).Type.ToTestDisplayString());
+                Assert.Equal(TypeInfo.None, model.GetTypeInfo(baseWithargs));
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo((SyntaxNode)baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo(baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", CSharpExtensions.GetSymbolInfo(model, baseWithargs).Symbol.ToTestDisplayString());
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+
+                model = comp.GetSemanticModel(tree);
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo((SyntaxNode)baseWithargs).Symbol.ToTestDisplayString());
+                model = comp.GetSemanticModel(tree);
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo(baseWithargs).Symbol.ToTestDisplayString());
+                model = comp.GetSemanticModel(tree);
+                Assert.Equal("Base..ctor(System.Int32 X, System.Int32 Y)", CSharpExtensions.GetSymbolInfo(model, baseWithargs).Symbol.ToTestDisplayString());
+
+                model = comp.GetSemanticModel(tree);
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                model = comp.GetSemanticModel(tree);
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+                model = comp.GetSemanticModel(tree);
+            }
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+                Assert.Equal(": this(X, Y)", baseWithargs.ToString());
+                Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo((SyntaxNode)baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", model.GetSymbolInfo(baseWithargs).Symbol.ToTestDisplayString());
+                Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", CSharpExtensions.GetSymbolInfo(model, baseWithargs).Symbol.ToTestDisplayString());
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(model.GetMemberGroup(baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(CSharpExtensions.GetMemberGroup(model, baseWithargs).Select(m => m.ToTestDisplayString()));
+            }
         }
 
         [Fact]
@@ -7825,6 +8192,327 @@ record C(int X, int y)
                 );
         }
 
+        [Fact]
+        public void BaseArguments_19()
+        {
+            var src = @"
+record Base
+{
+    public Base(int X)
+    {
+    }
+
+    public Base() {}
+}
+
+record C(int X, int Y) : Base(GetInt(X, out var xx) + xx, Y), I
+{
+    C(int X, int Y, int Z) : this(X, Y, Z, 1) { return; }
+
+    static int GetInt(int x1, out int x2)
+    {
+        throw null;
+    }
+}
+
+interface I {}
+";
+
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (11,30): error CS1729: 'Base' does not contain a constructor that takes 2 arguments
+                // record C(int X, int Y) : Base(GetInt(X, out var xx) + xx, Y)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(GetInt(X, out var xx) + xx, Y)").WithArguments("Base", "2").WithLocation(11, 30),
+                // (13,30): error CS1729: 'C' does not contain a constructor that takes 4 arguments
+                //     C(int X, int Y, int Z) : this(X, Y, Z, 1) {}
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "this").WithArguments("C", "4").WithLocation(13, 30)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            SymbolInfo symbolInfo;
+            PrimaryConstructorBaseTypeSyntax speculativePrimaryInitializer;
+            ConstructorInitializerSyntax speculativeBaseInitializer;
+
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single();
+                Assert.Equal("Base(GetInt(X, out var xx) + xx, Y)", baseWithargs.ToString());
+                Assert.Equal("Base", model.GetTypeInfo(baseWithargs.Type).Type.ToTestDisplayString());
+                Assert.Equal(TypeInfo.None, model.GetTypeInfo(baseWithargs));
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                string[] candidates = new[] { "Base..ctor(Base )", "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+
+                model = comp.GetSemanticModel(tree);
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                model = comp.GetSemanticModel(tree);
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                model = comp.GetSemanticModel(tree);
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+
+                model = comp.GetSemanticModel(tree);
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                model = comp.GetSemanticModel(tree);
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+                model = comp.GetSemanticModel(tree);
+
+                SemanticModel speculativeModel;
+                speculativePrimaryInitializer = baseWithargs.WithArgumentList(baseWithargs.ArgumentList.WithArguments(baseWithargs.ArgumentList.Arguments.RemoveAt(1)));
+
+                speculativeBaseInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, speculativePrimaryInitializer.ArgumentList);
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().SpanStart,
+                                                                  speculativeBaseInitializer, out _));
+
+                var otherBasePosition = ((BaseListSyntax)baseWithargs.Parent!).Types[1].SpanStart;
+                Assert.False(model.TryGetSpeculativeSemanticModel(otherBasePosition, speculativePrimaryInitializer, out _));
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(baseWithargs.SpanStart, speculativePrimaryInitializer, out speculativeModel!));
+                Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel!.GetSymbolInfo((SyntaxNode)speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel.GetSymbolInfo(speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X)", CSharpExtensions.GetSymbolInfo(speculativeModel, speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out speculativeModel!));
+
+                var xxDecl = OutVarTests.GetOutVarDeclaration(speculativePrimaryInitializer.SyntaxTree, "xx");
+                var xxRef = OutVarTests.GetReferences(speculativePrimaryInitializer.SyntaxTree, "xx").ToArray();
+                Assert.Equal(1, xxRef.Length);
+                OutVarTests.VerifyModelForOutVar(speculativeModel, xxDecl, xxRef);
+
+                Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel!.GetSymbolInfo((SyntaxNode)speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X)", speculativeModel.GetSymbolInfo(speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+                Assert.Equal("Base..ctor(System.Int32 X)", CSharpExtensions.GetSymbolInfo(speculativeModel, speculativePrimaryInitializer).Symbol.ToTestDisplayString());
+
+                Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (PrimaryConstructorBaseTypeSyntax)null!, out _));
+                Assert.Throws<ArgumentException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, baseWithargs, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(otherBasePosition, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, otherBasePosition, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single().ArgumentList.OpenParenToken.SpanStart,
+                                                                         (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+                Assert.Equal(": this(X, Y, Z, 1)", baseWithargs.ToString());
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                string[] candidates = new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )", "C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)" };
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(model.GetMemberGroup(baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(CSharpExtensions.GetMemberGroup(model, baseWithargs).Select(m => m.ToTestDisplayString()));
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
+        }
+
+        [Fact]
+        public void BaseArguments_20()
+        {
+            var src = @"
+class Base
+{
+    public Base(int X)
+    {
+    }
+
+    public Base() {}
+}
+
+class C : Base(GetInt(X, out var xx) + xx, Y), I
+{
+    C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
+
+    static int GetInt(int x1, out int x2)
+    {
+        throw null;
+    }
+}
+
+interface I {}
+";
+
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8861: Unexpected argument list.
+                // class C : Base(GetInt(X, out var xx) + xx, Y), I
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(11, 15),
+                // (13,30): error CS1729: 'Base' does not contain a constructor that takes 4 arguments
+                //     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("Base", "4").WithLocation(13, 30)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            SymbolInfo symbolInfo;
+            PrimaryConstructorBaseTypeSyntax speculativePrimaryInitializer;
+            ConstructorInitializerSyntax speculativeBaseInitializer;
+
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single();
+                Assert.Equal("Base(GetInt(X, out var xx) + xx, Y)", baseWithargs.ToString());
+                Assert.Equal("Base", model.GetTypeInfo(baseWithargs.Type).Type.ToTestDisplayString());
+                Assert.Equal(TypeInfo.None, model.GetTypeInfo(baseWithargs));
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs));
+                Assert.Empty(model.GetMemberGroup(baseWithargs));
+
+                speculativePrimaryInitializer = baseWithargs.WithArgumentList(baseWithargs.ArgumentList.WithArguments(baseWithargs.ArgumentList.Arguments.RemoveAt(1)));
+
+                speculativeBaseInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, speculativePrimaryInitializer.ArgumentList);
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().SpanStart,
+                                                                  speculativeBaseInitializer, out _));
+
+                var otherBasePosition = ((BaseListSyntax)baseWithargs.Parent!).Types[1].SpanStart;
+                Assert.False(model.TryGetSpeculativeSemanticModel(otherBasePosition, speculativePrimaryInitializer, out _));
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.SpanStart, speculativePrimaryInitializer, out _));
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out _));
+
+                Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (PrimaryConstructorBaseTypeSyntax)null!, out _));
+                Assert.Throws<ArgumentException>(() => model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, baseWithargs, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(otherBasePosition, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, otherBasePosition, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single().ArgumentList.OpenParenToken.SpanStart,
+                                                                         (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
+            {
+                var baseWithargs = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+                Assert.Equal(": base(X, Y, Z, 1)", baseWithargs.ToString());
+                symbolInfo = model.GetSymbolInfo((SyntaxNode)baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                string[] candidates = new[] { "Base..ctor(System.Int32 X)", "Base..ctor()" };
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = model.GetSymbolInfo(baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+                symbolInfo = CSharpExtensions.GetSymbolInfo(model, baseWithargs);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+                Assert.Equal(candidates, symbolInfo.CandidateSymbols.Select(m => m.ToTestDisplayString()));
+
+                Assert.Empty(model.GetMemberGroup((SyntaxNode)baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(model.GetMemberGroup(baseWithargs).Select(m => m.ToTestDisplayString()));
+                Assert.Empty(CSharpExtensions.GetMemberGroup(model, baseWithargs).Select(m => m.ToTestDisplayString()));
+
+                Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer, out _));
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativePrimaryInitializer);
+                Assert.Equal(SymbolInfo.None, symbolInfo);
+
+                symbolInfo = model.GetSpeculativeSymbolInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativeBaseInitializer, SpeculativeBindingOption.BindAsExpression);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                symbolInfo = CSharpExtensions.GetSpeculativeSymbolInfo(model, baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBaseInitializer);
+                Assert.Equal("Base..ctor(System.Int32 X)", symbolInfo.Symbol.ToTestDisplayString());
+
+                Assert.Equal(TypeInfo.None, model.GetSpeculativeTypeInfo(baseWithargs.ArgumentList.OpenParenToken.SpanStart, (SyntaxNode)speculativePrimaryInitializer, SpeculativeBindingOption.BindAsExpression));
+            }
+        }
+
         [Fact(Skip = "record struct")]
         public void Equality_01()
         {
@@ -7900,6 +8588,15 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+
+            var ordinaryMethods = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+            Assert.Equal(4, ordinaryMethods.Length);
+
+            foreach (var m in ordinaryMethods)
+            {
+                Assert.True(m.IsImplicitlyDeclared);
+            }
+
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
 True
@@ -8415,9 +9112,9 @@ True");
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.GetHashCode"), isOverride: true);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.GetHashCode"), isOverride: true);
 
-            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
-            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
-            VerifyVirtualMethods(comp.GetMembers("C.Equals"), ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(A? )", true), ("System.Boolean C.Equals(System.Object? )", true));
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? obj)", true));
+            VerifyVirtualMethods(comp.GetMembers("C.Equals"), ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(A? )", true), ("System.Boolean C.Equals(System.Object? obj)", true));
         }
 
         private static void VerifyVirtualMethod(MethodSymbol method, bool isOverride)
@@ -8862,7 +9559,7 @@ record C : B;
                 "System.Type B.EqualityContract { get; }",
                 "System.Type B.EqualityContract.get",
                 "System.Int32 B.GetHashCode()",
-                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
@@ -8998,7 +9695,7 @@ True");
                 "System.Int32 B1.P { get; init; }",
                 "System.Boolean B1.Equals(A other)",
                 "System.Int32 B1.GetHashCode()",
-                "System.Boolean B1.Equals(System.Object? )",
+                "System.Boolean B1.Equals(System.Object? obj)",
                 "System.Boolean B1.Equals(B1? )",
                 "B1..ctor(B1 )",
                 "void B1.Deconstruct(out System.Int32 P)"
@@ -9014,14 +9711,14 @@ True");
             var sourceA = @"public record A;";
             var comp = CreateCompilation(sourceA);
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
-            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? obj)", true));
             var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
 
             var sourceB = @"record B : A;";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
-            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? obj)", true));
         }
 
         [Fact]
@@ -9875,6 +10572,23 @@ record C(int X) : Base(() => 100 + X++)
 202
 303
 ");
+        }
+
+        [Fact]
+        public void SynthesizedRecordPointerProperty()
+        {
+            var src = @"
+record R(int P1, int* P2, delegate*<int> P3);";
+
+            var comp = CreateCompilation(src);
+            var p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P1");
+            Assert.False(p.HasPointerType);
+
+            p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P2");
+            Assert.True(p.HasPointerType);
+
+            p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P3");
+            Assert.True(p.HasPointerType);
         }
     }
 }

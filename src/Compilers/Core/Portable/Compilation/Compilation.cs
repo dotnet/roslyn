@@ -857,6 +857,12 @@ namespace Microsoft.CodeAnalysis
         protected abstract ITypeSymbol CommonDynamicType { get; }
 
         /// <summary>
+        /// A symbol representing the script globals type.
+        /// </summary>
+        internal ITypeSymbol? ScriptGlobalsType => CommonScriptGlobalsType;
+        protected abstract ITypeSymbol? CommonScriptGlobalsType { get; }
+
+        /// <summary>
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>
@@ -1387,7 +1393,7 @@ namespace Microsoft.CodeAnalysis
                         case SymbolKind.Discard:
                             s = ((IDiscardSymbol)s).Type;
                             continue;
-                        case SymbolKind.FunctionPointer:
+                        case SymbolKind.FunctionPointerType:
                             var funcPtr = (IFunctionPointerTypeSymbol)s;
                             if (!isContainingAssemblyInReferences(funcPtr.Signature.ReturnType))
                             {
@@ -1422,7 +1428,7 @@ namespace Microsoft.CodeAnalysis
             ISymbol within,
             ITypeSymbol? throughType);
 
-        internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue);
+        internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out ConstantValue? constantValue);
 
         #endregion
 

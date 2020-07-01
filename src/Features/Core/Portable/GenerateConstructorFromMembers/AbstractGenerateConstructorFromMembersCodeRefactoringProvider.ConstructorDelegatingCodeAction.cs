@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var thisConstructorArguments = factory.CreateArguments(
                     _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
 
-                var nullCheckStatements = ArrayBuilder<SyntaxNode>.GetInstance();
-                var assignStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+                using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
+                using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var useThrowExpressions = _service.PrefersThrowExpression(options);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     ? syntaxTree.GetLocation(_state.TextSpan)
                     : null;
 
-                var statements = nullCheckStatements.ToImmutableAndFree().Concat(assignStatements.ToImmutableAndFree());
+                var statements = nullCheckStatements.ToImmutable().Concat(assignStatements.ToImmutable());
                 var result = await codeGenerationService.AddMethodAsync(
                     _document.Project.Solution,
                     _state.ContainingType,

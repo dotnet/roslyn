@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -15,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         internal static SyntaxNode Replace<TNode>(
             SyntaxNode root,
-            IEnumerable<TNode> nodes = null,
-            Func<TNode, TNode, SyntaxNode> computeReplacementNode = null,
-            IEnumerable<SyntaxToken> tokens = null,
-            Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken = null,
-            IEnumerable<SyntaxTrivia> trivia = null,
-            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null)
+            IEnumerable<TNode>? nodes = null,
+            Func<TNode, TNode, SyntaxNode>? computeReplacementNode = null,
+            IEnumerable<SyntaxToken>? tokens = null,
+            Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken = null,
+            IEnumerable<SyntaxTrivia>? trivia = null,
+            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia = null)
             where TNode : SyntaxNode
         {
             var replacer = new Replacer<TNode>(
@@ -40,12 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static SyntaxToken Replace(
             SyntaxToken root,
-            IEnumerable<SyntaxNode> nodes = null,
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode = null,
-            IEnumerable<SyntaxToken> tokens = null,
-            Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken = null,
-            IEnumerable<SyntaxTrivia> trivia = null,
-            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null)
+            IEnumerable<SyntaxNode>? nodes = null,
+            Func<SyntaxNode, SyntaxNode, SyntaxNode>? computeReplacementNode = null,
+            IEnumerable<SyntaxToken>? tokens = null,
+            Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken = null,
+            IEnumerable<SyntaxTrivia>? trivia = null,
+            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia = null)
         {
             var replacer = new Replacer<SyntaxNode>(
                 nodes, computeReplacementNode,
@@ -64,9 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private class Replacer<TNode> : CSharpSyntaxRewriter where TNode : SyntaxNode
         {
-            private readonly Func<TNode, TNode, SyntaxNode> _computeReplacementNode;
-            private readonly Func<SyntaxToken, SyntaxToken, SyntaxToken> _computeReplacementToken;
-            private readonly Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> _computeReplacementTrivia;
+            private readonly Func<TNode, TNode, SyntaxNode>? _computeReplacementNode;
+            private readonly Func<SyntaxToken, SyntaxToken, SyntaxToken>? _computeReplacementToken;
+            private readonly Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? _computeReplacementTrivia;
 
             private readonly HashSet<SyntaxNode> _nodeSet;
             private readonly HashSet<SyntaxToken> _tokenSet;
@@ -78,12 +81,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             private readonly bool _shouldVisitTrivia;
 
             public Replacer(
-                IEnumerable<TNode> nodes,
-                Func<TNode, TNode, SyntaxNode> computeReplacementNode,
-                IEnumerable<SyntaxToken> tokens,
-                Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken,
-                IEnumerable<SyntaxTrivia> trivia,
-                Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia)
+                IEnumerable<TNode>? nodes,
+                Func<TNode, TNode, SyntaxNode>? computeReplacementNode,
+                IEnumerable<SyntaxToken>? tokens,
+                Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken,
+                IEnumerable<SyntaxTrivia>? trivia,
+                Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia)
             {
                 _computeReplacementNode = computeReplacementNode;
                 _computeReplacementToken = computeReplacementToken;
@@ -175,9 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            [return: NotNullIfNotNull("node")]
+            public override SyntaxNode? Visit(SyntaxNode? node)
             {
-                SyntaxNode rewritten = node;
+                SyntaxNode? rewritten = node;
 
                 if (node != null)
                 {
@@ -188,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     if (_nodeSet.Contains(node) && _computeReplacementNode != null)
                     {
-                        rewritten = _computeReplacementNode((TNode)node, (TNode)rewritten);
+                        rewritten = _computeReplacementNode((TNode)node, (TNode)rewritten!);
                     }
                 }
 
@@ -322,9 +326,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            [return: NotNullIfNotNull("node")]
+            public override SyntaxNode? Visit(SyntaxNode? node)
             {
-                SyntaxNode rewritten = node;
+                SyntaxNode? rewritten = node;
 
                 if (node != null)
                 {
@@ -377,7 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _newNodes = replacementNodes;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            [return: NotNullIfNotNull("node")]
+            public override SyntaxNode? Visit(SyntaxNode? node)
             {
                 if (node == _originalNode)
                 {

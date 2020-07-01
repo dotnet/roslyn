@@ -1752,7 +1752,7 @@ tryAgain:
                     }
                 }
 
-                list.Add(_syntaxFactory.SimpleBaseType(firstType, argumentList));
+                list.Add(argumentList is object ? _syntaxFactory.PrimaryConstructorBaseType(firstType, argumentList) : (BaseTypeSyntax)_syntaxFactory.SimpleBaseType(firstType));
 
                 // any additional types
                 while (true)
@@ -1766,7 +1766,7 @@ tryAgain:
                     else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                     {
                         list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                        list.Add(_syntaxFactory.SimpleBaseType(this.ParseType(), argumentList: null));
+                        list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
                         continue;
                     }
                     else if (this.SkipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -5013,7 +5013,7 @@ tryAgain:
                 var colon = this.EatToken(SyntaxKind.ColonToken);
                 var type = this.ParseType();
                 var tmpList = _pool.AllocateSeparated<BaseTypeSyntax>();
-                tmpList.Add(_syntaxFactory.SimpleBaseType(type, argumentList: null));
+                tmpList.Add(_syntaxFactory.SimpleBaseType(type));
                 baseList = _syntaxFactory.BaseList(colon, tmpList);
                 _pool.Free(tmpList);
             }

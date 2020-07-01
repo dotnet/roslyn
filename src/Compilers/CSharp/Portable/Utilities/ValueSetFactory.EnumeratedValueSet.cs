@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
@@ -24,18 +25,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// In <see cref="_included"/>, then members are listed by inclusion.  Otherwise all members
             /// are assumed to be contained in the set unless excluded.
             /// </summary>
-            private bool _included;
+            private readonly bool _included;
 
-            private ImmutableHashSet<T> _membersIncludedOrExcluded;
+            private readonly ImmutableHashSet<T> _membersIncludedOrExcluded;
 
             private EnumeratedValueSet(bool included, ImmutableHashSet<T> membersIncludedOrExcluded) =>
                 (this._included, this._membersIncludedOrExcluded) = (included, membersIncludedOrExcluded);
 
-            public static EnumeratedValueSet<T, TTC> AllValues = new EnumeratedValueSet<T, TTC>(included: false, ImmutableHashSet<T>.Empty);
+            public static readonly EnumeratedValueSet<T, TTC> AllValues = new EnumeratedValueSet<T, TTC>(included: false, ImmutableHashSet<T>.Empty);
+
+            public static readonly EnumeratedValueSet<T, TTC> NoValues = new EnumeratedValueSet<T, TTC>(included: true, ImmutableHashSet<T>.Empty);
 
             internal static EnumeratedValueSet<T, TTC> Including(T value) => new EnumeratedValueSet<T, TTC>(included: true, ImmutableHashSet<T>.Empty.Add(value));
 
-            bool IValueSet.IsEmpty => _included && _membersIncludedOrExcluded.IsEmpty;
+            public bool IsEmpty => _included && _membersIncludedOrExcluded.IsEmpty;
+
+            ConstantValue IValueSet.Sample
+            {
+                get
+                {
+                    if (IsEmpty) throw new ArgumentException();
+                    var tc = default(TTC);
+                    if (_included)
+                        return tc.ToConstantValue(_membersIncludedOrExcluded.OrderBy(k => k).First());
+                    if (typeof(T) == typeof(string))
+                    {
+                        // try some simple strings.
+                        if (this.Any(BinaryOperatorKind.Equal, (T)(object)""))
+                            return tc.ToConstantValue((T)(object)"");
+                        for (char c = 'A'; c <= 'z'; c++)
+                            if (this.Any(BinaryOperatorKind.Equal, (T)(object)c.ToString()))
+                                return tc.ToConstantValue((T)(object)c.ToString());
+                    }
+                    // If that doesn't work, choose from a sufficiently large random selection of values.
+                    // Since this is an excluded set, they cannot all be excluded
+                    var candidates = tc.RandomValues(_membersIncludedOrExcluded.Count + 1, new Random(0), _membersIncludedOrExcluded.Count + 1);
+                    foreach (var value in candidates)
+                    {
+                        if (this.Any(BinaryOperatorKind.Equal, value))
+                            return tc.ToConstantValue(value);
+                    }
+
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }
 
             public bool Any(BinaryOperatorKind relation, T value)
             {

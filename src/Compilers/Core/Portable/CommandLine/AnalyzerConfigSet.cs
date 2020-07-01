@@ -175,6 +175,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
+            int globalConfigOptionsCount = sectionKey.Count;
 
             // The editorconfig paths are sorted from shortest to longest, so matches
             // are resolved from most nested to least nested, where last setting wins
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis
                     // to this source file.
                     if (config.IsRoot)
                     {
-                        sectionKey.Clear();
+                        sectionKey.RemoveRange(globalConfigOptionsCount, sectionKey.Count - globalConfigOptionsCount);
                     }
 
                     int dirLength = config.NormalizedDirectory.Length;
