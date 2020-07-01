@@ -64,11 +64,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 {
                     yield return new ActiveStatementDebugInfo(
                         new ActiveInstructionId(
-                            (modules != null) ? modules[index] : moduleId,
-                            methodToken: 0x06000000 | (methodRowIds != null ? methodRowIds[index] : index + 1),
-                            methodVersion: (methodVersions != null) ? methodVersions[index] : 1,
+                            new ActiveMethodId(
+                                (modules != null) ? modules[index] : moduleId,
+                                token: 0x06000000 | (methodRowIds != null ? methodRowIds[index] : index + 1),
+                                version: (methodVersions != null) ? methodVersions[index] : 1),
                             ilOffset: (ilOffsets != null) ? ilOffsets[index] : 0),
-                        documentNameOpt: documentName,
+                        documentName: documentName,
                         linePositionSpan: text.Lines.GetLinePositionSpan(span),
                         threadIds: (threads != null) ? threads[index] : ImmutableArray.Create(threadId),
                         flags: (flags != null) ? flags[index] : ((id == 0 ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) | ActiveStatementFlags.MethodUpToDate));
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return Enumerate().ToImmutableArray();
         }
 
-        private sealed class Validator
+        private sealed class Validator : IDisposable
         {
             public readonly TestWorkspace Workspace;
             public readonly EditSession EditSession;
@@ -118,7 +119,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
                 var telemetry = new EditSessionTelemetry();
-                EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockDebuggeModuleProvider.Object);
+                EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => new(activeStatements), mockDebuggeModuleProvider.Object);
+            }
+
+            public void Dispose()
+            {
+                Workspace.Dispose();
             }
 
             public ImmutableArray<DocumentId> GetDocumentIds()
@@ -242,8 +248,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // add an extra active statement that has no location, it should be ignored:
             activeStatements = activeStatements.Add(
                 new ActiveStatementDebugInfo(
-                    new ActiveInstructionId(moduleId: Guid.NewGuid(), methodToken: 0x06000005, methodVersion: 1, ilOffset: 10),
-                    documentNameOpt: null,
+                    new ActiveInstructionId(new ActiveMethodId(moduleId: Guid.NewGuid(), token: 0x06000005, version: 1), ilOffset: 10),
+                    documentName: null,
                     linePositionSpan: default,
                     threadIds: ImmutableArray.Create(Guid.NewGuid()),
                     ActiveStatementFlags.IsNonLeafFrame));
@@ -251,7 +257,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // add an extra active statement from project not belonging to the solution, it should be ignored:
             activeStatements = activeStatements.Add(
                 new ActiveStatementDebugInfo(
-                    new ActiveInstructionId(moduleId: Guid.NewGuid(), methodToken: 0x06000005, methodVersion: 1, ilOffset: 10),
+                    new ActiveInstructionId(new ActiveMethodId(moduleId: Guid.NewGuid(), token: 0x06000005, version: 1), ilOffset: 10),
                     "NonRoslynDocument.mcpp",
                     new LinePositionSpan(new LinePosition(1, 1), new LinePosition(1, 10)),
                     threadIds: ImmutableArray.Create(Guid.NewGuid()),
@@ -261,7 +267,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // See https://github.com/dotnet/roslyn/issues/24408 for test scenario.
             activeStatements = activeStatements.Add(
                 new ActiveStatementDebugInfo(
-                    new ActiveInstructionId(moduleId: Guid.NewGuid(), methodToken: 0x06000005, methodVersion: 1, ilOffset: 10),
+                    new ActiveInstructionId(new ActiveMethodId(moduleId: Guid.NewGuid(), token: 0x06000005, version: 1), ilOffset: 10),
                     "a.dummy",
                     new LinePositionSpan(new LinePosition(1, 1), new LinePosition(1, 10)),
                     threadIds: ImmutableArray.Create(Guid.NewGuid()),
@@ -273,7 +279,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 return project.Solution.AddDocument(DocumentId.CreateNewId(project.Id, DummyLanguageService.LanguageName), "a.dummy", "");
             });
 
-            var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution);
+            using var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution);
             var baseActiveStatementsMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
             var docs = validator.GetDocumentIds();
 
@@ -407,7 +413,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame,    // F2
                 });
 
-            var validator = new Validator(new[] { baseSource }, baseActiveStatementInfos);
+            using var validator = new Validator(new[] { baseSource }, baseActiveStatementInfos);
             var baseActiveStatementMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
             var docs = validator.GetDocumentIds();
 
@@ -505,7 +511,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 },
                 threads: new[] { ImmutableArray.Create(thread1) });
 
-            var validator = new Validator(markedSource, activeStatements, initialState: CommittedSolution.DocumentState.OutOfSync);
+            using var validator = new Validator(markedSource, activeStatements, initialState: CommittedSolution.DocumentState.OutOfSync);
             var baseActiveStatementMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
             var docs = validator.GetDocumentIds();
 
@@ -657,7 +663,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     new NonRemappableRegion(erPreRemap31, lineDelta: +1, isExceptionRegion: true)) }
             }.ToImmutableDictionary();
 
-            var validator = new Validator(new[] { markedSourceV2 }, activeStatementsPreRemap, initialNonRemappableRegions);
+            using var validator = new Validator(new[] { markedSourceV2 }, activeStatementsPreRemap, initialNonRemappableRegions);
             var baseActiveStatementMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
             var docs = validator.GetDocumentIds();
 
@@ -782,7 +788,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 },
                 threads: new[] { ImmutableArray.Create(thread1, thread2), ImmutableArray.Create(thread1, thread2, thread2) });
 
-            var validator = new Validator(markedSource, activeStatements);
+            using var validator = new Validator(markedSource, activeStatements);
             var baseActiveStatementMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
             var docs = validator.GetDocumentIds();
 
@@ -876,7 +882,7 @@ class Test2
                 return solution;
             });
 
-            var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution, openDocuments: true);
+            using var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution, openDocuments: true);
 
             var baseActiveStatementsMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
             var docs = validator.GetDocumentIds();
