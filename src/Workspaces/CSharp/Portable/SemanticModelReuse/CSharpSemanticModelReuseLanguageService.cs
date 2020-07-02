@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
             return null;
         }
 
-        public override async Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(
+        protected override async Task<SemanticModel?> TryGetSpeculativeSemanticModelWorkerAsync(
             SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
         {
             var previousRoot = await previousSemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);

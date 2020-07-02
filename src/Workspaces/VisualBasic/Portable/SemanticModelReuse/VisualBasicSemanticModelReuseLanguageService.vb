@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
             Return Nothing
         End Function
 
-        Public Overrides Async Function TryGetSpeculativeSemanticModelAsync(
+        Protected Overrides Async Function TryGetSpeculativeSemanticModelWorkerAsync(
             previousSemanticModel As SemanticModel, currentBodyNode As SyntaxNode, cancellationToken As CancellationToken) As Task(Of SemanticModel)
 
             Dim previousRoot = Await previousSemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False)

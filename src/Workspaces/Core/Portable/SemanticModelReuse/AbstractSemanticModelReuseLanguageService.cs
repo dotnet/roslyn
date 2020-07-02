@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
@@ -16,7 +17,17 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         public abstract SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node);
-        public abstract Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken);
+        protected abstract Task<SemanticModel?> TryGetSpeculativeSemanticModelWorkerAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken);
+
+        public Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
+        {
+            var previousSyntaxTree = previousSemanticModel.SyntaxTree;
+            var currentSyntaxTree = currentBodyNode.SyntaxTree;
+
+            // This operation is only valid if top-level equivalent trees were passed in.
+            Contract.ThrowIfFalse(previousSyntaxTree.IsEquivalentTo(currentSyntaxTree, topLevel: true));
+            return TryGetSpeculativeSemanticModelWorkerAsync(previousSemanticModel, currentBodyNode, cancellationToken);
+        }
 
         protected virtual SyntaxNode? GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
         {
