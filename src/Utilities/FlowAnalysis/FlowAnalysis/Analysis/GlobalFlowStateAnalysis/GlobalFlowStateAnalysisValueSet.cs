@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 }
 
                 var result = string.Join(" && ", AnalysisValues.Select(f => f.ToString()).Order());
-                if (Parents.Count > 0)
+                if (!Parents.IsEmpty)
                 {
                     result = $" && {result}";
                 }

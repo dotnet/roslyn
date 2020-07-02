@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             if (arguments.Count == methodInfo.Parameters.Length - 1)
             {
                 // Up to net45 the System.Array.Empty<T> singleton didn't existed so an empty params array was still causing some memory allocation.
-                if (semanticModel.Compilation.GetSpecialType(SpecialType.System_Array).GetMembers("Empty").Length == 0)
+                if (semanticModel.Compilation.GetSpecialType(SpecialType.System_Array).GetMembers("Empty").IsEmpty)
                 {
                     reportDiagnostic(Diagnostic.Create(ParamsParameterRule, invocationExpression.GetLocation(), EmptyMessageArgs));
                 }

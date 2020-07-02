@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         {
             Debug.Assert(_hasPredicatedGlobalState || !negate);
 
-            if (value.AnalysisValues.Count > 0)
+            if (!value.AnalysisValues.IsEmpty)
             {
                 var currentGlobalValue = GetAbstractValue(_globalEntity);
                 if (currentGlobalValue.Kind != GlobalFlowStateAnalysisValueSetKind.Unknown)
