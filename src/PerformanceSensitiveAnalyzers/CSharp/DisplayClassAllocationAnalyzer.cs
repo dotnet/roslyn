@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static void ClosureCaptureDataFlowAnalysis(DataFlowAnalysis? flow, Action<Diagnostic> reportDiagnostic, Location location)
         {
             if (flow == null ||
-                flow.Captured.Length <= 0)
+                flow.Captured.IsEmpty)
             {
                 return;
             }

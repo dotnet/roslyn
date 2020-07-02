@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             if (_lazyParameterEntities == null &&
                 OwningSymbol is IMethodSymbol method &&
-                method.Parameters.Length > 0)
+                !method.Parameters.IsEmpty)
             {
                 var builder = ImmutableDictionary.CreateBuilder<IParameterSymbol, AnalysisEntity>();
                 var argumentValuesMap = DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.ArgumentValuesMap ??
@@ -2870,7 +2870,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 if (targetMethod.IsLockMethod(MonitorNamedType))
                 {
                     // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
-                    Debug.Assert(arguments.Length >= 1);
+                    Debug.Assert(!arguments.IsEmpty);
 
                     HandleEnterLockOperation(arguments[0].Value);
                 }

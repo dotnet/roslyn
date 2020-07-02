@@ -79,7 +79,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     if (!(linqEnumerableSymbol.GetMembers(EmptyMethodName).FirstOrDefault() is IMethodSymbol genericEmptyEnumerableSymbol) ||
                         genericEmptyEnumerableSymbol.Arity != 1 ||
-                        genericEmptyEnumerableSymbol.Parameters.Length != 0)
+                        !genericEmptyEnumerableSymbol.Parameters.IsEmpty)
                     {
                         return;
                     }

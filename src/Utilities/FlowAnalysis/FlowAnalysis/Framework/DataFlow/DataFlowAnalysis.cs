@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Adjust the branch if we are going to be executing one or more finally regions, but the CFG's branch doesn't account for these.
             BranchWithInfo AdjustBranchIfFinalizing(BranchWithInfo branch)
             {
-                if (branch.FinallyRegions.Length > 0)
+                if (!branch.FinallyRegions.IsEmpty)
                 {
                     var firstFinally = branch.FinallyRegions[0];
                     var destination = cfg.Blocks[firstFinally.FirstBlockOrdinal];
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             void UpdateFinallySuccessorsAndCatchInput(BranchWithInfo branch, TAnalysisData branchData, BasicBlock sourceBlock)
             {
                 // Compute and update finally successors.
-                if (branch.FinallyRegions.Length > 0)
+                if (!branch.FinallyRegions.IsEmpty)
                 {
                     var successor = branch.With(branchValueOpt: null, controlFlowConditionKind: ControlFlowConditionKind.None);
                     for (var i = branch.FinallyRegions.Length - 1; i >= 0; i--)
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 // Update catch input data.
-                if (branch.LeavingRegions.Length > 0)
+                if (!branch.LeavingRegions.IsEmpty)
                 {
                     foreach (var region in branch.LeavingRegions)
                     {
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         if (region.Kind == ControlFlowRegionKind.TryAndCatch)
                         {
                             var hasNestedFinally = false;
-                            if (branch.FinallyRegions.Length > 0)
+                            if (!branch.FinallyRegions.IsEmpty)
                             {
                                 var catchRegion = TryGetReachableCatchRegionStartingHandler(region, sourceBlock);
                                 if (catchRegion != null)
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     var maxSuccessorOrdinal = Math.Max(branch.Destination.GetMaxSuccessorOrdinal(), branch.Source.Ordinal);
 
-                    if (branch.FinallyRegions.Length > 0)
+                    if (!branch.FinallyRegions.IsEmpty)
                     {
                         maxSuccessorOrdinal = Math.Max(maxSuccessorOrdinal, branch.FinallyRegions[^1].LastBlockOrdinal);
                     }
