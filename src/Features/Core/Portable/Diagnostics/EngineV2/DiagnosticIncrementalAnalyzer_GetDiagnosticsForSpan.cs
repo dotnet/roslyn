@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner.DiagnosticAnalyzerInfoCache);
+                var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, logPerformanceInfo: false);
                 foreach (var analyzer in analyzers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();

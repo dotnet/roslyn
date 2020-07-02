@@ -369,6 +369,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: true);
         }
 
+        private static AnalyzerDriver CreateDriverForComputingDiagnosticsWithoutStateTracking(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            // Create and attach a new driver instance to compilation, do not used a pooled instance from '_driverPool'.
+            // Additionally, use a new AnalyzerManager and don't use the analyzer manager instance
+            // stored onto the field '_analyzerManager'.
+            // Pooled _driverPool and shared _analyzerManager is used for partial/state-based analysis, and
+            // we want to compute diagnostics without any state tracking here.
+
+            return compilation.CreateAnalyzerDriver(analyzers, new AnalyzerManager(analyzers), severityFilter: SeverityFilter.None);
+        }
+
         private async Task ComputeAnalyzerDiagnosticsWithoutStateTrackingAsync(CancellationToken cancellationToken)
         {
             // Exclude analyzers that have fully executed.
@@ -389,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = true;
-                driver = compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None);
+                driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var analysisScope = new AnalysisScope(compilation, analyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);
@@ -429,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = false;
-                driver = compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None);
+                driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var analysisScope = new AnalysisScope(compilation, analyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);

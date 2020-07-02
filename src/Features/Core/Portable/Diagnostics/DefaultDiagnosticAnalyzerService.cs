@@ -62,11 +62,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             private readonly DefaultDiagnosticAnalyzerService _service;
             private readonly Workspace _workspace;
+            private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
 
             public DefaultDiagnosticIncrementalAnalyzer(DefaultDiagnosticAnalyzerService service, Workspace workspace)
             {
                 _service = service;
                 _workspace = workspace;
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache, workspace);
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _service._analyzerInfoCache);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
 
                 var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 foreach (var analyzer in analyzers)
