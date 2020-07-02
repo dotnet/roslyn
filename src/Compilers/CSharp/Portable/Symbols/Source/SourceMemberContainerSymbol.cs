@@ -2974,6 +2974,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            CSharpCompilation compilation = this.DeclaringCompilation;
+
             // Positional record
             if (!(paramList is null))
             {
@@ -3009,7 +3011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
-            // go to the record declaration
+            // going to the record declaration
             members.AddRange(builder.NonTypeNonIndexerMembers);
             builder.NonTypeNonIndexerMembers.Free();
             builder.NonTypeNonIndexerMembers = members;
@@ -3133,11 +3135,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addHashCode(PropertySymbol equalityContract)
             {
-                var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count);
-                if (!memberSignatures.ContainsKey(hashCode))
+                var targetMethod = new SignatureOnlyMethodSymbol(
+                    WellKnownMemberNames.ObjectGetHashCode,
+                    this,
+                    MethodKind.Ordinary,
+                    Cci.CallingConvention.HasThis,
+                    ImmutableArray<TypeParameterSymbol>.Empty,
+                    ImmutableArray<ParameterSymbol>.Empty,
+                    RefKind.None,
+                    isInitOnly: false,
+                    TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray<MethodSymbol>.Empty);
+
+                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? contender))
                 {
-                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
+                    var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
                     members.Add(hashCode);
+                }
+                else
+                {
+                    var method = (MethodSymbol)contender;
+                    if (!SynthesizedRecordObjectMethod.VerifyOerridesMethodFromObject(method, diagnostics) && method.IsSealed && !IsSealed)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SealedGetHashCodeInRecord, method.Locations[0], method);
+                    }
                 }
             }
 
