@@ -13,7 +13,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
     <ExportLanguageService(GetType(ISemanticModelReuseLanguageService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSemanticModelReuseLanguageService
-        Inherits AbstractSemanticModelReuseLanguageService
+        Inherits AbstractSemanticModelReuseLanguageService(Of
+            MethodBlockBaseSyntax, AccessorBlockSyntax, PropertyBlockSyntax, EventBlockSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -21,6 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
         End Sub
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
+        Protected Overrides Function GetAccessors([event] As EventBlockSyntax) As SyntaxList(Of AccessorBlockSyntax)
+            Return [event].Accessors
+        End Function
+
+        Protected Overrides Function GetAccessors([property] As PropertyBlockSyntax) As SyntaxList(Of AccessorBlockSyntax)
+            Return [property].Accessors
+        End Function
 
         Public Overrides Function TryGetContainingMethodBodyForSpeculation(node As SyntaxNode) As SyntaxNode
             Dim previous = node

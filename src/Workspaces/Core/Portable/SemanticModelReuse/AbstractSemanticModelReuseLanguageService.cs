@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -12,12 +13,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
-    internal abstract class AbstractSemanticModelReuseLanguageService : ISemanticModelReuseLanguageService
+    internal abstract class AbstractSemanticModelReuseLanguageService<
+        TBaseMethodDeclarationSyntax,
+        TAccessorDeclarationSyntax,
+        TPropertyDeclarationSyntax,
+        TEventDeclarationSyntax> : ISemanticModelReuseLanguageService
+        where TBaseMethodDeclarationSyntax : SyntaxNode
+        where TAccessorDeclarationSyntax : SyntaxNode
+        where TPropertyDeclarationSyntax : SyntaxNode
+        where TEventDeclarationSyntax : SyntaxNode
     {
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         public abstract SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node);
+
         protected abstract Task<SemanticModel?> TryGetSpeculativeSemanticModelWorkerAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken);
+        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TPropertyDeclarationSyntax property);
+        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TEventDeclarationSyntax @event);
 
         public Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
         {
@@ -29,24 +41,56 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             return TryGetSpeculativeSemanticModelWorkerAsync(previousSemanticModel, currentBodyNode, cancellationToken);
         }
 
-        protected virtual SyntaxNode? GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
+        protected SyntaxNode? GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
         {
-            var currentMembers = this.SyntaxFacts.GetMethodLevelMembers(currentRoot);
-            var index = currentMembers.IndexOf(currentBodyNode);
-            if (index < 0)
+            if (currentBodyNode is TAccessorDeclarationSyntax currentAccessor)
             {
-                Debug.Fail($"Unhandled member type in {nameof(GetPreviousBodyNode)}");
-                return null;
-            }
+                // in the case of an accessor, have to find the previous accessor in the previous prop/event corresponding
+                // to the current prop/event.
 
-            var previousMembers = this.SyntaxFacts.GetMethodLevelMembers(previousRoot);
-            if (currentMembers.Count != previousMembers.Count)
+                var currentContainer = currentBodyNode.Ancestors().First(a => a is TEventDeclarationSyntax || a is TPropertyDeclarationSyntax);
+                var previousContainer = GetPreviousBodyNode(previousRoot, currentRoot, currentContainer);
+
+                var currentAccessors = GetAccessors(currentContainer);
+                var previousAccessors = GetAccessors(previousContainer);
+
+                if (currentAccessors.Count != previousAccessors.Count)
+                {
+                    Debug.Fail("Accessor count shouldn't have changed as there were no top level edits.");
+                    return null;
+                }
+
+                return previousAccessors[currentAccessors.IndexOf(currentAccessor)];
+            }
+            else
             {
-                Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
-                return null;
-            }
+                var currentMembers = this.SyntaxFacts.GetMethodLevelMembers(currentRoot);
+                var index = currentMembers.IndexOf(currentBodyNode);
+                if (index < 0)
+                {
+                    Debug.Fail($"Unhandled member type in {nameof(GetPreviousBodyNode)}");
+                    return null;
+                }
 
-            return previousMembers[index];
+                var previousMembers = this.SyntaxFacts.GetMethodLevelMembers(previousRoot);
+                if (currentMembers.Count != previousMembers.Count)
+                {
+                    Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
+                    return null;
+                }
+
+                return previousMembers[index];
+            }
+        }
+
+        private SyntaxList<TAccessorDeclarationSyntax> GetAccessors(SyntaxNode container)
+        {
+            return container switch
+            {
+                TPropertyDeclarationSyntax currentProperty => GetAccessors(currentProperty),
+                TEventDeclarationSyntax currentEvent => GetAccessors(currentEvent),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
         }
     }
 }

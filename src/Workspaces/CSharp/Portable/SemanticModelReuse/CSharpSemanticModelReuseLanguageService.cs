@@ -6,8 +6,6 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -19,7 +17,11 @@ using Microsoft.CodeAnalysis.SemanticModelReuse;
 namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
 {
     [ExportLanguageService(typeof(ISemanticModelReuseLanguageService), LanguageNames.CSharp), Shared]
-    internal class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService
+    internal class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService<
+        BaseMethodDeclarationSyntax,
+        AccessorDeclarationSyntax,
+        PropertyDeclarationSyntax,
+        EventDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,6 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
         }
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
+        protected override SyntaxList<AccessorDeclarationSyntax> GetAccessors(EventDeclarationSyntax @event)
+            => @event.AccessorList?.Accessors ?? default;
+
+        protected override SyntaxList<AccessorDeclarationSyntax> GetAccessors(PropertyDeclarationSyntax property)
+            => property.AccessorList?.Accessors ?? default;
 
         public override SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node)
         {
@@ -69,44 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
             }
 
             return null;
-        }
-
-        protected override SyntaxNode? GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
-        {
-            if (!(currentBodyNode is AccessorDeclarationSyntax currentAccessor))
-                return base.GetPreviousBodyNode(previousRoot, currentRoot, currentBodyNode);
-
-            // for an accessor, we need to find the containing prop/event, find the corresponding member for that,
-            // then find the corresponding accessor in that prop/even.
-            var currentAccessorList = (AccessorListSyntax)currentAccessor.Parent!;
-            var currentPropOrEvent = currentAccessorList.Parent!;
-
-            Debug.Assert(currentPropOrEvent is PropertyDeclarationSyntax || currentPropOrEvent is EventDeclarationSyntax);
-            var previousPropOrEvent = base.GetPreviousBodyNode(previousRoot, currentRoot, currentPropOrEvent);
-
-            // in the case of an accessor, have to find the previous accessor in the previous prop/event corresponding
-            // to the current prop/event.
-            var previousAccessorList = previousPropOrEvent switch
-            {
-                PropertyDeclarationSyntax previousProperty => previousProperty.AccessorList,
-                EventDeclarationSyntax previousEvent => previousEvent.AccessorList,
-                _ => null,
-            };
-
-            if (previousAccessorList == null)
-            {
-                Debug.Fail("Didn't find a corresponding accessor in the previous tree.");
-                return null;
-            }
-
-            if (currentAccessorList.Accessors.Count != previousAccessorList.Accessors.Count)
-            {
-                Debug.Fail("Accessor count shouldn't have changed as there were no top level edits.");
-                return null;
-            }
-
-            var accessorIndex = currentAccessorList.Accessors.IndexOf(currentAccessor);
-            return previousAccessorList.Accessors[accessorIndex];
         }
     }
 }
