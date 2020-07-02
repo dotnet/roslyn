@@ -72,6 +72,11 @@
         <target state="translated">参照の等値性のチェックには 'is null' を優先する</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="new">Prefer pattern matching</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
         <target state="translated">switch 式を優先する</target>

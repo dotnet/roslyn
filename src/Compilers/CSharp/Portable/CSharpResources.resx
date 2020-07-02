@@ -6283,4 +6283,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureCovariantReturnsForOverrides" xml:space="preserve">
     <value>covariant returns</value>
   </data>
+  <data name="ERR_SealedGetHashCodeInRecord" xml:space="preserve">
+    <value>'{0}' cannot be sealed because containing 'record' is not sealed.</value>
+  </data>
 </root>

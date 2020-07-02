@@ -182,6 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetParameterList(SyntaxNode node)
             => node.GetParameterList();
 
+        public bool IsParameterList(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ParameterList, SyntaxKind.BracketedParameterList);
+
         public SyntaxToken GetIdentifierOfGenericName(SyntaxNode genericName)
         {
             return genericName is GenericNameSyntax csharpGenericName
@@ -1284,6 +1287,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsElastic(SyntaxTrivia trivia)
             => trivia.IsElastic();
+
+        public bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
+            => trivia.IsPragmaDirective(out isDisable, out isActive, out errorCodes);
 
         public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;

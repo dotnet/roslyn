@@ -12,6 +12,11 @@
         <target state="translated">A instrução Imports é desnecessária.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_ByVal">
+        <source>'ByVal' keyword is unnecessary and can be removed.</source>
+        <target state="new">'ByVal' keyword is unnecessary and can be removed.</target>
+        <note>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
+      </trans-unit>
       <trans-unit id="Use_IsNot_Nothing_check">
         <source>Use 'IsNot Nothing' check</source>
         <target state="translated">Usar a verificação 'IsNot Nothing'</target>
