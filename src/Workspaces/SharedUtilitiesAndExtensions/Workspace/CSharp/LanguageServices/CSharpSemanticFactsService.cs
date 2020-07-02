@@ -99,12 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken));
         }
 
-        public bool IsPreProcessorDirectiveContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsPreProcessorDirectiveContext(
-                position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true), cancellationToken);
-        }
-
         public bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             => semanticModel.SyntaxTree.IsGlobalStatementContext(position, cancellationToken);
 

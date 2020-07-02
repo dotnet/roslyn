@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNamespaceDeclarationNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsTypeDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsMemberDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
-        bool IsPreProcessorDirectiveContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);

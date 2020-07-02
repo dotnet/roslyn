@@ -98,10 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return semanticModel.SyntaxTree.IsTypeDeclarationContext(position, token, cancellationToken)
         End Function
 
-        Public Function IsPreProcessorDirectiveContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsPreProcessorDirectiveContext
-            Return semanticModel.SyntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
-        End Function
-
         Public Function IsGlobalStatementContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsGlobalStatementContext
             Return False
         End Function

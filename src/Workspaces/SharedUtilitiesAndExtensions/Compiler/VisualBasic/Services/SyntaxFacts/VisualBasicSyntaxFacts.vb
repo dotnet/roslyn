@@ -108,6 +108,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return token.IsPreprocessorKeyword()
         End Function
 
+        Public Function IsPreProcessorDirectiveContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsPreProcessorDirectiveContext
+            Return syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
+        End Function
+
         Public Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean Implements ISyntaxFacts.TryGetCorrespondingOpenBrace
 
             If token.Kind = SyntaxKind.CloseBraceToken Then
