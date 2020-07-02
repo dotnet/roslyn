@@ -1546,6 +1546,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return trivia.IsElastic()
         End Function
 
+        Public Function IsPragmaDirective(trivia As SyntaxTrivia, ByRef isDisable As Boolean, ByRef isActive As Boolean, ByRef errorCodes As SeparatedSyntaxList(Of SyntaxNode)) As Boolean Implements ISyntaxFacts.IsPragmaDirective
+            Return trivia.IsPragmaDirective(isDisable, isActive, errorCodes)
+        End Function
+
         Public Function IsOnTypeHeader(
                 root As SyntaxNode,
                 position As Integer,

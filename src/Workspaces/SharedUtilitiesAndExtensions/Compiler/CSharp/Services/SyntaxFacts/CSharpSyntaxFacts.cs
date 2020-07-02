@@ -1224,6 +1224,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsElastic(SyntaxTrivia trivia)
             => trivia.IsElastic();
 
+        public bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
+            => trivia.IsPragmaDirective(out isDisable, out isActive, out errorCodes);
+
         public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;
 

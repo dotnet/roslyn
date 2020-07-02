@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend NotInheritable Class VisualBasicRemoveUnnecessarySuppressionsDiagnosticAnalyzer
-        Inherits AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer
+    Friend NotInheritable Class VisualBasicRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer
+        Inherits AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer
 
         Protected Overrides Sub RegisterAttributeSyntaxAction(context As CompilationStartAnalysisContext, compilationAnalyzer As CompilationAnalyzer)
             context.RegisterSyntaxNodeAction(
