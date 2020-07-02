@@ -6284,9 +6284,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{0}' cannot be sealed because containing 'record' is not sealed.</value>
   </data>
   <data name="WRN_ConstOutOfRangeChecked" xml:space="preserve">
-    <value>Constant value '{0}' may overflow '{1}' (use 'unchecked' syntax to override)</value>
+    <value>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</value>
   </data>
   <data name="WRN_ConstOutOfRangeChecked_Title" xml:space="preserve">
-    <value>Constant value may overflow (use 'unchecked' syntax to override)</value>
+    <value>Constant value may overflow at runtime (use 'unchecked' syntax to override)</value>
   </data>
 </root>

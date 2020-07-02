@@ -4945,7 +4945,7 @@ class Program
                 // (7,24): error CS0133: The expression being assigned to 'y' must be constant
                 //         const nint y = checked((nint)x);
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "checked((nint)x)").WithArguments("y").WithLocation(7, 24),
-                // (7,32): warning CS8778: Constant value '1152921504606846975' may overflow 'nint' (use 'unchecked' syntax to override)
+                // (7,32): warning CS8778: Constant value '1152921504606846975' may overflow 'nint' at runtime (use 'unchecked' syntax to override)
                 //         const nint y = checked((nint)x);
                 Diagnostic(ErrorCode.WRN_ConstOutOfRangeChecked, "(nint)x").WithArguments("1152921504606846975", "nint").WithLocation(7, 32));
 
@@ -4969,7 +4969,7 @@ class Program
 }";
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (9,30): warning CS8778: Constant value '1152921504606846975' may overflow 'nint' (use 'unchecked' syntax to override)
+                // (9,30): warning CS8778: Constant value '1152921504606846975' may overflow 'nint' at runtime (use 'unchecked' syntax to override)
                 //             nint y = checked((nint)x);
                 Diagnostic(ErrorCode.WRN_ConstOutOfRangeChecked, "(nint)x").WithArguments("1152921504606846975", "nint").WithLocation(9, 30));
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "1152921504606846975");
