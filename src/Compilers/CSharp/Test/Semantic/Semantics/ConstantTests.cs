@@ -3541,6 +3541,49 @@ class C
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1} the {S1}""").WithArguments("F2").WithLocation(11, 27)
             );
         }
+
+        [Fact]
+        public void ConstantInterpolatedStringsHybrid()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""Number "" + ""3"";
+        const string S2 = $""{""Level 5""} "" + S1;
+        const string F1 = $""{S1}"";
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+
+            var expected =
+@"$""Number "" + ""3"" --> Number 3
+$""Number "" --> Number 
+$""{""Level 5""} "" + S1 --> Level 5 Number 3
+$""{""Level 5""} "" --> Level 5 
+$""{S1}"" --> Number 3";
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsHybridError()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        
+        string NC1 = ""Teleporter"";
+        const string S1 = ""The"" + $""Number {3}"" + ""Level 5"";
+        const string S2 = $""Level 4 "" + NC1;
+        const string F1 = $""{S1}"";
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard
