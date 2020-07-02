@@ -104,6 +104,13 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
                 // We were in a method body. Compute the updated map that will contain the appropriate semantic model
                 // for this document.
+                //
+                // In terms of concurrency we the map so that we can operate on it independently of other threads.  When
+                // we compute the final map, we'll grab the semantic model out of it to return (which must be correct
+                // since we're the thread that created that map).  Then, we overwrite the instance map with our final
+                // map. This map may be stomped on by another thread, but that's fine.  We don't have any sort of
+                // ordering requirement. We just want someone to win and place the new map so that it's there for the
+                // next caller (which is likely to use the same body node).
                 var originalMap = _semanticModelMap;
 
                 // If we already have a cached *real* semantic model for this body, then just provide that. Note: this
@@ -118,7 +125,9 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
                 var updatedMap = await ComputeUpdatedMapAsync(originalMap, document, bodyNode, cancellationToken).ConfigureAwait(false);
 
-                // Grab the resultant semantic model and then overwrite the existing map.
+                // Grab the resultant semantic model and then overwrite the existing map.  We return the semantic model
+                // from the map *we* computed so that we're isolated from other threads writing to the map stored in the
+                // field.
                 var info = updatedMap[document.Id]!.Value;
                 var semanticModel = info.CurrentSemanticModel;
                 Interlocked.CompareExchange(ref _semanticModelMap, updatedMap, originalMap);
