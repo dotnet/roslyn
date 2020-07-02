@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                     // Compat: Maintainability index of an assembly is computed based on the values of types, not namespace children.
                     Debug.Assert(child.Symbol.Kind == SymbolKind.Namespace);
-                    Debug.Assert(child.Children.Length > 0);
+                    Debug.Assert(!child.Children.IsEmpty);
                     Debug.Assert(child.Children.All(grandChild => grandChild.Symbol.Kind == SymbolKind.NamedType));
                     maintainabilityIndexTotal += child.MaintainabilityIndex * child.Children.Length;
                     grandChildCount += child.Children.Length;

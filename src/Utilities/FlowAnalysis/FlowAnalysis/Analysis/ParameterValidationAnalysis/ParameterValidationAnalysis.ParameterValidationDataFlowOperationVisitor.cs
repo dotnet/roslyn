@@ -279,8 +279,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                         MarkValidatedLocations(arguments[0]);
                     }
                 }
-                else if (targetMethod.Parameters.Length > 0 &&
-                         arguments.Length > 0 &&
+                else if (!targetMethod.Parameters.IsEmpty &&
+                         !arguments.IsEmpty &&
                          ExceptionNamedType != null &&
                          targetMethod.ContainingType.DerivesFrom(ExceptionNamedType))
                 {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     Debug.Assert(!targetMethod.IsVirtual && !targetMethod.IsOverride);
 
                     var hazardousParameterUsagesInInvokedMethod = invokedMethodAnalysisResult.HazardousParameterUsages;
-                    if (hazardousParameterUsagesInInvokedMethod.Count > 0)
+                    if (!hazardousParameterUsagesInInvokedMethod.IsEmpty)
                     {
                         foreach (var argument in arguments)
                         {

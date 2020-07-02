@@ -104,7 +104,7 @@ namespace Metrics
 
             void writeChildren()
             {
-                if (data.Children.Length == 0)
+                if (data.Children.IsEmpty)
                 {
                     return;
                 }

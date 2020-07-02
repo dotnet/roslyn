@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         SymbolOpt.Kind != SymbolKind.Local &&
                         !SymbolOpt.IsStatic;
                 }
-                else if (Indices.Length > 0)
+                else if (!Indices.IsEmpty)
                 {
                     result = true;
                 }
