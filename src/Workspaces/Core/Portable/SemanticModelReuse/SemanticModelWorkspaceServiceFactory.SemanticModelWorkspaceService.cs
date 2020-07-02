@@ -56,10 +56,14 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             /// A mapping from a document id to the last semantic model we produced for it, along with the top level
             /// semantic version that that semantic model corresponds to.  We can continue reusing the semantic model as
             /// long as no top level changes occur.
-            /// <para/>
+            /// <para>
             /// In general this dictionary will only contain a single key-value pair.  However, in the case of linked
             /// documents, there will be a key-value pair for each of the independent document links that a document
             /// has.
+            /// </para>
+            /// <para>
+            /// A <see langword="null"/> value simply means we haven't cached any information for that particular id.
+            /// </para>
             /// </summary>
             private ImmutableDictionary<DocumentId, SemanticModelReuseInfo?> _semanticModelMap = ImmutableDictionary<DocumentId, SemanticModelReuseInfo?>.Empty;
 
