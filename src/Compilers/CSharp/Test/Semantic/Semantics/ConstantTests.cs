@@ -3541,24 +3541,6 @@ class C
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1} the {S1}""").WithArguments("F2").WithLocation(11, 27)
             );
         }
-
-        [Fact]
-        public void ConstantInterpolatedStringsSimple()
-        {
-            string source = @"
-class C
-{
-    static void F()
-    {
-        const string X = ""2b"";
-        const string Y = X + ""9s"";
-        const string F = $""bb"";
-        System.Console.WriteLine(Y + F);
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-        }
     }
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard
