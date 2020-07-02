@@ -1131,6 +1131,64 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripValue(values);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void Encoding_UTF8(bool byteOrderMark)
+        {
+            TestRoundtripEncoding(new UTF8Encoding(byteOrderMark));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Encoding_UTF32(bool bigEndian, bool byteOrderMark)
+        {
+            TestRoundtripEncoding(new UTF32Encoding(bigEndian, byteOrderMark));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Encoding_Unicode(bool bigEndian, bool byteOrderMark)
+        {
+            TestRoundtripEncoding(new UnicodeEncoding(bigEndian, byteOrderMark));
+        }
+
+        [Fact]
+        public void Encoding_AllAvailable()
+        {
+            foreach (var info in Encoding.GetEncodings())
+            {
+                TestRoundtripEncoding(Encoding.GetEncoding(info.Name));
+            }
+        }
+
+        private static void TestRoundtripEncoding(Encoding encoding)
+        {
+            using var stream = new MemoryStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                writer.WriteEncoding(encoding);
+            }
+
+            stream.Position = 0;
+
+            using var reader = ObjectReader.TryGetReader(stream);
+            Assert.NotNull(reader);
+            var actualEncoding = (Encoding)((Encoding)reader.ReadValue()).Clone();
+            var expectedEncoding = (Encoding)encoding.Clone();
+
+            // set the fallbacks to the same instance so that equality comparison does not take them into account:
+            actualEncoding.EncoderFallback = EncoderFallback.ExceptionFallback;
+            actualEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
+            expectedEncoding.EncoderFallback = EncoderFallback.ExceptionFallback;
+            expectedEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
+
+            Assert.Equal(expectedEncoding.GetPreamble(), actualEncoding.GetPreamble());
+            Assert.Equal(expectedEncoding.CodePage, actualEncoding.CodePage);
+            Assert.Equal(expectedEncoding.WebName, actualEncoding.WebName);
+            Assert.Equal(expectedEncoding, actualEncoding);
+        }
+
         [Fact]
         public void TestObjectMapLimits()
         {

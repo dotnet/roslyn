@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessarySuppressionsDiagnosticAnalyzer
-        : AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer
+    internal sealed class CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer
+        : AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer
     {
         protected override void RegisterAttributeSyntaxAction(CompilationStartAnalysisContext context, CompilationAnalyzer compilationAnalyzer)
         {
