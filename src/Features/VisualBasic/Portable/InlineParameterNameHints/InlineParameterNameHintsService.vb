@@ -39,8 +39,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
                     End If
                 End If
             Next
+
             Return spans
-            'Throw New NotImplementedException()
+
         End Function
 
         Private Function IsExpressionWithNoName(arg As ExpressionSyntax) As Boolean
