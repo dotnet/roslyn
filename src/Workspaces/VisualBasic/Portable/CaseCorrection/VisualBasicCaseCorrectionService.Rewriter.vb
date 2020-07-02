@@ -124,6 +124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                                     Return CaseCorrectIdentifierIfNamesDiffer(token, newToken, otherPartParam, namesMustBeEqualIgnoringCase:=True)
                                 End If
                             End If
+                        Else
+                            ' Named tuple expression
+                            Dim simpleArgument = token.GetAncestor(Of SimpleArgumentSyntax)()
+                            If simpleArgument IsNot Nothing AndAlso TypeOf simpleArgument.Parent Is TupleExpressionSyntax AndAlso simpleArgument.NameColonEquals?.Name.Identifier = token Then
+                                Return newToken
+                            End If
                         End If
                     End If
                 End If
