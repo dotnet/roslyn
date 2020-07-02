@@ -5,9 +5,9 @@ namespace Analyzer.Utilities
     /// <summary>
     /// MSBuild property names that are required to be threaded as analyzer config options.
     /// </summary>
-    internal static partial class MSBuildPropertyOptionNames
+    internal static class MSBuildPropertyOptionNames
     {
-        public const string TargetFramework = "TargetFramework";
-        public const string TargetPlatformMinVersion = "TargetPlatformMinVersion";
+        public const string TargetFramework = nameof(TargetFramework);
+        public const string TargetPlatformMinVersion = nameof(TargetPlatformMinVersion);
     }
 }

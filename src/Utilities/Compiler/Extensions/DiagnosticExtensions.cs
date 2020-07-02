@@ -119,7 +119,7 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// TODO: Revert this reflection based workaround once we move to Microsoft.CodeAnalysis version 3.0
         /// </summary>
-        private static readonly PropertyInfo s_syntaxTreeDiagnosticOptionsProperty =
+        private static readonly PropertyInfo? s_syntaxTreeDiagnosticOptionsProperty =
             typeof(SyntaxTree).GetTypeInfo().GetDeclaredProperty("DiagnosticOptions");
 
         public static void ReportNoLocationDiagnostic(
@@ -164,7 +164,7 @@ namespace Analyzer.Utilities.Extensions
                 ReportDiagnostic? overriddenSeverity = null;
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree);
+                    var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree)!;
                     if (options.TryGetValue(rule.Id, out var configuredValue))
                     {
                         if (configuredValue == ReportDiagnostic.Suppress)

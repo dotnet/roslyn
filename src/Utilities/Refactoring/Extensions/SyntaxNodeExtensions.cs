@@ -62,7 +62,7 @@ namespace Analyzer.Utilities.Extensions
                 while (token.RawKind != 0 && token.Span.End <= position && token.Span.End <= root.FullSpan.End);
             }
 
-            if (token.Span.Length == 0)
+            if (token.Span.IsEmpty)
             {
                 token = token.GetNextToken();
             }
@@ -101,7 +101,7 @@ namespace Analyzer.Utilities.Extensions
                 token = skippedToken.RawKind != 0 ? skippedToken : token;
             }
 
-            if (token.Span.Length == 0)
+            if (token.Span.IsEmpty)
             {
                 token = token.GetPreviousToken();
             }
@@ -135,7 +135,7 @@ namespace Analyzer.Utilities.Extensions
                     {
                         foreach (var token in skippedTokensTrivia.Tokens)
                         {
-                            if (token.Span.Length > 0 && position <= token.Span.End)
+                            if (!token.Span.IsEmpty && position <= token.Span.End)
                             {
                                 return token;
                             }
@@ -160,7 +160,7 @@ namespace Analyzer.Utilities.Extensions
                     {
                         foreach (var token in skippedTokensTrivia.Tokens)
                         {
-                            if (token.Span.Length > 0 && token.SpanStart <= position)
+                            if (!token.Span.IsEmpty && token.SpanStart <= position)
                             {
                                 return token;
                             }

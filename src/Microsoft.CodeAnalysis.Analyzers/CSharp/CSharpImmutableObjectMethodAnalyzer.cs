@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             }
 
             //If we can't find the method symbol, quit
-            if (!(model.GetSymbolInfo(candidateInvocation).Symbol is IMethodSymbol methodSymbol))
+            if (!(model.GetSymbolInfo(candidateInvocation, context.CancellationToken).Symbol is IMethodSymbol methodSymbol))
             {
                 return;
             }

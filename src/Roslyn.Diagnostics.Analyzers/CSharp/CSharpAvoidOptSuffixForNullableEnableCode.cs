@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Lightup;
@@ -46,17 +47,17 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             context.RegisterSyntaxNodeAction(context =>
             {
                 var parameter = (ParameterSyntax)context.Node;
-                ReportOnInvalidIdentifier(parameter.Identifier, context.SemanticModel, context.ReportDiagnostic);
+                ReportOnInvalidIdentifier(parameter.Identifier, context.SemanticModel, context.ReportDiagnostic, context.CancellationToken);
             }, SyntaxKind.Parameter);
 
             context.RegisterSyntaxNodeAction(context =>
             {
                 var variableDeclarator = (VariableDeclaratorSyntax)context.Node;
-                ReportOnInvalidIdentifier(variableDeclarator.Identifier, context.SemanticModel, context.ReportDiagnostic);
+                ReportOnInvalidIdentifier(variableDeclarator.Identifier, context.SemanticModel, context.ReportDiagnostic, context.CancellationToken);
             }, SyntaxKind.VariableDeclarator);
         }
 
-        private static void ReportOnInvalidIdentifier(SyntaxToken identifier, SemanticModel semanticModel, Action<Diagnostic> reportAction)
+        private static void ReportOnInvalidIdentifier(SyntaxToken identifier, SemanticModel semanticModel, Action<Diagnostic> reportAction, CancellationToken cancellationToken)
         {
             if (!identifier.Text.EndsWith(OptSuffix, StringComparison.Ordinal) ||
                 !semanticModel.GetNullableContext(identifier.SpanStart).AnnotationsEnabled())
@@ -64,7 +65,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                 return;
             }
 
-            var symbol = semanticModel.GetDeclaredSymbol(identifier.Parent);
+            var symbol = semanticModel.GetDeclaredSymbol(identifier.Parent, cancellationToken);
             if (symbol?.GetMemberOrLocalOrParameterType()?.NullableAnnotation() == Analyzer.Utilities.Lightup.NullableAnnotation.Annotated)
             {
                 reportAction(identifier.CreateDiagnostic(Rule));

@@ -25,8 +25,8 @@ namespace Analyzer.Utilities
         public abstract bool IsEmpty { get; }
         protected abstract bool TryGetOptionValue(string optionKeyPrefix, string? optionKeySuffix, string optionName, [NotNullWhen(returnValue: true)] out string? valueString);
 
-        [return: MaybeNull]
-        public T GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
+        [return: MaybeNull, NotNullIfNotNull("defaultValue")]
+        public T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
             if (TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out var value))
             {
@@ -62,7 +62,7 @@ namespace Analyzer.Utilities
             return false;
         }
 
-        public bool TryGetOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue, [MaybeNull] out T value)
+        public bool TryGetOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, [MaybeNullWhen(false), NotNullIfNotNull("defaultValue")] out T value)
         {
             if (this.IsEmpty)
             {
@@ -73,14 +73,22 @@ namespace Analyzer.Utilities
             var key = $"{rule.Id}.{optionName}";
             if (!_computedOptionValuesMap.TryGetValue(key, out var computedValue))
             {
-                computedValue = _computedOptionValuesMap.GetOrAdd(key, _ => ComputeOptionValue(optionName, kind, rule, tryParseValue, defaultValue));
+                computedValue = _computedOptionValuesMap.GetOrAdd(key, _ => ComputeOptionValue(optionName, kind, rule, tryParseValue));
             }
 
-            value = (T)computedValue.value;
-            return computedValue.found;
+            if (computedValue.found)
+            {
+                value = (T)computedValue.value!;
+                return true;
+            }
+            else
+            {
+                value = defaultValue;
+                return false;
+            }
         }
 
-        private (bool found, object? value) ComputeOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T defaultValue)
+        private (bool found, object? value) ComputeOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue)
         {
             var optionKeyPrefix = MapOptionKindToKeyPrefix(kind);
             if (TryGetSpecificOptionValue(rule.Id, optionKeyPrefix, out var optionValue) ||
@@ -91,23 +99,21 @@ namespace Analyzer.Utilities
                 return (true, optionValue);
             }
 
-            return (false, defaultValue);
+            return (false, null);
 
             // Local functions.
-            bool TryGetSpecificOptionValue(string specificOptionKey, string optionKeyPrefix, out T specificOptionValue)
+            bool TryGetSpecificOptionValue(string specificOptionKey, string optionKeyPrefix, [MaybeNullWhen(false)] out T specificOptionValue)
             {
                 if (TryGetOptionValue(optionKeyPrefix, specificOptionKey, optionName, out var valueString))
                 {
-#pragma warning disable CS8601 // Possible null reference assignment - Once local function attributes are supported, add "[MaybeNull]" on 'specificOptionValue'.
                     return tryParseValue(valueString, out specificOptionValue);
-#pragma warning restore CS8601 // Possible null reference assignment.
                 }
 
-                specificOptionValue = defaultValue;
+                specificOptionValue = default;
                 return false;
             }
 
-            bool TryGetAnySpecificOptionValue(IEnumerable<string> specificOptionKeys, string optionKeyPrefix, out T specificOptionValue)
+            bool TryGetAnySpecificOptionValue(IEnumerable<string> specificOptionKeys, string optionKeyPrefix, [MaybeNullWhen(false)] out T specificOptionValue)
             {
                 foreach (var specificOptionKey in specificOptionKeys)
                 {
@@ -117,20 +123,18 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                specificOptionValue = defaultValue;
+                specificOptionValue = default;
                 return false;
             }
 
-            bool TryGetGeneralOptionValue(string optionKeyPrefix, out T generalOptionValue)
+            bool TryGetGeneralOptionValue(string optionKeyPrefix, [MaybeNullWhen(false)] out T generalOptionValue)
             {
                 if (TryGetOptionValue(optionKeyPrefix, optionKeySuffix: null, optionName, out var valueString))
                 {
-#pragma warning disable CS8601 // Possible null reference assignment - Once local function attributes are supported, add "[MaybeNull]" on 'specificOptionValue'.
                     return tryParseValue(valueString, out generalOptionValue);
-#pragma warning restore CS8601 // Possible null reference assignment.
                 }
 
-                generalOptionValue = defaultValue;
+                generalOptionValue = default;
                 return false;
             }
         }

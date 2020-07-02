@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             _defaultPointsToValueMapBuilder = ImmutableDictionary.CreateBuilder<AnalysisEntity, PointsToAbstractValue>();
         }
 
+        public PointsToAnalysisKind PointsToAnalysisKind => _trackedEntitiesBuilder.PointsToAnalysisKind;
+
         public PointsToAbstractValue GetOrCreateDefaultValue(AnalysisEntity analysisEntity)
         {
             if (!_defaultPointsToValueMapBuilder.TryGetValue(analysisEntity, out PointsToAbstractValue value))
@@ -33,7 +35,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     return PointsToAbstractValue.NoLocation;
                 }
-                else if (analysisEntity.HasUnknownInstanceLocation)
+                else if (analysisEntity.HasUnknownInstanceLocation ||
+                    PointsToAnalysisKind != PointsToAnalysisKind.Complete &&
+                    analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis())
                 {
                     return PointsToAbstractValue.Unknown;
                 }
