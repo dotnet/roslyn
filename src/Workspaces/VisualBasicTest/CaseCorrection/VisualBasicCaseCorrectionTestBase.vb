@@ -3,10 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CaseCorrection
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CaseCorrection
+    <UseExportProvider>
     Public Class VisualBasicCaseCorrectionTestBase
 
         Protected Shared Async Function AssertCaseCorrectAsync(code As String, expected As String) As Task
