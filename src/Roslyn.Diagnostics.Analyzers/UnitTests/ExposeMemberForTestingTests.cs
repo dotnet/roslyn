@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using CSLanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
-using VBLanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
-    Roslyn.Diagnostics.Analyzers.ExposeMemberForTesting,
-    Roslyn.Diagnostics.CSharp.Analyzers.CSharpExposeMemberForTestingFixer>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
-    Roslyn.Diagnostics.Analyzers.ExposeMemberForTesting,
-    Roslyn.Diagnostics.VisualBasic.Analyzers.VisualBasicExposeMemberForTestingFixer>;
+using VerifyCS = Test.Utilities.CSharpCodeRefactoringVerifier<
+    Roslyn.Diagnostics.CSharp.Analyzers.CSharpExposeMemberForTesting>;
+using VerifyVB = Test.Utilities.VisualBasicCodeRefactoringVerifier<
+    Roslyn.Diagnostics.VisualBasic.Analyzers.VisualBasicExposeMemberForTesting>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
@@ -42,7 +37,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestState =
                 {
@@ -51,14 +46,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = CSLanguageVersion.CSharp7_2,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "F:TestClass._field",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -92,7 +82,7 @@ End Class";
     End Structure
 End Class";
 
-            var test = new VerifyVB.Test
+            await new VerifyVB.Test
             {
                 TestState =
                 {
@@ -101,14 +91,9 @@ End Class";
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = VBLanguageVersion.Default,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "F:TestClass._field",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -137,7 +122,7 @@ End Class";
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestState =
                 {
@@ -146,14 +131,9 @@ End Class";
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = CSLanguageVersion.CSharp7_2,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "F:TestClass._field",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -184,7 +164,7 @@ End Class";
     End Structure
 End Class";
 
-            var test = new VerifyVB.Test
+            await new VerifyVB.Test
             {
                 TestState =
                 {
@@ -193,14 +173,9 @@ End Class";
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = VBLanguageVersion.Default,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "F:TestClass._field",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -234,7 +209,7 @@ End Class";
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestState =
                 {
@@ -243,14 +218,9 @@ End Class";
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = CSLanguageVersion.CSharp7_2,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "P:TestClass.Property",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -284,7 +254,7 @@ End Class";
     End Structure
 End Class";
 
-            var test = new VerifyVB.Test
+            await new VerifyVB.Test
             {
                 TestState =
                 {
@@ -293,14 +263,9 @@ End Class";
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = VBLanguageVersion.Default,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "P:TestClass.TestProperty",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -329,7 +294,7 @@ End Class";
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestState =
                 {
@@ -338,14 +303,9 @@ End Class";
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = CSLanguageVersion.CSharp7_2,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "P:TestClass.Property",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -376,7 +336,7 @@ End Class";
     End Structure
 End Class";
 
-            var test = new VerifyVB.Test
+            await new VerifyVB.Test
             {
                 TestState =
                 {
@@ -385,14 +345,9 @@ End Class";
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = VBLanguageVersion.Default,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "P:TestClass.TestProperty",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -421,7 +376,7 @@ End Class";
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestState =
                 {
@@ -430,14 +385,9 @@ End Class";
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = CSLanguageVersion.CSharp7_2,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "P:TestClass.Property",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
 
         [Fact]
@@ -474,7 +424,7 @@ End Class";
     End Structure
 End Class";
 
-            var test = new VerifyVB.Test
+            await new VerifyVB.Test
             {
                 TestState =
                 {
@@ -483,14 +433,9 @@ End Class";
                 FixedState =
                 {
                     Sources = { fixedSource },
-                    MarkupHandling = MarkupMode.Allow,
                 },
-                LanguageVersion = VBLanguageVersion.Default,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
                 CodeActionEquivalenceKey = "P:TestClass.TestProperty",
-            };
-
-            await test.RunAsync();
+            }.RunAsync();
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -30,11 +31,11 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(context.Span);
+            var literal = await context.TryGetRelevantNodeAsync<LiteralExpressionSyntax>(CSharpRefactoringHelpers.Instance).ConfigureAwait(false);
+            if (literal is null)
+                return;
 
-            if (node is LiteralExpressionSyntax literal &&
-                literal.Kind() == SyntaxKind.StringLiteralExpression &&
+            if (literal.Kind() == SyntaxKind.StringLiteralExpression &&
                 !IsProperlyNumbered(literal.Token.ValueText))
             {
                 var action = CodeAction.Create(
