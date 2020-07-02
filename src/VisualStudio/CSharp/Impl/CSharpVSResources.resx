@@ -483,6 +483,9 @@
   <data name="Prefer_conditional_delegate_call" xml:space="preserve">
     <value>Prefer conditional delegate call</value>
   </data>
+  <data name="Prefer_pattern_matching" xml:space="preserve">
+    <value>Prefer pattern matching</value>
+  </data>
   <data name="Prefer_pattern_matching_over_is_with_cast_check" xml:space="preserve">
     <value>Prefer pattern matching over 'is' with 'cast' check</value>
   </data>
