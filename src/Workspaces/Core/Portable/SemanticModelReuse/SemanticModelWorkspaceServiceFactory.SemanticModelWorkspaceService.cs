@@ -152,17 +152,22 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 if (reuseInfo != null)
                     return map.SetItem(document.Id, reuseInfo.Value);
 
-                // Otherwise, we couldn't reuse anything from the cache.  Return a fresh map with just the real semantic
-                // model value in it.
+                // Otherwise, we couldn't reuse that doc's cached info.  Create a fresh map with that doc's real
+                // semantic model value in it.  Note: we still reuse the values stored with the other links for that
+                // doc as they may still be valid to use.
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var builder = ImmutableDictionary.CreateBuilder<DocumentId, SemanticModelReuseInfo?>();
 
-                // Note: we are intentionally storing the semanticmodel instance in the speculative location as well.
+                // Note: we are intentionally storing the semantic model instance in the speculative location as well.
                 builder.Add(document.Id, new SemanticModelReuseInfo(semanticModel, semanticModel, bodyNode, topLevelSemanticVersion));
 
                 foreach (var linkedId in linkedIds)
-                    builder.Add(linkedId, null);
+                {
+                    // Reuse the existing cached data for any links we have as well
+                    var linkedReuseInfo = map.TryGetValue(linkedId, out var info) ? info : null;
+                    builder.Add(linkedId, linkedReuseInfo);
+                }
 
                 return builder.ToImmutable();
             }
