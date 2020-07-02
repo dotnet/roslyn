@@ -949,7 +949,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.SyntaxTreeOptionsProvider = provider}
         End Function
 
-
         Public Shadows Function WithMetadataReferenceResolver(resolver As MetadataReferenceResolver) As VisualBasicCompilationOptions
             If resolver Is Me.MetadataReferenceResolver Then
                 Return Me

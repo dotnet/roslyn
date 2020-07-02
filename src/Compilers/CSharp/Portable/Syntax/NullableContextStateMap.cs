@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         private static NullableContextState GetContextForFileStart(int position)
-        => new NullableContextState(
-            position,
-            warningsState: NullableContextState.State.Unknown,
-            annotationsState: NullableContextState.State.Unknown);
+            => new NullableContextState(
+                position,
+                warningsState: NullableContextState.State.Unknown,
+                annotationsState: NullableContextState.State.Unknown);
 
         internal NullableContextState GetContextState(int position)
         {

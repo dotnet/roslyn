@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal NullableContextState GetNullableContextState(int position)
-        => GetNullableContextStateMap().GetContextState(position);
+            => GetNullableContextStateMap().GetContextState(position);
 
         /// <summary>
         /// Returns true if there are any nullable directives that enable annotations, warnings, or both.
@@ -669,7 +669,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return _lazyIsGeneratedCode == ThreeState.True;
             }
-
         }
 
         private CSharpLineDirectiveMap? _lazyLineDirectiveMap;

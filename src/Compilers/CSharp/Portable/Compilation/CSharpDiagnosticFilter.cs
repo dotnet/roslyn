@@ -160,13 +160,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => throw ExceptionUtilities.UnexpectedValue(warningsState)
                 };
 
-                bool areWarningsGloballyEnabled()
-                => nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
-
                 if (!nullableWarningsEnabled)
                 {
                     return ReportDiagnostic.Suppress;
                 }
+
+                bool areWarningsGloballyEnabled()
+                    => nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
             }
 
             // 1. Warning level
