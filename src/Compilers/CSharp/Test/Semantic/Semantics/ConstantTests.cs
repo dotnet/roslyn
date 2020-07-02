@@ -3434,7 +3434,9 @@ class C
                 );
         }
 
-        [Fact]
+        // Attempting to call `ConstantValue` on every constiuent string component times out the IOperation runner.
+        // Instead, we manually validate just the top level
+        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019")]
         public void TestLargeStringConcatenation()
         {
             // When the compiler folds string concatenations using an O(n^2) algorithm, this program cannot be
@@ -3455,12 +3457,89 @@ class C
 ";
             StringBuilder source = new StringBuilder();
             source.Append(source0);
-            for (int i = 0; i < 5000; i++)
+            const int NumIterations = 5000;
+            for (int i = 0; i < NumIterations; i++)
             {
                 source.Append(@"""Lorem ipsum dolor sit amet"" + "", consectetur adipiscing elit, sed"" + "" do eiusmod tempor incididunt"" + "" ut labore et dolore magna aliqua. "" +" + "\n");
             }
             source.Append(source1);
-            CompileAndVerify(source.ToString(), expectedOutput: "58430604");
+            var comp = CreateCompilation(source.ToString(), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "58430604");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            var literalOperation = model.GetOperation(initializer);
+
+            var stringTextBuilder = new StringBuilder();
+            stringTextBuilder.Append("BEGIN ");
+            for (int i = 0; i < NumIterations; i++)
+            {
+                stringTextBuilder.Append("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ");
+            }
+            stringTextBuilder.Append("END");
+
+            Assert.Equal(stringTextBuilder.ToString(), literalOperation.ConstantValue);
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsSimple()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""Testing"";
+        const string S2 = $""{""Level 5""} {""Number 3""}"";
+        const string S3 = $""{$""{""Spinning Top""}""}"";
+        const string F1 = $""{S1}"";
+        const string F2 = $""{F1} the {S2}"";
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+
+            var expected =
+@"$""Testing"" --> Testing
+$""{""Level 5""} {""Number 3""}"" --> Level 5 Number 3
+$""{$""{""Spinning Top""}""}"" --> Spinning Top
+$""{""Spinning Top""}"" --> Spinning Top
+$""{S1}"" --> Testing
+$""{F1} the {S2}"" --> Testing the Level 5 Number 3";
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsError()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""Testing"";
+        const string S2 = $""{""Level 5""} {3}"";
+        const string S3 = $""{$""{""Spinning Top"", 10}""}"";
+        const int I1 = 0;
+        const string F1 = $""{I1}"";
+        const string F2 = $""{I1} the {S1}"";
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS0133: The expression being assigned to 'S2' must be constant
+                //         const string S2 = $"{"Level 5"} {3}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{""Level 5""} {3}""").WithArguments("S2").WithLocation(7, 27),
+                // (8,27): error CS0133: The expression being assigned to 'S3' must be constant
+                //         const string S3 = $"{$"{"Spinning Top", 10}"}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{$""{""Spinning Top"", 10}""}""").WithArguments("S3").WithLocation(8, 27),
+                // (10,27): error CS0133: The expression being assigned to 'F1' must be constant
+                //         const string F1 = $"{I1}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1}""").WithArguments("F1").WithLocation(10, 27),
+                // (11,27): error CS0133: The expression being assigned to 'F2' must be constant
+                //         const string F2 = $"{I1} the {S1}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1} the {S1}""").WithArguments("F2").WithLocation(11, 27)
+            );
         }
 
         [Fact]

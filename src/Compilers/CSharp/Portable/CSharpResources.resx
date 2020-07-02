@@ -471,6 +471,9 @@
   <data name="ERR_ThisInBadContext" xml:space="preserve">
     <value>Keyword 'this' is not available in the current context</value>
   </data>
+  <data name="ERR_OmittedTypeArgument" xml:space="preserve">
+    <value>Omitting the type argument is not allowed in the current context</value>
+  </data>
   <data name="WRN_InvalidMainSig" xml:space="preserve">
     <value>'{0}' has the wrong signature to be an entry point</value>
   </data>
@@ -6246,6 +6249,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AddressOfToNonFunctionPointer" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion9" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>

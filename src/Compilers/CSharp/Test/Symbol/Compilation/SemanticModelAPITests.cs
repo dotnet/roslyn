@@ -2145,7 +2145,7 @@ class C
 
             SemanticModel speculativeModel;
             Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, statement: null, speculativeModel: out speculativeModel));
-            Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, constructorInitializer: null, speculativeModel: out speculativeModel));
+            Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, constructorInitializer: (ConstructorInitializerSyntax)null, speculativeModel: out speculativeModel));
             Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, attribute: null, speculativeModel: out speculativeModel));
 
             // Speculate on a node from the same syntax tree.
@@ -3990,7 +3990,7 @@ class C
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(CONSTISTR) - Asserts that Interpolated Strings are not constant, but the first can be.")]
         public void ConstantValueOfInterpolatedString()
         {
             var source = @"
