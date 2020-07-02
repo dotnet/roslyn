@@ -99,6 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
                 return null;
             }
 
+            if (currentAccessorList.Accessors.Count != previousAccessorList.Accessors.Count)
+            {
+                Debug.Fail("Accessor count shouldn't have changed as there were no top level edits.");
+                return null;
+            }
+
             var accessorIndex = currentAccessorList.Accessors.IndexOf(currentAccessor);
             return previousAccessorList.Accessors[accessorIndex];
         }
