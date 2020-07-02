@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             if (LoadedModules != null)
             {
-               return Task.FromResult(LoadedModules.TryGetValue(mvid, out var result) ? result : null);
+                return Task.FromResult(LoadedModules.TryGetValue(mvid, out var result) ? result : null);
             }
 
             throw new NotImplementedException();
