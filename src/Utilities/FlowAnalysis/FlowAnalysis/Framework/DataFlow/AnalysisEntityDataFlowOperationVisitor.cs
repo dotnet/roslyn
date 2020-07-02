@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             foreach (var entity in allEntities)
             {
-                if (entity.Indices.Length > 0 &&
+                if (!entity.Indices.IsEmpty &&
                     entity.InstanceLocation.Equals(analysisEntity.InstanceLocation))
                 {
                     StopTrackingEntity(entity, analysisData);
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected sealed override void StopTrackingDataForParameters(ImmutableDictionary<IParameterSymbol, AnalysisEntity> parameterEntities)
         {
-            if (parameterEntities.Count > 0)
+            if (!parameterEntities.IsEmpty)
             {
                 var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
 

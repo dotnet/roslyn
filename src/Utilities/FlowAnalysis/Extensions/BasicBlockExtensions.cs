@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             foreach (ControlFlowBranch predecessorBranch in basicBlock.Predecessors)
             {
                 var branchWithInfo = new BranchWithInfo(predecessorBranch);
-                if (predecessorBranch.FinallyRegions.Length > 0)
+                if (!predecessorBranch.FinallyRegions.IsEmpty)
                 {
                     var lastFinally = predecessorBranch.FinallyRegions[^1];
                     yield return (predecessorBlock: cfg.Blocks[lastFinally.LastBlockOrdinal], branchWithInfo);
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         internal static bool DominatesPredecessors(this BasicBlock? basicBlock)
         {
             if (basicBlock == null ||
-                basicBlock.Predecessors.Length == 0)
+                basicBlock.Predecessors.IsEmpty)
             {
                 return false;
             }

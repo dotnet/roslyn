@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 PointsToAbstractValue pointsToValueOfEscapedInstance)
                 where TKey : class
             {
-                if (pointsToValueOfEscapedInstance.Locations.Count == 0 ||
+                if (pointsToValueOfEscapedInstance.Locations.IsEmpty ||
                     pointsToValueOfEscapedInstance == PointsToAbstractValue.NoLocation ||
                     pointsToValueOfEscapedInstance == PointsToAbstractValue.NullLocation)
                 {
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 _ = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
 
-                if (visitedArguments.Length > 0 &&
+                if (!visitedArguments.IsEmpty &&
                     method.IsCollectionAddMethod(CollectionNamedTypes))
                 {
                     // FxCop compat: The object added to a collection is considered escaped.
