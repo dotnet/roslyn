@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             return newReturnType;
         }
 
-        private static SyntaxTokenList FixMethodModifiers(SyntaxTokenList modifiers, ref TypeSyntax newReturnType)
+        internal static SyntaxTokenList FixMethodModifiers(SyntaxTokenList modifiers, ref TypeSyntax newReturnType)
         {
             var asyncTokenIndex = modifiers.IndexOf(SyntaxKind.AsyncKeyword);
             SyntaxTokenList newModifiers;
@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             return newModifiers;
         }
 
-        private static SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
+        internal static SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
             => lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
 
-        private static SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
+        internal static SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
             => lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
 
-        private static SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
+        internal static SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
             => method.WithAsyncKeyword(default).WithPrependedLeadingTrivia(method.AsyncKeyword.LeadingTrivia);
     }
 }
