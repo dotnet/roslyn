@@ -168,7 +168,7 @@ Friend Class RedNodeWriter
                 _writer.Write("            Case SyntaxKind." & kind.Name)
                 first = False
             Else
-                _writer.Write("," & vbCrLf)
+                _writer.Write("," & Environment.NewLine)
                 _writer.Write("                 SyntaxKind." & kind.Name)
 
             End If
@@ -1170,11 +1170,11 @@ Friend Class RedNodeWriter
                 End If
 
             ElseIf KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.WriteLine("            Dim {0} = DirectCast(VisitToken(node.{2}).Node, {3})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = DirectCast(VisitToken(node.{2}).Node, {3})" + Environment.NewLine +
                                   "            If node.{2}.Node IsNot {0} Then anyChanges = True",
                                   ChildNewVarName(child), BaseTypeReference(child), ChildPropertyName(child), ChildConstructorTypeRef(child))
             Else
-                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + Environment.NewLine +
                                   "            If node.{2} IsNot {0} Then anyChanges = True",
                                   ChildNewVarName(child), ChildPropertyTypeRef(nodeStructure, child), ChildPropertyName(child))
             End If
