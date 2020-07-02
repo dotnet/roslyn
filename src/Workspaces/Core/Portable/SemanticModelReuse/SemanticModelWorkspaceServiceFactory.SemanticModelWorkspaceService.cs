@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
     internal readonly struct SemanticModelReuseInfo
     {
         /// <summary>
-        /// The original *non-speculative* semantic model we retrieved for this document at some point.
+        /// The original <em>non-speculative</em> semantic model we retrieved for this document at some point.
         /// </summary>
         public readonly SemanticModel PreviousNonSpeculativeSemanticModel;
 
