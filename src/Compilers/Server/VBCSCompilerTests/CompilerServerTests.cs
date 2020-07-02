@@ -1410,7 +1410,9 @@ class Program
             var workingDirectory = dir.Path;
             var serverExe = dir.CopyFile(compilerServerExecutable).Path;
             dir.CopyFile(typeof(System.Collections.Immutable.ImmutableArray).Assembly.Location);
-
+#if NET472
+            dir.CopyFile(typeof(Microsoft.IO.Path).Assembly.Location);
+#endif
             // Missing Microsoft.CodeAnalysis.dll launching server.
             var result = ProcessUtilities.Run(serverExe, arguments: $"-pipename:{GetUniqueName()}", workingDirectory: workingDirectory);
             Assert.Equal(1, result.ExitCode);
