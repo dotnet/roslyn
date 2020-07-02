@@ -35,6 +35,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
+        Public ReadOnly Property Option_Display_inline_parameter_name_hints As String
+            Get
+                Return ServicesVSResources.Display_inline_parameter_name_hints
+            End Get
+        End Property
+
         Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String
             Get
                 Return BasicVSResources.Don_t_put_ByRef_on_custom_structure
