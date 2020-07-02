@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             // Bail if this is not a topmost expression
             // to avoid overlapping diagnostics.
-            if (!IsTopmostExpression(expression))
+            if (!expression.IsTopmostExpression())
                 return;
 
             var syntaxTree = expression.SyntaxTree;
@@ -103,18 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 default:
                     return false;
             }
-        }
-
-        private static bool IsTopmostExpression(ExpressionSyntax node)
-        {
-            return node.WalkUpParentheses().Parent switch
-            {
-                LambdaExpressionSyntax _ => true,
-                AssignmentExpressionSyntax _ => true,
-                ConditionalExpressionSyntax _ => true,
-                ExpressionSyntax _ => false,
-                _ => true
-            };
         }
 
         private static bool IsTrivial(AnalyzedPattern pattern)

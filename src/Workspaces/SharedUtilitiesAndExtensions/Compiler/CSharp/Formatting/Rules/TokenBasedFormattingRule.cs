@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         return null;
                     }
 
+                    if (currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause) &&
+                        !currentToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
+                    {
+                        return null;
+                    }
+
                     if (!previousToken.IsParenInParenthesizedExpression())
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -95,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsParenInParenthesizedExpression() &&
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
+                            !currentToken.IsCommaInPropertyPatternClause() &&
                             !currentToken.IsCommaInTupleExpression() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&

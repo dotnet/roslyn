@@ -4,9 +4,11 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -62,5 +64,45 @@ namespace Roslyn.Utilities
 
         internal static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
             => new ConcatImmutableArray<T>(first, second);
+
+        internal static bool TryCastArray<T, TOther>(this ImmutableArray<T> array, out ImmutableArray<TOther> result)
+            where T : class
+            where TOther : class
+        {
+            var builder = ArrayBuilder<TOther>.GetInstance(array.Length);
+            foreach (var item in array)
+            {
+                if (item is TOther other)
+                {
+                    builder.Add(other);
+                    continue;
+                }
+
+                builder.Free();
+                result = default;
+                return false;
+            }
+
+            result = builder.ToImmutableAndFree();
+            return true;
+        }
+
+        internal static bool AreEquivalent<T, V>(this ImmutableArray<T> array, Func<T, V> selector, IEqualityComparer<V>? comparer = null)
+        {
+            comparer ??= EqualityComparer<V>.Default;
+            if (array.Length > 0)
+            {
+                var first = selector(array[0]);
+                for (var i = 1; i < array.Length; i++)
+                {
+                    if (!comparer.Equals(first, selector(array[i])))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
     }
 }

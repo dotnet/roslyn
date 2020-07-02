@@ -840,25 +840,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return parent;
         }
 
-        public static TNode? FirstAncestorOrSelfUntil<TNode>(this SyntaxNode? node, Func<SyntaxNode, bool> predicate)
-            where TNode : SyntaxNode
-        {
-            for (var current = node; current != null; current = current.GetParent(ascendOutOfTrivia: true))
-            {
-                if (current is TNode tnode)
-                {
-                    return tnode;
-                }
-
-                if (predicate(current))
-                {
-                    break;
-                }
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// Gets a list of ancestor nodes (including this node) 
         /// </summary>

@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            if (node is PropertyPatternClauseSyntax propertyClauseNode)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, propertyClauseNode.OpenBraceToken.GetPreviousToken(), propertyClauseNode.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
+                return;
+            }
+
             if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);

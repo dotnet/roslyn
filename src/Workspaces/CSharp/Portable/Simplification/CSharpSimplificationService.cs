@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
                 new CSharpInferredMemberNameReducer(),
-                new CSharpDefaultExpressionReducer());
+                new CSharpDefaultExpressionReducer(),
+                new CSharpDeclarationPatternReducer(),
+                new CSharpRecursivePatternReducer());
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

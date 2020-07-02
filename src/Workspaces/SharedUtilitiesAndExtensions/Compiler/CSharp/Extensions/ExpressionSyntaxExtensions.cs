@@ -576,7 +576,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return false;
         }
-
+        
+        public static bool IsTopmostExpression(this ExpressionSyntax node)
+        {
+            return node.WalkUpParentheses().Parent switch
+            {
+                LambdaExpressionSyntax _ => true,
+                AssignmentExpressionSyntax _ => true,
+                ConditionalExpressionSyntax _ => true,
+                ExpressionSyntax _ => false,
+                _ => true
+            };
+        }
+        
         public static bool CanAccessInstanceAndStaticMembersOffOf(
             this ExpressionSyntax expression,
             SemanticModel semanticModel,
