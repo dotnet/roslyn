@@ -381,6 +381,7 @@ class X
                     ErrorCode.WRN_GeneratorFailedDuringGeneration,
                     ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
                     ErrorCode.WRN_IsPatternAlways,
+                    ErrorCode.WRN_ConstOutOfRangeChecked,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
