@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -207,16 +208,12 @@ namespace Roslyn.Test.Utilities
                 Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null
             };
 
-        private protected static RunCodeActionParams CreateRunCodeActionParams(string codeActionTitle, LSP.Location location)
-            => new RunCodeActionParams()
+        private protected static CodeActionResolveData CreateCodeActionResolveData(string codeActionTitle, LSP.Location location)
+            => new CodeActionResolveData()
             {
-                CodeActionParams = new LSP.CodeActionParams()
-                {
-                    TextDocument = CreateTextDocumentIdentifier(location.Uri),
-                    Range = location.Range,
-                    Context = new LSP.CodeActionContext()
-                },
-                DistinctTitle = codeActionTitle
+                DistinctTitle = codeActionTitle,
+                Range = location.Range,
+                TextDocument = CreateTextDocumentIdentifier(location.Uri)
             };
 
         /// <summary>

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -51,22 +52,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             string? clientName,
             CancellationToken cancellationToken)
         {
-            CodeActionResolveData data;
-            if (codeAction.Data is CodeActionResolveData codeActionResolveData)
-            {
-                data = codeActionResolveData;
-            }
-            else
-            {
-                data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
-            }
-
-            var document = SolutionProvider.GetDocument(data.CodeActionParams.TextDocument, clientName);
+            var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
+            var document = SolutionProvider.GetDocument(data.TextDocument, clientName);
             var codeActions = await CodeActionsHandler.GetCodeActionsAsync(
                 document,
                 _codeFixService,
                 _codeRefactoringService,
-                data.CodeActionParams.Range,
+                data.Range,
                 cancellationToken).ConfigureAwait(false);
 
             if (codeActions == null || !codeActions.Any())
@@ -142,7 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         pc => pc.GetAddedDocuments().Concat(pc.GetAddedAdditionalDocuments().Concat(pc.GetAddedAnalyzerConfigDocuments())));
                     if (addedDocuments.Any())
                     {
-                        return textDocumentEdits.ToArray();
+                        return Array.Empty<TextDocumentEdit>();
                     }
 
                     var changedDocuments = projectChanges.SelectMany(pc => pc.GetChangedDocuments());
@@ -157,84 +149,70 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         changedAnalyzerConfigDocuments.Any() ||
                         changedAdditionalDocuments.Any())
                     {
-                        return textDocumentEdits.ToArray();
+                        return Array.Empty<TextDocumentEdit>();
                     }
 
                     // Changed documents
-                    foreach (var docId in changedDocuments)
-                    {
-                        var newDoc = applyChangesOperation.ChangedSolution.GetDocument(docId);
-                        var oldDoc = solution.GetDocument(docId);
-                        if (oldDoc == null || newDoc == null)
-                        {
-                            continue;
-                        }
-
-                        await GetTextDocumentEdits(textDocumentEdits, newDoc, oldDoc, cancellationToken).ConfigureAwait(false);
-                    }
+                    await GetTextDocumentEdits(
+                        textDocumentEdits, applyChangesOperation, solution, changedDocuments,
+                        applyChangesOperation.ChangedSolution.GetDocument, solution.GetDocument,
+                        cancellationToken).ConfigureAwait(false);
 
                     // Changed analyzer config documents
-                    // This for loop won't currently execute until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
+                    // We won't get any results until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
                     // is fixed.
-                    foreach (var docId in changedAnalyzerConfigDocuments)
-                    {
-                        var newDoc = applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument(docId);
-                        var oldDoc = solution.GetAnalyzerConfigDocument(docId);
-                        if (oldDoc == null || newDoc == null)
-                        {
-                            continue;
-                        }
-
-                        await GetTextDocumentEdits(textDocumentEdits, newDoc, oldDoc, cancellationToken).ConfigureAwait(false);
-                    }
+                    await GetTextDocumentEdits(
+                        textDocumentEdits, applyChangesOperation, solution, changedDocuments,
+                        applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument, solution.GetAnalyzerConfigDocument,
+                        cancellationToken).ConfigureAwait(false);
 
                     // Changed additional documents
-                    // This for loop won't currently execute until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
+                    // We won't get any results until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
                     // is fixed.
-                    foreach (var docId in changedAdditionalDocuments)
-                    {
-                        var newDoc = applyChangesOperation.ChangedSolution.GetAdditionalDocument(docId);
-                        var oldDoc = solution.GetAdditionalDocument(docId);
-                        if (oldDoc == null || newDoc == null)
-                        {
-                            continue;
-                        }
-
-                        await GetTextDocumentEdits(textDocumentEdits, newDoc, oldDoc, cancellationToken).ConfigureAwait(false);
-                    }
+                    await GetTextDocumentEdits(
+                        textDocumentEdits, applyChangesOperation, solution, changedDocuments,
+                        applyChangesOperation.ChangedSolution.GetAdditionalDocument, solution.GetAdditionalDocument,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 return textDocumentEdits.ToArray();
-            }
 
-            static async Task GetTextDocumentEdits(
-                ArrayBuilder<TextDocumentEdit> textDocumentEdits,
-                TextDocument newDoc,
-                TextDocument oldDoc,
-                CancellationToken cancellationToken)
-            {
-                var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await newDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                static async Task GetTextDocumentEdits<T>(
+                    ArrayBuilder<TextDocumentEdit> textDocumentEdits,
+                    ApplyChangesOperation applyChangesOperation,
+                    Solution solution,
+                    IEnumerable<DocumentId> changedDocuments,
+                    Func<DocumentId, T?> getNewDocumentFunc,
+                    Func<DocumentId, T?> getOldDocumentFunc,
+                    CancellationToken cancellationToken)
+                    where T : TextDocument
+                {
+                    foreach (var docId in changedDocuments)
+                    {
+                        var newDoc = getNewDocumentFunc(docId);
+                        var oldDoc = getOldDocumentFunc(docId);
+                        if (oldDoc == null || newDoc == null)
+                        {
+                            continue;
+                        }
 
-                var textChanges = newText.GetTextChanges(oldText).ToList();
+                        var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var newText = await newDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                var documentIdentifier = new VersionedTextDocumentIdentifier() { Uri = newDoc.GetURI() };
-                textDocumentEdits.Add(new TextDocumentEdit() { TextDocument = documentIdentifier, Edits = edits.ToArray() });
+                        var textChanges = newText.GetTextChanges(oldText).ToList();
+
+                        var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
+                        var documentIdentifier = new VersionedTextDocumentIdentifier() { Uri = newDoc.GetURI() };
+                        textDocumentEdits.Add(new TextDocumentEdit() { TextDocument = documentIdentifier, Edits = edits.ToArray() });
+                    }
+                }
             }
 
             static LSP.Command SetCommand(VSCodeAction codeAction, CodeActionResolveData data) => new LSP.Command
             {
                 CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
                 Title = codeAction.Title,
-                Arguments = new object[]
-                {
-                    new RunCodeActionParams
-                    {
-                        CodeActionParams = data.CodeActionParams,
-                        DistinctTitle = data.DistinctTitle
-                    }
-                }
+                Arguments = new object[] { data }
             };
         }
 

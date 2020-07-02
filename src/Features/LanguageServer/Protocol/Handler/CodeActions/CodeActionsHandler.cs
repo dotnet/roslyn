@@ -55,52 +55,66 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken cancellationToken)
         {
             var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
-            var codeActions = await GetCodeActionsAndKindAsync(document,
-                _codeFixService,
-                _codeRefactoringService,
-                request.Range,
-                cancellationToken).ConfigureAwait(false);
-
-            // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-            codeActions = codeActions.Where(c => !(c.Key is CodeActionWithOptions));
-
-            return GetVSCodeActions(request, codeActions);
-
-            // Local functions
-            static VSCodeAction[] GetVSCodeActions(
-                CodeActionParams request,
-                IEnumerable<KeyValuePair<CodeAction, CodeActionKind>> codeActions)
+            if (document == null)
             {
-                var suppressionActions = codeActions.Where(
-                    a => a.Key is AbstractConfigurationActionWithNestedActions &&
-                    (a.Key as AbstractConfigurationActionWithNestedActions)?.IsBulkConfigurationAction == false);
-
-                using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var results);
-                foreach (var codeAction in codeActions)
-                {
-                    // Temporarily filter out suppress and configure code actions, as we'll later combine them under a top-level
-                    // code action.
-                    if (codeAction.Key is AbstractConfigurationActionWithNestedActions)
-                    {
-                        continue;
-                    }
-
-                    results.Add(GenerateVSCodeAction(request, codeAction.Key, codeAction.Value));
-                }
-
-                // Special case (also dealt with specially in local Roslyn): 
-                // If we have configure/suppress code actions, combine them under one top-level code action.
-                var configureSuppressActions = codeActions.Where(a => a.Key is AbstractConfigurationActionWithNestedActions);
-                if (configureSuppressActions.Any())
-                {
-                    results.Add(GenerateVSCodeAction(request, new CodeActionWithNestedActions(
-                        CodeFixesResources.Suppress_or_Configure_issues,
-                        configureSuppressActions.Select(a => a.Key).ToImmutableArray(), true), CodeActionKind.QuickFix));
-                }
-
-                return results.ToArray();
+                return Array.Empty<VSCodeAction>();
             }
 
+            var (codeFixCollections, codeRefactorings) = await GetCodeFixesAndRefactoringsAsync(
+                                document, _codeFixService, _codeRefactoringService,
+                                request.Range, cancellationToken).ConfigureAwait(false);
+
+            var codeFixes = codeFixCollections.SelectMany(c => c.Fixes);
+
+            var suppressionActions = codeFixes.Where(
+                a => a.Action is AbstractConfigurationActionWithNestedActions &&
+                (a.Action as AbstractConfigurationActionWithNestedActions)?.IsBulkConfigurationAction == false);
+
+            using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var results);
+
+            // We go through code fixes and code refactorings separately so that we can properly set the CodeActionKind.
+            foreach (var codeFix in codeFixes)
+            {
+                // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
+                if (codeFix.Action is CodeActionWithOptions)
+                {
+                    continue;
+                }
+
+                // Temporarily filter out suppress and configure code actions, as we'll later combine them under a top-level
+                // code action.
+                if (codeFix.Action is AbstractConfigurationActionWithNestedActions)
+                {
+                    continue;
+                }
+
+                results.Add(GenerateVSCodeAction(request, codeFix.Action, CodeActionKind.QuickFix));
+            }
+
+            foreach (var (action, _) in codeRefactorings.SelectMany(codeRefactoring => codeRefactoring.CodeActions))
+            {
+                // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
+                if (action is CodeActionWithOptions)
+                {
+                    continue;
+                }
+
+                results.Add(GenerateVSCodeAction(request, action, CodeActionKind.Refactor));
+            }
+
+            // Special case (also dealt with specially in local Roslyn): 
+            // If we have configure/suppress code actions, combine them under one top-level code action.
+            var configureSuppressActions = codeFixes.Where(a => a.Action is AbstractConfigurationActionWithNestedActions);
+            if (configureSuppressActions.Any())
+            {
+                results.Add(GenerateVSCodeAction(request, new CodeActionWithNestedActions(
+                    CodeFixesResources.Suppress_or_Configure_issues,
+                    configureSuppressActions.Select(a => a.Action).ToImmutableArray(), true), CodeActionKind.QuickFix));
+            }
+
+            return results.ToArray();
+
+            // Local functions
             static VSCodeAction GenerateVSCodeAction(
                 CodeActionParams request,
                 CodeAction codeAction,
@@ -119,12 +133,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Kind = codeActionKind,
                     Diagnostics = request.Context.Diagnostics,
                     Children = nestedActions.ToArray(),
-                    Data = new CodeActionResolveData { CodeActionParams = request, DistinctTitle = parentTitle + codeAction.Title }
+                    Data = new CodeActionResolveData
+                    {
+                        DistinctTitle = parentTitle + codeAction.Title,
+                        Range = request.Range,
+                        TextDocument = request.TextDocument
+                    }
                 };
             }
         }
 
-        internal static async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document? document,
+        internal static async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(
+            Document? document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
@@ -144,37 +164,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));
 
             return codeActions;
-        }
-
-        internal static async Task<IEnumerable<KeyValuePair<CodeAction, CodeActionKind>>> GetCodeActionsAndKindAsync(
-            Document? document,
-            ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            LSP.Range selection,
-            CancellationToken cancellationToken)
-        {
-            var actions = new Dictionary<CodeAction, CodeActionKind>();
-            if (document == null)
-            {
-                return actions;
-            }
-
-            var (codeFixCollections, codeRefactorings) = await GetCodeFixesAndRefactoringsAsync(
-                document, codeFixService,
-                codeRefactoringService, selection,
-                cancellationToken).ConfigureAwait(false);
-
-            foreach (var fix in codeFixCollections.SelectMany(codeFix => codeFix.Fixes))
-            {
-                actions.Add(fix.Action, CodeActionKind.QuickFix);
-            }
-
-            foreach (var (action, _) in codeRefactorings.SelectMany(codeRefactoring => codeRefactoring.CodeActions))
-            {
-                actions.Add(action, CodeActionKind.Refactor);
-            }
-
-            return actions;
         }
 
         internal static async Task<(ImmutableArray<CodeFixCollection>, ImmutableArray<CodeRefactoring>)> GetCodeFixesAndRefactoringsAsync(

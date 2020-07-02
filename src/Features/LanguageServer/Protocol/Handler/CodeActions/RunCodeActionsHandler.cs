@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -51,10 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             LSP.ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            var runRequest = ((JToken)request.Arguments.Single()).ToObject<RunCodeActionParams>();
-            var document = _solutionProvider.GetDocument(runRequest.CodeActionParams.TextDocument);
+            var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
+            var document = _solutionProvider.GetDocument(runRequest.TextDocument);
             var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document, _codeFixService, _codeRefactoringService,
-                runRequest.CodeActionParams.Range, cancellationToken).ConfigureAwait(false);
+                runRequest.Range, cancellationToken).ConfigureAwait(false);
             if (codeActions == null)
             {
                 return false;

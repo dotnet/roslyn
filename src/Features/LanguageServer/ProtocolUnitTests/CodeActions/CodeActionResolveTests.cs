@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -34,11 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
-                data: new CodeActionResolveData
-                {
-                    CodeActionParams = CodeActionsTests.CreateCodeActionParams(locations["caret"].Single()),
-                    DistinctTitle = CSharpAnalyzersResources.Use_implicit_type
-                },
+                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
                 diagnostics: null);
 
             var expectedMarkup =
@@ -53,11 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
-                data: new CodeActionResolveData
-                {
-                    CodeActionParams = CodeActionsTests.CreateCodeActionParams(locations["caret"].Single()),
-                    DistinctTitle = CSharpAnalyzersResources.Use_implicit_type
-                },
+                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
                 diagnostics: null,
                 edit: new LSP.WorkspaceEdit()
                 {
@@ -101,11 +92,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
-                data: new CodeActionResolveData
-                {
-                    CodeActionParams = CodeActionsTests.CreateCodeActionParams(locations["caret"].Single()),
-                    DistinctTitle = FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
-                },
+                data: CreateCodeActionResolveData(
+                    FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+                    locations["caret"].Single()),
                 diagnostics: null);
 
             var expectedMarkup =
@@ -123,11 +112,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
-                data: new CodeActionResolveData
-                {
-                    CodeActionParams = CodeActionsTests.CreateCodeActionParams(locations["caret"].Single()),
-                    DistinctTitle = FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
-                },
+                data: CreateCodeActionResolveData(
+                    FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+                    locations["caret"].Single()),
                 diagnostics: null,
                 edit: new LSP.WorkspaceEdit()
                 {
