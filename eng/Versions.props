@@ -70,7 +70,6 @@
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>
-    <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
     <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.339</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
@@ -189,6 +188,7 @@
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
+    <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
     <SystemCodeDomVersion>4.7.0</SystemCodeDomVersion>
     <SystemCommandLineExperimentalVersion>0.3.0-alpha.19577.1</SystemCommandLineExperimentalVersion>
     <SystemComponentModelCompositionVersion>4.5.0</SystemComponentModelCompositionVersion>
@@ -197,6 +197,7 @@
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.5.1</SystemIOPipesAccessControlVersion>
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
+    <SystemResourcesExtensionsVersion>4.7.1</SystemResourcesExtensionsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>4.7.0</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemRuntimeLoaderVersion>4.3.0</SystemRuntimeLoaderVersion>
     <SystemTextEncodingCodePagesVersion>4.5.1</SystemTextEncodingCodePagesVersion>
