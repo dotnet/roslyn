@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,18 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct TypeWithState
     {
-        public readonly TypeSymbol Type;
+        public readonly TypeSymbol? Type;
         public readonly NullableFlowState State;
         public bool HasNullType => Type is null;
         public bool MayBeNull => State == NullableFlowState.MaybeNull;
         public bool IsNotNull => State == NullableFlowState.NotNull;
 
-        public static TypeWithState ForType(TypeSymbol type)
+        public static TypeWithState ForType(TypeSymbol? type)
         {
             return Create(type, NullableFlowState.MaybeDefault);
         }
 
-        public static TypeWithState Create(TypeSymbol type, NullableFlowState defaultState)
+        public static TypeWithState Create(TypeSymbol? type, NullableFlowState defaultState)
         {
             if (defaultState == NullableFlowState.MaybeDefault &&
                 (type is null || type.IsTypeParameterDisallowingAnnotation()))
@@ -64,15 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Create(type, state);
         }
 
-        private TypeWithState(TypeSymbol type, NullableFlowState state)
+        private TypeWithState(TypeSymbol? type, NullableFlowState state)
         {
             Debug.Assert(state == NullableFlowState.NotNull || type?.CanContainNull() != false);
             Debug.Assert(state != NullableFlowState.MaybeDefault || type is null || type.IsTypeParameterDisallowingAnnotation());
             Type = type;
             State = state;
         }
-
-        public void Deconstruct(out TypeSymbol type, out NullableFlowState state) => (type, state) = (Type, State);
 
         public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
 

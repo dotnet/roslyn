@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int position,
                 BoundNode nodeToAnalyze,
                 Binder binder,
-                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
+                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder analyzedNullabilityMap,
                 SnapshotManager.Builder newManagerOpt)
             {
                 Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
@@ -224,7 +224,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                     _currentWalkerSlot = previousSlot;
                 }
 
-                internal void TakeIncrementalSnapshot(BoundNode node, LocalState currentState)
+                internal void TakeIncrementalSnapshot(BoundNode? node, LocalState currentState)
                 {
                     if (node == null || node.WasCompilerGenerated)
                     {

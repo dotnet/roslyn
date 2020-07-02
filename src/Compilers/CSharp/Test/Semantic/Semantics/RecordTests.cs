@@ -2063,7 +2063,7 @@ Block[B3] - Exit
         }
 
         [Fact]
-        public void NoCloneMethod()
+        public void NoCloneMethod_01()
         {
             var src = @"
 class C
@@ -2156,6 +2156,30 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ");
+        }
+
+        [Fact]
+        public void NoCloneMethod_02()
+        {
+            var source =
+@"#nullable enable
+class R
+{
+    public object? P { get; set; }
+}
+class Program
+{
+    static void Main()
+    {
+        R r = new R();
+        _ = r with { P = 2 };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8858: The receiver type 'R' is not a valid record type.
+                //         _ = r with { P = 2 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "r").WithArguments("R").WithLocation(11, 13));
         }
 
         [Fact]
