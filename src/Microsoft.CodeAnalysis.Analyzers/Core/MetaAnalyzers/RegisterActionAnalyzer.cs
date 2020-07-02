@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
                 }
 
-                if (method.TypeParameters.Length > 0 &&
+                if (!method.TypeParameters.IsEmpty &&
                     (isRegisterSyntaxNodeAction || isRegisterCodeBlockStartAction))
                 {
                     ITypeSymbol? typeArgument = null;

@@ -28,7 +28,7 @@ namespace Test.Utilities
             string defaultPath,
             params DiagnosticResult[] expectedResults)
         {
-            if (analyzer != null && analyzer.SupportedDiagnostics.Length == 0)
+            if (analyzer != null && analyzer.SupportedDiagnostics.IsEmpty)
             {
                 // Not implemented analyzer
                 return;

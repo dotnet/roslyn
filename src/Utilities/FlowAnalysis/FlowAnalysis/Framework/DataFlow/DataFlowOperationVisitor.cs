@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             if (_lazyParameterEntities == null &&
                 OwningSymbol is IMethodSymbol method &&
-                method.Parameters.Length > 0)
+                !method.Parameters.IsEmpty)
             {
                 var builder = ImmutableDictionary.CreateBuilder<IParameterSymbol, AnalysisEntity>();
                 var argumentValuesMap = DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.ArgumentValuesMap ??
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     var requiresMethods = ContractNamedType.GetMembers("Requires");
                     var assumeMethods = ContractNamedType.GetMembers("Assume");
                     var assertMethods = ContractNamedType.GetMembers("Assert");
-                    var validationMethods = requiresMethods.Concat(assumeMethods).Concat(assertMethods).OfType<IMethodSymbol>().Where(m => m.IsStatic && m.ReturnsVoid && m.Parameters.Length >= 1 && (m.Parameters[0].Type.SpecialType == SpecialType.System_Boolean));
+                    var validationMethods = requiresMethods.Concat(assumeMethods).Concat(assertMethods).OfType<IMethodSymbol>().Where(m => m.IsStatic && m.ReturnsVoid && !m.Parameters.IsEmpty && (m.Parameters[0].Type.SpecialType == SpecialType.System_Boolean));
                     _lazyContractCheckMethodsForPredicateAnalysis = ImmutableHashSet.CreateRange(validationMethods);
                 }
 
@@ -2833,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 if (targetMethod.IsLockMethod(MonitorNamedType))
                 {
                     // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
-                    Debug.Assert(arguments.Length >= 1);
+                    Debug.Assert(!arguments.IsEmpty);
 
                     HandleEnterLockOperation(arguments[0].Value);
                 }
