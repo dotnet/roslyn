@@ -903,13 +903,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     var requiresMethods = ContractNamedType.GetMembers("Requires");
                     var assumeMethods = ContractNamedType.GetMembers("Assume");
                     var assertMethods = ContractNamedType.GetMembers("Assert");
-<<<<<<< HEAD
                     var validationMethods = requiresMethods.Concat(assumeMethods).Concat(assertMethods).OfType<IMethodSymbol>().Where(m => m.IsStatic && m.ReturnsVoid && !m.Parameters.IsEmpty && (m.Parameters[0].Type.SpecialType == SpecialType.System_Boolean));
                     _lazyContractCheckMethods = ImmutableHashSet.CreateRange(validationMethods);
-=======
-                    var validationMethods = requiresMethods.Concat(assumeMethods).Concat(assertMethods).OfType<IMethodSymbol>().Where(m => m.IsStatic && m.ReturnsVoid && !m.Parameters.IsEmpty && (m.Parameters[0].Type.SpecialType == SpecialType.System_Boolean));
-                    _lazyContractCheckMethodsForPredicateAnalysis = ImmutableHashSet.CreateRange(validationMethods);
->>>>>>> upstream/2.9.x
                 }
 
                 return _lazyContractCheckMethods.Contains(method);
