@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
     {
         private sealed class SemanticModelReuseWorkspaceService : ISemanticModelReuseWorkspaceService
         {
+            private readonly Workspace _workspace;
+
             /// <summary>
             /// A mapping from a document id to the last semantic model we produced for it, along with the top level
             /// semantic version that that semantic model corresponds to.  We can continue reusing the semantic model as
@@ -66,6 +68,29 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             /// </para>
             /// </summary>
             private ImmutableDictionary<DocumentId, SemanticModelReuseInfo?> _semanticModelMap = ImmutableDictionary<DocumentId, SemanticModelReuseInfo?>.Empty;
+
+            public SemanticModelReuseWorkspaceService(Workspace workspace)
+            {
+                _workspace = workspace;
+                _workspace.WorkspaceChanged += (_, e) =>
+                {
+                    // if our map points at documents not in the current solution, then we want to clear things out.
+                    // this way we don't hold onto semantic models past, say, the c#/vb solutions closing.
+                    var map = _semanticModelMap;
+                    if (map.IsEmpty)
+                        return;
+
+                    var solution = e.NewSolution;
+                    foreach (var (docId, _) in map)
+                    {
+                        if (!solution.ContainsDocument(docId))
+                        {
+                            _semanticModelMap = ImmutableDictionary<DocumentId, SemanticModelReuseInfo?>.Empty;
+                            return;
+                        }
+                    }
+                };
+            }
 
             public async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
