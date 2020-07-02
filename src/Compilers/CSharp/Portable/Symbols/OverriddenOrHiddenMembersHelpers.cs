@@ -938,8 +938,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!methodimplWouldBeAmbiguous)
                 return true;
 
-            // We produce the warning when a methodimpl would be required but would be ambiguous to the runtime
-            warnAmbiguous = true;
+            // We produce the warning when a methodimpl would be required but would be ambiguous to the runtime.
+            // This ambiguity only arises due to collision after generic substitution.
+            warnAmbiguous = csharpOverriddenMethod.ContainingType.IsGenericType;
 
             bool overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod =
                 csharpOverriddenMethod.ContainingType.Equals(runtimeOverriddenMethod.ContainingType, TypeCompareKind.CLRSignatureCompareOptions);
