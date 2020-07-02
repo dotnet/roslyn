@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CaseCorrection
     Public Class CaseCorrectionTests
         Inherits VisualBasicCaseCorrectionTestBase
 

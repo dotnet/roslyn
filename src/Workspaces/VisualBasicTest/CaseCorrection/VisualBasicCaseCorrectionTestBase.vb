@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.CaseCorrection
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CaseCorrection
     Public Class VisualBasicCaseCorrectionTestBase
 
         Protected Shared Async Function AssertCaseCorrectAsync(code As String, expected As String) As Task
