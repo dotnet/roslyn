@@ -180,7 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 forceMethodTypeParameters(returnType, this, declaredConstraints);
             }
 
-
             return (returnType, parameters, _lazyIsVararg, declaredConstraints);
 
             static void forceMethodTypeParameters(TypeWithAnnotations type, SourceOrdinaryMethodSymbol method, ImmutableArray<TypeParameterConstraintClause> declaredConstraints)

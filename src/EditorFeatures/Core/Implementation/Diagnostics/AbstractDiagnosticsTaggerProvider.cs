@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
-        private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+        private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
         {
             if (e.Solution == null || e.DocumentId == null)
             {

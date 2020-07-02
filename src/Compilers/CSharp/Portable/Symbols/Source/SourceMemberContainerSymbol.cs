@@ -3065,10 +3065,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
-                    var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
-                    _ = memberSignatures.TryGetValue(property, out var existingMember);
-                    existingMember ??= getInheritedMember(property, this);
+                    bool isInherited = false;
+                    var syntax = param.GetNonNullSyntaxNode();
+                    var property = new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics);
+                    if (!memberSignatures.TryGetValue(property, out var existingMember))
+                    {
+                        Debug.Assert(property.OverriddenOrHiddenMembers.OverriddenMembers.Length == 0); // property is not virtual and should not have overrides
+                        existingMember = property.OverriddenOrHiddenMembers.HiddenMembers.FirstOrDefault();
+                        isInherited = true;
+                    }
                     if (existingMember is null)
+                    {
+                        addProperty(property);
+                    }
+                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
+                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        // There already exists a member corresponding to the candidate synthesized property.
+                        if (isInherited && prop.IsAbstract)
+                        {
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
+                        }
+                        else
+                        {
+                            // Deconstruct() is specified to simply assign from this property to the corresponding out parameter.
+                            existingOrAddedMembers.Add(prop);
+                        }
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
+                            param.Locations[0],
+                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
+                            param.TypeWithAnnotations,
+                            param.Name);
+                    }
+
+                    void addProperty(SynthesizedRecordPropertySymbol property)
                     {
                         existingOrAddedMembers.Add(property);
                         members.Add(property);
@@ -3078,21 +3111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
-                    }
-                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
-                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        // There already exists a member corresponding to the candidate synthesized property.
-                        // The deconstructor is specified to simply assign from this property to the corresponding out parameter.
-                        existingOrAddedMembers.Add(prop);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
-                            param.Locations[0],
-                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
-                            param.TypeWithAnnotations,
-                            param.Name);
                     }
                 }
 
@@ -3105,32 +3123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 #endif
                 return existingOrAddedMembers.ToImmutableAndFree();
-            }
-
-            static Symbol? getInheritedMember(Symbol symbol, NamedTypeSymbol type)
-            {
-                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
-                {
-                    OverriddenOrHiddenMembersHelpers.FindOverriddenOrHiddenMembersInType(
-                        symbol,
-                        memberIsFromSomeCompilation: true,
-                        memberContainingType: symbol.ContainingType,
-                        currType: type,
-                        out var bestMatch,
-                        out bool hasSameKindNonMatch,
-                        out var hiddenBuilder);
-                    if (hiddenBuilder is object)
-                    {
-                        var result = hiddenBuilder[0];
-                        hiddenBuilder.Free();
-                        return result;
-                    }
-                    if (bestMatch is object)
-                    {
-                        return bestMatch;
-                    }
-                }
-                return null;
             }
 
             void addObjectEquals(MethodSymbol thisEquals)
@@ -3149,23 +3141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static PropertySymbol? getInheritedEqualityContract(NamedTypeSymbol type)
-            {
-                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
-                {
-                    var members = type.GetMembers(SynthesizedRecordEqualityContractProperty.PropertyName);
-                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
-                    if (members.FirstOrDefault(m => m is PropertySymbol property && property.ParameterCount == 0) is PropertySymbol property)
-                    {
-                        return property;
-                    }
-                }
-                return null;
-            }
-
             PropertySymbol addEqualityContract()
             {
-                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: getInheritedEqualityContract(this) is object);
+                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: SynthesizedRecordClone.FindValidCloneMethod(BaseTypeNoUseSiteDiagnostics) is object);
                 // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
                 if (!memberSignatures.ContainsKey(property))
                 {
