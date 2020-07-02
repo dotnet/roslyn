@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 // If we are able to reuse a semantic model, then ensure that this is now the semantic model we're now
                 // pointing at for this document.
                 var reuseInfo = await TryReuseCachedSemanticModelAsync(
-                    map, document, bodyNode, linkedIds, topLevelSemanticVersion, cancellationToken).ConfigureAwait(false);
+                    map, document, bodyNode, topLevelSemanticVersion, cancellationToken).ConfigureAwait(false);
                 if (reuseInfo != null)
                     return map.SetItem(document.Id, reuseInfo.Value);
 
@@ -171,18 +171,11 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 ImmutableDictionary<DocumentId, SemanticModelReuseInfo?> map,
                 Document document,
                 SyntaxNode bodyNode,
-                ImmutableArray<DocumentId> linkedIds,
                 VersionStamp topLevelSemanticVersion,
                 CancellationToken cancellationToken)
             {
-                // Get the clique (i.e. all the ids for this and the other documents it is linked to) corresponds to
-                // matches the clique we're caching.
-                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentIdClique);
-                documentIdClique.Add(document.Id);
-                documentIdClique.AddRange(linkedIds);
-
                 // if this is asking about a doc we don't know about, we can't reuse anything.
-                if (!map.ContainsKey(documentIdClique))
+                if (!map.ContainsKey(document.Id))
                     return null;
 
                 // see if this doc matches the docs we're caching information for.
