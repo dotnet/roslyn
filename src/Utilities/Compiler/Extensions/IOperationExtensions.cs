@@ -515,6 +515,7 @@ namespace Analyzer.Utilities.Extensions
 #if CODEANALYSIS_V3_OR_BETTER
                 IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
                 IRecursivePatternOperation recursivePattern => recursivePattern.MatchedType,
+                IDiscardPatternOperation discardPattern => discardPattern.InputType,
 #else
                 IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
                 {
