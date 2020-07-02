@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
         private static DateAndTimePatternDetector? TryCreate(
             SemanticModel semanticModel, EmbeddedLanguageInfo info)
         {
-            var dateTimeType = semanticModel.Compilation.GetTypeByMetadataName(typeof(System.DateTime).FullName!);
-            var dateTimeOffsetType = semanticModel.Compilation.GetTypeByMetadataName(typeof(System.DateTimeOffset).FullName!);
+            var dateTimeType = semanticModel.Compilation.GetTypeByMetadataName(typeof(System.DateTime).FullName);
+            var dateTimeOffsetType = semanticModel.Compilation.GetTypeByMetadataName(typeof(System.DateTimeOffset).FullName);
             if (dateTimeType == null || dateTimeOffsetType == null)
                 return null;
 

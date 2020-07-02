@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             {
                 if (invocation.Arguments.Length == 1 &&
                     invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
-                    invocation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
+                    invocation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName) is { } systemIFormattable &&
                     invocation.Instance.Type.Implements(systemIFormattable))
                 {
                     unwrapped = invocation.Instance;

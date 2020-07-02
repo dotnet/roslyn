@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
+            var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             if (ienumerableType != null)
             {
                 var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
