@@ -240,7 +240,7 @@ End Class"
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller1() As Task
             Dim source =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Async Function {|BC42356:GooAsync|}() As Task
@@ -251,7 +251,7 @@ Public Class Class1
     End Sub
 End Class"
             Dim expected =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Sub Goo()
@@ -264,8 +264,6 @@ End Class"
 
             Dim test = New VerifyVB.Test()
             test.TestState.Sources.Add(source)
-            ' /0/Test0.vb(1) : error BC30037: Character is not valid.
-            test.TestState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30037").WithLocation(0))
             test.FixedState.Sources.Add(expected)
             test.FixedState.MarkupHandling = MarkupMode.Allow
             test.CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne
@@ -276,7 +274,7 @@ End Class"
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller2() As Task
             Dim source =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Async Function {|BC42356:GooAsync|}() As Task
@@ -287,7 +285,7 @@ Public Class Class1
     End Sub
 End Class"
             Dim expected =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Sub Goo()
@@ -300,8 +298,6 @@ End Class"
 
             Dim test = New VerifyVB.Test()
             test.TestState.Sources.Add(source)
-            ' /0/Test0.vb(1) : error BC30037: Character is not valid.
-            test.TestState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30037").WithLocation(0))
             test.FixedState.Sources.Add(expected)
             test.FixedState.MarkupHandling = MarkupMode.Allow
             test.CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne
@@ -312,7 +308,7 @@ End Class"
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller3() As Task
             Dim source =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Async Function {|BC42356:GooAsync|}() As Task
@@ -323,7 +319,7 @@ Public Class Class1
     End Sub
 End Class"
             Dim expected =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Sub Goo()
@@ -336,8 +332,6 @@ End Class"
 
             Dim test = New VerifyVB.Test()
             test.TestState.Sources.Add(source)
-            ' /0/Test0.vb(1) : error BC30037: Character is not valid.
-            test.TestState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30037").WithLocation(0))
             test.FixedState.Sources.Add(expected)
             test.FixedState.MarkupHandling = MarkupMode.Allow
             test.CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne
@@ -348,7 +342,7 @@ End Class"
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller4() As Task
             Dim source =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Async Function {|BC42356:GooAsync|}() As Task
@@ -359,7 +353,7 @@ Public Class Class1
     End Sub
 End Class"
             Dim expected =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Sub Goo()
@@ -372,8 +366,6 @@ End Class"
 
             Dim test = New VerifyVB.Test()
             test.TestState.Sources.Add(source)
-            ' /0/Test0.vb(1) : error BC30037: Character is not valid.
-            test.TestState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30037").WithLocation(0))
             test.FixedState.Sources.Add(expected)
             test.FixedState.MarkupHandling = MarkupMode.Allow
             test.CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne
@@ -384,7 +376,7 @@ End Class"
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested1() As Task
             Dim source =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Async Function {|BC42356:GooAsync|}(i As Integer) As Task(Of Integer)
@@ -395,7 +387,7 @@ Public Class Class1
     End Sub
 End Class"
             Dim expected =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Function Goo(i As Integer) As Integer
@@ -408,8 +400,6 @@ End Class"
 
             Dim test = New VerifyVB.Test()
             test.TestState.Sources.Add(source)
-            ' /0/Test0.vb(1) : error BC30037: Character is not valid.
-            test.TestState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30037").WithLocation(0))
             test.FixedState.Sources.Add(expected)
             test.FixedState.MarkupHandling = MarkupMode.Allow
             test.CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne
@@ -420,7 +410,7 @@ End Class"
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested2() As Task
             Dim source =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Async Function {|BC42356:GooAsync|}(i As Integer) As Task(Of Integer)
@@ -431,7 +421,7 @@ Public Class Class1
     End Sub
 End Class"
             Dim expected =
-"Imports System.Threading.Tasks{|#0:;|}
+"Imports System.Threading.Tasks
 
 Public Class Class1
     Function Goo(i As Integer) As Integer
@@ -444,8 +434,6 @@ End Class"
 
             Dim test = New VerifyVB.Test()
             test.TestState.Sources.Add(source)
-            ' /0/Test0.vb(1) : error BC30037: Character is not valid.
-            test.TestState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("BC30037").WithLocation(0))
             test.FixedState.Sources.Add(expected)
             test.FixedState.MarkupHandling = MarkupMode.Allow
             test.CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne

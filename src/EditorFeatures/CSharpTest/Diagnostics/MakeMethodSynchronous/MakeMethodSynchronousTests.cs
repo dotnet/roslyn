@@ -48,12 +48,11 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task<int> {|#0:{|CS1998:Goo|}|}()
+    async Task<int> {|CS1998:Goo|}()
     {
+        return 1;
     }
 }",
-                // /0/Test0.cs(6,21): error CS0161: 'C.Goo()': not all code paths return a value
-                DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("C.Goo()"),
 @"
 using System.Threading.Tasks;
 
@@ -61,6 +60,7 @@ class C
 {
     int {|#0:Goo|}()
     {
+        return 1;
     }
 }");
         }
@@ -199,127 +199,189 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestParenthesizedLambda()
         {
-            await VerifyCS.VerifyCodeFixAsync(
+            var source =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
     void Goo()
     {
-        {|#0:Func<Task>|} f =
+        Func<Task> f =
             async () {|CS1998:=>|} { };
     }
-}",
-                // /0/Test0.cs(8,9): error CS0246: The type or namespace name 'Func<>' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithLocation(0).WithArguments("Func<>"),
+}";
+            var expected =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
     void Goo()
     {
-        {|#0:Func<Task>|} f =
-            () => { };
+        Func<Task> f =
+            () {|#0:=>|} { };
     }
-}");
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(10,16): error CS1643: Not all code paths return a value in lambda expression of type 'Func<Task>'
+                        DiagnosticResult.CompilerError("CS1643").WithLocation(0),
+                    },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestSimpleLambda()
         {
-            await VerifyCS.VerifyCodeFixAsync(
+            var source =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
     void Goo()
     {
-        {|#0:Func<string, Task>|} f =
+        Func<string, Task> f =
             async a {|CS1998:=>|} { };
     }
-}",
-                // /0/Test0.cs(8,9): error CS0246: The type or namespace name 'Func<,>' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithLocation(0).WithArguments("Func<,>"),
+}";
+            var expected =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
     void Goo()
     {
-        {|#0:Func<string, Task>|} f =
-            a => { };
+        Func<string, Task> f =
+            a {|#0:=>|} { };
     }
-}");
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(10,15): error CS1643: Not all code paths return a value in lambda expression of type 'Func<Task>'
+                        DiagnosticResult.CompilerError("CS1643").WithLocation(0),
+                    },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestLambdaWithExpressionBody()
         {
-            await VerifyCS.VerifyCodeFixAsync(
+            var source =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
     void Goo()
     {
-        {|#0:Func<string, Task>|} f =
+        Func<string, Task<int>> f =
             async a {|CS1998:=>|} 1;
     }
-}",
-                // /0/Test0.cs(8,9): error CS0246: The type or namespace name 'Func<,>' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithLocation(0).WithArguments("Func<,>"),
+}";
+            var expected =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
     void Goo()
     {
-        {|#0:Func<string, Task>|} f =
-            a => 1;
+        Func<string, Task<int>> f =
+            a => {|#0:1|};
     }
-}");
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(10,18): error CS0029: Cannot implicitly convert type 'int' to 'System.Threading.Tasks.Task<int>'
+                        DiagnosticResult.CompilerError("CS0029").WithLocation(0).WithArguments("int", "System.Threading.Tasks.Task<int>"),
+                        // /0/Test0.cs(10,18): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                        DiagnosticResult.CompilerError("CS1662").WithLocation(0),
+                    },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestAnonymousMethod()
         {
-            await VerifyCS.VerifyCodeFixAsync(
+            var source =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
     void Goo()
     {
-        {|#0:Func<Task>|} f =
+        Func<Task> f =
             async {|CS1998:delegate|} { };
     }
-}",
-                // /0/Test0.cs(8,9): error CS0246: The type or namespace name 'Func<>' could not be found (are you missing a using directive or an assembly reference?)
-                DiagnosticResult.CompilerError("CS0246").WithLocation(0).WithArguments("Func<>"),
+}";
+            var expected =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
     void Goo()
     {
-        {|#0:Func<Task>|} f =
-            delegate { };
+        Func<Task> f =
+            {|#0:delegate|} { };
     }
-}");
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(10,13): error CS1643: Not all code paths return a value in anonymous method of type 'Func<Task>'
+                        DiagnosticResult.CompilerError("CS1643").WithLocation(0),
+                    },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestFixAll()
         {
-            var source =
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
@@ -332,9 +394,9 @@ public class Class1
     async Task<int> {|#0:{|CS1998:BarAsync|}|}()
     {
         GooAsync();
+        return 1;
     }
-}";
-            var expected =
+}",
 @"using System.Threading.Tasks;
 
 public class Class1
@@ -347,30 +409,9 @@ public class Class1
     int {|#0:Bar|}()
     {
         Goo();
+        return 1;
     }
-}";
-
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(10,21): error CS0161: 'Class1.BarAsync()': not all code paths return a value
-                        DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("Class1.BarAsync()"),
-                    },
-                },
-                FixedState =
-                {
-                    Sources = { expected },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(10,9): error CS0161: 'Class1.Bar()': not all code paths return a value
-                        DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("Class1.Bar()"),
-                    },
-                },
-            }.RunAsync();
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -562,8 +603,9 @@ public class Class1
 
 public class Class1
 {
-    async Task<int> {|#0:{|CS1998:GooAsync|}|}(int i)
+    async Task<int> {|CS1998:GooAsync|}(int i)
     {
+        return 1;
     }
 
     async void BarAsync()
@@ -576,8 +618,9 @@ public class Class1
 
 public class Class1
 {
-    int {|#0:Goo|}(int i)
+    int Goo(int i)
     {
+        return 1;
     }
 
     async void {|CS1998:BarAsync|}()
@@ -588,23 +631,10 @@ public class Class1
 
             await new VerifyCS.Test
             {
-                TestState =
-                {
-                    Sources = { source },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(5,21): error CS0161: 'Class1.GooAsync(int)': not all code paths return a value
-                        DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("Class1.GooAsync(int)"),
-                    },
-                },
+                TestCode = source,
                 FixedState =
                 {
                     Sources = { expected },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(5,9): error CS0161: 'Class1.Goo(int)': not all code paths return a value
-                        DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("Class1.Goo(int)"),
-                    },
                     MarkupHandling = MarkupMode.Allow,
                 },
                 CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
@@ -620,8 +650,9 @@ public class Class1
 
 public class Class1
 {
-    async Task<int> {|#0:{|CS1998:GooAsync|}|}(int i)
+    async Task<int> {|CS1998:GooAsync|}(int i)
     {
+        return 1;
     }
 
     async void BarAsync()
@@ -634,8 +665,9 @@ public class Class1
 
 public class Class1
 {
-    int {|#0:Goo|}(int i)
+    int Goo(int i)
     {
+        return 1;
     }
 
     async void {|CS1998:BarAsync|}()
@@ -646,23 +678,10 @@ public class Class1
 
             await new VerifyCS.Test
             {
-                TestState =
-                {
-                    Sources = { source },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(5,21): error CS0161: 'Class1.GooAsync(int)': not all code paths return a value
-                        DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("Class1.GooAsync(int)"),
-                    },
-                },
+                TestCode = source,
                 FixedState =
                 {
                     Sources = { expected },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(5,9): error CS0161: 'Class1.Goo(int)': not all code paths return a value
-                        DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("Class1.Goo(int)"),
-                    },
                     MarkupHandling = MarkupMode.Allow,
                 },
                 CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
