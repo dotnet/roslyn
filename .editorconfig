@@ -221,6 +221,9 @@ csharp_preserve_single_line_statements = true
 # warning RS0037: PublicAPI.txt is missing '#nullable enable'
 dotnet_diagnostic.RS0037.severity = none
 
+# RS0046: Avoid the 'Opt' suffix
+dotnet_diagnostic.RS0046.severity = suggestion
+
 [src/CodeStyle/**.{cs,vb}]
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
 dotnet_diagnostic.RS0005.severity = none
@@ -267,6 +270,3 @@ dotnet_diagnostic.IDE0007.severity = warning
 csharp_style_var_for_built_in_types = true:warning
 csharp_style_var_when_type_is_apparent = true:warning
 csharp_style_var_elsewhere = true:warning
-
-# RS0046: Avoid the 'Opt' suffix
-dotnet_diagnostic.RS0046.severity = suggestion
