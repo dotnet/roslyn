@@ -735,7 +735,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
             return node is BaseMethodDeclarationSyntax ||
                 node is BasePropertyDeclarationSyntax ||
-                node is EventDeclarationSyntax ||
                 node is EnumMemberDeclarationSyntax ||
                 node is BaseFieldDeclarationSyntax;
         }
