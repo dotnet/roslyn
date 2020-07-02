@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 documentIdClique.Add(document.Id);
                 documentIdClique.AddRange(linkedIds);
 
-                // if this is asking about a different doc or clique, we can't reuse anything.
-                if (!map.Keys.SetEquals(documentIdClique))
+                // if this is asking about a doc we don't know about, we can't reuse anything.
+                if (!map.ContainsKey(documentIdClique))
                     return null;
 
                 // see if this doc matches the docs we're caching information for.
