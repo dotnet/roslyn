@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                if (trigger.Character == '"')
+                if (trigger.Character == '"' || trigger.Character == ':')
                 {
                     return true;
                 }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <see cref="DiagnosticAnalyzer"/> instance, <see cref="DiagnosticDescriptor"/>s.
     /// Thread-safe.
     /// </summary>
-    internal sealed class DiagnosticAnalyzerInfoCache
+    internal sealed partial class DiagnosticAnalyzerInfoCache
     {
         /// <summary>
         /// Supported descriptors of each <see cref="DiagnosticAnalyzer"/>. 
