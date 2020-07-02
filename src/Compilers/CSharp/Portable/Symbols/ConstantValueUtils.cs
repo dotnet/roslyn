@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             var value = ConstantValue.Bad;
+            CheckConstantInterpolatedStringValidity(boundValue, thisSymbol, typeSymbol, initValueNodeLocation, diagnostics);
             if (!boundValue.HasAnyErrors)
             {
                 if (typeSymbol.TypeKind == TypeKind.TypeParameter)
@@ -154,6 +155,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return value;
+        }
+
+        private static void CheckConstantInterpolatedStringValidity(
+            BoundExpression boundValue,
+            Symbol thisSymbol,
+            TypeSymbol typeSymbol,
+            Location initValueNodeLocation,
+            DiagnosticBag diagnostics)
+        {
+            if (boundValue is BoundInterpolatedString)
+            {
+                Binder.CheckFeatureAvailability(boundValue.Syntax, MessageID.IDS_FeatureConstantInterpolatedStrings, diagnostics, initValueNodeLocation);
+            }
         }
     }
 }

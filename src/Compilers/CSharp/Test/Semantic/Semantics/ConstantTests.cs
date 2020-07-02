@@ -3584,6 +3584,40 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ConstantInterpolatedStringsVersionError()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""Testing"";
+        const string S2 = $""{""Level 5""} {""Number 3""}"";
+        const string S3 = $""{$""{""Spinning Top""}""}"";
+        const string F1 = $""{S1}"";
+        const string F2 = $""{F1} the {S2}"";
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6, 27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and * unsupported *.To use Preview features, use the 'preview' language version.
+                //         const string S1 = $"Testing";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(6, 27),
+                // (7,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string S2 = $"{"Level 5"} {"Number 3"}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{""Level 5""} {""Number 3""}""").WithArguments("constant interpolated strings").WithLocation(7, 27),
+                // (8,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string S3 = $"{$"{"Spinning Top"}"}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{$""{""Spinning Top""}""}""").WithArguments("constant interpolated strings").WithLocation(8, 27),
+                // (9,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string F1 = $"{S1}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{S1}""").WithArguments("constant interpolated strings").WithLocation(9, 27),
+                // (10,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string F2 = $"{F1} the {S2}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{F1} the {S2}""").WithArguments("constant interpolated strings").WithLocation(10, 27));
+        }
     }
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard
