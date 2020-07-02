@@ -1869,6 +1869,7 @@ class C
 
             CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
                 parseOptions: TestOptions.RegularPreview,
+                verify: Verification.Fails,
                 symbolValidator: m =>
             {
                 var p = m.GlobalNamespace.GetTypeMember("C").GetMember("P");

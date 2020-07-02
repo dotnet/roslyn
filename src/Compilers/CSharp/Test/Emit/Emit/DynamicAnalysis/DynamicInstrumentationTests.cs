@@ -35,7 +35,9 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource + IsExternalInitTypeDefinition,
+            var verifier = CompileAndVerify(
+                source + InstrumentationHelperSource + IsExternalInitTypeDefinition,
+                verify: Verification.Fails,
                 options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
 
             // data accessors are implicit, therefore not instrumented
