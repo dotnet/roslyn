@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.ComponentModel.Composition" />
-    <PackageReference Include="Microsoft.IO.Redist" Version="4.7.0" />
+    <PackageReference Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpEditorResources.resx" GenerateSource="true" />
