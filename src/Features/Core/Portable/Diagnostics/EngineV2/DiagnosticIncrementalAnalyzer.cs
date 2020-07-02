@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
         internal IPersistentStorageService PersistentStorageService { get; }
-        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache { get; }
+        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
-            DiagnosticAnalyzerInfoCache = analyzerInfoCache;
             PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             _correlationId = correlationId;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerService.Listener, analyzerInfoCache);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, workspace, analyzerService.Listener);
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     /// We have this builder to avoid creating collections unnecessarily.
     /// Expectation is that, most of time, most of analyzers doesn't have any diagnostics. so no need to actually create any objects.
     /// </summary>
-    internal struct DiagnosticAnalysisResultBuilder
+    internal sealed class DiagnosticAnalysisResultBuilder
     {
         public readonly Project Project;
         public readonly VersionStamp Version;

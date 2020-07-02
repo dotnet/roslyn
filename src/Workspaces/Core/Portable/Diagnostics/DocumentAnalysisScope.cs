@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
     /// Scope for analyzing a document for computing local syntax/semantic diagnostics.
-    /// Used by <see cref="DocumentAnalysisExecutor"/>.
     /// </summary>
     internal sealed class DocumentAnalysisScope
     {
@@ -35,5 +34,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public TextSpan? Span { get; }
         public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }
         public AnalysisKind Kind { get; }
+
+        public DocumentAnalysisScope WithSpan(TextSpan? span)
+            => new DocumentAnalysisScope(Document, span, Analyzers, Kind);
+
+        public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
+            => new DocumentAnalysisScope(Document, Span, analyzers, Kind);
     }
 }

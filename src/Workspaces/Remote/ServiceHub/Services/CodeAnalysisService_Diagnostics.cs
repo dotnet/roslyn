@@ -25,17 +25,25 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async () =>
             {
-                // if this analysis is explicitly asked by user, boost priority of this request
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
-                using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : default)
+                using (arguments.IsHighPriority ? UserOperationBooster.Boost() : default)
                 {
                     var solutionService = CreateSolutionService(solutionInfo);
                     var solution = await solutionService.GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
+                    var documentId = arguments.DocumentId;
                     var projectId = arguments.ProjectId;
+                    var project = solution.GetProject(projectId);
+                    var documentSpan = arguments.DocumentSpan;
+                    var documentAnalysisKind = arguments.DocumentAnalysisKind;
+                    var diagnosticComputer = new DiagnosticComputer(documentId, project, documentSpan, documentAnalysisKind, _analyzerInfoCache);
 
-                    var result = await new DiagnosticComputer(solution.GetProject(projectId), _analyzerInfoCache).GetDiagnosticsAsync(
-                        arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
+                    var result = await diagnosticComputer.GetDiagnosticsAsync(
+                        arguments.AnalyzerIds,
+                        reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
+                        logPerformanceInfo: arguments.LogPerformanceInfo,
+                        getTelemetryInfo: arguments.GetTelemetryInfo,
+                        cancellationToken).ConfigureAwait(false);
 
                     await RemoteEndPoint.WriteDataToNamedPipeAsync(pipeName, result, (writer, data, cancellationToken) =>
                     {

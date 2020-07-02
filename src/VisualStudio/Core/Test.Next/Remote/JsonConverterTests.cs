@@ -74,7 +74,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 if (x.ForcedAnalysis == y.ForcedAnalysis &&
                     x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
-                    x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
+                    x.LogTelemetry == y.LogTelemetry &&
                     x.ProjectId == y.ProjectId &&
                     x.AnalyzerIds.Length == y.AnalyzerIds.Length &&
                     x.AnalyzerIds.Except(y.AnalyzerIds).Count() == 0)
