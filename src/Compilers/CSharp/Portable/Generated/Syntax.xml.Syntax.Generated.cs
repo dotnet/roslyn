@@ -467,7 +467,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class FunctionPointerTypeSyntax : TypeSyntax
     {
-        private SyntaxNode? parameters;
+        private FunctionPointerCallingConventionSyntax? callingConvention;
+        private FunctionPointerParameterList? parameters;
 
         internal FunctionPointerTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -481,44 +482,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SyntaxToken AsteriskToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
 
         /// <summary>SyntaxToken representing the optional calling convention.</summary>
-        public SyntaxToken CallingConvention
-        {
-            get
+        public FunctionPointerCallingConventionSyntax? CallingConvention => GetRed(ref this.callingConvention, 2);
+
+        /// <summary>List of the parameter types and return type of the function pointer.</summary>
+        public FunctionPointerParameterList Parameters => GetRed(ref this.parameters, 3)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
             {
-                var slot = ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).callingConvention;
-                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
-            }
-        }
+                2 => GetRed(ref this.callingConvention, 2),
+                3 => GetRed(ref this.parameters, 3)!,
+                _ => null,
+            };
 
-        /// <summary>SyntaxToken representing the less than token.</summary>
-        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).lessThanToken, GetChildPosition(3), GetChildIndex(3));
-
-        /// <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
-        public SeparatedSyntaxList<ParameterSyntax> Parameters
-        {
-            get
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
             {
-                var red = GetRed(ref this.parameters, 4);
-                return red != null ? new SeparatedSyntaxList<ParameterSyntax>(red, GetChildIndex(4)) : default;
-            }
-        }
-
-        /// <summary>SyntaxToken representing the greater than token.</summary>
-        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).greaterThanToken, GetChildPosition(5), GetChildIndex(5));
-
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 4 ? GetRed(ref this.parameters, 4)! : null;
-
-        internal override SyntaxNode? GetCachedSlot(int index) => index == 4 ? this.parameters : null;
+                2 => this.callingConvention,
+                3 => this.parameters,
+                _ => null,
+            };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerType(this);
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerType(this);
 
-        public FunctionPointerTypeSyntax Update(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken callingConvention, SyntaxToken lessThanToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        public FunctionPointerTypeSyntax Update(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameters)
         {
-            if (delegateKeyword != this.DelegateKeyword || asteriskToken != this.AsteriskToken || callingConvention != this.CallingConvention || lessThanToken != this.LessThanToken || parameters != this.Parameters || greaterThanToken != this.GreaterThanToken)
+            if (delegateKeyword != this.DelegateKeyword || asteriskToken != this.AsteriskToken || callingConvention != this.CallingConvention || parameters != this.Parameters)
             {
-                var newNode = SyntaxFactory.FunctionPointerType(delegateKeyword, asteriskToken, callingConvention, lessThanToken, parameters, greaterThanToken);
+                var newNode = SyntaxFactory.FunctionPointerType(delegateKeyword, asteriskToken, callingConvention, parameters);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -526,14 +519,198 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public FunctionPointerTypeSyntax WithDelegateKeyword(SyntaxToken delegateKeyword) => Update(delegateKeyword, this.AsteriskToken, this.CallingConvention, this.LessThanToken, this.Parameters, this.GreaterThanToken);
-        public FunctionPointerTypeSyntax WithAsteriskToken(SyntaxToken asteriskToken) => Update(this.DelegateKeyword, asteriskToken, this.CallingConvention, this.LessThanToken, this.Parameters, this.GreaterThanToken);
-        public FunctionPointerTypeSyntax WithCallingConvention(SyntaxToken callingConvention) => Update(this.DelegateKeyword, this.AsteriskToken, callingConvention, this.LessThanToken, this.Parameters, this.GreaterThanToken);
-        public FunctionPointerTypeSyntax WithLessThanToken(SyntaxToken lessThanToken) => Update(this.DelegateKeyword, this.AsteriskToken, this.CallingConvention, lessThanToken, this.Parameters, this.GreaterThanToken);
-        public FunctionPointerTypeSyntax WithParameters(SeparatedSyntaxList<ParameterSyntax> parameters) => Update(this.DelegateKeyword, this.AsteriskToken, this.CallingConvention, this.LessThanToken, parameters, this.GreaterThanToken);
-        public FunctionPointerTypeSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.DelegateKeyword, this.AsteriskToken, this.CallingConvention, this.LessThanToken, this.Parameters, greaterThanToken);
+        public FunctionPointerTypeSyntax WithDelegateKeyword(SyntaxToken delegateKeyword) => Update(delegateKeyword, this.AsteriskToken, this.CallingConvention, this.Parameters);
+        public FunctionPointerTypeSyntax WithAsteriskToken(SyntaxToken asteriskToken) => Update(this.DelegateKeyword, asteriskToken, this.CallingConvention, this.Parameters);
+        public FunctionPointerTypeSyntax WithCallingConvention(FunctionPointerCallingConventionSyntax? callingConvention) => Update(this.DelegateKeyword, this.AsteriskToken, callingConvention, this.Parameters);
+        public FunctionPointerTypeSyntax WithParameters(FunctionPointerParameterList parameters) => Update(this.DelegateKeyword, this.AsteriskToken, this.CallingConvention, parameters);
 
-        public FunctionPointerTypeSyntax AddParameters(params ParameterSyntax[] items) => WithParameters(this.Parameters.AddRange(items));
+        public FunctionPointerTypeSyntax AddParametersParameters(params FunctionPointerParameterSyntax[] items) => WithParameters(this.Parameters.WithParameters(this.Parameters.Parameters.AddRange(items)));
+    }
+
+    /// <summary>Function pointer parameter list syntax.</summary>
+    public sealed partial class FunctionPointerParameterList : CSharpSyntaxNode
+    {
+        private SyntaxNode? parameters;
+
+        internal FunctionPointerParameterList(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing the less than token.</summary>
+        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterList)this.Green).lessThanToken, Position, 0);
+
+        /// <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
+        public SeparatedSyntaxList<FunctionPointerParameterSyntax> Parameters
+        {
+            get
+            {
+                var red = GetRed(ref this.parameters, 1);
+                return red != null ? new SeparatedSyntaxList<FunctionPointerParameterSyntax>(red, GetChildIndex(1)) : default;
+            }
+        }
+
+        /// <summary>SyntaxToken representing the greater than token.</summary>
+        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterList)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.parameters : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerParameterList(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerParameterList(this);
+
+        public FunctionPointerParameterList Update(SyntaxToken lessThanToken, SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        {
+            if (lessThanToken != this.LessThanToken || parameters != this.Parameters || greaterThanToken != this.GreaterThanToken)
+            {
+                var newNode = SyntaxFactory.FunctionPointerParameterList(lessThanToken, parameters, greaterThanToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public FunctionPointerParameterList WithLessThanToken(SyntaxToken lessThanToken) => Update(lessThanToken, this.Parameters, this.GreaterThanToken);
+        public FunctionPointerParameterList WithParameters(SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters) => Update(this.LessThanToken, parameters, this.GreaterThanToken);
+        public FunctionPointerParameterList WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanToken, this.Parameters, greaterThanToken);
+
+        public FunctionPointerParameterList AddParameters(params FunctionPointerParameterSyntax[] items) => WithParameters(this.Parameters.AddRange(items));
+    }
+
+    /// <summary>Function pointer calling convention syntax.</summary>
+    public sealed partial class FunctionPointerCallingConventionSyntax : CSharpSyntaxNode
+    {
+        private FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers;
+
+        internal FunctionPointerCallingConventionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing whether the calling convention is managed or unmanaged.</summary>
+        public SyntaxToken ManagedSpecifier => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)this.Green).managedSpecifier, Position, 0);
+
+        /// <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
+        public FunctionPointerUnmanagedCallingConventionSyntaxList? UnmanagedCallingConventionSpecifiers => GetRed(ref this.unmanagedCallingConventionSpecifiers, 1);
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.unmanagedCallingConventionSpecifiers, 1) : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.unmanagedCallingConventionSpecifiers : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerCallingConvention(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerCallingConvention(this);
+
+        public FunctionPointerCallingConventionSyntax Update(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers)
+        {
+            if (managedSpecifier != this.ManagedSpecifier || unmanagedCallingConventionSpecifiers != this.UnmanagedCallingConventionSpecifiers)
+            {
+                var newNode = SyntaxFactory.FunctionPointerCallingConvention(managedSpecifier, unmanagedCallingConventionSpecifiers);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public FunctionPointerCallingConventionSyntax WithManagedSpecifier(SyntaxToken managedSpecifier) => Update(managedSpecifier, this.UnmanagedCallingConventionSpecifiers);
+        public FunctionPointerCallingConventionSyntax WithUnmanagedCallingConventionSpecifiers(FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers) => Update(this.ManagedSpecifier, unmanagedCallingConventionSpecifiers);
+
+        public FunctionPointerCallingConventionSyntax AddUnmanagedCallingConventionSpecifiersCallingConventions(params FunctionPointerUnmanagedCallingConventionSyntax[] items)
+        {
+            var unmanagedCallingConventionSpecifiers = this.UnmanagedCallingConventionSpecifiers ?? SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList();
+            return WithUnmanagedCallingConventionSpecifiers(unmanagedCallingConventionSpecifiers.WithCallingConventions(unmanagedCallingConventionSpecifiers.CallingConventions.AddRange(items)));
+        }
+    }
+
+    /// <summary>Function pointer calling convention syntax.</summary>
+    public sealed partial class FunctionPointerUnmanagedCallingConventionSyntaxList : CSharpSyntaxNode
+    {
+        private SyntaxNode? callingConventions;
+
+        internal FunctionPointerUnmanagedCallingConventionSyntaxList(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing open bracket.</summary>
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntaxList)this.Green).openBracketToken, Position, 0);
+
+        /// <summary>SeparatedSyntaxList of calling convention identifiers.</summary>
+        public SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> CallingConventions
+        {
+            get
+            {
+                var red = GetRed(ref this.callingConventions, 1);
+                return red != null ? new SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax>(red, GetChildIndex(1)) : default;
+            }
+        }
+
+        /// <summary>SyntaxToken representing close bracket.</summary>
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntaxList)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.callingConventions, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.callingConventions : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerUnmanagedCallingConventionSyntaxList(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerUnmanagedCallingConventionSyntaxList(this);
+
+        public FunctionPointerUnmanagedCallingConventionSyntaxList Update(SyntaxToken openBracketToken, SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken != this.OpenBracketToken || callingConventions != this.CallingConventions || closeBracketToken != this.CloseBracketToken)
+            {
+                var newNode = SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList(openBracketToken, callingConventions, closeBracketToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public FunctionPointerUnmanagedCallingConventionSyntaxList WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.CallingConventions, this.CloseBracketToken);
+        public FunctionPointerUnmanagedCallingConventionSyntaxList WithCallingConventions(SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions) => Update(this.OpenBracketToken, callingConventions, this.CloseBracketToken);
+        public FunctionPointerUnmanagedCallingConventionSyntaxList WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.CallingConventions, closeBracketToken);
+
+        public FunctionPointerUnmanagedCallingConventionSyntaxList AddCallingConventions(params FunctionPointerUnmanagedCallingConventionSyntax[] items) => WithCallingConventions(this.CallingConventions.AddRange(items));
+    }
+
+    /// <summary>Individual function pointer unmanaged calling convention.</summary>
+    public sealed partial class FunctionPointerUnmanagedCallingConventionSyntax : CSharpSyntaxNode
+    {
+        internal FunctionPointerUnmanagedCallingConventionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken the calling convention identifier.</summary>
+        public SyntaxToken CallingConvention => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax)this.Green).callingConvention, Position, 0);
+
+        internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerUnmanagedCallingConvention(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerUnmanagedCallingConvention(this);
+
+        public FunctionPointerUnmanagedCallingConventionSyntax Update(SyntaxToken callingConvention)
+        {
+            if (callingConvention != this.CallingConvention)
+            {
+                var newNode = SyntaxFactory.FunctionPointerUnmanagedCallingConvention(callingConvention);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public FunctionPointerUnmanagedCallingConventionSyntax WithCallingConvention(SyntaxToken callingConvention) => Update(callingConvention);
     }
 
     /// <summary>Class which represents the syntax node for a nullable type.</summary>
@@ -11465,8 +11642,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BracketedParameterListSyntax AddParameters(params ParameterSyntax[] items) => WithParameters(this.Parameters.AddRange(items));
     }
 
+    /// <summary>Base parameter syntax.</summary>
+    public abstract partial class BaseParameterSyntax : CSharpSyntaxNode
+    {
+        internal BaseParameterSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>Gets the attribute declaration list.</summary>
+        public abstract SyntaxList<AttributeListSyntax> AttributeLists { get; }
+        public BaseParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeListsCore(attributeLists);
+        internal abstract BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists);
+
+        public BaseParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => AddAttributeListsCore(items);
+        internal abstract BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items);
+
+        /// <summary>Gets the modifier list.</summary>
+        public abstract SyntaxTokenList Modifiers { get; }
+        public BaseParameterSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersCore(modifiers);
+        internal abstract BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers);
+
+        public BaseParameterSyntax AddModifiers(params SyntaxToken[] items) => AddModifiersCore(items);
+        internal abstract BaseParameterSyntax AddModifiersCore(params SyntaxToken[] items);
+
+        public abstract TypeSyntax? Type { get; }
+        public BaseParameterSyntax WithType(TypeSyntax? type) => WithTypeCore(type);
+        internal abstract BaseParameterSyntax WithTypeCore(TypeSyntax? type);
+    }
+
     /// <summary>Parameter syntax.</summary>
-    public sealed partial class ParameterSyntax : CSharpSyntaxNode
+    public sealed partial class ParameterSyntax : BaseParameterSyntax
     {
         private SyntaxNode? attributeLists;
         private TypeSyntax? type;
@@ -11478,10 +11684,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>Gets the attribute declaration list.</summary>
-        public SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+        public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
         /// <summary>Gets the modifier list.</summary>
-        public SyntaxTokenList Modifiers
+        public override SyntaxTokenList Modifiers
         {
             get
             {
@@ -11490,7 +11696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public TypeSyntax? Type => GetRed(ref this.type, 2);
+        public override TypeSyntax? Type => GetRed(ref this.type, 2);
 
         /// <summary>Gets the identifier.</summary>
         public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ParameterSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
@@ -11531,14 +11737,90 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.Default);
-        public ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.Default);
-        public ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.Default);
+        internal override BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.Default);
+        internal override BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.Default);
+        internal override BaseParameterSyntax WithTypeCore(TypeSyntax? type) => WithType(type);
+        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.Default);
         public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.Default);
         public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, @default);
 
-        public ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
-        public ParameterSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
+        internal override BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+        public new ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+        internal override BaseParameterSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new ParameterSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
+    }
+
+    /// <summary>Parameter syntax.</summary>
+    public sealed partial class FunctionPointerParameterSyntax : BaseParameterSyntax
+    {
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? type;
+
+        internal FunctionPointerParameterSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>Gets the attribute declaration list.</summary>
+        public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+
+        /// <summary>Gets the modifier list.</summary>
+        public override SyntaxTokenList Modifiers
+        {
+            get
+            {
+                var slot = this.Green.GetSlot(1);
+                return slot != null ? new SyntaxTokenList(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+            }
+        }
+
+        public override TypeSyntax Type => GetRed(ref this.type, 2)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                2 => GetRed(ref this.type, 2)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.attributeLists,
+                2 => this.type,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerParameter(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerParameter(this);
+
+        public FunctionPointerParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type)
+            {
+                var newNode = SyntaxFactory.FunctionPointerParameter(attributeLists, modifiers, type);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new FunctionPointerParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type);
+        internal override BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new FunctionPointerParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type);
+        internal override BaseParameterSyntax WithTypeCore(TypeSyntax? type) => WithType(type ?? throw new ArgumentNullException(nameof(type)));
+        public new FunctionPointerParameterSyntax WithType(TypeSyntax type) => Update(this.AttributeLists, this.Modifiers, type);
+
+        internal override BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+        public new FunctionPointerParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+        internal override BaseParameterSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new FunctionPointerParameterSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
     }
 
     public sealed partial class IncompleteMemberSyntax : MemberDeclarationSyntax

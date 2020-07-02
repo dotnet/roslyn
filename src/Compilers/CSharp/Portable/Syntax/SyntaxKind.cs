@@ -205,6 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WithKeyword = 8442,
         InitKeyword = 8443,
         RecordKeyword = 8444,
+        ManagedKeyword = 8445,
+        UnmanagedKeyword = 8446,
 
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
@@ -615,7 +617,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
         NullableDirectiveTrivia = 9055,
+
         FunctionPointerType = 9056,
+        FunctionPointerParameter = 9057,
+        FunctionPointerParameterList = 9058,
+        FunctionPointerCallingConventionList = 9059,
 
         InitAccessorDeclaration = 9060,
 
@@ -624,5 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RecordDeclaration = 9063,
 
         PrimaryConstructorBaseType = 9065,
+
+        FunctionPointerUnmanagedCallingConventionList = 9066,
     }
 }
