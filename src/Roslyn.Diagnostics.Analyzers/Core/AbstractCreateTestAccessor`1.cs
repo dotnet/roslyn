@@ -25,7 +25,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var type = await GetRelevantTypeFromHeaderAsync(context).ConfigureAwait(false);
+            var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>(RefactoringHelpers).ConfigureAwait(false);
             if (type is null)
                 return;
 
@@ -46,15 +46,6 @@ namespace Roslyn.Diagnostics.Analyzers
                     RoslynDiagnosticsAnalyzersResources.CreateTestAccessorMessage,
                     cancellationToken => CreateTestAccessorAsync(context.Document, location.SourceSpan, cancellationToken),
                     nameof(AbstractCreateTestAccessor<TTypeDeclarationSyntax>)));
-        }
-
-        private async Task<TTypeDeclarationSyntax?> GetRelevantTypeFromHeaderAsync(CodeRefactoringContext context)
-        {
-            var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>(RefactoringHelpers).ConfigureAwait(false);
-            if (type is null)
-                return null;
-
-            return type;
         }
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
