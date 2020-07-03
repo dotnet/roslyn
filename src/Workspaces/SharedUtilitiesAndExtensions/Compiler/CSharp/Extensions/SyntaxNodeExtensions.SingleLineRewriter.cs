@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         internal class SingleLineRewriter : CSharpSyntaxRewriter
         {
             private static readonly SingleLineRewriter s_instanceUsingElasticTrivia = new SingleLineRewriter(true);
-            private static readonly SingleLineRewriter s_instanceNotUsingElasticTrivia = new SingleLineRewriter(true);
+            private static readonly SingleLineRewriter s_instanceNotUsingElasticTrivia = new SingleLineRewriter(false);
 
             private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+");
 

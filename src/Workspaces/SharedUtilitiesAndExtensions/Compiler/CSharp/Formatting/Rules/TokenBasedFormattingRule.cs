@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     if (currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause) &&
                         !currentToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
                     {
-                        return null;
+                        return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
                     }
 
                     if (!previousToken.IsParenInParenthesizedExpression())

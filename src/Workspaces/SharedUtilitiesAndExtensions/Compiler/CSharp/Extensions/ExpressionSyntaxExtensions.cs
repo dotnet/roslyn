@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return false;
         }
-        
+
         public static bool IsTopmostExpression(this ExpressionSyntax node)
         {
             return node.WalkUpParentheses().Parent switch
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => true
             };
         }
-        
+
         public static bool CanAccessInstanceAndStaticMembersOffOf(
             this ExpressionSyntax expression,
             SemanticModel semanticModel,
