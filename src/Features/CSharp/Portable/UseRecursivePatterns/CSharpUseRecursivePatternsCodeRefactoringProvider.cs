@@ -65,8 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             Func<CancellationToken, Task<Document>>? VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
             {
-                if (node.ContainsDiagnostics)
-                    return null;
                 var analyzedNode = AnalyzeNode(node, semanticModel, cancellationToken);
                 if (analyzedNode is null)
                     return null;
@@ -78,8 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             Func<CancellationToken, Task<Document>>? VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
             {
-                if (node.ContainsDiagnostics)
-                    return null;
                 var analyzedNode = AnalyzeNode(node, semanticModel, cancellationToken);
                 if (analyzedNode is null)
                     return null;
@@ -91,27 +87,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             Func<CancellationToken, Task<Document>>? VisitExpression(ExpressionSyntax node)
             {
-                var expression = node.FirstAncestorOrSelf<ExpressionSyntax>();
+                var expression = GetTopmostExpression(node);
                 if (expression is null)
-                    return null;
-                if (expression.ContainsDiagnostics)
-                    return null;
-                if (!expression.IsTopmostExpression())
                     return null;
                 var analyzedNode = AnalyzeNode(expression, semanticModel, cancellationToken);
                 if (analyzedNode is null)
                     return null;
-                return cancellationToken =>
-                    document.ReplaceNodeAsync(expression,
-                        analyzedNode.AsExpressionSyntax()
-                            .WrapPropertyPatternClauses()
-                            .WithTriviaFrom(expression)
-                            .WithAdditionalAnnotations(Formatter.Annotation), cancellationToken);
+                return cancellationToken => document.ReplaceNodeAsync(expression, analyzedNode
+                    .AsExpressionSyntax()
+                    .WrapPropertyPatternClauses()
+                    .WithTriviaFrom(expression)
+                    .WithAdditionalAnnotations(Formatter.Annotation), cancellationToken);
             }
+        }
+
+        private static ExpressionSyntax? GetTopmostExpression(ExpressionSyntax node)
+        {
+            for (SyntaxNode? current = node; current != null; current = current.GetParent(ascendOutOfTrivia: true))
+            {
+                if (!(current is ExpressionSyntax expr))
+                    break;
+                if (expr.IsTopmostExpression())
+                    return expr;
+            }
+
+            return null;
         }
 
         private static AnalyzedNode? AnalyzeNode(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            if (node.ContainsDiagnostics)
+                return null;
+
             var operation = semanticModel.GetOperation(node, cancellationToken);
             if (operation is null)
                 return null;
