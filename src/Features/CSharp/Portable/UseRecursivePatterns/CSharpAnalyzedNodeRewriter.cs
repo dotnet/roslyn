@@ -311,52 +311,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
         private static AnalyzedNode SimplifyConsecutiveConstantTests(ImmutableArray<Constant> constants)
         {
-            return constants[0].Value.Type.SpecialType switch
+            var tests = ArrayBuilder<AnalyzedNode>.GetInstance();
+            foreach (var bucket in ConsecutiveGroups(constants))
             {
-                SpecialType.System_Char => Simplify<char, int>((v, i) => v - i),
-                SpecialType.System_SByte => Simplify<sbyte, int>((v, i) => v - i),
-                SpecialType.System_Byte => Simplify<byte, int>((v, i) => v - i),
-                SpecialType.System_Int16 => Simplify<short, int>((v, i) => v - i),
-                SpecialType.System_UInt16 => Simplify<ushort, int>((v, i) => v - i),
-                SpecialType.System_Int32 => Simplify<int, int>((v, i) => v - i),
-                SpecialType.System_UInt32 => Simplify<uint, long>((v, i) => v - i),
-                SpecialType.System_Int64 => Simplify<long, long>((v, i) => v - i),
-                SpecialType.System_UInt64 => Simplify<ulong, ulong>((v, i) => v - (uint)i),
-                _ => throw ExceptionUtilities.Unreachable
-            };
-
-            AnalyzedNode Simplify<T, V>(Func<T, int, V> orderingFunc)
-            {
-                var tests = ArrayBuilder<AnalyzedNode>.GetInstance();
-                foreach (var bucket in ConsecutiveGroups(constants, p => (T)p.Value.ConstantValue.Value, orderingFunc))
+                Debug.Assert(bucket.Count > 0);
+                if (bucket.Count <= 2)
                 {
-                    Debug.Assert(bucket.Count > 0);
-                    if (bucket.Count <= 2)
-                    {
-                        tests.AddRange(bucket);
-                    }
-                    else
-                    {
-                        var commonInput = constants[0].Input;
-                        var builder = ArrayBuilder<AnalyzedNode>.GetInstance(2);
-                        builder.Add(new Relational(commonInput, BinaryOperatorKind.GreaterThanOrEqual, bucket.First().Value));
-                        builder.Add(new Relational(commonInput, BinaryOperatorKind.LessThanOrEqual, bucket.Last().Value));
-                        tests.Add(AndSequence.Create(builder));
-                    }
+                    tests.AddRange(bucket);
                 }
-
-                return OrSequence.Create(tests);
+                else
+                {
+                    var builder = ArrayBuilder<AnalyzedNode>.GetInstance(2);
+                    builder.Add(new Relational(null, BinaryOperatorKind.GreaterThanOrEqual, bucket.First().Value));
+                    builder.Add(new Relational(null, BinaryOperatorKind.LessThanOrEqual, bucket.Last().Value));
+                    tests.Add(AndSequence.Create(builder));
+                }
             }
 
-            static IEnumerable<IReadOnlyCollection<T>> ConsecutiveGroups<T, K, V>(
-                IEnumerable<T> source, Func<T, K> keySelector, Func<K, int, V> orderingFunc)
+            return OrSequence.Create(tests);
+
+            static IEnumerable<IReadOnlyCollection<Constant>> ConsecutiveGroups(ImmutableArray<Constant> source)
             {
                 return source
-                    .Select(value => (value, key: keySelector(value)))
-                    .OrderBy(item => item.key)
-                    .Select((item, index) => (item.value, item.key, index))
-                    .GroupBy(item => orderingFunc(item.key, item.index))
-                    .Select(group => group.Select(item => item.value).ToList());
+                    .Select(constant => (constant, value: (IConvertible)constant.Value.ConstantValue.Value))
+                    .OrderBy(item => item.value)
+                    .Select((item, index) => (item.constant, item.value, index))
+                    .GroupBy(item => item.value.ToInt64(null) - item.index)
+                    .Select(group => group.Select(item => item.constant).ToList());
             }
         }
 
