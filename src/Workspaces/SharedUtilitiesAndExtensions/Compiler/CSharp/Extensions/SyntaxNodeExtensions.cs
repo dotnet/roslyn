@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return node;
             }
 
-            var rewriter = SingleLineRewriter.Create(useElasticTrivia);
+            var rewriter = new SingleLineRewriter(useElasticTrivia);
             return (TNode)rewriter.Visit(node);
         }
 
