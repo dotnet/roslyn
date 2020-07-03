@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     IPropertyReferenceOperation op when op.Property.IsIndexer => VisitIndexerReference(op),
                     IPropertyReferenceOperation op => VisitNullablePropertyReference(op) ??
                                                       new PropertyEvaluation(VisitInput(op.Instance), op.Property, op.Syntax),
-                    IConditionalAccessOperation op => VisitConditionalAccess(VisitInput(op.Operation), op.WhenNotNull, op.Syntax),
+                    IConditionalAccessOperation op => VisitConditionalAccess(VisitInput(op.Operation), op.WhenNotNull),
                     IConversionOperation op when op.Conversion.IsImplicit => VisitInput(op.Operand),
                     IConversionOperation op when op.OperatorMethod is null => new Type(VisitInput(op.Operand), op.Type),
                     // UNDONE: This is only valid if it is a 'this' reference, however,
@@ -84,16 +84,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 };
             }
 
-            static Evaluation? VisitConditionalAccess(Evaluation? input, IOperation operation, SyntaxNode syntax)
+            static Evaluation? VisitConditionalAccess(Evaluation? input, IOperation operation)
             {
                 if (input is null)
                     return null;
 
                 return operation switch
                 {
-                    IFieldReferenceOperation op => new FieldEvaluation(input, op.Field, syntax),
-                    IPropertyReferenceOperation op => new PropertyEvaluation(input, op.Property, syntax),
-                    IConditionalAccessOperation op => VisitConditionalAccess(VisitConditionalAccess(input, op.Operation, syntax), op.WhenNotNull, syntax),
+                    IFieldReferenceOperation op => new FieldEvaluation(input, op.Field),
+                    IPropertyReferenceOperation op => new PropertyEvaluation(input, op.Property),
+                    IConditionalAccessOperation op => VisitConditionalAccess(VisitConditionalAccess(input, op.Operation), op.WhenNotNull),
                     _ => null
                 };
             }
