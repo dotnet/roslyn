@@ -126,8 +126,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                             End If
                         Else
                             ' Named tuple expression
-                            Dim simpleArgument = token.GetAncestor(Of SimpleArgumentSyntax)()
-                            If simpleArgument IsNot Nothing AndAlso TypeOf simpleArgument.Parent Is TupleExpressionSyntax AndAlso simpleArgument.NameColonEquals?.Name.Identifier = token Then
+                            Dim nameColonEquals = TryCast(token.Parent?.Parent, NameColonEqualsSyntax)
+                            If nameColonEquals IsNot Nothing AndAlso TypeOf nameColonEquals.Parent?.Parent Is TupleExpressionSyntax Then
                                 Return newToken
                             End If
                         End If
