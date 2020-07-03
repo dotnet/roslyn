@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -14,80 +16,55 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeClassAbstract
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
-        Public Async Function TestMethod() As Task
-            Await TestInRegularAndScript1Async(
-"
+        Public Async Function TestMethod_CodeFix() As Task
+            Await TestInRegularAndScript1Async("
 Public Class [|Foo|]
     Public MustOverride Sub M()
 End Class",
 "
-Public MustInherit Class Foo
+Public MustOverride Class Foo
     Public MustOverride Sub M()
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
-        Public Async Function TestMethodEnclosingClassWithoutAccessibility() As Task
-            Await TestInRegularAndScript1Async(
-"
+        Public Async Function TestMethodEnclosingClassWithoutAccessibility_NoCodeFix() As Task
+            Await TestMissingInRegularAndScriptAsync("
 Class Foo
     Public MustOverride Sub [|M|]()
-End Class",
-"
-MustInherit Class Foo
-    Public MustOverride Sub M()
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
         Public Async Function TestMethodEnclosingClassDocumentationComment() As Task
-            Await TestInRegularAndScript1Async(
-"
+            Await TestMissingInRegularAndScriptAsync("
 ''' <summary>
 ''' Some class comment.
 ''' </summary>
 Public Class Foo
     Public MustOverride Sub [|M|]()
-End Class",
-"
-''' <summary>
-''' Some class comment.
-''' </summary>
-Public MustInherit Class Foo
-    Public MustOverride Sub M()
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
         Public Async Function TestProperty() As Task
-            Await TestInRegularAndScript1Async(
-"
+            Await TestMissingInRegularAndScriptAsync("
 Public Class Foo
     Public MustOverride Property [|P|] As Object
-End Class",
-"
-Public MustInherit Class Foo
-    Public MustOverride Property P As Object
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
         Public Async Function TestIndexer() As Task
-            Await TestInRegularAndScript1Async(
-"
+            Await TestMissingInRegularAndScriptAsync("
 Public Class Foo
     Default Public MustOverride Property [|Item|](ByVal o As Object) As Object
-End Class",
-"
-Public MustInherit Class Foo
-    Default Public MustOverride Property Item(ByVal o As Object) As Object
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
         Public Async Function TestEvent() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"
+            Await TestMissingInRegularAndScriptAsync("
 Public Class Foo
     Public MustOverride Custom Event [|E|] As EventHandler
 End Class")
@@ -95,8 +72,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
         Public Async Function TestMethodWithBody() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"
+            Await TestMissingInRegularAndScriptAsync("
 Public Class Foo
     Public MustOverride Function [|M|]() As Integer
         Return 3
@@ -139,8 +115,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)>
         Public Async Function FixAll() As Task
-            Await TestInRegularAndScript1Async(
-"
+            Await TestMissingInRegularAndScriptAsync("
 Namespace NS
     Public Class C1
         Public MustOverride Sub {|FixAllInDocument:M|}()
@@ -154,24 +129,6 @@ Namespace NS
 
     Public Class C3
         Public Class InnerClass
-            Public MustOverride Sub M()
-        End Class
-    End Class
-End Namespace",
-"
-Namespace NS
-    Public MustInherit Class C1
-        Public MustOverride Sub M()
-        Public MustOverride Property P As Object
-        Default Public MustOverride Property Item(ByVal o As Object) As Object
-    End Class
-
-    Public MustInherit Class C2
-        Public MustOverride Sub M()
-    End Class
-
-    Public Class C3
-        Public MustInherit Class InnerClass
             Public MustOverride Sub M()
         End Class
     End Class

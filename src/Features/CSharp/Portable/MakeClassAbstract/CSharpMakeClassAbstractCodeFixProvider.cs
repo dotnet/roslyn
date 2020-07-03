@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -14,6 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeClassAbstract
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpMakeClassAbstractCodeFixProvider)), Shared]
     internal sealed class CSharpMakeClassAbstractCodeFixProvider : AbstractMakeClassAbstractCodeFixProvider<ClassDeclarationSyntax>
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpMakeClassAbstractCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
                ImmutableArray.Create(
                    "CS0513" // 'C.M()' is abstract but it is contained in non-abstract class 'C'
