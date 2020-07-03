@@ -647,13 +647,11 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-                using (TextReader reader = CreateTextFileReader(fullPath))
+                using TextReader reader = CreateTextFileReader(fullPath);
+                string? str;
+                while ((str = reader.ReadLine()) != null)
                 {
-                    string? str;
-                    while ((str = reader.ReadLine()) != null)
-                    {
-                        lines.Add(str);
-                    }
+                    lines.Add(str);
                 }
             }
             catch (Exception)
