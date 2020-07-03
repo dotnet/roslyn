@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var tests = ArrayBuilder<AnalyzedNode>.GetInstance();
             if (operation.DeclaredSymbol != null)
                 tests.Add(new Variable(input, operation.DeclaredSymbol));
-            if (operation.MatchedType != null && !Equals(operation.MatchedType, operation.InputType))
+            if (operation.MatchedType != null && !IsImplicitlyConvertibleFromInputType(operation, operation.MatchedType))
                 tests.Add(new Type(input, operation.MatchedType));
 
             if (TryAddPropertySubpatterns(input, operation, tests) &&
@@ -390,9 +390,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var tests = ArrayBuilder<AnalyzedNode>.GetInstance(2);
             if (op.DeclaredSymbol != null)
                 tests.Add(new Variable(input, op.DeclaredSymbol));
-            if (op.MatchedType != null)
+            if (op.MatchedType != null && !IsImplicitlyConvertibleFromInputType(op, op.MatchedType))
                 tests.Add(new Type(input, op.MatchedType));
             return AndSequence.Create(tests);
+        }
+
+        private static bool IsImplicitlyConvertibleFromInputType(IPatternOperation op, ITypeSymbol matchedType)
+        {
+            return op.SemanticModel.Compilation.ClassifyConversion(op.InputType, matchedType).IsImplicit;
         }
     }
 }
