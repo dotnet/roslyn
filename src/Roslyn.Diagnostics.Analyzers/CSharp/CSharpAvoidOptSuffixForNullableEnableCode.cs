@@ -66,7 +66,14 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(identifier.Parent, cancellationToken);
-            if (symbol?.GetMemberOrLocalOrParameterType()?.NullableAnnotation() == Analyzer.Utilities.Lightup.NullableAnnotation.Annotated)
+            if (symbol?.GetMemberOrLocalOrParameterType()?.NullableAnnotation() != Analyzer.Utilities.Lightup.NullableAnnotation.Annotated)
+            {
+                return;
+            }
+
+            if (symbol.Kind != SymbolKind.Parameter ||
+                symbol.ContainingSymbol == null ||
+                (!symbol.ContainingSymbol.IsOverride && !symbol.ContainingSymbol.IsImplementationOfAnyInterfaceMember()))
             {
                 reportAction(identifier.CreateDiagnostic(Rule));
             }
