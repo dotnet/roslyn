@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
@@ -11,7 +12,7 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveAsyncModifier
 {
-    public class RemoveAsyncModifierTests
+    public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
         public async Task TestTaskReturnType()
@@ -160,7 +161,95 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
-        public async Task TestExpressionBodiedLambda()
+        public async Task TestAnonymousMethod()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        Func<Task<int>> foo = (Func<Task<int>>)async {|CS1998:delegate|}
+        {
+            return 1;
+        };
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        Func<Task<int>> foo = (Func<Task<int>>)delegate
+        {
+            return Task.FromResult(1);
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task TestExpressionBodiedSimpleLambda()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        Func<int, Task<int>> foo = async x {|CS1998:=>|} 1;
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        Func<int, Task<int>> foo = x => Task.FromResult(1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task TestSimpleLambda()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        Func<int, Task<int>> foo = async x {|CS1998:=>|} {
+            return 1;
+        };
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        Func<int, Task<int>> foo = x => {
+            return Task.FromResult(1);
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task TestExpressionBodiedParenthesisedLambda()
         {
             await VerifyCS.VerifyCodeFixAsync(
 @"using System;
@@ -186,7 +275,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
-        public async Task TestLambda()
+        public async Task TestParenthesisedLambda()
         {
             await VerifyCS.VerifyCodeFixAsync(
 @"using System;
@@ -277,6 +366,34 @@ class C
         return System.Threading.Tasks.Task.FromResult(2);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task TestMissingForIAsyncEnumerable()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    async IAsyncEnumerable<int> MAsync()
+    {
+        yield return 1;
+    }
+}" + AsyncStreamsTypes;
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(7,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(7, 33, 7, 39),
+                },
+                FixedCode = source,
+            }.RunAsync();
         }
     }
 }
