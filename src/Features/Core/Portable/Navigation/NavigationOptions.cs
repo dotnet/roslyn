@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <see cref="PreferProvisionalTab"/> is used the navigation should still activate the tab. Defaults to false to support
         /// users not losing focus while navigating through lists such as find references.
         /// </summary>
-        public static readonly Option2<bool> ActivateProvisionalTab = new Option2<bool>(nameof(NavigationOptions), nameof(ActivateProvisionalTab), defaultValue: false);
+        public static readonly Option2<bool> ActivateTab = new Option2<bool>(nameof(NavigationOptions), nameof(ActivateTab), defaultValue: false);
     }
 }
