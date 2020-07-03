@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    bool M(int i)
+    bool M(X i)
     {
         return i is X.A || i is (X)80 || i is X.B [||]|| i is X.C;
     }
@@ -865,9 +865,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 }",
 @"class C
 {
-    bool M(int i)
+    bool M(X i)
     {
-        return i is >= X.A and <= X.C or (X)80;
+        return i is X.A or (X)80 or X.B or X.C;
     }
     enum X { A = 1, B = 2, C = 3 }
 }");
