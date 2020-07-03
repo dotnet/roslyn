@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string? optionValue)
+            static bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string? optionValue)
             {
                 hasValue = false;
                 optionValue = null;
