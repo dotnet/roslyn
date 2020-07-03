@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 Debug.Assert(previous != null);
 
-                int minDepth = previous.MaxDepth + 1;
-                int maxDepth = previous.MaxDepth * GrowFactor;
+                var minDepth = previous.MaxDepth + 1;
+                var maxDepth = previous.MaxDepth * GrowFactor;
 
                 Debug.Assert(minDepth > 0);
                 Debug.Assert(minDepth <= maxDepth);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             public IEnumerable<(VArray Array, int Depth)> ConsumeArrays()
             {
                 var buffer = _currentBuffer;
-                for (int depth = _depth - 1; depth >= 0; depth--)
+                for (var depth = _depth - 1; depth >= 0; depth--)
                 {
                     if (depth < buffer.MinDepth)
                     {
@@ -179,9 +179,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             internal void Initialize()
-            {
-                Array.Clear(_buffer, _start, _length);
-            }
+                => Array.Clear(_buffer, _start, _length);
 
             public int this[int index]
             {
@@ -197,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         // TODO: Consolidate return types between GetMatchingPairs and GetEdit to avoid duplicated code (https://github.com/dotnet/roslyn/issues/16864)
         protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            VStack stack = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
+            var stack = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
 
             var x = oldLength;
             var y = newLength;
@@ -206,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             while (x > 0 || y > 0)
             {
-                bool hasNext = varrays.MoveNext();
+                var hasNext = varrays.MoveNext();
                 Debug.Assert(hasNext);
 
                 var (currentV, d) = varrays.Current;
@@ -254,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             while (x > 0 || y > 0)
             {
-                bool hasNext = varrays.MoveNext();
+                var hasNext = varrays.MoveNext();
                 Debug.Assert(hasNext);
 
                 var (currentV, d) = varrays.Current;
@@ -408,7 +406,6 @@ namespace Microsoft.CodeAnalysis.Differencing
 
                     // start point
                     var yStart = currentV[kPrev];
-                    var xStart = yStart + kPrev;
 
                     // mid point
                     var yMid = right ? yStart : yStart + 1;

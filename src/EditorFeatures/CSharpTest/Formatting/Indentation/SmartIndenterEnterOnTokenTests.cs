@@ -3,22 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
+using Xunit.Abstractions;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
+using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public class SmartIndenterEnterOnTokenTests : CSharpFormatterTestsBase
     {
+        public SmartIndenterEnterOnTokenTests(ITestOutputHelper output) : base(output) { }
+
         [WorkItem(537808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
@@ -1346,6 +1350,112 @@ class C
                 expectedIndentation: 12);
         }
 
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfTheory]
+        [InlineData("x", "is < 7 and (>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is", "< 7 and (>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is <", "7 and (>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7", "and (>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and", "(>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (", ">= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>=", "3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3", "or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or", "> 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or >", "50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50", ") or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50)", "or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or", "not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not", "<= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not <=", "0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not <= 0", ";", 12)]
+        public async Task IndentPatternsInLocalDeclarationCSharp9(string line1, string line2, int expectedIndentation)
+        {
+            var code = @$"
+class C
+{{
+    void M()
+    {{
+        var x = 7;
+        var y = {line1}
+{line2}
+    }}
+}}";
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 7,
+                expectedIndentation);
+        }
+
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfTheory]
+        [InlineData("x", "is < 7 and (>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is", "< 7 and (>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is <", "7 and (>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7", "and (>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and", "(>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (", ">= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>=", "3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3", "or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or", "> 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or >", "50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50", ") or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50)", "or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or", "not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not", "<= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not <=", "0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not <= 0", ";", 8)]
+        public async Task IndentPatternsInFieldDeclarationCSharp9(string line1, string line2, int expectedIndentation)
+        {
+            var code = @$"
+class C
+{{
+    static int x = 7;
+    bool y = {line1}
+{line2}
+}}";
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 5,
+                expectedIndentation);
+        }
+
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfTheory]
+        [InlineData("<", "7 and (>= 3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7", "and (>= 3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and", "(>= 3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and (", ">= 3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and (>=", "3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3", "or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or", "> 50) or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or >", "50) or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50", ") or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50)", "or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50) or", "not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50) or not", "<= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50) or not <=", "0", 12)]
+        public async Task IndentPatternsInSwitchCSharp9(string line1, string line2, int expectedIndentation)
+        {
+            var code = @$"
+class C
+{{
+    void M()
+    {{
+        var x = 7;
+        var y = x switch
+        {{
+            {line1}
+{line2} => true,
+            _ => false
+        }};
+    }}
+}}";
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 9,
+                expectedIndentation);
+        }
+
         private async Task AssertIndentUsingSmartTokenFormatterAsync(
             string code,
             char ch,
@@ -1380,10 +1490,12 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+
             Assert.True(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                     Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                    root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
+                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
 
             var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
             Assert.Equal(expectedIndentation.Value, actualIndentation);
@@ -1420,10 +1532,13 @@ class C
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
+
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+
             Assert.False(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                     Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                    root, line.AsTextLine(), await document.GetOptionsAsync(), out _));
+                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
 
             TestIndentation(workspace, indentationLine, expectedIndentation);
         }

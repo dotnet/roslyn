@@ -65,14 +65,10 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         public override bool Equals(object obj)
-        {
-            return obj is SequenceEdit && Equals((SequenceEdit)obj);
-        }
+            => obj is SequenceEdit && Equals((SequenceEdit)obj);
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(_oldIndex, _newIndex);
-        }
+            => Hash.Combine(_oldIndex, _newIndex);
 
         private string GetDebuggerDisplay()
         {
@@ -100,9 +96,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             private readonly SequenceEdit _sequenceEdit;
 
             public TestAccessor(SequenceEdit sequenceEdit)
-            {
-                _sequenceEdit = sequenceEdit;
-            }
+                => _sequenceEdit = sequenceEdit;
 
             internal string GetDebuggerDisplay()
                 => _sequenceEdit.GetDebuggerDisplay();

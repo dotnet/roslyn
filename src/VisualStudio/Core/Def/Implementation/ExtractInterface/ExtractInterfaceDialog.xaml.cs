@@ -76,19 +76,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
 
         private void Select_All_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.SelectAll();
-        }
+            => _viewModel.SelectAll();
 
         private void Deselect_All_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.DeselectAll();
-        }
+            => _viewModel.DeselectAll();
 
         private void SelectAllInTextBox(object sender, RoutedEventArgs e)
         {
@@ -134,9 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             private readonly ExtractInterfaceDialog _dialog;
 
             public TestAccessor(ExtractInterfaceDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public Button OKButton => _dialog.OKButton;
 

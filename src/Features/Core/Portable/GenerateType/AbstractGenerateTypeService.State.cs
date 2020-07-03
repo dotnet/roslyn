@@ -63,9 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public List<TSimpleNameSyntax> PropertiesToGenerate { get; private set; }
 
             private State(Compilation compilation)
-            {
-                Compilation = compilation;
-            }
+                => Compilation = compilation;
 
             public static async Task<State> GenerateAsync(
                 TService service,
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 SimpleName = (TSimpleNameSyntax)node;
                 var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out var arity);
+                syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out _);
 
                 Name = name;
                 NameIsVerbatim = syntaxFacts.IsVerbatimIdentifier(SimpleName.GetFirstToken());
@@ -210,42 +208,36 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 if (service.IsInCatchDeclaration(NameOrMemberAccessExpression))
                 {
-                    BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.ExceptionType();
+                    SetBaseType(document.SemanticModel.Compilation.ExceptionType());
                 }
                 else if (syntaxFacts.IsAttributeName(NameOrMemberAccessExpression))
                 {
-                    BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.AttributeType();
+                    SetBaseType(document.SemanticModel.Compilation.AttributeType());
                 }
-                else if (
-                    service.IsArrayElementType(NameOrMemberAccessExpression) ||
-                    service.IsInVariableTypeContext(NameOrMemberAccessExpression) ||
-                    ObjectCreationExpressionOpt != null)
+                else
                 {
                     var expr = ObjectCreationExpressionOpt ?? NameOrMemberAccessExpression;
-                    var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
-                    var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
-                    SetBaseType(baseType);
+                    if (expr != null)
+                    {
+                        var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
+                        var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
+                        SetBaseType(baseType);
+                    }
                 }
             }
 
             private void SetBaseType(INamedTypeSymbol baseType)
             {
                 if (baseType == null)
-                {
                     return;
-                }
 
                 // A base type need to be non class or interface type.  Also, being 'object' is
                 // redundant as the base type.  
                 if (baseType.IsSealed || baseType.IsStatic || baseType.SpecialType == SpecialType.System_Object)
-                {
                     return;
-                }
 
                 if (baseType.TypeKind != TypeKind.Class && baseType.TypeKind != TypeKind.Interface)
-                {
                     return;
-                }
 
                 // Strip off top-level nullability since we can't put top-level nullability into the base list. We will still include nested nullability
                 // if you're deriving some interface like IEnumerable<string?>.
@@ -253,9 +245,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private bool GenerateStruct(TService service, SemanticModel semanticModel, CancellationToken cancellationToken)
-            {
-                return service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
-            }
+                => service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
 
             private bool GenerateInterface(TService service)
             {
@@ -310,7 +300,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // If we are generating in a website project, we also want to type to be public so the 
                         // designer files can access the type.
                         if (documentToBeGeneratedIn.Project != document.Project ||
-                            service.GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
+                            GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
                         {
                             IsPublicAccessibilityForTypeGeneration = true;
                         }

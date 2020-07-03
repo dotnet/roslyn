@@ -55,9 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public void Dispose()
-        {
-            _wordSimilarityChecker?.Free();
-        }
+            => _wordSimilarityChecker?.Free();
 
         public static SearchQuery Create(string name, SearchKind kind)
             => new SearchQuery(name, kind);

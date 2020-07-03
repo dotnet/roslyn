@@ -23,23 +23,26 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override void DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void VisitDynamicType(IDynamicTypeSymbol dynamicTypeSymbol)
             {
             }
 
-            public override void VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
+            public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
-                arrayTypeSymbol.ElementType.Accept(this);
+                symbol.Signature.ReturnType.Accept(this);
+                foreach (var param in symbol.Signature.Parameters)
+                {
+                    param.Type.Accept(this);
+                }
             }
 
+            public override void VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
+                => arrayTypeSymbol.ElementType.Accept(this);
+
             public override void VisitPointerType(IPointerTypeSymbol pointerTypeSymbol)
-            {
-                pointerTypeSymbol.PointedAtType.Accept(this);
-            }
+                => pointerTypeSymbol.PointedAtType.Accept(this);
 
             public override void VisitNamedType(INamedTypeSymbol namedTypeSymbol)
             {
@@ -50,9 +53,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override void VisitTypeParameter(ITypeParameterSymbol typeParameterTypeSymbol)
-            {
-                _typeParameters.Add(typeParameterTypeSymbol);
-            }
+                => _typeParameters.Add(typeParameterTypeSymbol);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 #nullable enable
 
 using System;
@@ -84,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // its value depends on the values of conditional symbols, which in turn depends on the source file where the attribute is applied.
 
                     Debug.Assert(!attribute.HasErrors);
+                    Debug.Assert(attribute.AttributeClass is object);
                     HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                     bool isConditionallyOmitted = binder.IsAttributeConditionallyOmitted(attribute.AttributeClass, attributeSyntax.SyntaxTree, ref useSiteDiagnostics);
                     diagnostics.Add(attributeSyntax, useSiteDiagnostics);
@@ -253,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree syntaxTree, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        protected bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree? syntaxTree, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             // When early binding attributes, we don't want to determine if the attribute type is conditional and if so, must be emitted or not.
             // Invoking IsConditional property on attributeType can lead to a cycle, hence we delay this computation until after early binding.
@@ -262,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            RoslynDebug.Assert((object)attributeType != null);
+            Debug.Assert((object)attributeType != null);
             Debug.Assert(!attributeType.IsErrorType());
 
             if (attributeType.IsConditional)
@@ -664,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (reorderedArgument.Kind == TypedConstantKind.Array &&
                         parameter.Type.TypeKind == TypeKind.Array &&
-                        !((TypeSymbol)reorderedArgument.TypeInternal).Equals(parameter.Type, TypeCompareKind.AllIgnoreOptions))
+                        !((TypeSymbol)reorderedArgument.TypeInternal!).Equals(parameter.Type, TypeCompareKind.AllIgnoreOptions))
                     {
                         // NOTE: As in dev11, we don't allow array covariance conversions (presumably, we don't have a way to
                         // represent the conversion in metadata).
@@ -920,6 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
+            Debug.Assert(argument.TypeInternal is object);
             Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, ref useSiteDiagnostics);
 
             // NOTE: Won't always succeed, even though we've performed overload resolution.

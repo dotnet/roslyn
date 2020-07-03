@@ -7,10 +7,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -30,17 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
+#pragma warning disable IDE0052 // Remove unread private members - Used in EditorFeatures project context
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _listener;
+#pragma warning disable IDE0052
+
         private readonly ICodingConventionsManager _codingConventionsManager;
-        private readonly IErrorLoggerService _errorLogger;
 
         internal LegacyEditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _codingConventionsManager = codingConventionsManager;
-            _errorLogger = workspace.Services.GetRequiredService<IErrorLoggerService>();
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         partial void OnCodingConventionContextCreated(DocumentId documentId, ICodingConventionContext context);
 
-        private void Workspace_DocumentClosed(object sender, DocumentEventArgs e)
+        private void Workspace_DocumentClosed(object? sender, DocumentEventArgs e)
         {
             lock (_gate)
             {
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             }
         }
 
-        private void Workspace_DocumentOpened(object sender, DocumentEventArgs e)
+        private void Workspace_DocumentOpened(object? sender, DocumentEventArgs e)
         {
             lock (_gate)
             {
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             }
         }
 
-        private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        private void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
         {
             switch (e.Kind)
             {
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            Task<ICodingConventionContext> contextTask;
+            Task<ICodingConventionContext>? contextTask;
 
             lock (_gate)
             {
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     TaskScheduler.Default);
 
                 var context = await cancellableContextTask.ConfigureAwait(false);
-                return new DocumentOptions(context.CurrentConventions, _errorLogger);
+                return new DocumentOptions(context.CurrentConventions);
             }
             else
             {
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 {
                     if (document.Name != null && document.Project.FilePath != null)
                     {
-                        path = Path.Combine(Path.GetDirectoryName(document.Project.FilePath), document.Name);
+                        path = Path.Combine(Path.GetDirectoryName(document.Project.FilePath)!, document.Name);
                     }
                     else
                     {
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 using var context = await conventionsAsync.ConfigureAwait(false);
 
-                return new DocumentOptions(context.CurrentConventions, _errorLogger);
+                return new DocumentOptions(context.CurrentConventions);
             }
         }
 

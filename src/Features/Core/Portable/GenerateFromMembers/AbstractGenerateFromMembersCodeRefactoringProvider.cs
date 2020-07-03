@@ -24,20 +24,20 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
         }
 
-        protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
+        protected static async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
             Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedDeclarations = syntaxFacts.GetSelectedFieldsAndProperties(root, textSpan, allowPartialSelection);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
+                tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
 
             if (selectedDeclarations.Length > 0)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var selectedMembers = selectedDeclarations.SelectMany(
-                    d => semanticFacts.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToImmutableArray();
+                var selectedMembers = selectedDeclarations.Select(
+                    d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
                 if (selectedMembers.Length > 0)
                 {
                     var containingType = selectedMembers.First().ContainingType;
@@ -58,25 +58,21 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
 
         private static bool IsReadableFieldOrProperty(ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol field: return IsViableField(field);
-                case IPropertySymbol property: return IsViableProperty(property) && !property.IsWriteOnly;
-                default: return false;
-            }
-        }
+                IFieldSymbol field => IsViableField(field),
+                IPropertySymbol property => IsViableProperty(property) && !property.IsWriteOnly,
+                _ => false,
+            };
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
                 // Can use non const fields and properties with setters in them.
-                case IFieldSymbol field: return IsViableField(field) && !field.IsConst;
-                case IPropertySymbol property: return IsViableProperty(property) && property.IsWritableInConstructor();
-                default: return false;
-            }
-        }
+                IFieldSymbol field => IsViableField(field) && !field.IsConst,
+                IPropertySymbol property => IsViableProperty(property) && property.IsWritableInConstructor(),
+                _ => false,
+            };
 
         private static bool IsViableField(IFieldSymbol field)
             => field.AssociatedSymbol == null;
@@ -91,10 +87,10 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         /// <param name="selectedMembers"></param>
         /// <param name="rules"></param>
         /// <returns></returns>
-        protected ImmutableArray<IParameterSymbol> DetermineParameters(
+        protected static ImmutableArray<IParameterSymbol> DetermineParameters(
             ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
         {
-            var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
             foreach (var symbol in selectedMembers)
             {
@@ -117,10 +113,8 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     name: parameterName));
             }
 
-            return parameters.ToImmutableAndFree();
+            return parameters.ToImmutable();
         }
-
-        private static readonly char[] s_underscore = { '_' };
 
         protected static readonly SymbolDisplayFormat SimpleFormat =
             new SymbolDisplayFormat(

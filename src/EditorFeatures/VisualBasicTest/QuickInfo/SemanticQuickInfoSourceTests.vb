@@ -1897,7 +1897,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= String.Format(FeaturesResources.Awaited_task_returns_0, "Class System.Threading.Tasks.Task(Of TResult)") %></File>.ConvertTestSourceTag()
+            Dim description = <File><%= String.Format(FeaturesResources.Awaited_task_returns_0, $"<{VBFeaturesResources.Awaitable}> Class System.Threading.Tasks.Task(Of TResult)") %></File>.ConvertTestSourceTag()
             Await TestFromXmlAsync(markup, MainDescription(description), TypeParameterMap(vbCrLf & $"TResult {FeaturesResources.is_} Integer"))
         End Function
 
@@ -2500,6 +2500,132 @@ Class C
     End Sub
 End Class",
                 MainDescription("Structure System.Int32"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithRemarksOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <remarks>
+    ''' Remarks text
+    ''' </remarks>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Remarks($"{vbCrLf}Remarks text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithRemarksOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <remarks>
+    ''' Remarks text
+    ''' </remarks>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Remarks($"{vbCrLf}Remarks text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithReturnsOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <returns>
+    ''' Returns text
+    ''' </returns>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Returns($"{vbCrLf}{FeaturesResources.Returns_colon}{vbCrLf}  Returns text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithReturnsOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <returns>
+    ''' Returns text
+    ''' </returns>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Returns($"{vbCrLf}{FeaturesResources.Returns_colon}{vbCrLf}  Returns text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithValueOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <value>
+    ''' Value text
+    ''' </value>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithValueOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <value>
+    ''' Value text
+    ''' </value>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
         End Function
     End Class
 End Namespace

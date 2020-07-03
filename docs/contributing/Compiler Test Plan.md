@@ -30,14 +30,15 @@ This document provides guidance for thinking about language interactions and tes
     - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
 - Performance and stress testing
+- Can build VS
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-    - types
-    - methods
-    - fields
-    - properties (including get/set accessors)
-    - events (including add/remove accessors)
+- type declarations (class, record with or without positional members, struct, interface, type parameter)
+- methods
+- fields
+- properties (including get/set/init accessors)
+- events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
 - Attributes (including security attribute)
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
@@ -54,7 +55,7 @@ This document provides guidance for thinking about language interactions and tes
 - Partial method
 - Named and optional parameters
 - String interpolation
-- Properties (read-write, read-only, write-only, auto-property, expression-bodied)
+- Properties (read-write, read-only, init-only, write-only, auto-property, expression-bodied)
 - Interfaces (implicit vs. explicit interface member implementation)
 - Delegates
 - Multi-declaration
@@ -209,6 +210,7 @@ a[e]
 x++ 
 x-- 
 new X() 
+new() 
 typeof(T) 
 default(T)
 default 
@@ -307,6 +309,8 @@ __makeref( x )
 - Interpolated string
 - Tuple literal
 - Tuple
+- Default literal
+- Implicit object creation (target-typed new)
 
 ## Types 
 
@@ -344,6 +348,12 @@ __makeref( x )
 - Declaration Pattern
 - Constant Pattern
 - Recursive Pattern
+- Parenthesized Pattern
+- `and` Pattern
+- `or` Pattern
+- `not` Pattern
+- Relational Pattern
+- Type Pattern
 
 ## Metadata table numbers / token prefixes 
  

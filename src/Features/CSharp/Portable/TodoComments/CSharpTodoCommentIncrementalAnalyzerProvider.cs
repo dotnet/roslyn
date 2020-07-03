@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
 
@@ -17,12 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
     internal class CSharpTodoCommentServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpTodoCommentServiceFactory()
         {
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpTodoCommentService(languageServices.WorkspaceServices.Workspace);
+            => new CSharpTodoCommentService();
     }
 
     internal class CSharpTodoCommentService : AbstractTodoCommentService
@@ -30,11 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
         private static readonly int s_multilineCommentPostfixLength = "*/".Length;
         private const string SingleLineCommentPrefix = "//";
 
-        public CSharpTodoCommentService(Workspace workspace) : base(workspace)
-        {
-        }
-
-        protected override void AppendTodoComments(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList)
+        protected override void AppendTodoComments(
+            ImmutableArray<TodoCommentDescriptor> commentDescriptors,
+            SyntacticDocument document, SyntaxTrivia trivia,
+            ArrayBuilder<TodoComment> todoList)
         {
             if (PreprocessorHasComment(trivia))
             {
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
                 var index = message.IndexOf(SingleLineCommentPrefix, StringComparison.Ordinal);
                 var start = trivia.FullSpan.Start + index;
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message.Substring(index), start, todoList);
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message.Substring(index), start, todoList);
                 return;
             }
 
@@ -63,14 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
         }
 
         protected override string GetNormalizedText(string message)
-        {
-            return message;
-        }
+            => message;
 
         protected override bool IsIdentifierCharacter(char ch)
-        {
-            return SyntaxFacts.IsIdentifierPartCharacter(ch);
-        }
+            => SyntaxFacts.IsIdentifierPartCharacter(ch);
 
         protected override int GetCommentStartingIndex(string message)
         {
@@ -94,13 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
         }
 
         protected override bool IsSingleLineComment(SyntaxTrivia trivia)
-        {
-            return trivia.IsSingleLineComment() || trivia.IsSingleLineDocComment();
-        }
+            => trivia.IsSingleLineComment() || trivia.IsSingleLineDocComment();
 
         protected override bool IsMultilineComment(SyntaxTrivia trivia)
-        {
-            return trivia.IsMultiLineComment() || trivia.IsMultiLineDocComment();
-        }
+            => trivia.IsMultiLineComment() || trivia.IsMultiLineDocComment();
     }
 }

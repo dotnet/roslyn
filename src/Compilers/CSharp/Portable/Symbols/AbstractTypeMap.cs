@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Substitute for a type declaration.  May use alpha renaming if the container is substituted.
         /// </summary>
-        private NamedTypeSymbol SubstituteMemberType(NamedTypeSymbol previous)
+        internal virtual NamedTypeSymbol SubstituteTypeDeclaration(NamedTypeSymbol previous)
         {
             Debug.Assert((object)previous.ConstructedFrom == (object)previous);
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // construct operation here (as VB does), thereby avoiding alpha renaming in most cases.
             // Aleksey has shown that would reduce GC pressure if substitutions of deeply nested generics are common.
             NamedTypeSymbol oldConstructedFrom = previous.ConstructedFrom;
-            NamedTypeSymbol newConstructedFrom = SubstituteMemberType(oldConstructedFrom);
+            NamedTypeSymbol newConstructedFrom = SubstituteTypeDeclaration(oldConstructedFrom);
 
             ImmutableArray<TypeWithAnnotations> oldTypeArguments = previous.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             bool changed = !ReferenceEquals(oldConstructedFrom, newConstructedFrom);
@@ -108,6 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.PointerType:
                     result = SubstitutePointerType((PointerTypeSymbol)previous);
                     break;
+                case SymbolKind.FunctionPointerType:
+                    result = SubstituteFunctionPointerType((FunctionPointerTypeSymbol)previous);
+                    break;
                 case SymbolKind.DynamicType:
                     result = SubstituteDynamicType();
                     break;
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return previous.SubstituteType(this);
         }
 
-        internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers)
+        internal virtual ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers)
         {
             if (customModifiers.IsDefaultOrEmpty)
             {
@@ -232,6 +235,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new PointerTypeSymbol(pointedAtType);
         }
 
+        private FunctionPointerTypeSymbol SubstituteFunctionPointerType(FunctionPointerTypeSymbol f)
+        {
+            var substitutedReturnType = f.Signature.ReturnTypeWithAnnotations.SubstituteType(this);
+            var refCustomModifiers = f.Signature.RefCustomModifiers;
+            var substitutedRefCustomModifiers = SubstituteCustomModifiers(refCustomModifiers);
+
+            var parameterTypesWithAnnotations = f.Signature.ParameterTypesWithAnnotations;
+            ImmutableArray<TypeWithAnnotations> substitutedParamTypes = SubstituteTypes(parameterTypesWithAnnotations);
+
+            ImmutableArray<ImmutableArray<CustomModifier>> substitutedParamModifiers = default;
+
+            var paramCount = f.Signature.Parameters.Length;
+            if (paramCount > 0)
+            {
+                var builder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(paramCount);
+                bool didSubstitute = false;
+                foreach (var param in f.Signature.Parameters)
+                {
+                    var substituted = SubstituteCustomModifiers(param.RefCustomModifiers);
+                    builder.Add(substituted);
+                    if (substituted != param.RefCustomModifiers)
+                    {
+                        didSubstitute = true;
+                    }
+                }
+
+                if (didSubstitute)
+                {
+                    substitutedParamModifiers = builder.ToImmutableAndFree();
+                }
+                else
+                {
+                    builder.Free();
+                }
+            }
+
+            if (substitutedParamTypes != parameterTypesWithAnnotations
+                || !substitutedParamModifiers.IsDefault
+                || !f.Signature.ReturnTypeWithAnnotations.IsSameAs(substitutedReturnType)
+                || substitutedRefCustomModifiers != refCustomModifiers)
+            {
+                f = f.SubstituteTypeSymbol(substitutedReturnType, substitutedParamTypes, refCustomModifiers, substitutedParamModifiers);
+            }
+
+            return f;
+        }
+
         internal ImmutableArray<TypeSymbol> SubstituteTypesWithoutModifiers(ImmutableArray<TypeSymbol> original)
         {
             if (original.IsDefault)
@@ -264,23 +314,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result != null ? result.AsImmutableOrNull() : original;
-        }
-
-        internal ImmutableArray<TypeWithAnnotations> SubstituteTypes(ImmutableArray<TypeSymbol> original)
-        {
-            if (original.IsDefault)
-            {
-                return default(ImmutableArray<TypeWithAnnotations>);
-            }
-
-            var result = ArrayBuilder<TypeWithAnnotations>.GetInstance(original.Length);
-
-            foreach (TypeSymbol t in original)
-            {
-                result.Add(SubstituteType(t));
-            }
-
-            return result.ToImmutableAndFree();
         }
 
         internal ImmutableArray<TypeWithAnnotations> SubstituteTypes(ImmutableArray<TypeWithAnnotations> original)

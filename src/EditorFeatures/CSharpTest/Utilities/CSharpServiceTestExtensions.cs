@@ -45,8 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
         }
 
         internal static TypeDeclarationSyntax DigToFirstTypeDeclaration(this SyntaxTree syntaxTree)
-        {
-            return (syntaxTree.GetRoot() as CompilationUnitSyntax).Members.OfType<TypeDeclarationSyntax>().First();
-        }
+            => (syntaxTree.GetRoot() as CompilationUnitSyntax).Members.OfType<TypeDeclarationSyntax>().First();
     }
 }

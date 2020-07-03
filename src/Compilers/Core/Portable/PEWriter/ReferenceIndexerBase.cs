@@ -143,22 +143,8 @@ namespace Microsoft.Cci
             }
 
             this.Visit((ITypeMemberReference)methodReference);
-            ISpecializedMethodReference specializedMethodReference = methodReference.AsSpecializedMethodReference;
-            if (specializedMethodReference != null)
-            {
-                IMethodReference unspecializedMethodReference = specializedMethodReference.UnspecializedVersion;
-                this.Visit(unspecializedMethodReference.GetType(Context));
-                this.Visit(unspecializedMethodReference.GetParameters(Context));
-                this.Visit(unspecializedMethodReference.RefCustomModifiers);
-                this.Visit(unspecializedMethodReference.ReturnValueCustomModifiers);
-            }
-            else
-            {
-                this.Visit(methodReference.GetType(Context));
-                this.Visit(methodReference.GetParameters(Context));
-                this.Visit(methodReference.RefCustomModifiers);
-                this.Visit(methodReference.ReturnValueCustomModifiers);
-            }
+
+            VisitSignature(methodReference.AsSpecializedMethodReference?.UnspecializedVersion ?? methodReference);
 
             if (methodReference.AcceptsExtraArguments)
             {
@@ -166,6 +152,14 @@ namespace Microsoft.Cci
             }
 
             ReserveMethodToken(methodReference);
+        }
+
+        public void VisitSignature(ISignature signature)
+        {
+            this.Visit(signature.GetType(Context));
+            this.Visit(signature.GetParameters(Context));
+            this.Visit(signature.RefCustomModifiers);
+            this.Visit(signature.ReturnValueCustomModifiers);
         }
 
         protected abstract void ReserveMethodToken(IMethodReference methodReference);
@@ -374,14 +368,14 @@ namespace Microsoft.Cci
                 }
                 else if (current is IPointerTypeReference)
                 {
-                    // The target type is itself an pointer type, and we must visit *its* target type.
+                    // The target type is itself a pointer type, and we must visit *its* target type.
                     // Iterate rather than recursing.
                     current = ((IPointerTypeReference)current).GetTargetType(Context);
                     continue;
                 }
                 else
                 {
-                    // The target type is not an pointer type and we must visit its children.
+                    // The target type is not a pointer type and we must visit its children.
                     // Dispatch the type in order to visit its children.
                     DispatchAsReference(current);
                     return;

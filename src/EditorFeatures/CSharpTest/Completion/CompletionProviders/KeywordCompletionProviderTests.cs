@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -19,22 +20,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new KeywordCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(KeywordCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task IsCommitCharacterTest()
-        {
-            await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar: "");
-        }
+            => await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar: "");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void IsTextualTriggerCharacterTest()
-        {
-            TestCommonIsTextualTriggerCharacter();
-        }
+            => TestCommonIsTextualTriggerCharacter();
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task SendEnterThroughToEditorTest()

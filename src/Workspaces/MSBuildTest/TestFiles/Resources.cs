@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             }
         }
 
-        private readonly static Func<string, byte[]> s_bytesLoader = LoadBytes;
-        private readonly static Func<string, string> s_textLoader = LoadText;
+        private static readonly Func<string, byte[]> s_bytesLoader = LoadBytes;
+        private static readonly Func<string, string> s_textLoader = LoadText;
         private static Dictionary<string, byte[]> s_bytesCache;
         private static Dictionary<string, string> s_textCache;
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CircularProjectReferences_CircularCSharpProject2 => GetText("CircularProjectReferences.CircularCSharpProject2.csproj");
                 public static string CSharpProject => GetText("ProjectFiles.CSharp.CSharpProject.csproj");
                 public static string DuplicateFile => GetText("ProjectFiles.CSharp.DuplicateFile.csproj");
-                public static string DuplicateProjectReference => GetText("ProjectFiles.CSharp.DuplicateProjectReference.csproj");
+                public static string DuplicateReferences => GetText("ProjectFiles.CSharp.DuplicateReferences.csproj");
                 public static string DuplicatedGuidLibrary1 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary1.csproj");
                 public static string DuplicatedGuidLibrary2 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary2.csproj");
                 public static string DuplicatedGuidLibrary3 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary3.csproj");

@@ -9,6 +9,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
@@ -168,11 +169,11 @@ namespace Namespace3 {
     public class GenericType<T, U> {}
 }
 "
-            Dim forwardedToCompilation = CreateCSharpCompilation(
-                forwardedToCode,
+            Dim forwardedToCompilation1 = CreateCSharpCompilation(
+                forwardedToCode, assemblyName:="ForwardedTo",
                 compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
-            Dim forwardedToReference = forwardedToCompilation.EmitToImageReference()
+            Dim forwardedToReference1 = forwardedToCompilation1.EmitToImageReference()
 
             Dim forwardingCode = "
 using System.Runtime.CompilerServices;
@@ -192,7 +193,7 @@ using System.Runtime.CompilerServices;
                     "ForwardingAssembly",
                     forwardingCode,
                     compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.NetModule),
-                    referencedAssemblies:={MscorlibRef, SystemRef, forwardedToReference})
+                    referencedAssemblies:={MscorlibRef, SystemRef, forwardedToReference1})
 
             Dim forwardingNetModuleReference = forwardingNetModule.EmitToImageReference()
 
@@ -200,7 +201,8 @@ using System.Runtime.CompilerServices;
                     assemblyName:="ForwardingAssembly",
                     source:=String.Empty,
                     options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                    references:={forwardingNetModuleReference, forwardedToReference})
+                    references:={forwardingNetModuleReference, forwardedToReference1})
+            Dim forwardingReference = new VisualBasicCompilationReference(forwardingCompilation)
 
             Dim sortedFullNames =
             {
@@ -217,13 +219,47 @@ using System.Runtime.CompilerServices;
                 "Namespace4.Embedded.Type2"
             }
 
+            Dim metadataValidator As Action(Of ModuleSymbol) = Sub(m)
+                                                                   Dim assembly = m.ContainingAssembly
+                                                                   Assert.Equal(sortedFullNames, GetNamesOfForwardedTypes(assembly))
+                                                               End Sub
+
+            CompileAndVerify(forwardingCompilation, symbolValidator:=metadataValidator, sourceSymbolValidator:=metadataValidator, verify:=Verification.Skipped)
+
             Using stream = forwardingCompilation.EmitToStream()
                 Using block = ModuleMetadata.CreateFromStream(stream)
                     Dim metadataFullNames = MetadataValidation.GetExportedTypesFullNames(block.MetadataReader)
                     Assert.Equal(sortedFullNames, metadataFullNames)
                 End Using
             End Using
+
+            Dim forwardedToCompilation2 = CreateCSharpCompilation(
+                forwardedToCode, assemblyName:="ForwardedTo",
+                compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+
+            Dim forwardedToReference2 = forwardedToCompilation2.EmitToImageReference()
+
+            Dim withRetargeting = CreateCompilationWithMscorlib40(
+                    source:=String.Empty,
+                    options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                    references:={forwardedToReference2, forwardingReference})
+
+            Dim retargeting = DirectCast(withRetargeting.GetReferencedAssemblySymbol(forwardingReference), Retargeting.RetargetingAssemblySymbol)
+            Dim forwardedToAssembly2 = withRetargeting.GetReferencedAssemblySymbol(forwardedToReference2)
+            Assert.Equal(sortedFullNames, GetNamesOfForwardedTypes(retargeting))
+
+            For Each t In GetForwardedTypes(retargeting)
+                Assert.Same(forwardedToAssembly2, t.ContainingAssembly)
+            Next
         End Sub
+
+        Private Shared Function GetNamesOfForwardedTypes(assembly As AssemblySymbol) As IEnumerable(Of String)
+            Return GetForwardedTypes(assembly).Select(Function(t) t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+        End Function
+
+        Private Shared Function GetForwardedTypes(assembly As AssemblySymbol) As IEnumerable(Of INamedTypeSymbol)
+            Return DirectCast(assembly, IAssemblySymbol).GetForwardedTypes()
+        End Function
 
         <Fact>
         Public Sub TestInterfacesPartialClassDeterminism()

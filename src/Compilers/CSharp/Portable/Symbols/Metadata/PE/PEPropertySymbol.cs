@@ -14,7 +14,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var returnInfo = propertyParams[0];
 
             PEPropertySymbol result = returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty
-                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder)
+                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder)
                 : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
 
             // A property should always have this modreq, and vice versa.
@@ -95,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PropertyDefinitionHandle handle,
             PEMethodSymbol getMethod,
             PEMethodSymbol setMethod,
-            int countOfCustomModifiers,
             ParamInfo<TypeSymbol>[] propertyParams,
             MetadataDecoder metadataDecoder)
         {
@@ -165,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol originalPropertyType = returnInfo.Type;
 
             originalPropertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol, _refKind);
+            originalPropertyType = NativeIntegerTypeDecoder.TransformType(originalPropertyType, handle, moduleSymbol);
 
             // Dynamify object type if necessary
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
@@ -186,7 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // accessor signatures do not agree, both with each other and with the property,
             // or if it has parameters and is not an indexer or indexed property.
             bool callMethodsDirectly = !DoSignaturesMatch(module, metadataDecoder, propertyParams, _getMethod, getMethodParams, _setMethod, setMethodParams) ||
-                MustCallMethodsDirectlyCore();
+                MustCallMethodsDirectlyCore() ||
+                anyUnexpectedRequiredModifiers(propertyParams);
 
             if (!callMethodsDirectly)
             {
@@ -214,6 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if ((mdFlags & PropertyAttributes.RTSpecialName) != 0)
             {
                 _flags |= Flags.IsRuntimeSpecialName;
+            }
+
+            static bool anyUnexpectedRequiredModifiers(ParamInfo<TypeSymbol>[] propertyParams)
+            {
+                return propertyParams.Any(p => (!p.RefCustomModifiers.IsDefaultOrEmpty && p.RefCustomModifiers.Any(m => !m.IsOptional && !m.Modifier.IsWellKnownTypeInAttribute())) ||
+                                               p.CustomModifiers.AnyRequired());
             }
         }
 
@@ -752,8 +758,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ParamInfo<TypeSymbol>[] propertyParams,
                 MetadataDecoder metadataDecoder)
                 : base(moduleSymbol, containingType, handle, getMethod, setMethod,
-                        propertyParams[0].CustomModifiers.NullToEmpty().Length + propertyParams[0].RefCustomModifiers.NullToEmpty().Length,
-                        propertyParams, metadataDecoder)
+                    propertyParams,
+                    metadataDecoder)
             {
                 var returnInfo = propertyParams[0];
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);

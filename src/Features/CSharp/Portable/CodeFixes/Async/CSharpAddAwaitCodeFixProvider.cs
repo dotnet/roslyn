@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Async;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         private const string CS0029 = nameof(CS0029);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAddAwaitCodeFixProvider()
         {
         }
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return new DescriptionAndNode(CSharpFeaturesResources.Insert_await, newRoot);
         }
 
-        private Task<SyntaxNode> GetNewRootAsync(
+        private static Task<SyntaxNode> GetNewRootAsync(
             SyntaxNode root,
             SyntaxNode oldNode,
             SemanticModel semanticModel,

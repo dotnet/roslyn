@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Declarations
 
@@ -103,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function IsPartiallyTypedGenericName(type As TypeSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function IsPartiallyTypedGenericName(type As TypeSyntax, semanticModel As SemanticModel) As Boolean
             Dim symbols = SemanticModel.LookupNamespacesAndTypes(
                 position:=type.SpanStart,
                 name:=type.ToString())
@@ -113,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                           .Any()
         End Function
 
-        Private Function IsGenericDelegateCreationExpression(token As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function IsGenericDelegateCreationExpression(token As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
             Dim objectCreationExpression = token.GetAncestor(Of ObjectCreationExpressionSyntax)()
             If objectCreationExpression IsNot Nothing Then
                 Dim type = objectCreationExpression.Type

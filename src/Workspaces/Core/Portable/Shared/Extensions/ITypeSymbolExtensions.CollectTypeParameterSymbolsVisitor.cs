@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override void DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void VisitDynamicType(IDynamicTypeSymbol symbol)
             {
@@ -40,6 +38,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 symbol.ElementType.Accept(this);
+            }
+
+            public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                if (!_visited.Add(symbol))
+                {
+                    return;
+                }
+
+                foreach (var parameter in symbol.Signature.Parameters)
+                {
+                    parameter.Type.Accept(this);
+                }
+
+                symbol.Signature.ReturnType.Accept(this);
             }
 
             public override void VisitNamedType(INamedTypeSymbol symbol)

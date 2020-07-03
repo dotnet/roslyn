@@ -4,7 +4,9 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
@@ -15,8 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynGoToDefinitionHandler : AbstractGoToDefinitionWithFindUsagesServiceHandler
     {
         [ImportingConstructor]
-        public RoslynGoToDefinitionHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService)
-            : base(metadataAsSourceService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RoslynGoToDefinitionHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService,
+            ILspSolutionProvider solutionProvider) : base(metadataAsSourceService, solutionProvider)
         {
         }
     }
@@ -25,7 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptGoToDefinitionHandler : AbstractGoToDefinitionWithFindUsagesServiceHandler
     {
         [ImportingConstructor]
-        public TypeScriptGoToDefinitionHandler() : base(null)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeScriptGoToDefinitionHandler(ILspSolutionProvider solutionProvider) : base(null, solutionProvider)
         {
         }
     }

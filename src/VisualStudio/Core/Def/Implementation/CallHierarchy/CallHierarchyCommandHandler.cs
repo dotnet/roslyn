@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         public string DisplayName => EditorFeaturesResources.Call_Hierarchy;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CallHierarchyCommandHandler(
             IThreadingContext threadingContext,
             [ImportMany] IEnumerable<ICallHierarchyPresenter> presenters,
@@ -92,8 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         }
 
         public CommandState GetCommandState(ViewCallHierarchyCommandArgs args)
-        {
-            return CommandState.Available;
-        }
+            => CommandState.Available;
     }
 }

@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class DynamicKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
-        private bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            var syntaxTree = context.SyntaxTree;
             if (context.IsPreProcessorDirectiveContext)
             {
                 return false;
@@ -54,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsPossibleCastTypeContext(position, context.LeftToken, cancellationToken) ||
                 context.IsObjectCreationTypeContext ||
                 context.IsGenericTypeArgumentContext ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 context.IsIsOrAsTypeContext ||
                 syntaxTree.IsDefaultExpressionContext(position, context.LeftToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }

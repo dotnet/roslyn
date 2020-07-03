@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -38,21 +39,15 @@ switch (true)
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_1()
-        {
-            await TestInClassAsync("int Property { get; }$$ ", "int Property {");
-        }
+            => await TestInClassAsync("int Property { get; }$$ ", "int Property {");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_2()
-        {
-            await TestInClassAsync("void M()\r\n{ }$$ ", "void M()\r\n{");
-        }
+            => await TestInClassAsync("void M()\r\n{ }$$ ", "void M()\r\n{");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_3()
-        {
-            await TestInMethodAndScriptAsync("var a = new int[] { }$$ ", "new int[] {");
-        }
+            => await TestInMethodAndScriptAsync("var a = new int[] { }$$ ", "new int[] {");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_4()
@@ -267,9 +262,7 @@ if (true)
         }
 
         private QuickInfoProvider CreateProvider(TestWorkspace workspace)
-        {
-            return new CSharpSyntacticQuickInfoProvider();
-        }
+            => new CSharpSyntacticQuickInfoProvider();
 
         protected override async Task AssertNoContentAsync(
             TestWorkspace workspace,
@@ -294,8 +287,9 @@ if (true)
             Assert.NotEqual(0, info.RelatedSpans.Length);
 
             var trackingSpan = new Mock<ITrackingSpan>(MockBehavior.Strict);
+            var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
             var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
-            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, snapshot, document, streamingPresenter, CancellationToken.None);
+            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, snapshot, document, threadingContext, streamingPresenter, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;
 
             var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();
@@ -321,9 +315,7 @@ if (true)
         }
 
         protected override Task TestInScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null)
-        {
-            return TestAsync(code, expectedContent, expectedContent, Options.Script);
-        }
+            => TestAsync(code, expectedContent, expectedContent, Options.Script);
 
         protected override async Task TestAsync(
             string code,

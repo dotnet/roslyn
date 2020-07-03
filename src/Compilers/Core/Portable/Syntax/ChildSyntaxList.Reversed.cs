@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     {
         public readonly partial struct Reversed : IEnumerable<SyntaxNodeOrToken>, IEquatable<Reversed>
         {
-            private readonly SyntaxNode _node;
+            private readonly SyntaxNode? _node;
             private readonly int _count;
 
             internal Reversed(SyntaxNode node, int count)
@@ -28,6 +31,7 @@ namespace Microsoft.CodeAnalysis
 
             public Enumerator GetEnumerator()
             {
+                Debug.Assert(_node is object);
                 return new Enumerator(_node, _count);
             }
 
@@ -56,9 +60,9 @@ namespace Microsoft.CodeAnalysis
                 return _node != null ? Hash.Combine(_node.GetHashCode(), _count) : 0;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
-                return (obj is Reversed) && Equals((Reversed)obj);
+                return (obj is Reversed r) && Equals(r);
             }
 
             public bool Equals(Reversed other)
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis
 
             public struct Enumerator
             {
-                private readonly SyntaxNode _node;
+                private readonly SyntaxNode? _node;
                 private readonly int _count;
                 private int _childIndex;
 
@@ -80,6 +84,7 @@ namespace Microsoft.CodeAnalysis
                     _childIndex = count;
                 }
 
+                // MemberNotNullWhen(true, nameof(_node)) https://github.com/dotnet/roslyn/issues/41964
                 public bool MoveNext()
                 {
                     return --_childIndex >= 0;
@@ -89,6 +94,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     get
                     {
+                        Debug.Assert(_node is object);
                         return ItemInternal(_node, _childIndex);
                     }
                 }

@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Simplification
@@ -103,16 +104,5 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         [Obsolete("This option is no longer used")]
         public static PerLanguageOption<bool> PreferIntrinsicPredefinedTypeKeywordInMemberAccess { get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(PreferIntrinsicPredefinedTypeKeywordInMemberAccess), defaultValue: true);
-
-        /// <summary>
-        /// This option describes the naming rules that should be applied to specified categories of symbols, 
-        /// and the level to which those rules should be enforced.
-        /// </summary>
-        internal static PerLanguageOption<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption<NamingStylePreferences>(nameof(SimplificationOptions), nameof(NamingPreferences), defaultValue: NamingStylePreferences.Default,
-            storageLocations: new OptionStorageLocation[] {
-                new NamingStylePreferenceEditorConfigStorageLocation(),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences5"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences")
-            });
     }
 }

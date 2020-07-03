@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (options.MergeAttributes)
             {
-                var attributeNodes = attributes.OrderBy(a => a.AttributeClass.Name).Select(a => GenerateAttribute(a, options)).WhereNotNull().ToList();
+                var attributeNodes =
+                    attributes.OrderBy(a => a.AttributeClass?.Name)
+                              .Select(a => TryGenerateAttribute(a, options))
+                              .WhereNotNull().ToList();
                 return attributeNodes.Count == 0
                     ? default
                     : SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(
@@ -34,26 +37,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                var attributeDeclarations = attributes.OrderBy(a => a.AttributeClass.Name).Select(a => GenerateAttributeDeclaration(a, target, options)).WhereNotNull().ToList();
+                var attributeDeclarations =
+                    attributes.OrderBy(a => a.AttributeClass?.Name)
+                              .Select(a => TryGenerateAttributeDeclaration(a, target, options))
+                              .WhereNotNull().ToList();
                 return attributeDeclarations.Count == 0
                     ? default
                     : SyntaxFactory.List<AttributeListSyntax>(attributeDeclarations);
             }
         }
 
-        private static AttributeListSyntax GenerateAttributeDeclaration(
+        private static AttributeListSyntax? TryGenerateAttributeDeclaration(
             AttributeData attribute, SyntaxToken? target, CodeGenerationOptions options)
         {
-            var attributeSyntax = GenerateAttribute(attribute, options);
+            var attributeSyntax = TryGenerateAttribute(attribute, options);
             return attributeSyntax == null
                 ? null
                 : SyntaxFactory.AttributeList(
-                    target.HasValue ? SyntaxFactory.AttributeTargetSpecifier(target.Value) : null,
+                    target.HasValue
+                        ? SyntaxFactory.AttributeTargetSpecifier(target.Value)
+                        : null,
                     SyntaxFactory.SingletonSeparatedList(attributeSyntax));
         }
 
-        private static AttributeSyntax GenerateAttribute(AttributeData attribute, CodeGenerationOptions options)
+        private static AttributeSyntax? TryGenerateAttribute(AttributeData attribute, CodeGenerationOptions options)
         {
+            if (IsCompilerInternalAttribute(attribute))
+                return null;
+
             if (!options.MergeAttributes)
             {
                 var reusableSyntax = GetReuseableSyntaxNodeForAttribute<AttributeSyntax>(attribute, options);
@@ -63,16 +74,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
+            if (attribute.AttributeClass == null)
+                return null;
+
             var attributeArguments = GenerateAttributeArgumentList(attribute);
-            return !(attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax) ? null : SyntaxFactory.Attribute(nameSyntax, attributeArguments);
+            return attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax
+                ? SyntaxFactory.Attribute(nameSyntax, attributeArguments)
+                : null;
         }
 
-        private static AttributeArgumentListSyntax GenerateAttributeArgumentList(AttributeData attribute)
+        private static bool IsCompilerInternalAttribute(AttributeData attribute)
+        {
+            // from https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
+            var attrClass = attribute.AttributeClass;
+            if (attrClass == null)
+                return false;
+
+            var name = attrClass.Name;
+
+            if (name != "NullableAttribute" &&
+                name != "NullableContextAttribute" &&
+                name != "NativeIntegerAttribute" &&
+                name != "DynamicAttribute")
+            {
+                return false;
+            }
+
+            var ns = attrClass.ContainingNamespace;
+            return ns?.Name == nameof(System.Runtime.CompilerServices) &&
+                   ns.ContainingNamespace?.Name == nameof(System.Runtime) &&
+                   ns.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
+                   ns.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
+        }
+
+        private static AttributeArgumentListSyntax? GenerateAttributeArgumentList(AttributeData attribute)
         {
             if (attribute.ConstructorArguments.Length == 0 && attribute.NamedArguments.Length == 0)
-            {
                 return null;
-            }
 
             var arguments = new List<AttributeArgumentSyntax>();
             arguments.AddRange(attribute.ConstructorArguments.Select(c =>

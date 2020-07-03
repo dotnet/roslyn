@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (s_codeAnalysisResourceManager == null)
             {
-                s_codeAnalysisResourceManager = new ResourceManager("Microsoft.CodeAnalysis.CodeAnalysisResources", typeof(Compilation).Assembly);
+                s_codeAnalysisResourceManager = new ResourceManager(typeof(CodeAnalysisResources).FullName, typeof(Compilation).Assembly);
             }
 
             return s_codeAnalysisResourceManager.GetString(resourceName);

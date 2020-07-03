@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal partial class ITypeSymbolExtensions
@@ -12,24 +11,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             private readonly Compilation _compilation;
 
             public CompilationTypeGenerator(Compilation compilation)
-            {
-                _compilation = compilation;
-            }
+                => _compilation = compilation;
 
             public ITypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
-            {
-                return _compilation.CreateArrayTypeSymbol(elementType, rank);
-            }
+                => _compilation.CreateArrayTypeSymbol(elementType, rank);
 
             public ITypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
-            {
-                return _compilation.CreatePointerTypeSymbol(pointedAtType);
-            }
+                => _compilation.CreatePointerTypeSymbol(pointedAtType);
 
             public ITypeSymbol Construct(INamedTypeSymbol namedType, ITypeSymbol[] typeArguments)
-            {
-                return namedType.Construct(typeArguments);
-            }
+                => namedType.Construct(typeArguments);
         }
     }
 }

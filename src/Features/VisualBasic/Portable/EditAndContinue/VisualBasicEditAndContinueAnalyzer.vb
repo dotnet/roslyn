@@ -8,17 +8,32 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
-    <ExportLanguageService(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic), [Shared]>
     Friend NotInheritable Class VisualBasicEditAndContinueAnalyzer
         Inherits AbstractEditAndContinueAnalyzer
 
-        <ImportingConstructor>
-        Public Sub New()
+        <ExportLanguageServiceFactory(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic), [Shared]>
+        Private NotInheritable Class Factory
+            Implements ILanguageServiceFactory
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+                Return New VisualBasicEditAndContinueAnalyzer(languageServices.WorkspaceServices.GetRequiredService(Of IActiveStatementSpanTrackerFactory)().GetOrCreateActiveStatementSpanTracker())
+            End Function
+        End Class
+
+        ' Public for testing purposes
+        Public Sub New(activeStatementSpanTracker As IActiveStatementSpanTracker)
+            MyBase.New(activeStatementSpanTracker)
         End Sub
 
 #Region "Syntax Analysis"
@@ -509,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Dim rightDeclaration = DirectCast(GetSymbolSyntax(rightProperty, cancellationToken), PropertyStatementSyntax)
 
                 rightInitializer = rightDeclaration.Initializer
-            ElseIf leftInitializer.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration)
+            ElseIf leftInitializer.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
                 ' field initializer or AsNewClause
                 Dim leftDeclarator = DirectCast(leftInitializer.Parent, VariableDeclaratorSyntax)
 
@@ -757,7 +772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, minLength, span)
         End Function
 
-        Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of KeyValuePair(Of SyntaxNode, Integer))
+        Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of ValueTuple(Of SyntaxNode, Integer))
             Dim direction As Integer = +1
             Dim nodeOrToken As SyntaxNodeOrToken = statement
             Dim propertyOrFieldModifiers As SyntaxTokenList? = GetFieldOrPropertyModifiers(statement)
@@ -802,7 +817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
 
                     If propertyOrFieldModifiers.HasValue Then
-                        Yield KeyValuePairUtil.Create(statement, -1)
+                        Yield (statement, -1)
                     End If
 
                     nodeOrToken = parent
@@ -825,7 +840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
                 End If
 
-                Yield KeyValuePairUtil.Create(node, 0)
+                Yield (node, DefaultStatementPart)
             End While
         End Function
 
@@ -1804,7 +1819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case EditKind.Move
-                        ClassifyMove(_oldNode, _newNode)
+                        ReportError(RudeEditKind.Move)
                         Return
 
                     Case EditKind.Insert
@@ -1821,10 +1836,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
 #Region "Move and Reorder"
-            Private Sub ClassifyMove(oldNode As SyntaxNode, newNode As SyntaxNode)
-                ReportError(RudeEditKind.Move)
-            End Sub
-
             Private Sub ClassifyReorder(oldNode As SyntaxNode, newNode As SyntaxNode)
                 Select Case newNode.Kind
                     Case SyntaxKind.OptionStatement,
@@ -2047,7 +2058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
 
                 For Each member In type.Members
-                    Dim modifiers As SyntaxTokenList = Nothing
+                    Dim modifiers As SyntaxTokenList
 
                     Select Case member.Kind
                         Case SyntaxKind.DeclareFunctionStatement,
@@ -2617,7 +2628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
             End Sub
 
-            Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
+            Private Shared Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
                 ' Ignore Async and Iterator keywords when matching modifiers.
                 ' State machine checks are done in ComputeBodyMatch.
 
@@ -2696,18 +2707,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                              newNode,
                                              containingMethod:=Nothing,
                                              containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax))
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As AccessorStatementSyntax, newNode As AccessorStatementSyntax)
-                If oldNode.RawKind <> newNode.RawKind Then
-                    ReportError(RudeEditKind.AccessorKindUpdate)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers) Then
-                    ReportError(RudeEditKind.ModifiersUpdate)
-                    Return
-                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As EnumMemberDeclarationSyntax, newNode As EnumMemberDeclarationSyntax)
@@ -2903,7 +2902,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, isNonLeaf As Boolean) As List(Of SyntaxNode)
             Dim result = New List(Of SyntaxNode)()
-            Dim initialNode = node
 
             While node IsNot Nothing
                 Dim kind = node.Kind

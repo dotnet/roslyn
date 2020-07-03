@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private readonly bool _isUnsafe;
         private CodeGenerationEventInfo(bool isUnsafe)
-        {
-            _isUnsafe = isUnsafe;
-        }
+            => _isUnsafe = isUnsafe;
 
         public static void Attach(IEventSymbol @event, bool isUnsafe)
         {
@@ -30,13 +28,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public static bool GetIsUnsafe(IEventSymbol @event)
-        {
-            return GetIsUnsafe(GetInfo(@event));
-        }
+            => GetIsUnsafe(GetInfo(@event));
 
         private static bool GetIsUnsafe(CodeGenerationEventInfo info)
-        {
-            return info != null && info._isUnsafe;
-        }
+            => info != null && info._isUnsafe;
     }
 }

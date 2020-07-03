@@ -39,34 +39,22 @@ namespace Microsoft.CodeAnalysis.GenerateType
     internal class TypeKindOptionsHelper
     {
         public static bool IsClass(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Class) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Class) != 0 ? true : false;
 
         public static bool IsStructure(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Structure) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Structure) != 0 ? true : false;
 
         public static bool IsInterface(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Interface) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Interface) != 0 ? true : false;
 
         public static bool IsEnum(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Enum) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Enum) != 0 ? true : false;
 
         public static bool IsDelegate(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Delegate) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Delegate) != 0 ? true : false;
 
         public static bool IsModule(TypeKindOptions option)
-        {
-            return (option & TypeKindOptions.Module) != 0 ? true : false;
-        }
+            => (option & TypeKindOptions.Module) != 0 ? true : false;
 
         public static TypeKindOptions RemoveOptions(TypeKindOptions fromValue, params TypeKindOptions[] removeValues)
         {
@@ -80,8 +68,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
         }
 
         internal static TypeKindOptions AddOption(TypeKindOptions toValue, TypeKindOptions addValue)
-        {
-            return toValue | addValue;
-        }
+            => toValue | addValue;
     }
 }

@@ -303,19 +303,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void RaisePaused()
-            {
-                this.Paused?.Invoke(this, EventArgs.Empty);
-            }
+                => this.Paused?.Invoke(this, EventArgs.Empty);
 
             private void RaiseResumed()
-            {
-                this.Resumed?.Invoke(this, EventArgs.Empty);
-            }
+                => this.Resumed?.Invoke(this, EventArgs.Empty);
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)
-            {
-                return enumerator.MoveNext() ? enumerator.Current : default;
-            }
+                => enumerator.MoveNext() ? enumerator.Current : default;
 
             /// <summary>
             /// Return all the spans that appear in only one of "latestSpans" or "previousSpans".

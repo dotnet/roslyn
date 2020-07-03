@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the full text of this node as an new <see cref="SourceText"/> instance.
+        /// Gets the full text of this node as a new <see cref="SourceText"/> instance.
         /// </summary>
         /// <param name="encoding">
         /// Encoding of the file that the text was read from or is going to be saved to.
@@ -721,7 +722,25 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(TNode);
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the first node of type TNode that matches the predicate.
+        /// </summary>
+        [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "Required for consistent API usage patterns.")]
+        public TNode? FirstAncestorOrSelf<TNode, TArg>(Func<TNode, TArg, bool> predicate, TArg argument, bool ascendOutOfTrivia = true)
+            where TNode : SyntaxNode
+        {
+            for (var node = this; node != null; node = GetParent(node, ascendOutOfTrivia))
+            {
+                if (node is TNode tnode && predicate(tnode, argument))
+                {
+                    return tnode;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -827,7 +846,7 @@ namespace Microsoft.CodeAnalysis
 
             var node = FindToken(span.Start, findInsideTrivia)
                 .Parent
-                !.FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
+                !.FirstAncestorOrSelf<SyntaxNode, TextSpan>((a, span) => a.FullSpan.Contains(span), span);
 
             RoslynDebug.Assert(node is object);
             SyntaxNode? cuRoot = node.SyntaxTree?.GetRoot();
@@ -993,7 +1012,7 @@ recurse:
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            node = trivia.GetStructure();
+                                            node = trivia.GetStructure()!;
                                             goto recurse;
                                         }
 
@@ -1012,7 +1031,7 @@ recurse:
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            node = trivia.GetStructure();
+                                            node = trivia.GetStructure()!;
                                             goto recurse;
                                         }
 
@@ -1221,7 +1240,7 @@ recurse:
         {
             if (node == null)
             {
-                return default(T);
+                return null;
             }
 
             var annotations = this.Green.GetAnnotations();
@@ -1377,7 +1396,7 @@ recurse:
 
                 if (trivia.HasStructure && stepInto(trivia))
                 {
-                    token = trivia.GetStructure().FindTokenInternal(position);
+                    token = trivia.GetStructure()!.FindTokenInternal(position);
                 }
             }
 
@@ -1450,7 +1469,7 @@ recurse:
         /// <summary>
         /// Creates a new tree of nodes with the specified node removed.
         /// </summary>
-        protected internal abstract SyntaxNode RemoveNodesCore(
+        protected internal abstract SyntaxNode? RemoveNodesCore(
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options);
 

@@ -5,17 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.CodeAnalysis.CSharp.Debugging
 {
@@ -41,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
     internal partial class CSharpProximityExpressionsService : IProximityExpressionsService
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpProximityExpressionsService()
         {
         }
@@ -101,14 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
         // Internal for testing purposes
         internal static IList<string> Do(SyntaxTree syntaxTree, int position)
-        {
-            return Do(syntaxTree, position, CancellationToken.None);
-        }
+            => Do(syntaxTree, position, CancellationToken.None);
 
         private static IList<string> Do(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            return new Worker(syntaxTree, position).Do(cancellationToken);
-        }
+            => new Worker(syntaxTree, position).Do(cancellationToken);
 
         private static void AddRelevantExpressions(
             StatementSyntax statement,

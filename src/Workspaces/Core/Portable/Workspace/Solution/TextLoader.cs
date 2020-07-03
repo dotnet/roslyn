@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -166,9 +165,7 @@ namespace Microsoft.CodeAnalysis
             private readonly TextAndVersion _textAndVersion;
 
             internal TextDocumentLoader(TextAndVersion textAndVersion)
-            {
-                _textAndVersion = textAndVersion;
-            }
+                => _textAndVersion = textAndVersion;
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
                 => Task.FromResult(_textAndVersion);

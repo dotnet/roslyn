@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                                             .OrderByDescending(f => f).ToList();
             var existingConstants = orderedExistingConstants.ToSet();
 
-            if (LooksLikeFlagsEnum(enumType, orderedExistingConstants))
+            if (LooksLikeFlagsEnum(orderedExistingConstants))
             {
                 if (orderedExistingConstants.Count == 0)
                 {
@@ -55,79 +53,62 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private static object CreateOne(SpecialType specialType)
-        {
-            switch (specialType)
+            => specialType switch
             {
-                case SpecialType.System_SByte:
-                    return (sbyte)1;
-                case SpecialType.System_Byte:
-                    return (byte)1;
-                case SpecialType.System_Int16:
-                    return (short)1;
-                case SpecialType.System_UInt16:
-                    return (ushort)1;
-                case SpecialType.System_Int32:
-                    return (int)1;
-                case SpecialType.System_UInt32:
-                    return (uint)1;
-                case SpecialType.System_Int64:
-                    return (long)1;
-                case SpecialType.System_UInt64:
-                    return (ulong)1;
-                default:
-                    return 1;
-            }
-        }
+                SpecialType.System_SByte => (sbyte)1,
+                SpecialType.System_Byte => (byte)1,
+                SpecialType.System_Int16 => (short)1,
+                SpecialType.System_UInt16 => (ushort)1,
+                SpecialType.System_Int32 => (int)1,
+                SpecialType.System_UInt32 => (uint)1,
+                SpecialType.System_Int64 => (long)1,
+                SpecialType.System_UInt64 => (ulong)1,
+                _ => 1,
+            };
 
         private static IComparable Multiply(IComparable value, uint number)
-        {
-            switch (value)
+            => value switch
             {
-                case long v: return unchecked((long)(v * number));
-                case ulong v: return unchecked((ulong)(v * number));
-                case int v: return unchecked((int)(v * number));
-                case uint v: return unchecked((uint)(v * number));
-                case short v: return unchecked((short)(v * number));
-                case ushort v: return unchecked((ushort)(v * number));
-                case sbyte v: return unchecked((sbyte)(v * number));
-                case byte v: return unchecked((byte)(v * number));
-                default: return null;
-            }
-        }
+                long v => unchecked((long)(v * number)),
+                ulong v => unchecked((ulong)(v * number)),
+                int v => unchecked((int)(v * number)),
+                uint v => unchecked((uint)(v * number)),
+                short v => unchecked((short)(v * number)),
+                ushort v => unchecked((ushort)(v * number)),
+                sbyte v => unchecked((sbyte)(v * number)),
+                byte v => unchecked((byte)(v * number)),
+                _ => null,
+            };
 
         private static IComparable Add(IComparable value, uint number)
-        {
-            switch (value)
+            => value switch
             {
-                case long v: return unchecked((long)(v + number));
-                case ulong v: return unchecked((ulong)(v + number));
-                case int v: return unchecked((int)(v + number));
-                case uint v: return unchecked((uint)(v + number));
-                case short v: return unchecked((short)(v + number));
-                case ushort v: return unchecked((ushort)(v + number));
-                case sbyte v: return unchecked((sbyte)(v + number));
-                case byte v: return unchecked((byte)(v + number));
-                default: return null;
-            }
-        }
+                long v => unchecked((long)(v + number)),
+                ulong v => unchecked((ulong)(v + number)),
+                int v => unchecked((int)(v + number)),
+                uint v => unchecked((uint)(v + number)),
+                short v => unchecked((short)(v + number)),
+                ushort v => unchecked((ushort)(v + number)),
+                sbyte v => unchecked((sbyte)(v + number)),
+                byte v => unchecked((byte)(v + number)),
+                _ => null,
+            };
 
         private static bool GreaterThanOrEqualsZero(IComparable value)
-        {
-            switch (value)
+            => value switch
             {
-                case long v: return v >= 0;
-                case ulong v: return v >= 0;
-                case int v: return v >= 0;
-                case uint v: return v >= 0;
-                case short v: return v >= 0;
-                case ushort v: return v >= 0;
-                case sbyte v: return v >= 0;
-                case byte v: return v >= 0;
-                default: return false;
-            }
-        }
+                long v => v >= 0,
+                ulong v => v >= 0,
+                int v => v >= 0,
+                uint v => v >= 0,
+                short v => v >= 0,
+                ushort v => v >= 0,
+                sbyte v => v >= 0,
+                byte v => v >= 0,
+                _ => false,
+            };
 
-        private static bool LooksLikeFlagsEnum(INamedTypeSymbol enumType, List<IComparable> existingConstants)
+        private static bool LooksLikeFlagsEnum(List<IComparable> existingConstants)
         {
             if (existingConstants.Count >= 1 &&
                IntegerUtilities.HasOneBitSet(existingConstants[0]) &&

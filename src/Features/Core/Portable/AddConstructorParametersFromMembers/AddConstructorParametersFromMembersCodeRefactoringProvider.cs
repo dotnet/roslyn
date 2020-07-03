@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public AddConstructorParametersFromMembersCodeRefactoringProvider()
         {
         }
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             context.RegisterRefactorings(actions);
         }
 
-        public async Task<ImmutableArray<CodeAction>> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<CodeAction>> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
             {
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 if (info != null)
                 {
-                    var state = await State.GenerateAsync(this, info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
+                    var state = await State.GenerateAsync(info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
                     if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                     {
                         return CreateCodeActions(document, state);
@@ -63,9 +65,9 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
         }
 
-        private ImmutableArray<CodeAction> CreateCodeActions(Document document, State state)
+        private static ImmutableArray<CodeAction> CreateCodeActions(Document document, State state)
         {
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var _0 = ArrayBuilder<CodeAction>.GetInstance(out var result);
             var containingType = state.ContainingType;
             if (state.ConstructorCandidates.Length == 1)
             {
@@ -89,8 +91,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             else
             {
                 // Create sub menus for suggested actions, one for required parameters and one for optional parameters
-                var requiredParameterCodeActions = ArrayBuilder<CodeAction>.GetInstance();
-                var optionalParameterCodeActions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var requiredParameterCodeActions);
+                using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var optionalParameterCodeActions);
                 foreach (var constructorCandidate in state.ConstructorCandidates)
                 {
                     if (CanHaveRequiredParameters(constructorCandidate.Constructor.Parameters))
@@ -113,17 +115,17 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 {
                     result.Add(new CodeAction.CodeActionWithNestedActions(
                         FeaturesResources.Add_parameter_to_constructor,
-                        requiredParameterCodeActions.ToImmutableAndFree(),
+                        requiredParameterCodeActions.ToImmutable(),
                         isInlinable: false));
                 }
 
                 result.Add(new CodeAction.CodeActionWithNestedActions(
                     FeaturesResources.Add_optional_parameter_to_constructor,
-                    optionalParameterCodeActions.ToImmutableAndFree(),
+                    optionalParameterCodeActions.ToImmutable(),
                     isInlinable: false));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
 
             // local functions
             static bool CanHaveRequiredParameters(ImmutableArray<IParameterSymbol> parameters)

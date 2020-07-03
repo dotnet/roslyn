@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         protected abstract bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken);
 
         public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return CommandState.Available;
-        }
+            => CommandState.Available;
 
         public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

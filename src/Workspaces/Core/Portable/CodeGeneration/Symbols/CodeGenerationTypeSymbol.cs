@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public SpecialType SpecialType { get; protected set; }
 
         protected CodeGenerationTypeSymbol(
+            IAssemblySymbol containingAssembly,
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             SpecialType specialType,
             NullableAnnotation nullableAnnotation)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.SpecialType = specialType;
             this.NullableAnnotation = nullableAnnotation;
@@ -43,41 +44,31 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsTupleType => false;
 
-        public ImmutableArray<ITypeSymbol> TupleElementTypes => default;
+        public bool IsNativeIntegerType => false;
 
-        public ImmutableArray<string> TupleElementNames => default;
+        public static ImmutableArray<ITypeSymbol> TupleElementTypes => default;
 
-        public INamedTypeSymbol TupleUnderlyingType => null;
+        public static ImmutableArray<string> TupleElementNames => default;
 
         public new ITypeSymbol OriginalDefinition => this;
 
         public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => null;
 
         public string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public override bool IsNamespace => false;
 
         public override bool IsType => true;
-
-        public bool IsSerializable => false;
 
         bool ITypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
 
@@ -98,9 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         protected sealed override CodeGenerationSymbol Clone()
-        {
-            return CloneWithNullableAnnotation(this.NullableAnnotation);
-        }
+            => CloneWithNullableAnnotation(this.NullableAnnotation);
 
         protected abstract CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation);
     }

@@ -10,43 +10,34 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpSelectionValidator
     {
-        public bool Check(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            switch (node)
+        public static bool Check(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => node switch
             {
-                case ExpressionSyntax expression: return CheckExpression(semanticModel, expression, cancellationToken);
-                case BlockSyntax block: return CheckBlock(semanticModel, block, cancellationToken);
-                case StatementSyntax statement: return CheckStatement(semanticModel, statement, cancellationToken);
-                case GlobalStatementSyntax globalStatement: return CheckGlobalStatement(semanticModel, globalStatement, cancellationToken);
-                default: return false;
-            }
-        }
+                ExpressionSyntax expression => CheckExpression(semanticModel, expression, cancellationToken),
+                BlockSyntax block => CheckBlock(block),
+                StatementSyntax statement => CheckStatement(statement),
+                GlobalStatementSyntax _ => CheckGlobalStatement(),
+                _ => false,
+            };
 
-        private bool CheckGlobalStatement(SemanticModel semanticModel, GlobalStatementSyntax globalStatement, CancellationToken cancellationToken)
-        {
-            return true;
-        }
+        private static bool CheckGlobalStatement()
+            => true;
 
-        private bool CheckBlock(SemanticModel semanticModel, BlockSyntax block, CancellationToken cancellationToken)
+        private static bool CheckBlock(BlockSyntax block)
         {
             // TODO(cyrusn): Is it intentional that fixed statement is not in this list?
-            if (block.Parent is BlockSyntax ||
-                block.Parent is DoStatementSyntax ||
-                block.Parent is ElseClauseSyntax ||
-                block.Parent is CommonForEachStatementSyntax ||
-                block.Parent is ForStatementSyntax ||
-                block.Parent is IfStatementSyntax ||
-                block.Parent is LockStatementSyntax ||
-                block.Parent is UsingStatementSyntax ||
-                block.Parent is WhileStatementSyntax)
-            {
-                return true;
-            }
-
-            return false;
+            return block.Parent is BlockSyntax ||
+                   block.Parent is DoStatementSyntax ||
+                   block.Parent is ElseClauseSyntax ||
+                   block.Parent is CommonForEachStatementSyntax ||
+                   block.Parent is ForStatementSyntax ||
+                   block.Parent is IfStatementSyntax ||
+                   block.Parent is LockStatementSyntax ||
+                   block.Parent is UsingStatementSyntax ||
+                   block.Parent is WhileStatementSyntax;
         }
 
-        private bool CheckExpression(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+        private static bool CheckExpression(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -60,30 +51,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return expression.CanReplaceWithRValue(semanticModel, cancellationToken);
         }
 
-        private bool CheckStatement(SemanticModel semanticModel, StatementSyntax statement, CancellationToken cancellationToken)
-        {
-            if (statement is CheckedStatementSyntax ||
-                statement is DoStatementSyntax ||
-                statement is EmptyStatementSyntax ||
-                statement is ExpressionStatementSyntax ||
-                statement is FixedStatementSyntax ||
-                statement is CommonForEachStatementSyntax ||
-                statement is ForStatementSyntax ||
-                statement is IfStatementSyntax ||
-                statement is LocalDeclarationStatementSyntax ||
-                statement is LockStatementSyntax ||
-                statement is ReturnStatementSyntax ||
-                statement is SwitchStatementSyntax ||
-                statement is ThrowStatementSyntax ||
-                statement is TryStatementSyntax ||
-                statement is UnsafeStatementSyntax ||
-                statement is UsingStatementSyntax ||
-                statement is WhileStatementSyntax)
-            {
-                return true;
-            }
-
-            return false;
-        }
+        private static bool CheckStatement(StatementSyntax statement)
+            => statement is CheckedStatementSyntax ||
+               statement is DoStatementSyntax ||
+               statement is EmptyStatementSyntax ||
+               statement is ExpressionStatementSyntax ||
+               statement is FixedStatementSyntax ||
+               statement is CommonForEachStatementSyntax ||
+               statement is ForStatementSyntax ||
+               statement is IfStatementSyntax ||
+               statement is LocalDeclarationStatementSyntax ||
+               statement is LockStatementSyntax ||
+               statement is ReturnStatementSyntax ||
+               statement is SwitchStatementSyntax ||
+               statement is ThrowStatementSyntax ||
+               statement is TryStatementSyntax ||
+               statement is UnsafeStatementSyntax ||
+               statement is UsingStatementSyntax ||
+               statement is WhileStatementSyntax;
     }
 }

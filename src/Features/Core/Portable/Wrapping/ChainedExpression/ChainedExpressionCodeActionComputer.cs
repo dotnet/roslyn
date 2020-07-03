@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -86,20 +85,20 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                     OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(UseTabs, TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    this.GetSmartIndentationAfter(firstPeriod)));
+                    GetSmartIndentationAfter(firstPeriod)));
 
                 _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
-                var actions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var actions);
 
                 await AddWrapCodeActionAsync(actions).ConfigureAwait(false);
                 await AddUnwrapCodeActionAsync(actions).ConfigureAwait(false);
                 await AddWrapLongCodeActionAsync(actions).ConfigureAwait(false);
 
-                return ImmutableArray.Create(new WrappingGroup(isInlinable: true, actions.ToImmutableAndFree()));
+                return ImmutableArray.Create(new WrappingGroup(isInlinable: true, actions.ToImmutable()));
             }
 
             // Pass 0 as the wrapping column as we effectively always want to wrap each chunk
@@ -111,9 +110,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             }
 
             private async Task AddUnwrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
-            {
-                actions.Add(await TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain).ConfigureAwait(false));
-            }
+                => actions.Add(await TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain).ConfigureAwait(false));
 
             private async Task AddWrapLongCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
             {
@@ -123,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
             private ImmutableArray<Edit> GetWrapEdits(int wrappingColumn, bool align)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 // First, normalize the first chunk.
                 var firstChunk = _chunks[0];
@@ -163,22 +160,22 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                     position += NormalizedWidth(chunk);
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
-            private int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
+            private static int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
                 => chunk.Sum(s => s.IsNode ? s.AsNode().Width() : s.AsToken().Width());
 
             private ImmutableArray<Edit> GetUnwrapEdits()
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 // Flatten all the chunks into one long list.  Then delete all the spaces
                 // between each piece in that full list.
                 var flattened = _chunks.SelectMany(c => c).ToImmutableArray();
                 DeleteAllSpacesInChunk(result, flattened);
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private static void DeleteAllSpacesInChunk(

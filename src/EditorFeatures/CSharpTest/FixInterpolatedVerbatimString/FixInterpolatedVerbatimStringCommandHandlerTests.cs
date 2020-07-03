@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
             var view = workspace.Documents.Single().GetTextView();
             var commandHandler = new FixInterpolatedVerbatimStringCommandHandler();
 
-            string quoteCharSnapshotText = default;
+            string quoteCharSnapshotText = null;
             int quoteCharCaretPosition = default;
 
             commandHandler.ExecuteCommand(new TypeCharCommandArgs(view, view.TextBuffer, '"'),
@@ -154,22 +154,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
-        {
-            TestNotHandled(@"@$[||]");
-        }
+            => TestHandled(@"@$[||]", @"$@""[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterDollarSign()
-        {
-            TestNotHandled(@"$[||]");
-        }
+            => TestNotHandled(@"$[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFile()
-        {
-            TestNotHandled(@"[||]");
-        }
+            => TestNotHandled(@"[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestAfterAtSignDollarSignEndOfFile()

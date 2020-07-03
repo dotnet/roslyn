@@ -97,7 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             }
         }
 
-
         private string _requiredSuffix;
         public string RequiredSuffix
         {
@@ -167,9 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             // For screen readers
             public override string ToString()
-            {
-                return Name;
-            }
+                => Name;
         }
     }
 }

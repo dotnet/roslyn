@@ -42,12 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // parsed it yet, and we want to get back to a known state.
             private const int ReportChangeDelayInMilliseconds = TaggerConstants.ShortDelay;
 
-            // TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
-            // LSP client language names
-            private readonly ImmutableArray<string> _lspClientLanguages = ImmutableArray.Create("C#_LSP", "VB_LSP");
-            // Cache if the LSP experiment is enabled.
-            private bool? _areRemoteClassificationsEnabled;
-
             private readonly ITextBuffer _subjectBuffer;
             private readonly WorkspaceRegistration _workspaceRegistration;
             private readonly AsynchronousSerialWorkQueue _workQueue;
@@ -124,9 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             internal void IncrementReferenceCount()
-            {
-                _taggerReferenceCount++;
-            }
+                => _taggerReferenceCount++;
 
             internal void DecrementReferenceCountAndDisposeIfNecessary()
             {
@@ -165,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     var document = workspace.CurrentSolution.GetDocument(documentId);
                     if (document != null)
                     {
-                        EnqueueProcessSnapshotAsync(document);
+                        EnqueueProcessSnapshot(document);
                     }
                 }
             }
@@ -186,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private void EnqueueProcessSnapshotAsync(Document newDocument)
+            private void EnqueueProcessSnapshot(Document newDocument)
             {
                 if (newDocument != null)
                 {
@@ -209,9 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                // TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
-                var latencyTracker = ShouldLogLocalTelemetry(document.Project.Language)
-                    ? new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger) : null;
+                var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
                 using (latencyTracker)
                 {
                     // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
@@ -234,26 +224,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     ReportChangeDelayInMilliseconds,
                     _listener.BeginAsyncOperation("ReportEntireFileChanged"),
                     _reportChangeCancellationSource.Token);
-            }
-
-            /// <summary>
-            /// TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
-            /// Only capture local classification telemetry for experiment when in liveshare and remote classifications are not active.
-            /// </summary>
-            private bool ShouldLogLocalTelemetry(string languageName)
-            {
-                if (!_lspClientLanguages.Contains(languageName))
-                {
-                    return false;
-                }
-
-                if (_areRemoteClassificationsEnabled == null)
-                {
-                    var experimentationService = _workspace.Services.GetService<IExperimentationService>();
-                    _areRemoteClassificationsEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote);
-                }
-
-                return !(bool)_areRemoteClassificationsEnabled;
             }
 
             private void ReportChangedSpan(SnapshotSpan changeSpan)
@@ -498,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                             // make sure in case of parse config change, we re-colorize whole document. not just edited section.
                             var configChanged = !object.Equals(oldProject.ParseOptions, newProject.ParseOptions);
-                            EnqueueProcessSnapshotAsync(newProject.GetDocument(documentId));
+                            EnqueueProcessSnapshot(newProject.GetDocument(documentId));
                             break;
                         }
 
@@ -583,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     var openDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
                     if (openDocumentId == documentId)
                     {
-                        EnqueueProcessSnapshotAsync(newSolution.GetDocument(documentId));
+                        EnqueueProcessSnapshot(newSolution.GetDocument(documentId));
                     }
                 }
             }

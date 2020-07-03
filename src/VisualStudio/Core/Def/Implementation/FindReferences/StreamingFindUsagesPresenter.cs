@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
-            [ImportMany]IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
+            [ImportMany] IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
             : this(workspace,
                    threadingContext,
                    serviceProvider,
@@ -64,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         }
 
         // Test only
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         public StreamingFindUsagesPresenter(
             Workspace workspace,
             ExportProvider exportProvider)
@@ -77,6 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
         }
 
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         private StreamingFindUsagesPresenter(
             Workspace workspace,
             IThreadingContext threadingContext,
@@ -108,6 +112,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     case StandardTableKeyNames2.SymbolKind:
                     case ContainingTypeColumnDefinition.ColumnName:
                     case ContainingMemberColumnDefinition.ColumnName:
+                    case StandardTableKeyNames.Repository:
+                    case StandardTableKeyNames.ItemOrigin:
                         yield return column.Value;
                         break;
                 }
@@ -225,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             this.AssertIsForeground();
 
-            var newColumns = ArrayBuilder<ColumnState>.GetInstance();
+            using var _ = ArrayBuilder<ColumnState>.GetInstance(out var newColumns);
             var tableControl = (IWpfTableControl2)window.TableControl;
 
             foreach (var columnState in window.TableControl.ColumnStates)
@@ -248,7 +254,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             tableControl.SetColumnStates(newColumns);
-            newColumns.Free();
         }
     }
 }

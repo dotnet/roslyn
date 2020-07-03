@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic,
                 isAbstract: symbol.IsAbstract,
-                isUnsafe: symbol.IsUnsafe(),
+                isUnsafe: symbol.RequiresUnsafeModifier(),
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed);
@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
-            return IsBrowsingProhibitedByEditorBrowsableAttribute(symbol, attributes, hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor)
-                || IsBrowsingProhibitedByTypeLibTypeAttribute(symbol, attributes, compilation, typeLibTypeAttributeConstructors)
-                || IsBrowsingProhibitedByTypeLibFuncAttribute(symbol, attributes, compilation, typeLibFuncAttributeConstructors)
-                || IsBrowsingProhibitedByTypeLibVarAttribute(symbol, attributes, compilation, typeLibVarAttributeConstructors)
+            return IsBrowsingProhibitedByEditorBrowsableAttribute(attributes, hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor)
+                || IsBrowsingProhibitedByTypeLibTypeAttribute(attributes, compilation, typeLibTypeAttributeConstructors)
+                || IsBrowsingProhibitedByTypeLibFuncAttribute(attributes, compilation, typeLibFuncAttributeConstructors)
+                || IsBrowsingProhibitedByTypeLibVarAttribute(attributes, compilation, typeLibVarAttributeConstructors)
                 || IsBrowsingProhibitedByHideModuleNameAttribute(symbol, compilation, hideModuleNameAttribute, attributes);
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByEditorBrowsableAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol? constructor)
+            ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol? constructor)
         {
             constructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
             if (constructor == null)
@@ -166,30 +166,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByTypeLibTypeAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
+            ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
-                symbol,
                 attributes,
                 constructors ?? EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(compilation),
                 TypeLibTypeFlagsFHidden);
         }
 
         private static bool IsBrowsingProhibitedByTypeLibFuncAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
+            ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
-                symbol,
                 attributes,
                 constructors ?? EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(compilation),
                 TypeLibFuncFlagsFHidden);
         }
 
         private static bool IsBrowsingProhibitedByTypeLibVarAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
+            ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
-                symbol,
                 attributes,
                 constructors ?? EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(compilation),
                 TypeLibVarFlagsFHidden);
@@ -200,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const int TypeLibVarFlagsFHidden = 0x0040;
 
         private static bool IsBrowsingProhibitedByTypeLibAttributeWorker(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, List<IMethodSymbol> attributeConstructors, int hiddenFlag)
+            ImmutableArray<AttributeData> attributes, List<IMethodSymbol> attributeConstructors, int hiddenFlag)
         {
             foreach (var attribute in attributes)
             {
@@ -210,11 +207,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         if (Equals(attribute.AttributeConstructor, constructor))
                         {
-                            var actualFlags = 0;
-
                             // Check for both constructor signatures. The constructor that takes a TypeLib*Flags reports an int argument.
                             var argumentValue = attribute.ConstructorArguments.First().Value;
 
+                            int actualFlags;
                             if (argumentValue is int i)
                             {
                                 actualFlags = i;
@@ -241,18 +237,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static DocumentationComment GetDocumentationComment(this ISymbol symbol, Compilation compilation, CultureInfo? preferredCulture = null, bool expandIncludes = false, bool expandInheritdoc = false, CancellationToken cancellationToken = default)
-        {
-            return GetDocumentationComment(symbol, visitedSymbols: null, compilation, preferredCulture, expandIncludes, expandInheritdoc, cancellationToken);
-        }
+            => GetDocumentationComment(symbol, visitedSymbols: null, compilation, preferredCulture, expandIncludes, expandInheritdoc, cancellationToken);
 
         private static DocumentationComment GetDocumentationComment(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, CultureInfo? preferredCulture, bool expandIncludes, bool expandInheritdoc, CancellationToken cancellationToken)
         {
             var xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             if (expandInheritdoc)
             {
-                if (string.IsNullOrEmpty(xmlText) && IsEligibleForAutomaticInheritdoc(symbol))
+                if (string.IsNullOrEmpty(xmlText))
                 {
-                    xmlText = $@"<doc><inheritdoc/></doc>";
+                    if (IsEligibleForAutomaticInheritdoc(symbol))
+                    {
+                        xmlText = $@"<doc><inheritdoc/></doc>";
+                    }
+                    else
+                    {
+                        return DocumentationComment.Empty;
+                    }
                 }
 
                 try
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return string.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);
+            return RoslynString.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);
 
             static bool IsEligibleForAutomaticInheritdoc(ISymbol symbol)
             {
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (oldNodes != null)
             {
-                XNode[] rewritten = RewriteMany(symbol, visitedSymbols, compilation, oldNodes.ToArray(), cancellationToken);
+                var rewritten = RewriteMany(symbol, visitedSymbols, compilation, oldNodes.ToArray(), cancellationToken);
                 container.ReplaceNodes(rewritten);
             }
 
@@ -513,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return false;
                 }
 
-                for (int i = 0; i < left.Parameters.Length; i++)
+                for (var i = 0; i < left.Parameters.Length; i++)
                 {
                     if (!left.Parameters[i].Type.Equals(right.Parameters[i].Type))
                     {
@@ -621,9 +622,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool ElementNameIs(XElement element, string name)
-        {
-            return string.IsNullOrEmpty(element.Name.NamespaceName) && DocumentationCommentXmlNames.ElementEquals(element.Name.LocalName, name);
-        }
+            => string.IsNullOrEmpty(element.Name.NamespaceName) && DocumentationCommentXmlNames.ElementEquals(element.Name.LocalName, name);
 
         /// <summary>
         /// First, remove symbols from the set if they are overridden by other symbols in the set.
@@ -649,18 +648,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
             // check to see if we're referencing a symbol defined in source.
-            bool isSymbolDefinedInSource(Location l) => l.IsInSource;
-            return symbols.WhereAsArray(s =>
+            static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
+            return symbols.WhereAsArray((s, arg) =>
                 (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
-                    hideAdvancedMembers,
-                    compilation,
-                    editorBrowsableAttributeConstructor,
-                    typeLibTypeAttributeConstructors,
-                    typeLibFuncAttributeConstructors,
-                    typeLibVarAttributeConstructors,
-                    hideModuleNameAttribute));
+                    arg.hideAdvancedMembers,
+                    arg.compilation,
+                    arg.editorBrowsableAttributeConstructor,
+                    arg.typeLibTypeAttributeConstructors,
+                    arg.typeLibFuncAttributeConstructors,
+                    arg.typeLibVarAttributeConstructors,
+                    arg.hideModuleNameAttribute),
+                (hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor, typeLibTypeAttributeConstructors, typeLibFuncAttributeConstructors, typeLibVarAttributeConstructors, hideModuleNameAttribute));
         }
 
         private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
             return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
-                .WhereAsArray(s => !s.IsUnsafe());
+                .WhereAsArray(s => !s.RequiresUnsafeModifier());
         }
     }
 }

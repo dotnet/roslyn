@@ -19,13 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         {
             private readonly SemanticModel _semanticModel;
             private readonly ILocalSymbol _localSymbol;
-            private readonly ExpressionSyntax _initializer;
 
-            private InitializerRewriter(ExpressionSyntax initializer, ILocalSymbol localSymbol, SemanticModel semanticModel)
+            private InitializerRewriter(ILocalSymbol localSymbol, SemanticModel semanticModel)
             {
                 _semanticModel = semanticModel;
                 _localSymbol = localSymbol;
-                _initializer = initializer;
             }
 
             private bool IsReference(SimpleNameSyntax name)
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             public static ExpressionSyntax Visit(ExpressionSyntax initializer, ILocalSymbol local, SemanticModel semanticModel)
             {
-                var simplifier = new InitializerRewriter(initializer, local, semanticModel);
+                var simplifier = new InitializerRewriter(local, semanticModel);
                 return (ExpressionSyntax)simplifier.Visit(initializer);
             }
         }

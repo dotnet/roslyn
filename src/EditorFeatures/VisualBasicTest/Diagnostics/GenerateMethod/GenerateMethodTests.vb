@@ -756,6 +756,7 @@ Interface ISibling
 End Interface")
         End Function
 
+        <WorkItem(29584, "https://github.com/dotnet/roslyn/issues/29584")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateAbstractIntoSameType() As Task
             Await TestInRegularAndScriptAsync(
@@ -769,7 +770,7 @@ End Class",
         Goo()
     End Sub
 
-    Friend MustOverride Sub Goo()
+    Protected MustOverride Sub Goo()
 End Class",
 index:=1)
         End Function
@@ -1325,7 +1326,7 @@ End Class")
 
         <WorkItem(539821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539821")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Async Function TestEscapeParametername() As Task
+        Public Async Function TestEscapeParameterName() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -1333,16 +1334,14 @@ End Class")
  [|[Me]|]([string])
     End Sub
 End Module",
-"Imports System
-
-Module Program
+"Module Program
     Sub Main(args As String())
         Dim [string] As String = ""hello"" 
  [Me]([string])
     End Sub
 
     Private Sub [Me]([string] As String)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Module")
         End Function
@@ -2395,8 +2394,6 @@ Class Program
 End Class
 </text>.Value.Replace(vbLf, vbCrLf),
 <text>
-Imports System
-
 Class Program
     Sub Main(args As String())
         Goo()
@@ -2404,7 +2401,7 @@ Class Program
     End Sub
 
     Private Sub Goo(Of T)()
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 
     Private Sub Goo()
@@ -3752,6 +3749,29 @@ Public Class C
     End Property
 End Class",
 index:=1)
+        End Function
+
+        <WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodConditionalAccess5() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?[|.B|]()
+    End Sub
+End Structure",
+"Imports System
+
+Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?.B()
+    End Sub
+
+    Private Function B() As Integer
+        Throw New NotImplementedException()
+    End Function
+End Structure")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>

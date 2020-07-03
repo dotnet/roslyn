@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
@@ -14,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly MethodSymbol _topLevelMethod;
 
-        internal DynamicSiteContainer(string name, MethodSymbol topLevelMethod)
-            : base(name, topLevelMethod)
+        internal DynamicSiteContainer(string name, MethodSymbol topLevelMethod, MethodSymbol containingMethod)
+            : base(name, containingMethod)
         {
             Debug.Assert(topLevelMethod != null);
             _topLevelMethod = topLevelMethod;

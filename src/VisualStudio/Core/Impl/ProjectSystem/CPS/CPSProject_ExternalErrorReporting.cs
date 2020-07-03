@@ -26,33 +26,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public int ClearAllErrors()
-        {
-            return GetExternalErrorReporter().ClearAllErrors();
-        }
+            => GetExternalErrorReporter().ClearAllErrors();
 
         public int AddNewErrors(IVsEnumExternalErrors pErrors)
-        {
-            return GetExternalErrorReporter().AddNewErrors(pErrors);
-        }
+            => GetExternalErrorReporter().AddNewErrors(pErrors);
 
         public int GetErrors(out IVsEnumExternalErrors pErrors)
-        {
-            return GetExternalErrorReporter().GetErrors(out pErrors);
-        }
+            => GetExternalErrorReporter().GetErrors(out pErrors);
 
         public int ReportError(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
-        {
-            return GetExternalErrorReporter().ReportError(bstrErrorMessage, bstrErrorId, nPriority, iLine, iColumn, bstrFileName);
-        }
+            => GetExternalErrorReporter().ReportError(bstrErrorMessage, bstrErrorId, nPriority, iLine, iColumn, bstrFileName);
 
         public int ClearErrors()
-        {
-            return GetExternalErrorReporter().ClearErrors();
-        }
+            => GetExternalErrorReporter().ClearErrors();
 
         public void ReportError2(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
-        {
-            GetExternalErrorReporter().ReportError2(bstrErrorMessage, bstrErrorId, nPriority, iStartLine, iStartColumn, iEndLine, iEndColumn, bstrFileName);
-        }
+            => GetExternalErrorReporter().ReportError2(bstrErrorMessage, bstrErrorId, nPriority, iStartLine, iStartColumn, iEndLine, iEndColumn, bstrFileName);
     }
 }

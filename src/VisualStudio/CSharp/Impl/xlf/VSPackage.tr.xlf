@@ -78,7 +78,8 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
+Use enhanced colors;
+Editor Color Scheme;</source>
         <target state="translated">Kapatılan dosyalara ilişkin tanılamaları göster;
 Normal ifadeyi renklendir; 
 İmlecin altında ilgili bileşenleri vurgula; 
@@ -87,7 +88,7 @@ Tam çözüm analizini etkinleştir;
 Dış işlemde düzenleyici özellik analizi gerçekleştir;
 Kaynak koda dönüştürülen kaynaklar için gezintiyi etkinleştir;
 Using yönergeleri;
-using deyimlerini sıralarken sistem yönergelerini ilk sıraya yerleştir;
+using yönergelerini sıralarken sistem yönergelerini ilk sıraya yerleştir;
 using yönerge gruplarını ayır;
 Başvuru bütünleştirilmiş kodlarında türler için using öner;
 NuGet paketlerinde türler için using öner;
@@ -124,7 +125,8 @@ oluşturma özelliklerini tercih et;
 otomatik özellikleri tercih et;
 normal ifade;
 normal ifade;
-Gelişmiş renkleri kullan;</target>
+Gelişmiş renkleri kullan;
+Düzenleyici Renk Düzeni;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -272,6 +274,7 @@ for deyiminde noktalı virgülden önce boşluk ekle;
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
@@ -282,8 +285,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Tamamlanma listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlanma listesi;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">Tamamlanma listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlanma listesi;
 Bir karakter yazıldıktan sonra tamamlanma listesini göster;
 Bir karakter silindikten sonra tamamlanma listesini göster;
 Tamamlanma listesi öğelerinin eşleşen kısımlarını vurgula;

@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1033,6 +1034,66 @@ class Program
 
             Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [Fact]
+        public void LookupInsideLocalFunctionAttribute()
+        {
+            var testSrc = @"
+using System;
+
+class Program
+{
+    const int w = 0451;
+
+    void M()
+    {
+        int x = 42;
+        const int y = 123;
+        [ObsoleteAttribute(/*pos*/
+        static void local1(int z)
+        {
+        }
+    }
+}
+";
+
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
+
+        [Fact]
+        public void LookupInsideIncompleteStatementAttribute()
+        {
+            var testSrc = @"
+using System;
+
+class Program
+{
+    const int w = 0451;
+
+    void M()
+    {
+        int x = 42;
+        const int y = 123;
+        [ObsoleteAttribute(/*pos*/
+        int
+    }
+}
+";
+
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
         }
 
         [WorkItem(541909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541909")]

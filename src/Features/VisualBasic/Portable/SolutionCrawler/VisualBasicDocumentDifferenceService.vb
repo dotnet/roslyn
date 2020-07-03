@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionCrawler
         Inherits AbstractDocumentDifferenceService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
     End Class

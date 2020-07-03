@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,10 +13,9 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -129,28 +129,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
             // so we need to consider them.
-            return type.AssemblyQualifiedName;
+            return type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type);
         }
 
         public static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> ToResultBuilderMap(
             this AnalysisResult analysisResult,
+            ImmutableArray<Diagnostic> additionalPragmaSuppressionDiagnostics,
             Project project, VersionStamp version, Compilation compilation, IEnumerable<DiagnosticAnalyzer> analyzers,
+            SkippedHostAnalyzersInfo skippedAnalyzersInfo,
             CancellationToken cancellationToken)
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
 
             ImmutableArray<Diagnostic> diagnostics;
-
             foreach (var analyzer in analyzers)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                if (skippedAnalyzersInfo.SkippedAnalyzers.Contains(analyzer))
+                {
+                    continue;
+                }
+
                 var result = new DiagnosticAnalysisResultBuilder(project, version);
+                var diagnosticIdsToFilter = skippedAnalyzersInfo.FilteredDiagnosticIdsForAnalyzers.GetValueOrDefault(
+                    analyzer,
+                    ImmutableArray<string>.Empty);
 
                 foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SyntaxDiagnostics)
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
+                        diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                         Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSyntaxDiagnostics(tree, diagnostics);
                     }
@@ -160,6 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
+                        diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                         Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSemanticDiagnostics(tree, diagnostics);
                     }
@@ -167,8 +178,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
                 {
+                    diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                     Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                     result.AddCompilationDiagnostics(diagnostics);
+                }
+
+                // Special handling for pragma suppression diagnostics.
+                if (analyzer is IPragmaSuppressionsAnalyzer)
+                {
+                    foreach (var group in additionalPragmaSuppressionDiagnostics.GroupBy(d => d.Location.SourceTree!))
+                    {
+                        diagnostics = group.AsImmutable().Filter(diagnosticIdsToFilter);
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        result.AddSemanticDiagnostics(group.Key, diagnostics);
+                    }
+
+                    additionalPragmaSuppressionDiagnostics = ImmutableArray<Diagnostic>.Empty;
                 }
 
                 builder.Add(analyzer, result);
@@ -177,29 +202,76 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        public static NotificationOption ToNotificationOption(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
+        /// <summary>
+        /// Filters out the diagnostics with the specified <paramref name="diagnosticIdsToFilter"/>.
+        /// </summary>
+        public static ImmutableArray<Diagnostic> Filter(this ImmutableArray<Diagnostic> diagnostics, ImmutableArray<string> diagnosticIdsToFilter)
         {
-            switch (reportDiagnostic.WithDefaultSeverity(defaultSeverity))
+            if (diagnosticIdsToFilter.IsEmpty)
             {
-                case ReportDiagnostic.Error:
-                    return NotificationOption.Error;
-
-                case ReportDiagnostic.Warn:
-                    return NotificationOption.Warning;
-
-                case ReportDiagnostic.Info:
-                    return NotificationOption.Suggestion;
-
-                case ReportDiagnostic.Hidden:
-                    return NotificationOption.Silent;
-
-                case ReportDiagnostic.Suppress:
-                    return NotificationOption.None;
-
-                case ReportDiagnostic.Default:
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
+                return diagnostics;
             }
+
+            return diagnostics.RemoveAll(diagnostic => diagnosticIdsToFilter.Contains(diagnostic.Id));
+        }
+
+        public static async Task<(AnalysisResult result, ImmutableArray<Diagnostic> additionalDiagnostics)> GetAnalysisResultAsync(
+            this CompilationWithAnalyzers compilationWithAnalyzers,
+            Project project,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            CancellationToken cancellationToken)
+        {
+            var result = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+            var additionalDiagnostics = await compilationWithAnalyzers.GetPragmaSuppressionAnalyzerDiagnosticsAsync(project, analyzerInfoCache, cancellationToken).ConfigureAwait(false);
+            return (result, additionalDiagnostics);
+        }
+
+        private static async Task<ImmutableArray<Diagnostic>> GetPragmaSuppressionAnalyzerDiagnosticsAsync(
+            this CompilationWithAnalyzers compilationWithAnalyzers,
+            Project project,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            CancellationToken cancellationToken)
+        {
+            var suppressionAnalyzer = compilationWithAnalyzers.Analyzers.OfType<IPragmaSuppressionsAnalyzer>().FirstOrDefault();
+            if (suppressionAnalyzer == null)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
+            if (compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis)
+            {
+                var bag = new ConcurrentBag<Diagnostic>();
+                using var _ = ArrayBuilder<Task>.GetInstance(project.DocumentIds.Count, out var tasks);
+                foreach (var document in project.Documents)
+                {
+                    tasks.Add(AnalyzeDocumentAsync(suppressionAnalyzer, document, bag.Add));
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+                return bag.ToImmutableArray();
+            }
+            else
+            {
+                using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
+                foreach (var document in project.Documents)
+                {
+                    await AnalyzeDocumentAsync(suppressionAnalyzer, document, diagnosticsBuilder.Add).ConfigureAwait(false);
+                }
+
+                return diagnosticsBuilder.ToImmutable();
+            }
+
+            // Local functions.
+            async Task AnalyzeDocumentAsync(IPragmaSuppressionsAnalyzer suppressionAnalyzer, Document document, Action<Diagnostic> reportDiagnostic)
+            {
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
+                await suppressionAnalyzer.AnalyzeAsync(semanticModel, span: null, compilationWithAnalyzers,
+                    analyzerInfoCache.GetDiagnosticDescriptors, IsCompilationEndAnalyzer, reportDiagnostic, cancellationToken).ConfigureAwait(false);
+            }
+
+            bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer)
+                => analyzerInfoCache.IsCompilationEndAnalyzer(analyzer, compilationWithAnalyzers.AnalysisOptions.Options!, compilationWithAnalyzers.Compilation) ?? true;
         }
     }
 }

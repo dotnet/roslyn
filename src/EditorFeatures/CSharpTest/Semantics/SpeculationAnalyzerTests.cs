@@ -176,7 +176,7 @@ class Program
         var d = new Class();
         [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(d)", false);
+}           ", "((IComparable)c).CompareTo(d)", semanticChanges: false);
         }
 
         [Fact]
@@ -493,14 +493,10 @@ class Program
         }
 
         protected override SyntaxTree Parse(string text)
-        {
-            return SyntaxFactory.ParseSyntaxTree(text);
-        }
+            => SyntaxFactory.ParseSyntaxTree(text);
 
         protected override bool IsExpressionNode(SyntaxNode node)
-        {
-            return node is ExpressionSyntax;
-        }
+            => node is ExpressionSyntax;
 
         protected override Compilation CreateCompilation(SyntaxTree tree)
         {
@@ -520,8 +516,6 @@ class Program
         }
 
         protected override bool ReplacementChangesSemantics(SyntaxNode initialNode, SyntaxNode replacementNode, SemanticModel initialModel)
-        {
-            return new SpeculationAnalyzer((ExpressionSyntax)initialNode, (ExpressionSyntax)replacementNode, initialModel, CancellationToken.None).ReplacementChangesSemantics();
-        }
+            => new SpeculationAnalyzer((ExpressionSyntax)initialNode, (ExpressionSyntax)replacementNode, initialModel, CancellationToken.None).ReplacementChangesSemantics();
     }
 }

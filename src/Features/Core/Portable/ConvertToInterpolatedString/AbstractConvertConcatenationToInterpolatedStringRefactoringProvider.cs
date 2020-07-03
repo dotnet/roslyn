@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,8 +11,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             // Now walk down the concatenation collecting all the pieces that we are
             // concatenating.
-            var pieces = new List<SyntaxNode>();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var pieces);
             CollectPiecesDown(syntaxFacts, pieces, top, semanticModel, cancellationToken);
 
             var stringLiterals = pieces
@@ -108,23 +107,23 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 top.Span);
         }
 
-        private Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
+        private static Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
         {
             var newRoot = root.ReplaceNode(top, interpolatedString);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
         protected SyntaxNode CreateInterpolatedString(
-            Document document, bool isVerbatimStringLiteral, List<SyntaxNode> pieces)
+            Document document, bool isVerbatimStringLiteral, ArrayBuilder<SyntaxNode> pieces)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
-            var startToken = CreateInterpolatedStringStartToken(isVerbatimStringLiteral)
+            var startToken = generator.CreateInterpolatedStringStartToken(isVerbatimStringLiteral)
                                 .WithLeadingTrivia(pieces.First().GetLeadingTrivia());
-            var endToken = CreateInterpolatedStringEndToken()
+            var endToken = generator.CreateInterpolatedStringEndToken()
                                 .WithTrailingTrivia(pieces.Last().GetTrailingTrivia());
 
-            var content = new List<SyntaxNode>(pieces.Count);
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(pieces.Count, out var content);
             var previousContentWasStringLiteralExpression = false;
             foreach (var piece in pieces)
             {
@@ -175,12 +174,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         }
 
         protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral, bool isCharacterLiteral);
-        protected abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatimStringLiteral);
-        protected abstract SyntaxToken CreateInterpolatedStringEndToken();
 
         private void CollectPiecesDown(
             ISyntaxFactsService syntaxFacts,
-            List<SyntaxNode> pieces,
+            ArrayBuilder<SyntaxNode> pieces,
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -197,7 +194,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             pieces.Add(right);
         }
 
-        private bool IsStringConcat(
+        private static bool IsStringConcat(
             ISyntaxFactsService syntaxFacts, SyntaxNode expression,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {

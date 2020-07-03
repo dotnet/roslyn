@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -22,8 +23,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly object _gate = new object();
         private readonly IStreamingFindReferencesProgress _underlyingProgress;
 
-        private readonly Dictionary<SymbolAndProjectId, List<ReferenceLocation>> _symbolToLocations =
-            new Dictionary<SymbolAndProjectId, List<ReferenceLocation>>();
+        private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations =
+            new Dictionary<ISymbol, List<ReferenceLocation>>();
+
+        public IStreamingProgressTracker ProgressTracker => _underlyingProgress.ProgressTracker;
+
+        public StreamingProgressCollector()
+            : this(NoOpStreamingFindReferencesProgress.Instance)
+        {
+        }
 
         public StreamingProgressCollector(
             IStreamingFindReferencesProgress underlyingProgress)
@@ -47,12 +55,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public Task OnStartedAsync() => _underlyingProgress.OnStartedAsync();
         public Task OnCompletedAsync() => _underlyingProgress.OnCompletedAsync();
-        public Task ReportProgressAsync(int current, int maximum) => _underlyingProgress.ReportProgressAsync(current, maximum);
 
         public Task OnFindInDocumentCompletedAsync(Document document) => _underlyingProgress.OnFindInDocumentCompletedAsync(document);
         public Task OnFindInDocumentStartedAsync(Document document) => _underlyingProgress.OnFindInDocumentStartedAsync(document);
 
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
+        public Task OnDefinitionFoundAsync(ISymbol definition)
         {
             lock (_gate)
             {
@@ -62,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return _underlyingProgress.OnDefinitionFoundAsync(definition);
         }
 
-        public Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
+        public Task OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
         {
             lock (_gate)
             {

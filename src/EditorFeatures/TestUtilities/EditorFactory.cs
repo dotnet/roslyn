@@ -70,8 +70,6 @@ namespace Roslyn.Test.EditorUtilities
         }
 
         public static string LinesToFullText(params string[] lines)
-        {
-            return string.Join("\r\n", lines);
-        }
+            => string.Join("\r\n", lines);
     }
 }

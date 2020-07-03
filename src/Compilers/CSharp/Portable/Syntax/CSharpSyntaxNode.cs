@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     //deferral can result in meaningful savings of strings.
     public abstract partial class CSharpSyntaxNode : SyntaxNode, IFormattable
     {
-        internal CSharpSyntaxNode(GreenNode green, SyntaxNode parent, int position)
+        internal CSharpSyntaxNode(GreenNode green, SyntaxNode? parent, int position)
             : base(green, parent, position)
         {
         }
@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SyntaxTree ComputeSyntaxTree(CSharpSyntaxNode node)
         {
-            ArrayBuilder<CSharpSyntaxNode> nodes = null;
-            SyntaxTree tree = null;
+            ArrayBuilder<CSharpSyntaxNode>? nodes = null;
+            SyntaxTree? tree = null;
 
             // Find the nearest parent with a non-null syntax tree
             while (true)
@@ -121,19 +121,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The node that contains this node in its Children collection.
         /// </summary>
-        internal new CSharpSyntaxNode Parent
+        internal new CSharpSyntaxNode? Parent
         {
             get
             {
-                return (CSharpSyntaxNode)base.Parent;
+                return (CSharpSyntaxNode?)base.Parent;
             }
         }
 
-        internal new CSharpSyntaxNode ParentOrStructuredTriviaParent
+        internal new CSharpSyntaxNode? ParentOrStructuredTriviaParent
         {
             get
             {
-                return (CSharpSyntaxNode)base.ParentOrStructuredTriviaParent;
+                return (CSharpSyntaxNode?)base.ParentOrStructuredTriviaParent;
             }
         }
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Directives
 
-        internal IList<DirectiveTriviaSyntax> GetDirectives(Func<DirectiveTriviaSyntax, bool> filter = null)
+        internal IList<DirectiveTriviaSyntax> GetDirectives(Func<DirectiveTriviaSyntax, bool>? filter = null)
         {
             return ((SyntaxNodeOrToken)this).GetDirectives<DirectiveTriviaSyntax>(filter);
         }
@@ -245,15 +245,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the first directive of the tree rooted by this node.
         /// </summary>
-        public DirectiveTriviaSyntax GetFirstDirective(Func<DirectiveTriviaSyntax, bool> predicate = null)
+        public DirectiveTriviaSyntax? GetFirstDirective(Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             foreach (var child in this.ChildNodesAndTokens())
             {
                 if (child.ContainsDirectives)
                 {
-                    if (child.IsNode)
+                    if (child.AsNode(out var node))
                     {
-                        var d = child.AsNode().GetFirstDirective(predicate);
+                        var d = node.GetFirstDirective(predicate);
                         if (d != null)
                         {
                             return d;
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (tr.IsDirective)
                             {
-                                var d = (DirectiveTriviaSyntax)tr.GetStructure();
+                                var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                                 if (predicate == null || predicate(d))
                                 {
                                     return d;
@@ -285,15 +285,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the last directive of the tree rooted by this node.
         /// </summary>
-        public DirectiveTriviaSyntax GetLastDirective(Func<DirectiveTriviaSyntax, bool> predicate = null)
+        public DirectiveTriviaSyntax? GetLastDirective(Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             foreach (var child in this.ChildNodesAndTokens().Reverse())
             {
                 if (child.ContainsDirectives)
                 {
-                    if (child.IsNode)
+                    if (child.AsNode(out var node))
                     {
-                        var d = child.AsNode().GetLastDirective(predicate);
+                        var d = node.GetLastDirective(predicate);
                         if (d != null)
                         {
                             return d;
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (tr.IsDirective)
                             {
-                                var d = (DirectiveTriviaSyntax)tr.GetStructure();
+                                var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                                 if (predicate == null || predicate(d))
                                 {
                                     return d;
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="stepInto">Steps into trivia if this is not null.  Only trivia for which this delegate returns
         /// true are included.</param> 
         /// <returns></returns>
-        internal SyntaxToken GetFirstToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto = null)
+        internal SyntaxToken GetFirstToken(Func<SyntaxToken, bool>? predicate, Func<SyntaxTrivia, bool>? stepInto = null)
         {
             return SyntaxNavigator.Instance.GetFirstToken(this, predicate, stepInto);
         }
@@ -406,12 +406,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(trivia.HasStructure);
-            SyntaxToken triviaToken = ((CSharpSyntaxNode)trivia.GetStructure()).FindTokenInternal(position);
+            SyntaxToken triviaToken = ((CSharpSyntaxNode)trivia.GetStructure()!).FindTokenInternal(position);
 
             // CONSIDER: We might want to use the trivia token anywhere within a doc comment.
             // Otherwise, we'll fall back on the enclosing scope outside of name and cref
             // attribute values.
-            CSharpSyntaxNode curr = (CSharpSyntaxNode)triviaToken.Parent;
+            CSharpSyntaxNode? curr = (CSharpSyntaxNode?)triviaToken.Parent;
             while (curr != null)
             {
                 // Don't return a trivia token unless we're in the scope of a cref or name attribute.
@@ -480,12 +480,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected internal override SyntaxNode ReplaceCore<TNode>(
-            IEnumerable<TNode> nodes = null,
-            Func<TNode, TNode, SyntaxNode> computeReplacementNode = null,
-            IEnumerable<SyntaxToken> tokens = null,
-            Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken = null,
-            IEnumerable<SyntaxTrivia> trivia = null,
-            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null)
+            IEnumerable<TNode>? nodes = null,
+            Func<TNode, TNode, SyntaxNode>? computeReplacementNode = null,
+            IEnumerable<SyntaxToken>? tokens = null,
+            Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken = null,
+            IEnumerable<SyntaxTrivia>? trivia = null,
+            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia = null)
         {
             return SyntaxReplacer.Replace(this, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxReplacer.InsertTriviaInList(this, originalTrivia, newTrivia, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
-        protected internal override SyntaxNode RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options)
+        protected internal override SyntaxNode? RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options)
         {
             return SyntaxNodeRemover.RemoveNodes(this, nodes.Cast<CSharpSyntaxNode>(), options).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         {
             return ToString();
         }

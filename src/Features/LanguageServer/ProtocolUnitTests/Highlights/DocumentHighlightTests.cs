@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +30,7 @@ class A
         {|caret:|}{|write:classB|} = new B();
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = new LSP.DocumentHighlight[]
             {
                 CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, locations["text"].Single()),
@@ -39,7 +38,7 @@ class A
                 CreateDocumentHighlight(LSP.DocumentHighlightKind.Write, locations["write"].Single())
             };
 
-            var results = await RunGetDocumentHighlightAsync(solution, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertJsonEquals(expected, results);
         }
 
@@ -54,15 +53,16 @@ class A
         {|caret:|}
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGetDocumentHighlightAsync(solution, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(workspace.CurrentSolution, locations["caret"].Single());
             Assert.Empty(results);
         }
 
         private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(Solution solution, LSP.Location caret)
         {
-            var results = await GetLanguageServer(solution).GetDocumentHighlightAsync(solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+            var results = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName,
+                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
             Array.Sort(results, (h1, h2) =>
             {
                 var compareKind = h1.Kind.CompareTo(h2.Kind);
@@ -73,7 +73,7 @@ class A
             return results;
         }
 
-        private LSP.DocumentHighlight CreateDocumentHighlight(LSP.DocumentHighlightKind kind, LSP.Location location)
+        private static LSP.DocumentHighlight CreateDocumentHighlight(LSP.DocumentHighlightKind kind, LSP.Location location)
             => new LSP.DocumentHighlight()
             {
                 Kind = kind,

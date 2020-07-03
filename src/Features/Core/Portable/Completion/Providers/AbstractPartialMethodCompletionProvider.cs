@@ -96,12 +96,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var line = text.Lines.IndexOf(position);
             var lineSpan = text.Lines.GetLineFromPosition(position).Span;
-            return symbols.Select(s => CreateItem(s, line, lineSpan, span, semanticModel, modifiers, document, token));
+            return symbols.Select(s => CreateItem(s, line, span, semanticModel, modifiers, token));
         }
 
-        private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan lineSpan, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, Document document, SyntaxToken token)
+        private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, SyntaxToken token)
         {
-            modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.IsUnsafe(), isPartial: true, isAsync: modifiers.IsAsync);
+            modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.RequiresUnsafeModifier(), isPartial: true, isAsync: modifiers.IsAsync);
             var displayText = GetDisplayText(method, semanticModel, span.Start);
 
             return MemberInsertionCompletionItem.Create(

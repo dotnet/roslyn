@@ -661,7 +661,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            ' Reference binding doesn't depend on previous submission so we can reuse it.
+            ' Metadata references are inherited from the previous submission,
+            ' so we can only reuse the manager if we can guarantee that these references are the same.
+            ' Check if the previous script compilation doesn't change. 
+
+            ' TODO Consider comparing the metadata references if they have been bound already.
+            ' https://github.com/dotnet/roslyn/issues/43397
+            Dim reuseReferenceManager = ScriptCompilationInfo?.PreviousScriptCompilation Is info?.PreviousScriptCompilation
 
             Return New VisualBasicCompilation(
                 Me.AssemblyName,
@@ -677,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,
-                reuseReferenceManager:=True)
+                reuseReferenceManager)
         End Function
 
         ''' <summary>
@@ -702,6 +708,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 eventQueue:=eventQueue)
         End Function
 
+        Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
+            ' LanguageVersion should already be mapped to an effective version at this point
+            Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
+            WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
+
+            If Options.CheckOverflow Then
+                WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            End If
+
+            If Options.OptionStrict <> OptionStrict.Off Then
+                WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
+            End If
+
+            If Options.ParseOptions IsNot Nothing Then
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
+                                                                                              If (p.Value Is Nothing) Then
+                                                                                                  Return p.Key
+                                                                                              End If
+
+                                                                                              Return p.Key + "=" + p.Value.ToString()
+                                                                                          End Function)
+                WriteValue(builder, CompilationOptionNames.Define, String.Join(",", preprocessorStrings))
+            End If
+        End Sub
+
+        Private Sub WriteValue(builder As BlobBuilder, key As String, value As String)
+            builder.WriteUTF8(key)
+            builder.WriteByte(0)
+            builder.WriteUTF8(value)
+            builder.WriteByte(0)
+        End Sub
 #End Region
 
 #Region "Submission"
@@ -770,6 +807,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ScriptClass.GetScriptInitializer(),
                 Nothing)
         End Function
+
+        Protected Overrides ReadOnly Property CommonScriptGlobalsType As ITypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
 
 #End Region
 
@@ -1764,7 +1807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ClassifyConversion(source, destination).ToCommonConversion()
         End Function
 
-        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As [Optional](Of Object)) As IConvertibleConversion
+        Friend Overrides Function ClassifyConvertibleConversion(source As IOperation, destination As ITypeSymbol, ByRef constantValue As ConstantValue) As IConvertibleConversion
             constantValue = Nothing
 
             If destination Is Nothing Then
@@ -1773,9 +1816,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceType As ITypeSymbol = source.Type
 
+            Dim sourceConstantValue as ConstantValue = source.GetConstantValue()
             If sourceType Is Nothing Then
-                If source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing AndAlso destination.IsReferenceType Then
-                    constantValue = source.ConstantValue
+                If sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing AndAlso destination.IsReferenceType Then
+                    constantValue = sourceConstantValue
                     Return New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.WideningNothingLiteral, Nothing))
                 End If
 
@@ -1784,8 +1828,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As Conversion = ClassifyConversion(sourceType, destination)
 
-            If result.IsReference AndAlso source.ConstantValue.HasValue AndAlso source.ConstantValue.Value Is Nothing Then
-                constantValue = source.ConstantValue
+            If result.IsReference AndAlso sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing Then
+                constantValue = sourceConstantValue
             End If
 
             Return result
@@ -2159,10 +2203,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
+        Friend Overrides Function CreateAnalyzerDriver(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager, severityFilter As SeverityFilter) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
             Dim isComment As Func(Of SyntaxTrivia, Boolean) = Function(trivia As SyntaxTrivia) trivia.Kind() = SyntaxKind.CommentTrivia
-            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, isComment)
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, severityFilter, isComment)
         End Function
 
 #End Region
@@ -2719,6 +2763,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
+        End Function
+
+        Protected Overrides Function CommonCreateFunctionPointerTypeSymbol(
+                returnType As ITypeSymbol,
+                refKind as RefKind,
+                parameterTypes as ImmutableArray(Of ITypeSymbol),
+                parameterRefKinds as ImmutableArray(Of RefKind)) As IFunctionPointerTypeSymbol
+            Throw New NotSupportedException(VBResources.ThereAreNoFunctionPointerTypesInVB)
+        End Function
+
+        Protected Overrides Function CommonCreateNativeIntegerTypeSymbol(signed As Boolean) As INamedTypeSymbol
+            Throw New NotSupportedException(VBResources.ThereAreNoNativeIntegerTypesInVB)
         End Function
 
         Protected Overrides Function CommonCreateAnonymousTypeSymbol(

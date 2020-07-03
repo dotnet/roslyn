@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public sealed override string EquivalenceKey { get; }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return Task.FromResult<Document>(null);
-            }
+                => Task.FromResult<Document>(null);
         }
 
         internal class DocumentChangeAction : SimpleCodeAction
@@ -38,9 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return _createChangedDocument(cancellationToken);
-            }
+                => _createChangedDocument(cancellationToken);
         }
 
         internal class SolutionChangeAction : SimpleCodeAction
@@ -54,9 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
-            {
-                return _createChangedSolution(cancellationToken);
-            }
+                => _createChangedSolution(cancellationToken);
         }
     }
 }

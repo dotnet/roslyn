@@ -51,9 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         private SyntaxNode LookupNode()
-        {
-            return FileCodeModel.LookupNode(_nodeKey);
-        }
+            => FileCodeModel.LookupNode(_nodeKey);
 
         internal override Snapshot CreateSnapshot()
         {

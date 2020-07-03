@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
 
-        protected SyntaxToken StripNewLines(Document document, SyntaxToken token)
+        protected static SyntaxToken StripNewLines(Document document, SyntaxToken token)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
@@ -33,9 +32,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
             // If the list ends with 3 newlines remove the last one until there's only 2 newlines to end the leading trivia.
             while (trimmedLeadingTrivia.Count >= 3 &&
-                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[trimmedLeadingTrivia.Count - 3]) &&
-                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[trimmedLeadingTrivia.Count - 2]) &&
-                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[trimmedLeadingTrivia.Count - 1]))
+                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[^3]) &&
+                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[^2]) &&
+                   syntaxFacts.IsEndOfLineTrivia(trimmedLeadingTrivia[^1]))
             {
                 trimmedLeadingTrivia.RemoveAt(trimmedLeadingTrivia.Count - 1);
             }
@@ -65,13 +64,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         bool IEqualityComparer<T>.Equals(T x, T y)
-        {
-            return x.Span == y.Span;
-        }
+            => x.Span == y.Span;
 
         int IEqualityComparer<T>.GetHashCode(T obj)
-        {
-            return obj.Span.GetHashCode();
-        }
+            => obj.Span.GetHashCode();
     }
 }

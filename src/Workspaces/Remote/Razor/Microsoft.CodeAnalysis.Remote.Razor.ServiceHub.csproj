@@ -28,9 +28,10 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonTraceListener.cs" Link="Shared\WatsonTraceListener.cs" />
     <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.cs">
       <Link>Shared\RoslynJsonConverter.cs</Link>
     </Compile>

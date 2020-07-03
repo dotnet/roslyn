@@ -6,9 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -142,7 +145,7 @@ public class X
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
-                Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int?", "int").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int").WithLocation(11, 18)
                 );
         }
 
@@ -216,7 +219,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
                 // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (s is NullableInt x) { } // error: cannot use nullable type
-                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int").WithLocation(11, 18),
                 // (12,18): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'long'.
                 //         if (s is long l) { } // error: cannot convert string to long
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("string", "long").WithLocation(12, 18),
@@ -4279,7 +4282,8 @@ public class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                );
             CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4374,12 +4378,12 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (9,29): error CS0118: '_' is a variable but is used like a type
-                //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_BadSKknown, "_").WithArguments("_", "variable", "type").WithLocation(9, 29),
-                // (12,18): error CS0150: A constant value is expected
-                //             case _:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18)
+                    // (9,29): error CS0118: '_' is a variable but is used like a type
+                    //         Write($"is _: {i is _}, ");
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "_").WithArguments("_", "variable", "type").WithLocation(9, 29),
+                    // (12,18): error CS0150: A constant value is expected
+                    //             case _:
+                    Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18)
                 );
         }
 
@@ -4662,9 +4666,9 @@ public class Program46
                 // (10,18): error CS0150: A constant value is expected
                 //             case M:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
-                // (11,18): error CS0150: A constant value is expected
+                // (11,19): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int)M()").WithLocation(11, 19)
                 );
         }
 
@@ -4828,15 +4832,100 @@ public class Program5815
             VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
         }
 
+        [Fact]
+        public void Fuzz_Conjunction_01()
+        {
+            var program = @"
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        if (((int?)1) is {} and 1) { }
+    }
+}";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Fuzz_738490379()
+        {
+            var program = @"
+public class Program738490379
+{
+    public static void Main(string[] args)
+    {
+        if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+    }
+    private static object M() => null;
+}";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (6,13): error CS0841: Cannot use local variable 'NotFound' before it is declared
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "NotFound").WithArguments("NotFound").WithLocation(6, 13),
+                    // (6,37): error CS1026: ) expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(6, 37),
+                    // (6,37): error CS1026: ) expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(6, 37),
+                    // (6,37): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int _ ").WithLocation(6, 37),
+                    // (6,41): warning CS0168: The variable '_' is declared but never used
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(6, 41),
+                    // (6,43): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "or").WithLocation(6, 43),
+                    // (6,43): error CS0246: The type or namespace name 'or' could not be found (are you missing a using directive or an assembly reference?)
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "or").WithArguments("or").WithLocation(6, 43),
+                    // (6,55): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "_").WithLocation(6, 55),
+                    // (6,55): error CS0103: The name '_' does not exist in the current context
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(6, 55),
+                    // (6,56): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 56),
+                    // (6,56): error CS1513: } expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 56),
+                    // (6,62): error CS1513: } expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 62)
+                );
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
         public void Fuzz()
         {
-            const int numTests = 1000000;
+            const int numTests = 1200000;
             int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
             for (int i = 1; i < numTests; i++)
             {
                 PatternMatchingFuzz(i + dt);
             }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
+        public void MultiFuzz()
+        {
+            // Just like Fuzz(), but take advantage of concurrency on the test host.
+            const int numTasks = 300;
+            const int numTestsPerTask = 4000;
+            int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
+            var tasks = Enumerable.Range(0, numTasks).Select(t => Task.Run(() =>
+            {
+                int k = dt + t * numTestsPerTask;
+                for (int i = 1; i < numTestsPerTask; i++)
+                {
+                    PatternMatchingFuzz(i + k);
+                }
+            }));
+            Task.WaitAll(tasks.ToArray());
         }
 
         private static void PatternMatchingFuzz(int dt)
@@ -4874,18 +4963,48 @@ public class Program5815
                 "NotFound"
             };
             string Type() => types[r.Next(types.Length)];
-            string Pattern()
+            string Pattern(int d = 5)
             {
-                switch (r.Next(3))
+                switch (r.Next(d <= 1 ? 9 : 12))
                 {
-                    case 0:
-                        return Expression(); // a "constant" pattern
-                    case 1:
-                        return Type() + " x" + r.Next(10);
-                    case 2:
-                        return Type() + " _";
                     default:
-                        throw null;
+                        return Expression(); // a "constant" pattern
+                    case 3:
+                    case 4:
+                        return Type();
+                    case 5:
+                        return Type() + " _";
+                    case 6:
+                        return Type() + " x" + r.Next(10);
+                    case 7:
+                        return "not " + Pattern(d - 1);
+                    case 8:
+                        return "(" + Pattern(d - 1) + ")";
+                    case 9:
+                        return makeRecursivePattern(d);
+                    case 10:
+                        return Pattern(d - 1) + " and " + Pattern(d - 1);
+                    case 11:
+                        return Pattern(d - 1) + " or " + Pattern(d - 1);
+                }
+
+                string makeRecursivePattern(int d)
+                {
+                    while (true)
+                    {
+                        bool haveParens = r.Next(2) == 0;
+                        bool haveCurlies = r.Next(2) == 0;
+                        if (!haveParens && !haveCurlies)
+                            continue;
+                        bool haveType = r.Next(2) == 0;
+                        bool haveIdentifier = r.Next(2) == 0;
+                        return $"{(haveType ? Type() : null)} {(haveParens ? $"({makePatternList(d - 1, false)})" : null)} {(haveCurlies ? $"{"{ "}{makePatternList(d - 1, true)}{" }"}" : null)} {(haveIdentifier ? " x" + r.Next(10) : null)}";
+                    }
+                }
+
+                string makePatternList(int d, bool propNames)
+                {
+                    return string.Join(", ", Enumerable.Range(0, r.Next(3)).Select(i => $"{(propNames ? $"P{r.Next(10)}: " : null)}{Pattern(d)}"));
                 }
             }
             string body = @"
@@ -5012,7 +5131,7 @@ class Derived : Base
 }
 ";
             var compilation = CreateCompilation(program).VerifyDiagnostics(
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case TDerived td:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "TDerived td").WithLocation(12, 18)
                 );
@@ -5038,7 +5157,7 @@ public class Program
 }
 ";
             var compilation = CreateCompilation(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case IEnumerable<object> s:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<object> s").WithLocation(11, 18)
                 );
@@ -5127,7 +5246,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18)
                 );
             CreateCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "T tt").WithLocation(10, 18)
                 );
@@ -5510,9 +5629,9 @@ namespace System
             compilation.VerifyDiagnostics(
                 );
             compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
-                // (7,13): error CS0656: Missing compiler required member 'System.Single.IsNaN'
+                // (7,18): error CS0656: Missing compiler required member 'System.Single.IsNaN'
                 //             case 0f/0f: break;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "case 0f/0f:").WithArguments("System.Single", "IsNaN").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "0f/0f").WithArguments("System.Single", "IsNaN").WithLocation(7, 18)
                 );
         }
 
@@ -5576,10 +5695,10 @@ namespace System
 ";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8120: The switch case has already been handled by a previous case.
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case 2:     // subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "2").WithLocation(9, 18),
-                // (19,18): error CS8120: The switch case has already been handled by a previous case.
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case int _:  // subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int _").WithLocation(19, 18)
                 );
@@ -6337,7 +6456,8 @@ internal class Program
 ";
             var expectedOutput = @"Exception";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6602,6 +6722,35 @@ public class C
 
         [Fact]
         [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_03()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators,
+                text: @"
+using System;
+public class C
+{
+    public ref int M()
+    {
+        Span<int> outer = stackalloc int[100];
+        if (outer is ({} and var x) and Span<int> inner)
+        {
+            return ref inner[5];
+        }
+
+        throw null;
+    }
+}").VerifyDiagnostics(
+                // (8,13): warning CS8794: An expression of type 'Span<int>' always matches the provided pattern.
+                //         if (outer is ({} and var x) and Span<int> inner)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is ({} and var x) and Span<int> inner").WithArguments("System.Span<int>").WithLocation(8, 13),
+                // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             return ref inner[5];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
         public void CasePatternMatchingDoesNotCopyEscapeScopes_01()
         {
             CreateCompilationWithMscorlibAndSpan(@"
@@ -6614,6 +6763,33 @@ public class C
         switch (outer)
         {
             case Span<int> inner:
+            {
+                return ref inner[5];
+            }
+        }
+
+        throw null;
+    }
+}").VerifyDiagnostics(
+                // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //                 return ref inner[5];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_03()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+using System;
+public class C
+{
+    public ref int M()
+    {
+        Span<int> outer = stackalloc int[100];
+        switch (outer)
+        {
+            case {} and Span<int> inner:
             {
                 return ref inner[5];
             }
@@ -6725,6 +6901,102 @@ public class C
 
         [Fact]
         [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_04()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and { Prop: var _ and {} and var x }: return x; // error 1
+        }
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and { Prop: var _ and {} and R x }: return x; // error 2
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // error 3
+        }
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // error 4
+        }
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and var (x, y): return x; // error 5
+        }
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and { } x: return x; // error 6
+        }
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // error 7
+        }
+    }
+}
+").VerifyDiagnostics(
+                // (16,76): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and { Prop: var _ and {} and var x }: return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 76),
+                // (24,74): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and { Prop: var _ and {} and R x }: return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 74),
+                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                // (40,88): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 88),
+                // (48,54): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and var (x, y): return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 54),
+                // (56,49): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and { } x: return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 49),
+                // (64,86): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 86)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
         public void IsPatternMatchingDoesNotCopyEscapeScopes_02()
         {
             CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
@@ -6802,6 +7074,108 @@ public class C
                 // (50,39): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         if (outer is (_, _) x) return x; // error 7
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 39)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_04()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+        throw null;
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+        throw null;
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and var (x, y)) return x; // error 5
+        throw null;
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and { } x) return x; // error 6
+        throw null;
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and (_, _) x) return x; // error 7
+        throw null;
+    }
+}
+").VerifyDiagnostics(
+                //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and var x }").WithArguments("R").WithLocation(14, 13),
+                // (14,80): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 80),
+                // (20,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and R x }").WithArguments("R").WithLocation(20, 13),
+                // (20,78): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 78),
+                // (26,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)").WithArguments("R").WithLocation(26, 13),
+                // (26,96): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 96),
+                // (32,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)").WithArguments("R").WithLocation(32, 13),
+                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                // (38,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and var (x, y)").WithArguments("R").WithLocation(38, 13),
+                // (38,58): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 58),
+                // (44,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { } x) return x; // error 6
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { } x").WithArguments("R").WithLocation(44, 13),
+                // (44,53): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and { } x) return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 53),
+                // (50,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (_, _) x").WithArguments("R").WithLocation(50, 13),
+                // (50,56): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 56)
                 );
         }
 

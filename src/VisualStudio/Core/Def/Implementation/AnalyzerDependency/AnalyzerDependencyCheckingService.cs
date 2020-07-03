@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -62,8 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerDependencyCheckingService(
             VisualStudioWorkspace workspace,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource)

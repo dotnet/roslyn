@@ -6,6 +6,8 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
@@ -16,7 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynPreviewCodeActionsHandler : PreviewCodeActionsHandler
     {
         [ImportingConstructor]
-        public RoslynPreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RoslynPreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, ILspSolutionProvider solutionProvider)
+            : base(codeFixService, codeRefactoringService, solutionProvider)
         {
         }
     }
@@ -25,7 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpPreviewCodeActionsHandler : PreviewCodeActionsHandler
     {
         [ImportingConstructor]
-        public CSharpPreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpPreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, ILspSolutionProvider solutionProvider)
+            : base(codeFixService, codeRefactoringService, solutionProvider)
         {
         }
     }
@@ -34,7 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicPreviewCodeActionsHandler : PreviewCodeActionsHandler
     {
         [ImportingConstructor]
-        public VisualBasicPreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualBasicPreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, ILspSolutionProvider solutionProvider)
+            : base(codeFixService, codeRefactoringService, solutionProvider)
         {
         }
     }
@@ -43,7 +51,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptPreviewCodeActionsHandler : PreviewCodeActionsHandler
     {
         [ImportingConstructor]
-        public TypeScriptPreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeScriptPreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, ILspSolutionProvider solutionProvider)
+            : base(codeFixService, codeRefactoringService, solutionProvider)
         {
         }
     }

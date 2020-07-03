@@ -26,13 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         protected override string GetMemberDisplayString(ISymbol memberSymbol)
-        {
-            return memberSymbol.ToDisplayString(s_memberDisplayFormat);
-        }
+            => memberSymbol.ToDisplayString(s_memberDisplayFormat);
 
         protected override string GetMemberAndTypeDisplayString(ISymbol memberSymbol)
-        {
-            return memberSymbol.ToDisplayString(s_memberWithContainingTypeDisplayFormat);
-        }
+            => memberSymbol.ToDisplayString(s_memberWithContainingTypeDisplayFormat);
     }
 }

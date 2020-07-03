@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -26,14 +27,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             private readonly IComparer<T> _comparer;
 
             internal InverseComparer(IComparer<T> comparer)
-            {
-                _comparer = comparer;
-            }
+                => _comparer = comparer;
 
-            public int Compare(T x, T y)
-            {
-                return _comparer.Compare(y, x);
-            }
+            public int Compare([AllowNull] T x, [AllowNull] T y)
+                => _comparer.Compare(y, x);
         }
     }
 }

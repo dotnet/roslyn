@@ -3309,7 +3309,10 @@ class C
 @"
 void f() { if () const int i = 0; }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+    // (2,6): warning CS8321: The local function 'f' is declared but never used
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(2, 6),
     // (2,16): error CS1525: Invalid expression term ')'
     // void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
@@ -3375,15 +3378,15 @@ void f() { if () const int i = 0; }
                 // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)null:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
-                // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
-                //             case (object)null:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13),
                 // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)"b":
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18),
                 // (23,18): error CS0150: A constant value is expected
                 //             case (object)"b":
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18));
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18),
+                // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
+                //             case (object)null:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13));
         }
 
         [Fact]
@@ -3431,7 +3434,9 @@ class C
                 );
         }
 
-        [Fact]
+        // Attempting to call `ConstantValue` on every constiuent string component times out the IOperation runner.
+        // Instead, we manually validate just the top level
+        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019")]
         public void TestLargeStringConcatenation()
         {
             // When the compiler folds string concatenations using an O(n^2) algorithm, this program cannot be
@@ -3452,12 +3457,29 @@ class C
 ";
             StringBuilder source = new StringBuilder();
             source.Append(source0);
-            for (int i = 0; i < 5000; i++)
+            const int NumIterations = 5000;
+            for (int i = 0; i < NumIterations; i++)
             {
                 source.Append(@"""Lorem ipsum dolor sit amet"" + "", consectetur adipiscing elit, sed"" + "" do eiusmod tempor incididunt"" + "" ut labore et dolore magna aliqua. "" +" + "\n");
             }
             source.Append(source1);
-            CompileAndVerify(source.ToString(), expectedOutput: "58430604");
+            var comp = CreateCompilation(source.ToString(), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "58430604");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            var literalOperation = model.GetOperation(initializer);
+
+            var stringTextBuilder = new StringBuilder();
+            stringTextBuilder.Append("BEGIN ");
+            for (int i = 0; i < NumIterations; i++)
+            {
+                stringTextBuilder.Append("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ");
+            }
+            stringTextBuilder.Append("END");
+
+            Assert.Equal(stringTextBuilder.ToString(), literalOperation.ConstantValue);
         }
     }
 

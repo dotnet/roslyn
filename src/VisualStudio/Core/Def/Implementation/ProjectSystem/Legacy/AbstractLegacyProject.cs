@@ -9,10 +9,8 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
-using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
@@ -42,6 +40,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         /// </summary>
         private readonly string _projectDirectory = null;
 
+        /// <summary>
+        /// Whether we should ignore the output path for this project because it's a special project.
+        /// </summary>
+        private readonly bool _ignoreOutputPath;
+
         private static readonly char[] PathSeparatorCharacters = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         #region Mutable fields that should only be used from the UI thread
@@ -54,11 +57,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             string projectSystemName,
             IVsHierarchy hierarchy,
             string language,
+            bool isVsIntellisenseProject,
             IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
-            string externalErrorReportingPrefix,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-            ICommandLineParserService commandLineParserServiceOpt)
+            string externalErrorReportingPrefix)
             : base(threadingContext, assertIsForeground: true)
         {
             Contract.ThrowIfNull(hierarchy);
@@ -77,6 +79,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (projectFilePath != null)
             {
                 _projectDirectory = Path.GetDirectoryName(projectFilePath);
+            }
+
+            if (isVsIntellisenseProject)
+            {
+                // IVsIntellisenseProjects are usually used for contained language cases, which means these projects don't have any real
+                // output path that we should consider. Since those point to the same IVsHierarchy as another project, we end up with two projects
+                // with the same output path, which potentially breaks conversion of metadata references to project references. However they're
+                // also used for database projects and a few other cases where there there isn't a "primary" IVsHierarchy.
+                // As a heuristic here we'll ignore the output path if we already have another project tied to the IVsHierarchy.
+                foreach (var projectId in Workspace.CurrentSolution.ProjectIds)
+                {
+                    if (Workspace.GetHierarchy(projectId) == hierarchy)
+                    {
+                        _ignoreOutputPath = true;
+                        break;
+                    }
+                }
             }
 
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
@@ -133,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         public string AssemblyName => VisualStudioProject.AssemblyName;
 
         public string GetOutputFileName()
-            => VisualStudioProject.IntermediateOutputFilePath;
+            => VisualStudioProject.CompilationOutputAssemblyFilePath;
 
         public virtual void Disconnect()
         {
@@ -217,6 +236,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void RefreshBinOutputPath()
         {
+            // These projects are created against the same hierarchy as the "main" project that
+            // hosts the rest of the code; if we query the IVsHierarchy for the output path
+            // we'll end up with duplicate output paths which can break P2P referencing. Since the output
+            // path doesn't make sense for these, we'll ignore them.
+            if (_ignoreOutputPath)
+            {
+                return;
+            }
+
             if (!(Hierarchy is IVsBuildPropertyStorage storage))
             {
                 return;
@@ -269,22 +297,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             return Guid.Empty;
-        }
-
-        private static bool GetIsWebsiteProject(IVsHierarchy hierarchy)
-        {
-            try
-            {
-                if (hierarchy.TryGetProject(out var project))
-                {
-                    return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
-                }
-            }
-            catch (Exception)
-            {
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -345,9 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         // from native to managed can end up resulting in boxed ints instead.  Handle both here so 
         // we're resilient to however the IVsHierarchy was actually implemented.
         private static uint UnboxVSItemId(object id)
-        {
-            return id is uint ? (uint)id : unchecked((uint)(int)id);
-        }
+            => id is uint ? (uint)id : unchecked((uint)(int)id);
 
         private static void ComputeFolderNames(uint folderItemID, List<string> names, IVsHierarchy hierarchy)
         {

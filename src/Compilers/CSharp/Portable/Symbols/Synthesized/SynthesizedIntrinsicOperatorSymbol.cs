@@ -277,6 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // operators are never 'readonly' because there is no 'this' parameter
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
@@ -490,6 +492,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<CustomModifier> RefCustomModifiers
             {
                 get { return ImmutableArray<CustomModifier>.Empty; }
+            }
+
+            internal override MarshalPseudoCustomAttributeData MarshallingInformation
+            {
+                get { return null; }
             }
         }
     }

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -21,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
         Friend ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(Of String)(BC37001)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -30,12 +32,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End Get
         End Property
 
-        Protected Overrides Async Function GetDescription(diagnostic As Diagnostic, node As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of String)
+        Protected Overrides Async Function GetDescriptionAsync(diagnostic As Diagnostic, node As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of String)
             Dim methodNode = Await GetMethodFromExpression(node, semanticModel, cancellationToken).ConfigureAwait(False)
             Return String.Format(VBFeaturesResources.Make_0_an_Async_Function, methodNode.Item2.BlockStatement)
         End Function
 
-        Protected Overrides Async Function GetRootInOtherSyntaxTree(node As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxTree, SyntaxNode))
+        Protected Overrides Async Function GetRootInOtherSyntaxTreeAsync(node As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxTree, SyntaxNode))
             Dim tuple = Await GetMethodFromExpression(node, semanticModel, cancellationToken).ConfigureAwait(False)
             If tuple Is Nothing Then
                 Return Nothing
@@ -48,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return System.Tuple.Create(oldRoot.SyntaxTree, newRoot)
         End Function
 
-        Private Async Function GetMethodFromExpression(oldNode As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxNode, MethodBlockSyntax))
+        Private Shared Async Function GetMethodFromExpression(oldNode As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxNode, MethodBlockSyntax))
             If oldNode Is Nothing Then
                 Return Nothing
             End If
@@ -82,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return Tuple.Create(root, methodBlock)
         End Function
 
-        Private Function ConvertToAsyncFunction(methodBlock As MethodBlockSyntax) As MethodBlockSyntax
+        Private Shared Function ConvertToAsyncFunction(methodBlock As MethodBlockSyntax) As MethodBlockSyntax
             Dim methodNode = methodBlock.SubOrFunctionStatement
 
             Dim blockBegin = SyntaxFactory.FunctionStatement(

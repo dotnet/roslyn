@@ -27,7 +27,6 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/41456"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
         public async Task Test_OpenProjectReferencingPortableProject()
         {
@@ -706,7 +705,6 @@ class C1
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_Respect_ReferenceOutputassembly_Flag()
         {
-            var projFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"VisualBasicProject_Circular_Top.vbproj", Resources.ProjectFiles.VisualBasic.Circular_Top)
                 .WithFile(@"VisualBasicProject_Circular_Target.vbproj", Resources.ProjectFiles.VisualBasic.Circular_Target));
@@ -1171,7 +1169,7 @@ class C1
             });
         }
 
-        private IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
+        private readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
@@ -2664,7 +2662,7 @@ class C1
             }
         }
 
-        private FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
+        private static FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
         {
             var result = new List<(string, object)>();
             foreach (var (fileName, fileContent) in files)
@@ -2681,7 +2679,7 @@ class C1
             return new FileSet(result.ToArray());
         }
 
-        private string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
+        private static string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
         {
             var document = XDocument.Parse(projectFileText);
             var projectReferenceItems = document.Descendants(XName.Get("ProjectReference", MSBuildNamespace));
@@ -3552,7 +3550,7 @@ class C { }";
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(31390, "https://github.com/dotnet/roslyn/issues/31390")]
-        public async Task TestDuplicateProjectReference()
+        public async Task TestDuplicateProjectAndMetadataReferences()
         {
             var files = GetDuplicateProjectReferenceSolutionFiles();
             CreateFiles(files);
@@ -3565,6 +3563,10 @@ class C { }";
                 var project = solution.Projects.Single(p => p.FilePath.EndsWith("CSharpProject_ProjectReference.csproj"));
 
                 Assert.Single(project.ProjectReferences);
+
+                AssertEx.Equal(
+                    new[] { "EmptyLibrary.dll", "System.Core.dll", "mscorlib.dll" },
+                    project.MetadataReferences.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)).OrderBy(StringComparer.Ordinal));
 
                 var compilation = await project.GetCompilationAsync();
 
@@ -3581,7 +3583,7 @@ class C { }";
 
             CreateFiles(files);
 
-            string expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
+            var expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
 
             using (var workspace = CreateMSBuildWorkspace())
             {

@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -305,6 +307,50 @@ enum F
             }
             builder.AppendLine("}");
             return builder.ToString();
+        }
+
+        [WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")]
+        [Fact]
+        public void UseSiteError()
+        {
+            var sourceA =
+@"public class A { }";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"public class B<T>
+{
+    public enum E { F }
+}
+public class C
+{
+    public const B<A>.E F = default;
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var refB = comp.EmitToImageReference();
+
+            var sourceC =
+@"class Program
+{
+    static void Main()
+    {
+        const int x = (int)~C.F;
+        System.Console.WriteLine(x);
+    }
+}";
+            comp = CreateCompilation(sourceC, references: new[] { refB });
+            // https://github.com/dotnet/roslyn/issues/45625: A use-site error should be reported for C.F.
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.BitwiseNotExpression);
+            var value = model.GetConstantValue(expr);
+            // https://github.com/dotnet/roslyn/issues/45625: Binder.FoldUnaryOperator() should return null if C.F has a use-site error.
+            Assert.True(value.HasValue);
+            Assert.Equal(-1, value.Value);
         }
     }
 }

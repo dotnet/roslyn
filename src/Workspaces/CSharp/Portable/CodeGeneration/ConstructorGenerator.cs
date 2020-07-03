@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal static class ConstructorGenerator
     {
         private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return LastConstructor(members) ?? LastField(members);
-        }
+            => LastConstructor(members) ?? LastField(members);
 
         internal static TypeDeclarationSyntax AddConstructorTo(
             TypeDeclarationSyntax destination,
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var constructorDeclaration = GenerateConstructorDeclaration(
-                constructor, GetDestination(destination), workspace, options,
+                constructor, workspace, options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Generate after the last constructor, or after the last field, or at the start of the
@@ -43,8 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
-            IMethodSymbol constructor, CodeGenerationDestination destination,
-            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
+            IMethodSymbol constructor,
+            Workspace workspace,
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             options ??= CodeGenerationOptions.Default;
 
@@ -106,9 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ArgumentListSyntax GenerateArgumentList(ImmutableArray<SyntaxNode> arguments)
-        {
-            return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
-        }
+            => SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
 
         private static BlockSyntax GenerateBlock(
             IMethodSymbol constructor)

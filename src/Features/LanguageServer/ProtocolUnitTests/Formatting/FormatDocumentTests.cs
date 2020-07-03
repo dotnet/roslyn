@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -34,17 +33,18 @@ void M()
         int i = 1;
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var documentURI = locations["caret"].Single().Uri;
-            var documentText = await solution.GetDocumentFromURI(documentURI).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocuments(documentURI).Single().GetTextAsync();
 
-            var results = await RunFormatDocumentAsync(solution, documentURI);
+            var results = await RunFormatDocumentAsync(workspace.CurrentSolution, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }
 
         private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(Solution solution, Uri uri)
-            => await GetLanguageServer(solution).FormatDocumentAsync(solution, CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), CancellationToken.None);
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName,
+                CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), null, CancellationToken.None);
 
         private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri)
             => new LSP.DocumentFormattingParams()

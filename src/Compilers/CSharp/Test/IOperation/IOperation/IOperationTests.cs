@@ -129,14 +129,14 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
               Value:
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String?) (Syntax: 'x')
         Next (Regular) Block[B4]
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
               Value:
-                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
+                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String?) (Syntax: 'y')
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]

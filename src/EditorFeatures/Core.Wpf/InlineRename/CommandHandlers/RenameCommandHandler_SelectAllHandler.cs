@@ -14,14 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         ICommandHandler<SelectAllCommandArgs>
     {
         public CommandState GetCommandState(SelectAllCommandArgs args)
-        {
-            return GetCommandState();
-        }
+            => GetCommandState();
 
         public bool ExecuteCommand(SelectAllCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteSelectAll(args.SubjectBuffer, args.TextView);
-        }
+            => ExecuteSelectAll(args.SubjectBuffer, args.TextView);
 
         private bool ExecuteSelectAll(ITextBuffer subjectBuffer, ITextView view)
         {

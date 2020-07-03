@@ -26,16 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
     public class InteractiveBraceHighlightingTests
     {
         private IEnumerable<T> Enumerable<T>(params T[] array)
-        {
-            return array;
-        }
+            => array;
 
         private async Task<IEnumerable<ITagSpan<BraceHighlightTag>>> ProduceTagsAsync(
             TestWorkspace workspace,
             ITextBuffer buffer,
             int position)
         {
-            var view = new Mock<ITextView>();
+            var view = new Mock<ITextView>(MockBehavior.Strict);
             var producer = new BraceHighlightingViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.GetService<IBraceMatchingService>(),
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             var context = new TaggerContext<BraceHighlightTag>(
                 buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault(),
                 buffer.CurrentSnapshot, new SnapshotPoint(buffer.CurrentSnapshot, position));
-            await producer.ProduceTagsAsync_ForTestingPurposesOnly(context);
+            await producer.GetTestAccessor().ProduceTagsAsync(context);
 
             return context.tagSpans;
         }

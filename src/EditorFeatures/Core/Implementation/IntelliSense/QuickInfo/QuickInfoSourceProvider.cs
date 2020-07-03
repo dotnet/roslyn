@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -17,18 +18,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     [Name("RoslynQuickInfoProvider")]
     internal partial class QuickInfoSourceProvider : IAsyncQuickInfoSourceProvider
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public QuickInfoSourceProvider(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+        public QuickInfoSourceProvider(
+            IThreadingContext threadingContext,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
+            _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
 
         public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
-        {
-            return new QuickInfoSource(textBuffer, _streamingPresenter);
-        }
+            => new QuickInfoSource(textBuffer, _threadingContext, _streamingPresenter);
     }
 }

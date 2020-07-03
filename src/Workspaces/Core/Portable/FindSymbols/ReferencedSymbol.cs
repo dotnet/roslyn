@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The symbol definition that these are references to.
         /// </summary>
-        public ISymbol Definition => DefinitionAndProjectId.Symbol;
-
-        internal SymbolAndProjectId DefinitionAndProjectId { get; }
+        public ISymbol Definition { get; }
 
         /// <summary>
         /// The set of reference locations in the solution.
@@ -33,10 +31,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public IEnumerable<ReferenceLocation> Locations { get; }
 
         internal ReferencedSymbol(
-            SymbolAndProjectId definitionAndProjectId,
+            ISymbol definition,
             IEnumerable<ReferenceLocation> locations)
         {
-            this.DefinitionAndProjectId = definitionAndProjectId;
+            this.Definition = definition;
             this.Locations = (locations ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>()).ToReadOnlyCollection();
         }
 
@@ -54,9 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly ReferencedSymbol _referencedSymbol;
 
             public TestAccessor(ReferencedSymbol referencedSymbol)
-            {
-                _referencedSymbol = referencedSymbol;
-            }
+                => _referencedSymbol = referencedSymbol;
 
             internal string GetDebuggerDisplay()
                 => _referencedSymbol.GetDebuggerDisplay();

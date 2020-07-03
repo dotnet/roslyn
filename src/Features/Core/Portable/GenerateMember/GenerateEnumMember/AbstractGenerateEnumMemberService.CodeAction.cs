@@ -15,16 +15,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
     {
         private partial class GenerateEnumMemberCodeAction : CodeAction
         {
-            private readonly TService _service;
             private readonly Document _document;
             private readonly State _state;
 
             public GenerateEnumMemberCodeAction(
-                TService service,
                 Document document,
                 State state)
             {
-                _service = service;
                 _document = document;
                 _state = state;
             }
@@ -39,7 +36,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                     ? EnumValueUtilities.GetNextEnumValue(_state.TypeToGenerateIn)
                     : null;
 
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var result = await codeGenerator.AddFieldAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,

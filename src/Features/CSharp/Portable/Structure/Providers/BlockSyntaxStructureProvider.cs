@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             BlockSyntax node,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
@@ -72,18 +73,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         private static bool IsNonBlockStatement(SyntaxNode node)
-        {
-            return node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
-        }
+            => node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
 
-        private TextSpan GetHintSpan(BlockSyntax node)
+        private static TextSpan GetHintSpan(BlockSyntax node)
         {
             var start = node.Parent.Span.Start;
             var end = GetEnd(node);
             return TextSpan.FromBounds(start, end);
         }
 
-        private TextSpan GetTextSpan(BlockSyntax node)
+        private static TextSpan GetTextSpan(BlockSyntax node)
         {
             var previousToken = node.GetFirstToken().GetPreviousToken();
             if (previousToken.IsKind(SyntaxKind.None))
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
         }
 
-        private string GetType(SyntaxNode parent)
+        private static string GetType(SyntaxNode parent)
         {
             switch (parent.Kind())
             {

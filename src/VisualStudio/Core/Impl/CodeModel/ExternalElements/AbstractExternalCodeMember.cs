@@ -28,9 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         protected virtual EnvDTE.CodeElements GetParameters()
-        {
-            return ExternalParameterCollection.Create(this.State, this, this.ProjectId);
-        }
+            => ExternalParameterCollection.Create(this.State, this, this.ProjectId);
 
         public bool CanOverride
         {

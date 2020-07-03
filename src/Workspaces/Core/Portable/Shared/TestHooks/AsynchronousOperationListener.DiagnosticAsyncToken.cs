@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using System.IO;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
@@ -37,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
 
             internal void AssociateWithTask(Task task)
-            {
-                Task = task;
-            }
+                => Task = task;
 
             public override string ToString() => $"{Name} {Path.GetFileName(FilePath)} {LineNumber}";
         }

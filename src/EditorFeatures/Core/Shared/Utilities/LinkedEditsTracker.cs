@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public IList<SnapshotSpan> GetActiveSpansForSnapshot(ITextSnapshot snapshot)
-        {
-            return _trackingSpans.Select(ts => ts.GetSpan(snapshot)).ToList();
-        }
+            => _trackingSpans.Select(ts => ts.GetSpan(snapshot)).ToList();
 
         public void AddSpans(IEnumerable<ITrackingSpan> spans)
         {
@@ -55,9 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public bool MyOwnChanges(TextContentChangedEventArgs args)
-        {
-            return args.EditTag == s_propagateSpansEditTag;
-        }
+            => args.EditTag == s_propagateSpansEditTag;
 
         public bool TryGetTextChanged(TextContentChangedEventArgs args, out string replacementText)
         {

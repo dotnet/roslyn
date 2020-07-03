@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IAssemblySymbol within,
             ITypeSymbol? throughType = null)
         {
-            return IsSymbolAccessibleCore(symbol, within, throughType, out var failedThroughTypeCheck);
+            return IsSymbolAccessibleCore(symbol, within, throughType, out _);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol within,
             ITypeSymbol? throughType = null)
         {
-            return IsSymbolAccessible(symbol, within, throughType, out var failedThroughTypeCheck);
+            return IsSymbolAccessible(symbol, within, throughType, out _);
         }
 
         /// <summary>
@@ -103,6 +103,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case SymbolKind.PointerType:
                     return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck);
 
+                case SymbolKindEx.FunctionPointerType:
+#if !CODE_STYLE
+                    var funcPtrSignature = ((IFunctionPointerTypeSymbol)symbol).Signature;
+                    if (!IsSymbolAccessibleCore(funcPtrSignature.ReturnType, within, null, out failedThroughTypeCheck))
+                    {
+                        return false;
+                    }
+
+                    foreach (var param in funcPtrSignature.Parameters)
+                    {
+                        if (!IsSymbolAccessibleCore(param.Type, within, null, out failedThroughTypeCheck))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+#else
+                    return false;
+#endif
+
                 case SymbolKind.NamedType:
                     return IsNamedTypeAccessible((INamedTypeSymbol)symbol, within);
 
@@ -143,6 +164,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
 
                     // If it's a synthesized operator on a pointer, use the pointer's PointedAtType.
+                    // Note: there are currently no synthesized operators on function pointer types. If that
+                    // ever changes, updated the below assert and fix the code
+#if !CODE_STYLE
+                    Debug.Assert(!(symbol.IsKind(SymbolKind.Method) && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator && symbol.ContainingSymbol.IsKind(SymbolKind.FunctionPointerType)));
+#endif
                     if (symbol.IsKind(SymbolKind.Method) &&
                         ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&
                         symbol.ContainingSymbol.IsKind(SymbolKind.PointerType))
@@ -170,7 +196,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            bool unused;
             if (!type.IsDefinition)
             {
                 // All type argument must be accessible.
@@ -180,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // worth optimizing this).
                     if (typeArg.Kind != SymbolKind.TypeParameter &&
                         typeArg.TypeKind != TypeKind.Error &&
-                        !IsSymbolAccessibleCore(typeArg, within, null, out unused))
+                        !IsSymbolAccessibleCore(typeArg, within, null, out _))
                     {
                         return false;
                     }
@@ -190,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var containingType = type.ContainingType;
             return containingType == null
                 ? IsNonNestedTypeAccessible(type.ContainingAssembly, type.DeclaredAccessibility, within)
-                : IsMemberAccessible(type.ContainingType, type.DeclaredAccessibility, within, null, out unused);
+                : IsMemberAccessible(type.ContainingType, type.DeclaredAccessibility, within, null, out _);
         }
 
         // Is a top-level type with accessibility "declaredAccessibility" inside assembly "assembly"
@@ -359,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // LangCompiler::CheckAccessCore
             {
                 var current = withinType.OriginalDefinition;
-                var originalThroughType = throughType == null ? null : throughType.OriginalDefinition;
+                var originalThroughType = throughType?.OriginalDefinition;
                 while (current != null)
                 {
                     Debug.Assert(current.IsDefinition);

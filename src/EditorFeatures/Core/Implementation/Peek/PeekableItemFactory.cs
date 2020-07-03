@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -23,10 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PeekableItemFactory(IMetadataAsSourceFileService metadataAsSourceFileService)
-        {
-            _metadataAsSourceFileService = metadataAsSourceFileService;
-        }
+            => _metadataAsSourceFileService = metadataAsSourceFileService;
 
         public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(
             ISymbol symbol, Project project,
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             }
 
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
             if (symbolNavigationService.WouldNavigateToSymbol(
                     definitionItem, solution, cancellationToken,

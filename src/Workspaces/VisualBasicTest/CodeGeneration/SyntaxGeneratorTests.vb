@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
 
         Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System})
 
-        Private _ienumerableInt As INamedTypeSymbol
+        Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
         Public Sub New()
             Me._ienumerableInt = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_emptyCompilation.GetSpecialType(SpecialType.System_Int32))
@@ -33,24 +33,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             End Get
         End Property
 
-        Public Function Compile(code As String) As Compilation
+        Public Shared Function Compile(code As String) As Compilation
             Return VisualBasicCompilation.Create("test").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
         End Function
 
-        Private Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
+        Private Shared Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
             Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
             Assert.Equal(fixedExpectations, normalized)
         End Sub
 
-        Private Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
+        Private Shared Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim text = type.ToFullString()
             Assert.Equal(expectedText, text)
         End Sub
 
-        Private Function ParseCompilationUnit(text As String) As CompilationUnitSyntax
+        Private Shared Function ParseCompilationUnit(text As String) As CompilationUnitSyntax
             Dim fixedText = text.Replace(vbLf, vbCrLf)
             Return SyntaxFactory.ParseCompilationUnit(fixedText)
         End Function
@@ -205,7 +205,7 @@ End Class
 
         End Sub
 
-        Private Function GetAttributeData(decl As String, use As String) As AttributeData
+        Private Shared Function GetAttributeData(decl As String, use As String) As AttributeData
             Dim code = decl & vbCrLf & use & vbCrLf & "Public Class C " & vbCrLf & "End Class" & vbCrLf
             Dim compilation = Compile(code)
             Dim typeC = DirectCast(compilation.GlobalNamespace.GetMembers("C").First, INamedTypeSymbol)
@@ -553,8 +553,6 @@ End If")
 
         <Fact>
         Public Sub TestSwitchStatements()
-            Dim x = 10
-
             VerifySyntax(Of SelectBlockSyntax)(
                 Generator.SwitchStatement(Generator.IdentifierName("x"),
                     Generator.SwitchSection(Generator.IdentifierName("y"),
@@ -789,7 +787,7 @@ End Sub")
         End Sub
 
         <Fact, WorkItem(31720, "https://github.com/dotnet/roslyn/issues/31720")>
-        Sub TestGetAttributeOnMethodBodies()
+        Public Sub TestGetAttributeOnMethodBodies()
             Dim compilation = Compile("
 Imports System
 <AttributeUsage(System.AttributeTargets.All)>
@@ -1649,7 +1647,6 @@ End Namespace")
     End Class
 End Namespace")
         End Sub
-
 
         <Fact>
         Public Sub TestCompilationUnits()
@@ -2969,11 +2966,6 @@ End Get")
 
         Private Sub TestRemoveAllMembers(declaration As SyntaxNode)
             Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count)
-        End Sub
-
-        Private Sub TestRemoveMember(declaration As SyntaxNode, name As String, remainingNames As String())
-            Dim newDecl = Generator.RemoveNode(declaration, Generator.GetMembers(declaration).First(Function(m) Generator.GetName(m) = name))
-            AssertMemberNamesEqual(remainingNames, newDecl)
         End Sub
 
         <Fact>

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                 : base(service, document, originalSourceText, options, cancellationToken)
             {
                 _exprsAndOperators = exprsAndOperators;
-                _preference = options.GetOption(CodeStyleOptions.OperatorPlacementWhenWrapping);
+                _preference = options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                                       .CreateIndentationString(UseTabs, TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    this.GetSmartIndentationAfter(_exprsAndOperators[1])));
+                    GetSmartIndentationAfter(_exprsAndOperators[1])));
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
 
             private ImmutableArray<Edit> GetWrapEdits(bool align)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
                 var indentationTrivia = align ? _indentAndAlignTrivia : _smartIndentTrivia;
 
                 for (var i = 1; i < _exprsAndOperators.Length; i += 2)
@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                     }
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private ImmutableArray<Edit> GetUnwrapEdits()
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 for (var i = 0; i < _exprsAndOperators.Length - 1; i++)
                 {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                         NoTrivia, _exprsAndOperators[i + 1]));
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
         }
     }

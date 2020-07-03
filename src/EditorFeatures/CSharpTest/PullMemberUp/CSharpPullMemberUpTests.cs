@@ -128,7 +128,6 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(eventTest);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestNoRefactoringProvidedInNestedTypesViaQuickAction()
         {
@@ -221,7 +220,6 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullGenericsUpToInterfaceViaQuickAction()
@@ -1433,14 +1431,13 @@ public class TestClass : VBInterface
             IEnumerable<(string name, bool makeAbstract)> selection = null,
             string destinationName = null,
             int index = 0,
-            CodeActionPriority? priority = null,
             TestParameters parameters = default)
         {
             var service = new TestPullMemberUpService(selection, destinationName);
 
             return TestInRegularAndScript1Async(
                 initialMarkUp, expectedResult,
-                index, priority,
+                index,
                 parameters.WithFixProviderData(service));
         }
 
@@ -2887,7 +2884,6 @@ namespace PushUpTest
 
             await TestInRegularAndScriptAsync(testText, expected);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]

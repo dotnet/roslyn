@@ -28,9 +28,7 @@ namespace Roslyn.Utilities
             }
 
             internal static Edge ReadFrom(ObjectReader reader)
-            {
-                return new Edge(editDistance: reader.ReadInt32(), childNodeIndex: reader.ReadInt32());
-            }
+                => new Edge(editDistance: reader.ReadInt32(), childNodeIndex: reader.ReadInt32());
         }
     }
 }

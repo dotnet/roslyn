@@ -19,27 +19,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
 {
     internal sealed class CSharpEditAndContinueTestHelpers : EditAndContinueTestHelpers
     {
+        private readonly CSharpEditAndContinueAnalyzer _analyzer = new CSharpEditAndContinueAnalyzer(new TestActiveStatementSpanTracker());
+
         private readonly ImmutableArray<MetadataReference> _fxReferences;
 
-        internal static CSharpEditAndContinueTestHelpers Instance
+        internal static CSharpEditAndContinueTestHelpers CreateInstance()
             => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib46Extended);
 
-        internal static CSharpEditAndContinueTestHelpers Instance40
+        internal static CSharpEditAndContinueTestHelpers CreateInstance40()
             => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib40AndSystemCore);
 
-        private static readonly CSharpEditAndContinueAnalyzer s_analyzer = new CSharpEditAndContinueAnalyzer();
-
         public CSharpEditAndContinueTestHelpers(TargetFramework targetFramework)
-        {
-            _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
-        }
+            => _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
 
-        public override AbstractEditAndContinueAnalyzer Analyzer => s_analyzer;
+        public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
 
         public override Compilation CreateLibraryCompilation(string name, IEnumerable<SyntaxTree> trees)
-        {
-            return CSharpCompilation.Create("New", trees, _fxReferences, TestOptions.UnsafeReleaseDll);
-        }
+            => CSharpCompilation.Create("New", trees, _fxReferences, TestOptions.UnsafeReleaseDll);
 
         public override SyntaxTree ParseText(string source)
             => SyntaxFactory.ParseSyntaxTree(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));

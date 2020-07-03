@@ -4,53 +4,12 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class PrimitiveTypeCodeExtensions
     {
-        public static bool IsNumeric(this Cci.PrimitiveTypeCode kind)
-        {
-            switch (kind)
-            {
-                case Cci.PrimitiveTypeCode.Int8:
-                case Cci.PrimitiveTypeCode.UInt8:
-                case Cci.PrimitiveTypeCode.Int16:
-                case Cci.PrimitiveTypeCode.UInt16:
-                case Cci.PrimitiveTypeCode.Int32:
-                case Cci.PrimitiveTypeCode.UInt32:
-                case Cci.PrimitiveTypeCode.Int64:
-                case Cci.PrimitiveTypeCode.UInt64:
-                case Cci.PrimitiveTypeCode.Char:
-                case Cci.PrimitiveTypeCode.Float32:
-                case Cci.PrimitiveTypeCode.Float64:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        public static bool IsIntegral(this Cci.PrimitiveTypeCode kind)
-        {
-            switch (kind)
-            {
-                case Cci.PrimitiveTypeCode.Int8:
-                case Cci.PrimitiveTypeCode.UInt8:
-                case Cci.PrimitiveTypeCode.Int16:
-                case Cci.PrimitiveTypeCode.UInt16:
-                case Cci.PrimitiveTypeCode.Int32:
-                case Cci.PrimitiveTypeCode.UInt32:
-                case Cci.PrimitiveTypeCode.Int64:
-                case Cci.PrimitiveTypeCode.UInt64:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         public static bool Is64BitIntegral(this Cci.PrimitiveTypeCode kind)
         {
             switch (kind)
@@ -91,6 +50,7 @@ namespace Microsoft.CodeAnalysis
                 case Cci.PrimitiveTypeCode.UIntPtr:
                 case Cci.PrimitiveTypeCode.Char:
                 case Cci.PrimitiveTypeCode.Pointer:
+                case Cci.PrimitiveTypeCode.FunctionPointer:
                     return true;
                 default:
                     return false;

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                var actions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
 
                 var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
 
@@ -79,19 +79,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     // so as to not clutter the list.
                     return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                         string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
-                        actions.ToImmutableAndFree()));
+                        actions.ToImmutable()));
                 }
 
-                return actions.ToImmutableAndFree();
+                return actions.ToImmutable();
             }
         }
 
         protected virtual bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-        {
-            return false;
-        }
+            => false;
 
-        private void AddPropertyCodeActions(
+        private static void AddPropertyCodeActions(
             ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             if (state.IsInOutContext)
@@ -114,29 +112,28 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             if (isOnlyReadAndIsInInterface || state.IsInConstructor)
             {
                 result.Add(new GenerateVariableCodeAction(
-                    (TService)this, document, state, generateProperty: true,
-                    isReadonly: true, isConstant: false, refKind: GetRefKindFromContext(state)));
+                    document, state, generateProperty: true, isReadonly: true, isConstant: false,
+                    refKind: GetRefKindFromContext(state)));
             }
 
             GenerateWritableProperty(result, document, state);
         }
 
-        private void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             result.Add(new GenerateVariableCodeAction(
-                (TService)this, document, state, generateProperty: true,
-                isReadonly: false, isConstant: false, refKind: GetRefKindFromContext(state)));
+                document, state, generateProperty: true, isReadonly: false, isConstant: false,
+                refKind: GetRefKindFromContext(state)));
         }
 
-        private void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             if (state.TypeToGenerateIn.TypeKind != TypeKind.Interface)
             {
                 if (state.IsConstant)
                 {
                     result.Add(new GenerateVariableCodeAction(
-                        (TService)this, document, state, generateProperty: false,
-                        isReadonly: false, isConstant: true, refKind: RefKind.None));
+                        document, state, generateProperty: false, isReadonly: false, isConstant: true, refKind: RefKind.None));
                 }
                 else
                 {
@@ -150,8 +147,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     if (!state.IsWrittenTo || state.IsInConstructor)
                     {
                         result.Add(new GenerateVariableCodeAction(
-                            (TService)this, document, state, generateProperty: false,
-                            isReadonly: true, isConstant: false, refKind: RefKind.None));
+                            document, state, generateProperty: false, isReadonly: true, isConstant: false, refKind: RefKind.None));
                     }
 
                     if (state.OfferReadOnlyFieldFirst)
@@ -162,11 +158,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             result.Add(new GenerateVariableCodeAction(
-                (TService)this, document, state, generateProperty: false,
-                isReadonly: false, isConstant: false, refKind: RefKind.None));
+                document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None));
         }
 
         private void AddLocalCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
@@ -177,7 +172,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private void AddParameterCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
+        private static void AddParameterCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
         {
             if (state.CanGenerateParameter())
             {
@@ -188,7 +183,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private RefKind GetRefKindFromContext(State state)
+        private static RefKind GetRefKindFromContext(State state)
         {
             if (state.IsInRefContext)
             {

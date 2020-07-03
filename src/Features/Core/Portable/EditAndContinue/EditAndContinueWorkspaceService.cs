@@ -15,10 +15,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -32,14 +30,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static readonly TraceLog Log = new TraceLog(2048, "EnC");
 
         private readonly Workspace _workspace;
-        private readonly IActiveStatementTrackingService _trackingService;
-        private readonly IActiveStatementProvider _activeStatementProvider;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IDebuggeeModuleMetadataProvider _debugeeModuleMetadataProvider;
         private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
         private readonly EditSessionTelemetry _editSessionTelemetry;
         private readonly DebuggingSessionTelemetry _debuggingSessionTelemetry;
-        private readonly ICompilationOutputsProviderService _compilationOutputsProvider;
+        private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private readonly Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
         /// <summary>
@@ -51,38 +47,41 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private DebuggingSession? _debuggingSession;
         private EditSession? _editSession;
-        private PendingSolutionUpdate? _pendingUpdate;
 
         internal EditAndContinueWorkspaceService(
             Workspace workspace,
-            IActiveStatementTrackingService activeStatementTrackingService,
-            ICompilationOutputsProviderService compilationOutputsProvider,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
-            IActiveStatementProvider activeStatementProvider,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
-            Action<DebuggingSessionTelemetry.Data>? reportTelemetry = null)
+            Func<Project, CompilationOutputs>? testCompilationOutputsProvider = null,
+            Action<DebuggingSessionTelemetry.Data>? testReportTelemetry = null)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
-            _activeStatementProvider = activeStatementProvider;
             _debugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
-            _trackingService = activeStatementTrackingService;
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
             _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
-            _compilationOutputsProvider = compilationOutputsProvider;
-            _reportTelemetry = reportTelemetry ?? ReportTelemetry;
+            _compilationOutputsProvider = testCompilationOutputsProvider ?? GetCompilationOutputs;
+            _reportTelemetry = testReportTelemetry ?? ReportTelemetry;
         }
 
         // test only:
         internal DebuggingSession? Test_GetDebuggingSession() => _debuggingSession;
         internal EditSession? Test_GetEditSession() => _editSession;
-        internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
+        internal Workspace Test_GetWorkspace() => _workspace;
 
         public bool IsDebuggingSessionInProgress
             => _debuggingSession != null;
+
+        private static CompilationOutputs GetCompilationOutputs(Project project)
+        {
+            // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
+            // To work around we look for the PDB on the path specified in the PDB debug directory.
+            // https://github.com/dotnet/roslyn/issues/35065
+            return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputInfo.AssemblyPath);
+        }
 
         public void OnSourceFileUpdated(DocumentId documentId)
         {
@@ -94,23 +93,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void StartDebuggingSession()
+        public void StartDebuggingSession(Solution solution)
         {
-            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(_workspace, _debugeeModuleMetadataProvider, _activeStatementProvider, _compilationOutputsProvider), null);
+            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, _compilationOutputsProvider), null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
-        public void StartEditSession()
+        public void StartEditSession(ActiveStatementProvider activeStatementsProvider)
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, _debugeeModuleMetadataProvider);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
-
-            _trackingService.StartTracking(newSession);
 
             // clear diagnostics reported during run mode:
             ClearReportedRunModeDiagnostics();
@@ -127,8 +124,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // then clear all reported rude edits:
             _diagnosticService.Reanalyze(_workspace, documentIds: session.GetDocumentsWithReportedDiagnostics());
-
-            _trackingService.EndTracking();
 
             _debuggingSessionTelemetry.LogEditSession(_editSessionTelemetry.GetDataAndClear());
 
@@ -187,7 +182,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Allow user to make any changes in these documents, they won't be applied within the current debugging session.
                 // Do not report the file read error - it might be an intermittent issue. The error will be reported when the 
                 // change is attempted to be applied.
-                var (mvid, _) = await debuggingSession.GetProjectModuleIdAsync(project.Id, cancellationToken).ConfigureAwait(false);
+                var (mvid, _) = await debuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
                 if (mvid == Guid.Empty)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
@@ -226,7 +221,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Once we detected a change in a document let the debugger know that the corresponding loaded module
                     // is about to be updated, so that it can start initializing it for EnC update, reducing the amount of time applying
                     // the change blocks the UI when the user "continues".
-                    debuggingSession.PrepareModuleForUpdate(mvid);
+                    if (debuggingSession.AddModulePreparedForUpdate(mvid))
+                    {
+                        // fire and forget:
+                        _ = Task.Run(() => _debugeeModuleMetadataProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
+                    }
                 }
 
                 if (analysis.RudeEditErrors.IsEmpty)
@@ -307,8 +306,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // internal for testing
         internal static IEnumerable<TextSpan> GetSpansInNewDocument(IEnumerable<TextChange> changes)
         {
-            int oldPosition = 0;
-            int newPosition = 0;
+            var oldPosition = 0;
+            var newPosition = 0;
             foreach (var change in changes)
             {
                 if (change.Span.Start < oldPosition)
@@ -317,6 +316,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     yield break;
                 }
 
+                RoslynDebug.Assert(change.NewText is object);
                 if (change.Span.Length == 0 && change.NewText.Length == 0)
                 {
                     continue;
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
         /// the update is valid or not.
         /// </returns>
-        public Task<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
+        public Task<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken)
         {
             // GetStatusAsync is called outside of edit session when the debugger is determining 
             // whether a source file checksum matches the one in PDB.
@@ -371,10 +371,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return Task.FromResult(false);
             }
 
-            return editSession.HasChangesAsync(_workspace.CurrentSolution, sourceFilePath, cancellationToken);
+            return editSession.HasChangesAsync(solution, sourceFilePath, cancellationToken);
         }
 
-        public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(CancellationToken cancellationToken)
+        public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
@@ -382,20 +382,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return (SolutionUpdateStatus.None, ImmutableArray<Deltas>.Empty);
             }
 
-            var solution = _workspace.CurrentSolution;
-
             var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
-
             if (solutionUpdate.Summary == SolutionUpdateStatus.Ready)
             {
-                var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, new PendingSolutionUpdate(
-                    solution,
-                    solutionUpdate.EmitBaselines,
-                    solutionUpdate.Deltas,
-                    solutionUpdate.ModuleReaders));
-
-                // commit/discard was not called:
-                Contract.ThrowIfFalse(previousPendingUpdate == null);
+                editSession.StorePendingUpdate(solution, solutionUpdate);
             }
 
             // clear emit/apply diagnostics reported previously:
@@ -404,7 +394,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // report emit/apply diagnostics:
             foreach (var (projectId, diagnostics) in solutionUpdate.Diagnostics)
             {
-                _emitDiagnosticsUpdateSource.ReportDiagnostics(solution, projectId, diagnostics);
+                _emitDiagnosticsUpdateSource.ReportDiagnostics(_workspace, solution, projectId, diagnostics);
             }
 
             // Note that we may return empty deltas if all updates have been deferred.
@@ -415,30 +405,87 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public void CommitSolutionUpdate()
         {
             var editSession = _editSession;
-
             Contract.ThrowIfNull(editSession);
 
-            var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
-            Contract.ThrowIfNull(pendingUpdate);
-
+            var pendingUpdate = editSession.RetrievePendingUpdate();
             editSession.DebuggingSession.CommitSolutionUpdate(pendingUpdate);
             editSession.ChangesApplied();
         }
 
         public void DiscardSolutionUpdate()
         {
-            Contract.ThrowIfNull(_editSession);
+            var editSession = _editSession;
+            Contract.ThrowIfNull(editSession);
 
-            var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
-            Contract.ThrowIfNull(pendingUpdate);
-
+            var pendingUpdate = editSession.RetrievePendingUpdate();
             foreach (var moduleReader in pendingUpdate.ModuleReaders)
             {
                 moduleReader.Dispose();
             }
         }
 
-        public async Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        {
+            var editSession = _editSession;
+            if (editSession == null)
+            {
+                return default;
+            }
+
+            var lastCommittedSolution = editSession.DebuggingSession.LastCommittedSolution;
+            var baseActiveStatements = await editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            using var _ = ArrayBuilder<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>.GetInstance(out var spans);
+
+            foreach (var documentId in documentIds)
+            {
+                if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentActiveStatements))
+                {
+                    var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken).ConfigureAwait(false);
+                    if (baseDocument != null)
+                    {
+                        spans.Add(documentActiveStatements.SelectAsArray(s => (s.Span, s.Flags)));
+                        continue;
+                    }
+                }
+
+                // Document contains no active statements, or the document is not C#/VB document,
+                // it has been added, is out-of-sync or a design-time-only document.
+                spans.Add(ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>.Empty);
+            }
+
+            return spans.ToImmutable();
+        }
+
+        public async Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(Document document, CancellationToken cancellationToken)
+        {
+            var editSession = _editSession;
+            if (editSession == null)
+            {
+                return default;
+            }
+
+            if (!SupportsEditAndContinue(document.Project))
+            {
+                return default;
+            }
+
+            var lastCommittedSolution = editSession.DebuggingSession.LastCommittedSolution;
+            var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken).ConfigureAwait(false);
+            if (baseDocument == null)
+            {
+                return default;
+            }
+
+            var analysis = await editSession.GetDocumentAnalysis(baseDocument, document).GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (analysis.ActiveStatements.IsDefault)
+            {
+                return default;
+            }
+
+            return analysis.ActiveStatements.SelectAsArray(s => (s.Span, s.Flags));
+        }
+
+        public async Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken)
         {
             try
             {
@@ -466,7 +513,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var primaryDocument = _workspace.CurrentSolution.GetDocument(baseActiveStatement.PrimaryDocumentId);
+                var primaryDocument = solution.GetDocument(baseActiveStatement.PrimaryDocumentId);
                 if (primaryDocument == null)
                 {
                     // The document has been deleted.
@@ -529,12 +576,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void ReportApplyChangesException(string message)
+        public void ReportApplyChangesException(Solution solution, string message)
         {
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
 
             _emitDiagnosticsUpdateSource.ReportDiagnostics(
-                _workspace.CurrentSolution,
+                _workspace,
+                solution,
                 projectId: null,
                 new[] { Diagnostic.Create(descriptor, Location.None, new[] { message }) });
         }

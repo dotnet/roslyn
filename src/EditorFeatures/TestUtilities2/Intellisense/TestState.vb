@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestState
         Inherits AbstractCommandHandlerTestState
 
-        Private Const timeoutMs = 10000
-        Private Const editorTimeoutMs = 20000
+        Private Const timeoutMs = 60000
+        Private Const editorTimeoutMs = 60000
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
@@ -73,7 +73,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         ' Do not call directly. Use TestStateFactory
         Friend Sub New(workspaceElement As XElement,
-                       extraCompletionProviders As CompletionProvider(),
                        excludedTypes As List(Of Type),
                        extraExportedTypes As List(Of Type),
                        includeFormatCommandHandler As Boolean,
@@ -88,14 +87,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
-
-            Dim lazyExtraCompletionProviders = CreateLazyProviders(extraCompletionProviders, language, roles:=Nothing)
-            If lazyExtraCompletionProviders IsNot Nothing Then
-                Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
-                If completionService IsNot Nothing Then
-                    completionService.SetTestProviders(lazyExtraCompletionProviders.Select(Function(lz) lz.Value).ToList())
-                End If
-            End If
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
@@ -265,9 +256,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
 
             Dim itemsUpdatedHandler = Sub(sender As Object, e As Data.ComputedCompletionItemsEventArgs)
-                                          ' If there is more than one item left, then it means this was the filter operation that resulted and we're done. Otherwise we know a
-                                          ' Dismiss operation is coming so we should wait for it.
-                                          If e.Items.Items.Select(Function(i) i.FilterText).Skip(1).Any() Then
+                                          ' If there is 0 or more than one item left, then it means this was the filter operation that resulted and we're done. 
+                                          ' Otherwise we know a Dismiss operation is coming so we should wait for it.
+                                          If e.Items.Items.Count() <> 1 Then
                                               Task.Run(Sub()
                                                            Thread.Sleep(5000)
                                                            sessionComplete.TrySetResult(Nothing)
@@ -387,6 +378,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Next
         End Sub
 
+        Public Sub AssertItemsInOrder(expectedOrder As (String, String)())
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim items = session.GetComputedItems(CancellationToken.None).Items
+            Assert.Equal(expectedOrder.Count, items.Count)
+            For i = 0 To expectedOrder.Count - 1
+                Assert.Equal(expectedOrder(i).Item1, items(i).DisplayText)
+                Assert.Equal(expectedOrder(i).Item2, items(i).Suffix)
+            Next
+        End Sub
+
         Public Async Function AssertSelectedCompletionItem(
                                                     Optional displayText As String = Nothing,
                                                     Optional displayTextSuffix As String = Nothing,
@@ -436,10 +438,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             If description IsNot Nothing Then
-                Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim service = CompletionService.GetService(document)
-                Dim roslynItem = GetRoslynCompletionItem(items.SelectedItem)
-                Dim itemDescription = Await service.GetDescriptionAsync(document, roslynItem)
+                Dim itemDescription = Await GetSelectedItemDescriptionAsync()
                 Assert.Equal(description, itemDescription.Text)
             End If
 
@@ -450,6 +449,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If automationText IsNot Nothing Then
                 Assert.Equal(automationText, items.SelectedItem.AutomationText)
             End If
+        End Function
+
+        Public Async Function GetSelectedItemDescriptionAsync() As Task(Of CompletionDescription)
+            Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
+            Dim service = CompletionService.GetService(document)
+            Dim roslynItem = GetSelectedItem()
+            Return Await service.GetDescriptionAsync(document, roslynItem)
         End Function
 
         Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)

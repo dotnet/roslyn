@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
@@ -9,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public abstract class AnalyzerConfigOptionsProvider
     {
+        /// <summary>
+        /// Gets global options that do not apply to any specific file
+        /// </summary>
+        public abstract AnalyzerConfigOptions GlobalOptions { get; }
+
         /// <summary>
         /// Get options for a given <paramref name="tree"/>.
         /// </summary>

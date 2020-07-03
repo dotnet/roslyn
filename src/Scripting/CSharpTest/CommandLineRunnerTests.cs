@@ -235,7 +235,7 @@ $@"{LogoAndHelpPrompt}
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{LogoAndHelpPrompt}
 > (1,2)
-[(1, 2)]
+(1, 2)
 > ", runner.Console.Out.ToString());
         }
 
@@ -408,7 +408,6 @@ $@"""@arg1""
 -arg3
 --arg4");
 
-
             var runner = CreateRunner(
                 args: new[] { $"@{rsp.Path}", "/arg5", "--", "/arg7" },
                 input: "foreach (var arg in Args) Print(arg);");
@@ -564,6 +563,31 @@ $@"{LogoAndHelpPrompt}
                 runner.RunInteractive();
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("3", runner.Console.Out.ToString());
             }
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(null, null)]
+        [InlineData("c:", null)]
+        [InlineData("c:\\", null)]
+        [InlineData("c:\\first", "c:\\")]
+        [InlineData("c:\\first\\", "c:\\first")]
+        [InlineData("c:\\first\\second", "c:\\first")]
+        [InlineData("c:\\first\\second\\", "c:\\first\\second")]
+        [InlineData("c:\\first\\second\\third", "c:\\first\\second")]
+        [InlineData("\\", null)]
+        [InlineData("\\first", "\\")]
+        [InlineData("\\first\\", "\\first")]
+        [InlineData("\\first\\second", "\\first")]
+        [InlineData("\\first\\second\\", "\\first\\second")]
+        [InlineData("\\first\\second\\third", "\\first\\second")]
+        [InlineData("first", "")]
+        [InlineData("first\\", "first")]
+        [InlineData("first\\second", "first")]
+        [InlineData("first\\second\\", "first\\second")]
+        [InlineData("first\\second\\third", "first\\second")]
+        public void TestGetDirectoryName_Windows(string path, string expectedOutput)
+        {
+            Assert.Equal(expectedOutput, PathUtilities.GetDirectoryName(path, isUnixLike: false));
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
@@ -803,6 +827,29 @@ $@"{LogoAndHelpPrompt}
 > #help
 { ScriptingResources.HelpText }
 > ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void LangVersions()
+        {
+            var runner = CreateRunner(new[] { "/langversion:?" });
+            Assert.Equal(0, runner.RunInteractive());
+
+            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
+                .Select(v => v.ToDisplayString());
+
+            var actual = runner.Console.Out.ToString();
+            var acceptableSurroundingChar = new[] { '\r', '\n', '(', ')', ' ' };
+            foreach (var version in expected)
+            {
+                if (version == "latest")
+                    continue;
+
+                var foundIndex = actual.IndexOf(version);
+                Assert.True(foundIndex > 0, $"Missing version '{version}'");
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex - 1]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex + version.Length]) >= 0);
+            }
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]

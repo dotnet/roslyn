@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics

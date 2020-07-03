@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCompilationFactoryService()
         {
         }
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: (CSharpCompilationOptions)options ?? s_defaultOptions);
         }
 
-        Compilation ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type hostObjectType)
+        Compilation ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType)
         {
             return CSharpCompilation.CreateScriptCompilation(
                 assemblyName,
@@ -36,20 +40,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 globalsType: hostObjectType);
         }
 
-        Compilation ICompilationFactoryService.GetCompilationFromCompilationReference(MetadataReference reference)
-        {
-            var compilationRef = reference as CompilationReference;
-            return compilationRef?.Compilation;
-        }
-
-        bool ICompilationFactoryService.IsCompilationReference(MetadataReference reference)
-        {
-            return reference is CompilationReference;
-        }
-
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
+            => s_defaultOptions;
+
+        GeneratorDriver? ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            return s_defaultOptions;
+            // https://github.com/dotnet/roslyn/issues/42565: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
+            if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
+            {
+                return null;
+            }
+            return new CSharpGeneratorDriver(parseOptions, generators, optionsProvider, additionalTexts);
         }
     }
 }

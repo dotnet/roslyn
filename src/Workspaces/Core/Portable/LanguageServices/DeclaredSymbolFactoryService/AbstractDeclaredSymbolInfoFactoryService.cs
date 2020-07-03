@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private const string GenericTypeNameManglingString = "`";
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
-        private readonly static ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool
+        private static readonly ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool
             = SharedPools.Default<List<Dictionary<string, string>>>();
 
         // Note: these names are stored case insensitively.  That way the alias mapping works 
@@ -26,11 +26,40 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // for C#.  However, that's ok.  It will be rare in practice, and all it means is that
         // we'll end up examining slightly more types (likely 0) when doing operations like 
         // Find all references.
-        private readonly static ObjectPool<Dictionary<string, string>> s_aliasMapPool
+        private static readonly ObjectPool<Dictionary<string, string>> s_aliasMapPool
             = SharedPools.StringIgnoreCaseDictionary<string>();
 
         protected static List<Dictionary<string, string>> AllocateAliasMapList()
             => s_aliasMapListPool.Allocate();
+
+        // We do not differentiate arrays of different kinds for simplicity.
+        // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
+        protected static string CreateReceiverTypeString(string typeName, bool isArray)
+        {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                return isArray
+                    ? FindSymbols.Extensions.ComplexArrayReceiverTypeName
+                    : FindSymbols.Extensions.ComplexReceiverTypeName;
+            }
+            else
+            {
+                return isArray
+                    ? typeName + FindSymbols.Extensions.ArrayReceiverTypeNameSuffix
+                    : typeName;
+            }
+        }
+
+        protected static string CreateValueTupleTypeString(int elementCount)
+        {
+            const string ValueTupleName = "ValueTuple";
+            if (elementCount == 0)
+            {
+                return ValueTupleName;
+            }
+            // A ValueTuple can have up to 8 type parameters.
+            return ValueTupleName + GetMetadataAritySuffix(elementCount > 8 ? 8 : elementCount);
+        }
 
         protected static void FreeAliasMapList(List<Dictionary<string, string>> list)
         {
@@ -95,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// on `node` should return a `DeclaredSymbolInfo` of kind `ExtensionMethod`. 
         /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
-        public abstract string GetTargetTypeName(SyntaxNode node);
+        public abstract string GetReceiverTypeName(SyntaxNode node);
 
         public abstract bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
 

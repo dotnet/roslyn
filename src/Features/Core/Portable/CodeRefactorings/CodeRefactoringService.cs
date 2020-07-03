@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                                 new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
         }
 
-        private IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
+        private static IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
         {
             foreach (var provider in providers)
             {
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
                 var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
-                var tasks = new List<Task<CodeRefactoring?>>();
+                using var _ = ArrayBuilder<Task<CodeRefactoring?>>.GetInstance(out var tasks);
 
                 foreach (var provider in GetProviders(document))
                 {
@@ -148,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
+        private static async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
             Document document,
             TextSpan state,
             CodeRefactoringProvider provider,
@@ -164,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             try
             {
-                var actions = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance();
+                using var _ = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance(out var actions);
                 var context = new CodeRefactoringContext(document, state,
 
                     // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
@@ -185,8 +184,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var result = actions.Count > 0
                     ? new CodeRefactoring(provider, actions.ToImmutable())
                     : null;
-
-                actions.Free();
 
                 return result;
             }
@@ -227,87 +224,44 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             ImmutableArray<CodeRefactoringProvider> ComputeProjectRefactorings(Project project)
             {
-                var builder = ArrayBuilder<CodeRefactoringProvider>.GetInstance();
+                using var _ = ArrayBuilder<CodeRefactoringProvider>.GetInstance(out var builder);
                 foreach (var reference in project.AnalyzerReferences)
                 {
                     var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, _createProjectCodeRefactoringsProvider);
-                    foreach (var refactoring in projectCodeRefactoringProvider.GetRefactorings(project.Language))
-                    {
+                    foreach (var refactoring in projectCodeRefactoringProvider.GetExtensions(project.Language))
                         builder.Add(refactoring);
-                    }
                 }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
         }
 
         private class ProjectCodeRefactoringProvider
+            : AbstractProjectExtensionProvider<CodeRefactoringProvider, ExportCodeRefactoringProviderAttribute>
         {
-            private readonly AnalyzerReference _reference;
-            private ImmutableDictionary<string, ImmutableArray<CodeRefactoringProvider>> _refactoringsPerLanguage;
-
             public ProjectCodeRefactoringProvider(AnalyzerReference reference)
+                : base(reference)
             {
-                _reference = reference;
-                _refactoringsPerLanguage = ImmutableDictionary<string, ImmutableArray<CodeRefactoringProvider>>.Empty;
             }
 
-            public ImmutableArray<CodeRefactoringProvider> GetRefactorings(string language)
+            protected override bool SupportsLanguage(ExportCodeRefactoringProviderAttribute exportAttribute, string language)
             {
-                return ImmutableInterlocked.GetOrAdd(ref _refactoringsPerLanguage, language, (language, provider) => provider.CreateRefactorings(language), this);
+                return exportAttribute.Languages == null
+                    || exportAttribute.Languages.Length == 0
+                    || exportAttribute.Languages.Contains(language);
             }
 
-            private ImmutableArray<CodeRefactoringProvider> CreateRefactorings(string language)
+            protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeRefactoringProvider> extensions)
             {
                 // check whether the analyzer reference knows how to return fixers directly.
-                if (_reference is ICodeRefactoringProviderFactory codeRefactoringProviderFactory)
+                if (reference is ICodeRefactoringProviderFactory codeRefactoringProviderFactory)
                 {
-                    return codeRefactoringProviderFactory.GetRefactorings();
+                    extensions = codeRefactoringProviderFactory.GetRefactorings();
+                    return true;
                 }
 
-                // otherwise, see whether we can pick it up from reference itself
-                if (!(_reference is AnalyzerFileReference analyzerFileReference))
-                {
-                    return ImmutableArray<CodeRefactoringProvider>.Empty;
-                }
-
-                var builder = ArrayBuilder<CodeRefactoringProvider>.GetInstance();
-
-                try
-                {
-                    var analyzerAssembly = analyzerFileReference.GetAssembly();
-                    var typeInfos = analyzerAssembly.DefinedTypes;
-
-                    foreach (var typeInfo in typeInfos)
-                    {
-                        if (typeInfo.IsSubclassOf(typeof(CodeRefactoringProvider)))
-                        {
-                            try
-                            {
-                                var attribute = typeInfo.GetCustomAttribute<ExportCodeRefactoringProviderAttribute>();
-                                if (attribute != null)
-                                {
-                                    if (attribute.Languages == null ||
-                                        attribute.Languages.Length == 0 ||
-                                        attribute.Languages.Contains(language))
-                                    {
-                                        builder.Add((CodeRefactoringProvider)Activator.CreateInstance(typeInfo.AsType()));
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                    // REVIEW: is the below message right?
-                    // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
-                }
-
-                return builder.ToImmutableAndFree();
+                extensions = default;
+                return false;
             }
         }
     }

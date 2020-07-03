@@ -184,6 +184,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 Debug.Assert(type.IsDefinition);
 
+                if (type.IsNativeIntegerType)
+                {
+                    var result = RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options);
+                    return result.SpecialType == SpecialType.None ? result : result.AsNativeInteger();
+                }
+
                 // Before we do anything else, check if we need to do special retargeting
                 // for primitive type references encoded with enum values in metadata signatures.
                 if (options == RetargetOptions.RetargetPrimitiveTypesByTypeCode)
@@ -723,6 +729,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return new PointerTypeSymbol(newPointed);
             }
 
+            public FunctionPointerTypeSymbol Retarget(FunctionPointerTypeSymbol type)
+            {
+                var signature = type.Signature;
+                var newReturn = Retarget(signature.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                var newRefModifiers = RetargetModifiers(signature.RefCustomModifiers, out bool symbolModified);
+                symbolModified = symbolModified || !signature.ReturnTypeWithAnnotations.IsSameAs(newReturn);
+
+                var newParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+                ImmutableArray<ImmutableArray<CustomModifier>> newParamModifiers = default;
+
+                var paramCount = signature.ParameterCount;
+                if (paramCount > 0)
+                {
+                    var newParameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(paramCount);
+                    var newParameterCustomModifiersBuilder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(paramCount);
+                    bool parametersModified = false;
+
+                    foreach (var parameter in signature.Parameters)
+                    {
+                        var newParameterType = Retarget(parameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                        var newModifiers = RetargetModifiers(parameter.RefCustomModifiers, out bool customModifiersChanged);
+                        newParameterTypesBuilder.Add(newParameterType);
+                        newParameterCustomModifiersBuilder.Add(newModifiers);
+                        parametersModified = parametersModified || !parameter.TypeWithAnnotations.IsSameAs(newParameterType) || customModifiersChanged;
+                    }
+
+                    if (parametersModified)
+                    {
+                        newParameterTypes = newParameterTypesBuilder.ToImmutableAndFree();
+                        newParamModifiers = newParameterCustomModifiersBuilder.ToImmutableAndFree();
+                        symbolModified = true;
+                    }
+                    else
+                    {
+                        newParameterTypesBuilder.Free();
+                        newParameterCustomModifiersBuilder.Free();
+                        newParameterTypes = signature.ParameterTypesWithAnnotations;
+                    }
+                }
+
+                if (symbolModified)
+                {
+                    return type.SubstituteTypeSymbol(newReturn, newParameterTypes, newRefModifiers, newParamModifiers);
+                }
+                else
+                {
+                    return type;
+                }
+            }
+
             public static ErrorTypeSymbol Retarget(ErrorTypeSymbol type)
             {
                 // TODO: if it is a missing symbol error but no longer missing in the target assembly, then we can resolve it here.
@@ -789,8 +845,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 foreach (var ts in sequence)
                 {
-                    // In incorrect code, a type parameter constraint list can contain primitive types.
-                    Debug.Assert(ts.TypeKind == TypeKind.Error || ts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
                     result.Add(Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName));
                 }
 
@@ -936,6 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         IndexedTypeParameterSymbol.Take(method.Arity),
                         targetParamsBuilder.ToImmutableAndFree(),
                         method.RefKind,
+                        method.IsInitOnly,
                         translator.Retarget(method.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                         translator.RetargetModifiers(method.RefCustomModifiers, out modifiersHaveChanged_Ignored),
                         ImmutableArray<MethodSymbol>.Empty);
@@ -1250,6 +1305,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
 
             public override Symbol VisitPointerType(PointerTypeSymbol symbol, RetargetOptions options)
+            {
+                return Retarget(symbol);
+            }
+
+            public override Symbol VisitFunctionPointerType(FunctionPointerTypeSymbol symbol, RetargetOptions argument)
             {
                 return Retarget(symbol);
             }

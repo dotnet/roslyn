@@ -73,6 +73,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New DiagnosticInfo(MessageProvider.Instance, id, arguments)
         End Function
 
+        Public Shared Function ObsoleteErrorInfo(id As ERRID, data As ObsoleteAttributeData, ParamArray arguments As Object()) As CustomObsoleteDiagnosticInfo
+            Return New CustomObsoleteDiagnosticInfo(MessageProvider.Instance, id, data, arguments)
+        End Function
+
         Public Shared Function ErrorInfo(id As ERRID, ByRef syntaxToken As SyntaxToken) As DiagnosticInfo
             Return ErrorInfo(id, SyntaxFacts.GetText(syntaxToken.Kind))
         End Function
@@ -93,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared ReadOnly Property ResourceManager As Resources.ResourceManager
             Get
                 If s_resourceManager Is Nothing Then
-                    s_resourceManager = New Resources.ResourceManager("VBResources", GetType(ERRID).GetTypeInfo().Assembly)
+                    s_resourceManager = New Resources.ResourceManager(GetType(VBResources).FullName, GetType(ERRID).GetTypeInfo().Assembly)
                 End If
 
                 Return s_resourceManager

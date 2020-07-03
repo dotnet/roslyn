@@ -22,14 +22,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return symbol;
-            }
+                => symbol;
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
             {
@@ -40,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+            }
+
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): implement this
+                return symbol;
             }
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)

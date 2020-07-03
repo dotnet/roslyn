@@ -226,9 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             private readonly Workspace _workspace;
 
             public FirstDocIsVisibleDocumentTrackingService(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
+                => _workspace = workspace;
 
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
@@ -245,9 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             private readonly Workspace _workspace;
 
             public FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
+                => _workspace = workspace;
 
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
@@ -268,9 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public DocumentTrackingServiceFactory()
-            {
-                FactoryMethod = null;
-            }
+                => FactoryMethod = null;
 
             internal Func<HostWorkspaceServices, IDocumentTrackingService> FactoryMethod
             {
@@ -280,9 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                return FactoryMethod?.Invoke(workspaceServices);
-            }
+                => FactoryMethod?.Invoke(workspaceServices);
         }
     }
 }

@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithPointedAtType(pointedAtType);
         }
 
-        private PointerTypeSymbol WithPointedAtType(TypeWithAnnotations newPointedAtType)
+        internal PointerTypeSymbol WithPointedAtType(TypeWithAnnotations newPointedAtType)
         {
             return PointedAtTypeWithAnnotations.IsSameAs(newPointedAtType) ? this : new PointerTypeSymbol(newPointedAtType);
         }
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticInfo result = null;
 
             // Check type, custom modifiers
-            DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtTypeWithAnnotations);
+            DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtTypeWithAnnotations, AllowedRequiredModifierType.None);
             return result;
         }
 

@@ -220,7 +220,8 @@ namespace IOperationGenerator
 
                     foreach (var line in lines)
                     {
-                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        if (string.IsNullOrWhiteSpace(line))
+                            continue;
                         WriteLine($"/// {line.Substring(indentation)}");
                     }
 
@@ -250,7 +251,8 @@ namespace IOperationGenerator
 
         private void WriteInterfaceProperty(Property prop)
         {
-            if (prop.IsInternal) return;
+            if (prop.IsInternal)
+                return;
             WriteComments(prop.Comments, writeReservedRemark: false);
             var modifiers = prop.IsNew ? "new " : "";
             WriteLine($"{modifiers}{prop.Type} {prop.Name} {{ get; }}");
@@ -349,7 +351,8 @@ namespace IOperationGenerator
             WriteLine("#region Implementations");
             foreach (var type in _tree.Types.OfType<AbstractNode>())
             {
-                if (type.SkipClassGeneration) continue;
+                if (type.SkipClassGeneration)
+                    continue;
 
                 var allProps = GetAllProperties(type);
                 bool hasSkippedProperties = !GetAllProperties(type, includeSkipGenerationProperties: true).SequenceEqual(allProps);
@@ -364,7 +367,6 @@ namespace IOperationGenerator
                 {
                     baseProperties = GetAllProperties(baseNode);
                 }
-
 
                 // Start by generating any necessary base classes
                 if (hasIOpChildren || type.IsAbstract)
@@ -382,7 +384,8 @@ namespace IOperationGenerator
 
                     foreach (var prop in type.Properties)
                     {
-                        if (prop.SkipGeneration) continue;
+                        if (prop.SkipGeneration)
+                            continue;
                         writeProperty(prop, propExtensibility: IsIOperationType(prop.Type) ? "abstract " : string.Empty);
                     }
 
@@ -450,7 +453,8 @@ namespace IOperationGenerator
                     Unbrace();
                 }
 
-                if (type.IsAbstract) continue;
+                if (type.IsAbstract)
+                    continue;
 
                 // Generate the non-lazy class. Nested block to allow for duplicate variable names
                 {
@@ -482,7 +486,8 @@ namespace IOperationGenerator
                     {
                         foreach (var property in type.Properties)
                         {
-                            if (property.SkipGeneration) continue;
+                            if (property.SkipGeneration)
+                                continue;
                             writeProperty(property, propExtensibility: string.Empty);
                         }
 
@@ -567,7 +572,8 @@ namespace IOperationGenerator
                 Write($"{accessibility} {@class}(");
                 foreach (var prop in properties)
                 {
-                    if (classType != ClassType.NonLazy && IsIOperationType(prop.Type)) continue;
+                    if (classType != ClassType.NonLazy && IsIOperationType(prop.Type))
+                        continue;
                     if (prop.Type == "CommonConversion")
                     {
                         Write($"IConvertibleConversion {prop.Name.ToCamelCase()}, ");
@@ -583,7 +589,7 @@ namespace IOperationGenerator
                 {
                     Write("OperationKind kind, ");
                 }
-                Write("SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit");
+                Write("SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit");
 
                 WriteLine(")");
                 Indent();
@@ -716,7 +722,8 @@ namespace IOperationGenerator
             var types = _tree.Types.OfType<Node>();
             foreach (var type in types)
             {
-                if (type.SkipInVisitor) continue;
+                if (type.SkipInVisitor)
+                    continue;
 
                 WriteObsoleteIfNecessary(type.Obsolete);
                 var accessibility = type.IsInternal ? "internal" : "public";
@@ -735,7 +742,8 @@ namespace IOperationGenerator
 
             foreach (var type in types)
             {
-                if (type.SkipInVisitor) continue;
+                if (type.SkipInVisitor)
+                    continue;
 
                 WriteObsoleteIfNecessary(type.Obsolete);
                 var accessibility = type.IsInternal ? "internal" : "public";
@@ -768,7 +776,8 @@ namespace IOperationGenerator
             {
                 string baseName = @base.Base;
                 @base = _typeMap[baseName];
-                if (@base is null) break;
+                if (@base is null)
+                    break;
                 properties.AddRange(@base.Properties.Where(p => !p.SkipGeneration || includeSkipGenerationProperties));
             }
 

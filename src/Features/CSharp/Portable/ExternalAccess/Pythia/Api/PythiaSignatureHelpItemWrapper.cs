@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         internal readonly SignatureHelpItem UnderlyingObject;
 
         public PythiaSignatureHelpItemWrapper(SignatureHelpItem underlyingObject)
-        {
-            UnderlyingObject = underlyingObject;
-        }
+            => UnderlyingObject = underlyingObject;
 
         public static SymbolDisplayPart CreateTextDisplayPart(string text)
             => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);

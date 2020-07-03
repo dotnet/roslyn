@@ -880,7 +880,7 @@ public class Test
   {
     switch (i)
     {
-      case 0:       
+      case 0:
       case 1:
       case 2:
       case 3:
@@ -2802,7 +2802,7 @@ public class Test
 
             compVerifier.VerifyIL("Test.Main", @"
 {
-  // Code size       49 (0x31)
+  // Code size       46 (0x2e)
   .maxstack  2
   .locals init (string V_0, //s
                 int V_1) //ret
@@ -2811,25 +2811,23 @@ public class Test
   IL_0002:  ldc.i4.0
   IL_0003:  stloc.1
   IL_0004:  ldloc.0
-  IL_0005:  brfalse.s  IL_0029
-  IL_0007:  ldloc.0
-  IL_0008:  ldstr      ""abc""
-  IL_000d:  call       ""bool string.op_Equality(string, string)""
-  IL_0012:  brtrue.s   IL_0023
-  IL_0014:  ldloc.0
-  IL_0015:  ldstr      ""def""
-  IL_001a:  call       ""bool string.op_Equality(string, string)""
-  IL_001f:  brtrue.s   IL_0027
-  IL_0021:  br.s       IL_0029
-  IL_0023:  ldc.i4.1
-  IL_0024:  stloc.1
-  IL_0025:  br.s       IL_0029
-  IL_0027:  ldc.i4.1
-  IL_0028:  stloc.1
-  IL_0029:  ldloc.1
-  IL_002a:  call       ""void System.Console.Write(int)""
-  IL_002f:  ldloc.1
-  IL_0030:  ret
+  IL_0005:  ldstr      ""abc""
+  IL_000a:  call       ""bool string.op_Equality(string, string)""
+  IL_000f:  brtrue.s   IL_0020
+  IL_0011:  ldloc.0
+  IL_0012:  ldstr      ""def""
+  IL_0017:  call       ""bool string.op_Equality(string, string)""
+  IL_001c:  brtrue.s   IL_0024
+  IL_001e:  br.s       IL_0026
+  IL_0020:  ldc.i4.1
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0026
+  IL_0024:  ldc.i4.1
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ldloc.1
+  IL_002d:  ret
 }"
             );
 
@@ -3248,7 +3246,7 @@ class Test
 
             compVerifier.VerifyIL("Test.Switcheroo", @"
 {
-  // Code size     1121 (0x461)
+  // Code size     1115 (0x45b)
   .maxstack  3
   .locals init (string V_0, //value
                 uint V_1)
@@ -3265,305 +3263,303 @@ class Test
   IL_0017:  callvirt   ""string string.Remove(int, int)""
   IL_001c:  starg.s    V_0
   IL_001e:  ldarg.0
-  IL_001f:  brfalse    IL_0459
-  IL_0024:  ldarg.0
-  IL_0025:  call       ""ComputeStringHash""
-  IL_002a:  stloc.1
-  IL_002b:  ldloc.1
-  IL_002c:  ldc.i4     0xb2f29419
-  IL_0031:  bgt.un     IL_00e6
-  IL_0036:  ldloc.1
-  IL_0037:  ldc.i4     0x619348d8
-  IL_003c:  bgt.un.s   IL_0092
-  IL_003e:  ldloc.1
-  IL_003f:  ldc.i4     0x36758e37
-  IL_0044:  bgt.un.s   IL_006c
-  IL_0046:  ldloc.1
-  IL_0047:  ldc.i4     0x144fd20d
-  IL_004c:  beq        IL_02b4
-  IL_0051:  ldloc.1
-  IL_0052:  ldc.i4     0x14ca99e2
-  IL_0057:  beq        IL_0260
-  IL_005c:  ldloc.1
-  IL_005d:  ldc.i4     0x36758e37
-  IL_0062:  beq        IL_020c
-  IL_0067:  br         IL_0459
-  IL_006c:  ldloc.1
-  IL_006d:  ldc.i4     0x5398a778
-  IL_0072:  beq        IL_0221
-  IL_0077:  ldloc.1
-  IL_0078:  ldc.i4     0x616477cf
-  IL_007d:  beq        IL_01b8
-  IL_0082:  ldloc.1
-  IL_0083:  ldc.i4     0x619348d8
-  IL_0088:  beq        IL_02f3
-  IL_008d:  br         IL_0459
-  IL_0092:  ldloc.1
-  IL_0093:  ldc.i4     0x78a826a8
-  IL_0098:  bgt.un.s   IL_00c0
-  IL_009a:  ldloc.1
-  IL_009b:  ldc.i4     0x65b3e3e5
-  IL_00a0:  beq        IL_02c9
-  IL_00a5:  ldloc.1
-  IL_00a6:  ldc.i4     0x7822b5bc
-  IL_00ab:  beq        IL_028a
-  IL_00b0:  ldloc.1
-  IL_00b1:  ldc.i4     0x78a826a8
-  IL_00b6:  beq        IL_01e2
-  IL_00bb:  br         IL_0459
-  IL_00c0:  ldloc.1
-  IL_00c1:  ldc.i4     0x7f66da4e
-  IL_00c6:  beq        IL_035c
-  IL_00cb:  ldloc.1
-  IL_00cc:  ldc.i4     0xb13d374d
-  IL_00d1:  beq        IL_0332
-  IL_00d6:  ldloc.1
-  IL_00d7:  ldc.i4     0xb2f29419
-  IL_00dc:  beq        IL_0308
-  IL_00e1:  br         IL_0459
-  IL_00e6:  ldloc.1
-  IL_00e7:  ldc.i4     0xd59864f4
-  IL_00ec:  bgt.un.s   IL_0142
-  IL_00ee:  ldloc.1
-  IL_00ef:  ldc.i4     0xbf4a9f8e
-  IL_00f4:  bgt.un.s   IL_011c
-  IL_00f6:  ldloc.1
-  IL_00f7:  ldc.i4     0xb6e02d3a
-  IL_00fc:  beq        IL_029f
-  IL_0101:  ldloc.1
-  IL_0102:  ldc.i4     0xbaed3db3
-  IL_0107:  beq        IL_031d
-  IL_010c:  ldloc.1
-  IL_010d:  ldc.i4     0xbf4a9f8e
-  IL_0112:  beq        IL_0236
-  IL_0117:  br         IL_0459
-  IL_011c:  ldloc.1
-  IL_011d:  ldc.i4     0xc6284d42
-  IL_0122:  beq        IL_01f7
-  IL_0127:  ldloc.1
-  IL_0128:  ldc.i4     0xd1761402
-  IL_012d:  beq        IL_01cd
-  IL_0132:  ldloc.1
-  IL_0133:  ldc.i4     0xd59864f4
-  IL_0138:  beq        IL_0275
-  IL_013d:  br         IL_0459
-  IL_0142:  ldloc.1
-  IL_0143:  ldc.i4     0xeb323c73
-  IL_0148:  bgt.un.s   IL_0170
-  IL_014a:  ldloc.1
-  IL_014b:  ldc.i4     0xdca4b248
-  IL_0150:  beq        IL_024b
-  IL_0155:  ldloc.1
-  IL_0156:  ldc.i4     0xe926f470
-  IL_015b:  beq        IL_0371
-  IL_0160:  ldloc.1
-  IL_0161:  ldc.i4     0xeb323c73
-  IL_0166:  beq        IL_02de
-  IL_016b:  br         IL_0459
-  IL_0170:  ldloc.1
-  IL_0171:  ldc.i4     0xf1ea0ad5
-  IL_0176:  beq        IL_0347
-  IL_017b:  ldloc.1
-  IL_017c:  ldc.i4     0xfa67b44d
-  IL_0181:  beq.s      IL_01a3
-  IL_0183:  ldloc.1
-  IL_0184:  ldc.i4     0xfea21584
-  IL_0189:  bne.un     IL_0459
-  IL_018e:  ldarg.0
-  IL_018f:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
-  IL_0194:  call       ""bool string.op_Equality(string, string)""
-  IL_0199:  brtrue     IL_0386
-  IL_019e:  br         IL_0459
-  IL_01a3:  ldarg.0
-  IL_01a4:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
-  IL_01a9:  call       ""bool string.op_Equality(string, string)""
-  IL_01ae:  brtrue     IL_0391
-  IL_01b3:  br         IL_0459
-  IL_01b8:  ldarg.0
-  IL_01b9:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
-  IL_01be:  call       ""bool string.op_Equality(string, string)""
-  IL_01c3:  brtrue     IL_039c
-  IL_01c8:  br         IL_0459
-  IL_01cd:  ldarg.0
-  IL_01ce:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
-  IL_01d3:  call       ""bool string.op_Equality(string, string)""
-  IL_01d8:  brtrue     IL_03a7
-  IL_01dd:  br         IL_0459
-  IL_01e2:  ldarg.0
-  IL_01e3:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
-  IL_01e8:  call       ""bool string.op_Equality(string, string)""
-  IL_01ed:  brtrue     IL_03b2
-  IL_01f2:  br         IL_0459
-  IL_01f7:  ldarg.0
-  IL_01f8:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
-  IL_01fd:  call       ""bool string.op_Equality(string, string)""
-  IL_0202:  brtrue     IL_03bd
-  IL_0207:  br         IL_0459
-  IL_020c:  ldarg.0
-  IL_020d:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
-  IL_0212:  call       ""bool string.op_Equality(string, string)""
-  IL_0217:  brtrue     IL_03c8
-  IL_021c:  br         IL_0459
-  IL_0221:  ldarg.0
-  IL_0222:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
-  IL_0227:  call       ""bool string.op_Equality(string, string)""
-  IL_022c:  brtrue     IL_03d3
-  IL_0231:  br         IL_0459
-  IL_0236:  ldarg.0
-  IL_0237:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
-  IL_023c:  call       ""bool string.op_Equality(string, string)""
-  IL_0241:  brtrue     IL_03db
-  IL_0246:  br         IL_0459
-  IL_024b:  ldarg.0
-  IL_024c:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
-  IL_0251:  call       ""bool string.op_Equality(string, string)""
-  IL_0256:  brtrue     IL_03e3
-  IL_025b:  br         IL_0459
-  IL_0260:  ldarg.0
-  IL_0261:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
-  IL_0266:  call       ""bool string.op_Equality(string, string)""
-  IL_026b:  brtrue     IL_03eb
-  IL_0270:  br         IL_0459
-  IL_0275:  ldarg.0
-  IL_0276:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
-  IL_027b:  call       ""bool string.op_Equality(string, string)""
-  IL_0280:  brtrue     IL_03f3
-  IL_0285:  br         IL_0459
-  IL_028a:  ldarg.0
-  IL_028b:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
-  IL_0290:  call       ""bool string.op_Equality(string, string)""
-  IL_0295:  brtrue     IL_03fb
-  IL_029a:  br         IL_0459
-  IL_029f:  ldarg.0
-  IL_02a0:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
-  IL_02a5:  call       ""bool string.op_Equality(string, string)""
-  IL_02aa:  brtrue     IL_0403
-  IL_02af:  br         IL_0459
-  IL_02b4:  ldarg.0
-  IL_02b5:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
-  IL_02ba:  call       ""bool string.op_Equality(string, string)""
-  IL_02bf:  brtrue     IL_040b
-  IL_02c4:  br         IL_0459
-  IL_02c9:  ldarg.0
-  IL_02ca:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
-  IL_02cf:  call       ""bool string.op_Equality(string, string)""
-  IL_02d4:  brtrue     IL_0413
-  IL_02d9:  br         IL_0459
-  IL_02de:  ldarg.0
-  IL_02df:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
-  IL_02e4:  call       ""bool string.op_Equality(string, string)""
-  IL_02e9:  brtrue     IL_041b
-  IL_02ee:  br         IL_0459
-  IL_02f3:  ldarg.0
-  IL_02f4:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
-  IL_02f9:  call       ""bool string.op_Equality(string, string)""
-  IL_02fe:  brtrue     IL_0423
-  IL_0303:  br         IL_0459
-  IL_0308:  ldarg.0
-  IL_0309:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
-  IL_030e:  call       ""bool string.op_Equality(string, string)""
-  IL_0313:  brtrue     IL_042b
-  IL_0318:  br         IL_0459
-  IL_031d:  ldarg.0
-  IL_031e:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
-  IL_0323:  call       ""bool string.op_Equality(string, string)""
-  IL_0328:  brtrue     IL_0433
-  IL_032d:  br         IL_0459
-  IL_0332:  ldarg.0
-  IL_0333:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
-  IL_0338:  call       ""bool string.op_Equality(string, string)""
-  IL_033d:  brtrue     IL_043b
-  IL_0342:  br         IL_0459
-  IL_0347:  ldarg.0
-  IL_0348:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
-  IL_034d:  call       ""bool string.op_Equality(string, string)""
-  IL_0352:  brtrue     IL_0443
-  IL_0357:  br         IL_0459
-  IL_035c:  ldarg.0
-  IL_035d:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
-  IL_0362:  call       ""bool string.op_Equality(string, string)""
-  IL_0367:  brtrue     IL_044b
-  IL_036c:  br         IL_0459
-  IL_0371:  ldarg.0
-  IL_0372:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
-  IL_0377:  call       ""bool string.op_Equality(string, string)""
-  IL_037c:  brtrue     IL_0453
-  IL_0381:  br         IL_0459
-  IL_0386:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
-  IL_038b:  stloc.0
-  IL_038c:  br         IL_0459
-  IL_0391:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
-  IL_0396:  stloc.0
-  IL_0397:  br         IL_0459
-  IL_039c:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
-  IL_03a1:  stloc.0
-  IL_03a2:  br         IL_0459
-  IL_03a7:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
-  IL_03ac:  stloc.0
-  IL_03ad:  br         IL_0459
-  IL_03b2:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
-  IL_03b7:  stloc.0
-  IL_03b8:  br         IL_0459
-  IL_03bd:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
-  IL_03c2:  stloc.0
-  IL_03c3:  br         IL_0459
-  IL_03c8:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
-  IL_03cd:  stloc.0
-  IL_03ce:  br         IL_0459
-  IL_03d3:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
-  IL_03d8:  stloc.0
-  IL_03d9:  br.s       IL_0459
-  IL_03db:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
-  IL_03e0:  stloc.0
-  IL_03e1:  br.s       IL_0459
-  IL_03e3:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
-  IL_03e8:  stloc.0
-  IL_03e9:  br.s       IL_0459
-  IL_03eb:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
-  IL_03f0:  stloc.0
-  IL_03f1:  br.s       IL_0459
-  IL_03f3:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
-  IL_03f8:  stloc.0
-  IL_03f9:  br.s       IL_0459
-  IL_03fb:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
-  IL_0400:  stloc.0
-  IL_0401:  br.s       IL_0459
-  IL_0403:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
-  IL_0408:  stloc.0
-  IL_0409:  br.s       IL_0459
-  IL_040b:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
-  IL_0410:  stloc.0
-  IL_0411:  br.s       IL_0459
-  IL_0413:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
-  IL_0418:  stloc.0
-  IL_0419:  br.s       IL_0459
-  IL_041b:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
-  IL_0420:  stloc.0
-  IL_0421:  br.s       IL_0459
-  IL_0423:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
-  IL_0428:  stloc.0
-  IL_0429:  br.s       IL_0459
-  IL_042b:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
-  IL_0430:  stloc.0
-  IL_0431:  br.s       IL_0459
-  IL_0433:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
-  IL_0438:  stloc.0
-  IL_0439:  br.s       IL_0459
-  IL_043b:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
-  IL_0440:  stloc.0
-  IL_0441:  br.s       IL_0459
-  IL_0443:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
-  IL_0448:  stloc.0
-  IL_0449:  br.s       IL_0459
-  IL_044b:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
-  IL_0450:  stloc.0
-  IL_0451:  br.s       IL_0459
-  IL_0453:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
-  IL_0458:  stloc.0
-  IL_0459:  ldloc.0
-  IL_045a:  ldarg.0
-  IL_045b:  call       ""bool string.op_Equality(string, string)""
-  IL_0460:  ret
+  IL_001f:  call       ""ComputeStringHash""
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  ldc.i4     0xb2f29419
+  IL_002b:  bgt.un     IL_00e0
+  IL_0030:  ldloc.1
+  IL_0031:  ldc.i4     0x619348d8
+  IL_0036:  bgt.un.s   IL_008c
+  IL_0038:  ldloc.1
+  IL_0039:  ldc.i4     0x36758e37
+  IL_003e:  bgt.un.s   IL_0066
+  IL_0040:  ldloc.1
+  IL_0041:  ldc.i4     0x144fd20d
+  IL_0046:  beq        IL_02ae
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4     0x14ca99e2
+  IL_0051:  beq        IL_025a
+  IL_0056:  ldloc.1
+  IL_0057:  ldc.i4     0x36758e37
+  IL_005c:  beq        IL_0206
+  IL_0061:  br         IL_0453
+  IL_0066:  ldloc.1
+  IL_0067:  ldc.i4     0x5398a778
+  IL_006c:  beq        IL_021b
+  IL_0071:  ldloc.1
+  IL_0072:  ldc.i4     0x616477cf
+  IL_0077:  beq        IL_01b2
+  IL_007c:  ldloc.1
+  IL_007d:  ldc.i4     0x619348d8
+  IL_0082:  beq        IL_02ed
+  IL_0087:  br         IL_0453
+  IL_008c:  ldloc.1
+  IL_008d:  ldc.i4     0x78a826a8
+  IL_0092:  bgt.un.s   IL_00ba
+  IL_0094:  ldloc.1
+  IL_0095:  ldc.i4     0x65b3e3e5
+  IL_009a:  beq        IL_02c3
+  IL_009f:  ldloc.1
+  IL_00a0:  ldc.i4     0x7822b5bc
+  IL_00a5:  beq        IL_0284
+  IL_00aa:  ldloc.1
+  IL_00ab:  ldc.i4     0x78a826a8
+  IL_00b0:  beq        IL_01dc
+  IL_00b5:  br         IL_0453
+  IL_00ba:  ldloc.1
+  IL_00bb:  ldc.i4     0x7f66da4e
+  IL_00c0:  beq        IL_0356
+  IL_00c5:  ldloc.1
+  IL_00c6:  ldc.i4     0xb13d374d
+  IL_00cb:  beq        IL_032c
+  IL_00d0:  ldloc.1
+  IL_00d1:  ldc.i4     0xb2f29419
+  IL_00d6:  beq        IL_0302
+  IL_00db:  br         IL_0453
+  IL_00e0:  ldloc.1
+  IL_00e1:  ldc.i4     0xd59864f4
+  IL_00e6:  bgt.un.s   IL_013c
+  IL_00e8:  ldloc.1
+  IL_00e9:  ldc.i4     0xbf4a9f8e
+  IL_00ee:  bgt.un.s   IL_0116
+  IL_00f0:  ldloc.1
+  IL_00f1:  ldc.i4     0xb6e02d3a
+  IL_00f6:  beq        IL_0299
+  IL_00fb:  ldloc.1
+  IL_00fc:  ldc.i4     0xbaed3db3
+  IL_0101:  beq        IL_0317
+  IL_0106:  ldloc.1
+  IL_0107:  ldc.i4     0xbf4a9f8e
+  IL_010c:  beq        IL_0230
+  IL_0111:  br         IL_0453
+  IL_0116:  ldloc.1
+  IL_0117:  ldc.i4     0xc6284d42
+  IL_011c:  beq        IL_01f1
+  IL_0121:  ldloc.1
+  IL_0122:  ldc.i4     0xd1761402
+  IL_0127:  beq        IL_01c7
+  IL_012c:  ldloc.1
+  IL_012d:  ldc.i4     0xd59864f4
+  IL_0132:  beq        IL_026f
+  IL_0137:  br         IL_0453
+  IL_013c:  ldloc.1
+  IL_013d:  ldc.i4     0xeb323c73
+  IL_0142:  bgt.un.s   IL_016a
+  IL_0144:  ldloc.1
+  IL_0145:  ldc.i4     0xdca4b248
+  IL_014a:  beq        IL_0245
+  IL_014f:  ldloc.1
+  IL_0150:  ldc.i4     0xe926f470
+  IL_0155:  beq        IL_036b
+  IL_015a:  ldloc.1
+  IL_015b:  ldc.i4     0xeb323c73
+  IL_0160:  beq        IL_02d8
+  IL_0165:  br         IL_0453
+  IL_016a:  ldloc.1
+  IL_016b:  ldc.i4     0xf1ea0ad5
+  IL_0170:  beq        IL_0341
+  IL_0175:  ldloc.1
+  IL_0176:  ldc.i4     0xfa67b44d
+  IL_017b:  beq.s      IL_019d
+  IL_017d:  ldloc.1
+  IL_017e:  ldc.i4     0xfea21584
+  IL_0183:  bne.un     IL_0453
+  IL_0188:  ldarg.0
+  IL_0189:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
+  IL_018e:  call       ""bool string.op_Equality(string, string)""
+  IL_0193:  brtrue     IL_0380
+  IL_0198:  br         IL_0453
+  IL_019d:  ldarg.0
+  IL_019e:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
+  IL_01a3:  call       ""bool string.op_Equality(string, string)""
+  IL_01a8:  brtrue     IL_038b
+  IL_01ad:  br         IL_0453
+  IL_01b2:  ldarg.0
+  IL_01b3:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
+  IL_01b8:  call       ""bool string.op_Equality(string, string)""
+  IL_01bd:  brtrue     IL_0396
+  IL_01c2:  br         IL_0453
+  IL_01c7:  ldarg.0
+  IL_01c8:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
+  IL_01cd:  call       ""bool string.op_Equality(string, string)""
+  IL_01d2:  brtrue     IL_03a1
+  IL_01d7:  br         IL_0453
+  IL_01dc:  ldarg.0
+  IL_01dd:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
+  IL_01e2:  call       ""bool string.op_Equality(string, string)""
+  IL_01e7:  brtrue     IL_03ac
+  IL_01ec:  br         IL_0453
+  IL_01f1:  ldarg.0
+  IL_01f2:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
+  IL_01f7:  call       ""bool string.op_Equality(string, string)""
+  IL_01fc:  brtrue     IL_03b7
+  IL_0201:  br         IL_0453
+  IL_0206:  ldarg.0
+  IL_0207:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
+  IL_020c:  call       ""bool string.op_Equality(string, string)""
+  IL_0211:  brtrue     IL_03c2
+  IL_0216:  br         IL_0453
+  IL_021b:  ldarg.0
+  IL_021c:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
+  IL_0221:  call       ""bool string.op_Equality(string, string)""
+  IL_0226:  brtrue     IL_03cd
+  IL_022b:  br         IL_0453
+  IL_0230:  ldarg.0
+  IL_0231:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
+  IL_0236:  call       ""bool string.op_Equality(string, string)""
+  IL_023b:  brtrue     IL_03d5
+  IL_0240:  br         IL_0453
+  IL_0245:  ldarg.0
+  IL_0246:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
+  IL_024b:  call       ""bool string.op_Equality(string, string)""
+  IL_0250:  brtrue     IL_03dd
+  IL_0255:  br         IL_0453
+  IL_025a:  ldarg.0
+  IL_025b:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
+  IL_0260:  call       ""bool string.op_Equality(string, string)""
+  IL_0265:  brtrue     IL_03e5
+  IL_026a:  br         IL_0453
+  IL_026f:  ldarg.0
+  IL_0270:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
+  IL_0275:  call       ""bool string.op_Equality(string, string)""
+  IL_027a:  brtrue     IL_03ed
+  IL_027f:  br         IL_0453
+  IL_0284:  ldarg.0
+  IL_0285:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
+  IL_028a:  call       ""bool string.op_Equality(string, string)""
+  IL_028f:  brtrue     IL_03f5
+  IL_0294:  br         IL_0453
+  IL_0299:  ldarg.0
+  IL_029a:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
+  IL_029f:  call       ""bool string.op_Equality(string, string)""
+  IL_02a4:  brtrue     IL_03fd
+  IL_02a9:  br         IL_0453
+  IL_02ae:  ldarg.0
+  IL_02af:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
+  IL_02b4:  call       ""bool string.op_Equality(string, string)""
+  IL_02b9:  brtrue     IL_0405
+  IL_02be:  br         IL_0453
+  IL_02c3:  ldarg.0
+  IL_02c4:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
+  IL_02c9:  call       ""bool string.op_Equality(string, string)""
+  IL_02ce:  brtrue     IL_040d
+  IL_02d3:  br         IL_0453
+  IL_02d8:  ldarg.0
+  IL_02d9:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
+  IL_02de:  call       ""bool string.op_Equality(string, string)""
+  IL_02e3:  brtrue     IL_0415
+  IL_02e8:  br         IL_0453
+  IL_02ed:  ldarg.0
+  IL_02ee:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
+  IL_02f3:  call       ""bool string.op_Equality(string, string)""
+  IL_02f8:  brtrue     IL_041d
+  IL_02fd:  br         IL_0453
+  IL_0302:  ldarg.0
+  IL_0303:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
+  IL_0308:  call       ""bool string.op_Equality(string, string)""
+  IL_030d:  brtrue     IL_0425
+  IL_0312:  br         IL_0453
+  IL_0317:  ldarg.0
+  IL_0318:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
+  IL_031d:  call       ""bool string.op_Equality(string, string)""
+  IL_0322:  brtrue     IL_042d
+  IL_0327:  br         IL_0453
+  IL_032c:  ldarg.0
+  IL_032d:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
+  IL_0332:  call       ""bool string.op_Equality(string, string)""
+  IL_0337:  brtrue     IL_0435
+  IL_033c:  br         IL_0453
+  IL_0341:  ldarg.0
+  IL_0342:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
+  IL_0347:  call       ""bool string.op_Equality(string, string)""
+  IL_034c:  brtrue     IL_043d
+  IL_0351:  br         IL_0453
+  IL_0356:  ldarg.0
+  IL_0357:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
+  IL_035c:  call       ""bool string.op_Equality(string, string)""
+  IL_0361:  brtrue     IL_0445
+  IL_0366:  br         IL_0453
+  IL_036b:  ldarg.0
+  IL_036c:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
+  IL_0371:  call       ""bool string.op_Equality(string, string)""
+  IL_0376:  brtrue     IL_044d
+  IL_037b:  br         IL_0453
+  IL_0380:  ldstr      ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9""
+  IL_0385:  stloc.0
+  IL_0386:  br         IL_0453
+  IL_038b:  ldstr      ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I""
+  IL_0390:  stloc.0
+  IL_0391:  br         IL_0453
+  IL_0396:  ldstr      ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m""
+  IL_039b:  stloc.0
+  IL_039c:  br         IL_0453
+  IL_03a1:  ldstr      ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD""
+  IL_03a6:  stloc.0
+  IL_03a7:  br         IL_0453
+  IL_03ac:  ldstr      ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]""
+  IL_03b1:  stloc.0
+  IL_03b2:  br         IL_0453
+  IL_03b7:  ldstr      ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c""
+  IL_03bc:  stloc.0
+  IL_03bd:  br         IL_0453
+  IL_03c2:  ldstr      ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0""
+  IL_03c7:  stloc.0
+  IL_03c8:  br         IL_0453
+  IL_03cd:  ldstr      ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>""
+  IL_03d2:  stloc.0
+  IL_03d3:  br.s       IL_0453
+  IL_03d5:  ldstr      ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF""
+  IL_03da:  stloc.0
+  IL_03db:  br.s       IL_0453
+  IL_03dd:  ldstr      ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:""
+  IL_03e2:  stloc.0
+  IL_03e3:  br.s       IL_0453
+  IL_03e5:  ldstr      "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj""
+  IL_03ea:  stloc.0
+  IL_03eb:  br.s       IL_0453
+  IL_03ed:  ldstr      ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:""
+  IL_03f2:  stloc.0
+  IL_03f3:  br.s       IL_0453
+  IL_03f5:  ldstr      ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU""
+  IL_03fa:  stloc.0
+  IL_03fb:  br.s       IL_0453
+  IL_03fd:  ldstr      ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR""
+  IL_0402:  stloc.0
+  IL_0403:  br.s       IL_0453
+  IL_0405:  ldstr      ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj""
+  IL_040a:  stloc.0
+  IL_040b:  br.s       IL_0453
+  IL_040d:  ldstr      ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k""
+  IL_0412:  stloc.0
+  IL_0413:  br.s       IL_0453
+  IL_0415:  ldstr      ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4""
+  IL_041a:  stloc.0
+  IL_041b:  br.s       IL_0453
+  IL_041d:  ldstr      ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O""
+  IL_0422:  stloc.0
+  IL_0423:  br.s       IL_0453
+  IL_0425:  ldstr      ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe""
+  IL_042a:  stloc.0
+  IL_042b:  br.s       IL_0453
+  IL_042d:  ldstr      ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM""
+  IL_0432:  stloc.0
+  IL_0433:  br.s       IL_0453
+  IL_0435:  ldstr      ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W""
+  IL_043a:  stloc.0
+  IL_043b:  br.s       IL_0453
+  IL_043d:  ldstr      ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D""
+  IL_0442:  stloc.0
+  IL_0443:  br.s       IL_0453
+  IL_0445:  ldstr      ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9""
+  IL_044a:  stloc.0
+  IL_044b:  br.s       IL_0453
+  IL_044d:  ldstr      ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4""
+  IL_0452:  stloc.0
+  IL_0453:  ldloc.0
+  IL_0454:  ldarg.0
+  IL_0455:  call       ""bool string.op_Equality(string, string)""
+  IL_045a:  ret
 }"
             );
 
@@ -4112,77 +4108,75 @@ class Program
             var verifier = CompileAndVerify(comp, verify: Verification.Fails);
             verifier.VerifyIL("Program.Main", @"
 {
-  // Code size      229 (0xe5)
+  // Code size      223 (0xdf)
   .maxstack  2
   .locals init (string V_0) //s
   IL_0000:  ldstr      ""hello""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  brfalse    IL_00e4
-  IL_000c:  ldloc.0
-  IL_000d:  ldstr      ""Hi""
-  IL_0012:  call       ""bool string.op_Equality(string, string)""
-  IL_0017:  brtrue.s   IL_0082
-  IL_0019:  ldloc.0
-  IL_001a:  ldstr      ""Bye""
-  IL_001f:  call       ""bool string.op_Equality(string, string)""
-  IL_0024:  brtrue.s   IL_008d
-  IL_0026:  ldloc.0
-  IL_0027:  ldstr      ""qwe""
-  IL_002c:  call       ""bool string.op_Equality(string, string)""
-  IL_0031:  brtrue.s   IL_0098
-  IL_0033:  ldloc.0
-  IL_0034:  ldstr      ""ert""
-  IL_0039:  call       ""bool string.op_Equality(string, string)""
-  IL_003e:  brtrue.s   IL_00a3
-  IL_0040:  ldloc.0
-  IL_0041:  ldstr      ""asd""
-  IL_0046:  call       ""bool string.op_Equality(string, string)""
-  IL_004b:  brtrue.s   IL_00ae
-  IL_004d:  ldloc.0
-  IL_004e:  ldstr      ""hello""
-  IL_0053:  call       ""bool string.op_Equality(string, string)""
-  IL_0058:  brtrue.s   IL_00b9
-  IL_005a:  ldloc.0
-  IL_005b:  ldstr      ""qrs""
-  IL_0060:  call       ""bool string.op_Equality(string, string)""
-  IL_0065:  brtrue.s   IL_00c4
-  IL_0067:  ldloc.0
-  IL_0068:  ldstr      ""tuv""
-  IL_006d:  call       ""bool string.op_Equality(string, string)""
-  IL_0072:  brtrue.s   IL_00cf
-  IL_0074:  ldloc.0
-  IL_0075:  ldstr      ""wxy""
-  IL_007a:  call       ""bool string.op_Equality(string, string)""
-  IL_007f:  brtrue.s   IL_00da
-  IL_0081:  ret
-  IL_0082:  ldstr      "" Hi ""
-  IL_0087:  stsfld     ""string Program.d""
-  IL_008c:  ret
-  IL_008d:  ldstr      "" Bye ""
-  IL_0092:  stsfld     ""string Program.d""
-  IL_0097:  ret
-  IL_0098:  ldstr      "" qwe ""
-  IL_009d:  stsfld     ""string Program.d""
-  IL_00a2:  ret
-  IL_00a3:  ldstr      "" ert ""
-  IL_00a8:  stsfld     ""string Program.d""
-  IL_00ad:  ret
-  IL_00ae:  ldstr      "" asd ""
-  IL_00b3:  stsfld     ""string Program.d""
-  IL_00b8:  ret
-  IL_00b9:  ldstr      "" hello ""
-  IL_00be:  stsfld     ""string Program.d""
-  IL_00c3:  ret
-  IL_00c4:  ldstr      "" qrs ""
-  IL_00c9:  stsfld     ""string Program.d""
-  IL_00ce:  ret
-  IL_00cf:  ldstr      "" tuv ""
-  IL_00d4:  stsfld     ""string Program.d""
-  IL_00d9:  ret
-  IL_00da:  ldstr      "" wxy ""
-  IL_00df:  stsfld     ""string Program.d""
-  IL_00e4:  ret
+  IL_0007:  ldstr      ""Hi""
+  IL_000c:  call       ""bool string.op_Equality(string, string)""
+  IL_0011:  brtrue.s   IL_007c
+  IL_0013:  ldloc.0
+  IL_0014:  ldstr      ""Bye""
+  IL_0019:  call       ""bool string.op_Equality(string, string)""
+  IL_001e:  brtrue.s   IL_0087
+  IL_0020:  ldloc.0
+  IL_0021:  ldstr      ""qwe""
+  IL_0026:  call       ""bool string.op_Equality(string, string)""
+  IL_002b:  brtrue.s   IL_0092
+  IL_002d:  ldloc.0
+  IL_002e:  ldstr      ""ert""
+  IL_0033:  call       ""bool string.op_Equality(string, string)""
+  IL_0038:  brtrue.s   IL_009d
+  IL_003a:  ldloc.0
+  IL_003b:  ldstr      ""asd""
+  IL_0040:  call       ""bool string.op_Equality(string, string)""
+  IL_0045:  brtrue.s   IL_00a8
+  IL_0047:  ldloc.0
+  IL_0048:  ldstr      ""hello""
+  IL_004d:  call       ""bool string.op_Equality(string, string)""
+  IL_0052:  brtrue.s   IL_00b3
+  IL_0054:  ldloc.0
+  IL_0055:  ldstr      ""qrs""
+  IL_005a:  call       ""bool string.op_Equality(string, string)""
+  IL_005f:  brtrue.s   IL_00be
+  IL_0061:  ldloc.0
+  IL_0062:  ldstr      ""tuv""
+  IL_0067:  call       ""bool string.op_Equality(string, string)""
+  IL_006c:  brtrue.s   IL_00c9
+  IL_006e:  ldloc.0
+  IL_006f:  ldstr      ""wxy""
+  IL_0074:  call       ""bool string.op_Equality(string, string)""
+  IL_0079:  brtrue.s   IL_00d4
+  IL_007b:  ret
+  IL_007c:  ldstr      "" Hi ""
+  IL_0081:  stsfld     ""string Program.d""
+  IL_0086:  ret
+  IL_0087:  ldstr      "" Bye ""
+  IL_008c:  stsfld     ""string Program.d""
+  IL_0091:  ret
+  IL_0092:  ldstr      "" qwe ""
+  IL_0097:  stsfld     ""string Program.d""
+  IL_009c:  ret
+  IL_009d:  ldstr      "" ert ""
+  IL_00a2:  stsfld     ""string Program.d""
+  IL_00a7:  ret
+  IL_00a8:  ldstr      "" asd ""
+  IL_00ad:  stsfld     ""string Program.d""
+  IL_00b2:  ret
+  IL_00b3:  ldstr      "" hello ""
+  IL_00b8:  stsfld     ""string Program.d""
+  IL_00bd:  ret
+  IL_00be:  ldstr      "" qrs ""
+  IL_00c3:  stsfld     ""string Program.d""
+  IL_00c8:  ret
+  IL_00c9:  ldstr      "" tuv ""
+  IL_00ce:  stsfld     ""string Program.d""
+  IL_00d3:  ret
+  IL_00d4:  ldstr      "" wxy ""
+  IL_00d9:  stsfld     ""string Program.d""
+  IL_00de:  ret
 }");
         }
 
@@ -4721,7 +4715,7 @@ namespace ConsoleApplication24
             ERR_AnonMethGrpInForEach = 446,
             //ERR_AttrOnTypeArg = 447,      unused in Roslyn. The scenario for which this error exists should, and does generate a parse error.
             ERR_BadIncDecRetType = 448,
-            ERR_RefValBoundMustBeFirst = 449,
+            ERR_TypeConstraintsMustBeUniqueAndFirst = 449,
             ERR_RefValBoundWithClass = 450,
             ERR_NewBoundWithVal = 451,
             ERR_RefConstraintNotSatisfied = 452,
@@ -6270,138 +6264,136 @@ public class Test
             var compVerifier = CompileAndVerify(text, expectedOutput: "3");
             compVerifier.VerifyIL("Test.M", @"
 {
-  // Code size      374 (0x176)
+  // Code size      368 (0x170)
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse    IL_016f
-  IL_0006:  ldarg.0
-  IL_0007:  call       ""ComputeStringHash""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  ldc.i4     0x6ceb2d06
-  IL_0013:  bgt.un.s   IL_005b
-  IL_0015:  ldloc.0
-  IL_0016:  ldc.i4     0x2b043744
-  IL_001b:  bgt.un.s   IL_0035
-  IL_001d:  ldloc.0
-  IL_001e:  ldc.i4     0x2b8b9cf
-  IL_0023:  beq        IL_00b8
-  IL_0028:  ldloc.0
-  IL_0029:  ldc.i4     0x2b043744
-  IL_002e:  beq.s      IL_00a3
-  IL_0030:  br         IL_016f
-  IL_0035:  ldloc.0
-  IL_0036:  ldc.i4     0x32bdf8c6
-  IL_003b:  beq        IL_012d
-  IL_0040:  ldloc.0
-  IL_0041:  ldc.i4     0x3ac6ffba
-  IL_0046:  beq        IL_013c
-  IL_004b:  ldloc.0
-  IL_004c:  ldc.i4     0x6ceb2d06
-  IL_0051:  beq        IL_014b
-  IL_0056:  br         IL_016f
-  IL_005b:  ldloc.0
-  IL_005c:  ldc.i4     0xa953c75c
-  IL_0061:  bgt.un.s   IL_0083
-  IL_0063:  ldloc.0
-  IL_0064:  ldc.i4     0x727b390b
-  IL_0069:  beq.s      IL_00e2
-  IL_006b:  ldloc.0
-  IL_006c:  ldc.i4     0xa37f187c
-  IL_0071:  beq.s      IL_00cd
-  IL_0073:  ldloc.0
-  IL_0074:  ldc.i4     0xa953c75c
-  IL_0079:  beq        IL_0100
-  IL_007e:  br         IL_016f
-  IL_0083:  ldloc.0
-  IL_0084:  ldc.i4     0xd9cdec69
-  IL_0089:  beq.s      IL_00f1
-  IL_008b:  ldloc.0
-  IL_008c:  ldc.i4     0xe9dd1fed
-  IL_0091:  beq.s      IL_010f
-  IL_0093:  ldloc.0
-  IL_0094:  ldc.i4     0xf03bdf12
-  IL_0099:  beq        IL_011e
-  IL_009e:  br         IL_016f
-  IL_00a3:  ldarg.0
-  IL_00a4:  ldstr      ""Black""
-  IL_00a9:  call       ""bool string.op_Equality(string, string)""
-  IL_00ae:  brtrue     IL_015a
-  IL_00b3:  br         IL_016f
-  IL_00b8:  ldarg.0
-  IL_00b9:  ldstr      ""Brown""
-  IL_00be:  call       ""bool string.op_Equality(string, string)""
-  IL_00c3:  brtrue     IL_015c
-  IL_00c8:  br         IL_016f
-  IL_00cd:  ldarg.0
-  IL_00ce:  ldstr      ""Red""
-  IL_00d3:  call       ""bool string.op_Equality(string, string)""
-  IL_00d8:  brtrue     IL_015e
-  IL_00dd:  br         IL_016f
-  IL_00e2:  ldarg.0
-  IL_00e3:  ldstr      ""Orange""
-  IL_00e8:  call       ""bool string.op_Equality(string, string)""
-  IL_00ed:  brtrue.s   IL_0160
-  IL_00ef:  br.s       IL_016f
-  IL_00f1:  ldarg.0
-  IL_00f2:  ldstr      ""Yellow""
-  IL_00f7:  call       ""bool string.op_Equality(string, string)""
-  IL_00fc:  brtrue.s   IL_0162
-  IL_00fe:  br.s       IL_016f
-  IL_0100:  ldarg.0
-  IL_0101:  ldstr      ""Green""
-  IL_0106:  call       ""bool string.op_Equality(string, string)""
-  IL_010b:  brtrue.s   IL_0164
-  IL_010d:  br.s       IL_016f
-  IL_010f:  ldarg.0
-  IL_0110:  ldstr      ""Blue""
-  IL_0115:  call       ""bool string.op_Equality(string, string)""
-  IL_011a:  brtrue.s   IL_0166
-  IL_011c:  br.s       IL_016f
-  IL_011e:  ldarg.0
-  IL_011f:  ldstr      ""Violet""
-  IL_0124:  call       ""bool string.op_Equality(string, string)""
-  IL_0129:  brtrue.s   IL_0168
-  IL_012b:  br.s       IL_016f
-  IL_012d:  ldarg.0
-  IL_012e:  ldstr      ""Grey""
-  IL_0133:  call       ""bool string.op_Equality(string, string)""
-  IL_0138:  brtrue.s   IL_016a
-  IL_013a:  br.s       IL_016f
-  IL_013c:  ldarg.0
-  IL_013d:  ldstr      ""Gray""
-  IL_0142:  call       ""bool string.op_Equality(string, string)""
-  IL_0147:  brtrue.s   IL_016a
-  IL_0149:  br.s       IL_016f
-  IL_014b:  ldarg.0
-  IL_014c:  ldstr      ""White""
-  IL_0151:  call       ""bool string.op_Equality(string, string)""
-  IL_0156:  brtrue.s   IL_016c
-  IL_0158:  br.s       IL_016f
-  IL_015a:  ldc.i4.0
+  IL_0001:  call       ""ComputeStringHash""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4     0x6ceb2d06
+  IL_000d:  bgt.un.s   IL_0055
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4     0x2b043744
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4     0x2b8b9cf
+  IL_001d:  beq        IL_00b2
+  IL_0022:  ldloc.0
+  IL_0023:  ldc.i4     0x2b043744
+  IL_0028:  beq.s      IL_009d
+  IL_002a:  br         IL_0169
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4     0x32bdf8c6
+  IL_0035:  beq        IL_0127
+  IL_003a:  ldloc.0
+  IL_003b:  ldc.i4     0x3ac6ffba
+  IL_0040:  beq        IL_0136
+  IL_0045:  ldloc.0
+  IL_0046:  ldc.i4     0x6ceb2d06
+  IL_004b:  beq        IL_0145
+  IL_0050:  br         IL_0169
+  IL_0055:  ldloc.0
+  IL_0056:  ldc.i4     0xa953c75c
+  IL_005b:  bgt.un.s   IL_007d
+  IL_005d:  ldloc.0
+  IL_005e:  ldc.i4     0x727b390b
+  IL_0063:  beq.s      IL_00dc
+  IL_0065:  ldloc.0
+  IL_0066:  ldc.i4     0xa37f187c
+  IL_006b:  beq.s      IL_00c7
+  IL_006d:  ldloc.0
+  IL_006e:  ldc.i4     0xa953c75c
+  IL_0073:  beq        IL_00fa
+  IL_0078:  br         IL_0169
+  IL_007d:  ldloc.0
+  IL_007e:  ldc.i4     0xd9cdec69
+  IL_0083:  beq.s      IL_00eb
+  IL_0085:  ldloc.0
+  IL_0086:  ldc.i4     0xe9dd1fed
+  IL_008b:  beq.s      IL_0109
+  IL_008d:  ldloc.0
+  IL_008e:  ldc.i4     0xf03bdf12
+  IL_0093:  beq        IL_0118
+  IL_0098:  br         IL_0169
+  IL_009d:  ldarg.0
+  IL_009e:  ldstr      ""Black""
+  IL_00a3:  call       ""bool string.op_Equality(string, string)""
+  IL_00a8:  brtrue     IL_0154
+  IL_00ad:  br         IL_0169
+  IL_00b2:  ldarg.0
+  IL_00b3:  ldstr      ""Brown""
+  IL_00b8:  call       ""bool string.op_Equality(string, string)""
+  IL_00bd:  brtrue     IL_0156
+  IL_00c2:  br         IL_0169
+  IL_00c7:  ldarg.0
+  IL_00c8:  ldstr      ""Red""
+  IL_00cd:  call       ""bool string.op_Equality(string, string)""
+  IL_00d2:  brtrue     IL_0158
+  IL_00d7:  br         IL_0169
+  IL_00dc:  ldarg.0
+  IL_00dd:  ldstr      ""Orange""
+  IL_00e2:  call       ""bool string.op_Equality(string, string)""
+  IL_00e7:  brtrue.s   IL_015a
+  IL_00e9:  br.s       IL_0169
+  IL_00eb:  ldarg.0
+  IL_00ec:  ldstr      ""Yellow""
+  IL_00f1:  call       ""bool string.op_Equality(string, string)""
+  IL_00f6:  brtrue.s   IL_015c
+  IL_00f8:  br.s       IL_0169
+  IL_00fa:  ldarg.0
+  IL_00fb:  ldstr      ""Green""
+  IL_0100:  call       ""bool string.op_Equality(string, string)""
+  IL_0105:  brtrue.s   IL_015e
+  IL_0107:  br.s       IL_0169
+  IL_0109:  ldarg.0
+  IL_010a:  ldstr      ""Blue""
+  IL_010f:  call       ""bool string.op_Equality(string, string)""
+  IL_0114:  brtrue.s   IL_0160
+  IL_0116:  br.s       IL_0169
+  IL_0118:  ldarg.0
+  IL_0119:  ldstr      ""Violet""
+  IL_011e:  call       ""bool string.op_Equality(string, string)""
+  IL_0123:  brtrue.s   IL_0162
+  IL_0125:  br.s       IL_0169
+  IL_0127:  ldarg.0
+  IL_0128:  ldstr      ""Grey""
+  IL_012d:  call       ""bool string.op_Equality(string, string)""
+  IL_0132:  brtrue.s   IL_0164
+  IL_0134:  br.s       IL_0169
+  IL_0136:  ldarg.0
+  IL_0137:  ldstr      ""Gray""
+  IL_013c:  call       ""bool string.op_Equality(string, string)""
+  IL_0141:  brtrue.s   IL_0164
+  IL_0143:  br.s       IL_0169
+  IL_0145:  ldarg.0
+  IL_0146:  ldstr      ""White""
+  IL_014b:  call       ""bool string.op_Equality(string, string)""
+  IL_0150:  brtrue.s   IL_0166
+  IL_0152:  br.s       IL_0169
+  IL_0154:  ldc.i4.0
+  IL_0155:  ret
+  IL_0156:  ldc.i4.1
+  IL_0157:  ret
+  IL_0158:  ldc.i4.2
+  IL_0159:  ret
+  IL_015a:  ldc.i4.3
   IL_015b:  ret
-  IL_015c:  ldc.i4.1
+  IL_015c:  ldc.i4.4
   IL_015d:  ret
-  IL_015e:  ldc.i4.2
+  IL_015e:  ldc.i4.5
   IL_015f:  ret
-  IL_0160:  ldc.i4.3
+  IL_0160:  ldc.i4.6
   IL_0161:  ret
-  IL_0162:  ldc.i4.4
+  IL_0162:  ldc.i4.7
   IL_0163:  ret
-  IL_0164:  ldc.i4.5
+  IL_0164:  ldc.i4.8
   IL_0165:  ret
-  IL_0166:  ldc.i4.6
-  IL_0167:  ret
-  IL_0168:  ldc.i4.7
-  IL_0169:  ret
-  IL_016a:  ldc.i4.8
-  IL_016b:  ret
-  IL_016c:  ldc.i4.s   9
-  IL_016e:  ret
-  IL_016f:  ldarg.0
-  IL_0170:  newobj     ""System.ArgumentException..ctor(string)""
-  IL_0175:  throw
+  IL_0166:  ldc.i4.s   9
+  IL_0168:  ret
+  IL_0169:  ldarg.0
+  IL_016a:  newobj     ""System.ArgumentException..ctor(string)""
+  IL_016f:  throw
 }");
         }
 
@@ -6963,143 +6955,137 @@ public class Test
             var comp = CreateCompilation(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
-  // Code size      337 (0x151)
+  // Code size      326 (0x146)
   .maxstack  2
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  ldelem.ref
-  IL_0003:  stloc.0
-  IL_0004:  ldloc.0
-  IL_0005:  brfalse.s  IL_001a
-  IL_0007:  ldloc.0
-  IL_0008:  ldstr      ""A""
-  IL_000d:  call       ""bool string.op_Equality(string, string)""
-  IL_0012:  brfalse.s  IL_001a
-  IL_0014:  ldc.i4.1
-  IL_0015:  call       ""void System.Console.Write(int)""
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.1
-  IL_001c:  ldelem.ref
-  IL_001d:  stloc.0
-  IL_001e:  ldloc.0
-  IL_001f:  brfalse    IL_0150
-  IL_0024:  ldloc.0
-  IL_0025:  call       ""ComputeStringHash""
-  IL_002a:  stloc.1
-  IL_002b:  ldloc.1
-  IL_002c:  ldc.i4     0xc30bf539
-  IL_0031:  bgt.un.s   IL_0060
-  IL_0033:  ldloc.1
-  IL_0034:  ldc.i4     0xc10bf213
-  IL_0039:  bgt.un.s   IL_004c
-  IL_003b:  ldloc.1
-  IL_003c:  ldc.i4     0xc00bf080
-  IL_0041:  beq.s      IL_00bc
-  IL_0043:  ldloc.1
-  IL_0044:  ldc.i4     0xc10bf213
-  IL_0049:  beq.s      IL_00ae
-  IL_004b:  ret
+  IL_0003:  ldstr      ""A""
+  IL_0008:  call       ""bool string.op_Equality(string, string)""
+  IL_000d:  brfalse.s  IL_0015
+  IL_000f:  ldc.i4.1
+  IL_0010:  call       ""void System.Console.Write(int)""
+  IL_0015:  ldarg.0
+  IL_0016:  ldc.i4.1
+  IL_0017:  ldelem.ref
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""ComputeStringHash""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  ldc.i4     0xc30bf539
+  IL_0026:  bgt.un.s   IL_0055
+  IL_0028:  ldloc.1
+  IL_0029:  ldc.i4     0xc10bf213
+  IL_002e:  bgt.un.s   IL_0041
+  IL_0030:  ldloc.1
+  IL_0031:  ldc.i4     0xc00bf080
+  IL_0036:  beq.s      IL_00b1
+  IL_0038:  ldloc.1
+  IL_0039:  ldc.i4     0xc10bf213
+  IL_003e:  beq.s      IL_00a3
+  IL_0040:  ret
+  IL_0041:  ldloc.1
+  IL_0042:  ldc.i4     0xc20bf3a6
+  IL_0047:  beq        IL_00cd
   IL_004c:  ldloc.1
-  IL_004d:  ldc.i4     0xc20bf3a6
-  IL_0052:  beq        IL_00d8
-  IL_0057:  ldloc.1
-  IL_0058:  ldc.i4     0xc30bf539
-  IL_005d:  beq.s      IL_00ca
-  IL_005f:  ret
-  IL_0060:  ldloc.1
-  IL_0061:  ldc.i4     0xc70bfb85
-  IL_0066:  bgt.un.s   IL_0079
-  IL_0068:  ldloc.1
-  IL_0069:  ldc.i4     0xc60bf9f2
-  IL_006e:  beq.s      IL_00a0
-  IL_0070:  ldloc.1
-  IL_0071:  ldc.i4     0xc70bfb85
-  IL_0076:  beq.s      IL_0092
-  IL_0078:  ret
-  IL_0079:  ldloc.1
-  IL_007a:  ldc.i4     0xcc0c0364
-  IL_007f:  beq.s      IL_00f4
-  IL_0081:  ldloc.1
-  IL_0082:  ldc.i4     0xcd0c04f7
-  IL_0087:  beq.s      IL_00e6
-  IL_0089:  ldloc.1
-  IL_008a:  ldc.i4     0xcf0c081d
-  IL_008f:  beq.s      IL_0102
-  IL_0091:  ret
-  IL_0092:  ldloc.0
-  IL_0093:  ldstr      ""B""
-  IL_0098:  call       ""bool string.op_Equality(string, string)""
-  IL_009d:  brtrue.s   IL_0110
-  IL_009f:  ret
-  IL_00a0:  ldloc.0
-  IL_00a1:  ldstr      ""C""
-  IL_00a6:  call       ""bool string.op_Equality(string, string)""
-  IL_00ab:  brtrue.s   IL_0117
-  IL_00ad:  ret
-  IL_00ae:  ldloc.0
-  IL_00af:  ldstr      ""D""
-  IL_00b4:  call       ""bool string.op_Equality(string, string)""
-  IL_00b9:  brtrue.s   IL_011e
-  IL_00bb:  ret
-  IL_00bc:  ldloc.0
-  IL_00bd:  ldstr      ""E""
-  IL_00c2:  call       ""bool string.op_Equality(string, string)""
-  IL_00c7:  brtrue.s   IL_0125
-  IL_00c9:  ret
-  IL_00ca:  ldloc.0
-  IL_00cb:  ldstr      ""F""
-  IL_00d0:  call       ""bool string.op_Equality(string, string)""
-  IL_00d5:  brtrue.s   IL_012c
-  IL_00d7:  ret
-  IL_00d8:  ldloc.0
-  IL_00d9:  ldstr      ""G""
-  IL_00de:  call       ""bool string.op_Equality(string, string)""
-  IL_00e3:  brtrue.s   IL_0133
-  IL_00e5:  ret
-  IL_00e6:  ldloc.0
-  IL_00e7:  ldstr      ""H""
-  IL_00ec:  call       ""bool string.op_Equality(string, string)""
-  IL_00f1:  brtrue.s   IL_013a
-  IL_00f3:  ret
-  IL_00f4:  ldloc.0
-  IL_00f5:  ldstr      ""I""
-  IL_00fa:  call       ""bool string.op_Equality(string, string)""
-  IL_00ff:  brtrue.s   IL_0141
-  IL_0101:  ret
-  IL_0102:  ldloc.0
-  IL_0103:  ldstr      ""J""
-  IL_0108:  call       ""bool string.op_Equality(string, string)""
-  IL_010d:  brtrue.s   IL_0149
-  IL_010f:  ret
-  IL_0110:  ldc.i4.2
-  IL_0111:  call       ""void System.Console.Write(int)""
-  IL_0116:  ret
-  IL_0117:  ldc.i4.3
-  IL_0118:  call       ""void System.Console.Write(int)""
-  IL_011d:  ret
-  IL_011e:  ldc.i4.4
-  IL_011f:  call       ""void System.Console.Write(int)""
-  IL_0124:  ret
-  IL_0125:  ldc.i4.5
-  IL_0126:  call       ""void System.Console.Write(int)""
-  IL_012b:  ret
-  IL_012c:  ldc.i4.6
-  IL_012d:  call       ""void System.Console.Write(int)""
-  IL_0132:  ret
-  IL_0133:  ldc.i4.7
-  IL_0134:  call       ""void System.Console.Write(int)""
-  IL_0139:  ret
-  IL_013a:  ldc.i4.8
-  IL_013b:  call       ""void System.Console.Write(int)""
-  IL_0140:  ret
-  IL_0141:  ldc.i4.s   9
-  IL_0143:  call       ""void System.Console.Write(int)""
-  IL_0148:  ret
-  IL_0149:  ldc.i4.s   10
-  IL_014b:  call       ""void System.Console.Write(int)""
-  IL_0150:  ret
+  IL_004d:  ldc.i4     0xc30bf539
+  IL_0052:  beq.s      IL_00bf
+  IL_0054:  ret
+  IL_0055:  ldloc.1
+  IL_0056:  ldc.i4     0xc70bfb85
+  IL_005b:  bgt.un.s   IL_006e
+  IL_005d:  ldloc.1
+  IL_005e:  ldc.i4     0xc60bf9f2
+  IL_0063:  beq.s      IL_0095
+  IL_0065:  ldloc.1
+  IL_0066:  ldc.i4     0xc70bfb85
+  IL_006b:  beq.s      IL_0087
+  IL_006d:  ret
+  IL_006e:  ldloc.1
+  IL_006f:  ldc.i4     0xcc0c0364
+  IL_0074:  beq.s      IL_00e9
+  IL_0076:  ldloc.1
+  IL_0077:  ldc.i4     0xcd0c04f7
+  IL_007c:  beq.s      IL_00db
+  IL_007e:  ldloc.1
+  IL_007f:  ldc.i4     0xcf0c081d
+  IL_0084:  beq.s      IL_00f7
+  IL_0086:  ret
+  IL_0087:  ldloc.0
+  IL_0088:  ldstr      ""B""
+  IL_008d:  call       ""bool string.op_Equality(string, string)""
+  IL_0092:  brtrue.s   IL_0105
+  IL_0094:  ret
+  IL_0095:  ldloc.0
+  IL_0096:  ldstr      ""C""
+  IL_009b:  call       ""bool string.op_Equality(string, string)""
+  IL_00a0:  brtrue.s   IL_010c
+  IL_00a2:  ret
+  IL_00a3:  ldloc.0
+  IL_00a4:  ldstr      ""D""
+  IL_00a9:  call       ""bool string.op_Equality(string, string)""
+  IL_00ae:  brtrue.s   IL_0113
+  IL_00b0:  ret
+  IL_00b1:  ldloc.0
+  IL_00b2:  ldstr      ""E""
+  IL_00b7:  call       ""bool string.op_Equality(string, string)""
+  IL_00bc:  brtrue.s   IL_011a
+  IL_00be:  ret
+  IL_00bf:  ldloc.0
+  IL_00c0:  ldstr      ""F""
+  IL_00c5:  call       ""bool string.op_Equality(string, string)""
+  IL_00ca:  brtrue.s   IL_0121
+  IL_00cc:  ret
+  IL_00cd:  ldloc.0
+  IL_00ce:  ldstr      ""G""
+  IL_00d3:  call       ""bool string.op_Equality(string, string)""
+  IL_00d8:  brtrue.s   IL_0128
+  IL_00da:  ret
+  IL_00db:  ldloc.0
+  IL_00dc:  ldstr      ""H""
+  IL_00e1:  call       ""bool string.op_Equality(string, string)""
+  IL_00e6:  brtrue.s   IL_012f
+  IL_00e8:  ret
+  IL_00e9:  ldloc.0
+  IL_00ea:  ldstr      ""I""
+  IL_00ef:  call       ""bool string.op_Equality(string, string)""
+  IL_00f4:  brtrue.s   IL_0136
+  IL_00f6:  ret
+  IL_00f7:  ldloc.0
+  IL_00f8:  ldstr      ""J""
+  IL_00fd:  call       ""bool string.op_Equality(string, string)""
+  IL_0102:  brtrue.s   IL_013e
+  IL_0104:  ret
+  IL_0105:  ldc.i4.2
+  IL_0106:  call       ""void System.Console.Write(int)""
+  IL_010b:  ret
+  IL_010c:  ldc.i4.3
+  IL_010d:  call       ""void System.Console.Write(int)""
+  IL_0112:  ret
+  IL_0113:  ldc.i4.4
+  IL_0114:  call       ""void System.Console.Write(int)""
+  IL_0119:  ret
+  IL_011a:  ldc.i4.5
+  IL_011b:  call       ""void System.Console.Write(int)""
+  IL_0120:  ret
+  IL_0121:  ldc.i4.6
+  IL_0122:  call       ""void System.Console.Write(int)""
+  IL_0127:  ret
+  IL_0128:  ldc.i4.7
+  IL_0129:  call       ""void System.Console.Write(int)""
+  IL_012e:  ret
+  IL_012f:  ldc.i4.8
+  IL_0130:  call       ""void System.Console.Write(int)""
+  IL_0135:  ret
+  IL_0136:  ldc.i4.s   9
+  IL_0138:  call       ""void System.Console.Write(int)""
+  IL_013d:  ret
+  IL_013e:  ldc.i4.s   10
+  IL_0140:  call       ""void System.Console.Write(int)""
+  IL_0145:  ret
 }");
         }
 
@@ -7135,7 +7121,7 @@ public class Test
             // With special members available, we use a hashtable approach.
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
-  // Code size      313 (0x139)
+  // Code size      307 (0x133)
   .maxstack  2
   .locals init (string V_0,
                 uint V_1)
@@ -7144,122 +7130,120 @@ public class Test
   IL_0002:  ldelem.ref
   IL_0003:  stloc.0
   IL_0004:  ldloc.0
-  IL_0005:  brfalse    IL_0138
-  IL_000a:  ldloc.0
-  IL_000b:  call       ""ComputeStringHash""
-  IL_0010:  stloc.1
-  IL_0011:  ldloc.1
-  IL_0012:  ldc.i4     0xc30bf539
-  IL_0017:  bgt.un.s   IL_0049
-  IL_0019:  ldloc.1
-  IL_001a:  ldc.i4     0xc10bf213
-  IL_001f:  bgt.un.s   IL_0035
-  IL_0021:  ldloc.1
-  IL_0022:  ldc.i4     0xc00bf080
-  IL_0027:  beq        IL_00b3
-  IL_002c:  ldloc.1
-  IL_002d:  ldc.i4     0xc10bf213
-  IL_0032:  beq.s      IL_00a5
-  IL_0034:  ret
-  IL_0035:  ldloc.1
-  IL_0036:  ldc.i4     0xc20bf3a6
-  IL_003b:  beq        IL_00cf
-  IL_0040:  ldloc.1
-  IL_0041:  ldc.i4     0xc30bf539
-  IL_0046:  beq.s      IL_00c1
-  IL_0048:  ret
-  IL_0049:  ldloc.1
-  IL_004a:  ldc.i4     0xc60bf9f2
-  IL_004f:  bgt.un.s   IL_0062
-  IL_0051:  ldloc.1
-  IL_0052:  ldc.i4     0xc40bf6cc
-  IL_0057:  beq.s      IL_007b
-  IL_0059:  ldloc.1
-  IL_005a:  ldc.i4     0xc60bf9f2
-  IL_005f:  beq.s      IL_0097
-  IL_0061:  ret
-  IL_0062:  ldloc.1
-  IL_0063:  ldc.i4     0xc70bfb85
-  IL_0068:  beq.s      IL_0089
-  IL_006a:  ldloc.1
-  IL_006b:  ldc.i4     0xcc0c0364
-  IL_0070:  beq.s      IL_00eb
-  IL_0072:  ldloc.1
-  IL_0073:  ldc.i4     0xcd0c04f7
-  IL_0078:  beq.s      IL_00dd
-  IL_007a:  ret
-  IL_007b:  ldloc.0
-  IL_007c:  ldstr      ""A""
-  IL_0081:  call       ""bool string.op_Equality(string, string)""
-  IL_0086:  brtrue.s   IL_00f9
-  IL_0088:  ret
-  IL_0089:  ldloc.0
-  IL_008a:  ldstr      ""B""
-  IL_008f:  call       ""bool string.op_Equality(string, string)""
-  IL_0094:  brtrue.s   IL_0100
-  IL_0096:  ret
-  IL_0097:  ldloc.0
-  IL_0098:  ldstr      ""C""
-  IL_009d:  call       ""bool string.op_Equality(string, string)""
-  IL_00a2:  brtrue.s   IL_0107
-  IL_00a4:  ret
-  IL_00a5:  ldloc.0
-  IL_00a6:  ldstr      ""D""
-  IL_00ab:  call       ""bool string.op_Equality(string, string)""
-  IL_00b0:  brtrue.s   IL_010e
-  IL_00b2:  ret
-  IL_00b3:  ldloc.0
-  IL_00b4:  ldstr      ""E""
-  IL_00b9:  call       ""bool string.op_Equality(string, string)""
-  IL_00be:  brtrue.s   IL_0115
-  IL_00c0:  ret
-  IL_00c1:  ldloc.0
-  IL_00c2:  ldstr      ""F""
-  IL_00c7:  call       ""bool string.op_Equality(string, string)""
-  IL_00cc:  brtrue.s   IL_011c
-  IL_00ce:  ret
-  IL_00cf:  ldloc.0
-  IL_00d0:  ldstr      ""G""
-  IL_00d5:  call       ""bool string.op_Equality(string, string)""
-  IL_00da:  brtrue.s   IL_0123
-  IL_00dc:  ret
-  IL_00dd:  ldloc.0
-  IL_00de:  ldstr      ""H""
-  IL_00e3:  call       ""bool string.op_Equality(string, string)""
-  IL_00e8:  brtrue.s   IL_012a
-  IL_00ea:  ret
-  IL_00eb:  ldloc.0
-  IL_00ec:  ldstr      ""I""
-  IL_00f1:  call       ""bool string.op_Equality(string, string)""
-  IL_00f6:  brtrue.s   IL_0131
-  IL_00f8:  ret
-  IL_00f9:  ldc.i4.1
-  IL_00fa:  call       ""void System.Console.Write(int)""
-  IL_00ff:  ret
-  IL_0100:  ldc.i4.2
-  IL_0101:  call       ""void System.Console.Write(int)""
-  IL_0106:  ret
-  IL_0107:  ldc.i4.3
-  IL_0108:  call       ""void System.Console.Write(int)""
-  IL_010d:  ret
-  IL_010e:  ldc.i4.4
-  IL_010f:  call       ""void System.Console.Write(int)""
-  IL_0114:  ret
-  IL_0115:  ldc.i4.5
-  IL_0116:  call       ""void System.Console.Write(int)""
-  IL_011b:  ret
-  IL_011c:  ldc.i4.6
-  IL_011d:  call       ""void System.Console.Write(int)""
-  IL_0122:  ret
-  IL_0123:  ldc.i4.7
-  IL_0124:  call       ""void System.Console.Write(int)""
-  IL_0129:  ret
-  IL_012a:  ldc.i4.8
-  IL_012b:  call       ""void System.Console.Write(int)""
-  IL_0130:  ret
-  IL_0131:  ldc.i4.s   9
-  IL_0133:  call       ""void System.Console.Write(int)""
-  IL_0138:  ret
+  IL_0005:  call       ""ComputeStringHash""
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.1
+  IL_000c:  ldc.i4     0xc30bf539
+  IL_0011:  bgt.un.s   IL_0043
+  IL_0013:  ldloc.1
+  IL_0014:  ldc.i4     0xc10bf213
+  IL_0019:  bgt.un.s   IL_002f
+  IL_001b:  ldloc.1
+  IL_001c:  ldc.i4     0xc00bf080
+  IL_0021:  beq        IL_00ad
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4     0xc10bf213
+  IL_002c:  beq.s      IL_009f
+  IL_002e:  ret
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4     0xc20bf3a6
+  IL_0035:  beq        IL_00c9
+  IL_003a:  ldloc.1
+  IL_003b:  ldc.i4     0xc30bf539
+  IL_0040:  beq.s      IL_00bb
+  IL_0042:  ret
+  IL_0043:  ldloc.1
+  IL_0044:  ldc.i4     0xc60bf9f2
+  IL_0049:  bgt.un.s   IL_005c
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4     0xc40bf6cc
+  IL_0051:  beq.s      IL_0075
+  IL_0053:  ldloc.1
+  IL_0054:  ldc.i4     0xc60bf9f2
+  IL_0059:  beq.s      IL_0091
+  IL_005b:  ret
+  IL_005c:  ldloc.1
+  IL_005d:  ldc.i4     0xc70bfb85
+  IL_0062:  beq.s      IL_0083
+  IL_0064:  ldloc.1
+  IL_0065:  ldc.i4     0xcc0c0364
+  IL_006a:  beq.s      IL_00e5
+  IL_006c:  ldloc.1
+  IL_006d:  ldc.i4     0xcd0c04f7
+  IL_0072:  beq.s      IL_00d7
+  IL_0074:  ret
+  IL_0075:  ldloc.0
+  IL_0076:  ldstr      ""A""
+  IL_007b:  call       ""bool string.op_Equality(string, string)""
+  IL_0080:  brtrue.s   IL_00f3
+  IL_0082:  ret
+  IL_0083:  ldloc.0
+  IL_0084:  ldstr      ""B""
+  IL_0089:  call       ""bool string.op_Equality(string, string)""
+  IL_008e:  brtrue.s   IL_00fa
+  IL_0090:  ret
+  IL_0091:  ldloc.0
+  IL_0092:  ldstr      ""C""
+  IL_0097:  call       ""bool string.op_Equality(string, string)""
+  IL_009c:  brtrue.s   IL_0101
+  IL_009e:  ret
+  IL_009f:  ldloc.0
+  IL_00a0:  ldstr      ""D""
+  IL_00a5:  call       ""bool string.op_Equality(string, string)""
+  IL_00aa:  brtrue.s   IL_0108
+  IL_00ac:  ret
+  IL_00ad:  ldloc.0
+  IL_00ae:  ldstr      ""E""
+  IL_00b3:  call       ""bool string.op_Equality(string, string)""
+  IL_00b8:  brtrue.s   IL_010f
+  IL_00ba:  ret
+  IL_00bb:  ldloc.0
+  IL_00bc:  ldstr      ""F""
+  IL_00c1:  call       ""bool string.op_Equality(string, string)""
+  IL_00c6:  brtrue.s   IL_0116
+  IL_00c8:  ret
+  IL_00c9:  ldloc.0
+  IL_00ca:  ldstr      ""G""
+  IL_00cf:  call       ""bool string.op_Equality(string, string)""
+  IL_00d4:  brtrue.s   IL_011d
+  IL_00d6:  ret
+  IL_00d7:  ldloc.0
+  IL_00d8:  ldstr      ""H""
+  IL_00dd:  call       ""bool string.op_Equality(string, string)""
+  IL_00e2:  brtrue.s   IL_0124
+  IL_00e4:  ret
+  IL_00e5:  ldloc.0
+  IL_00e6:  ldstr      ""I""
+  IL_00eb:  call       ""bool string.op_Equality(string, string)""
+  IL_00f0:  brtrue.s   IL_012b
+  IL_00f2:  ret
+  IL_00f3:  ldc.i4.1
+  IL_00f4:  call       ""void System.Console.Write(int)""
+  IL_00f9:  ret
+  IL_00fa:  ldc.i4.2
+  IL_00fb:  call       ""void System.Console.Write(int)""
+  IL_0100:  ret
+  IL_0101:  ldc.i4.3
+  IL_0102:  call       ""void System.Console.Write(int)""
+  IL_0107:  ret
+  IL_0108:  ldc.i4.4
+  IL_0109:  call       ""void System.Console.Write(int)""
+  IL_010e:  ret
+  IL_010f:  ldc.i4.5
+  IL_0110:  call       ""void System.Console.Write(int)""
+  IL_0115:  ret
+  IL_0116:  ldc.i4.6
+  IL_0117:  call       ""void System.Console.Write(int)""
+  IL_011c:  ret
+  IL_011d:  ldc.i4.7
+  IL_011e:  call       ""void System.Console.Write(int)""
+  IL_0123:  ret
+  IL_0124:  ldc.i4.8
+  IL_0125:  call       ""void System.Console.Write(int)""
+  IL_012a:  ret
+  IL_012b:  ldc.i4.s   9
+  IL_012d:  call       ""void System.Console.Write(int)""
+  IL_0132:  ret
 }");
 
             comp = CreateCompilation(text);
@@ -7268,7 +7252,7 @@ public class Test
             // Can't use the hash version when String.Chars is unavailable.
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
-  // Code size      192 (0xc0)
+  // Code size      186 (0xba)
   .maxstack  2
   .locals init (string V_0)
   IL_0000:  ldarg.0
@@ -7276,71 +7260,69 @@ public class Test
   IL_0002:  ldelem.ref
   IL_0003:  stloc.0
   IL_0004:  ldloc.0
-  IL_0005:  brfalse    IL_00bf
-  IL_000a:  ldloc.0
-  IL_000b:  ldstr      ""A""
-  IL_0010:  call       ""bool string.op_Equality(string, string)""
-  IL_0015:  brtrue.s   IL_0080
-  IL_0017:  ldloc.0
-  IL_0018:  ldstr      ""B""
-  IL_001d:  call       ""bool string.op_Equality(string, string)""
-  IL_0022:  brtrue.s   IL_0087
-  IL_0024:  ldloc.0
-  IL_0025:  ldstr      ""C""
-  IL_002a:  call       ""bool string.op_Equality(string, string)""
-  IL_002f:  brtrue.s   IL_008e
-  IL_0031:  ldloc.0
-  IL_0032:  ldstr      ""D""
-  IL_0037:  call       ""bool string.op_Equality(string, string)""
-  IL_003c:  brtrue.s   IL_0095
-  IL_003e:  ldloc.0
-  IL_003f:  ldstr      ""E""
-  IL_0044:  call       ""bool string.op_Equality(string, string)""
-  IL_0049:  brtrue.s   IL_009c
-  IL_004b:  ldloc.0
-  IL_004c:  ldstr      ""F""
-  IL_0051:  call       ""bool string.op_Equality(string, string)""
-  IL_0056:  brtrue.s   IL_00a3
-  IL_0058:  ldloc.0
-  IL_0059:  ldstr      ""G""
-  IL_005e:  call       ""bool string.op_Equality(string, string)""
-  IL_0063:  brtrue.s   IL_00aa
-  IL_0065:  ldloc.0
-  IL_0066:  ldstr      ""H""
-  IL_006b:  call       ""bool string.op_Equality(string, string)""
-  IL_0070:  brtrue.s   IL_00b1
-  IL_0072:  ldloc.0
-  IL_0073:  ldstr      ""I""
-  IL_0078:  call       ""bool string.op_Equality(string, string)""
-  IL_007d:  brtrue.s   IL_00b8
-  IL_007f:  ret
-  IL_0080:  ldc.i4.1
-  IL_0081:  call       ""void System.Console.Write(int)""
-  IL_0086:  ret
-  IL_0087:  ldc.i4.2
-  IL_0088:  call       ""void System.Console.Write(int)""
-  IL_008d:  ret
-  IL_008e:  ldc.i4.3
-  IL_008f:  call       ""void System.Console.Write(int)""
-  IL_0094:  ret
-  IL_0095:  ldc.i4.4
-  IL_0096:  call       ""void System.Console.Write(int)""
-  IL_009b:  ret
-  IL_009c:  ldc.i4.5
-  IL_009d:  call       ""void System.Console.Write(int)""
-  IL_00a2:  ret
-  IL_00a3:  ldc.i4.6
-  IL_00a4:  call       ""void System.Console.Write(int)""
-  IL_00a9:  ret
-  IL_00aa:  ldc.i4.7
-  IL_00ab:  call       ""void System.Console.Write(int)""
-  IL_00b0:  ret
-  IL_00b1:  ldc.i4.8
-  IL_00b2:  call       ""void System.Console.Write(int)""
-  IL_00b7:  ret
-  IL_00b8:  ldc.i4.s   9
-  IL_00ba:  call       ""void System.Console.Write(int)""
-  IL_00bf:  ret
+  IL_0005:  ldstr      ""A""
+  IL_000a:  call       ""bool string.op_Equality(string, string)""
+  IL_000f:  brtrue.s   IL_007a
+  IL_0011:  ldloc.0
+  IL_0012:  ldstr      ""B""
+  IL_0017:  call       ""bool string.op_Equality(string, string)""
+  IL_001c:  brtrue.s   IL_0081
+  IL_001e:  ldloc.0
+  IL_001f:  ldstr      ""C""
+  IL_0024:  call       ""bool string.op_Equality(string, string)""
+  IL_0029:  brtrue.s   IL_0088
+  IL_002b:  ldloc.0
+  IL_002c:  ldstr      ""D""
+  IL_0031:  call       ""bool string.op_Equality(string, string)""
+  IL_0036:  brtrue.s   IL_008f
+  IL_0038:  ldloc.0
+  IL_0039:  ldstr      ""E""
+  IL_003e:  call       ""bool string.op_Equality(string, string)""
+  IL_0043:  brtrue.s   IL_0096
+  IL_0045:  ldloc.0
+  IL_0046:  ldstr      ""F""
+  IL_004b:  call       ""bool string.op_Equality(string, string)""
+  IL_0050:  brtrue.s   IL_009d
+  IL_0052:  ldloc.0
+  IL_0053:  ldstr      ""G""
+  IL_0058:  call       ""bool string.op_Equality(string, string)""
+  IL_005d:  brtrue.s   IL_00a4
+  IL_005f:  ldloc.0
+  IL_0060:  ldstr      ""H""
+  IL_0065:  call       ""bool string.op_Equality(string, string)""
+  IL_006a:  brtrue.s   IL_00ab
+  IL_006c:  ldloc.0
+  IL_006d:  ldstr      ""I""
+  IL_0072:  call       ""bool string.op_Equality(string, string)""
+  IL_0077:  brtrue.s   IL_00b2
+  IL_0079:  ret
+  IL_007a:  ldc.i4.1
+  IL_007b:  call       ""void System.Console.Write(int)""
+  IL_0080:  ret
+  IL_0081:  ldc.i4.2
+  IL_0082:  call       ""void System.Console.Write(int)""
+  IL_0087:  ret
+  IL_0088:  ldc.i4.3
+  IL_0089:  call       ""void System.Console.Write(int)""
+  IL_008e:  ret
+  IL_008f:  ldc.i4.4
+  IL_0090:  call       ""void System.Console.Write(int)""
+  IL_0095:  ret
+  IL_0096:  ldc.i4.5
+  IL_0097:  call       ""void System.Console.Write(int)""
+  IL_009c:  ret
+  IL_009d:  ldc.i4.6
+  IL_009e:  call       ""void System.Console.Write(int)""
+  IL_00a3:  ret
+  IL_00a4:  ldc.i4.7
+  IL_00a5:  call       ""void System.Console.Write(int)""
+  IL_00aa:  ret
+  IL_00ab:  ldc.i4.8
+  IL_00ac:  call       ""void System.Console.Write(int)""
+  IL_00b1:  ret
+  IL_00b2:  ldc.i4.s   9
+  IL_00b4:  call       ""void System.Console.Write(int)""
+  IL_00b9:  ret
 }");
         }
 
@@ -9068,50 +9050,61 @@ public class Program
                 expectedOutput: "");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size      104 (0x68)
+  // Code size      106 (0x6a)
   .maxstack  1
-  .locals init (int V_0) //i
+  .locals init (int V_0, //i
+                object V_1)
   IL_0000:  ldarg.0
-  IL_0001:  isinst     ""int""
-  IL_0006:  brfalse.s  IL_001f
-  IL_0008:  ldarg.0
-  IL_0009:  unbox.any  ""int""
-  IL_000e:  stloc.0
-  IL_000f:  ldsfld     ""bool Program.b""
-  IL_0014:  brtrue.s   IL_0067
-  IL_0016:  ldsfld     ""bool Program.b""
-  IL_001b:  brtrue.s   IL_0067
-  IL_001d:  br.s       IL_0028
-  IL_001f:  ldsfld     ""bool Program.b""
-  IL_0024:  brtrue.s   IL_0067
-  IL_0026:  br.s       IL_0038
-  IL_0028:  ldsfld     ""bool Program.b""
-  IL_002d:  brtrue.s   IL_0067
-  IL_002f:  ldsfld     ""bool Program.b""
-  IL_0034:  brtrue.s   IL_0067
-  IL_0036:  br.s       IL_0041
-  IL_0038:  ldsfld     ""bool Program.b""
-  IL_003d:  brtrue.s   IL_0067
-  IL_003f:  br.s       IL_0051
-  IL_0041:  ldsfld     ""bool Program.b""
-  IL_0046:  brtrue.s   IL_0067
-  IL_0048:  ldsfld     ""bool Program.b""
-  IL_004d:  brtrue.s   IL_0067
-  IL_004f:  br.s       IL_005a
-  IL_0051:  ldsfld     ""bool Program.b""
-  IL_0056:  brtrue.s   IL_0067
-  IL_0058:  br.s       IL_0061
-  IL_005a:  ldsfld     ""bool Program.b""
-  IL_005f:  brtrue.s   IL_0067
-  IL_0061:  ldsfld     ""bool Program.b""
-  IL_0066:  pop
-  IL_0067:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
+  IL_0003:  isinst     ""int""
+  IL_0008:  brfalse.s  IL_0021
+  IL_000a:  ldloc.1
+  IL_000b:  unbox.any  ""int""
+  IL_0010:  stloc.0
+  IL_0011:  ldsfld     ""bool Program.b""
+  IL_0016:  brtrue.s   IL_0069
+  IL_0018:  ldsfld     ""bool Program.b""
+  IL_001d:  brtrue.s   IL_0069
+  IL_001f:  br.s       IL_002a
+  IL_0021:  ldsfld     ""bool Program.b""
+  IL_0026:  brtrue.s   IL_0069
+  IL_0028:  br.s       IL_003a
+  IL_002a:  ldsfld     ""bool Program.b""
+  IL_002f:  brtrue.s   IL_0069
+  IL_0031:  ldsfld     ""bool Program.b""
+  IL_0036:  brtrue.s   IL_0069
+  IL_0038:  br.s       IL_0043
+  IL_003a:  ldsfld     ""bool Program.b""
+  IL_003f:  brtrue.s   IL_0069
+  IL_0041:  br.s       IL_0053
+  IL_0043:  ldsfld     ""bool Program.b""
+  IL_0048:  brtrue.s   IL_0069
+  IL_004a:  ldsfld     ""bool Program.b""
+  IL_004f:  brtrue.s   IL_0069
+  IL_0051:  br.s       IL_005c
+  IL_0053:  ldsfld     ""bool Program.b""
+  IL_0058:  brtrue.s   IL_0069
+  IL_005a:  br.s       IL_0063
+  IL_005c:  ldsfld     ""bool Program.b""
+  IL_0061:  brtrue.s   IL_0069
+  IL_0063:  ldsfld     ""bool Program.b""
+  IL_0068:  pop
+  IL_0069:  ret
 }"
             );
 
             compVerifier = CompileAndVerify(source,
-                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
-                expectedOutput: "");
+                expectedOutput: "",
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication).WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Program");
+                Assert.Null(type.GetMember(".cctor"));
+            }
+
             compVerifier.VerifyIL(qualifiedMethodName: "Program.M", sequencePoints: "Program.M", source: source,
 expectedIL: @"{
   // Code size      149 (0x95)
@@ -9312,14 +9305,6 @@ expectedIL: @"{
         </scope>
       </scope>
     </method>
-    <method containingType=""Program"" name="".cctor"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""Main"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""27"" document=""1"" />
-      </sequencePoints>
-    </method>
   </methods>
 </symbols>");
         }
@@ -9418,10 +9403,10 @@ class Program
 {
     public static void Main(string[] args)
     {
-        using var sr = new System.IO.StringReader(""foo\nbar"");
+        using var sr = new System.IO.StringReader(""fiz\nbar"");
         var r = (sr.ReadLine(), sr.ReadLine()) switch
         {
-            (""foo"", ""bar"") => ""Yep, all good!"",
+            (""fiz"", ""bar"") => ""Yep, all good!"",
             var (a, b) => $""Wait, what? I got ({a}, {b})!"",
         };
         Console.WriteLine(r);
@@ -9431,9 +9416,9 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe)
                 .VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "Yep, all good!");
-            compVerifier.VerifyIL("Program.Main",
-@"    {
-      // Code size      142 (0x8e)
+            compVerifier.VerifyIL("Program.Main", @"
+    {
+      // Code size      144 (0x90)
       .maxstack  4
       .locals init (System.IO.StringReader V_0, //sr
                     string V_1, //r
@@ -9441,7 +9426,7 @@ class Program
                     string V_3, //b
                     string V_4)
       IL_0000:  nop
-      IL_0001:  ldstr      ""foo
+      IL_0001:  ldstr      ""fiz
     bar""
       IL_0006:  newobj     ""System.IO.StringReader..ctor(string)""
       IL_000b:  stloc.0
@@ -9453,79 +9438,81 @@ class Program
         IL_0013:  ldloc.0
         IL_0014:  callvirt   ""string System.IO.TextReader.ReadLine()""
         IL_0019:  stloc.3
-        IL_001a:  ldloc.2
-        IL_001b:  brfalse.s  IL_0045
-        IL_001d:  ldloc.2
-        IL_001e:  ldstr      ""foo""
-        IL_0023:  call       ""bool string.op_Equality(string, string)""
-        IL_0028:  brfalse.s  IL_0045
-        IL_002a:  ldloc.3
-        IL_002b:  brfalse.s  IL_0045
-        IL_002d:  ldloc.3
-        IL_002e:  ldstr      ""bar""
-        IL_0033:  call       ""bool string.op_Equality(string, string)""
-        IL_0038:  brtrue.s   IL_003c
-        IL_003a:  br.s       IL_0045
-        IL_003c:  ldstr      ""Yep, all good!""
-        IL_0041:  stloc.s    V_4
-        IL_0043:  br.s       IL_0076
-        IL_0045:  br.s       IL_0047
-        IL_0047:  ldc.i4.5
-        IL_0048:  newarr     ""string""
-        IL_004d:  dup
-        IL_004e:  ldc.i4.0
-        IL_004f:  ldstr      ""Wait, what? I got (""
-        IL_0054:  stelem.ref
-        IL_0055:  dup
-        IL_0056:  ldc.i4.1
-        IL_0057:  ldloc.2
-        IL_0058:  stelem.ref
-        IL_0059:  dup
-        IL_005a:  ldc.i4.2
-        IL_005b:  ldstr      "", ""
-        IL_0060:  stelem.ref
-        IL_0061:  dup
-        IL_0062:  ldc.i4.3
-        IL_0063:  ldloc.3
-        IL_0064:  stelem.ref
-        IL_0065:  dup
-        IL_0066:  ldc.i4.4
-        IL_0067:  ldstr      "")!""
-        IL_006c:  stelem.ref
-        IL_006d:  call       ""string string.Concat(params string[])""
-        IL_0072:  stloc.s    V_4
-        IL_0074:  br.s       IL_0076
-        IL_0076:  ldloc.s    V_4
-        IL_0078:  stloc.1
-        IL_0079:  ldloc.1
-        IL_007a:  call       ""void System.Console.WriteLine(string)""
-        IL_007f:  nop
-        IL_0080:  leave.s    IL_008d
+        IL_001a:  ldc.i4.1
+        IL_001b:  brtrue.s   IL_001e
+        IL_001d:  nop
+        IL_001e:  ldloc.2
+        IL_001f:  ldstr      ""fiz""
+        IL_0024:  call       ""bool string.op_Equality(string, string)""
+        IL_0029:  brfalse.s  IL_0043
+        IL_002b:  ldloc.3
+        IL_002c:  ldstr      ""bar""
+        IL_0031:  call       ""bool string.op_Equality(string, string)""
+        IL_0036:  brtrue.s   IL_003a
+        IL_0038:  br.s       IL_0043
+        IL_003a:  ldstr      ""Yep, all good!""
+        IL_003f:  stloc.s    V_4
+        IL_0041:  br.s       IL_0074
+        IL_0043:  br.s       IL_0045
+        IL_0045:  ldc.i4.5
+        IL_0046:  newarr     ""string""
+        IL_004b:  dup
+        IL_004c:  ldc.i4.0
+        IL_004d:  ldstr      ""Wait, what? I got (""
+        IL_0052:  stelem.ref
+        IL_0053:  dup
+        IL_0054:  ldc.i4.1
+        IL_0055:  ldloc.2
+        IL_0056:  stelem.ref
+        IL_0057:  dup
+        IL_0058:  ldc.i4.2
+        IL_0059:  ldstr      "", ""
+        IL_005e:  stelem.ref
+        IL_005f:  dup
+        IL_0060:  ldc.i4.3
+        IL_0061:  ldloc.3
+        IL_0062:  stelem.ref
+        IL_0063:  dup
+        IL_0064:  ldc.i4.4
+        IL_0065:  ldstr      "")!""
+        IL_006a:  stelem.ref
+        IL_006b:  call       ""string string.Concat(params string[])""
+        IL_0070:  stloc.s    V_4
+        IL_0072:  br.s       IL_0074
+        IL_0074:  ldc.i4.1
+        IL_0075:  brtrue.s   IL_0078
+        IL_0077:  nop
+        IL_0078:  ldloc.s    V_4
+        IL_007a:  stloc.1
+        IL_007b:  ldloc.1
+        IL_007c:  call       ""void System.Console.WriteLine(string)""
+        IL_0081:  nop
+        IL_0082:  leave.s    IL_008f
       }
       finally
       {
-        IL_0082:  ldloc.0
-        IL_0083:  brfalse.s  IL_008c
-        IL_0085:  ldloc.0
-        IL_0086:  callvirt   ""void System.IDisposable.Dispose()""
-        IL_008b:  nop
-        IL_008c:  endfinally
+        IL_0084:  ldloc.0
+        IL_0085:  brfalse.s  IL_008e
+        IL_0087:  ldloc.0
+        IL_0088:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_008d:  nop
+        IL_008e:  endfinally
       }
-      IL_008d:  ret
+      IL_008f:  ret
     }
 ");
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe)
                 .VerifyDiagnostics();
             compVerifier = CompileAndVerify(compilation, expectedOutput: "Yep, all good!");
-            compVerifier.VerifyIL("Program.Main",
-@"    {
-      // Code size      128 (0x80)
+            compVerifier.VerifyIL("Program.Main", @"
+    {
+      // Code size      122 (0x7a)
       .maxstack  4
       .locals init (System.IO.StringReader V_0, //sr
                     string V_1, //a
                     string V_2, //b
                     string V_3)
-      IL_0000:  ldstr      ""foo
+      IL_0000:  ldstr      ""fiz
     bar""
       IL_0005:  newobj     ""System.IO.StringReader..ctor(string)""
       IL_000a:  stloc.0
@@ -9538,61 +9525,1415 @@ class Program
         IL_0013:  callvirt   ""string System.IO.TextReader.ReadLine()""
         IL_0018:  stloc.2
         IL_0019:  ldloc.1
-        IL_001a:  brfalse.s  IL_0041
-        IL_001c:  ldloc.1
-        IL_001d:  ldstr      ""foo""
-        IL_0022:  call       ""bool string.op_Equality(string, string)""
-        IL_0027:  brfalse.s  IL_0041
-        IL_0029:  ldloc.2
-        IL_002a:  brfalse.s  IL_0041
-        IL_002c:  ldloc.2
-        IL_002d:  ldstr      ""bar""
-        IL_0032:  call       ""bool string.op_Equality(string, string)""
-        IL_0037:  brfalse.s  IL_0041
-        IL_0039:  ldstr      ""Yep, all good!""
-        IL_003e:  stloc.3
-        IL_003f:  br.s       IL_006d
-        IL_0041:  ldc.i4.5
-        IL_0042:  newarr     ""string""
-        IL_0047:  dup
-        IL_0048:  ldc.i4.0
-        IL_0049:  ldstr      ""Wait, what? I got (""
-        IL_004e:  stelem.ref
-        IL_004f:  dup
-        IL_0050:  ldc.i4.1
-        IL_0051:  ldloc.1
-        IL_0052:  stelem.ref
-        IL_0053:  dup
-        IL_0054:  ldc.i4.2
-        IL_0055:  ldstr      "", ""
-        IL_005a:  stelem.ref
-        IL_005b:  dup
-        IL_005c:  ldc.i4.3
-        IL_005d:  ldloc.2
-        IL_005e:  stelem.ref
-        IL_005f:  dup
-        IL_0060:  ldc.i4.4
-        IL_0061:  ldstr      "")!""
-        IL_0066:  stelem.ref
-        IL_0067:  call       ""string string.Concat(params string[])""
-        IL_006c:  stloc.3
-        IL_006d:  ldloc.3
-        IL_006e:  call       ""void System.Console.WriteLine(string)""
-        IL_0073:  leave.s    IL_007f
+        IL_001a:  ldstr      ""fiz""
+        IL_001f:  call       ""bool string.op_Equality(string, string)""
+        IL_0024:  brfalse.s  IL_003b
+        IL_0026:  ldloc.2
+        IL_0027:  ldstr      ""bar""
+        IL_002c:  call       ""bool string.op_Equality(string, string)""
+        IL_0031:  brfalse.s  IL_003b
+        IL_0033:  ldstr      ""Yep, all good!""
+        IL_0038:  stloc.3
+        IL_0039:  br.s       IL_0067
+        IL_003b:  ldc.i4.5
+        IL_003c:  newarr     ""string""
+        IL_0041:  dup
+        IL_0042:  ldc.i4.0
+        IL_0043:  ldstr      ""Wait, what? I got (""
+        IL_0048:  stelem.ref
+        IL_0049:  dup
+        IL_004a:  ldc.i4.1
+        IL_004b:  ldloc.1
+        IL_004c:  stelem.ref
+        IL_004d:  dup
+        IL_004e:  ldc.i4.2
+        IL_004f:  ldstr      "", ""
+        IL_0054:  stelem.ref
+        IL_0055:  dup
+        IL_0056:  ldc.i4.3
+        IL_0057:  ldloc.2
+        IL_0058:  stelem.ref
+        IL_0059:  dup
+        IL_005a:  ldc.i4.4
+        IL_005b:  ldstr      "")!""
+        IL_0060:  stelem.ref
+        IL_0061:  call       ""string string.Concat(params string[])""
+        IL_0066:  stloc.3
+        IL_0067:  ldloc.3
+        IL_0068:  call       ""void System.Console.WriteLine(string)""
+        IL_006d:  leave.s    IL_0079
       }
       finally
       {
-        IL_0075:  ldloc.0
-        IL_0076:  brfalse.s  IL_007e
-        IL_0078:  ldloc.0
-        IL_0079:  callvirt   ""void System.IDisposable.Dispose()""
-        IL_007e:  endfinally
+        IL_006f:  ldloc.0
+        IL_0070:  brfalse.s  IL_0078
+        IL_0072:  ldloc.0
+        IL_0073:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_0078:  endfinally
       }
-      IL_007f:  ret
+      IL_0079:  ret
+    }
+");
+        }
+
+        [Fact]
+        [WorkItem(41502, "https://github.com/dotnet/roslyn/issues/41502")]
+        public void PatternSwitchDagReduction_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        M(1, 1, 6); // 1
+        M(1, 2, 6); // 2
+        M(1, 1, 3); // 3
+        M(1, 2, 3); // 3
+        M(1, 5, 3); // 3
+        M(2, 5, 3); // 3
+        M(1, 3, 4); // 4
+        M(2, 1, 4); // 5
+        M(2, 2, 2); // 6
+    }
+    public static void M(int a, int b, int c) => Console.Write(M2(a, b, c));
+    public static int M2(int a, int b, int c) => (a, b, c) switch
+    {
+        (1,  1,  6) => 1,
+        (1,  2,  6) => 2,
+        (_,  _,  3) => 3,
+        (1,  _,  _) => 4,
+        (_,  1,  _) => 5,
+        (_,  _,  _) => 6,
+    };
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "123333456");
+            compVerifier.VerifyIL("Program.M2", @"
+    {
+      // Code size       76 (0x4c)
+      .maxstack  2
+      .locals init (int V_0)
+      IL_0000:  ldc.i4.1
+      IL_0001:  brtrue.s   IL_0004
+      IL_0003:  nop
+      IL_0004:  ldarg.0
+      IL_0005:  ldc.i4.1
+      IL_0006:  bne.un.s   IL_0024
+      IL_0008:  ldarg.1
+      IL_0009:  ldc.i4.1
+      IL_000a:  beq.s      IL_0014
+      IL_000c:  br.s       IL_000e
+      IL_000e:  ldarg.1
+      IL_000f:  ldc.i4.2
+      IL_0010:  beq.s      IL_001a
+      IL_0012:  br.s       IL_001e
+      IL_0014:  ldarg.2
+      IL_0015:  ldc.i4.6
+      IL_0016:  beq.s      IL_002e
+      IL_0018:  br.s       IL_001e
+      IL_001a:  ldarg.2
+      IL_001b:  ldc.i4.6
+      IL_001c:  beq.s      IL_0032
+      IL_001e:  ldarg.2
+      IL_001f:  ldc.i4.3
+      IL_0020:  beq.s      IL_0036
+      IL_0022:  br.s       IL_003a
+      IL_0024:  ldarg.2
+      IL_0025:  ldc.i4.3
+      IL_0026:  beq.s      IL_0036
+      IL_0028:  ldarg.1
+      IL_0029:  ldc.i4.1
+      IL_002a:  beq.s      IL_003e
+      IL_002c:  br.s       IL_0042
+      IL_002e:  ldc.i4.1
+      IL_002f:  stloc.0
+      IL_0030:  br.s       IL_0046
+      IL_0032:  ldc.i4.2
+      IL_0033:  stloc.0
+      IL_0034:  br.s       IL_0046
+      IL_0036:  ldc.i4.3
+      IL_0037:  stloc.0
+      IL_0038:  br.s       IL_0046
+      IL_003a:  ldc.i4.4
+      IL_003b:  stloc.0
+      IL_003c:  br.s       IL_0046
+      IL_003e:  ldc.i4.5
+      IL_003f:  stloc.0
+      IL_0040:  br.s       IL_0046
+      IL_0042:  ldc.i4.6
+      IL_0043:  stloc.0
+      IL_0044:  br.s       IL_0046
+      IL_0046:  ldc.i4.1
+      IL_0047:  brtrue.s   IL_004a
+      IL_0049:  nop
+      IL_004a:  ldloc.0
+      IL_004b:  ret
+    }
+");
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: "123333456");
+            compVerifier.VerifyIL("Program.M2", @"
+    {
+      // Code size       64 (0x40)
+      .maxstack  2
+      .locals init (int V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.1
+      IL_0002:  bne.un.s   IL_001e
+      IL_0004:  ldarg.1
+      IL_0005:  ldc.i4.1
+      IL_0006:  beq.s      IL_000e
+      IL_0008:  ldarg.1
+      IL_0009:  ldc.i4.2
+      IL_000a:  beq.s      IL_0014
+      IL_000c:  br.s       IL_0018
+      IL_000e:  ldarg.2
+      IL_000f:  ldc.i4.6
+      IL_0010:  beq.s      IL_0028
+      IL_0012:  br.s       IL_0018
+      IL_0014:  ldarg.2
+      IL_0015:  ldc.i4.6
+      IL_0016:  beq.s      IL_002c
+      IL_0018:  ldarg.2
+      IL_0019:  ldc.i4.3
+      IL_001a:  beq.s      IL_0030
+      IL_001c:  br.s       IL_0034
+      IL_001e:  ldarg.2
+      IL_001f:  ldc.i4.3
+      IL_0020:  beq.s      IL_0030
+      IL_0022:  ldarg.1
+      IL_0023:  ldc.i4.1
+      IL_0024:  beq.s      IL_0038
+      IL_0026:  br.s       IL_003c
+      IL_0028:  ldc.i4.1
+      IL_0029:  stloc.0
+      IL_002a:  br.s       IL_003e
+      IL_002c:  ldc.i4.2
+      IL_002d:  stloc.0
+      IL_002e:  br.s       IL_003e
+      IL_0030:  ldc.i4.3
+      IL_0031:  stloc.0
+      IL_0032:  br.s       IL_003e
+      IL_0034:  ldc.i4.4
+      IL_0035:  stloc.0
+      IL_0036:  br.s       IL_003e
+      IL_0038:  ldc.i4.5
+      IL_0039:  stloc.0
+      IL_003a:  br.s       IL_003e
+      IL_003c:  ldc.i4.6
+      IL_003d:  stloc.0
+      IL_003e:  ldloc.0
+      IL_003f:  ret
     }
 ");
         }
 
         #endregion "regression tests"
+
+        #region Code Quality tests
+
+        [Fact]
+        public void BalancedSwitchDispatch_Double()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(2.1D));
+        Console.WriteLine(M(3.1D));
+        Console.WriteLine(M(4.1D));
+        Console.WriteLine(M(5.1D));
+        Console.WriteLine(M(6.1D));
+        Console.WriteLine(M(7.1D));
+        Console.WriteLine(M(8.1D));
+        Console.WriteLine(M(9.1D));
+        Console.WriteLine(M(10.1D));
+        Console.WriteLine(M(11.1D));
+        Console.WriteLine(M(12.1D));
+        Console.WriteLine(M(13.1D));
+        Console.WriteLine(M(14.1D));
+        Console.WriteLine(M(15.1D));
+        Console.WriteLine(M(16.1D));
+        Console.WriteLine(M(17.1D));
+        Console.WriteLine(M(18.1D));
+        Console.WriteLine(M(19.1D));
+        Console.WriteLine(M(20.1D));
+        Console.WriteLine(M(21.1D));
+        Console.WriteLine(M(22.1D));
+        Console.WriteLine(M(23.1D));
+        Console.WriteLine(M(24.1D));
+        Console.WriteLine(M(25.1D));
+        Console.WriteLine(M(26.1D));
+        Console.WriteLine(M(27.1D));
+        Console.WriteLine(M(28.1D));
+        Console.WriteLine(M(29.1D));
+
+    }
+    static int M(double d)
+    {
+        return d switch
+        {
+            >= 27.1D and < 29.1D => 19,
+            26.1D => 18,
+            9.1D => 5,
+            >= 2.1D and < 4.1D => 1,
+            12.1D => 8,
+            >= 21.1D and < 23.1D => 15,
+            19.1D => 13,
+            29.1D => 20,
+            >= 13.1D and < 15.1D => 9,
+            10.1D => 6,
+            15.1D => 10,
+            11.1D => 7,
+            4.1D => 2,
+            >= 16.1D and < 18.1D => 11,
+            >= 23.1D and < 25.1D => 16,
+            18.1D => 12,
+            >= 7.1D and < 9.1D => 4,
+            25.1D => 17,
+            20.1D => 14,
+            >= 5.1D and < 7.1D => 3,
+            _ => 0,
+        };
+    }
+}
+";
+            var expectedOutput =
+@"1
+1
+2
+3
+3
+4
+4
+5
+6
+7
+8
+9
+9
+10
+11
+11
+12
+13
+14
+15
+15
+16
+16
+17
+18
+19
+19
+20
+";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.RegularWithPatternCombinators,
+                expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M", @"
+    {
+      // Code size      499 (0x1f3)
+      .maxstack  2
+      .locals init (int V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.r8     13.1
+      IL_000a:  blt.un     IL_00fb
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.r8     21.1
+      IL_0019:  blt.un.s   IL_008b
+      IL_001b:  ldarg.0
+      IL_001c:  ldc.r8     27.1
+      IL_0025:  blt.un.s   IL_004a
+      IL_0027:  ldarg.0
+      IL_0028:  ldc.r8     29.1
+      IL_0031:  blt        IL_0193
+      IL_0036:  ldarg.0
+      IL_0037:  ldc.r8     29.1
+      IL_0040:  beq        IL_01b3
+      IL_0045:  br         IL_01ef
+      IL_004a:  ldarg.0
+      IL_004b:  ldc.r8     23.1
+      IL_0054:  blt        IL_01a9
+      IL_0059:  ldarg.0
+      IL_005a:  ldc.r8     25.1
+      IL_0063:  blt        IL_01d3
+      IL_0068:  ldarg.0
+      IL_0069:  ldc.r8     25.1
+      IL_0072:  beq        IL_01e1
+      IL_0077:  ldarg.0
+      IL_0078:  ldc.r8     26.1
+      IL_0081:  beq        IL_0198
+      IL_0086:  br         IL_01ef
+      IL_008b:  ldarg.0
+      IL_008c:  ldc.r8     16.1
+      IL_0095:  blt.un.s   IL_00d8
+      IL_0097:  ldarg.0
+      IL_0098:  ldc.r8     18.1
+      IL_00a1:  blt        IL_01ce
+      IL_00a6:  ldarg.0
+      IL_00a7:  ldc.r8     18.1
+      IL_00b0:  beq        IL_01d8
+      IL_00b5:  ldarg.0
+      IL_00b6:  ldc.r8     19.1
+      IL_00bf:  beq        IL_01ae
+      IL_00c4:  ldarg.0
+      IL_00c5:  ldc.r8     20.1
+      IL_00ce:  beq        IL_01e6
+      IL_00d3:  br         IL_01ef
+      IL_00d8:  ldarg.0
+      IL_00d9:  ldc.r8     15.1
+      IL_00e2:  blt        IL_01b8
+      IL_00e7:  ldarg.0
+      IL_00e8:  ldc.r8     15.1
+      IL_00f1:  beq        IL_01c1
+      IL_00f6:  br         IL_01ef
+      IL_00fb:  ldarg.0
+      IL_00fc:  ldc.r8     7.1
+      IL_0105:  blt.un.s   IL_015f
+      IL_0107:  ldarg.0
+      IL_0108:  ldc.r8     9.1
+      IL_0111:  blt        IL_01dd
+      IL_0116:  ldarg.0
+      IL_0117:  ldc.r8     10.1
+      IL_0120:  bgt.un.s   IL_0142
+      IL_0122:  ldarg.0
+      IL_0123:  ldc.r8     9.1
+      IL_012c:  beq.s      IL_019d
+      IL_012e:  ldarg.0
+      IL_012f:  ldc.r8     10.1
+      IL_0138:  beq        IL_01bd
+      IL_013d:  br         IL_01ef
+      IL_0142:  ldarg.0
+      IL_0143:  ldc.r8     11.1
+      IL_014c:  beq.s      IL_01c6
+      IL_014e:  ldarg.0
+      IL_014f:  ldc.r8     12.1
+      IL_0158:  beq.s      IL_01a5
+      IL_015a:  br         IL_01ef
+      IL_015f:  ldarg.0
+      IL_0160:  ldc.r8     4.1
+      IL_0169:  bge.un.s   IL_0179
+      IL_016b:  ldarg.0
+      IL_016c:  ldc.r8     2.1
+      IL_0175:  bge.s      IL_01a1
+      IL_0177:  br.s       IL_01ef
+      IL_0179:  ldarg.0
+      IL_017a:  ldc.r8     5.1
+      IL_0183:  bge.s      IL_01eb
+      IL_0185:  ldarg.0
+      IL_0186:  ldc.r8     4.1
+      IL_018f:  beq.s      IL_01ca
+      IL_0191:  br.s       IL_01ef
+      IL_0193:  ldc.i4.s   19
+      IL_0195:  stloc.0
+      IL_0196:  br.s       IL_01f1
+      IL_0198:  ldc.i4.s   18
+      IL_019a:  stloc.0
+      IL_019b:  br.s       IL_01f1
+      IL_019d:  ldc.i4.5
+      IL_019e:  stloc.0
+      IL_019f:  br.s       IL_01f1
+      IL_01a1:  ldc.i4.1
+      IL_01a2:  stloc.0
+      IL_01a3:  br.s       IL_01f1
+      IL_01a5:  ldc.i4.8
+      IL_01a6:  stloc.0
+      IL_01a7:  br.s       IL_01f1
+      IL_01a9:  ldc.i4.s   15
+      IL_01ab:  stloc.0
+      IL_01ac:  br.s       IL_01f1
+      IL_01ae:  ldc.i4.s   13
+      IL_01b0:  stloc.0
+      IL_01b1:  br.s       IL_01f1
+      IL_01b3:  ldc.i4.s   20
+      IL_01b5:  stloc.0
+      IL_01b6:  br.s       IL_01f1
+      IL_01b8:  ldc.i4.s   9
+      IL_01ba:  stloc.0
+      IL_01bb:  br.s       IL_01f1
+      IL_01bd:  ldc.i4.6
+      IL_01be:  stloc.0
+      IL_01bf:  br.s       IL_01f1
+      IL_01c1:  ldc.i4.s   10
+      IL_01c3:  stloc.0
+      IL_01c4:  br.s       IL_01f1
+      IL_01c6:  ldc.i4.7
+      IL_01c7:  stloc.0
+      IL_01c8:  br.s       IL_01f1
+      IL_01ca:  ldc.i4.2
+      IL_01cb:  stloc.0
+      IL_01cc:  br.s       IL_01f1
+      IL_01ce:  ldc.i4.s   11
+      IL_01d0:  stloc.0
+      IL_01d1:  br.s       IL_01f1
+      IL_01d3:  ldc.i4.s   16
+      IL_01d5:  stloc.0
+      IL_01d6:  br.s       IL_01f1
+      IL_01d8:  ldc.i4.s   12
+      IL_01da:  stloc.0
+      IL_01db:  br.s       IL_01f1
+      IL_01dd:  ldc.i4.4
+      IL_01de:  stloc.0
+      IL_01df:  br.s       IL_01f1
+      IL_01e1:  ldc.i4.s   17
+      IL_01e3:  stloc.0
+      IL_01e4:  br.s       IL_01f1
+      IL_01e6:  ldc.i4.s   14
+      IL_01e8:  stloc.0
+      IL_01e9:  br.s       IL_01f1
+      IL_01eb:  ldc.i4.3
+      IL_01ec:  stloc.0
+      IL_01ed:  br.s       IL_01f1
+      IL_01ef:  ldc.i4.0
+      IL_01f0:  stloc.0
+      IL_01f1:  ldloc.0
+      IL_01f2:  ret
+    }
+"
+            );
+        }
+
+        [Fact]
+        public void BalancedSwitchDispatch_Float()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(2.1F));
+        Console.WriteLine(M(3.1F));
+        Console.WriteLine(M(4.1F));
+        Console.WriteLine(M(5.1F));
+        Console.WriteLine(M(6.1F));
+        Console.WriteLine(M(7.1F));
+        Console.WriteLine(M(8.1F));
+        Console.WriteLine(M(9.1F));
+        Console.WriteLine(M(10.1F));
+        Console.WriteLine(M(11.1F));
+        Console.WriteLine(M(12.1F));
+        Console.WriteLine(M(13.1F));
+        Console.WriteLine(M(14.1F));
+        Console.WriteLine(M(15.1F));
+        Console.WriteLine(M(16.1F));
+        Console.WriteLine(M(17.1F));
+        Console.WriteLine(M(18.1F));
+        Console.WriteLine(M(19.1F));
+        Console.WriteLine(M(20.1F));
+        Console.WriteLine(M(21.1F));
+        Console.WriteLine(M(22.1F));
+        Console.WriteLine(M(23.1F));
+        Console.WriteLine(M(24.1F));
+        Console.WriteLine(M(25.1F));
+        Console.WriteLine(M(26.1F));
+        Console.WriteLine(M(27.1F));
+        Console.WriteLine(M(28.1F));
+        Console.WriteLine(M(29.1F));
+
+    }
+    static int M(float d)
+    {
+        return d switch
+        {
+            >= 27.1F and < 29.1F => 19,
+            26.1F => 18,
+            9.1F => 5,
+            >= 2.1F and < 4.1F => 1,
+            12.1F => 8,
+            >= 21.1F and < 23.1F => 15,
+            19.1F => 13,
+            29.1F => 20,
+            >= 13.1F and < 15.1F => 9,
+            10.1F => 6,
+            15.1F => 10,
+            11.1F => 7,
+            4.1F => 2,
+            >= 16.1F and < 18.1F => 11,
+            >= 23.1F and < 25.1F => 16,
+            18.1F => 12,
+            >= 7.1F and < 9.1F => 4,
+            25.1F => 17,
+            20.1F => 14,
+            >= 5.1F and < 7.1F => 3,
+            _ => 0,
+        };
+    }
+}
+";
+            var expectedOutput =
+@"1
+1
+2
+3
+3
+4
+4
+5
+6
+7
+8
+9
+9
+10
+11
+11
+12
+13
+14
+15
+15
+16
+16
+17
+18
+19
+19
+20
+";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.RegularWithPatternCombinators,
+                expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M", @"
+    {
+      // Code size      388 (0x184)
+      .maxstack  2
+      .locals init (int V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.r4     13.1
+      IL_0006:  blt.un     IL_00bb
+      IL_000b:  ldarg.0
+      IL_000c:  ldc.r4     21.1
+      IL_0011:  blt.un.s   IL_0067
+      IL_0013:  ldarg.0
+      IL_0014:  ldc.r4     27.1
+      IL_0019:  blt.un.s   IL_0036
+      IL_001b:  ldarg.0
+      IL_001c:  ldc.r4     29.1
+      IL_0021:  blt        IL_0124
+      IL_0026:  ldarg.0
+      IL_0027:  ldc.r4     29.1
+      IL_002c:  beq        IL_0144
+      IL_0031:  br         IL_0180
+      IL_0036:  ldarg.0
+      IL_0037:  ldc.r4     23.1
+      IL_003c:  blt        IL_013a
+      IL_0041:  ldarg.0
+      IL_0042:  ldc.r4     25.1
+      IL_0047:  blt        IL_0164
+      IL_004c:  ldarg.0
+      IL_004d:  ldc.r4     25.1
+      IL_0052:  beq        IL_0172
+      IL_0057:  ldarg.0
+      IL_0058:  ldc.r4     26.1
+      IL_005d:  beq        IL_0129
+      IL_0062:  br         IL_0180
+      IL_0067:  ldarg.0
+      IL_0068:  ldc.r4     16.1
+      IL_006d:  blt.un.s   IL_00a0
+      IL_006f:  ldarg.0
+      IL_0070:  ldc.r4     18.1
+      IL_0075:  blt        IL_015f
+      IL_007a:  ldarg.0
+      IL_007b:  ldc.r4     18.1
+      IL_0080:  beq        IL_0169
+      IL_0085:  ldarg.0
+      IL_0086:  ldc.r4     19.1
+      IL_008b:  beq        IL_013f
+      IL_0090:  ldarg.0
+      IL_0091:  ldc.r4     20.1
+      IL_0096:  beq        IL_0177
+      IL_009b:  br         IL_0180
+      IL_00a0:  ldarg.0
+      IL_00a1:  ldc.r4     15.1
+      IL_00a6:  blt        IL_0149
+      IL_00ab:  ldarg.0
+      IL_00ac:  ldc.r4     15.1
+      IL_00b1:  beq        IL_0152
+      IL_00b6:  br         IL_0180
+      IL_00bb:  ldarg.0
+      IL_00bc:  ldc.r4     7.1
+      IL_00c1:  blt.un.s   IL_0100
+      IL_00c3:  ldarg.0
+      IL_00c4:  ldc.r4     9.1
+      IL_00c9:  blt        IL_016e
+      IL_00ce:  ldarg.0
+      IL_00cf:  ldc.r4     10.1
+      IL_00d4:  bgt.un.s   IL_00eb
+      IL_00d6:  ldarg.0
+      IL_00d7:  ldc.r4     9.1
+      IL_00dc:  beq.s      IL_012e
+      IL_00de:  ldarg.0
+      IL_00df:  ldc.r4     10.1
+      IL_00e4:  beq.s      IL_014e
+      IL_00e6:  br         IL_0180
+      IL_00eb:  ldarg.0
+      IL_00ec:  ldc.r4     11.1
+      IL_00f1:  beq.s      IL_0157
+      IL_00f3:  ldarg.0
+      IL_00f4:  ldc.r4     12.1
+      IL_00f9:  beq.s      IL_0136
+      IL_00fb:  br         IL_0180
+      IL_0100:  ldarg.0
+      IL_0101:  ldc.r4     4.1
+      IL_0106:  bge.un.s   IL_0112
+      IL_0108:  ldarg.0
+      IL_0109:  ldc.r4     2.1
+      IL_010e:  bge.s      IL_0132
+      IL_0110:  br.s       IL_0180
+      IL_0112:  ldarg.0
+      IL_0113:  ldc.r4     5.1
+      IL_0118:  bge.s      IL_017c
+      IL_011a:  ldarg.0
+      IL_011b:  ldc.r4     4.1
+      IL_0120:  beq.s      IL_015b
+      IL_0122:  br.s       IL_0180
+      IL_0124:  ldc.i4.s   19
+      IL_0126:  stloc.0
+      IL_0127:  br.s       IL_0182
+      IL_0129:  ldc.i4.s   18
+      IL_012b:  stloc.0
+      IL_012c:  br.s       IL_0182
+      IL_012e:  ldc.i4.5
+      IL_012f:  stloc.0
+      IL_0130:  br.s       IL_0182
+      IL_0132:  ldc.i4.1
+      IL_0133:  stloc.0
+      IL_0134:  br.s       IL_0182
+      IL_0136:  ldc.i4.8
+      IL_0137:  stloc.0
+      IL_0138:  br.s       IL_0182
+      IL_013a:  ldc.i4.s   15
+      IL_013c:  stloc.0
+      IL_013d:  br.s       IL_0182
+      IL_013f:  ldc.i4.s   13
+      IL_0141:  stloc.0
+      IL_0142:  br.s       IL_0182
+      IL_0144:  ldc.i4.s   20
+      IL_0146:  stloc.0
+      IL_0147:  br.s       IL_0182
+      IL_0149:  ldc.i4.s   9
+      IL_014b:  stloc.0
+      IL_014c:  br.s       IL_0182
+      IL_014e:  ldc.i4.6
+      IL_014f:  stloc.0
+      IL_0150:  br.s       IL_0182
+      IL_0152:  ldc.i4.s   10
+      IL_0154:  stloc.0
+      IL_0155:  br.s       IL_0182
+      IL_0157:  ldc.i4.7
+      IL_0158:  stloc.0
+      IL_0159:  br.s       IL_0182
+      IL_015b:  ldc.i4.2
+      IL_015c:  stloc.0
+      IL_015d:  br.s       IL_0182
+      IL_015f:  ldc.i4.s   11
+      IL_0161:  stloc.0
+      IL_0162:  br.s       IL_0182
+      IL_0164:  ldc.i4.s   16
+      IL_0166:  stloc.0
+      IL_0167:  br.s       IL_0182
+      IL_0169:  ldc.i4.s   12
+      IL_016b:  stloc.0
+      IL_016c:  br.s       IL_0182
+      IL_016e:  ldc.i4.4
+      IL_016f:  stloc.0
+      IL_0170:  br.s       IL_0182
+      IL_0172:  ldc.i4.s   17
+      IL_0174:  stloc.0
+      IL_0175:  br.s       IL_0182
+      IL_0177:  ldc.i4.s   14
+      IL_0179:  stloc.0
+      IL_017a:  br.s       IL_0182
+      IL_017c:  ldc.i4.3
+      IL_017d:  stloc.0
+      IL_017e:  br.s       IL_0182
+      IL_0180:  ldc.i4.0
+      IL_0181:  stloc.0
+      IL_0182:  ldloc.0
+      IL_0183:  ret
+    }
+"
+            );
+        }
+
+        [Fact]
+        public void BalancedSwitchDispatch_Decimal()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(2.1M));
+        Console.WriteLine(M(3.1M));
+        Console.WriteLine(M(4.1M));
+        Console.WriteLine(M(5.1M));
+        Console.WriteLine(M(6.1M));
+        Console.WriteLine(M(7.1M));
+        Console.WriteLine(M(8.1M));
+        Console.WriteLine(M(9.1M));
+        Console.WriteLine(M(10.1M));
+        Console.WriteLine(M(11.1M));
+        Console.WriteLine(M(12.1M));
+        Console.WriteLine(M(13.1M));
+        Console.WriteLine(M(14.1M));
+        Console.WriteLine(M(15.1M));
+        Console.WriteLine(M(16.1M));
+        Console.WriteLine(M(17.1M));
+        Console.WriteLine(M(18.1M));
+        Console.WriteLine(M(19.1M));
+        Console.WriteLine(M(20.1M));
+        Console.WriteLine(M(21.1M));
+        Console.WriteLine(M(22.1M));
+        Console.WriteLine(M(23.1M));
+        Console.WriteLine(M(24.1M));
+        Console.WriteLine(M(25.1M));
+        Console.WriteLine(M(26.1M));
+        Console.WriteLine(M(27.1M));
+        Console.WriteLine(M(28.1M));
+        Console.WriteLine(M(29.1M));
+
+    }
+    static int M(decimal d)
+    {
+        return d switch
+        {
+            >= 27.1M and < 29.1M => 19,
+            26.1M => 18,
+            9.1M => 5,
+            >= 2.1M and < 4.1M => 1,
+            12.1M => 8,
+            >= 21.1M and < 23.1M => 15,
+            19.1M => 13,
+            29.1M => 20,
+            >= 13.1M and < 15.1M => 9,
+            10.1M => 6,
+            15.1M => 10,
+            11.1M => 7,
+            4.1M => 2,
+            >= 16.1M and < 18.1M => 11,
+            >= 23.1M and < 25.1M => 16,
+            18.1M => 12,
+            >= 7.1M and < 9.1M => 4,
+            25.1M => 17,
+            20.1M => 14,
+            >= 5.1M and < 7.1M => 3,
+            _ => 0,
+        };
+    }
+}
+";
+            var expectedOutput =
+@"1
+1
+2
+3
+3
+4
+4
+5
+6
+7
+8
+9
+9
+10
+11
+11
+12
+13
+14
+15
+15
+16
+16
+17
+18
+19
+19
+20
+";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.RegularWithPatternCombinators,
+                expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M", @"
+    {
+      // Code size      751 (0x2ef)
+      .maxstack  6
+      .locals init (int V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4     0x83
+      IL_0006:  ldc.i4.0
+      IL_0007:  ldc.i4.0
+      IL_0008:  ldc.i4.0
+      IL_0009:  ldc.i4.1
+      IL_000a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_000f:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_0014:  brfalse    IL_019e
+      IL_0019:  ldarg.0
+      IL_001a:  ldc.i4     0xd3
+      IL_001f:  ldc.i4.0
+      IL_0020:  ldc.i4.0
+      IL_0021:  ldc.i4.0
+      IL_0022:  ldc.i4.1
+      IL_0023:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0028:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_002d:  brfalse    IL_00e8
+      IL_0032:  ldarg.0
+      IL_0033:  ldc.i4     0x10f
+      IL_0038:  ldc.i4.0
+      IL_0039:  ldc.i4.0
+      IL_003a:  ldc.i4.0
+      IL_003b:  ldc.i4.1
+      IL_003c:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0041:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_0046:  brfalse.s  IL_007f
+      IL_0048:  ldarg.0
+      IL_0049:  ldc.i4     0x123
+      IL_004e:  ldc.i4.0
+      IL_004f:  ldc.i4.0
+      IL_0050:  ldc.i4.0
+      IL_0051:  ldc.i4.1
+      IL_0052:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0057:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_005c:  brtrue     IL_028f
+      IL_0061:  ldarg.0
+      IL_0062:  ldc.i4     0x123
+      IL_0067:  ldc.i4.0
+      IL_0068:  ldc.i4.0
+      IL_0069:  ldc.i4.0
+      IL_006a:  ldc.i4.1
+      IL_006b:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0070:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0075:  brtrue     IL_02af
+      IL_007a:  br         IL_02eb
+      IL_007f:  ldarg.0
+      IL_0080:  ldc.i4     0xe7
+      IL_0085:  ldc.i4.0
+      IL_0086:  ldc.i4.0
+      IL_0087:  ldc.i4.0
+      IL_0088:  ldc.i4.1
+      IL_0089:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_008e:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_0093:  brtrue     IL_02a5
+      IL_0098:  ldarg.0
+      IL_0099:  ldc.i4     0xfb
+      IL_009e:  ldc.i4.0
+      IL_009f:  ldc.i4.0
+      IL_00a0:  ldc.i4.0
+      IL_00a1:  ldc.i4.1
+      IL_00a2:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_00a7:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_00ac:  brtrue     IL_02cf
+      IL_00b1:  ldarg.0
+      IL_00b2:  ldc.i4     0xfb
+      IL_00b7:  ldc.i4.0
+      IL_00b8:  ldc.i4.0
+      IL_00b9:  ldc.i4.0
+      IL_00ba:  ldc.i4.1
+      IL_00bb:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_00c0:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_00c5:  brtrue     IL_02dd
+      IL_00ca:  ldarg.0
+      IL_00cb:  ldc.i4     0x105
+      IL_00d0:  ldc.i4.0
+      IL_00d1:  ldc.i4.0
+      IL_00d2:  ldc.i4.0
+      IL_00d3:  ldc.i4.1
+      IL_00d4:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_00d9:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_00de:  brtrue     IL_0294
+      IL_00e3:  br         IL_02eb
+      IL_00e8:  ldarg.0
+      IL_00e9:  ldc.i4     0xa1
+      IL_00ee:  ldc.i4.0
+      IL_00ef:  ldc.i4.0
+      IL_00f0:  ldc.i4.0
+      IL_00f1:  ldc.i4.1
+      IL_00f2:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_00f7:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_00fc:  brfalse.s  IL_0167
+      IL_00fe:  ldarg.0
+      IL_00ff:  ldc.i4     0xb5
+      IL_0104:  ldc.i4.0
+      IL_0105:  ldc.i4.0
+      IL_0106:  ldc.i4.0
+      IL_0107:  ldc.i4.1
+      IL_0108:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_010d:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_0112:  brtrue     IL_02ca
+      IL_0117:  ldarg.0
+      IL_0118:  ldc.i4     0xb5
+      IL_011d:  ldc.i4.0
+      IL_011e:  ldc.i4.0
+      IL_011f:  ldc.i4.0
+      IL_0120:  ldc.i4.1
+      IL_0121:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0126:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_012b:  brtrue     IL_02d4
+      IL_0130:  ldarg.0
+      IL_0131:  ldc.i4     0xbf
+      IL_0136:  ldc.i4.0
+      IL_0137:  ldc.i4.0
+      IL_0138:  ldc.i4.0
+      IL_0139:  ldc.i4.1
+      IL_013a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_013f:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0144:  brtrue     IL_02aa
+      IL_0149:  ldarg.0
+      IL_014a:  ldc.i4     0xc9
+      IL_014f:  ldc.i4.0
+      IL_0150:  ldc.i4.0
+      IL_0151:  ldc.i4.0
+      IL_0152:  ldc.i4.1
+      IL_0153:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0158:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_015d:  brtrue     IL_02e2
+      IL_0162:  br         IL_02eb
+      IL_0167:  ldarg.0
+      IL_0168:  ldc.i4     0x97
+      IL_016d:  ldc.i4.0
+      IL_016e:  ldc.i4.0
+      IL_016f:  ldc.i4.0
+      IL_0170:  ldc.i4.1
+      IL_0171:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0176:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_017b:  brtrue     IL_02b4
+      IL_0180:  ldarg.0
+      IL_0181:  ldc.i4     0x97
+      IL_0186:  ldc.i4.0
+      IL_0187:  ldc.i4.0
+      IL_0188:  ldc.i4.0
+      IL_0189:  ldc.i4.1
+      IL_018a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_018f:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0194:  brtrue     IL_02bd
+      IL_0199:  br         IL_02eb
+      IL_019e:  ldarg.0
+      IL_019f:  ldc.i4.s   71
+      IL_01a1:  ldc.i4.0
+      IL_01a2:  ldc.i4.0
+      IL_01a3:  ldc.i4.0
+      IL_01a4:  ldc.i4.1
+      IL_01a5:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01aa:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_01af:  brfalse    IL_023c
+      IL_01b4:  ldarg.0
+      IL_01b5:  ldc.i4.s   91
+      IL_01b7:  ldc.i4.0
+      IL_01b8:  ldc.i4.0
+      IL_01b9:  ldc.i4.0
+      IL_01ba:  ldc.i4.1
+      IL_01bb:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01c0:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_01c5:  brtrue     IL_02d9
+      IL_01ca:  ldarg.0
+      IL_01cb:  ldc.i4.s   101
+      IL_01cd:  ldc.i4.0
+      IL_01ce:  ldc.i4.0
+      IL_01cf:  ldc.i4.0
+      IL_01d0:  ldc.i4.1
+      IL_01d1:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01d6:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+      IL_01db:  brfalse.s  IL_020e
+      IL_01dd:  ldarg.0
+      IL_01de:  ldc.i4.s   91
+      IL_01e0:  ldc.i4.0
+      IL_01e1:  ldc.i4.0
+      IL_01e2:  ldc.i4.0
+      IL_01e3:  ldc.i4.1
+      IL_01e4:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01e9:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_01ee:  brtrue     IL_0299
+      IL_01f3:  ldarg.0
+      IL_01f4:  ldc.i4.s   101
+      IL_01f6:  ldc.i4.0
+      IL_01f7:  ldc.i4.0
+      IL_01f8:  ldc.i4.0
+      IL_01f9:  ldc.i4.1
+      IL_01fa:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01ff:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0204:  brtrue     IL_02b9
+      IL_0209:  br         IL_02eb
+      IL_020e:  ldarg.0
+      IL_020f:  ldc.i4.s   111
+      IL_0211:  ldc.i4.0
+      IL_0212:  ldc.i4.0
+      IL_0213:  ldc.i4.0
+      IL_0214:  ldc.i4.1
+      IL_0215:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_021a:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_021f:  brtrue     IL_02c2
+      IL_0224:  ldarg.0
+      IL_0225:  ldc.i4.s   121
+      IL_0227:  ldc.i4.0
+      IL_0228:  ldc.i4.0
+      IL_0229:  ldc.i4.0
+      IL_022a:  ldc.i4.1
+      IL_022b:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0230:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0235:  brtrue.s   IL_02a1
+      IL_0237:  br         IL_02eb
+      IL_023c:  ldarg.0
+      IL_023d:  ldc.i4.s   41
+      IL_023f:  ldc.i4.0
+      IL_0240:  ldc.i4.0
+      IL_0241:  ldc.i4.0
+      IL_0242:  ldc.i4.1
+      IL_0243:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0248:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_024d:  brfalse.s  IL_0267
+      IL_024f:  ldarg.0
+      IL_0250:  ldc.i4.s   21
+      IL_0252:  ldc.i4.0
+      IL_0253:  ldc.i4.0
+      IL_0254:  ldc.i4.0
+      IL_0255:  ldc.i4.1
+      IL_0256:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_025b:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_0260:  brtrue.s   IL_029d
+      IL_0262:  br         IL_02eb
+      IL_0267:  ldarg.0
+      IL_0268:  ldc.i4.s   51
+      IL_026a:  ldc.i4.0
+      IL_026b:  ldc.i4.0
+      IL_026c:  ldc.i4.0
+      IL_026d:  ldc.i4.1
+      IL_026e:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0273:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_0278:  brtrue.s   IL_02e7
+      IL_027a:  ldarg.0
+      IL_027b:  ldc.i4.s   41
+      IL_027d:  ldc.i4.0
+      IL_027e:  ldc.i4.0
+      IL_027f:  ldc.i4.0
+      IL_0280:  ldc.i4.1
+      IL_0281:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0286:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_028b:  brtrue.s   IL_02c6
+      IL_028d:  br.s       IL_02eb
+      IL_028f:  ldc.i4.s   19
+      IL_0291:  stloc.0
+      IL_0292:  br.s       IL_02ed
+      IL_0294:  ldc.i4.s   18
+      IL_0296:  stloc.0
+      IL_0297:  br.s       IL_02ed
+      IL_0299:  ldc.i4.5
+      IL_029a:  stloc.0
+      IL_029b:  br.s       IL_02ed
+      IL_029d:  ldc.i4.1
+      IL_029e:  stloc.0
+      IL_029f:  br.s       IL_02ed
+      IL_02a1:  ldc.i4.8
+      IL_02a2:  stloc.0
+      IL_02a3:  br.s       IL_02ed
+      IL_02a5:  ldc.i4.s   15
+      IL_02a7:  stloc.0
+      IL_02a8:  br.s       IL_02ed
+      IL_02aa:  ldc.i4.s   13
+      IL_02ac:  stloc.0
+      IL_02ad:  br.s       IL_02ed
+      IL_02af:  ldc.i4.s   20
+      IL_02b1:  stloc.0
+      IL_02b2:  br.s       IL_02ed
+      IL_02b4:  ldc.i4.s   9
+      IL_02b6:  stloc.0
+      IL_02b7:  br.s       IL_02ed
+      IL_02b9:  ldc.i4.6
+      IL_02ba:  stloc.0
+      IL_02bb:  br.s       IL_02ed
+      IL_02bd:  ldc.i4.s   10
+      IL_02bf:  stloc.0
+      IL_02c0:  br.s       IL_02ed
+      IL_02c2:  ldc.i4.7
+      IL_02c3:  stloc.0
+      IL_02c4:  br.s       IL_02ed
+      IL_02c6:  ldc.i4.2
+      IL_02c7:  stloc.0
+      IL_02c8:  br.s       IL_02ed
+      IL_02ca:  ldc.i4.s   11
+      IL_02cc:  stloc.0
+      IL_02cd:  br.s       IL_02ed
+      IL_02cf:  ldc.i4.s   16
+      IL_02d1:  stloc.0
+      IL_02d2:  br.s       IL_02ed
+      IL_02d4:  ldc.i4.s   12
+      IL_02d6:  stloc.0
+      IL_02d7:  br.s       IL_02ed
+      IL_02d9:  ldc.i4.4
+      IL_02da:  stloc.0
+      IL_02db:  br.s       IL_02ed
+      IL_02dd:  ldc.i4.s   17
+      IL_02df:  stloc.0
+      IL_02e0:  br.s       IL_02ed
+      IL_02e2:  ldc.i4.s   14
+      IL_02e4:  stloc.0
+      IL_02e5:  br.s       IL_02ed
+      IL_02e7:  ldc.i4.3
+      IL_02e8:  stloc.0
+      IL_02e9:  br.s       IL_02ed
+      IL_02eb:  ldc.i4.0
+      IL_02ec:  stloc.0
+      IL_02ed:  ldloc.0
+      IL_02ee:  ret
+    }
+"
+            );
+        }
+
+        [Fact]
+        public void BalancedSwitchDispatch_Uint32()
+        {
+            // We do not currently detect that the set of values that we are dispatching on is a compact set,
+            // which would enable us to use the IL switch instruction even though the input was expressed using
+            // a set of relational comparisons.
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(2U));
+        Console.WriteLine(M(3U));
+        Console.WriteLine(M(4U));
+        Console.WriteLine(M(5U));
+        Console.WriteLine(M(6U));
+        Console.WriteLine(M(7U));
+        Console.WriteLine(M(8U));
+        Console.WriteLine(M(9U));
+        Console.WriteLine(M(10U));
+        Console.WriteLine(M(11U));
+        Console.WriteLine(M(12U));
+        Console.WriteLine(M(13U));
+        Console.WriteLine(M(14U));
+        Console.WriteLine(M(15U));
+        Console.WriteLine(M(16U));
+        Console.WriteLine(M(17U));
+        Console.WriteLine(M(18U));
+        Console.WriteLine(M(19U));
+        Console.WriteLine(M(20U));
+        Console.WriteLine(M(21U));
+        Console.WriteLine(M(22U));
+        Console.WriteLine(M(23U));
+        Console.WriteLine(M(24U));
+        Console.WriteLine(M(25U));
+        Console.WriteLine(M(26U));
+        Console.WriteLine(M(27U));
+        Console.WriteLine(M(28U));
+        Console.WriteLine(M(29U));
+
+    }
+    static int M(uint d)
+    {
+        return d switch
+        {
+            >= 27U and < 29U => 19,
+            26U => 18,
+            9U => 5,
+            >= 2U and < 4U => 1,
+            12U => 8,
+            >= 21U and < 23U => 15,
+            19U => 13,
+            29U => 20,
+            >= 13U and < 15U => 9,
+            10U => 6,
+            15U => 10,
+            11U => 7,
+            4U => 2,
+            >= 16U and < 18U => 11,
+            >= 23U and < 25U => 16,
+            18U => 12,
+            >= 7U and < 9U => 4,
+            25U => 17,
+            20U => 14,
+            >= 5U and < 7U => 3,
+            _ => 0,
+        };
+    }
+}
+";
+            var expectedOutput =
+@"1
+1
+2
+3
+3
+4
+4
+5
+6
+7
+8
+9
+9
+10
+11
+11
+12
+13
+14
+15
+15
+16
+16
+17
+18
+19
+19
+20
+";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.RegularWithPatternCombinators,
+                expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M", @"
+    {
+      // Code size      243 (0xf3)
+      .maxstack  2
+      .locals init (int V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   21
+      IL_0003:  blt.un.s   IL_0039
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   27
+      IL_0008:  blt.un.s   IL_001f
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   29
+      IL_000d:  blt.un     IL_0093
+      IL_0012:  ldarg.0
+      IL_0013:  ldc.i4.s   29
+      IL_0015:  beq        IL_00b3
+      IL_001a:  br         IL_00ef
+      IL_001f:  ldarg.0
+      IL_0020:  ldc.i4.s   23
+      IL_0022:  blt.un     IL_00a9
+      IL_0027:  ldarg.0
+      IL_0028:  ldc.i4.s   25
+      IL_002a:  blt.un     IL_00d3
+      IL_002f:  ldarg.0
+      IL_0030:  ldc.i4.s   26
+      IL_0032:  beq.s      IL_0098
+      IL_0034:  br         IL_00e1
+      IL_0039:  ldarg.0
+      IL_003a:  ldc.i4.s   13
+      IL_003c:  blt.un.s   IL_0061
+      IL_003e:  ldarg.0
+      IL_003f:  ldc.i4.s   15
+      IL_0041:  blt.un.s   IL_00b8
+      IL_0043:  ldarg.0
+      IL_0044:  ldc.i4.s   18
+      IL_0046:  bge.un.s   IL_004f
+      IL_0048:  ldarg.0
+      IL_0049:  ldc.i4.s   15
+      IL_004b:  beq.s      IL_00c1
+      IL_004d:  br.s       IL_00ce
+      IL_004f:  ldarg.0
+      IL_0050:  ldc.i4.s   18
+      IL_0052:  beq        IL_00d8
+      IL_0057:  ldarg.0
+      IL_0058:  ldc.i4.s   19
+      IL_005a:  beq.s      IL_00ae
+      IL_005c:  br         IL_00e6
+      IL_0061:  ldarg.0
+      IL_0062:  ldc.i4.4
+      IL_0063:  bge.un.s   IL_006e
+      IL_0065:  ldarg.0
+      IL_0066:  ldc.i4.2
+      IL_0067:  bge.un.s   IL_00a1
+      IL_0069:  br         IL_00ef
+      IL_006e:  ldarg.0
+      IL_006f:  ldc.i4.7
+      IL_0070:  blt.un.s   IL_008d
+      IL_0072:  ldarg.0
+      IL_0073:  ldc.i4.s   9
+      IL_0075:  sub
+      IL_0076:  switch    (
+            IL_009d,
+            IL_00bd,
+            IL_00c6,
+            IL_00a5)
+      IL_008b:  br.s       IL_00dd
+      IL_008d:  ldarg.0
+      IL_008e:  ldc.i4.4
+      IL_008f:  beq.s      IL_00ca
+      IL_0091:  br.s       IL_00eb
+      IL_0093:  ldc.i4.s   19
+      IL_0095:  stloc.0
+      IL_0096:  br.s       IL_00f1
+      IL_0098:  ldc.i4.s   18
+      IL_009a:  stloc.0
+      IL_009b:  br.s       IL_00f1
+      IL_009d:  ldc.i4.5
+      IL_009e:  stloc.0
+      IL_009f:  br.s       IL_00f1
+      IL_00a1:  ldc.i4.1
+      IL_00a2:  stloc.0
+      IL_00a3:  br.s       IL_00f1
+      IL_00a5:  ldc.i4.8
+      IL_00a6:  stloc.0
+      IL_00a7:  br.s       IL_00f1
+      IL_00a9:  ldc.i4.s   15
+      IL_00ab:  stloc.0
+      IL_00ac:  br.s       IL_00f1
+      IL_00ae:  ldc.i4.s   13
+      IL_00b0:  stloc.0
+      IL_00b1:  br.s       IL_00f1
+      IL_00b3:  ldc.i4.s   20
+      IL_00b5:  stloc.0
+      IL_00b6:  br.s       IL_00f1
+      IL_00b8:  ldc.i4.s   9
+      IL_00ba:  stloc.0
+      IL_00bb:  br.s       IL_00f1
+      IL_00bd:  ldc.i4.6
+      IL_00be:  stloc.0
+      IL_00bf:  br.s       IL_00f1
+      IL_00c1:  ldc.i4.s   10
+      IL_00c3:  stloc.0
+      IL_00c4:  br.s       IL_00f1
+      IL_00c6:  ldc.i4.7
+      IL_00c7:  stloc.0
+      IL_00c8:  br.s       IL_00f1
+      IL_00ca:  ldc.i4.2
+      IL_00cb:  stloc.0
+      IL_00cc:  br.s       IL_00f1
+      IL_00ce:  ldc.i4.s   11
+      IL_00d0:  stloc.0
+      IL_00d1:  br.s       IL_00f1
+      IL_00d3:  ldc.i4.s   16
+      IL_00d5:  stloc.0
+      IL_00d6:  br.s       IL_00f1
+      IL_00d8:  ldc.i4.s   12
+      IL_00da:  stloc.0
+      IL_00db:  br.s       IL_00f1
+      IL_00dd:  ldc.i4.4
+      IL_00de:  stloc.0
+      IL_00df:  br.s       IL_00f1
+      IL_00e1:  ldc.i4.s   17
+      IL_00e3:  stloc.0
+      IL_00e4:  br.s       IL_00f1
+      IL_00e6:  ldc.i4.s   14
+      IL_00e8:  stloc.0
+      IL_00e9:  br.s       IL_00f1
+      IL_00eb:  ldc.i4.3
+      IL_00ec:  stloc.0
+      IL_00ed:  br.s       IL_00f1
+      IL_00ef:  ldc.i4.0
+      IL_00f0:  stloc.0
+      IL_00f1:  ldloc.0
+      IL_00f2:  ret
+    }
+"
+            );
+        }
+
+        #endregion Code Quality tests
     }
 }

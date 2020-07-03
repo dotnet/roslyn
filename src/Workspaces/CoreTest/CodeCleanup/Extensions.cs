@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         public static T GetMember<T>(this Document document, int index) where T : SyntaxNode
-        {
-            return (T)document.GetSyntaxRootAsync().Result.GetMember(index);
-        }
+            => (T)document.GetSyntaxRootAsync().Result.GetMember(index);
 
         public static T GetMember<T>(this T node, int index) where T : SyntaxNode
         {

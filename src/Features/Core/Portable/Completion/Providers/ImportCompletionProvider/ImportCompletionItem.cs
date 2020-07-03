@@ -16,26 +16,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static class ImportCompletionItem
     {
-        private const string SortTextFormat = "~{0} {1}";
+        private const string SortTextFormat = "{0} {1}";
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
-        private const string SymbolKeyData = nameof(SymbolKeyData);
+        private const string MethodKey = nameof(MethodKey);
+        private const string ReceiverKey = nameof(ReceiverKey);
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
-            => Create(typeSymbol.Name, typeSymbol.Arity, containingNamespace, typeSymbol.GetGlyph(), genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, symbolKeyData: null);
+            => Create(typeSymbol.Name, typeSymbol.Arity, containingNamespace, typeSymbol.GetGlyph(), genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, extensionMethodData: null);
 
-        public static CompletionItem Create(string name, int arity, string containingNamespace, Glyph glyph, string genericTypeSuffix, CompletionItemFlags flags, string? symbolKeyData)
+        public static CompletionItem Create(string name, int arity, string containingNamespace, Glyph glyph, string genericTypeSuffix, CompletionItemFlags flags, (string methodSymbolKey, string receiverTypeSymbolKey)? extensionMethodData)
         {
             ImmutableDictionary<string, string>? properties = null;
 
-            if (symbolKeyData != null || arity > 0)
+            if (extensionMethodData != null || arity > 0)
             {
                 var builder = PooledDictionary<string, string>.GetInstance();
 
-                if (symbolKeyData != null)
+                if (extensionMethodData.HasValue)
                 {
-                    builder.Add(SymbolKeyData, symbolKeyData);
+                    builder.Add(MethodKey, extensionMethodData.Value.methodSymbolKey);
+                    builder.Add(ReceiverKey, extensionMethodData.Value.receiverTypeSymbolKey);
                 }
                 else
                 {
@@ -47,10 +49,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 properties = builder.ToImmutableDictionaryAndFree();
             }
 
-            // Add tildes (ASCII: 126) to name and namespace as sort text:
-            // 1. '~' before type name makes import items show after in-scope items
-            // 2. ' ' before namespace makes types with identical type name but from different namespace all show up in the list,
-            //    it also makes sure type with shorter name shows first, e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
+            // Use "<display name> <namespace>" as sort text. The space before namespace makes items with identical display name
+            // but from different namespace all show up in the list, it also makes sure item with shorter name shows first, 
+            // e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, name, containingNamespace);
 
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return item;
         }
 
-        public static CompletionItem CreateAttributeItemWithoutSuffix(CompletionItem attributeItem, string attributeNameWithoutSuffix)
+        public static CompletionItem CreateAttributeItemWithoutSuffix(CompletionItem attributeItem, string attributeNameWithoutSuffix, CompletionItemFlags flags)
         {
             Debug.Assert(!attributeItem.Properties.ContainsKey(AttributeFullName));
 
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, attributeNameWithoutSuffix, attributeItem.InlineDescription);
 
-            return CompletionItem.Create(
+            var item = CompletionItem.Create(
                  displayText: attributeNameWithoutSuffix,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: newProperties,
@@ -87,6 +88,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  displayTextPrefix: attributeItem.DisplayTextPrefix,
                  displayTextSuffix: attributeItem.DisplayTextSuffix,
                  inlineDescription: attributeItem.InlineDescription);
+
+            item.Flags = flags;
+            return item;
         }
 
         public static CompletionItem CreateItemWithGenericDisplaySuffix(CompletionItem item, string genericTypeSuffix)
@@ -126,9 +130,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static ISymbol? GetSymbol(CompletionItem item, Compilation compilation)
         {
             // If we have SymbolKey data (i.e. this is an extension method item), use it to recover symbol
-            if (item.Properties.TryGetValue(SymbolKeyData, out var symbolId))
+            if (item.Properties.TryGetValue(MethodKey, out var methodSymbolKey))
             {
-                return SymbolKey.ResolveString(symbolId, compilation).GetAnySymbol();
+                var methodSymbol = SymbolKey.ResolveString(methodSymbolKey, compilation).GetAnySymbol() as IMethodSymbol;
+
+                if (methodSymbol != null)
+                {
+                    // Get reduced extension method symbol for the given receiver type.
+                    if (item.Properties.TryGetValue(ReceiverKey, out var receiverTypeKey))
+                    {
+                        if (SymbolKey.ResolveString(receiverTypeKey, compilation).GetAnySymbol() is ITypeSymbol receiverTypeSymbol)
+                        {
+                            return methodSymbol.ReduceExtensionMethod(receiverTypeSymbol) ?? methodSymbol;
+                        }
+                    }
+                }
+
+                return methodSymbol;
             }
 
             // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all

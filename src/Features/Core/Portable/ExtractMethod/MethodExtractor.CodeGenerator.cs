@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
                     var localMethod = codeGenerationService.CreateMethodDeclaration(
                         method: result.Data,
-                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: this.Options, parseOptions: destination?.SyntaxTree.Options));
+                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: Options, parseOptions: destination?.SyntaxTree.Options));
                     newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
                 }
                 else
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = previousMemberNode.Parent ?? previousMemberNode;
                     newContainer = codeGenerationService.AddMethod(
                         destination, result.Data,
-                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: this.Options),
+                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: Options),
                         cancellationToken);
                 }
 
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             protected IEnumerable<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
-                IEnumerable<TStatement> statements, CancellationToken cancellationToken)
+                CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
 
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return statements.Concat(CreateReturnStatement(AnalyzerResult.VariableToUseAsReturnValue.Name));
             }
 
-            protected HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
+            protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>();

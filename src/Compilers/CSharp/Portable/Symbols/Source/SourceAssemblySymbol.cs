@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var defaultValue = default(Version);
+                var defaultValue = (Version)null;
                 var fieldValue = defaultValue;
 
                 var data = GetSourceDecodedWellKnownAttributeData();
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var fieldValue = default(AssemblyHashAlgorithm?);
+                var fieldValue = (AssemblyHashAlgorithm?)null;
 
                 var data = GetSourceDecodedWellKnownAttributeData();
                 if (data != null)
@@ -2663,6 +2663,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
+        }
+
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            return PEModuleBuilder.GetForwardedTypes(this, builder: null);
         }
 
         public override AssemblyMetadata GetMetadata() => null;

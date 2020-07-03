@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -125,6 +126,13 @@ namespace Microsoft.CodeAnalysis
         private sealed class ConstantValueString : ConstantValue
         {
             private readonly Rope _value;
+            /// <summary>
+            /// Some string constant values can have large costs to realize. To compensate, we realize
+            /// constant values lazily, and hold onto a weak reference. If the next time we're asked for the constant
+            /// value the previous one still exists, we can avoid rerealizing it. But we don't want to root the constant
+            /// value if it's not being used.
+            /// </summary>
+            private WeakReference<string>? _constantValueReference;
 
             public ConstantValueString(string value)
             {
@@ -157,7 +165,19 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return _value.ToString();
+                    string? constantValue = null;
+                    if (_constantValueReference?.TryGetTarget(out constantValue) != true)
+                    {
+                        // Note: we could end up realizing the constant value multiple times if there's
+                        // a race here. Currently, this isn't believed to be an issue, as the assignment
+                        // to _constantValueReference is atomic so the worst that will happen is we return
+                        // different instances of a string constant.
+                        constantValue = _value.ToString();
+                        _constantValueReference = new WeakReference<string>(constantValue);
+                    }
+
+                    Debug.Assert(constantValue != null);
+                    return constantValue;
                 }
             }
 
@@ -303,6 +323,8 @@ namespace Microsoft.CodeAnalysis
             public static readonly ConstantValueDefault UInt32 = new ConstantValueDefault(ConstantValueTypeDiscriminator.UInt32);
             public static readonly ConstantValueDefault Int64 = new ConstantValueDefault(ConstantValueTypeDiscriminator.Int64);
             public static readonly ConstantValueDefault UInt64 = new ConstantValueDefault(ConstantValueTypeDiscriminator.UInt64);
+            public static readonly ConstantValueDefault NInt = new ConstantValueDefault(ConstantValueTypeDiscriminator.NInt);
+            public static readonly ConstantValueDefault NUInt = new ConstantValueDefault(ConstantValueTypeDiscriminator.NUInt);
             public static readonly ConstantValueDefault Char = new ConstantValueDefault(ConstantValueTypeDiscriminator.Char);
             public static readonly ConstantValueDefault Single = new ConstantValueSingleZero();
             public static readonly ConstantValueDefault Double = new ConstantValueDoubleZero();
@@ -475,6 +497,8 @@ namespace Microsoft.CodeAnalysis
             public static readonly ConstantValueOne UInt32 = new ConstantValueOne(ConstantValueTypeDiscriminator.UInt32);
             public static readonly ConstantValueOne Int64 = new ConstantValueOne(ConstantValueTypeDiscriminator.Int64);
             public static readonly ConstantValueOne UInt64 = new ConstantValueOne(ConstantValueTypeDiscriminator.UInt64);
+            public static readonly ConstantValueOne NInt = new ConstantValueOne(ConstantValueTypeDiscriminator.NInt);
+            public static readonly ConstantValueOne NUInt = new ConstantValueOne(ConstantValueTypeDiscriminator.NUInt);
             public static readonly ConstantValueOne Single = new ConstantValueOne(ConstantValueTypeDiscriminator.Single);
             public static readonly ConstantValueOne Double = new ConstantValueOne(ConstantValueTypeDiscriminator.Double);
             public static readonly ConstantValueOne Decimal = new ConstantValueDecimalOne();
@@ -751,6 +775,50 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.Int64Value;
+            }
+        }
+
+        private sealed class ConstantValueNativeInt : ConstantValueDiscriminated
+        {
+            // Constants are limited to 32-bit for portability.
+            private readonly int _value;
+
+            public ConstantValueNativeInt(int value)
+                : base(ConstantValueTypeDiscriminator.NInt)
+            {
+                _value = value;
+            }
+
+            public ConstantValueNativeInt(uint value)
+                : base(ConstantValueTypeDiscriminator.NUInt)
+            {
+                _value = unchecked((int)value);
+            }
+
+            public override int Int32Value
+            {
+                get
+                {
+                    return _value;
+                }
+            }
+
+            public override uint UInt32Value
+            {
+                get
+                {
+                    return unchecked((uint)_value);
+                }
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
+            }
+
+            public override bool Equals(ConstantValue? other)
+            {
+                return base.Equals(other) && _value == other.Int32Value;
             }
         }
 

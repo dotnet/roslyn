@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             s_recommenderMap.TryGetValue(kind, out var recommender);
             Assert.NotNull(recommender);
 
-            this.RecommendKeywordsAsync = recommender.RecommendKeywordsAsync_Test;
+            this.RecommendKeywordsAsync = (position, context) => recommender.GetTestAccessor().RecommendKeywordsAsync(position, context);
         }
     }
 }

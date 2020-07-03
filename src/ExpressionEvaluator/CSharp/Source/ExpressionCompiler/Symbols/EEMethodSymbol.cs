@@ -418,6 +418,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { throw ExceptionUtilities.Unreachable; }
@@ -609,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                         var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
 
-                        body = LambdaRewriter.Rewrite(
+                        body = ClosureConversion.Rewrite(
                             loweredBody: body,
                             thisType: this.SubstitutedSourceMethod.ContainingType,
                             thisParameter: _thisParameter,

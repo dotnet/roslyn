@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -2615,7 +2614,6 @@ class C
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", CSharpFeaturesResources.lambda, "x1", "x0")
                 );
         }
-
 
         [Fact]
         public void Lambdas_Update_CeaseCapture_This()
@@ -8379,7 +8377,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 null,
@@ -8419,7 +8417,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.Instance40.VerifySemantics(
+            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 null,
@@ -9419,7 +9417,8 @@ if (o3 is (string k, int l2, int m)) return;
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [r = (x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 }]@6",
+                "Update [(x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 }]@10 -> [((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 }]@10",
+                "Update [(0, var b, int c) when c > 1 => 2]@29 -> [(_, int b1, double c1) when c1 > 2 => c1]@31",
                 "Reorder [c]@44 -> @39",
                 "Update [c]@44 -> [b1]@39",
                 "Update [b]@37 -> [c1]@50",
@@ -9436,7 +9435,9 @@ if (o3 is (string k, int l2, int m)) return;
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [r = (x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }]@6",
+                "Update [(x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 }]@10 -> [((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }]@10",
+                "Update [(var a, 3, 4) => a]@29 -> [(var a1, 3, 4) => a1 * 2]@31",
+                "Update [(1, 1, Point { X: 0 } p) => 3]@49 -> [(1, 1, Point { Y: 0 } p1) => 3]@57",
                 "Update [a]@34 -> [a1]@36",
                 "Update [p]@71 -> [p1]@79");
         }
@@ -9465,21 +9466,22 @@ _ => 4
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Update [r = (x, y, z) switch {
+                @"Update [(x, y, z) switch {
 (1, 2, 3) => 0,
 (var a, 3, 4) => a,
 (0, var b, int c) when c > 1 => 2,
 (1, 1, Point { X: 0 } p) => 3,
 _ => 4
-}]@6 -> [r = ((x, y, z)) switch {
+}]@10 -> [((x, y, z)) switch {
 (1, 1, Point { X: 0 } p) => 3,
 (0, var b, int c) when c > 1 => 2,
 (var a, 3, 4) => a,
 (1, 2, 3) => 0,
 _ => 4
-}]@6",
-                "Reorder [a]@52 -> @105",
-                "Reorder [p]@126 -> @54");
+}]@10",
+                "Reorder [(var a, 3, 4) => a]@47 -> @100",
+                "Reorder [(0, var b, int c) when c > 1 => 2]@68 -> @64",
+                "Reorder [(1, 1, Point { X: 0 } p) => 3]@104 -> @32");
         }
 
         [Fact]
@@ -9538,26 +9540,9 @@ if (o is string { Length: 7 } s7) return 5;
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Update [r = obj switch
-{
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""a"", int i) => i,
-        _ => 0
-    },
-    int i => i * i,
-    _ => -1
-}]@6 -> [r = obj switch
-{
-    int i => i * i,
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""a"", int i) => i,
-        _ => 0
-    },
-    _ => -1
-}]@6",
-                "Reorder [i]@102 -> @33");
+                "Reorder [int i => i * i]@140 -> @29",
+                "Move [i]@102 -> @33",
+                "Move [i]@144 -> @123");
         }
 
         [Fact]
@@ -9782,39 +9767,39 @@ int G1(int[] p) { return p[2]; }
         [Fact]
         public void TupleElementName()
         {
-            var src1 = @"(int a, int b) F();";
-            var src2 = @"(int x, int b) F();";
+            var src1 = @"class C { (int a, int b) F(); }";
+            var src2 = @"class C { (int x, int b) F(); }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [(int a, int b) F();]@0 -> [(int x, int b) F();]@0");
+                "Update [(int a, int b) F();]@10 -> [(int x, int b) F();]@10");
         }
 
         [Fact]
         public void TupleInField()
         {
-            var src1 = @"private (int, int) _x = (1, 2);";
-            var src2 = @"private (int, string) _y = (1, 2);";
+            var src1 = @"class C { private (int, int) _x = (1, 2); }";
+            var src2 = @"class C { private (int, string) _y = (1, 2); }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [(int, int) _x = (1, 2)]@8 -> [(int, string) _y = (1, 2)]@8",
-                "Update [_x = (1, 2)]@19 -> [_y = (1, 2)]@22");
+                "Update [(int, int) _x = (1, 2)]@18 -> [(int, string) _y = (1, 2)]@18",
+                "Update [_x = (1, 2)]@29 -> [_y = (1, 2)]@32");
         }
 
         [Fact]
         public void TupleInProperty()
         {
-            var src1 = @"public (int, int) Property1 { get { return (1, 2); } }";
-            var src2 = @"public (int, string) Property2 { get { return (1, string.Empty); } }";
+            var src1 = @"class C { public (int, int) Property1 { get { return (1, 2); } } }";
+            var src2 = @"class C { public (int, string) Property2 { get { return (1, string.Empty); } } }";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [public (int, int) Property1 { get { return (1, 2); } }]@0 -> [public (int, string) Property2 { get { return (1, string.Empty); } }]@0",
-                "Update [get { return (1, 2); }]@30 -> [get { return (1, string.Empty); }]@33");
+                "Update [public (int, int) Property1 { get { return (1, 2); } }]@10 -> [public (int, string) Property2 { get { return (1, string.Empty); } }]@10",
+                "Update [get { return (1, 2); }]@40 -> [get { return (1, string.Empty); }]@43");
         }
 
         [Fact]

@@ -28,10 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new DeclarationNameCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(DeclarationNameCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameWithOnlyType1()
@@ -187,7 +185,6 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Parameter3()
         {
@@ -199,6 +196,144 @@ public class C
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter4()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void Other(CancellationToken cancellationToken) {}
+    void Goo(CancellationToken c$$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Parameter5()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter6()
+        {
+            var markup = @"
+using System.Threading;
+
+void Other(CancellationToken cancellationToken) {}
+void Goo(CancellationToken c$$) {}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Parameter7()
+        {
+            var markup = @"
+using System.Threading;
+
+void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter8()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    int this[CancellationToken cancellationToken] => throw null;
+    int this[CancellationToken c$$] => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter9()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    int this[CancellationToken cancellationToken] => throw null;
+    int this[CancellationToken cancellationToken, CancellationToken c$$] => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter10()
+        {
+            var markup = @"
+public class DbContext { }
+public class C
+{
+    void Goo(DbContext context) {
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter11()
+        {
+            var markup = @"
+public class DbContext { }
+public class C
+{
+    void Goo() {
+        DbContext context;
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter12()
+        {
+            var markup = @"
+public class DbContext { }
+public class C
+{
+    DbContext dbContext;
+    void Goo(DbContext context) {
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
         }
 
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
@@ -705,7 +840,6 @@ class Test
 ";
             await VerifyItemExistsAsync(markup, "test");
         }
-
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1266,7 +1400,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DisabledByOption()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.
                 WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false)));
 
@@ -1451,9 +1585,9 @@ public class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideClass()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));
 
             var markup = @"
@@ -1475,9 +1609,9 @@ class Configuration
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideMethod()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));
 
             var markup = @"
@@ -1868,6 +2002,59 @@ class ClassA
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
+        public async Task ConflictingLocalVariable()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
+                MultipleCamelCaseLocalRules())));
+
+            var markup = @"
+public class MyClass
+{
+    void M()
+    {
+        MyClass myClass;
+        MyClass $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local);
+        }
+
+        private static NamingStylePreferences MultipleCamelCaseLocalRules()
+        {
+            var styles = new[]
+            {
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Local), name: "Local1"),
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Local), name: "Local1"),
+            };
+
+            return new NamingStylePreferences(
+                styles.Select(t => t.specification).ToImmutableArray(),
+                styles.Select(t => t.style).ToImmutableArray(),
+                styles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
+
+            // Local functions
+
+            static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string name)
+            {
+                var symbolSpecification = new SymbolSpecification(
+                    id: null,
+                    symbolSpecName: name,
+                    ImmutableArray.Create(kind));
+
+                var namingStyle = new NamingStyle(
+                    Guid.NewGuid(),
+                    name,
+                    capitalizationScheme: Capitalization.CamelCase);
+
+                return (symbolSpecification, namingStyle);
+            }
+        }
+
         private static NamingStylePreferences NamesEndWithSuffixPreferences()
         {
             var specificationStyles = new[]
@@ -1905,16 +2092,16 @@ class ClassA
 
                 return (symbolSpecification, namingStyle);
             }
+        }
 
-            static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
+        private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
+        {
+            return new SerializableNamingRule()
             {
-                return new SerializableNamingRule()
-                {
-                    SymbolSpecificationID = specification.ID,
-                    NamingStyleID = style.ID,
-                    EnforcementLevel = ReportDiagnostic.Error
-                };
-            }
+                SymbolSpecificationID = specification.ID,
+                NamingStyleID = style.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
         }
     }
 }

@@ -785,29 +785,6 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        const string IAsyncEnumerable = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        ValueTask DisposeAsync();
-    }
-}
-
-namespace System.Collections.Generic
-{
-    public interface IAsyncEnumerable<out T>
-    {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
-    }
-
-    public interface IAsyncEnumerator<out T> : IAsyncDisposable
-    {
-        ValueTask<bool> MoveNextAsync();
-        T Current { get; }
-    }
-}";
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInMember()
         {
@@ -975,6 +952,47 @@ namespace System.Threading.Tasks {
 class Program 
 {
     async ValueTask<int> Test() 
+    {
+        await Task.Delay(1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task AwaitInValueTaskWithoutGenericMethod()
+        {
+            var initial =
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
+class Program 
+{
+    ValueTask Test() 
+    {
+        [|await Task.Delay(1);|]
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
+class Program 
+{
+    async ValueTask Test() 
     {
         await Task.Delay(1);
     }

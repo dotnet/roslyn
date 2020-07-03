@@ -21,164 +21,94 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInSynchronousMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestStatementInMethod(bool isAsync, bool topLevelStatement)
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    void goo()
-    {
-        $$
-    }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(
+@"$$", isAsync: isAsync, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestStatementInAsyncMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestExpressionInAsyncMethod(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    async void goo()
-    {
-        $$
-    }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var z = $$", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestExpressionInAsyncMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestUsingStatement(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    async void goo()
-    {
-        var z = $$
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestUsingStatement()
-        {
-            await VerifyAbsenceAsync(@"
-class Program
-{
-    void goo()
-    {
-        using $$
-    }
-}");
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"using $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestUsingDirective()
+            => await VerifyAbsenceAsync("using $$");
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestForeachStatement(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync("using $$");
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"foreach $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestForeachStatement()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotInQuery(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(@"
-class Program
-{
-    void goo()
-    {
-        foreach $$
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInQuery()
-        {
-            await VerifyAbsenceAsync(@"
-class Program
-{
-    async void goo()
-    {
-        var z = from a in ""char""
-                select $$
-    }
-}");
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"var z = from a in ""char""
+          select $$", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFinally()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestInFinally(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    async void goo()
-    {
-        try { }
-        finally { $$ } 
-    }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(
+@"try { }
+finally { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInCatch()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestInCatch(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    async void goo()
-    {
-        try { }
-        catch { $$ } 
-    }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(
+@"try { }
+catch { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInLock()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotInLock(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(@"
-class Program
-{
-    async void goo()
-    {
-       lock(this) { $$ } 
-    }
-}");
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"lock(this) { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInAsyncLambdaInCatch()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestInAsyncLambdaInCatch(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    async void goo()
-    {
-        try { }
-        catch { var z = async () => $$ } 
-    }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(
+@"try { }
+catch { var z = async () => $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAwaitInLock()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestAwaitInLock(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    async void goo()
-    {
-        lock($$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInGlobalStatement()
-        {
-            const string text = @"$$";
-            await VerifyKeywordAsync(SourceCodeKind.Script, text);
+            await VerifyKeywordAsync(AddInsideMethod(
+@"lock($$", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
     }
 }

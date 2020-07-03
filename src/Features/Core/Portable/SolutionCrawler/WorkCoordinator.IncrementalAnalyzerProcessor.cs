@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
-                private readonly IDocumentTrackingService _documentTracker;
-                private readonly IProjectCacheService _cacheService;
+                private readonly IDocumentTrackingService? _documentTracker;
+                private readonly IProjectCacheService? _cacheService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     _listener = listener;
                     _registration = registration;
-                    _cacheService = registration.GetService<IProjectCacheService>();
+                    _cacheService = registration.Workspace.Services.GetService<IProjectCacheService>();
 
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
@@ -79,23 +79,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     // event and worker queues
-                    _documentTracker = _registration.GetService<IDocumentTrackingService>();
+                    _documentTracker = _registration.Workspace.Services.GetService<IDocumentTrackingService>();
 
-                    var globalNotificationService = _registration.GetService<IGlobalOperationNotificationService>();
+                    var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
                     _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
                     _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
                 }
 
-                private IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
+                private static IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                 {
                     // alternatively, we could just MEF import IDiagnosticAnalyzerService directly
                     // this can be null in test env.
                     return (IDiagnosticAnalyzerService?)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).SingleOrDefault()?.Value;
                 }
 
-                private ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(Registration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
+                private static ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(Registration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
                 {
                     var orderedAnalyzers = analyzersGetter.GetOrderedAnalyzers(registration.Workspace, onlyHighPriorityAnalyzer);
 
@@ -222,19 +222,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private IDisposable EnableCaching(ProjectId projectId)
-                {
-                    return _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
-                }
+                    => _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
-                {
-                    return _registration.Workspace.GetOpenDocumentIds();
-                }
+                    => _registration.Workspace.GetOpenDocumentIds();
 
                 private void ResetLogAggregator()
-                {
-                    _logAggregator = new LogAggregator();
-                }
+                    => _logAggregator = new LogAggregator();
 
                 private void ReportPendingWorkItemCount()
                 {
@@ -292,7 +286,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await GetOrDefaultAsync(value, async (v, c) =>
                         {
                             await runnerAsync(local, v, c).ConfigureAwait(false);
-                            return default(object);
+                            return (object?)null;
                         }, cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -340,11 +334,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (OperationCanceledException)
                     {
-                        return default;
+                        return null;
                     }
                     catch (AggregateException e) when (CrashUnlessCanceled(e))
                     {
-                        return default;
+                        return null;
                     }
                     catch (Exception e) when (FatalError.Report(e))
                     {

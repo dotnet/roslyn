@@ -133,14 +133,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
-            => IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location, getSemanticModel, out info);
-
-        private bool IsDiagnosticSuppressed(string id, Location location, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
         {
-            Debug.Assert(id != null);
-            Debug.Assert(location != null);
+            info = default;
 
-            info = default(SuppressMessageInfo);
+            if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
+            {
+                // SuppressMessage attributes do not apply to compiler diagnostics.
+                return false;
+            }
+
+            var id = diagnostic.Id;
+            var location = diagnostic.Location;
 
             if (IsDiagnosticGloballySuppressed(id, symbolOpt: null, isImmediatelyContainingSymbol: false, info: out info))
             {
@@ -321,24 +324,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static IEnumerable<ISymbol> ResolveTargetSymbols(Compilation compilation, string target, TargetScope scope)
+        internal static ImmutableArray<ISymbol> ResolveTargetSymbols(Compilation compilation, string target, TargetScope scope)
         {
             switch (scope)
             {
                 case TargetScope.Namespace:
                 case TargetScope.Type:
                 case TargetScope.Member:
-                    {
-                        var results = new List<ISymbol>();
-                        new TargetSymbolResolver(compilation, scope, target).Resolve(results);
-                        return results;
-                    }
+                    return new TargetSymbolResolver(compilation, scope, target).Resolve(out _);
 
                 case TargetScope.NamespaceAndDescendants:
                     return ResolveTargetSymbols(compilation, target, TargetScope.Namespace);
 
                 default:
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
             }
         }
 
@@ -375,17 +374,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             info.Attribute = attribute;
 
             return true;
-        }
-
-        internal enum TargetScope
-        {
-            None,
-            Module,
-            Namespace,
-            Resource,
-            Type,
-            Member,
-            NamespaceAndDescendants
         }
     }
 }

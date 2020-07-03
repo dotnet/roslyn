@@ -157,9 +157,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             public override bool CanApplyChange(ApplyChangesKind feature)
-            {
-                return false;
-            }
+                => false;
 
             public Project AddProject(string name, string language)
             {

@@ -315,6 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override bool ReturnsVoid => UnderlyingMethod.ReturnsVoid;
+
         public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => UnderlyingMethod.ReturnTypeFlowAnalysisAnnotations;
 
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => UnderlyingMethod.ReturnNotNullIfParameterNotNull;
@@ -346,5 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
+
+        internal override bool IsInitOnly => UnderlyingMethod.IsInitOnly;
     }
 }

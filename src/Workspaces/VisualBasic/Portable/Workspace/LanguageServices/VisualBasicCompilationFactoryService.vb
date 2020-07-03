@@ -2,10 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ICompilationFactoryService), LanguageNames.VisualBasic), [Shared]>
@@ -15,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared ReadOnly s_defaultOptions As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild:=False)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -42,26 +44,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
         End Function
 
-        Private Function ICompilationFactoryService_GetCompilationFromCompilationReference(reference As MetadataReference) As Compilation Implements ICompilationFactoryService.GetCompilationFromCompilationReference
-            Return GetCompilationFromCompilationReference(reference)
-        End Function
-
-        Private Overloads Function GetCompilationFromCompilationReference(reference As MetadataReference) As Compilation
-            Dim cref = TryCast(reference, CompilationReference)
-
-            If cref IsNot Nothing Then
-                Return cref.Compilation
-            End If
-
-            Return Nothing
-        End Function
-
-        Public Function IsCompilationReference(reference As MetadataReference) As Boolean Implements ICompilationFactoryService.IsCompilationReference
-            Return TypeOf reference Is CompilationReference
-        End Function
-
         Public Function GetDefaultCompilationOptions() As CompilationOptions Implements ICompilationFactoryService.GetDefaultCompilationOptions
             Return s_defaultOptions
+        End Function
+
+        Public Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
+            Return Nothing
         End Function
     End Class
 End Namespace

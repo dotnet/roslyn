@@ -49,14 +49,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void Initialize(IServiceProvider serviceProvider)
-        {
-            _dte = (DTE)serviceProvider.GetService(typeof(DTE));
-        }
+            => _dte = (DTE)serviceProvider.GetService(typeof(DTE));
 
         void IDisposable.Dispose()
-        {
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-        }
+            => _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {

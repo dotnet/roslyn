@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -88,9 +86,7 @@ namespace Microsoft.CodeAnalysis
         public string Name => Attributes.Name;
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
-        {
-            return new ConstantValueSource<TextAndVersion>(text);
-        }
+            => new ConstantValueSource<TextAndVersion>(text);
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services)
         {
@@ -102,7 +98,17 @@ namespace Microsoft.CodeAnalysis
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
         {
-            return new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+
+            // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
+            // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
+            // transitions to a weak reference backed by temporary storage after the first time GetValue (or
+            // GetValueAsync) is called. Since we know we are creating a RecoverableTextAndVersion for the purpose of
+            // avoiding problematic address space overhead, we call GetValue immediately to force the object to weakly
+            // hold its data from the start.
+            result.GetValue();
+
+            return result;
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
@@ -169,6 +175,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public bool TryGetTextAndVersion(out TextAndVersion? textAndVersion)
+            => TextAndVersionSource.TryGetValue(out textAndVersion);
+
         public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
             if (sourceText != null)
@@ -211,11 +220,6 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
         {
-            if (newTextAndVersion == null)
-            {
-                throw new ArgumentNullException(nameof(newTextAndVersion));
-            }
-
             var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
@@ -225,25 +229,14 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
         {
-            if (newText == null)
-            {
-                throw new ArgumentNullException(nameof(newText));
-            }
+            var newVersion = GetNewerVersion();
+            var newTextAndVersion = TextAndVersion.Create(newText, newVersion, FilePath);
 
-            var newVersion = this.GetNewerVersion();
-            var newTextAndVersion = TextAndVersion.Create(newText, newVersion, this.FilePath);
-
-            var newState = this.UpdateText(newTextAndVersion, mode);
-            return newState;
+            return UpdateText(newTextAndVersion, mode);
         }
 
         public TextDocumentState UpdateText(TextLoader loader, PreservationMode mode)
         {
-            if (loader == null)
-            {
-                throw new ArgumentNullException(nameof(loader));
-            }
-
             // don't blow up on non-text documents.
             var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(loader, Id, solutionServices)
@@ -307,8 +300,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         public bool HasInfoChanged(TextDocumentState oldState)
-        {
-            return oldState.Attributes != Attributes;
-        }
+            => oldState.Attributes != Attributes;
     }
 }

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly INamedTypeSymbol _enumUnderlyingType;
 
         public CodeGenerationNamedTypeSymbol(
+            IAssemblySymbol containingAssembly,
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<ISymbol> members,
             ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
             INamedTypeSymbol enumUnderlyingType)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation, typeMembers)
+            : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation, typeMembers)
         {
             _typeKind = typeKind;
             _typeParameters = typeParameters.NullToEmpty();
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {
             return new CodeGenerationNamedTypeSymbol(
-                this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
+                this.ContainingAssembly, this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
                 this.Modifiers, this.TypeKind, this.Name, _typeParameters, _baseType,
                 _interfaces, this.SpecialType, nullableAnnotation, _members, this.TypeMembers,
                 this.EnumUnderlyingType);
@@ -105,11 +106,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
-        {
-            return null;
-        }
+            => null;
 
-        public ImmutableArray<ISymbol> CandidateSymbols
+        public static ImmutableArray<ISymbol> CandidateSymbols
         {
             get
             {
@@ -153,14 +152,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public override ImmutableArray<ISymbol> GetMembers()
-        {
-            return ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
-        }
+            => ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
 
         public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-        {
-            return ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
-        }
+            => ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
 
         public override ImmutableArray<IMethodSymbol> InstanceConstructors
         {

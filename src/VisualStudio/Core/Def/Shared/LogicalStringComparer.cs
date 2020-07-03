@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public int Compare(string x, string y)
-        {
-            return StrCmpLogicalW(x, y);
-        }
+            => StrCmpLogicalW(x, y);
     }
 }

@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.SyntaxTreeExtensions
@@ -32,7 +31,6 @@ End Module]]>.Value)
             Dim trivia = tree.FindTriviaToLeft(4000, CancellationToken.None)
             ' no stack overflow
         End Sub
-
 
     End Class
 

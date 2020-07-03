@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
     internal class TextStructureNavigatorProvider : AbstractTextStructureNavigatorProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TextStructureNavigatorProvider(
             ITextStructureNavigatorSelectorService selectorService,
             IContentTypeRegistryService contentTypeService,
@@ -28,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
         }
 
         protected override bool ShouldSelectEntireTriviaFromStart(SyntaxTrivia trivia)
-        {
-            return trivia.IsRegularOrDocComment();
-        }
+            => trivia.IsRegularOrDocComment();
 
         protected override bool IsWithinNaturalLanguage(SyntaxToken token, int position)
         {

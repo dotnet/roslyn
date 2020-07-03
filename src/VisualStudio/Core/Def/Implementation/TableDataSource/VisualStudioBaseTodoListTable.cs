@@ -65,9 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected override void ShutdownSource()
-        {
-            _source.Shutdown();
-        }
+            => _source.Shutdown();
 
         private class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem>
         {
@@ -141,9 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             public override AbstractTableEntriesSnapshot<TodoTableItem> CreateSnapshot(AbstractTableEntriesSource<TodoTableItem> source, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
-            {
-                return new TableEntriesSnapshot(version, items, trackingPoints);
-            }
+                => new TableEntriesSnapshot(version, items, trackingPoints);
 
             public override IEqualityComparer<TodoTableItem> GroupingComparer
                 => TodoTableItem.GroupingComparer.Instance;
@@ -209,9 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoTableItem> items)
-                {
-                    return _workspace.CreateTrackingPoints(_documentId, items);
-                }
+                    => _workspace.CreateTrackingPoints(_documentId, items);
             }
 
             private sealed class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoTableItem>
@@ -237,13 +231,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (columnName)
                     {
                         case StandardTableKeyNames.Priority:
-                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Priority);
+                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Value.Priority);
                             return content != null;
                         case StandardTableKeyNames.Text:
-                            content = data.Message;
+                            content = data.Value.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = GetFileName(data.OriginalFilePath, data.MappedFilePath);
+                            content = GetFileName(data.Value.OriginalFilePath, data.Value.MappedFilePath);
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = GetLineColumn(item).Line;

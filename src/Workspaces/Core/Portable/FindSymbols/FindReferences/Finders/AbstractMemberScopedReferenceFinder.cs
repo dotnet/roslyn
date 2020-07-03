@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         where TSymbol : ISymbol
     {
         protected sealed override bool CanFind(TSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             TSymbol symbol,
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected ImmutableArray<FinderLocation> FindReferencesInTokensWithSymbolName(
+        protected static ImmutableArray<FinderLocation> FindReferencesInTokensWithSymbolName(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -123,7 +121,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 findParentNode: null, cancellationToken: cancellationToken);
         }
 
-        protected ImmutableArray<FinderLocation> FindReferencesInTokensWithSymbolName(
+        protected static ImmutableArray<FinderLocation> FindReferencesInTokensWithSymbolName(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,

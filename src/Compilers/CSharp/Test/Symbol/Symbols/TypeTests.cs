@@ -1450,9 +1450,9 @@ class Program
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
-            Assert.Equal("<invalid-global-code>", errSymbol.Name);
+            Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, errSymbol.Name);
             Assert.False(errSymbol.IsErrorType(), "ErrorType");
-            Assert.True(errSymbol.IsImplicitClass, "ImplicitClass");
+            Assert.False(errSymbol.IsImplicitClass, "ImplicitClass");
         }
 
         #region "Nullable"
@@ -2291,6 +2291,38 @@ public interface I1
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+        }
+
+        [Fact]
+        [WorkItem(41501, "https://github.com/dotnet/roslyn/issues/41501")]
+        public void ImplementNestedInterface_01()
+        {
+            var text = @"
+public struct TestStruct : TestStruct.IInnerInterface
+{
+    public interface IInnerInterface
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(text);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(41501, "https://github.com/dotnet/roslyn/issues/41501")]
+        public void ImplementNestedInterface_02()
+        {
+            var text = @"
+public class TestClass : TestClass.IInnerInterface
+{
+    public interface IInnerInterface
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(text);
+            compilation.VerifyDiagnostics();
         }
     }
 }

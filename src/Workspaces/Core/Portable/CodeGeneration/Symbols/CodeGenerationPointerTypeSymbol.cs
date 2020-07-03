@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ITypeSymbol PointedAtType { get; }
 
         public CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType)
-            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None)
+            : base(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None)
         {
             this.PointedAtType = pointedAtType;
         }
@@ -27,14 +27,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override SymbolKind Kind => SymbolKind.PointerType;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitPointerType(this);
-        }
+            => visitor.VisitPointerType(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitPointerType(this);
-        }
+            => visitor.VisitPointerType(this);
 
         public ImmutableArray<CustomModifier> CustomModifiers
         {

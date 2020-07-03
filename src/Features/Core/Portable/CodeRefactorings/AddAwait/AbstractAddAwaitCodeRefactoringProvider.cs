@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 {
@@ -48,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                     c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)),
                 awaitable.Span);
 
-
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitleWithConfigureAwait(),
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 awaitable.Span);
         }
 
-        private bool IsValidAwaitableExpression(SyntaxNode invocation, SemanticModel model, ISyntaxFactsService syntaxFacts)
+        private static bool IsValidAwaitableExpression(SyntaxNode invocation, SemanticModel model, ISyntaxFactsService syntaxFacts)
         {
             if (syntaxFacts.IsExpressionOfInvocationExpression(invocation.Parent))
             {
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             return false;
         }
 
-        private async Task<Document> AddAwaitAsync(
+        private static async Task<Document> AddAwaitAsync(
             Document document,
             TInvocationExpressionSyntax invocation,
             bool withConfigureAwait,
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             if (withConfigureAwait)
             {
                 withoutTrivia = syntaxGenerator.InvocationExpression(
-                    syntaxGenerator.MemberAccessExpression(withoutTrivia, "ConfigureAwait"),
+                    syntaxGenerator.MemberAccessExpression(withoutTrivia, nameof(Task.ConfigureAwait)),
                     syntaxGenerator.FalseLiteralExpression());
             }
 
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 .AddParentheses(syntaxGenerator.AwaitExpression(withoutTrivia))
                 .WithTriviaFrom(invocation);
 
-            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken).ConfigureAwait(false); ;
+            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken).ConfigureAwait(false);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

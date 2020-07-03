@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -11,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedStaticConstructor : MethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
+        private ThreeState _lazyShouldEmit = ThreeState.Unknown;
 
         internal SynthesizedStaticConstructor(NamedTypeSymbol containingType)
         {
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = null;
             return true;
@@ -160,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -288,6 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         public sealed override bool IsImplicitlyDeclared
         {
             get
@@ -331,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override DllImportData GetDllImportData()
+        public override DllImportData? GetDllImportData()
         {
             return null;
         }
@@ -341,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingType.AreLocalsZeroed; }
         }
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
         {
             get { return null; }
         }
@@ -356,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -370,6 +376,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var containingType = (SourceMemberContainerTypeSymbol)this.ContainingType;
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: true);
+        }
+
+        internal bool ShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
+        {
+            if (_lazyShouldEmit.HasValue())
+            {
+                return _lazyShouldEmit.Value();
+            }
+
+            var shouldEmit = CalculateShouldEmit(boundInitializersOpt);
+            _lazyShouldEmit = shouldEmit.ToThreeState();
+            return shouldEmit;
+        }
+
+        private bool CalculateShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
+        {
+            if (boundInitializersOpt.IsDefault)
+            {
+                if (!(ContainingType is SourceMemberContainerTypeSymbol sourceType))
+                {
+                    Debug.Assert(ContainingType is SynthesizedClosureEnvironment);
+                    return true;
+                }
+
+                var unusedDiagnostics = DiagnosticBag.GetInstance();
+                boundInitializersOpt = Binder.BindFieldInitializers(
+                    DeclaringCompilation,
+                    sourceType.IsScriptClass ? sourceType.GetScriptInitializer() : null,
+                    sourceType.StaticInitializers,
+                    unusedDiagnostics,
+                    out _);
+                unusedDiagnostics.Free();
+            }
+
+            foreach (var initializer in boundInitializersOpt)
+            {
+                if (!(initializer is BoundFieldEqualsValue { Value: { } value }))
+                {
+                    // this isn't a BoundFieldEqualsValue, so this initializer is doing
+                    // something we don't understand. Better just emit it.
+                    return true;
+                }
+
+                if (!value.IsDefaultValue())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

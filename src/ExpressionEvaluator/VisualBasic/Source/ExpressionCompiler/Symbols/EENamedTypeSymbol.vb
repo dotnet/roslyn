@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             ' Should not be requesting generated members by name other than constructors.
             Debug.Assert(name = WellKnownMemberNames.InstanceConstructorName OrElse name = WellKnownMemberNames.StaticConstructorName)
-            Return GetMembers().WhereAsArray(Function(m) m.Name = name)
+            Return GetMembers().WhereAsArray(Function(member, name_) member.Name = name_, name)
         End Function
 
         Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)

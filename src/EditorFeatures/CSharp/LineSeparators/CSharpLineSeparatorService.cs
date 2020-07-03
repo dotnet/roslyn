@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
     internal class CSharpLineSeparatorService : ILineSeparatorService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLineSeparatorService()
         {
         }
@@ -143,19 +145,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
         }
 
         private static bool IsBadProperty(SyntaxNode node)
-        {
-            return IsBadAccessorList(node as PropertyDeclarationSyntax);
-        }
+            => IsBadAccessorList(node as PropertyDeclarationSyntax);
 
         private static bool IsBadEvent(SyntaxNode node)
-        {
-            return IsBadAccessorList(node as EventDeclarationSyntax);
-        }
+            => IsBadAccessorList(node as EventDeclarationSyntax);
 
         private static bool IsBadIndexer(SyntaxNode node)
-        {
-            return IsBadAccessorList(node as IndexerDeclarationSyntax);
-        }
+            => IsBadAccessorList(node as IndexerDeclarationSyntax);
 
         private static bool IsBadAccessorList(BasePropertyDeclarationSyntax baseProperty)
         {

@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
         public async Task TestAfterNullable()
-        {
-            await VerifyKeywordAsync(@"#nullable $$");
-        }
+            => await VerifyKeywordAsync(@"#nullable $$");
 
         [Fact]
         [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
@@ -27,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 $$
 ");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAtRoot_Interactive()
@@ -76,15 +73,11 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterHash()
-        {
-            await VerifyAbsenceAsync(@"#$$");
-        }
+            => await VerifyAbsenceAsync(@"#$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPragma()
-        {
-            await VerifyAbsenceAsync(@"#pragma $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPragmaWarning()

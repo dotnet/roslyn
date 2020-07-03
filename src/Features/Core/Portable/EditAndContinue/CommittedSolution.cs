@@ -10,14 +10,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.DiaSymReader;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.IO;
-using System.Diagnostics;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -185,7 +182,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var (matchingSourceText, pdbHasDocument) = await Task.Run(
-                () => TryGetPdbMatchingSourceText(document.FilePath, sourceText.Encoding, document.Project.Id),
+                () => TryGetPdbMatchingSourceText(document.FilePath, sourceText.Encoding, document.Project),
                 cancellationToken).ConfigureAwait(false);
 
             lock (_guard)
@@ -246,9 +243,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private (SourceText? Source, bool? HasDocument) TryGetPdbMatchingSourceText(string sourceFilePath, Encoding? encoding, ProjectId projectId)
+        private (SourceText? Source, bool? HasDocument) TryGetPdbMatchingSourceText(string sourceFilePath, Encoding? encoding, Project project)
         {
-            bool? hasDocument = TryReadSourceFileChecksumFromPdb(sourceFilePath, projectId, out var symChecksum, out var algorithm);
+            var hasDocument = TryReadSourceFileChecksumFromPdb(sourceFilePath, project, out var symChecksum, out var algorithm);
             if (hasDocument != true)
             {
                 return (Source: null, hasDocument);
@@ -286,14 +283,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// False if the document is not found in the PDB.
         /// Null if it can't be determined because the PDB is not available or an error occurred while reading the PDB.
         /// </summary>
-        private bool? TryReadSourceFileChecksumFromPdb(string sourceFilePath, ProjectId projectId, out ImmutableArray<byte> checksum, out SourceHashAlgorithm algorithm)
+        private bool? TryReadSourceFileChecksumFromPdb(string sourceFilePath, Project project, out ImmutableArray<byte> checksum, out SourceHashAlgorithm algorithm)
         {
             checksum = default;
             algorithm = default;
 
             try
             {
-                var compilationOutputs = _debuggingSession.CompilationOutputsProvider.GetCompilationOutputs(projectId);
+                var compilationOutputs = _debuggingSession.GetCompilationOutputs(project);
 
                 DebugInformationReaderProvider? debugInfoReaderProvider;
                 try

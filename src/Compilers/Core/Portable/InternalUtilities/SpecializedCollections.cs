@@ -30,6 +30,11 @@ namespace Roslyn.Utilities
             return Empty.List<T>.Instance;
         }
 
+        public static IReadOnlyList<T> EmptyBoxedImmutableArray<T>()
+        {
+            return Empty.BoxedImmutableArray<T>.Instance;
+        }
+
         public static IReadOnlyList<T> EmptyReadOnlyList<T>()
         {
             return Empty.List<T>.Instance;
@@ -70,6 +75,11 @@ namespace Roslyn.Utilities
         public static IEnumerator<T> SingletonEnumerator<T>(T value)
         {
             return new Singleton.Enumerator<T>(value);
+        }
+
+        public static IReadOnlyList<T> SingletonReadOnlyList<T>(T value)
+        {
+            return new Singleton.List<T>(value);
         }
 
         public static IList<T> SingletonList<T>(T value)

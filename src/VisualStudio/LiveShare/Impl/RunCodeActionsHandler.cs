@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
@@ -24,13 +26,18 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// Run code actions handler.  Called when lightbulb invoked.
     /// Code actions must be applied from the UI thread in VS.
     /// </summary>
-    internal abstract class RunCodeActionsHandler : CodeActionsHandlerBase, ILspRequestHandler<LSP.ExecuteCommandParams, object, Solution>
+    internal abstract class RunCodeActionsHandler : ILspRequestHandler<LSP.ExecuteCommandParams, object, Solution>
     {
+        private readonly ICodeFixService _codeFixService;
+        private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly ILspSolutionProvider _solutionProvider;
         private readonly IThreadingContext _threadingContext;
 
-        protected RunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext)
-            : base(codeFixService, codeRefactoringService)
+        protected RunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, ILspSolutionProvider solutionProvider, IThreadingContext threadingContext)
         {
+            _codeFixService = codeFixService;
+            _codeRefactoringService = codeRefactoringService;
+            _solutionProvider = solutionProvider;
             _threadingContext = threadingContext;
         }
 
@@ -44,13 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 request.Arguments = command.Arguments;
             }
 
-            if (request.Command == RunCodeActionCommandName)
+            if (request.Command == CodeActionsHandler.RunCodeActionCommandName)
             {
                 var runRequest = ((JToken)request.Arguments.Single()).ToObject<RunCodeActionParams>();
-                var codeActions = await GetCodeActionsAsync(requestContext.Context,
-                    runRequest.CodeActionParams.TextDocument.Uri,
-                    runRequest.CodeActionParams.Range,
-                    cancellationToken).ConfigureAwait(false);
+                var document = _solutionProvider.GetDocument(runRequest.CodeActionParams.TextDocument);
+                var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document, _codeFixService, _codeRefactoringService,
+                    runRequest.CodeActionParams.Range, cancellationToken).ConfigureAwait(false);
 
                 var actionToRun = codeActions?.FirstOrDefault(a => a.Title == runRequest.Title);
 
@@ -61,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                         // TODO - This UI thread dependency should be removed.
                         // https://github.com/dotnet/roslyn/projects/45#card-20619668
                         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        operation.Apply(requestContext.Context.Workspace, cancellationToken);
+                        operation.Apply(document.Project.Solution.Workspace, cancellationToken);
                     }
                 }
 
@@ -85,7 +91,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynRunCodeActionsHandler : RunCodeActionsHandler
     {
         [ImportingConstructor]
-        public RoslynRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, threadingContext)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RoslynRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService,
+            ILspSolutionProvider solutionProvider, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, solutionProvider, threadingContext)
         {
         }
     }
@@ -94,7 +102,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpRunCodeActionsHandler : RunCodeActionsHandler
     {
         [ImportingConstructor]
-        public CSharpRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, threadingContext)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService,
+            ILspSolutionProvider solutionProvider, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, solutionProvider, threadingContext)
         {
         }
     }
@@ -103,7 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicRunCodeActionsHandler : RunCodeActionsHandler
     {
         [ImportingConstructor]
-        public VisualBasicRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, threadingContext)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualBasicRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService,
+            ILspSolutionProvider solutionProvider, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, solutionProvider, threadingContext)
         {
         }
     }
@@ -112,7 +124,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptRunCodeActionsHandler : RunCodeActionsHandler
     {
         [ImportingConstructor]
-        public TypeScriptRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, threadingContext)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeScriptRunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService,
+            ILspSolutionProvider solutionProvider, IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, solutionProvider, threadingContext)
         {
         }
     }

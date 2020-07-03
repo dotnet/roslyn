@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis
             public byte FlagsValue => (byte)_flags;
 
             private static Option BoolToOption(bool value, Option option)
-            {
-                return value ? option : Option.None;
-            }
+                => value ? option : Option.None;
         }
     }
 }

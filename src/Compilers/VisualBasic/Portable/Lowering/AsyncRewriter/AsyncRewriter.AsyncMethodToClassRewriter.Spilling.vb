@@ -218,7 +218,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Else
                         ' We are to the left of an await-containing expression. Spill the arg.
-                        newExpression = SpillValue(arg, isReceiver:=(index = 0 AndAlso firstArgumentIsAReceiverOfAMethodCall), builder:=builder)
+                        newExpression = SpillValue(arg,
+                                                   isReceiver:=(index = 0 AndAlso firstArgumentIsAReceiverOfAMethodCall),
+                                                   evaluateSideEffects:=True,
+                                                   builder:=builder)
                     End If
 
                     newArgs(index) = newExpression
@@ -232,22 +235,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function SpillValue(expr As BoundExpression, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
-                Return SpillValue(expr, isReceiver:=False, builder:=builder)
+                Return SpillValue(expr, isReceiver:=False, evaluateSideEffects:=True, builder:=builder)
             End Function
 
-            Private Function SpillValue(expr As BoundExpression, isReceiver As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
+            Private Function SpillValue(expr As BoundExpression, isReceiver As Boolean, evaluateSideEffects As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
                 If Unspillable(expr) Then
                     Return expr
 
                 ElseIf isReceiver OrElse expr.IsLValue Then
-                    Return SpillLValue(expr, isReceiver, builder)
+                    Return SpillLValue(expr, isReceiver, evaluateSideEffects, builder)
 
                 Else
                     Return SpillRValue(expr, builder)
                 End If
             End Function
 
-            Private Function SpillLValue(expr As BoundExpression, isReceiver As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
+            Private Function SpillLValue(expr As BoundExpression, isReceiver As Boolean, evaluateSideEffects As Boolean, <[In], Out> ByRef builder As SpillBuilder, Optional isAssignmentTarget As Boolean = False) As BoundExpression
                 Debug.Assert(expr IsNot Nothing)
                 Debug.Assert(isReceiver OrElse expr.IsLValue)
 
@@ -277,13 +280,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Next
                         End If
 
-                        Return SpillLValue(sequence.ValueOpt, isReceiver, builder)
+                        Return SpillLValue(sequence.ValueOpt, evaluateSideEffects, isReceiver, builder)
 
                     Case BoundKind.SpillSequence
                         Dim spill = DirectCast(expr, BoundSpillSequence)
                         builder.AddSpill(spill)
                         Debug.Assert(spill.ValueOpt IsNot Nothing)
-                        Return SpillLValue(spill.ValueOpt, isReceiver, builder)
+                        Return SpillLValue(spill.ValueOpt, isReceiver, evaluateSideEffects, builder)
 
                     Case BoundKind.ArrayAccess
                         Dim array = DirectCast(expr, BoundArrayAccess)
@@ -298,8 +301,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         array = array.Update(spilledExpression, spilledIndices.AsImmutableOrNull, array.IsLValue, array.Type)
 
-                        ' Make sure side effects are checked
-                        builder.AddStatement(Me.F.ExpressionStatement(array))
+                        ' An assignment target is only evaluated on write, so don't evaluate it's side effects
+                        If evaluateSideEffects And Not isAssignmentTarget Then
+                            builder.AddStatement(Me.F.ExpressionStatement(array))
+                        End If
 
                         Return array
 
@@ -310,7 +315,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return fieldAccess
                         End If
 
-                        Dim newReceiver As BoundExpression = SpillValue(fieldAccess.ReceiverOpt, isReceiver:=True, builder:=builder)
+                        ' An assignment target is only evaluated on write, so don't evaluate it's side effects, but do evaluate side effects of the receiver expression
+                        ' Evaluating a field of a struct has no side effects, so only evaluate side effects of the receiver expression
+                        Dim evaluateSideEffectsHere = evaluateSideEffects And Not isAssignmentTarget And fieldAccess.FieldSymbol.ContainingType.IsReferenceType
+
+                        Dim newReceiver As BoundExpression = SpillValue(fieldAccess.ReceiverOpt,
+                                                                        isReceiver:=True,
+                                                                        evaluateSideEffects:=evaluateSideEffects And Not evaluateSideEffectsHere,
+                                                                        builder:=builder)
 
                         fieldAccess = fieldAccess.Update(newReceiver,
                                                          fieldAccess.FieldSymbol,
@@ -319,8 +331,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          fieldAccess.ConstantsInProgressOpt,
                                                          fieldAccess.Type)
 
-                        ' Make sure side effects are checked
-                        builder.AddStatement(Me.F.ExpressionStatement(fieldAccess))
+                        If evaluateSideEffectsHere Then
+                            builder.AddStatement(Me.F.ExpressionStatement(fieldAccess))
+                        End If
 
                         Return fieldAccess
 

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [PerformanceSensitive(
                 "https://github.com/dotnet/roslyn/issues/26778",
                 AllowCaptures = false)]
-            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask(AnalyzerExecutor analyzerExecutor)
+            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(AnalyzerExecutor analyzerExecutor)
             {
                 lock (_gate)
                 {
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             supportedDiagnostics = supportedDiagnosticsLocal;
                         }
                     },
-                    argument: default(object));
+                    argument: (object)null);
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 descriptors = descriptorsLocal;
                             }
                         },
-                        argument: default(object));
+                        argument: (object)null);
                 }
 
                 return descriptors;

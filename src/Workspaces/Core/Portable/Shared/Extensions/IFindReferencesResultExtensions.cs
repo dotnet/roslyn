@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -25,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : definition.Locations;
         }
 
-        public static IEnumerable<ReferencedSymbol> FilterToItemsToShow(
-            this IEnumerable<ReferencedSymbol> result, FindReferencesSearchOptions options)
+        public static ImmutableArray<ReferencedSymbol> FilterToItemsToShow(
+            this ImmutableArray<ReferencedSymbol> result, FindReferencesSearchOptions options)
         {
-            return result.Where(r => ShouldShow(r, options));
+            return result.WhereAsArray(r => ShouldShow(r, options));
         }
 
         public static bool ShouldShow(
@@ -89,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static IEnumerable<ReferencedSymbol> FilterToAliasMatches(
-            this IEnumerable<ReferencedSymbol> result,
+        public static ImmutableArray<ReferencedSymbol> FilterToAliasMatches(
+            this ImmutableArray<ReferencedSymbol> result,
             IAliasSymbol? aliasSymbol)
         {
             if (aliasSymbol == null)
@@ -98,14 +99,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return result;
             }
 
-            return from r in result
-                   let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol))
-                   where aliasLocations.Any()
-                   select new ReferencedSymbol(r.DefinitionAndProjectId, aliasLocations);
+            var q = from r in result
+                    let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol))
+                    where aliasLocations.Any()
+                    select new ReferencedSymbol(r.Definition, aliasLocations);
+
+            return q.ToImmutableArray();
         }
 
-        public static IEnumerable<ReferencedSymbol> FilterNonMatchingMethodNames(
-            this IEnumerable<ReferencedSymbol> result,
+        public static ImmutableArray<ReferencedSymbol> FilterNonMatchingMethodNames(
+            this ImmutableArray<ReferencedSymbol> result,
             Solution solution,
             ISymbol symbol)
         {
@@ -114,12 +117,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : result;
         }
 
-        private static IEnumerable<ReferencedSymbol> FilterNonMatchingMethodNamesWorker(
-            IEnumerable<ReferencedSymbol> result,
+        private static ImmutableArray<ReferencedSymbol> FilterNonMatchingMethodNamesWorker(
+            ImmutableArray<ReferencedSymbol> references,
             Solution solution,
             ISymbol symbol)
         {
-            foreach (var reference in result)
+            using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
+            foreach (var reference in references)
             {
                 var isCaseSensitive = solution.Workspace.Services.GetLanguageServices(reference.Definition.Language).GetRequiredService<ISyntaxFactsService>().IsCaseSensitive;
                 var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
@@ -129,8 +133,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     continue;
                 }
 
-                yield return reference;
+                result.Add(reference);
             }
+
+            return result.ToImmutable();
         }
     }
 }

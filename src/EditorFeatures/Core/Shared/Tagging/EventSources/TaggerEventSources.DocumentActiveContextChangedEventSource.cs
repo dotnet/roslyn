@@ -18,14 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             protected override void ConnectToWorkspace(Workspace workspace)
-            {
-                workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
-            }
+                => workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
             protected override void DisconnectFromWorkspace(Workspace workspace)
-            {
-                workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
-            }
+                => workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
 
             private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
             {

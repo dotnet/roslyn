@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         /// <remarks>
         /// <para>The value <c>0</c> is important for serialization compatibility in
-        /// <see cref="CodeStyleOption{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
+        /// <see cref="CodeStyleOption2{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
         /// was the <see cref="bool"/> value <see langword="false"/>.</para>
         /// </remarks>
         None = 0,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         /// <remarks>
         /// <para>The value <c>1</c> is important for serialization compatibility in
-        /// <see cref="CodeStyleOption{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
+        /// <see cref="CodeStyleOption2{T}.FromXElement(XElement)"/>. Prior to the use of this enum, the serialized value
         /// was the <see cref="bool"/> value <see langword="true"/>.</para>
         /// </remarks>
         Always = 1,

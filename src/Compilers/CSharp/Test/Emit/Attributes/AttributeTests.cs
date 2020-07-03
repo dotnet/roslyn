@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -529,6 +530,27 @@ static class Program
                 // (12,7): error CS8323: Named argument 'b' is used out-of-position but is followed by an unnamed argument
                 // [Mark(b: "Hello", true)]
                 Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(12, 7)
+                );
+        }
+
+        [Fact]
+        public void TestNullAsParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+
+class MarkAttribute : Attribute
+{
+    public MarkAttribute(params object[] b)
+    {
+    }
+}
+
+[Mark(null)]
+static class Program
+{
+}");
+            comp.VerifyDiagnostics(
                 );
         }
 
@@ -7651,6 +7673,82 @@ class Goo: Attribute
                 // (4,2): error CS0616: 'X' is not an attribute class
                 // [X]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "X").WithArguments("X"));
+        }
+
+        [Fact]
+        public void AmbiguousClassNamespaceLookup_Container()
+        {
+            var source1 =
+@"using System;
+public class A : Attribute { }
+namespace N1
+{
+    public class B : Attribute { }
+    public class C : Attribute { }
+}";
+            var comp = CreateCompilation(source1, assemblyName: "A");
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"using System;
+using N1;
+using N2;
+namespace N1
+{
+    class A : Attribute { }
+    class B : Attribute { }
+}
+namespace N2
+{
+    class C : Attribute { }
+}
+[A]
+[B]
+[C]
+class D
+{
+}";
+            comp = CreateCompilation(source2, references: new[] { ref1 }, assemblyName: "B");
+            comp.VerifyDiagnostics(
+                // (14,2): warning CS0436: The type 'B' in '' conflicts with the imported type 'B' in 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                // [B]
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "B").WithArguments("", "N1.B", "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "N1.B").WithLocation(14, 2),
+                // (15,2): error CS0104: 'C' is an ambiguous reference between 'N2.C' and 'N1.C'
+                // [C]
+                Diagnostic(ErrorCode.ERR_AmbigContext, "C").WithArguments("C", "N2.C", "N1.C").WithLocation(15, 2));
+        }
+
+        [Fact]
+        public void AmbiguousClassNamespaceLookup_Generic()
+        {
+            var source1 =
+@"public class A { }
+public class B<T> { }
+public class C<T, U> { }";
+            var comp = CreateCompilation(source1);
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"class A<U> { }
+class B<U> { }
+class C<U> { }
+[A]
+[B]
+[C]
+class D
+{
+}";
+            comp = CreateCompilation(source2, references: new[] { ref1 });
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0616: 'A' is not an attribute class
+                // [A]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(4, 2),
+                // (5,2): error CS0404: Cannot apply attribute class 'B<U>' because it is generic
+                // [B]
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B").WithArguments("B<U>").WithLocation(5, 2),
+                // (6,2): error CS0305: Using the generic type 'C<U>' requires 1 type arguments
+                // [C]
+                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<U>", "type", "1").WithLocation(6, 2));
         }
 
         [WorkItem(546283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546283")]

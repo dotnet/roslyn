@@ -59,6 +59,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
+        internal void EmitToken(Cci.ISignature value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            this.GetCurrentWriter().WriteUInt32(token);
+        }
+
         internal void EmitGreatestMethodToken()
         {
             // A magic value indicates that the token value is to be the literal value of the greatest method definition token.
@@ -597,6 +603,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 case ConstantValueTypeDiscriminator.UInt64:
                     EmitLongConstant(value.Int64Value);
                     break;
+                case ConstantValueTypeDiscriminator.NInt:
+                    EmitNativeIntConstant(value.Int32Value);
+                    break;
+                case ConstantValueTypeDiscriminator.NUInt:
+                    EmitNativeIntConstant(value.UInt32Value);
+                    break;
                 case ConstantValueTypeDiscriminator.Single:
                     EmitSingleConstant(value.SingleValue);
                     break;
@@ -692,6 +704,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 EmitOpCode(ILOpCode.Ldc_i8);
                 EmitInt64(value);
+            }
+        }
+
+        internal void EmitNativeIntConstant(long value)
+        {
+            if (value >= int.MinValue && value <= int.MaxValue)
+            {
+                EmitIntConstant((int)value);
+                EmitOpCode(ILOpCode.Conv_i);
+            }
+            else if (value >= uint.MinValue && value <= uint.MaxValue)
+            {
+                EmitIntConstant(unchecked((int)value));
+                EmitOpCode(ILOpCode.Conv_u);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(value);
             }
         }
 

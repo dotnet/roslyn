@@ -512,6 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.ArrayType:
                     case SymbolKind.PointerType:
+                    case SymbolKind.FunctionPointerType:
                     case SymbolKind.Assembly:
                     case SymbolKind.DynamicType:
                     case SymbolKind.NetModule:
@@ -970,31 +971,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (info.Code == (int)ErrorCode.ERR_BogusType)
                 {
-                    switch (this.Kind)
-                    {
-                        case SymbolKind.Field:
-                        case SymbolKind.Method:
-                        case SymbolKind.Property:
-                        case SymbolKind.Event:
-                            info = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
-                            break;
-                    }
+                    info = GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() ?? info;
                 }
             }
 
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type)
+        private DiagnosticInfo GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo()
+        {
+            switch (this.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                    return new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+            }
+
+            return null;
+        }
+
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
         {
             return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
         }
 
         internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, param.TypeWithAnnotations) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers);
+            return DeriveUseSiteDiagnosticFromType(ref result, param.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers,
+                                                              this is MethodSymbol method && method.MethodKind == MethodKind.FunctionPointerSignature ?
+                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute | AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute :
+                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute);
         }
 
         internal bool DeriveUseSiteDiagnosticFromParameters(ref DiagnosticInfo result, ImmutableArray<ParameterSymbol> parameters)
@@ -1010,11 +1020,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool DeriveUseSiteDiagnosticFromCustomModifiers(ref DiagnosticInfo result, ImmutableArray<CustomModifier> customModifiers)
+
+        [Flags]
+        internal enum AllowedRequiredModifierType
         {
+            None = 0,
+            System_Runtime_CompilerServices_Volatile = 1,
+            System_Runtime_InteropServices_InAttribute = 1 << 1,
+            System_Runtime_CompilerServices_IsExternalInit = 1 << 2,
+            System_Runtime_CompilerServices_OutAttribute = 1 << 3,
+        }
+
+        internal bool DeriveUseSiteDiagnosticFromCustomModifiers(ref DiagnosticInfo result, ImmutableArray<CustomModifier> customModifiers, AllowedRequiredModifierType allowedRequiredModifierType)
+        {
+            AllowedRequiredModifierType requiredModifiersFound = AllowedRequiredModifierType.None;
+            bool checkRequiredModifiers = true;
+
             foreach (CustomModifier modifier in customModifiers)
             {
                 NamedTypeSymbol modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
+
+                if (checkRequiredModifiers && !modifier.IsOptional)
+                {
+                    AllowedRequiredModifierType current = AllowedRequiredModifierType.None;
+
+                    if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) != 0 &&
+                        modifierType.IsWellKnownTypeInAttribute())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile) != 0 &&
+                        modifierType.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile)
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0 &&
+                        modifierType.IsWellKnownTypeIsExternalInit())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute) != 0 &&
+                        modifierType.IsWellKnownTypeOutAttribute())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
+                    }
+
+                    if (current == AllowedRequiredModifierType.None ||
+                        (current != requiredModifiersFound && requiredModifiersFound != AllowedRequiredModifierType.None)) // At the moment we don't support applying different allowed modreqs to the same target.
+                    {
+                        if (MergeUseSiteDiagnostics(ref result, GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty)))
+                        {
+                            return true;
+                        }
+
+                        checkRequiredModifiers = false;
+                    }
+
+                    requiredModifiersFound |= current;
+                }
 
                 // Unbound generic type is valid as a modifier, let's not report any use site diagnostics because of that.
                 if (modifierType.IsUnboundGenericType)
@@ -1129,7 +1192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         /// <summary>
         /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
         /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
@@ -1207,10 +1269,87 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportExplicitUseOfNullabilityAttribute(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, AttributeDescription attributeDescription)
+        [Flags]
+        internal enum ReservedAttributes
         {
-            // Attribute should not be set explicitly.
-            arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
+            DynamicAttribute = 1 << 1,
+            IsReadOnlyAttribute = 1 << 2,
+            IsUnmanagedAttribute = 1 << 3,
+            IsByRefLikeAttribute = 1 << 4,
+            TupleElementNamesAttribute = 1 << 5,
+            NullableAttribute = 1 << 6,
+            NullableContextAttribute = 1 << 7,
+            NullablePublicOnlyAttribute = 1 << 8,
+            NativeIntegerAttribute = 1 << 9,
+            CaseSensitiveExtensionAttribute = 1 << 10,
+        }
+
+        internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
+        {
+            var attribute = arguments.Attribute;
+            if ((reserved & ReservedAttributes.DynamicAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+            {
+                // DynamicAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.IsReadOnlyAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsReadOnlyAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.IsUnmanagedAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsUnmanagedAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.IsByRefLikeAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsByRefLikeAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.TupleElementNamesAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.NullableAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.NullableContextAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NullableContextAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.NullablePublicOnlyAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NullablePublicOnlyAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.NativeIntegerAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NativeIntegerAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.CaseSensitiveExtensionAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
+            {
+                // ExtensionAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+
+            bool reportExplicitUseOfReservedAttribute(CSharpAttributeData attribute, in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, in AttributeDescription attributeDescription)
+            {
+                if (attribute.IsTargetAttribute(this, attributeDescription))
+                {
+                    // Do not use '{FullName}'. This is reserved for compiler usage.
+                    arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
+                    return true;
+                }
+                return false;
+            }
         }
 
         internal virtual byte? GetNullableContextValue()

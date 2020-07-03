@@ -46,14 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void OnTextViewClosed(object sender, EventArgs e)
-        {
-            Dispose();
-        }
+            => Dispose();
 
         private void OnActiveSessionChanged(object sender, EventArgs e)
-        {
-            UpdateAdornments();
-        }
+            => UpdateAdornments();
 
         private void UpdateAdornments()
         {

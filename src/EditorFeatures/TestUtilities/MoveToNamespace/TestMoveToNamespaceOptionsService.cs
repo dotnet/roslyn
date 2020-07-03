@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 
@@ -16,11 +18,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         private MoveToNamespaceOptionsResult OptionsResult { get; set; }
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestMoveToNamespaceOptionsService()
         {
         }
 
-        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, ISyntaxFactsService syntaxFactsService)
+        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, ISyntaxFacts syntaxFactsService)
             => OptionsResult;
 
         internal void SetOptions(MoveToNamespaceOptionsResult moveToNamespaceOptions)

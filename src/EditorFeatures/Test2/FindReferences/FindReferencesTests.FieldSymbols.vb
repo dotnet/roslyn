@@ -414,5 +414,121 @@ class Definition:Program
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_ValueUsageInfo(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:$$i|};
+
+            void Goo()
+            {
+                Console.WriteLine({|ValueUsageInfo.Read:[|i|]|});
+                {|ValueUsageInfo.Write:[|i|]|} = 0;
+                {|ValueUsageInfo.ReadWrite:[|i|]|}++;
+                Goo2(in {|ValueUsageInfo.ReadableReference:[|i|]|}, ref {|ValueUsageInfo.ReadableWritableReference:[|i|]|});
+                Goo3(out {|ValueUsageInfo.WritableReference:[|i|]|});
+                Console.WriteLine(nameof({|ValueUsageInfo.Name:[|i|]|}));
+            }
+
+            void Goo2(in int j, ref int k)
+            {
+            }
+
+            void Goo3(out int i)
+            {
+                i = 0;
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_ContainingTypeInfo(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:$$i|};
+
+            int P
+            {
+                get
+                {
+                    return {|AdditionalProperty.ContainingTypeInfo.C:[|i|]|}
+                }
+            }
+
+            int P2 => {|AdditionalProperty.ContainingTypeInfo.C:[|i|]|}
+
+            void Goo()
+            {
+                Console.WriteLine({|AdditionalProperty.ContainingTypeInfo.C:[|i|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_ContainingMemberInfo(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            int {|Definition:$$i|};
+
+            int P
+            {
+                get
+                {
+                    return {|AdditionalProperty.ContainingMemberInfo.P:[|i|]|}
+                }
+            }
+
+            int P2 => {|AdditionalProperty.ContainingMemberInfo.P2:[|i|]|}
+
+            void Goo()
+            {
+                Console.WriteLine({|AdditionalProperty.ContainingMemberInfo.Goo:[|i|]|});
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFieldReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~F:C.[|i|]")]
+
+        class C
+        {
+            int {|Definition:$$i|};
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

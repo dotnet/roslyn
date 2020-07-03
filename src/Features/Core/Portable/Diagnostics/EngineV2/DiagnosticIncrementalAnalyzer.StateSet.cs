@@ -6,7 +6,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,10 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
-
-            // whether this analyzer has compilation end analysis or not
-            // -1 not set, 0 no, 1 yes.
-            private volatile int _compilationEndAnalyzer = -1;
 
             public StateSet(string language, DiagnosticAnalyzer analyzer, string errorSourceName)
             {
@@ -126,10 +122,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool FromBuild(ProjectId projectId)
                 => _projectStates.TryGetValue(projectId, out var projectState) && projectState.FromBuild;
 
-            public bool TryGetActiveFileState(DocumentId documentId, out ActiveFileState state)
+            public bool TryGetActiveFileState(DocumentId documentId, [NotNullWhen(true)] out ActiveFileState? state)
                 => _activeFileStates.TryGetValue(documentId, out state);
 
-            public bool TryGetProjectState(ProjectId projectId, out ProjectState state)
+            public bool TryGetProjectState(ProjectId projectId, [NotNullWhen(true)] out ProjectState? state)
                 => _projectStates.TryGetValue(projectId, out state);
 
             public ActiveFileState GetOrCreateActiveFileState(DocumentId documentId)
@@ -230,31 +226,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.DropCache(Analyzer);
             }
 
-            public void ComputeCompilationEndAnalyzer(Project project, Compilation? compilation)
-            {
-                if (_compilationEndAnalyzer != -1)
-                {
-                    return;
-                }
-
-                // running this multiple time is fine
-                var result = Analyzer.IsCompilationEndAnalyzer(project, compilation);
-                if (!result.HasValue)
-                {
-                    // try again next time.
-                    return;
-                }
-
-                _compilationEndAnalyzer = result.Value ? 1 : 0;
-            }
-
-            public bool IsCompilationEndAnalyzer(Project project, Compilation compilation)
-            {
-                ComputeCompilationEndAnalyzer(project, compilation);
-
-                return _compilationEndAnalyzer == 1;
-            }
-
             private sealed class PersistentNames
             {
                 private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
@@ -281,9 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 public string NonLocalStateName { get; }
 
                 public static PersistentNames Create(DiagnosticAnalyzer diagnosticAnalyzer)
-                {
-                    return s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new PersistentNames(t));
-                }
+                    => s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new PersistentNames(t));
             }
         }
     }

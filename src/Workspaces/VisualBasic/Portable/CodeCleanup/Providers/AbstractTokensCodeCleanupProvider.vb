@@ -4,13 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     Friend MustInherit Class AbstractTokensCodeCleanupProvider
@@ -77,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End Try
             End Function
 
-            Protected Function CreateToken(token As SyntaxToken, kind As SyntaxKind) As SyntaxToken
+            Protected Shared Function CreateToken(token As SyntaxToken, kind As SyntaxKind) As SyntaxToken
                 ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 
                 ' it might be replacing a token that has annotation injected by other code cleanups
                 Dim leading = If(token.LeadingTrivia.Count > 0, token.LeadingTrivia, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
@@ -86,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return token.CopyAnnotationsTo(SyntaxFactory.Token(leading, kind, trailing))
             End Function
 
-            Protected Function CreateIdentifierToken(token As SyntaxToken, newValueText As String) As SyntaxToken
+            Protected Shared Function CreateIdentifierToken(token As SyntaxToken, newValueText As String) As SyntaxToken
                 Debug.Assert(token.Kind = SyntaxKind.IdentifierToken)
 
                 ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 

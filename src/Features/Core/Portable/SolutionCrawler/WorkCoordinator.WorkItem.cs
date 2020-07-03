@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     AsyncToken = asyncToken;
                 }
 
-                public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, SyntaxPath activeMember, IAsyncToken asyncToken)
+                public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IIncrementalAnalyzer>(), retry: false, asyncToken)
                 {
                 }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public WorkItem With(
-                    InvocationReasons invocationReasons, SyntaxPath currentMember,
+                    InvocationReasons invocationReasons, SyntaxPath? currentMember,
                     ImmutableHashSet<IIncrementalAnalyzer> analyzers, bool retry, IAsyncToken asyncToken)
                 {
                     // dispose old one
@@ -176,9 +176,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public override string ToString()
-                {
-                    return $"{DocumentId?.ToString() ?? ProjectId.ToString()}, ({InvocationReasons}), LowPriority:{IsLowPriority}, ActiveMember:{ActiveMember != null}, Retry:{IsRetry}, ({string.Join("|", SpecificAnalyzers.Select(a => a.GetType().Name))})";
-                }
+                    => $"{DocumentId?.ToString() ?? ProjectId.ToString()}, ({InvocationReasons}), LowPriority:{IsLowPriority}, ActiveMember:{ActiveMember != null}, Retry:{IsRetry}, ({string.Join("|", SpecificAnalyzers.Select(a => a.GetType().Name))})";
             }
         }
     }

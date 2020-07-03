@@ -6,6 +6,8 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text.Classification;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -23,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     internal class FindUsagesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FindUsagesTableControlEventProcessorProvider()
         {
         }

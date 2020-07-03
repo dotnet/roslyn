@@ -68,9 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             private static Words GetLongestForwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
-            {
-                return GetWords(0, length, breaks, baseName, pluralize);
-            }
+                => GetWords(0, length, breaks, baseName, pluralize);
 
             private static Words GetWords(int start, int end, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {

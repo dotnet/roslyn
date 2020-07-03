@@ -178,9 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public override void UpdatePreview()
-        {
-            engine.UpdatePreview(this.Id, (SpanChange)Children.Changes[0]);
-        }
+            => engine.UpdatePreview(this.Id, (SpanChange)Children.Changes[0]);
 
         private SourceText UpdateBufferText()
         {
@@ -195,9 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public TextDocument GetOldDocument()
-        {
-            return _left;
-        }
+            => _left;
 
         public TextDocument GetUpdatedDocument()
         {

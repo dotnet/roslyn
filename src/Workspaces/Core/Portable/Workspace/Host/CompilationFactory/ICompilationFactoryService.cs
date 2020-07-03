@@ -2,16 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     internal interface ICompilationFactoryService : ILanguageService
     {
         Compilation CreateCompilation(string assemblyName, CompilationOptions options);
-        Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type hostObjectType);
-        Compilation GetCompilationFromCompilationReference(MetadataReference reference);
-        bool IsCompilationReference(MetadataReference reference);
+        Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType);
         CompilationOptions GetDefaultCompilationOptions();
+        GeneratorDriver? CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts);
     }
 }

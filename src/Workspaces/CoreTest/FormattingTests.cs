@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -59,19 +58,19 @@ End Class
             Assert.NotEmpty(rules);
         }
 
-        private void AssertFormatCSharp(string expected, string input)
+        private static void AssertFormatCSharp(string expected, string input)
         {
             var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
             AssertFormat(expected, tree);
         }
 
-        private void AssertFormatVB(string expected, string input)
+        private static void AssertFormatVB(string expected, string input)
         {
             var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
             AssertFormat(expected, tree);
         }
 
-        private void AssertFormat(string expected, SyntaxTree tree)
+        private static void AssertFormat(string expected, SyntaxTree tree)
         {
             using var workspace = new AdhocWorkspace();
             var formattedRoot = Formatter.Format(tree.GetRoot(), workspace);

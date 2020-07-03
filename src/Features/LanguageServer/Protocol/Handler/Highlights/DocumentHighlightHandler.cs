@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -9,24 +11,31 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentDocumentHighlightName)]
-    internal class DocumentHighlightsHandler : IRequestHandler<TextDocumentPositionParams, DocumentHighlight[]>
+    internal class DocumentHighlightsHandler : AbstractRequestHandler<TextDocumentPositionParams, DocumentHighlight[]>
     {
-        public async Task<DocumentHighlight[]> HandleRequestAsync(Solution solution, TextDocumentPositionParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DocumentHighlightsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+        }
+
+        public override async Task<DocumentHighlight[]> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities,
+            string? clientName, CancellationToken cancellationToken)
+        {
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<DocumentHighlight>();
             }
 
-            var documentHighlightService = document.Project.LanguageServices.GetService<IDocumentHighlightsService>();
+            var documentHighlightService = document.Project.LanguageServices.GetRequiredService<IDocumentHighlightsService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var highlights = await documentHighlightService.GetDocumentHighlightsAsync(

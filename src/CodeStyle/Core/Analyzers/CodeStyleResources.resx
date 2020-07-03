@@ -165,10 +165,4 @@
   <data name="Stream_is_too_long" xml:space="preserve">
     <value>Stream is too long.</value>
   </data>
-  <data name="Absolute_path_expected" xml:space="preserve">
-    <value>Absolute path expected.</value>
-  </data>
-  <data name="An_element_with_the_same_key_but_a_different_value_already_exists" xml:space="preserve">
-    <value>An element with the same key but a different value already exists.</value>
-  </data>
 </root>

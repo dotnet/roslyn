@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var actualOrder = ExtensionOrderer.Order(csharpProviders).ToArray();
             Assert.True(actualOrder.Length > 0);
             Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddImport) <
-                actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.RenameTracking));
+                actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.FullyQualify));
 
             var vbProviders = providersPerLanguage[LanguageNames.VisualBasic];
             ExtensionOrderer.TestAccessor.CheckForCycles(vbProviders);
             actualOrder = ExtensionOrderer.Order(vbProviders).ToArray();
             Assert.True(actualOrder.Length > 0);
             Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddImport) <
-                actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.RenameTracking));
+                actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.FullyQualify));
         }
 
         [Fact]

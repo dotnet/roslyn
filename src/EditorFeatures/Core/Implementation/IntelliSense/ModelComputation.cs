@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         /// <summary>
         /// Set when the first compute task completes
         /// </summary>
-        private TModel _initialUnfilteredModel = default;
+        private TModel _initialUnfilteredModel = null;
 
         #endregion
 
@@ -151,7 +151,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 async tasks =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _stopCancellationToken);
-                    _stopCancellationToken.ThrowIfCancellationRequested();
 
                     if (tasks.All(t => t.Status == TaskStatus.RanToCompletion))
                     {

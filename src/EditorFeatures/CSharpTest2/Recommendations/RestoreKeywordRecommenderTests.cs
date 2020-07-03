@@ -57,15 +57,11 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterHash()
-        {
-            await VerifyAbsenceAsync(@"#$$");
-        }
+            => await VerifyAbsenceAsync(@"#$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPragma()
-        {
-            await VerifyAbsenceAsync(@"#pragma $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPragmaWarning()

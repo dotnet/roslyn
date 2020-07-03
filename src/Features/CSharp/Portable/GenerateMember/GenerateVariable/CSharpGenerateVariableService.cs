@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
         AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGenerateVariableService()
         {
         }
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             return false;
         }
 
-        private bool IsProbablyGeneric(SimpleNameSyntax identifierName, CancellationToken cancellationToken)
+        private static bool IsProbablyGeneric(SimpleNameSyntax identifierName, CancellationToken cancellationToken)
         {
             if (identifierName.IsKind(SyntaxKind.GenericName))
             {
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             return parsedType.IsKind(SyntaxKind.GenericName) && !parsedType.ContainsDiagnostics;
         }
 
-        private bool IsLegal(
+        private static bool IsLegal(
             SemanticDocument document,
             ExpressionSyntax expression,
             CancellationToken cancellationToken)

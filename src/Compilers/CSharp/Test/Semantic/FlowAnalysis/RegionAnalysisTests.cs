@@ -4,8 +4,8 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2050,6 +2050,40 @@ public class MemberInitializerTest
 
             Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("x, z, i", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact]
+        public void TestWithExpression()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+#nullable enable
+
+record B(string? X)
+{
+    static void M1(B b1)
+    {
+        var x = ""hello"";
+        _ = /*<bind>*/b1 with { X = x }/*</bind>*/;
+    }
+}
+");
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
         [Fact]
@@ -4127,9 +4161,178 @@ struct S
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
         }
 
+        [Fact]
+        [WorkItem(4950, "https://github.com/dotnet/roslyn/issues/4950")]
+        public void RegionWithUnsafeBlock()
+        {
+            var source =
+@"using System;
+class Program {
+    static void Main(string[] args) {
+        object value = args;
+
+        // start
+        IntPtr p;
+        unsafe
+        {
+            object t = value;
+            p = IntPtr.Zero;
+        }
+        // end
+
+        Console.WriteLine(p);
+    }
+}
+";
+            foreach (string keyword in new[] { "unsafe", "checked", "unchecked" })
+            {
+                var compilation = CreateCompilation(source.Replace("unsafe", keyword));
+                var tree = compilation.SyntaxTrees[0];
+                var model = compilation.GetSemanticModel(tree);
+
+                var stmt1 = tree.GetCompilationUnitRoot().DescendantNodesAndSelf().OfType<StatementSyntax>().Where(n => n.ToString() == "IntPtr p;").Single();
+                var stmt2 = tree.GetCompilationUnitRoot().DescendantNodesAndSelf().OfType<StatementSyntax>().Where(n => n.ToString().StartsWith(keyword)).First();
+
+                var dataFlowAnalysisResults = model.AnalyzeDataFlow(stmt1, stmt2);
+                Assert.True(dataFlowAnalysisResults.Succeeded);
+                Assert.Equal("p, t", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+                Assert.Equal("p, t", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+                Assert.Equal("value", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+                Assert.Equal("p", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+                Assert.Equal("args, value", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry));
+                Assert.Equal("args, value, p, t", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
+                Assert.Equal("value", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+                Assert.Equal("args, p", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+                Assert.Equal("p, t", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+                Assert.Equal("args, value", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+            }
+        }
+
         #endregion
 
         #region "lambda"
+
+        [Fact]
+        [WorkItem(41600, "https://github.com/dotnet/roslyn/pull/41600")]
+        public void DataFlowAnalysisLocalFunctions10()
+        {
+            var dataFlow = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    public void M()
+    {
+        bool Dummy(params object[] x) {return true;}
+
+        try {}
+        catch when (/*<bind>*/TakeOutParam(out var x1)/*</bind>*/ && x1 > 0)
+        {
+            Dummy(x1);
+        }
+
+        var x4 = 11;
+        Dummy(x4);
+
+        try {}
+        catch when (TakeOutParam(out var x4) && x4 > 0)
+        {
+            Dummy(x4);
+        }
+
+        try {}
+        catch when (x6 && TakeOutParam(out var x6))
+        {
+            Dummy(x6);
+        }
+
+        try {}
+        catch when (TakeOutParam(out var x7) && x7 > 0)
+        {
+            var x7 = 12;
+            Dummy(x7);
+        }
+
+        try {}
+        catch when (TakeOutParam(out var x8) && x8 > 0)
+        {
+            Dummy(x8);
+        }
+
+        System.Console.WriteLine(x8);
+
+        try {}
+        catch when (TakeOutParam(out var x9) && x9 > 0)
+        {   
+            Dummy(x9);
+            try {}
+            catch when (TakeOutParam(out var x9) && x9 > 0) // 2
+            {
+                Dummy(x9);
+            }
+        }
+
+        try {}
+        catch when (TakeOutParam(y10, out var x10))
+        {   
+            var y10 = 12;
+            Dummy(y10);
+        }
+
+        //    try {}
+        //    catch when (TakeOutParam(y11, out var x11)
+        //    {   
+        //        let y11 = 12;
+        //        Dummy(y11);
+        //    }
+
+        try {}
+        catch when (Dummy(TakeOutParam(out var x14), 
+                            TakeOutParam(out var x14), // 2
+                            x14))
+        {
+            Dummy(x14);
+        }
+
+        try {}
+        catch (System.Exception x15)
+                when (Dummy(TakeOutParam(out var x15), x15))
+        {
+            Dummy(x15);
+        }
+
+        static bool TakeOutParam(out int x) 
+        {
+            x = 123;
+            return true;
+        }
+        static bool TakeOutParam(object y, out int x)
+        {
+            x = 123;
+            return true;
+        }
+
+    }
+}
+");
+            Assert.True(dataFlow.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(dataFlow.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.CapturedOutside));
+            Assert.Equal("x1", GetSymbolNamesJoined(dataFlow.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.DataFlowsIn));
+            Assert.Equal("x1", GetSymbolNamesJoined(dataFlow.DataFlowsOut));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlow.DefinitelyAssignedOnEntry));
+            Assert.Equal("this, x1", GetSymbolNamesJoined(dataFlow.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(dataFlow.ReadInside));
+            Assert.Equal("x1", GetSymbolNamesJoined(dataFlow.WrittenInside));
+            Assert.Equal("this, x1, x4, x4, x6, x7, x7, x8, x9, x9, y10, x14, x15, x, x",
+                GetSymbolNamesJoined(dataFlow.ReadOutside));
+            Assert.Equal("this, x, x4, x4, x6, x7, x7, x8, x9, x9, x10, " +
+                         "y10, x14, x14, x15, x15, x, y, x",
+                GetSymbolNamesJoined(dataFlow.WrittenOutside));
+        }
 
         [Fact]
         [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]

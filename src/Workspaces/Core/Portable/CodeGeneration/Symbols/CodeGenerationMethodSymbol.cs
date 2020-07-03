@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -29,11 +29,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<AttributeData> returnTypeAttributes,
-            MethodKind methodKind = MethodKind.Ordinary)
+            MethodKind methodKind = MethodKind.Ordinary,
+            bool isInitOnly = false)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             this.ReturnType = returnType;
             this.RefKind = refKind;
+
+            Debug.Assert(!isInitOnly || methodKind == MethodKind.PropertySet);
+            this.IsInitOnly = methodKind == MethodKind.PropertySet && isInitOnly;
+
             this.TypeParameters = typeParameters.NullToEmpty();
             this.Parameters = parameters.NullToEmpty();
             this.MethodKind = methodKind;
@@ -48,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
                 this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
                 this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes(),
-                this.MethodKind);
+                this.MethodKind, this.IsInitOnly);
 
             CodeGenerationMethodInfo.Attach(result,
                 CodeGenerationMethodInfo.GetIsNew(this),
                 CodeGenerationMethodInfo.GetIsUnsafe(this),
                 CodeGenerationMethodInfo.GetIsPartial(this),
-                CodeGenerationMethodInfo.GetIsAsync(this),
+                CodeGenerationMethodInfo.GetIsAsyncMethod(this),
                 CodeGenerationMethodInfo.GetStatements(this),
                 CodeGenerationMethodInfo.GetHandlesExpressions(this));
 
@@ -90,20 +95,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override IMethodSymbol ConstructedFrom => this;
 
         public override bool IsReadOnly => Modifiers.IsReadOnly;
+        public override bool IsInitOnly { get; }
 
         public override IMethodSymbol OverriddenMethod => null;
 
         public override IMethodSymbol ReducedFrom => null;
 
         public override ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
-        {
-            throw new InvalidOperationException();
-        }
+            => throw new InvalidOperationException();
 
         public override IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
-        {
-            return null;
-        }
+            => null;
 
         public override IMethodSymbol PartialImplementationPart => null;
 

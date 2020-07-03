@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
@@ -44,11 +42,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 //
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
-                var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
+                var parameterToExistingFieldMap = ImmutableDictionary.CreateBuilder<string, ISymbol>();
                 for (var i = 0; i < _state.Parameters.Length; i++)
-                {
                     parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
-                }
 
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
 
@@ -57,15 +53,16 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var preferThrowExpression = _service.PrefersThrowExpression(options);
 
-                var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
+                var members = factory.CreateMemberDelegatingConstructor(
                     semanticModel,
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
-                    parameterToExistingFieldMap,
-                    parameterToNewFieldMap: null,
+                    parameterToExistingFieldMap.ToImmutable(),
+                    parameterToNewMemberMap: null,
                     addNullChecks: _addNullChecks,
-                    preferThrowExpression: preferThrowExpression);
+                    preferThrowExpression: preferThrowExpression,
+                    generateProperties: false);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
                 // choose the right location (i.e. null) to insert the constructor.  However, if they're 
@@ -78,7 +75,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
-                    fields.Concat(constructor),
+                    members,
                     new CodeGenerationOptions(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
                         afterThisLocation: afterThisLocation),
@@ -91,8 +88,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             {
                 get
                 {
-                    var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
-                    var parameters = _state.Parameters.Select(p => symbolDisplayService.ToDisplayString(p, SimpleFormat));
+                    var parameters = _state.Parameters.Select(p => _service.ToDisplayString(p, SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
 
                     if (_state.DelegatedConstructor == null)
