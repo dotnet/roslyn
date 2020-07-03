@@ -1777,6 +1777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MemberNotNullWhen = 8775,
         WRN_MemberNotNullBadMember = 8776,
         WRN_ParameterDisallowsNull = 8777,
+        WRN_ConstOutOfRangeChecked = 8778,
 
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,
@@ -1856,6 +1857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
         ERR_DoesNotOverrideMethodFromObject = 8869,
         ERR_SealedGetHashCodeInRecord = 8870,
+        ERR_DoesNotOverrideBaseEquals = 8871,
 
         #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
