@@ -10,6 +10,8 @@ using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framew
 using Roslyn.Test.Utilities;
 using Xunit;
 
+#pragma warning disable CS0618 // Testing obsolete overload
+
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     [UseExportProvider]
