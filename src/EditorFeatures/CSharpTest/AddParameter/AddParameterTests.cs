@@ -2676,7 +2676,7 @@ class C1
 }}" + IAsyncEnumerable;
             await TestInRegularAndScriptAsync(code, fix);
         }
-        
+
         [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TopLevelStatement()

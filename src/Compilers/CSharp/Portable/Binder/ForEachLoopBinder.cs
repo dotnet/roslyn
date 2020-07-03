@@ -1134,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (result.CallsAreOmitted(_syntax.SyntaxTree))
                 {
                     // Calls to this method are omitted in the current syntax tree, i.e it is either a partial method with no implementation part OR a conditional method whose condition is not true in this source file.
-                    // We don't want to want to allow this case, see StatementBinder::bindPatternToMethod.
+                    // We don't want to allow this case.
                     result = null;
                 }
             }
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result.CallsAreOmitted(_syntax.SyntaxTree))
                 {
                     // Calls to this method are omitted in the current syntax tree, i.e it is either a partial method with no implementation part OR a conditional method whose condition is not true in this source file.
-                    // We don't want to want to allow this case, see StatementBinder::bindPatternToMethod.
+                    // We don't want to allow this case.
                     result = null;
                 }
                 return result;
