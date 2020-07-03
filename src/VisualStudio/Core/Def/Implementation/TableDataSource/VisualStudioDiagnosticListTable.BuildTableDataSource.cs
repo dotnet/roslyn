@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    public override bool TryNavigateTo(int index, bool previewTab)
+                    public override bool TryNavigateTo(int index, bool previewTab, bool activate)
                     {
                         var item = GetItem(index);
                         if (item?.DocumentId == null)
@@ -216,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         var solution = item.Workspace.CurrentSolution;
 
                         return solution.ContainsDocument(documentId) &&
-                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab);
+                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate);
                     }
 
                     private DocumentId GetProperDocumentId(DiagnosticTableItem item)

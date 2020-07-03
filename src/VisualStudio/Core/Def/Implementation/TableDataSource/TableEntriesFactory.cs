@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab) => false;
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate) => false;
 
                 public override bool TryGetValue(int index, string columnName, out object content)
                 {

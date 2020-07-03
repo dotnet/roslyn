@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _trackingPoints = trackingPoints;
         }
 
-        public abstract bool TryNavigateTo(int index, bool previewTab);
+        public abstract bool TryNavigateTo(int index, bool previewTab, bool activate);
         public abstract bool TryGetValue(int index, string columnName, out object content);
 
         public int VersionNumber
@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab)
+        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab, bool activate)
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return false;
         }
 
-        protected bool TryNavigateToItem(int index, bool previewTab)
+        protected bool TryNavigateToItem(int index, bool previewTab, bool activate)
         {
             var item = GetItem(index);
             var documentId = item?.DocumentId;
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 position = item.GetOriginalPosition();
             }
 
-            return TryNavigateTo(workspace, documentId, position, previewTab);
+            return TryNavigateTo(workspace, documentId, position, previewTab, activate);
         }
 
         protected static string GetFileName(string original, string mapped)
