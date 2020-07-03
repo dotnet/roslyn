@@ -1804,6 +1804,16 @@
         <target state="translated">Non usare '_' per una costante di case.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked">
+        <source>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked_Title">
+        <source>Constant value may overflow at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value may overflow at runtime (use 'unchecked' syntax to override)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Conversione del valore letterale Null o di un possibile valore Null in un tipo che non ammette i valori Null.</target>

@@ -1804,6 +1804,16 @@
         <target state="translated">Nepoužívejte „_“ jako konstantu case.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked">
+        <source>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked_Title">
+        <source>Constant value may overflow at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value may overflow at runtime (use 'unchecked' syntax to override)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ, který nemůže mít hodnotu null.</target>

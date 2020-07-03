@@ -6286,4 +6286,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DoesNotOverrideBaseEquals" xml:space="preserve">
     <value>'{0}' does not override expected method from '{1}'.</value>
   </data>
+  <data name="WRN_ConstOutOfRangeChecked" xml:space="preserve">
+    <value>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</value>
+  </data>
+  <data name="WRN_ConstOutOfRangeChecked_Title" xml:space="preserve">
+    <value>Constant value may overflow at runtime (use 'unchecked' syntax to override)</value>
+  </data>
 </root>
