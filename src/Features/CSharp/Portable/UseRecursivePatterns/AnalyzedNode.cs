@@ -334,7 +334,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public readonly IMethodSymbol DeconstructMethod;
             public DeconstructEvaluation(Evaluation? input, IMethodSymbol deconstructMethod) : base(input) => DeconstructMethod = deconstructMethod;
             protected override Test WithInputCore(Evaluation? newInput) => new DeconstructEvaluation(newInput, DeconstructMethod);
-
         }
 
         internal sealed class OutVariableEvaluation : Evaluation
