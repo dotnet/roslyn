@@ -50,14 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
             {
                 MethodDeclarationSyntax method => FixMethodReturns(method, converter),
                 LocalFunctionStatementSyntax localFunction => FixLocalFunctionReturns(localFunction, converter),
-                AnonymousMethodExpressionSyntax method => method.WithBody((CSharpSyntaxNode)converter.Visit(method.Body)),
-                ParenthesizedLambdaExpressionSyntax lambda => FixParenthesizedLamdaExpressionReturn(lambda, converter),
-                SimpleLambdaExpressionSyntax lambda => lambda.WithBody((CSharpSyntaxNode)converter.Visit(lambda.Body)),
+                AnonymousFunctionExpressionSyntax method => FixAnonymousFunctionReturns(method, converter),
                 _ => node,
             };
         }
 
-        private static ParenthesizedLambdaExpressionSyntax FixParenthesizedLamdaExpressionReturn(ParenthesizedLambdaExpressionSyntax lambda, ConvertReturnsToTaskRewriter converter)
+        private static AnonymousFunctionExpressionSyntax FixAnonymousFunctionReturns(AnonymousFunctionExpressionSyntax lambda, ConvertReturnsToTaskRewriter converter)
         {
             if (lambda.Block != null)
             {
