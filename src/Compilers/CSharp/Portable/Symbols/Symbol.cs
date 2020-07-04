@@ -512,6 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.ArrayType:
                     case SymbolKind.PointerType:
+                    case SymbolKind.FunctionPointerType:
                     case SymbolKind.Assembly:
                     case SymbolKind.DynamicType:
                     case SymbolKind.NetModule:
@@ -1007,30 +1008,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             UseSiteInfo<AssemblySymbol> info = type.GetUseSiteInfo();
             if (info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType)
             {
-                switch (this.Kind)
+                if (info.Code == (int)ErrorCode.ERR_BogusType)
                 {
-                    case SymbolKind.Field:
-                    case SymbolKind.Method:
-                    case SymbolKind.Property:
-                    case SymbolKind.Event:
-                        info = info.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
-                        break;
+                    GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(ref info);
                 }
             }
 
             return MergeUseSiteInfo(ref result, info);
         }
 
-        internal bool DeriveUseSiteInfoFromType(ref UseSiteInfo<AssemblySymbol> result, TypeWithAnnotations type)
+        private void GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(ref UseSiteInfo<AssemblySymbol> info)
+        {
+            switch (this.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                    info = info.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                    break;
+            }
+        }
+
+        internal bool DeriveUseSiteInfoFromType(ref UseSiteInfo<AssemblySymbol> result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
         {
             return DeriveUseSiteInfoFromType(ref result, type.Type) ||
-                   DeriveUseSiteInfoFromCustomModifiers(ref result, type.CustomModifiers);
+                   DeriveUseSiteInfoFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
         }
 
         internal bool DeriveUseSiteInfoFromParameter(ref UseSiteInfo<AssemblySymbol> result, ParameterSymbol param)
         {
-            return DeriveUseSiteInfoFromType(ref result, param.TypeWithAnnotations) ||
-                   DeriveUseSiteInfoFromCustomModifiers(ref result, param.RefCustomModifiers);
+            return DeriveUseSiteInfoFromType(ref result, param.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
+                   DeriveUseSiteInfoFromCustomModifiers(ref result, param.RefCustomModifiers,
+                                                              this is MethodSymbol method && method.MethodKind == MethodKind.FunctionPointerSignature ?
+                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute | AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute :
+                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute);
         }
 
         internal bool DeriveUseSiteInfoFromParameters(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<ParameterSymbol> parameters)
@@ -1046,11 +1058,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool DeriveUseSiteInfoFromCustomModifiers(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<CustomModifier> customModifiers)
+
+        [Flags]
+        internal enum AllowedRequiredModifierType
         {
+            None = 0,
+            System_Runtime_CompilerServices_Volatile = 1,
+            System_Runtime_InteropServices_InAttribute = 1 << 1,
+            System_Runtime_CompilerServices_IsExternalInit = 1 << 2,
+            System_Runtime_CompilerServices_OutAttribute = 1 << 3,
+        }
+
+        internal bool DeriveUseSiteInfoFromCustomModifiers(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<CustomModifier> customModifiers, AllowedRequiredModifierType allowedRequiredModifierType)
+        {
+            AllowedRequiredModifierType requiredModifiersFound = AllowedRequiredModifierType.None;
+            bool checkRequiredModifiers = true;
+
             foreach (CustomModifier modifier in customModifiers)
             {
                 NamedTypeSymbol modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
+
+                if (checkRequiredModifiers && !modifier.IsOptional)
+                {
+                    AllowedRequiredModifierType current = AllowedRequiredModifierType.None;
+
+                    if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) != 0 &&
+                        modifierType.IsWellKnownTypeInAttribute())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile) != 0 &&
+                        modifierType.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile)
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0 &&
+                        modifierType.IsWellKnownTypeIsExternalInit())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute) != 0 &&
+                        modifierType.IsWellKnownTypeOutAttribute())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
+                    }
+
+                    if (current == AllowedRequiredModifierType.None ||
+                        (current != requiredModifiersFound && requiredModifiersFound != AllowedRequiredModifierType.None)) // At the moment we don't support applying different allowed modreqs to the same target.
+                    {
+                        if (MergeUseSiteDiagnostics(ref result, GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty)))
+                        {
+                            return true;
+                        }
+
+                        checkRequiredModifiers = false;
+                    }
+
+                    requiredModifiersFound |= current;
+                }
 
                 // Unbound generic type is valid as a modifier, let's not report any use site diagnostics because of that.
                 if (modifierType.IsUnboundGenericType)

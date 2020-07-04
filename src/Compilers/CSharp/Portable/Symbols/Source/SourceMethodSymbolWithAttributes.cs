@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return (CSharpSyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody;
                 case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
                     return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
+                case RecordDeclarationSyntax recordDecl:
+                    return recordDecl;
                 default:
                     return null;
             }

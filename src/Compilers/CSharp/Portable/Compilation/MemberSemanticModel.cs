@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (kind == SyntaxKind.ThisConstructorInitializer || kind == SyntaxKind.BaseConstructorInitializer)
+                else if (kind == SyntaxKind.ThisConstructorInitializer || kind == SyntaxKind.BaseConstructorInitializer || kind == SyntaxKind.PrimaryConstructorBaseType)
                 {
                     binder = rootBinder.GetBinder(current);
                 }
@@ -1548,6 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.ThisConstructorInitializer:
                     case SyntaxKind.BaseConstructorInitializer:
+                    case SyntaxKind.PrimaryConstructorBaseType:
                         return current;
                     case SyntaxKind.ArrowExpressionClause:
                         // If this is an arrow expression on a local function statement, then our bindable root is actually our parent syntax as it's
@@ -1726,9 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
 #if DEBUG
-                var diagnostics = new DiagnosticBag();
-                ImmutableDictionary<Symbol, Symbol> ignored = null;
-                _ = RewriteNullableBoundNodesWithSnapshots(boundOuterExpression, incrementalBinder, diagnostics, takeSnapshots: false, snapshotManager: out _, remappedSymbols: ref ignored);
+                AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
 #endif
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
@@ -1947,14 +1946,13 @@ done:
 
             upgradeableLock.EnterWrite();
 
-            Debug.Assert(Root == bindableRoot);
-
             NullableWalker.SnapshotManager snapshotManager;
             var remappedSymbols = _parentRemappedSymbolsOpt;
             BoundNode boundRoot;
             Binder binder;
+            DiagnosticBag diagnosticBag = getDiagnosticBag();
 
-            bind(bindableRoot, out binder, out boundRoot);
+            bind(bindableRoot, diagnosticBag, out binder, out boundRoot);
 
             if (IsSpeculativeSemanticModel)
             {
@@ -1963,7 +1961,7 @@ done:
                 // and so the SnapshotManager can be null in these cases.
                 if (_parentSnapshotManagerOpt is null)
                 {
-                    rewriteAndCache();
+                    rewriteAndCache(diagnosticBag);
                     return;
                 }
 
@@ -1972,27 +1970,32 @@ done:
             }
             else
             {
-                rewriteAndCache();
+                rewriteAndCache(diagnosticBag);
             }
 
-            void bind(CSharpSyntaxNode bindableRoot, out Binder binder, out BoundNode boundRoot)
+            void bind(CSharpSyntaxNode root, out Binder binder, out BoundNode boundRoot)
             {
-                binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
-                boundRoot = Bind(binder, bindableRoot, BindingDiagnosticBag.Discarded);
+                binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
+                boundRoot = Bind(binder, root, BindingDiagnosticBag.Discarded);
             }
 
             void rewriteAndCache()
             {
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, new DiagnosticBag(), takeSnapshots: true, out snapshotManager, ref remappedSymbols);
+#if DEBUG
+                if (!Compilation.NullableSemanticAnalysisEnabled)
+                {
+                    AnalyzeBoundNodeNullability(boundRoot, binder, new DiagnosticBag(), createSnapshots: true);
+                    return;
+                }
+#endif
+
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, new DiagnosticBag(), createSnapshots: true, out snapshotManager, ref remappedSymbols);
                 cache(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
             }
 
             void cache(CSharpSyntaxNode bindableRoot, BoundNode boundRoot, NullableWalker.SnapshotManager snapshotManager, ImmutableDictionary<Symbol, Symbol> remappedSymbols)
             {
-#if DEBUG
-                // Don't actually cache the results if the nullable analysis is not enabled in debug mode.
-                if (!Compilation.NullableSemanticAnalysisEnabled) return;
-#endif
+                Debug.Assert(Compilation.NullableSemanticAnalysisEnabled);
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
             }
         }
@@ -2005,9 +2008,17 @@ done:
             BoundNode boundRoot,
             Binder binder,
             DiagnosticBag diagnostics,
-            bool takeSnapshots,
+            bool createSnapshots,
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols);
+
+#if DEBUG
+        /// <summary>
+        /// Performs just the analysis step of getting nullability information for a semantic model. This is only used during DEBUG builds where nullable
+        /// is turned off on a compilation level, giving some extra debug verification of the nullable flow analysis. 
+        /// </summary>
+        protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
+#endif
 #nullable restore
 
         /// <summary>
@@ -2113,6 +2124,7 @@ done:
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.MethodDeclaration:
@@ -2129,20 +2141,27 @@ done:
 
             while (true)
             {
-                switch (node.Kind())
+                switch (node)
                 {
-                    case SyntaxKind.ParenthesizedExpression:
-                        node = ((ParenthesizedExpressionSyntax)node).Expression;
+                    case ParenthesizedExpressionSyntax n:
+                        node = n.Expression;
                         continue;
 
-                    case SyntaxKind.CheckedExpression:
-                    case SyntaxKind.UncheckedExpression:
-                        node = ((CheckedExpressionSyntax)node).Expression;
+                    case CheckedExpressionSyntax n:
+                        node = n.Expression;
                         continue;
 
                     // Simple mitigation to give a result for suppressions. Public API tracked by https://github.com/dotnet/roslyn/issues/26198
-                    case SyntaxKind.SuppressNullableWarningExpression:
-                        node = ((PostfixUnaryExpressionSyntax)node).Operand;
+                    case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } n:
+                        node = n.Operand;
+                        continue;
+
+                    case UnsafeStatementSyntax n:
+                        node = n.Block;
+                        continue;
+
+                    case CheckedStatementSyntax n:
+                        node = n.Block;
                         continue;
                 }
 
@@ -2192,6 +2211,7 @@ done:
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
                             !(node is ConstructorInitializerSyntax) &&
+                            !(node is PrimaryConstructorBaseTypeSyntax) &&
                             !(node is ArrowExpressionClauseSyntax) &&
                             !(node is PatternSyntax))
                         {
@@ -2414,6 +2434,11 @@ foundParent:;
             }
 
             internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, BindingDiagnosticBag diagnostics)
+            {
+                return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
+            }
+
+            internal override BoundExpressionStatement BindConstructorInitializer(PrimaryConstructorBaseTypeSyntax node, BindingDiagnosticBag diagnostics)
             {
                 return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
             }

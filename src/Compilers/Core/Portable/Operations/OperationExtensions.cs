@@ -376,5 +376,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return null;
         }
+
+#nullable enable
+        internal static ConstantValue? GetConstantValue(this IOperation operation)
+        {
+            return ((Operation)operation).OperationConstantValue;
+        }
+#nullable restore
     }
 }

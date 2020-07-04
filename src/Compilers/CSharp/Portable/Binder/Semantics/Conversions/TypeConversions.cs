@@ -33,7 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TypeConversions(corLibrary, currentRecursionDepth, includeNullability, this);
         }
 
-        public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public override Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            // Conversions involving method groups require a Binder.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Conversions involving method groups require a Binder.
             throw ExceptionUtilities.Unreachable;

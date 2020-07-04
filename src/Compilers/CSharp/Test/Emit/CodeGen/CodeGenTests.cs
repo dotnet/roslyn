@@ -10677,7 +10677,7 @@ public class MyClass {
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
         [WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")]
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/coreclr/issues/22046")]
+        [Fact] // https://github.com/dotnet/coreclr/issues/22046
         public void DecimalLiteral_BreakingChange()
         {
             string source =
@@ -10700,8 +10700,25 @@ class C
         Console.WriteLine(.100000000000000000000000000050000000000000000000001m); // [Dev11 chops at 50 digits and does not round, Roslyn does not round]
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
-@"0.0000000000000000000000000031
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
+0.0000000000000000000000000031
+
+0.0000000000000000000000000001
+0.0000000000000000000000000001
+
+-0.0000000000000000000000000001
+-0.0000000000000000000000000001
+
+0.1000000000000000000000000001
+0.1000000000000000000000000001");
+            }
+            else if (ExecutionConditionUtil.IsDesktop)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
 0.0000000000000000000000000030
 
 0.0000000000000000000000000001
@@ -10712,6 +10729,7 @@ class C
 
 0.1000000000000000000000000000
 0.1000000000000000000000000000");
+            }
         }
 
         [Fact]

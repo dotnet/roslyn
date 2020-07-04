@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class FunctionKeywordRecommenderTests
 
@@ -168,7 +167,6 @@ Module Program
     End Function
 End Module
 </ModuleDeclaration>
-
 
             Await VerifyRecommendationsContainAsync(code, "Function")
         End Function

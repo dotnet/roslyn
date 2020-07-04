@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "Hi!");
+            Assert.Same(entryPoint, comp.GetEntryPoint(default));
+            Assert.False(entryPoint.CanBeReferencedByName);
+            Assert.False(entryPoint.ContainingType.CanBeReferencedByName);
         }
 
         private static void AssertEntryPointParameter(SynthesizedSimpleProgramEntryPointSymbol entryPoint)
@@ -691,7 +694,7 @@ System.Console.WriteLine(s);
             Assert.Equal(SymbolKind.Method, local.ContainingSymbol.Kind);
             Assert.False(local.ContainingSymbol.IsImplicitlyDeclared);
             Assert.Equal(SymbolKind.NamedType, local.ContainingSymbol.ContainingSymbol.Kind);
-            Assert.True(local.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
+            Assert.False(local.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
             Assert.True(((INamespaceSymbol)local.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
         }
 
@@ -4195,7 +4198,7 @@ void local()
             Assert.Equal(SymbolKind.Method, local.ContainingSymbol.Kind);
             Assert.False(local.ContainingSymbol.IsImplicitlyDeclared);
             Assert.Equal(SymbolKind.NamedType, local.ContainingSymbol.ContainingSymbol.Kind);
-            Assert.True(local.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
+            Assert.False(local.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
             Assert.True(((INamespaceSymbol)local.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
 
             VerifyFlowGraph(comp, tree.GetRoot(),
@@ -4861,7 +4864,7 @@ label1: System.Console.WriteLine(""Hi!"");
             Assert.Equal(SymbolKind.Method, label.ContainingSymbol.Kind);
             Assert.False(label.ContainingSymbol.IsImplicitlyDeclared);
             Assert.Equal(SymbolKind.NamedType, label.ContainingSymbol.ContainingSymbol.Kind);
-            Assert.True(label.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
+            Assert.False(label.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
             Assert.True(((INamespaceSymbol)label.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
         }
 
@@ -4946,7 +4949,7 @@ args: System.Console.WriteLine(""Hi!"");
             Assert.Equal(SymbolKind.Method, label.ContainingSymbol.Kind);
             Assert.False(label.ContainingSymbol.IsImplicitlyDeclared);
             Assert.Equal(SymbolKind.NamedType, label.ContainingSymbol.ContainingSymbol.Kind);
-            Assert.True(label.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
+            Assert.False(label.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
             Assert.True(((INamespaceSymbol)label.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
         }
 
@@ -6105,10 +6108,10 @@ static extern void local1();
 
             void validate(ModuleSymbol module)
             {
-                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("$Program");
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>(SimpleProgramNamedTypeSymbol.UnspeakableName);
                 Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(cClass.GetAttributes().As<CSharpAttributeData>()));
 
-                Assert.Empty(cClass.GetMethod("$Main").GetAttributes());
+                Assert.Empty(cClass.GetMethod(SynthesizedSimpleProgramEntryPointSymbol.UnspeakableName).GetAttributes());
 
                 var localFn1 = cClass.GetMethod("<$Main>g__local1|0_0");
 
@@ -6501,6 +6504,12 @@ class B : A
 
             Assert.Equal(1, analyzer.FireCount1);
             Assert.Equal(0, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(0, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(0, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
 
             var text2 = @"System.Console.WriteLine(2);";
 
@@ -6510,12 +6519,24 @@ class B : A
 
             Assert.Equal(1, analyzer.FireCount1);
             Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
         }
 
         private class AnalyzerActions_03_Analyzer : DiagnosticAnalyzer
         {
             public int FireCount1;
             public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount8;
 
             private static readonly DiagnosticDescriptor Descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
@@ -6525,10 +6546,11 @@ class B : A
 
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterSymbolStartAction(Handle, SymbolKind.Method);
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.Method);
+                context.RegisterSymbolStartAction(Handle2, SymbolKind.NamedType);
             }
 
-            private void Handle(SymbolStartAnalysisContext context)
+            private void Handle1(SymbolStartAnalysisContext context)
             {
                 Assert.Equal("<top-level-statements-entry-point>", context.Symbol.ToTestDisplayString());
 
@@ -6536,14 +6558,59 @@ class B : A
                 {
                     case "System.Console.WriteLine(1);":
                         Interlocked.Increment(ref FireCount1);
+                        context.RegisterSymbolEndAction(Handle3);
                         break;
                     case "System.Console.WriteLine(2);":
                         Interlocked.Increment(ref FireCount2);
+                        context.RegisterSymbolEndAction(Handle4);
                         break;
                     default:
                         Assert.True(false);
                         break;
                 }
+            }
+
+            private void Handle2(SymbolStartAnalysisContext context)
+            {
+                Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount3);
+                context.RegisterSymbolEndAction(Handle5);
+
+                foreach (var syntaxReference in context.Symbol.DeclaringSyntaxReferences)
+                {
+                    switch (syntaxReference.GetSyntax().ToString())
+                    {
+                        case "System.Console.WriteLine(1);":
+                            Interlocked.Increment(ref FireCount4);
+                            break;
+                        case "System.Console.WriteLine(2);":
+                            Interlocked.Increment(ref FireCount5);
+                            break;
+                        default:
+                            Assert.True(false);
+                            break;
+                    }
+                }
+            }
+
+            private void Handle3(SymbolAnalysisContext context)
+            {
+                Assert.Equal("<top-level-statements-entry-point>", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount6);
+                Assert.Equal("System.Console.WriteLine(1);", context.Symbol.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            }
+
+            private void Handle4(SymbolAnalysisContext context)
+            {
+                Assert.Equal("<top-level-statements-entry-point>", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount7);
+                Assert.Equal("System.Console.WriteLine(2);", context.Symbol.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            }
+
+            private void Handle5(SymbolAnalysisContext context)
+            {
+                Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount8);
             }
         }
 
@@ -7138,6 +7205,7 @@ class C1
             Assert.Equal(1, analyzer.FireCount1);
             Assert.Equal(1, analyzer.FireCount2);
             Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
 
             analyzer = new AnalyzerActions_11_Analyzer();
             comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
@@ -7146,6 +7214,7 @@ class C1
             Assert.Equal(1, analyzer.FireCount1);
             Assert.Equal(1, analyzer.FireCount2);
             Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
         }
 
         private class AnalyzerActions_11_Analyzer : DiagnosticAnalyzer
@@ -7153,6 +7222,7 @@ class C1
             public int FireCount1;
             public int FireCount2;
             public int FireCount3;
+            public int FireCount4;
 
             private static readonly DiagnosticDescriptor Descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
@@ -7181,8 +7251,18 @@ class C1
 
             private void Handle3(SymbolAnalysisContext context)
             {
-                Interlocked.Increment(ref FireCount3);
-                Assert.Equal("C1", context.Symbol.ToTestDisplayString());
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "C1":
+                        Interlocked.Increment(ref FireCount3);
+                        break;
+                    case SimpleProgramNamedTypeSymbol.UnspeakableName:
+                        Interlocked.Increment(ref FireCount4);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
             }
         }
 

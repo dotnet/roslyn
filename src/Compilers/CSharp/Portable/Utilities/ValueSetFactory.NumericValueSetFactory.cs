@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public static readonly NumericValueSetFactory<T, TTC> Instance = new NumericValueSetFactory<T, TTC>();
 
+            IValueSet IValueSetFactory.AllValues => NumericValueSet<T, TTC>.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => NumericValueSet<T, TTC>.NoValues;
+
             private NumericValueSetFactory() { }
 
             public IValueSet<T> Related(BinaryOperatorKind relation, T value)

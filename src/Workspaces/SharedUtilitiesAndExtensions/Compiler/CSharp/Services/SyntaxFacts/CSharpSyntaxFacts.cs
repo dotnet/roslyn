@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -180,6 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode GetParameterList(SyntaxNode node)
             => node.GetParameterList();
+
+        public bool IsParameterList(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ParameterList, SyntaxKind.BracketedParameterList);
 
         public SyntaxToken GetIdentifierOfGenericName(SyntaxNode genericName)
         {
@@ -1284,6 +1288,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsElastic(SyntaxTrivia trivia)
             => trivia.IsElastic();
 
+        public bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
+            => trivia.IsPragmaDirective(out isDisable, out isActive, out errorCodes);
+
         public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;
 
@@ -1753,6 +1760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKindEx.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:

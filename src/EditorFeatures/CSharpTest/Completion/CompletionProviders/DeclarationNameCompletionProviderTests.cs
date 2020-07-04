@@ -185,7 +185,6 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Parameter3()
         {
@@ -197,6 +196,144 @@ public class C
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter4()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void Other(CancellationToken cancellationToken) {}
+    void Goo(CancellationToken c$$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Parameter5()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter6()
+        {
+            var markup = @"
+using System.Threading;
+
+void Other(CancellationToken cancellationToken) {}
+void Goo(CancellationToken c$$) {}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Parameter7()
+        {
+            var markup = @"
+using System.Threading;
+
+void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter8()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    int this[CancellationToken cancellationToken] => throw null;
+    int this[CancellationToken c$$] => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter9()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    int this[CancellationToken cancellationToken] => throw null;
+    int this[CancellationToken cancellationToken, CancellationToken c$$] => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter10()
+        {
+            var markup = @"
+public class DbContext { }
+public class C
+{
+    void Goo(DbContext context) {
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter11()
+        {
+            var markup = @"
+public class DbContext { }
+public class C
+{
+    void Goo() {
+        DbContext context;
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter12()
+        {
+            var markup = @"
+public class DbContext { }
+public class C
+{
+    DbContext dbContext;
+    void Goo(DbContext context) {
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
         }
 
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
@@ -703,7 +840,6 @@ class Test
 ";
             await VerifyItemExistsAsync(markup, "test");
         }
-
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinition);
 
             // Check event type.
-            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations))
+            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.None))
             {
                 return true;
             }

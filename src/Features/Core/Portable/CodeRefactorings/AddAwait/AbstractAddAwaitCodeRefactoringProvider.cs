@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                     c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)),
                 awaitable.Span);
 
-
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitleWithConfigureAwait(),

@@ -96,6 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case PointerType:
                         return ((PointerTypeSyntax)parent).ElementType == node;
 
+                    case FunctionPointerType:
+                        // FunctionPointerTypeSyntax has no direct children that are ExpressionSyntaxes
+                        throw ExceptionUtilities.Unreachable;
+
                     case PredefinedType:
                         return true;
 
@@ -181,6 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SimpleBaseType:
                         return true;
+
+                    case PrimaryConstructorBaseType:
+                        return ((PrimaryConstructorBaseTypeSyntax)parent).Type == node;
 
                     case CrefParameter:
                         return true;
@@ -309,6 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Attribute:
                 case BaseConstructorInitializer:
                 case ThisConstructorInitializer:
+                case PrimaryConstructorBaseType:
                     return true;
                 default:
                     return false;

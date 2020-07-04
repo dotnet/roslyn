@@ -133,8 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         End If
 
                         Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
-                        Dim isVolatile As Boolean
-                        Dim type As TypeSymbol = Me.DecodeFieldSignature(signaturePointer, isVolatile, customModifiers)
+                        Dim type As TypeSymbol = Me.DecodeFieldSignature(signaturePointer, customModifiers)
                         Return FindFieldBySignature(targetTypeSymbol, memberName, customModifiers, type)
 
                     Case Else

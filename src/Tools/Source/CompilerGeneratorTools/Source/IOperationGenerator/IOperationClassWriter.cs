@@ -368,7 +368,6 @@ namespace IOperationGenerator
                     baseProperties = GetAllProperties(baseNode);
                 }
 
-
                 // Start by generating any necessary base classes
                 if (hasIOpChildren || type.IsAbstract)
                 {
@@ -590,7 +589,7 @@ namespace IOperationGenerator
                 {
                     Write("OperationKind kind, ");
                 }
-                Write("SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit");
+                Write("SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit");
 
                 WriteLine(")");
                 Indent();

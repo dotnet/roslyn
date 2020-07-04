@@ -129,6 +129,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case SymbolKind.PointerType:
                     return ((IPointerTypeSymbol)symbol).PointedAtType.GetGlyph();
 
+                case SymbolKind.FunctionPointerType:
+                    return Glyph.Intrinsic;
+
                 case SymbolKind.Property:
                     {
                         var propertySymbol = (IPropertySymbol)symbol;

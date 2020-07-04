@@ -1457,10 +1457,11 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
         <Fact()>
         <WorkItem(543292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543292")>
-        Public Sub CompilationStackOverflow()
+        Public Sub CompilationNotSupported()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.DynamicType)
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing))
         End Sub
 
         <Fact>

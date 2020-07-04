@@ -19375,7 +19375,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenMethodWithDifferentTupleNamesInParameters()
+        public void OverriddenMethodWithDifferentTupleNamesInParameters()
         {
             var source = @"
 public class Base
@@ -19447,7 +19447,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenPropertiesWithDifferentTupleNames()
+        public void OverriddenPropertiesWithDifferentTupleNames()
         {
             var source = @"
 public class Base
@@ -19507,7 +19507,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenEventsWithDifferentTupleNames()
+        public void OverriddenEventsWithDifferentTupleNames()
         {
             var source = @"
 using System;
@@ -27373,6 +27373,38 @@ class C
             Assert.True(underlyingField.RequiresCompletion);
             Assert.True(field.HasComplete(CompletionPart.All));
             Assert.True(underlyingField.HasComplete(CompletionPart.All));
+        }
+
+        [Theory, WorkItem(43857, "https://github.com/dotnet/roslyn/issues/43857")]
+        [InlineData("(Z a, Z b)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})")]
+        [InlineData("(Z, Z b)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, ""b""})")]
+        [InlineData("(Z a, Z)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", null})")]
+        [InlineData("(Z, Z)*", null)]
+        [InlineData("((Z a, Z b), Z c)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, ""c"", ""a"", ""b""})")]
+        public void PointerTypeDecoding(string type, string expectedAttribute)
+        {
+            var comp = CompileAndVerify($@"
+unsafe struct Z
+{{
+    public {type} F;
+}}
+", options: TestOptions.UnsafeReleaseDll, symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("Z");
+                var field = c.GetField("F");
+                if (expectedAttribute == null)
+                {
+                    Assert.Empty(field.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal(expectedAttribute, field.GetAttributes().Single().ToString());
+                }
+
+                Assert.Equal(type, field.Type.ToTestDisplayString());
+            }
         }
     }
 }

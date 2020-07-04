@@ -354,7 +354,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             return false;
         }
 
-
         internal static ImmutableArray<(OptionKey optionKey, ICodeStyleOption codeStyleOptionValue, IEditorConfigStorageLocation2 location, bool isPerLanguage)> GetCodeStyleOptionsForDiagnostic(
             Diagnostic diagnostic,
             Project project)
@@ -489,10 +488,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                                         key.EndsWith(SeveritySuffix, StringComparison.Ordinal))
                                     {
                                         var diagIdLength = key.Length - (DiagnosticOptionPrefix.Length + SeveritySuffix.Length);
-                                        var diagId = key.Substring(DiagnosticOptionPrefix.Length, diagIdLength);
-                                        if (string.Equals(diagId, _diagnostic.Id, StringComparison.OrdinalIgnoreCase))
+                                        if (diagIdLength > 0)
                                         {
-                                            textChange = new TextChange(curLine.Span, $"{key} = {_newSeverity}{commentValue}");
+                                            var diagId = key.Substring(DiagnosticOptionPrefix.Length, diagIdLength);
+                                            if (string.Equals(diagId, _diagnostic.Id, StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                textChange = new TextChange(curLine.Span, $"{key} = {_newSeverity}{commentValue}");
+                                            }
                                         }
                                     }
 

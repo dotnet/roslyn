@@ -10,8 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -44,7 +46,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                // We only trigger on typing if it's the first character in a sequence.
+                if (trigger.Character == '"' || trigger.Character == ':')
+                {
+                    return true;
+                }
+
+                // Only trigger if it's the first character of a sequence
                 return char.IsLetter(trigger.Character) &&
                        caretPosition >= 2 &&
                        !char.IsLetter(text[caretPosition - 2]);
@@ -75,9 +82,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             if (stringTokenOpt == null)
                 return;
 
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var stringToken = stringTokenOpt.Value;
-            if (position <= stringToken.SpanStart || position >= stringToken.Span.End)
-                return;
+
+            // If we're not in an interpolation, at least make sure we're within the bounds of the string.
+            if (stringToken.RawKind != syntaxFacts.SyntaxKinds.InterpolatedStringTextToken)
+            {
+                if (position <= stringToken.SpanStart || position >= stringToken.Span.End)
+                    return;
+            }
 
             // Note: it's acceptable if this fails to convert.  We just won't show the example in that case.
             var virtualChars = _language.Info.VirtualCharService.TryConvertToVirtualChars(stringToken);
@@ -111,7 +124,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                     inlineDescription: embeddedItem.InlineDescription,
                     sortText: sortText,
                     properties: properties.ToImmutable(),
-                    rules: s_rules));
+                    rules: embeddedItem.IsDefault
+                        ? s_rules.WithMatchPriority(MatchPriority.Preselect)
+                        : s_rules));
             }
 
             context.IsExclusive = true;
@@ -124,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             context.AddStandard("f", FeaturesResources.full_short_date_time, FeaturesResources.full_short_date_time_description);
             context.AddStandard("F", FeaturesResources.full_long_date_time, FeaturesResources.full_long_date_time_description);
             context.AddStandard("g", FeaturesResources.general_short_date_time, FeaturesResources.general_short_date_time_description);
-            context.AddStandard("G", FeaturesResources.general_long_date_time, FeaturesResources.general_long_date_time_description);
+            context.AddStandard("G", FeaturesResources.general_long_date_time, FeaturesResources.general_long_date_time_description, isDefault: true); // This is what DateTime.ToString() uses
             context.AddStandard("M", FeaturesResources.month_day, FeaturesResources.month_day_description);
             context.AddStandard("O", FeaturesResources.round_trip_date_time, FeaturesResources.round_trip_date_time_description);
             context.AddStandard("R", FeaturesResources.rfc1123_date_time, FeaturesResources.rfc1123_date_time_description);
