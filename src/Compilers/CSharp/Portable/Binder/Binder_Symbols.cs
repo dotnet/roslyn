@@ -1518,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         /// type isn't found.
         /// </summary>
-        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics, Location location)
+        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, BindingDiagnosticBag diagnostics, Location location)
         {
             return GetWellKnownType(this.Compilation, type, diagnostics, location);
         }

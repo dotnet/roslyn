@@ -1656,21 +1656,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundFunctionPointerInvocation BindFunctionPointerInvocation(SyntaxNode node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        private BoundFunctionPointerInvocation BindFunctionPointerInvocation(SyntaxNode node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
         {
             RoslynDebug.Assert(boundExpression.Type is FunctionPointerTypeSymbol);
 
             var funcPtr = (FunctionPointerTypeSymbol)boundExpression.Type;
 
             var overloadResolutionResult = OverloadResolutionResult<FunctionPointerMethodSymbol>.GetInstance();
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var methodsBuilder = ArrayBuilder<FunctionPointerMethodSymbol>.GetInstance(1);
             methodsBuilder.Add(funcPtr.Signature);
             OverloadResolution.FunctionPointerOverloadResolution(
                 methodsBuilder,
                 analyzedArguments,
                 overloadResolutionResult,
-                ref useSiteDiagnostics);
+                ref useSiteInfo);
+
+            diagnostics.Add(node, useSiteInfo);
 
             if (!overloadResolutionResult.Succeeded)
             {

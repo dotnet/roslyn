@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
-        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        protected override ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             var syntax = (MethodDeclarationSyntax)node;
             if (syntax.Arity == 0)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override void ExtensionMethodChecks(DiagnosticBag diagnostics)
+        protected override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
         {
             // errors relevant for extension methods
             if (IsExtensionMethod)
@@ -261,11 +261,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             thisLocation,
                             memberDescriptor.DeclaringTypeMetadataName);
                     }
+                    else
+                    {
+                        diagnostics.Add(useSiteInfo, thisLocation);
+                    }
                 }
             }
         }
 
-        protected override MethodSymbol FindExplicitlyImplementedMethod(DiagnosticBag diagnostics)
+        protected override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             return this.FindExplicitlyImplementedMethod(_explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
@@ -582,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
-        protected override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, DiagnosticBag diagnostics)
+        protected override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             if ((object)_explicitInterfaceType != null)
             {
@@ -592,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override void PartialMethodChecks(DiagnosticBag diagnostics)
+        protected override void PartialMethodChecks(BindingDiagnosticBag diagnostics)
         {
             var implementingPart = this.SourcePartialImplementation;
             if ((object)implementingPart != null)

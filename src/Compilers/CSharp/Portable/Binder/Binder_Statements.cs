@@ -3313,7 +3313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      expressionBody: null);
         }
 
-        private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, DiagnosticBag diagnostics)
+        private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(recordDecl.ParameterList is object);
 
@@ -3333,7 +3333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   expressionBody: null);
         }
 
-        internal virtual BoundExpressionStatement BindConstructorInitializer(PrimaryConstructorBaseTypeSyntax initializer, DiagnosticBag diagnostics)
+        internal virtual BoundExpressionStatement BindConstructorInitializer(PrimaryConstructorBaseTypeSyntax initializer, BindingDiagnosticBag diagnostics)
         {
             BoundExpression initializerInvocation = GetBinder(initializer).BindConstructorInitializer(initializer.ArgumentList, (MethodSymbol)this.ContainingMember(), diagnostics);
             var constructorInitializer = new BoundExpressionStatement(initializer, initializerInvocation);

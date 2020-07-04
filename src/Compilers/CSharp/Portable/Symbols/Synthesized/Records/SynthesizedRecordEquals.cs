@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //       public override bool Equals(B other) => Equals(other as C);
         //       public override bool Equals(A other) => Equals(other as C);
         //   }
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 

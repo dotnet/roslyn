@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
                 {
                     baseInterfaces.Add(type);
-                    type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                    type.AddUseSiteInfo(ref useSiteInfo);
                 }
             }
 

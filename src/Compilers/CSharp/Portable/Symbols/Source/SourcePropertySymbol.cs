@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private const string DefaultIndexerName = "Item";
 
-        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var nameToken = syntax.Identifier;
             var location = nameToken.GetLocation();
             return Create(containingType, bodyBinder, syntax, nameToken.ValueText, location, diagnostics);
         }
 
-        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, IndexerDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, IndexerDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var location = syntax.ThisKeyword.GetLocation();
             return Create(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isInitOnly,
            string name,
            Location location,
-           DiagnosticBag diagnostics)
+           BindingDiagnosticBag diagnostics)
            : base(
                 containingType,
                 bodyBinder,
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void GetAccessorDeclarations(
             CSharpSyntaxNode syntaxNode,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out bool isAutoProperty,
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if (syntaxOpt is null)
             {
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PropertySymbol? explicitlyImplementedPropertyOpt,
             string? aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 ContainingType,
@@ -365,23 +365,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
         }
 
-        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             binder ??= CreateBinderForTypeAndParameters();
 
             RefKind refKind;
             var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
             var type = binder.BindType(typeSyntax, diagnostics);
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
-            if (GetExplicitInterfaceSpecifier(syntax) is null && !this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
+            if (GetExplicitInterfaceSpecifier(syntax) is null && !this.IsNoMoreVisibleThan(type, ref useSiteInfo))
             {
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
                 diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), Location, this, type.Type);
             }
 
-            diagnostics.Add(Location, useSiteDiagnostics);
+            diagnostics.Add(Location, useSiteInfo);
 
             if (type.IsVoidType())
             {
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static ImmutableArray<ParameterSymbol> MakeParameters(
-            Binder binder, SourcePropertySymbolBase owner, BaseParameterListSyntax? parameterSyntaxOpt, DiagnosticBag diagnostics, bool addRefReadOnlyModifier)
+            Binder binder, SourcePropertySymbolBase owner, BaseParameterListSyntax? parameterSyntaxOpt, BindingDiagnosticBag diagnostics, bool addRefReadOnlyModifier)
         {
             if (parameterSyntaxOpt == null)
             {

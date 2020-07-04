@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordConstructor(
              SourceMemberContainerTypeSymbol containingType,
              RecordDeclarationSyntax syntax,
-             DiagnosticBag diagnostics) :
+             BindingDiagnosticBag diagnostics) :
              base(containingType, syntax.ParameterList!.GetLocation(), syntax)
         {
             this.MakeFlags(MethodKind.Constructor, containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);

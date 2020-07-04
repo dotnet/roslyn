@@ -2511,7 +2511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static ArrayBuilder<FieldOrPropertyInitializer.Builder>? noteRecordParameters(RecordDeclarationSyntax syntax, MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+            static ArrayBuilder<FieldOrPropertyInitializer.Builder>? noteRecordParameters(RecordDeclarationSyntax syntax, MembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
             {
                 var parameterList = syntax.ParameterList;
                 if (parameterList is null)
@@ -2955,7 +2955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedRecordMembersIfNecessary(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+        private void AddSynthesizedRecordMembersIfNecessary(MembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
         {
             if (declaration.Kind != DeclarationKind.Record)
             {

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -19,13 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        private BoundExpression BindWithExpression(WithExpressionSyntax syntax, DiagnosticBag diagnostics)
+        private BoundExpression BindWithExpression(WithExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var receiver = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
             var receiverType = receiver.Type;
 
             var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
             bool hasErrors = false;
 
@@ -38,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? cloneMethod = null;
             if (!receiverType.IsErrorType())
             {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
                 LookupMembersInType(
                     lookupResult,
                     receiverType,
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
                     this,
                     diagnose: false,
-                    ref useSiteDiagnostics);
+                    ref useSiteInfo);
 
                 if (lookupResult.IsMultiViable)
                 {
@@ -67,12 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !receiverType.IsEqualToOrDerivedFrom(
                         cloneMethod.ReturnType,
                         TypeCompareKind.ConsiderEverything,
-                        ref useSiteDiagnostics))
+                        ref useSiteInfo))
                 {
-                    useSiteDiagnostics = null;
                     hasErrors = true;
                     diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
                 }
+
+                diagnostics.Add(syntax.Expression, useSiteInfo);
             }
 
             var initializer = BindInitializerExpression(

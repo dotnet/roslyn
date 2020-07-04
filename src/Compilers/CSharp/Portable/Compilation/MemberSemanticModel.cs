@@ -1950,9 +1950,8 @@ done:
             var remappedSymbols = _parentRemappedSymbolsOpt;
             BoundNode boundRoot;
             Binder binder;
-            DiagnosticBag diagnosticBag = getDiagnosticBag();
 
-            bind(bindableRoot, diagnosticBag, out binder, out boundRoot);
+            bind(bindableRoot, out binder, out boundRoot);
 
             if (IsSpeculativeSemanticModel)
             {
@@ -1961,7 +1960,7 @@ done:
                 // and so the SnapshotManager can be null in these cases.
                 if (_parentSnapshotManagerOpt is null)
                 {
-                    rewriteAndCache(diagnosticBag);
+                    rewriteAndCache();
                     return;
                 }
 
@@ -1970,7 +1969,7 @@ done:
             }
             else
             {
-                rewriteAndCache(diagnosticBag);
+                rewriteAndCache();
             }
 
             void bind(CSharpSyntaxNode root, out Binder binder, out BoundNode boundRoot)
@@ -1981,16 +1980,18 @@ done:
 
             void rewriteAndCache()
             {
+                var diagnostics = DiagnosticBag.GetInstance();
 #if DEBUG
                 if (!Compilation.NullableSemanticAnalysisEnabled)
                 {
-                    AnalyzeBoundNodeNullability(boundRoot, binder, new DiagnosticBag(), createSnapshots: true);
+                    AnalyzeBoundNodeNullability(boundRoot, binder, diagnostics, createSnapshots: true);
                     return;
                 }
 #endif
 
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, new DiagnosticBag(), createSnapshots: true, out snapshotManager, ref remappedSymbols);
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, createSnapshots: true, out snapshotManager, ref remappedSymbols);
                 cache(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
+                diagnostics.Free();
             }
 
             void cache(CSharpSyntaxNode bindableRoot, BoundNode boundRoot, NullableWalker.SnapshotManager snapshotManager, ImmutableDictionary<Symbol, Symbol> remappedSymbols)

@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string propertyName,
             Location location,
             CSharpSyntaxNode syntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             string name;
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations;

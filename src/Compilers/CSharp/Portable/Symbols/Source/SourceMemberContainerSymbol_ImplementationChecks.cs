@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            static void checkSingleOverriddenMember(Symbol overridingMember, Symbol overriddenMember, DiagnosticBag diagnostics, ref bool suppressAccessors)
+            static void checkSingleOverriddenMember(Symbol overridingMember, Symbol overriddenMember, BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
             {
                 var overridingMemberLocation = overridingMember.Locations[0];
                 var overridingMemberIsMethod = overridingMember.Kind == SymbolKind.Method;
@@ -970,14 +970,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // NOTE: this error may be redundant (if an error has already been reported
                     // for the return type or parameter type in question), but the scenario is
                     // too rare to justify complicated checks.
-                    DiagnosticInfo useSiteDiagnostic = overriddenMember.GetUseSiteDiagnostic();
-                    if (useSiteDiagnostic != null)
+                    if (Binder.ReportUseSite(overriddenMember, diagnostics, overridingMember.Locations[0]))
                     {
-                        suppressAccessors = ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, overridingMember.Locations[0]);
+                        suppressAccessors = true;
                     }
                 }
 
-                static void checkOverriddenProperty(PropertySymbol overridingProperty, PropertySymbol overriddenProperty, DiagnosticBag diagnostics, ref bool suppressAccessors)
+                static void checkOverriddenProperty(PropertySymbol overridingProperty, PropertySymbol overriddenProperty, BindingDiagnosticBag diagnostics, ref bool suppressAccessors)
                 {
                     var overridingMemberLocation = overridingProperty.Locations[0];
                     var overridingType = overridingProperty.ContainingType;
@@ -1044,19 +1043,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (overridingProperty.IsSealed)
                     {
                         MethodSymbol ownOrInheritedGetMethod = overridingProperty.GetOwnOrInheritedGetMethod();
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                        if (overridingProperty.GetMethod != ownOrInheritedGetMethod && !AccessCheck.IsSymbolAccessible(ownOrInheritedGetMethod, overridingType, ref useSiteDiagnostics))
+                        var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, overridingProperty.ContainingAssembly);
+                        if (overridingProperty.GetMethod != ownOrInheritedGetMethod && !AccessCheck.IsSymbolAccessible(ownOrInheritedGetMethod, overridingType, ref useSiteInfo))
                         {
                             diagnostics.Add(ErrorCode.ERR_NoGetToOverride, overridingMemberLocation, overridingProperty, overriddenProperty);
                         }
 
                         MethodSymbol ownOrInheritedSetMethod = overridingProperty.GetOwnOrInheritedSetMethod();
-                        if (overridingProperty.SetMethod != ownOrInheritedSetMethod && !AccessCheck.IsSymbolAccessible(ownOrInheritedSetMethod, overridingType, ref useSiteDiagnostics))
+                        if (overridingProperty.SetMethod != ownOrInheritedSetMethod && !AccessCheck.IsSymbolAccessible(ownOrInheritedSetMethod, overridingType, ref useSiteInfo))
                         {
                             diagnostics.Add(ErrorCode.ERR_NoSetToOverride, overridingMemberLocation, overridingProperty, overriddenProperty);
                         }
 
-                        diagnostics.Add(overridingMemberLocation, useSiteDiagnostics);
+                        diagnostics.Add(overridingMemberLocation, useSiteInfo);
                     }
                 }
             }

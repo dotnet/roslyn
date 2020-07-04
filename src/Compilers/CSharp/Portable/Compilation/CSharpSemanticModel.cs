@@ -802,9 +802,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 binder = new ExecutableCodeBinder(constructorInitializer, binder.ContainingMemberOrLambda, binder);
 
-                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, diagnostics);
+                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, BindingDiagnosticBag.Discarded);
                 var binfo = GetSymbolInfoFromBoundConstructorInitializer(memberModel, binder, bnode);
-                diagnostics.Free();
                 return binfo;
             }
             else
@@ -874,12 +873,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = memberModel.GetEnclosingBinder(LookupPosition.IsBetweenTokens(position, argumentList.OpenParenToken, argumentList.CloseParenToken) ? position : argumentList.OpenParenToken.SpanStart);
             if (binder != null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
                 binder = new ExecutableCodeBinder(constructorInitializer, binder.ContainingMemberOrLambda, binder);
 
-                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, diagnostics);
+                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, BindingDiagnosticBag.Discarded);
                 SymbolInfo binfo = GetSymbolInfoFromBoundConstructorInitializer(memberModel, binder, bnode);
-                diagnostics.Free();
                 return binfo;
             }
             else

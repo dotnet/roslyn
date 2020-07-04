@@ -4034,7 +4034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Free();
             }
 
-            static void validateRecordCopyConstructor(MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol resultMember, Location errorLocation, DiagnosticBag diagnostics)
+            static void validateRecordCopyConstructor(MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol resultMember, Location errorLocation, BindingDiagnosticBag diagnostics)
             {
                 if (IsUserDefinedRecordCopyConstructor(constructor))
                 {
@@ -8049,13 +8049,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol returnType,
             RefKind returnRefKind,
             Cci.CallingConvention callingConvention,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             return ResolveDefaultMethodGroup(
                 methodGroup,
                 analyzedArguments,
                 isMethodGroupConversion: true,
-                ref useSiteDiagnostics,
+                ref useSiteInfo,
                 inferWithDynamic: false,
                 allowUnexpandedForm: true,
                 returnRefKind,

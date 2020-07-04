@@ -9323,6 +9323,16 @@ public record A {
                 //     public override Something GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 31),
 
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+    public override Something GetHashCode() => default;
+}").WithArguments("System.Exception").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+    public override Something GetHashCode() => default;
+}").WithArguments("System.Exception").WithLocation(2, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -9396,6 +9406,16 @@ public record A {
                 //     public override bool GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 26),
 
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+    public override bool GetHashCode() => default;
+}").WithArguments("System.Exception").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+    public override bool GetHashCode() => default;
+}").WithArguments("System.Exception").WithLocation(2, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported

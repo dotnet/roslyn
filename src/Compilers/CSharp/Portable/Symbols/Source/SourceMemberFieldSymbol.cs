@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            Debug.Assert(type.DefaultType.IsPointerType() == IsPointerFieldSyntactically());
+            Debug.Assert(type.DefaultType.IsPointerOrFunctionPointer() == IsPointerFieldSyntactically());
 
             // update the lazyType only if it contains value last seen by the current thread:
             if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type.WithModifiers(this.RequiredCustomModifiers)), null) == null)

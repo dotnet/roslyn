@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol.ReportUseSiteDiagnostic(diagInfo, diagnostics, location);
         }
 
-        private static void ReportWrongCallingConvention(Location location, DiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, MemberResolutionResult<TMember> firstSupported, MethodSymbol target)
+        private static void ReportWrongCallingConvention(Location location, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, MemberResolutionResult<TMember> firstSupported, MethodSymbol target)
         {
             Debug.Assert(firstSupported.Result.Kind == MemberResolutionKind.WrongCallingConvention);
             diagnostics.Add(new DiagnosticInfoWithSymbols(

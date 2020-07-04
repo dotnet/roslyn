@@ -2009,14 +2009,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        private static BoundCall GenerateBaseCopyConstructorInitializer(SynthesizedRecordCopyCtor constructor, DiagnosticBag diagnostics)
+        private static BoundCall GenerateBaseCopyConstructorInitializer(SynthesizedRecordCopyCtor constructor, BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol containingType = constructor.ContainingType;
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
             Location diagnosticsLocation = constructor.Locations.FirstOrNone();
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            MethodSymbol baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteDiagnostics);
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, containingType.ContainingAssembly);
+            MethodSymbol baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteInfo);
 
             if (baseConstructor is null)
             {
@@ -2024,15 +2024,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (Binder.ReportUseSiteDiagnostics(baseConstructor, diagnostics, diagnosticsLocation))
+            if (Binder.ReportUseSite(baseConstructor, diagnostics, diagnosticsLocation))
             {
                 return null;
             }
 
-            if (!useSiteDiagnostics.IsNullOrEmpty())
-            {
-                diagnostics.Add(diagnosticsLocation, useSiteDiagnostics);
-            }
+            diagnostics.Add(diagnosticsLocation, useSiteInfo);
 
             CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
             BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };

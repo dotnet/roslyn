@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, destination.Signature, isFunctionPointer: true, ref useSiteDiagnostics);
+            var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, destination.Signature, isFunctionPointer: true, ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, destination.Signature.ParameterCount);

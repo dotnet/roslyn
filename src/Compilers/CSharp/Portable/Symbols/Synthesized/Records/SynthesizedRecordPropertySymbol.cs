@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax,
             ParameterSymbol backingParameter,
             bool isOverride,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 binder: null,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => new SyntaxList<AttributeListSyntax>();
 
-        protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             // Nothing to do here
         }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax is object);
             Debug.Assert(isAutoPropertyAccessor);
@@ -94,18 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PropertySymbol? explicitlyImplementedPropertyOpt,
             string? aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             // There should be no expression-bodied synthesized record properties
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override ImmutableArray<ParameterSymbol> ComputeParameters(Binder? binder, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             return ImmutableArray<ParameterSymbol>.Empty;
         }
 
-        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             return BackingParameter.TypeWithAnnotations;
         }

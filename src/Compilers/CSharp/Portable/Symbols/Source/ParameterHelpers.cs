@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameterCreationFunc: (Binder context, Symbol owner, TypeWithAnnotations parameterType,
                                         ParameterSyntax syntax, RefKind refKind, int ordinal,
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
-                                        DiagnosticBag declarationDiagnostics) =>
+                                        BindingDiagnosticBag declarationDiagnostics) =>
                 {
                     return SourceParameterSymbol.Create(
                         context,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             FunctionPointerMethodSymbol owner,
             SeparatedSyntaxList<ParameterSyntax> parametersList,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool suppressUseSiteDiagnostics)
         {
             return MakeParameters(
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameterCreationFunc: (Binder binder, FunctionPointerMethodSymbol owner, TypeWithAnnotations parameterType,
                                         ParameterSyntax syntax, RefKind refKind, int ordinal,
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
-                                        DiagnosticBag diagnostics) =>
+                                        BindingDiagnosticBag diagnostics) =>
                 {
                     // Non-function pointer locations have other locations to encode in/ref readonly/outness. For function pointers,
                     // these modreqs are the only locations where this can be encoded. If that changes, we should update this.
@@ -109,13 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TOwningSymbol owner,
             SeparatedSyntaxList<ParameterSyntax> parametersList,
             out SyntaxToken arglistToken,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool allowRefOrOut,
             bool allowThis,
             bool addRefReadOnlyModifier,
             bool suppressUseSiteDiagnostics,
             int lastIndex,
-            Func<Binder, TOwningSymbol, TypeWithAnnotations, ParameterSyntax, RefKind, int, SyntaxToken, SyntaxToken, bool, DiagnosticBag, TParameterSymbol> parameterCreationFunc,
+            Func<Binder, TOwningSymbol, TypeWithAnnotations, ParameterSyntax, RefKind, int, SyntaxToken, SyntaxToken, bool, BindingDiagnosticBag, TParameterSymbol> parameterCreationFunc,
             bool parsingFunctionPointer = false)
             where TParameterSymbol : ParameterSymbol
             where TOwningSymbol : Symbol
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return refKind;
         }
 
-        internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if (addRefReadOnlyModifier && refKind == RefKind.In)
             {
@@ -728,17 +728,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static ImmutableArray<CustomModifier> CreateInModifiers(Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static ImmutableArray<CustomModifier> CreateInModifiers(Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             return CreateModifiers(WellKnownType.System_Runtime_InteropServices_InAttribute, binder, diagnostics, syntax);
         }
 
-        internal static ImmutableArray<CustomModifier> CreateOutModifiers(Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static ImmutableArray<CustomModifier> CreateOutModifiers(Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             return CreateModifiers(WellKnownType.System_Runtime_InteropServices_OutAttribute, binder, diagnostics, syntax);
         }
 
-        private static ImmutableArray<CustomModifier> CreateModifiers(WellKnownType modifier, Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        private static ImmutableArray<CustomModifier> CreateModifiers(WellKnownType modifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             var modifierType = binder.GetWellKnownType(modifier, diagnostics, syntax);
             return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));

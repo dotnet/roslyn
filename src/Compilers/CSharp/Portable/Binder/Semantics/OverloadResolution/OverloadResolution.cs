@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<FunctionPointerMethodSymbol> funcPtrBuilder,
             AnalyzedArguments analyzedArguments,
             OverloadResolutionResult<FunctionPointerMethodSymbol> overloadResolutionResult,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(funcPtrBuilder.Count == 1);
             Debug.Assert(funcPtrBuilder[0].Arity == 0);
@@ -338,10 +338,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowRefOmittedArguments: false,
                 containingTypeMapOpt: null,
                 inferWithDynamic: false,
-                ref useSiteDiagnostics,
+                ref useSiteInfo,
                 allowUnexpandedForm: true);
 
-            ReportUseSiteDiagnostics(overloadResolutionResult.ResultsBuilder, ref useSiteDiagnostics);
+            ReportUseSiteInfo(overloadResolutionResult.ResultsBuilder, ref useSiteInfo);
         }
 
         private void RemoveStaticInstanceMismatches<TMember>(

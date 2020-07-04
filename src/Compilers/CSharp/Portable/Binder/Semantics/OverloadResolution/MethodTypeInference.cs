@@ -1621,10 +1621,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < sourceParameterCount; i++)
                 {
-                    ExactInference(sourceSignature.ParameterTypesWithAnnotations[i], targetSignature.ParameterTypesWithAnnotations[i], ref useSiteDiagnostics);
+                    ExactInference(sourceSignature.ParameterTypesWithAnnotations[i], targetSignature.ParameterTypesWithAnnotations[i], ref useSiteInfo);
                 }
 
-                ExactInference(sourceSignature.ReturnTypeWithAnnotations, targetSignature.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
+                ExactInference(sourceSignature.ReturnTypeWithAnnotations, targetSignature.ReturnTypeWithAnnotations, ref useSiteInfo);
                 return true;
             }
 

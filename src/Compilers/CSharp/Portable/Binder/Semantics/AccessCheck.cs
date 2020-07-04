@@ -163,14 +163,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.FunctionPointerType:
                     var funcPtr = (FunctionPointerTypeSymbol)symbol;
-                    if (!IsSymbolAccessibleCore(funcPtr.Signature.ReturnType, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (!IsSymbolAccessibleCore(funcPtr.Signature.ReturnType, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved))
                     {
                         return false;
                     }
 
                     foreach (var param in funcPtr.Signature.Parameters)
                     {
-                        if (!IsSymbolAccessibleCore(param.Type, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                        if (!IsSymbolAccessibleCore(param.Type, within, throughTypeOpt: null, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved))
                         {
                             return false;
                         }

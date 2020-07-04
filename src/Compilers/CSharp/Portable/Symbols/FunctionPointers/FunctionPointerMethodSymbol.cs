@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly ImmutableArray<FunctionPointerParameterSymbol> _parameters;
 
-        public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+        public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             var (callingConvention, conventionIsValid) = FunctionPointerTypeSymbol.GetCallingConvention(syntax.CallingConvention.Text);
             if (!conventionIsValid)
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers,
             FunctionPointerTypeSyntax syntax,
             Binder typeBinder,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool suppressUseSiteDiagnostics)
         {
             RefCustomModifiers = refCustomModifiers;
@@ -473,15 +473,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
         public override MethodKind MethodKind => MethodKind.FunctionPointerSignature;
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo? info = null;
+            UseSiteInfo<AssemblySymbol> info = default;
             CalculateUseSiteDiagnostic(ref info);
 
             if (CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments) ||
                 CallingConvention.IsCallingConvention(CallingConvention.FastCall))
             {
-                MergeUseSiteDiagnostics(ref info, new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this));
+                MergeUseSiteInfo(ref info, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this)));
             }
 
             return info;

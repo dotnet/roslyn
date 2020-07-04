@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnconvertedAddressOfOperator when destination is FunctionPointerTypeSymbol funcPtrType:
-                    var addressOfConversion = GetMethodGroupFunctionPointerConversion(((BoundUnconvertedAddressOfOperator)sourceExpression).Operand, funcPtrType, ref useSiteDiagnostics);
+                    var addressOfConversion = GetMethodGroupFunctionPointerConversion(((BoundUnconvertedAddressOfOperator)sourceExpression).Operand, funcPtrType, ref useSiteInfo);
                     if (addressOfConversion.Exists)
                     {
                         return addressOfConversion;
@@ -2942,7 +2942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal bool HasImplicitPointerConversion(TypeSymbol? source, TypeSymbol? destination, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        internal bool HasImplicitPointerConversion(TypeSymbol? source, TypeSymbol? destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (!(source is FunctionPointerTypeSymbol { Signature: { } sourceSig })
                 || !(destination is FunctionPointerTypeSymbol { Signature: { } destinationSig }))
@@ -2966,24 +2966,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (!hasConversion(sourceParam.RefKind, destinationSig.Parameters[i].TypeWithAnnotations, sourceSig.Parameters[i].TypeWithAnnotations, ref useSiteDiagnostics))
+                if (!hasConversion(sourceParam.RefKind, destinationSig.Parameters[i].TypeWithAnnotations, sourceSig.Parameters[i].TypeWithAnnotations, ref useSiteInfo))
                 {
                     return false;
                 }
             }
 
             return sourceSig.RefKind == destinationSig.RefKind
-                   && hasConversion(sourceSig.RefKind, sourceSig.ReturnTypeWithAnnotations, destinationSig.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
+                   && hasConversion(sourceSig.RefKind, sourceSig.ReturnTypeWithAnnotations, destinationSig.ReturnTypeWithAnnotations, ref useSiteInfo);
 
-            bool hasConversion(RefKind refKind, TypeWithAnnotations sourceType, TypeWithAnnotations destinationType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            bool hasConversion(RefKind refKind, TypeWithAnnotations sourceType, TypeWithAnnotations destinationType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 switch (refKind)
                 {
                     case RefKind.None:
                         return (!IncludeNullability || HasTopLevelNullabilityImplicitConversion(sourceType, destinationType))
-                               && (HasIdentityOrImplicitReferenceConversion(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
+                               && (HasIdentityOrImplicitReferenceConversion(sourceType.Type, destinationType.Type, ref useSiteInfo)
                                    || HasImplicitPointerToVoidConversion(sourceType.Type, destinationType.Type)
-                                   || HasImplicitPointerConversion(sourceType.Type, destinationType.Type, ref useSiteDiagnostics));
+                                   || HasImplicitPointerConversion(sourceType.Type, destinationType.Type, ref useSiteInfo));
 
                     default:
                         return (!IncludeNullability || HasTopLevelNullabilityIdentityConversion(sourceType, destinationType))

@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (isExtensionMethod)
                 {
                     Error(diagnostics, ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, errorLocation);
-                    diagnostics.Add(errorLocation, useSiteDiagnostics);
+                    diagnostics.Add(errorLocation, useSiteInfo);
                     return false;
                 }
 
@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // resolution and should never make it to this point.
                     Debug.Fail("This method should have been eliminated in overload resolution!");
                     Error(diagnostics, ErrorCode.ERR_FuncPtrMethMustBeStatic, errorLocation, method);
-                    diagnostics.Add(errorLocation, useSiteDiagnostics);
+                    diagnostics.Add(errorLocation, useSiteInfo);
                     return false;
                 }
             }
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
 
             static bool hasConversion(TypeKind targetKind, Conversions conversions, TypeSymbol source, TypeSymbol destination,
-                RefKind sourceRefKind, RefKind destinationRefKind, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+                RefKind sourceRefKind, RefKind destinationRefKind, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 if (sourceRefKind != destinationRefKind)
                 {
@@ -989,14 +989,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ConversionsBase.HasIdentityConversion(source, destination);
                 }
 
-                if (conversions.HasIdentityOrImplicitReferenceConversion(source, destination, ref useSiteDiagnostics))
+                if (conversions.HasIdentityOrImplicitReferenceConversion(source, destination, ref useSiteInfo))
                 {
                     return true;
                 }
 
                 return targetKind == TypeKind.FunctionPointer
                        && (ConversionsBase.HasImplicitPointerToVoidConversion(source, destination)
-                           || conversions.HasImplicitPointerConversion(source, destination, ref useSiteDiagnostics));
+                           || conversions.HasImplicitPointerConversion(source, destination, ref useSiteInfo));
             }
 
             static ErrorCode getMethodMismatchErrorCode(TypeKind type)
