@@ -16,41 +16,51 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         public Func<ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>>? GetBaseActiveStatementSpansAsyncImpl;
         public Func<Solution, ActiveInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionAsyncImpl;
-        public Func<Document, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetAdjustedDocumentActiveStatementSpansAsyncImpl;
+        public Func<Document, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetDocumentActiveStatementSpansAsyncImpl;
+        public Action<Solution>? StartDebuggingSessionImpl;
+        public Action<ActiveStatementProvider, IDebuggeeModuleMetadataProvider>? StartEditSessionImpl;
+        public Func<Solution, string?, bool>? HasChangesAsyncImpl;
+        public Func<Solution, (SolutionUpdateStatus, ImmutableArray<Deltas>)>? EmitSolutionUpdateAsyncImpl;
+        public Func<ActiveInstructionId, bool?>? IsActiveStatementInExceptionRegionAsyncImpl;
 
         public bool IsDebuggingSessionInProgress => throw new NotImplementedException();
 
-        public void CommitSolutionUpdate() => throw new NotImplementedException();
+        public void CommitSolutionUpdate() { }
 
-        public void DiscardSolutionUpdate() => throw new NotImplementedException();
+        public void DiscardSolutionUpdate() { }
 
-        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+            => Task.FromResult((EmitSolutionUpdateAsyncImpl ?? throw new NotImplementedException()).Invoke(solution));
 
-        public void EndDebuggingSession() => throw new NotImplementedException();
+        public void EndDebuggingSession() { }
 
-        public void EndEditSession() => throw new NotImplementedException();
+        public void EndEditSession() { }
 
         public Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
             => Task.FromResult((GetBaseActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(documentIds));
 
-        public Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken)
             => Task.FromResult((GetCurrentActiveStatementPositionAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, instructionId));
 
-        public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
-            => Task.FromResult((GetAdjustedDocumentActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(document));
+        public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(Document document, CancellationToken cancellationToken)
+            => Task.FromResult((GetDocumentActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(document));
 
-        public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken) => throw new NotImplementedException();
 
-        public Task<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken)
+            => Task.FromResult((HasChangesAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, sourceFilePath));
 
-        public Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
+            => Task.FromResult((IsActiveStatementInExceptionRegionAsyncImpl ?? throw new NotImplementedException()).Invoke(instructionId));
 
-        public void OnSourceFileUpdated(DocumentId documentId) => throw new NotImplementedException();
+        public void OnSourceFileUpdated(DocumentId documentId) { }
 
-        public void ReportApplyChangesException(Solution solution, string message) => throw new NotImplementedException();
+        public void ReportApplyChangesException(Solution solution, string message) { }
 
-        public void StartDebuggingSession(Solution solution) => throw new NotImplementedException();
+        public void StartDebuggingSession(Solution solution)
+            => StartDebuggingSessionImpl?.Invoke(solution);
 
-        public void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider) => throw new NotImplementedException();
+        public void StartEditSession(ActiveStatementProvider activeStatementsProvider, IDebuggeeModuleMetadataProvider debuggeeModuleMetadataProvider)
+            => StartEditSessionImpl?.Invoke(activeStatementsProvider, debuggeeModuleMetadataProvider);
     }
 }

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                             methodToken: 0x06000000 | (methodRowIds != null ? methodRowIds[index] : index + 1),
                             methodVersion: (methodVersions != null) ? methodVersions[index] : 1,
                             ilOffset: (ilOffsets != null) ? ilOffsets[index] : 0),
-                        documentNameOpt: documentName,
+                        documentName: documentName,
                         linePositionSpan: text.Lines.GetLinePositionSpan(span),
                         threadIds: (threads != null) ? threads[index] : ImmutableArray.Create(threadId),
                         flags: (flags != null) ? flags[index] : ((id == 0 ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) | ActiveStatementFlags.MethodUpToDate));
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             activeStatements = activeStatements.Add(
                 new ActiveStatementDebugInfo(
                     new ActiveInstructionId(moduleId: Guid.NewGuid(), methodToken: 0x06000005, methodVersion: 1, ilOffset: 10),
-                    documentNameOpt: null,
+                    documentName: null,
                     linePositionSpan: default,
                     threadIds: ImmutableArray.Create(Guid.NewGuid()),
                     ActiveStatementFlags.IsNonLeafFrame));

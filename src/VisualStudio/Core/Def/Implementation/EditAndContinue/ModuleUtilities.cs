@@ -49,13 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 StartColumn: span.Start.Character + 1,
                 EndColumn: span.End.Character + 1);
 
-        internal static EnC.ActiveStatementDebugInfo ToActiveStatementDebugInfo(this ActiveStatementDebugInfo info)
+        internal static EnC.ActiveStatementDebugInfo.Data ToActiveStatementDebugInfoData(this ActiveStatementDebugInfo info)
             => new EnC.ActiveStatementDebugInfo(
                 new EnC.ActiveInstructionId(info.InstructionId.MethodId.ModuleId, info.InstructionId.MethodId.Token, info.InstructionId.MethodId.Version, info.InstructionId.ILOffset),
                 info.DocumentNameOpt,
                 info.TextSpan.ToLinePositionSpan(),
                 info.ThreadIds,
-                (EnC.ActiveStatementFlags)info.Flags);
+                (EnC.ActiveStatementFlags)info.Flags).Serialize();
 
         internal static DkmManagedModuleUpdate ToModuleUpdate(this EnC.Deltas delta)
         {
@@ -81,11 +81,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             return DkmManagedModuleUpdate.Create(
                 delta.Mvid,
-                delta.IL.Value.ToReadOnlyCollection(),
-                delta.Metadata.Bytes.ToReadOnlyCollection(),
-                delta.Pdb.Stream.ToReadOnlyCollection(),
+                delta.IL.ToReadOnlyCollection(),
+                delta.Metadata.ToReadOnlyCollection(),
+                delta.Pdb.ToReadOnlyCollection(),
                 sequencePointUpdates.ToReadOnlyCollection(),
-                delta.Pdb.UpdatedMethods.ToReadOnlyCollection(),
+                delta.UpdatedMethods.ToReadOnlyCollection(),
                 activeStatementUpdates.ToReadOnlyCollection(),
                 exceptionRegions.ToReadOnlyCollection());
         }

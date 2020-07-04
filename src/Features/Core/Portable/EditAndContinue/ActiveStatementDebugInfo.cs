@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,6 +17,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal readonly struct ActiveStatementDebugInfo
     {
         /// <summary>
+        /// Serialization - JSON serialization does not work with nested readonly structs.
+        /// </summary>
+        internal sealed class Data
+        {
+            public Guid ModuleId;
+            public int MethodToken;
+            public int MethodVersion;
+            public int ILOffset;
+            public string? DocumentName;
+            public LinePositionSpan LinePositionSpan;
+            public ActiveStatementFlags Flags;
+            public ImmutableArray<Guid> ThreadIds;
+
+            public ActiveStatementDebugInfo Deserialize()
+                => new ActiveStatementDebugInfo(
+                    new ActiveInstructionId(ModuleId, MethodToken, MethodVersion, ILOffset),
+                    DocumentName,
+                    LinePositionSpan,
+                    ThreadIds,
+                    Flags);
+        }
+
+        /// <summary>
         /// The instruction of the active statement that is being executed.
         /// </summary>
         public readonly ActiveInstructionId InstructionId;
@@ -22,7 +47,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Document name as found in the PDB, or null if the debugger can't determine the location of the active statement.
         /// </summary>
-        public readonly string DocumentNameOpt;
+        public readonly string? DocumentName;
 
         /// <summary>
         /// Location of the closest non-hidden sequence point retrieved from the PDB, 
@@ -42,7 +67,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public ActiveStatementDebugInfo(
             ActiveInstructionId instructionId,
-            string documentNameOpt,
+            string? documentName,
             LinePositionSpan linePositionSpan,
             ImmutableArray<Guid> threadIds,
             ActiveStatementFlags flags)
@@ -52,10 +77,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ThreadIds = threadIds;
             InstructionId = instructionId;
             Flags = flags;
-            DocumentNameOpt = documentNameOpt;
+            DocumentName = documentName;
             LinePositionSpan = linePositionSpan;
         }
 
-        public bool HasSourceLocation => DocumentNameOpt != null;
+        public bool HasSourceLocation => DocumentName != null;
+
+        internal Data Serialize()
+            => new Data()
+            {
+                ModuleId = InstructionId.MethodId.ModuleId,
+                MethodToken = InstructionId.MethodId.Token,
+                MethodVersion = InstructionId.MethodId.Version,
+                ILOffset = InstructionId.ILOffset,
+                DocumentName = DocumentName,
+                LinePositionSpan = LinePositionSpan,
+                Flags = Flags,
+                ThreadIds = ThreadIds,
+            };
     }
 }

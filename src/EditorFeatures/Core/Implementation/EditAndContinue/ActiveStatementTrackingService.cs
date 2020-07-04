@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private TrackingSession? _session;
         private readonly Workspace _workspace;
-        private readonly ActiveStatementSpanProvider _spanProvider;
+        private readonly IActiveStatementSpanProvider _spanProvider;
 
         /// <summary>
         /// Raised whenever span tracking starts or ends.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public ActiveStatementTrackingService(Workspace workspace)
         {
             _workspace = workspace;
-            _spanProvider = new ActiveStatementSpanProvider(_workspace.Services);
+            _spanProvider = new RemoteEditAndContinueServiceProxy(_workspace);
         }
 
         public void StartTracking()

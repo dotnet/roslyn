@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Symbols;
-using Roslyn.Utilities;
 using Dbg = Microsoft.VisualStudio.Debugger.UI.Interfaces;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
@@ -21,33 +19,20 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     [Export(typeof(Dbg.IManagedActiveStatementTracker)), Shared]
     internal sealed class VisualStudioActiveStatementTracker : Dbg.IManagedActiveStatementTracker
     {
-        private readonly Workspace _workspace;
+        private readonly RemoteEditAndContinueServiceProxy _proxy;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioActiveStatementTracker(VisualStudioWorkspace workspace)
         {
-            _workspace = workspace;
+            _proxy = new RemoteEditAndContinueServiceProxy(workspace);
         }
 
         public async Task<DkmTextSpan?> GetCurrentActiveStatementPositionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
         {
             try
             {
-                var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
-                if (client == null)
-                {
-                    return null;
-                }
-
-                var span = await client.RunRemoteAsync<LinePositionSpan?>(
-                    WellKnownServiceHubService.RemoteEditAndContinueService,
-                    nameof(IRemoteEditAndContinueService.GetCurrentActiveStatementPositionAsync),
-                    solution: _workspace.CurrentSolution,
-                    new object[] { new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset) },
-                    callbackTarget: null,
-                    cancellationToken).ConfigureAwait(false);
-
+                var span = await _proxy.GetCurrentActiveStatementPositionAsync(moduleId, methodToken, methodVersion, ilOffset, cancellationToken).ConfigureAwait(false);
                 return span?.ToDebuggerSpan();
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -60,21 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             try
             {
-                var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
-                if (client == null)
-                {
-                    return null;
-                }
-
-                var result = await client.RunRemoteAsync<bool?>(
-                    WellKnownServiceHubService.RemoteEditAndContinueService,
-                    nameof(IRemoteEditAndContinueService.IsActiveStatementInExceptionRegionAsync),
-                    solution: null,
-                    new object[] { moduleId, methodToken, methodVersion, ilOffset },
-                    callbackTarget: null,
-                    cancellationToken).ConfigureAwait(false);
-
-                return result;
+                return await _proxy.IsActiveStatementInExceptionRegionAsync(moduleId, methodToken, methodVersion, ilOffset, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

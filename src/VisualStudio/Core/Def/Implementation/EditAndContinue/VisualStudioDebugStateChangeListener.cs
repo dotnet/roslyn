@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class VisualStudioDebugStateChangeListener : Dbg.IDebugStateChangeListener
     {
-        private readonly Workspace _workspace;
+        private readonly RemoteEditAndContinueServiceProxy _proxy;
         private readonly IDebuggingWorkspaceService _debuggingService;
         private readonly IActiveStatementTrackingService _activeStatementTrackingService;
         private readonly Dbg.IManagedModuleInfoProvider _managedModuleInfoProvider;
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDebugStateChangeListener(VisualStudioWorkspace workspace, Dbg.IManagedModuleInfoProvider managedModuleInfoProvider)
         {
-            _workspace = workspace;
+            _proxy = new RemoteEditAndContinueServiceProxy(workspace);
             _debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
             _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
             _managedModuleInfoProvider = managedModuleInfoProvider;
@@ -76,20 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-                if (client == null)
-                {
-                    _disabled = true;
-                    return;
-                }
-
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteEditAndContinueService,
-                    nameof(IRemoteEditAndContinueService.StartDebuggingSessionAsync),
-                    _workspace.CurrentSolution,
-                    Array.Empty<object>(),
-                    callbackTarget: null,
-                    cancellationToken).ConfigureAwait(false);
+                await _proxy.StartDebuggingSessionAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -108,26 +95,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-                if (client == null)
-                {
-                    _disabled = true;
-                    return;
-                }
-
-                // need to keep the providers alive until the edit session ends:
-                var connection = await client.CreateConnectionAsync(
-                    WellKnownServiceHubService.RemoteEditAndContinueService,
-                    callbackTarget: new StartEditSessionCallback(activeStatementProvider, _managedModuleInfoProvider),
+                _editSessionConnection = await _proxy.StartEditSessionAsync(
+                    new StartEditSessionCallback(activeStatementProvider, _managedModuleInfoProvider),
                     cancellationToken).ConfigureAwait(false);
-
-                await connection.RunRemoteAsync(
-                    nameof(IRemoteEditAndContinueService.StartEditSessionAsync),
-                    solution: null,
-                    Array.Empty<object>(),
-                    cancellationToken).ConfigureAwait(false);
-
-                _editSessionConnection = connection;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -137,13 +107,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             _activeStatementTrackingService.StartTracking();
         }
 
-        public Task ExitBreakStateAsync(CancellationToken cancellationToken)
+        public async Task ExitBreakStateAsync(CancellationToken cancellationToken)
         {
             _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
 
             if (_disabled)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             Contract.ThrowIfNull(_editSessionConnection);
@@ -152,39 +122,28 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             _activeStatementTrackingService.EndTracking();
 
-            return NotifyRemoteServiceAsync(nameof(IRemoteEditAndContinueService.EndEditSessionAsync), cancellationToken);
+            try
+            {
+                await _proxy.EndEditSessionAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                _disabled = true;
+            }
         }
 
-        public Task StopDebuggingAsync(CancellationToken cancellationToken)
+        public async Task StopDebuggingAsync(CancellationToken cancellationToken)
         {
             _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
 
             if (_disabled)
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            return NotifyRemoteServiceAsync(nameof(IRemoteEditAndContinueService.EndDebuggingSessionAsync), cancellationToken);
-        }
-
-        private async Task NotifyRemoteServiceAsync(string targetName, CancellationToken cancellationToken)
-        {
             try
             {
-                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-                if (client == null)
-                {
-                    _disabled = true;
-                    return;
-                }
-
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteEditAndContinueService,
-                    targetName,
-                    solution: null,
-                    Array.Empty<object>(),
-                    callbackTarget: null,
-                    cancellationToken).ConfigureAwait(false);
+                await _proxy.EndDebuggingSessionAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -206,16 +165,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             /// <summary>
             /// Remote API.
             /// </summary>
-            public async Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
+            public async Task<ImmutableArray<ActiveStatementDebugInfo.Data>> GetActiveStatementsAsync(CancellationToken cancellationToken)
             {
                 try
                 {
                     var infos = await _activeStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
-                    return infos.SelectAsArray(ModuleUtilities.ToActiveStatementDebugInfo);
+                    return infos.SelectAsArray(ModuleUtilities.ToActiveStatementDebugInfoData);
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
                 {
-                    return ImmutableArray<ActiveStatementDebugInfo>.Empty;
+                    return ImmutableArray<ActiveStatementDebugInfo.Data>.Empty;
                 }
             }
 

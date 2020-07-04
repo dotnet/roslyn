@@ -11,6 +11,7 @@ using System.IO;
 using System.Runtime.Remoting;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
@@ -171,6 +172,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterService(WellKnownServiceHubService.RemoteDesignerAttributeService, (s, p) => new RemoteDesignerAttributeService(s, p));
                 RegisterService(WellKnownServiceHubService.RemoteProjectTelemetryService, (s, p) => new RemoteProjectTelemetryService(s, p));
                 RegisterService(WellKnownServiceHubService.RemoteTodoCommentsService, (s, p) => new RemoteTodoCommentsService(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteEditAndContinueService, (s, p) => new RemoteEditAndContinueService(s, p));
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p) => new LanguageServer(s, p));
             }
 

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var debugInfo in debugInfos)
             {
-                var documentName = debugInfo.DocumentNameOpt;
+                var documentName = debugInfo.DocumentName;
                 if (documentName == null)
                 {
                     // Ignore active statements that do not have a source location.

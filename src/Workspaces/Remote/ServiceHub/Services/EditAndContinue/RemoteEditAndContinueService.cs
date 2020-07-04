@@ -47,11 +47,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             RunService(() =>
             {
                 GetService().StartEditSession(
-                    activeStatementsProvider: cancellationToken =>
-                        EndPoint.InvokeAsync<ImmutableArray<ActiveStatementDebugInfo>>(
+                    activeStatementsProvider: async cancellationToken =>
+                    {
+                        var result = await EndPoint.InvokeAsync<ImmutableArray<ActiveStatementDebugInfo.Data>>(
                             nameof(IRemoteEditAndContinueService.IStartEditSessionCallback.GetActiveStatementsAsync),
                             Array.Empty<object>(),
-                            cancellationToken),
+                            cancellationToken).ConfigureAwait(false);
+
+                        return result.SelectAsArray(item => item.Deserialize());
+                    },
                     debuggeeModuleMetadataProvider: this);
             }, cancellationToken);
 
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         Task<(int errorCode, string? errorMessage)?> IDebuggeeModuleMetadataProvider.GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
         {
             return EndPoint.InvokeAsync<(int, string?)?>(
-                nameof(IRemoteEditAndContinueService.IStartEditSessionCallback.GetActiveStatementsAsync),
+                nameof(IRemoteEditAndContinueService.IStartEditSessionCallback.GetEncAvailabilityAsync),
                 new object[] { mvid },
                 cancellationToken);
         }
@@ -108,7 +112,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas.Data> Deltas)> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -117,12 +121,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 try
                 {
-                    return await service.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    var result = await service.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    return (result.Summary, result.Deltas.SelectAsArray(d => d.Serialize()));
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e, cancellationToken))
                 {
                     service.ReportApplyChangesException(solution, e.Message);
-                    return (SolutionUpdateStatus.Blocked, ImmutableArray<Deltas>.Empty);
+                    return (SolutionUpdateStatus.Blocked, ImmutableArray<Deltas.Data>.Empty);
                 }
             }, cancellationToken);
         }
@@ -160,16 +165,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }, cancellationToken);
         }
 
-        public Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public Task<bool?> IsActiveStatementInExceptionRegionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(() => GetService().IsActiveStatementInExceptionRegionAsync(instructionId, cancellationToken), cancellationToken);
+            return RunServiceAsync(() =>
+                GetService().IsActiveStatementInExceptionRegionAsync(new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset), cancellationToken), cancellationToken);
         }
 
-        public Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(PinnedSolutionInfo solutionInfo, ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(PinnedSolutionInfo solutionInfo, Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var instructionId = new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset);
                 return await GetService().GetCurrentActiveStatementPositionAsync(solution, instructionId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
