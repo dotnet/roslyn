@@ -7,28 +7,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static class DiagnosticAnalyzerExtensions
+    internal static partial class DiagnosticAnalyzerExtensions
     {
-        private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
-        private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
-
-        public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
-        {
-            // TODO: find better way.
-            var typeString = analyzer.GetType().ToString();
-            if (typeString == CSharpCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            if (typeString == VisualBasicCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public static DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory(this DiagnosticAnalyzer analyzer)
             => analyzer switch
             {

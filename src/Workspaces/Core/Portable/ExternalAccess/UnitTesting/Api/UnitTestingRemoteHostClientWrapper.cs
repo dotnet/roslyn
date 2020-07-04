@@ -38,35 +38,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             => new UnitTestingRemoteServiceConnectionWrapper(await UnderlyingObject!.CreateConnectionAsync((WellKnownServiceHubService)service, callbackTarget, cancellationToken).ConfigureAwait(false));
 
         [Obsolete]
-        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateUnitTestingKeepAliveSessionWrapperAsync(string serviceName, CancellationToken cancellationToken)
-        {
-            var connection = await UnderlyingObject!.CreateConnectionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
-            return new UnitTestingKeepAliveSessionWrapper(connection);
-        }
-
-        [Obsolete]
-        public async Task<UnitTestingSessionWithSolutionWrapper> TryCreateUnitingSessionWithSolutionWrapperAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
-        {
-            var connection = await UnderlyingObject!.CreateConnectionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
-
-            SessionWithSolution? session = null;
-            try
-            {
-                // transfer ownership of the connection to the session object:
-                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                if (session == null)
-                {
-                    connection.Dispose();
-                }
-            }
-
-            return new UnitTestingSessionWithSolutionWrapper(session);
-        }
-
-        [Obsolete]
         public event EventHandler<bool> StatusChanged
         {
             add => UnderlyingObject!.StatusChanged += value;
