@@ -51,11 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var overridden = OverriddenMethod;
 
-            if (overridden is null)
-            {
-                return;
-            }
-
             if (overridden is object &&
                 !overridden.ContainingType.Equals(ContainingType.BaseTypeNoUseSiteDiagnostics, TypeCompareKind.AllIgnoreOptions))
             {

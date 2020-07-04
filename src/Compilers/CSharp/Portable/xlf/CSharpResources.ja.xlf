@@ -532,6 +532,16 @@
         <target state="new">The receiver type '{0}' is not a valid record type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicAPIInRecord">
+        <source>Record member '{0}' must be public.</source>
+        <target state="new">Record member '{0}' must be public.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotOverridableAPIInRecord">
+        <source>'{0}' disallows overriding and containing 'record' is not sealed.</source>
+        <target state="new">'{0}' disallows overriding and containing 'record' is not sealed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="translated">'enable'、'disable'、'restore' のいずれかが必要でした</target>
@@ -670,6 +680,11 @@
       <trans-unit id="ERR_SealedGetHashCodeInRecord">
         <source>'{0}' cannot be sealed because containing 'record' is not sealed.</source>
         <target state="new">'{0}' cannot be sealed because containing 'record' is not sealed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SignatureMismatchInRecord">
+        <source>Record member '{0}' must return '{1}'.</source>
+        <target state="new">Record member '{0}' must return '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramDisallowsMainType">
