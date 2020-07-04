@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
-
     <ExportLanguageService(GetType(IInlineParameterNameHintsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class InlineParameterNameHintsService
         Implements IInlineParameterNameHintsService
@@ -29,10 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
             Dim nodes = root.DescendantNodes()
 
             For Each node In nodes
-                If TypeOf node Is SimpleArgumentSyntax Then
-                    Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
+                cancellationToken.ThrowIfCancellationRequested()
+                Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
+                If Not simpleArgument Is Nothing Then
                     If Not simpleArgument.IsNamed AndAlso simpleArgument.NameColonEquals Is Nothing AndAlso IsExpressionWithNoName(simpleArgument.Expression) Then
-                        Dim param = simpleArgument.DetermineParameter(semanticModel, False, cancellationToken)
+                        Dim param = simpleArgument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
                         If param IsNot Nothing AndAlso param.Name.Length > 0 Then
                             spans.Add(New InlineParameterHint(param.Name, simpleArgument.Span.Start))
                         End If
@@ -41,12 +41,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
             Next
 
             Return spans
-
         End Function
 
         Private Function IsExpressionWithNoName(arg As ExpressionSyntax) As Boolean
             If TypeOf arg Is LiteralExpressionSyntax Then
-                'We want to adorn literals no matter what
+                ' We want to adorn literals no matter what
                 Return True
             End If
 
@@ -58,21 +57,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
             End If
 
             If TypeOf arg Is PredefinedCastExpressionSyntax Then
-                Dim cast = TryCast(arg, PredefinedCastExpressionSyntax)
+                Dim cast = DirectCast(arg, PredefinedCastExpressionSyntax)
+                ' Recurse until we find a literal
+                ' If so, then we should add the adornment
+                Return IsExpressionWithNoName(cast.Expression)
+            End If
+
+            If TypeOf arg Is TryCastExpressionSyntax Then
+                Dim cast = DirectCast(arg, TryCastExpressionSyntax)
+                ' Recurse until we find a literal
+                ' If so, then we should add the adornment
+                Return IsExpressionWithNoName(cast.Expression)
+            End If
+
+            If TypeOf arg Is CTypeExpressionSyntax Then
+                Dim cast = DirectCast(arg, CTypeExpressionSyntax)
+                ' Recurse until we find a literal
+                ' If so, then we should add the adornment
+                Return IsExpressionWithNoName(cast.Expression)
+            End If
+
+            If TypeOf arg Is DirectCastExpressionSyntax Then
+                Dim cast = DirectCast(arg, DirectCastExpressionSyntax)
                 ' Recurse until we find a literal
                 ' If so, then we should add the adornment
                 Return IsExpressionWithNoName(cast.Expression)
             End If
 
             If TypeOf arg Is UnaryExpressionSyntax Then
-                Dim negation = TryCast(arg, UnaryExpressionSyntax)
+                Dim negation = DirectCast(arg, UnaryExpressionSyntax)
                 ' Recurse until we find a literal
                 ' If so, then we should add the adornment
                 Return IsExpressionWithNoName(negation.Operand)
             End If
 
             Return False
-
         End Function
     End Class
 End Namespace

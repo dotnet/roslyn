@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim tagService = document.GetLanguageService(Of IInlineParameterNameHintsService)
+                Dim tagService = document.GetRequiredLanguageService(Of IInlineParameterNameHintsService)
                 Dim paramNameHintSpans = Await tagService.GetInlineParameterNameHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
 
                 Dim producedTags = From tag In paramNameHintSpans

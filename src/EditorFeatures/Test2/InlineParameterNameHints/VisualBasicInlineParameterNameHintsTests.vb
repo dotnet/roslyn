@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
-        Public Async Function TestLiteralNestedCastParametersSimpleCase() As Task
+        Public Async Function TestCIntCast() As Task
             Dim input =
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
@@ -109,6 +109,72 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineParameterNameHints
 
                             End Sub
                         End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestCTypeCast() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+                        Class Foo
+                            Sub Main(args As String())
+                                TestMethod({|x:CType(5.5, Integer)|}, {|y:2.2|})
+                            End Sub
+
+                            Sub TestMethod(x As Integer, y As Double)
+
+                            End Sub
+                        End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestTryCastCase() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+                        Public Class Test
+		                    Public Sub test(x As String)
+
+		                    End Sub
+
+		                    Public Sub Main()
+			                    test({|x:TryCast(New Object(), String)|})
+		                    End Sub
+	                    End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestDirectCastCase() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+                        Public Class Test
+		                    Public Sub test(x As String)
+
+		                    End Sub
+
+		                    Public Sub Main()
+			                    test({|x:DirectCast(New Object(), String)|})
+		                    End Sub
+	                    End Class
                     </Document>
                 </Project>
             </Workspace>

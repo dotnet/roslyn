@@ -31,7 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return Nothing
             End If
 
-            ' Gets the symbol info for the SyntaxNode 
             Dim symbol = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol
             If symbol Is Nothing Then
                 Return Nothing
