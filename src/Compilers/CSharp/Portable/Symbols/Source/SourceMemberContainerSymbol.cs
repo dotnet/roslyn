@@ -3002,7 +3002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             getOtherEquals(otherEqualsMethods, equalityContract);
 
             var thisEquals = addThisEquals(equalityContract, otherEqualsMethod: otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
-            addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
+            addOtherEquals();
             addObjectEquals(thisEquals);
             addHashCode(equalityContract);
 
@@ -3148,15 +3148,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<CustomModifier>.Empty,
                     ImmutableArray<MethodSymbol>.Empty);
 
-                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? contender))
+                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
                     var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
                     members.Add(hashCode);
                 }
                 else
                 {
-                    var method = (MethodSymbol)contender;
-                    if (!SynthesizedRecordObjectMethod.VerifyOerridesMethodFromObject(method, diagnostics) && method.IsSealed && !IsSealed)
+                    var method = (MethodSymbol)existingHashCodeMethod;
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(method, SpecialType.System_Int32, diagnostics) && method.IsSealed && !IsSealed)
                     {
                         diagnostics.Add(ErrorCode.ERR_SealedGetHashCodeInRecord, method.Locations[0], method);
                     }
@@ -3210,21 +3210,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract, MethodSymbol thisEquals)
+            void addOtherEquals()
             {
-                foreach (var otherEqualsMethod in otherEqualsMethods)
+                if (!BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
-                    var method = new SynthesizedRecordEquals(
-                        this,
-                        parameterType: otherEqualsMethod.Parameters[0].Type,
-                        isOverride: true,
-                        equalityContract,
-                        otherEqualsMethod: thisEquals,
-                        memberOffset: members.Count);
-                    if (!memberSignatures.ContainsKey(method))
-                    {
-                        members.Add(method);
-                    }
+                    var method = new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics);
+                    members.Add(method);
                 }
             }
         }

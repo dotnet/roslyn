@@ -1495,8 +1495,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
-        private ConstantValue FoldEnumBinaryOperator(
+#nullable enable
+        private ConstantValue? FoldEnumBinaryOperator(
             CSharpSyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression left,
@@ -1514,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // E-E, (U)(U-U).
 
             TypeSymbol enumType = GetEnumType(kind, left, right);
-            TypeSymbol underlyingType = enumType.GetEnumUnderlyingType();
+            TypeSymbol underlyingType = enumType.GetEnumUnderlyingType()!;
 
             BoundExpression newLeftOperand = CreateConversion(left, underlyingType, diagnostics);
             BoundExpression newRightOperand = CreateConversion(right, underlyingType, diagnostics);
@@ -1531,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             newLeftOperand = CreateConversion(newLeftOperand, operandType, diagnostics);
             newRightOperand = CreateConversion(newRightOperand, operandType, diagnostics);
 
-            BinaryOperatorKind newKind = kind.Operator().WithType(newLeftOperand.Type.SpecialType);
+            BinaryOperatorKind newKind = kind.Operator().WithType(newLeftOperand.Type!.SpecialType);
 
             SpecialType operatorType = SpecialType.None;
 
@@ -1572,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns null if the operator can't be evaluated at compile time.
-        private ConstantValue FoldBinaryOperator(
+        private ConstantValue? FoldBinaryOperator(
             CSharpSyntaxNode syntax,
             BinaryOperatorKind kind,
             BoundExpression left,
@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC VIOLATION: see method definition for details
-            ConstantValue nullableEqualityResult = TryFoldingNullableEquality(kind, left, right);
+            ConstantValue? nullableEqualityResult = TryFoldingNullableEquality(kind, left, right);
             if (nullableEqualityResult != null)
             {
                 return nullableEqualityResult;
@@ -1619,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConstantValue.Bad;
             }
 
-            object newValue = null;
+            object? newValue = null;
 
             // Certain binary operations never fail; bool & bool, for example. If we are in one of those
             // cases, simply fold the operation and return.
@@ -1633,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConstantValue.Create(newValue, resultType);
             }
 
-            ConstantValue concatResult = FoldStringConcatenation(kind, valueLeft, valueRight);
+            ConstantValue? concatResult = FoldStringConcatenation(kind, valueLeft, valueRight);
             if (concatResult != null)
             {
                 if (concatResult.IsBad)
@@ -1731,7 +1731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Dev 10 does do compile-time evaluation of simple lifted operators, but it does so
         /// in a rewriting pass (see NullableRewriter) - they are not treated as constant values.
         /// </remarks>
-        private static ConstantValue TryFoldingNullableEquality(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
+        private static ConstantValue? TryFoldingNullableEquality(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
         {
             if (kind.IsLifted())
             {
@@ -1742,8 +1742,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundConversion leftConv = (BoundConversion)left;
                         BoundConversion rightConv = (BoundConversion)right;
-                        ConstantValue leftConstant = leftConv.Operand.ConstantValue;
-                        ConstantValue rightConstant = rightConv.Operand.ConstantValue;
+                        ConstantValue? leftConstant = leftConv.Operand.ConstantValue;
+                        ConstantValue? rightConstant = rightConv.Operand.ConstantValue;
 
                         if (leftConstant != null && rightConstant != null)
                         {
@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Some binary operators on constants never overflow, regardless of whether the context is checked or not.
-        private static object FoldNeverOverflowBinaryOperators(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
+        private static object? FoldNeverOverflowBinaryOperators(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
         {
             Debug.Assert(valueLeft != null);
             Debug.Assert(valueRight != null);
@@ -1989,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns ConstantValue.Bad if, and only if, the resulting string length exceeds <see cref="int.MaxValue"/>.
         /// </summary>
-        private static ConstantValue FoldStringConcatenation(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
+        private static ConstantValue? FoldStringConcatenation(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)
         {
             Debug.Assert(valueLeft != null);
             Debug.Assert(valueRight != null);
@@ -2005,6 +2005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+#nullable restore
 
         private static BinaryOperatorKind SyntaxKindToBinaryOperatorKind(SyntaxKind kind)
         {
@@ -2482,15 +2483,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind,
                 resultType);
         }
-#nullable restore
 
-        private ConstantValue FoldEnumUnaryOperator(
+        private ConstantValue? FoldEnumUnaryOperator(
             CSharpSyntaxNode syntax,
             UnaryOperatorKind kind,
             BoundExpression operand,
             DiagnosticBag diagnostics)
         {
-            var underlyingType = operand.Type.GetEnumUnderlyingType();
+            var underlyingType = operand.Type.GetEnumUnderlyingType()!;
 
             BoundExpression newOperand = CreateConversion(operand, underlyingType, diagnostics);
 
@@ -2508,7 +2508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constantValue = FoldUnaryOperator(syntax, newKind, operand, upconvertType.SpecialType, diagnostics);
 
             // Convert back to the underlying type
-            if (!constantValue.IsBad)
+            if (constantValue != null && !constantValue.IsBad)
             {
                 // Do an unchecked conversion if bitwise complement
                 var binder = kind.Operator() == UnaryOperatorKind.BitwiseComplement ?
@@ -2519,7 +2519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constantValue;
         }
 
-        private ConstantValue FoldUnaryOperator(
+        private ConstantValue? FoldUnaryOperator(
             CSharpSyntaxNode syntax,
             UnaryOperatorKind kind,
             BoundExpression operand,
@@ -2598,7 +2598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static object FoldNeverOverflowUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
+        private static object? FoldNeverOverflowUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
         {
             // Note that we do operations on single-precision floats as double-precision.
             switch (kind)
@@ -2638,7 +2638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static object FoldUncheckedIntegralUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
+        private static object? FoldUncheckedIntegralUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
         {
             unchecked
             {
@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static object FoldCheckedIntegralUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
+        private static object? FoldCheckedIntegralUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
         {
             checked
             {
@@ -2670,7 +2670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static object FoldNativeIntegerOverflowingUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
+        private static object? FoldNativeIntegerOverflowingUnaryOperator(UnaryOperatorKind kind, ConstantValue value)
         {
             checked
             {
@@ -2742,6 +2742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindValueKind.RValue;
             }
         }
+#nullable restore
 
         private BoundLiteral BindIntegralMinValConstants(PrefixUnaryExpressionSyntax node, BoundExpression operand, DiagnosticBag diagnostics)
         {

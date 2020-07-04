@@ -167,87 +167,101 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            var other = F.Parameter(Parameters[0]);
-            BoundExpression? retExpr;
 
-            if (IsOverride)
+            try
             {
-                // This method is an override of a strongly-typed Equals method from a base record type.
-                // The definition of the method is as follows, and _otherEqualsMethod
-                // is the method to delegate to (see B.Equals(A), C.Equals(A), C.Equals(B) above):
-                //
-                // override bool Equals(Base other) => Equals(other as Derived);
-                retExpr = F.Call(
-                    F.This(),
-                    _otherEqualsMethod!,
-                    F.As(other, ContainingType));
-            }
-            else
-            {
-                // This method is the strongly-typed Equals method where the parameter type is
-                // the containing type.
+                var other = F.Parameter(Parameters[0]);
+                BoundExpression? retExpr;
 
-                if (_otherEqualsMethod is null)
+                if (IsOverride)
                 {
-                    // There are no base record types.
-                    // The definition of the method is as follows (see A.Equals(A) above):
+                    // This method is an override of a strongly-typed Equals method from a base record type.
+                    // The definition of the method is as follows, and _otherEqualsMethod
+                    // is the method to delegate to (see B.Equals(A), C.Equals(A), C.Equals(B) above):
                     //
-                    // virtual bool Equals(T other) =>
-                    //     other != null &&
-                    //     EqualityContract == other.EqualityContract &&
-                    //     field1 == other.field1 && ... && fieldN == other.fieldN;
-
-                    // other != null
-                    Debug.Assert(!other.Type.IsStructType());
-                    retExpr = F.ObjectNotEqual(other, F.Null(F.SpecialType(SpecialType.System_Object)));
-
-                    // EqualityContract == other.EqualityContract
-                    var contractsEqual = F.Binary(
-                        BinaryOperatorKind.ObjectEqual,
-                        F.SpecialType(SpecialType.System_Boolean),
-                        F.Property(F.This(), _equalityContract),
-                        F.Property(other, _equalityContract));
-
-                    retExpr = retExpr is null ? contractsEqual : F.LogicalAnd(retExpr, contractsEqual);
+                    // override bool Equals(Base other) => Equals(other as Derived);
+                    retExpr = F.Call(
+                        F.This(),
+                        _otherEqualsMethod!,
+                        F.As(other, ContainingType));
                 }
                 else
                 {
-                    // There are base record types.
-                    // The definition of the method is as follows, and _otherEqualsMethod
-                    // is the corresponding method on the nearest base record type to
-                    // delegate to (see B.Equals(B), C.Equals(C) above):
-                    //
-                    // virtual bool Equals(Derived other) =>
-                    //     base.Equals((Base)other) &&
-                    //     field1 == other.field1 && ... && fieldN == other.fieldN;
-                    retExpr = F.Call(
-                        F.Base(_otherEqualsMethod.ContainingType),
-                        _otherEqualsMethod!,
-                        F.Convert(_otherEqualsMethod.Parameters[0].Type, other));
-                }
+                    // This method is the strongly-typed Equals method where the parameter type is
+                    // the containing type.
 
-                // field1 == other.field1 && ... && fieldN == other.fieldN
-                // https://github.com/dotnet/roslyn/issues/44895: Should compare fields from non-record base classes.
-                var fields = ArrayBuilder<FieldSymbol>.GetInstance();
-                foreach (var f in ContainingType.GetFieldsToEmit())
-                {
-                    if (!f.IsStatic)
+                    if (_otherEqualsMethod is null)
                     {
-                        fields.Add(f);
-                    }
-                }
-                if (fields.Count > 0)
-                {
-                    retExpr = MethodBodySynthesizer.GenerateFieldEquals(
-                        retExpr,
-                        other,
-                        fields,
-                        F);
-                }
-                fields.Free();
-            }
+                        // There are no base record types.
+                        // The definition of the method is as follows (see A.Equals(A) above):
+                        //
+                        // virtual bool Equals(T other) =>
+                        //     other != null &&
+                        //     EqualityContract == other.EqualityContract &&
+                        //     field1 == other.field1 && ... && fieldN == other.fieldN;
 
-            F.CloseMethod(F.Block(F.Return(retExpr)));
+                        // other != null
+                        Debug.Assert(!other.Type.IsStructType());
+                        retExpr = F.ObjectNotEqual(other, F.Null(F.SpecialType(SpecialType.System_Object)));
+
+                        // EqualityContract == other.EqualityContract
+                        var contractsEqual = F.Call(receiver: null, F.WellKnownMethod(WellKnownMember.System_Type__op_Equality),
+                                                    F.Property(F.This(), _equalityContract),
+                                                    F.Property(other, _equalityContract));
+
+                        retExpr = retExpr is null ? (BoundExpression)contractsEqual : F.LogicalAnd(retExpr, contractsEqual);
+                    }
+                    else
+                    {
+                        if (_otherEqualsMethod.ReturnType.SpecialType != SpecialType.System_Boolean)
+                        {
+                            // There was a problem with overriding, an error was reported elsewhere
+                            F.CloseMethod(F.ThrowNull());
+                            return;
+                        }
+
+                        // There are base record types.
+                        // The definition of the method is as follows, and _otherEqualsMethod
+                        // is the corresponding method on the nearest base record type to
+                        // delegate to (see B.Equals(B), C.Equals(C) above):
+                        //
+                        // virtual bool Equals(Derived other) =>
+                        //     base.Equals((Base)other) &&
+                        //     field1 == other.field1 && ... && fieldN == other.fieldN;
+                        retExpr = F.Call(
+                            F.Base(_otherEqualsMethod.ContainingType),
+                            _otherEqualsMethod!,
+                            F.Convert(_otherEqualsMethod.Parameters[0].Type, other));
+                    }
+
+                    // field1 == other.field1 && ... && fieldN == other.fieldN
+                    // https://github.com/dotnet/roslyn/issues/44895: Should compare fields from non-record base classes.
+                    var fields = ArrayBuilder<FieldSymbol>.GetInstance();
+                    foreach (var f in ContainingType.GetFieldsToEmit())
+                    {
+                        if (!f.IsStatic)
+                        {
+                            fields.Add(f);
+                        }
+                    }
+                    if (fields.Count > 0)
+                    {
+                        retExpr = MethodBodySynthesizer.GenerateFieldEquals(
+                            retExpr,
+                            other,
+                            fields,
+                            F);
+                    }
+                    fields.Free();
+                }
+
+                F.CloseMethod(F.Block(F.Return(retExpr)));
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                F.CloseMethod(F.ThrowNull());
+            }
         }
     }
 }

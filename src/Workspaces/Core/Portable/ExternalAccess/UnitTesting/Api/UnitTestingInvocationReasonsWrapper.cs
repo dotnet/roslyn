@@ -32,15 +32,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         internal UnitTestingInvocationReasonsWrapper(InvocationReasons underlyingObject)
             => UnderlyingObject = underlyingObject;
 
-        public UnitTestingInvocationReasonsWrapper(string reason) : this(new InvocationReasons(reason)) { }
-
-        [Obsolete]
-        public bool Contains(string reason)
-            => UnderlyingObject.Contains(reason);
-
-        [Obsolete]
-        public UnitTestingInvocationReasonsWrapper With(string reason)
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(reason));
+        public UnitTestingInvocationReasonsWrapper(string reason)
+            : this(new InvocationReasons(reason)) { }
 
         public UnitTestingInvocationReasonsWrapper With(UnitTestingInvocationReasonsWrapper reason)
             => new UnitTestingInvocationReasonsWrapper(reason.UnderlyingObject.With(UnderlyingObject));

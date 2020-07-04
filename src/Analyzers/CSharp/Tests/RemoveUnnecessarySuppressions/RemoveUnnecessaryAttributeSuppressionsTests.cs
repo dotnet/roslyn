@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -181,6 +182,24 @@ class C
     public void M() {{ }}
 }}";
             await VerifyCS.VerifyCodeFixAsync(input, input);
+        }
+
+        [Fact, WorkItem(45465, "https://github.com/dotnet/roslyn/issues/45465")]
+        public async Task LegacyModeGlobalSuppressionWithNamespaceAndDescendantsScope()
+        {
+            var target = "N:N.InvalidChild";
+            var input = $@"
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""Id: Title"", Scope = ""namespaceanddescendants"", Target = {{|#0:""{target}""|}})]
+
+namespace N
+{{
+    class C {{ }}
+}}";
+            var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
+                                        .WithLocation(0)
+                                        .WithArguments(target);
+
+            await VerifyCS.VerifyCodeFixAsync(input, expectedDiagnostic, input);
         }
     }
 }
