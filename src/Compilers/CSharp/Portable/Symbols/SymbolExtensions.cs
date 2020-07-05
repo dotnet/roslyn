@@ -273,6 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                 case SymbolKind.PointerType:
+                case SymbolKind.FunctionPointerType:
                 case SymbolKind.TypeParameter:
                     return true;
                 case SymbolKind.Alias:
@@ -644,6 +645,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         [return: NotNullIfNotNull("symbol")]
+        internal static IFunctionPointerTypeSymbol? GetPublicSymbol(this FunctionPointerTypeSymbol? symbol)
+        {
+            return symbol.GetPublicSymbol<IFunctionPointerTypeSymbol>();
+        }
+
+        [return: NotNullIfNotNull("symbol")]
         internal static IEventSymbol? GetPublicSymbol(this EventSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IEventSymbol>();
@@ -778,6 +785,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static PropertySymbol? GetSymbol(this IPropertySymbol? symbol)
         {
             return symbol.GetSymbol<PropertySymbol>();
+        }
+
+        [return: NotNullIfNotNull("symbol")]
+        internal static FunctionPointerTypeSymbol? GetSymbol(this IFunctionPointerTypeSymbol? symbol)
+        {
+            return symbol.GetSymbol<FunctionPointerTypeSymbol>();
         }
     }
 }

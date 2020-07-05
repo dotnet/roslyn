@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               instanceInitializersSyntaxLength: 0);
         }
 
-        public override bool IsImplicitlyDeclared => true;
+        public override bool IsImplicitlyDeclared => false;
 
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
         {

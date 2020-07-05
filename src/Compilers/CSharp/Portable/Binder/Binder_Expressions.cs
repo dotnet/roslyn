@@ -713,6 +713,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SuppressNullableWarningExpression:
                     return BindSuppressNullableWarningExpression((PostfixUnaryExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.WithExpression:
+                    return BindWithExpression((WithExpressionSyntax)node, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
@@ -1381,12 +1384,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lookupResult.Kind != LookupResultKind.Empty)
             {
                 // have we detected an error with the current node?
-                bool isError = false;
-                bool wasError;
+                bool isError;
                 var members = ArrayBuilder<Symbol>.GetInstance();
-                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out wasError, qualifierOpt: null);  // reports diagnostics in result.
-
-                isError |= wasError;
+                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out isError, qualifierOpt: null);  // reports diagnostics in result.
 
                 if ((object)symbol == null)
                 {
@@ -2380,6 +2380,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedSwitchExpression when operand.Type is null:
                     {
                         GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);
+                        return;
+                    }
+                case BoundKind.UnconvertedAddressOfOperator:
+                    {
+                        var errorCode = targetType.TypeKind switch
+                        {
+                            TypeKind.FunctionPointer => ErrorCode.ERR_MethFuncPtrMismatch,
+                            TypeKind.Delegate => ErrorCode.ERR_CannotConvertAddressOfToDelegate,
+                            _ => ErrorCode.ERR_AddressOfToNonFunctionPointer
+                        };
+
+                        diagnostics.Add(errorCode, syntax.Location, ((BoundUnconvertedAddressOfOperator)operand).Operand.Name, targetType);
                         return;
                     }
             }
@@ -3755,9 +3767,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="initializerArgumentListOpt">
         /// Null for implicit, 
-        /// BaseConstructorInitializerSyntax.ArgumentList, or 
-        /// ThisConstructorInitializerSyntax.ArgumentList, or 
-        /// BaseClassWithArgumentsSyntax.ArgumentList for explicit.</param>
+        /// <see cref="ConstructorInitializerSyntax.ArgumentList"/>, or 
+        /// <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/> for explicit.</param>
         /// <param name="constructor">Constructor containing the initializer.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. unable to find constructor to invoke).</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
@@ -3831,6 +3842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol constructorReturnType = constructor.ReturnType;
                 Debug.Assert(constructorReturnType.IsVoidType()); //true of all constructors
+                NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
                 // Get the bound arguments and the argument names.
                 // : this(__arglist()) is legal
@@ -3842,7 +3854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol initializerType = containingType;
 
                 bool isBaseConstructorInitializer = initializerArgumentListOpt == null ||
-                                                    initializerArgumentListOpt.Parent.Kind() == SyntaxKind.BaseConstructorInitializer;
+                                                    initializerArgumentListOpt.Parent.Kind() != SyntaxKind.ThisConstructorInitializer;
 
                 if (isBaseConstructorInitializer)
                 {
@@ -3888,10 +3900,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(initializerArgumentListOpt.Parent.Kind() == SyntaxKind.ThisConstructorInitializer);
                 }
 
+                CSharpSyntaxNode nonNullSyntax;
+                Location errorLocation;
+
+                switch (initializerArgumentListOpt?.Parent)
+                {
+                    case ConstructorInitializerSyntax initializerSyntax:
+                        nonNullSyntax = initializerSyntax;
+                        errorLocation = initializerSyntax.ThisOrBaseKeyword.GetLocation();
+                        break;
+
+                    case PrimaryConstructorBaseTypeSyntax baseWithArguments:
+                        nonNullSyntax = baseWithArguments;
+                        errorLocation = initializerArgumentListOpt.GetLocation();
+                        break;
+
+                    default:
+                        // Note: use syntax node of constructor with initializer, not constructor invoked by initializer (i.e. methodResolutionResult).
+                        nonNullSyntax = constructor.GetNonNullSyntaxNode();
+                        errorLocation = constructor.Locations[0];
+                        break;
+                }
+
                 if (initializerArgumentListOpt != null && analyzedArguments.HasDynamicArgument)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor,
-                                    ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, errorLocation);
 
                     return new BoundBadExpression(
                             syntax: initializerArgumentListOpt.Parent,
@@ -3901,44 +3934,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                             type: constructorReturnType);
                 }
 
-                CSharpSyntaxNode nonNullSyntax;
-                Location errorLocation;
-                if (initializerArgumentListOpt != null)
-                {
-                    nonNullSyntax = initializerArgumentListOpt.Parent;
-                    errorLocation = ((ConstructorInitializerSyntax)nonNullSyntax).ThisOrBaseKeyword.GetLocation();
-                }
-                else
-                {
-                    // Note: use syntax node of constructor with initializer, not constructor invoked by initializer (i.e. methodResolutionResult).
-                    nonNullSyntax = constructor.GetNonNullSyntaxNode();
-                    errorLocation = constructor.Locations[0];
-                }
-
                 BoundExpression receiver = ThisReference(nonNullSyntax, initializerType, wasCompilerGenerated: true);
 
                 MemberResolutionResult<MethodSymbol> memberResolutionResult;
                 ImmutableArray<MethodSymbol> candidateConstructors;
-                if (TryPerformConstructorOverloadResolution(
-                    initializerType,
-                    analyzedArguments,
-                    WellKnownMemberNames.InstanceConstructorName,
-                    errorLocation,
-                    false, // Don't suppress result diagnostics
-                    diagnostics,
-                    out memberResolutionResult,
-                    out candidateConstructors,
-                    allowProtectedConstructorsOfBaseType: true))
+                bool found = TryPerformConstructorOverloadResolution(
+                                    initializerType,
+                                    analyzedArguments,
+                                    WellKnownMemberNames.InstanceConstructorName,
+                                    errorLocation,
+                                    false, // Don't suppress result diagnostics
+                                    diagnostics,
+                                    out memberResolutionResult,
+                                    out candidateConstructors,
+                                    allowProtectedConstructorsOfBaseType: true);
+                MethodSymbol resultMember = memberResolutionResult.Member;
+
+                validateRecordCopyConstructor(constructor, baseType, resultMember, errorLocation, diagnostics);
+
+                if (found)
                 {
                     bool hasErrors = false;
-                    MethodSymbol resultMember = memberResolutionResult.Member;
 
                     if (resultMember == constructor)
                     {
                         Debug.Assert(initializerType.IsErrorType() ||
                             (initializerArgumentListOpt != null && initializerArgumentListOpt.Parent.Kind() == SyntaxKind.ThisConstructorInitializer));
                         diagnostics.Add(ErrorCode.ERR_RecursiveConstructorCall,
-                                        ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation(),
+                                        errorLocation,
                                         constructor);
 
                         hasErrors = true; // prevent recursive constructor from being emitted
@@ -3960,7 +3983,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                     var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
-
                     if (!hasErrors)
                     {
                         hasErrors = !CheckInvocationArgMixing(
@@ -4011,6 +4033,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 analyzedArguments.Free();
             }
+
+            static void validateRecordCopyConstructor(MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol resultMember, Location errorLocation, BindingDiagnosticBag diagnostics)
+            {
+                if (IsUserDefinedRecordCopyConstructor(constructor))
+                {
+                    if (baseType.SpecialType == SpecialType.System_Object)
+                    {
+                        if (resultMember is null || resultMember.ContainingType.SpecialType != SpecialType.System_Object)
+                        {
+                            // Record deriving from object must use `base()`, not `this()`
+                            diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation);
+                        }
+
+                        return;
+                    }
+
+                    // Unless the base type is 'object', the constructor should invoke a base type copy constructor
+                    if (resultMember is null || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(resultMember))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation);
+                    }
+                }
+            }
+        }
+
+        internal static bool IsUserDefinedRecordCopyConstructor(MethodSymbol constructor)
+        {
+            return constructor.ContainingType is SourceNamedTypeSymbol sourceType &&
+                sourceType.IsRecord &&
+                SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor);
         }
 
         private BoundExpression BindImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -4060,6 +4112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
 
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
                         diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, type));
                     goto case TypeKind.Class;
@@ -4209,7 +4262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var boundMethodGroup = new BoundMethodGroup(
                             argument.Syntax, default, WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
                             sourceDelegate.DelegateInvokeMethod, null, BoundMethodGroupFlags.None, argument, LookupResultKind.Viable);
-                        if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
+                        if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
                         {
                             // If we could not produce a more specialized diagnostic, we report
                             // No overload for '{0}' matches delegate '{1}'
@@ -4320,7 +4373,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (syntax.Kind())
             {
                 case SyntaxKind.ObjectInitializerExpression:
-                    return BindObjectInitializerExpression(syntax, type, diagnostics, implicitReceiver);
+                    // Uses a special binder to produce customized diagnostics for the object initializer
+                    return BindObjectInitializerExpression(
+                        syntax, type, diagnostics, implicitReceiver, useObjectInitDiagnostics: true);
+
+                case SyntaxKind.WithInitializerExpression:
+                    return BindObjectInitializerExpression(
+                        syntax, type, diagnostics, implicitReceiver, useObjectInitDiagnostics: false);
 
                 case SyntaxKind.CollectionInitializerExpression:
                     return BindCollectionInitializerExpression(syntax, type, diagnostics, implicitReceiver);
@@ -4343,6 +4402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.ObjectInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
+                    Debug.Assert(syntax.Parent.Parent.Kind() != SyntaxKind.WithInitializerExpression);
                     return BindInitializerExpression((InitializerExpressionSyntax)syntax, type, typeSyntax, diagnostics);
                 default:
                     return BindValue(syntax, diagnostics, BindValueKind.RValue);
@@ -4353,7 +4413,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax initializerSyntax,
             TypeSymbol initializerType,
             BindingDiagnosticBag diagnostics,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            bool useObjectInitDiagnostics)
         {
             // SPEC:    7.6.10.2 Object initializers
             //
@@ -4361,13 +4422,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    Each member initializer must name an accessible field or property of the object being initialized, followed by an equals sign and
             // SPEC:    an expression or an object initializer or collection initializer.
 
-            Debug.Assert(initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression);
+            Debug.Assert(initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression ||
+                         initializerSyntax.Kind() == SyntaxKind.WithInitializerExpression);
             Debug.Assert((object)initializerType != null);
-
-            var initializerBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-
-            // Member name map to report duplicate assignments to a field/property.
-            var memberNameMap = new HashSet<string>();
 
             // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
             //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
@@ -4375,22 +4432,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
             // Note that this is only used for the LHS of the assignment - these diagnostics do not apply on the RHS.
             // For this reason, we will actually need two binders: this and this.WithAdditionalFlags.
-            var objectInitializerMemberBinder = this.WithAdditionalFlags(BinderFlags.ObjectInitializerMember);
+            var objectInitializerMemberBinder = useObjectInitDiagnostics
+                ? this.WithAdditionalFlags(BinderFlags.ObjectInitializerMember)
+                : this;
 
+            var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
+
+            // Member name map to report duplicate assignments to a field/property.
+            var memberNameMap = PooledHashSet<string>.GetInstance();
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
-                BoundExpression boundMemberInitializer = BindObjectInitializerMemberAssignment(
+                BoundExpression boundMemberInitializer = BindInitializerMemberAssignment(
                     memberInitializer, initializerType, objectInitializerMemberBinder, diagnostics, implicitReceiver);
 
-                initializerBuilder.Add(boundMemberInitializer);
+                initializers.Add(boundMemberInitializer);
 
                 ReportDuplicateObjectMemberInitializers(boundMemberInitializer, memberNameMap, diagnostics);
             }
 
-            return new BoundObjectInitializerExpression(initializerSyntax, implicitReceiver, initializerBuilder.ToImmutableAndFree(), initializerType);
+            return new BoundObjectInitializerExpression(
+                initializerSyntax,
+                implicitReceiver,
+                initializers.ToImmutableAndFree(),
+                initializerType);
         }
 
-        private BoundExpression BindObjectInitializerMemberAssignment(
+        private BoundExpression BindInitializerMemberAssignment(
             ExpressionSyntax memberInitializer,
             TypeSymbol initializerType,
             Binder objectInitializerMemberBinder,
@@ -4424,7 +4491,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // See comments in BindObjectInitializerExpression for more details.
 
                     Debug.Assert(objectInitializerMemberBinder != null);
-                    Debug.Assert(objectInitializerMemberBinder.Flags.Includes(BinderFlags.ObjectInitializerMember));
 
                     boundLeft = objectInitializerMemberBinder.BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
                 }
@@ -4594,8 +4660,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // CheckValueKind to generate possible diagnostics for invalid initializers non-viable member lookup result:
                 //      1) CS0154 (ERR_PropertyLacksGet)
                 //      2) CS0200 (ERR_AssgReadonlyProp)
-
-                Debug.Assert(Flags.Includes(CSharp.BinderFlags.ObjectInitializerMember));
                 if (!CheckValueKind(boundMember.Syntax, boundMember, valueKind, checkingReceiver: false, diagnostics: diagnostics))
                 {
                     hasErrors = true;
@@ -5812,7 +5876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < typeArgumentsWithAnnotations.Length; ++i)
                 {
                     var typeArgument = typeArgumentsWithAnnotations[i];
-                    if ((typeArgument.Type.IsPointerType()) || typeArgument.Type.IsRestrictedType())
+                    if ((typeArgument.Type.IsPointerOrFunctionPointer()) || typeArgument.Type.IsRestrictedType())
                     {
                         // "The type '{0}' may not be used as a type argument"
                         Error(diagnostics, ErrorCode.ERR_BadTypeArgument, typeArgumentsSyntax[i], typeArgument.Type);
@@ -6162,9 +6226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult,
                         flags);
 
-                    if (!boundMethodGroup.HasErrors && boundMethodGroup.ResultKind == LookupResultKind.Empty && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadArity, node, rightName, MessageID.IDS_MethodGroup.Localize(), typeArgumentsSyntax.Count);
+                        Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
                     }
 
                     return boundMethodGroup;
@@ -7936,11 +8000,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             bool inferWithDynamic = false,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             return ResolveMethodGroup(
                 node, node.Syntax, node.Name, analyzedArguments, isMethodGroupConversion, ref useSiteInfo,
-                inferWithDynamic: inferWithDynamic, returnRefKind: returnRefKind, returnType: returnType);
+                inferWithDynamic: inferWithDynamic, returnRefKind: returnRefKind, returnType: returnType,
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
         }
 
         internal MethodGroupResolution ResolveMethodGroup(
@@ -7953,12 +8020,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             var methodResolution = ResolveMethodGroupInternal(
                 node, expression, methodName, analyzedArguments, isMethodGroupConversion, ref useSiteInfo,
                 inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm,
-                returnRefKind: returnRefKind, returnType: returnType);
+                returnRefKind: returnRefKind, returnType: returnType,
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConvention: callingConvention);
             if (methodResolution.IsEmpty && !methodResolution.HasAnyErrors)
             {
                 Debug.Assert(node.LookupError == null);
@@ -7973,6 +8043,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return methodResolution;
         }
 
+        internal MethodGroupResolution ResolveMethodGroupForFunctionPointer(
+            BoundMethodGroup methodGroup,
+            AnalyzedArguments analyzedArguments,
+            TypeSymbol returnType,
+            RefKind returnRefKind,
+            Cci.CallingConvention callingConvention,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return ResolveDefaultMethodGroup(
+                methodGroup,
+                analyzedArguments,
+                isMethodGroupConversion: true,
+                ref useSiteInfo,
+                inferWithDynamic: false,
+                allowUnexpandedForm: true,
+                returnRefKind,
+                returnType,
+                isFunctionPointerResolution: true,
+                callingConvention);
+        }
+
         private MethodGroupResolution ResolveMethodGroupInternal(
             BoundMethodGroup methodGroup,
             SyntaxNode expression,
@@ -7983,12 +8074,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             var methodResolution = ResolveDefaultMethodGroup(
                 methodGroup, analyzedArguments, isMethodGroupConversion, ref useSiteInfo,
-                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm,
-                returnRefKind: returnRefKind, returnType: returnType);
+                inferWithDynamic, allowUnexpandedForm,
+                returnRefKind, returnType, isFunctionPointerResolution, callingConvention);
 
             // If the method group's receiver is dynamic then there is no point in looking for extension methods; 
             // it's going to be a dynamic invocation.
@@ -8053,7 +8146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true,
             RefKind returnRefKind = default,
-            TypeSymbol returnType = null)
+            TypeSymbol returnType = null,
+            bool isFunctionPointerResolution = false,
+            Cci.CallingConvention callingConvention = Cci.CallingConvention.Default)
         {
             var methods = node.Methods;
             if (methods.Length == 0)
@@ -8099,18 +8194,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
                 OverloadResolution.MethodInvocationOverloadResolution(
-                    methods: methodGroup.Methods,
-                    typeArguments: methodGroup.TypeArguments,
-                    receiver: methodGroup.Receiver,
-                    arguments: analyzedArguments,
-                    result: result,
-                    useSiteInfo: ref useSiteInfo,
-                    isMethodGroupConversion: isMethodGroupConversion,
-                    allowRefOmittedArguments: allowRefOmittedArguments,
-                    inferWithDynamic: inferWithDynamic,
-                    allowUnexpandedForm: allowUnexpandedForm,
-                    returnRefKind: returnRefKind,
-                    returnType: returnType);
+                    methodGroup.Methods,
+                    methodGroup.TypeArguments,
+                    methodGroup.Receiver,
+                    analyzedArguments,
+                    result,
+                    ref useSiteInfo,
+                    isMethodGroupConversion,
+                    allowRefOmittedArguments,
+                    inferWithDynamic,
+                    allowUnexpandedForm,
+                    returnRefKind,
+                    returnType,
+                    isFunctionPointerResolution,
+                    callingConvention);
 
                 // Note: the MethodGroupResolution instance is responsible for freeing its copy of analyzed arguments
                 return new MethodGroupResolution(methodGroup, null, result, AnalyzedArguments.GetInstance(analyzedArguments), methodGroup.ResultKind, sealedDiagnostics);
@@ -8191,7 +8288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - access cannot have unconstrained generic type
             // - access cannot be a pointer
             // - access cannot be a restricted type
-            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType() || accessType.IsRestrictedType())
+            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerOrFunctionPointer() || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.
                 // For improved diagnostics we detect the cases where the value will be used and produce a

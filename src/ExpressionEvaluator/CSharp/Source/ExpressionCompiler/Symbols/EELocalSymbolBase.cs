@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var type = this.TypeWithAnnotations;
             UseSiteInfo<AssemblySymbol> result = default;
-            if (!DeriveUseSiteInfoFromType(ref result, type) && this.ContainingModule.HasUnifiedReferences)
+            if (!DeriveUseSiteInfoFromType(ref result, type, AllowedRequiredModifierType.None) && this.ContainingModule.HasUnifiedReferences)
             {
                 // If the member is in an assembly with unified references, 
                 // we check if its definition depends on a type from a unified reference.

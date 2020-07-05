@@ -22,11 +22,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     internal sealed class VisualStudioManagedModuleUpdateProvider : IEditAndContinueManagedModuleUpdateProvider
     {
         private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly Workspace _workspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioManagedModuleUpdateProvider(VisualStudioWorkspace workspace)
-            => _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        {
+            _workspace = workspace;
+            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        }
 
         /// <summary>
         /// Returns true if any changes have been made to the source since the last changes had been applied.
@@ -35,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             try
             {
-                return await _encService.HasChangesAsync(sourceFilePath, cancellationToken).ConfigureAwait(false);
+                return await _encService.HasChangesAsync(_workspace.CurrentSolution, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -45,14 +49,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         public async Task<ManagedModuleUpdates> GetManagedModuleUpdatesAsync(CancellationToken cancellationToken)
         {
+            var solution = _workspace.CurrentSolution;
+
             try
             {
-                var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+                var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
                 return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate).ToReadOnlyCollection());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                _encService.ReportApplyChangesException(e.Message);
+                _encService.ReportApplyChangesException(solution, e.Message);
                 return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<DkmManagedModuleUpdate>.Empty.ToReadOnlyCollection());
             }
         }

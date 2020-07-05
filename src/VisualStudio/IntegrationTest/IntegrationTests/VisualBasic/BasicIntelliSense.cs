@@ -119,7 +119,6 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-
             VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
             VisualStudio.Editor.Verify.TextContains(@"
@@ -141,7 +140,7 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/45234"), Trait(Traits.Feature, Traits.Features.Completion)]
         public void TypeAVariableDeclaration()
         {
             SetUpEditor(@"

@@ -2898,7 +2898,6 @@ class C
                 Diagnostic(RudeEditKind.TypeUpdate, "string s", FeaturesResources.parameter));
         }
 
-
         [Fact]
         public void MethodUpdate_RenameMethodName()
         {

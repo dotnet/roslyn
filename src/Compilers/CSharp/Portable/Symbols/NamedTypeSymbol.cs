@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (TypeWithAnnotations arg in this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
-                if (DeriveUseSiteInfoFromType(ref result, arg))
+                if (DeriveUseSiteInfoFromType(ref result, arg, AllowedRequiredModifierType.None))
                 {
                     return true;
                 }

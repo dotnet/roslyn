@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Assert.NotNull(document)
 
                     Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition)
-                    Dim result = SpecializedCollections.EmptyEnumerable(Of ReferencedSymbol)()
+                    Dim result = ImmutableArray(Of ReferencedSymbol).Empty
                     If symbol IsNot Nothing Then
 
                         Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(Of Document)(document), Nothing)
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Using
         End Function
 
-        Private Shared Function GetActualReferences(result As IEnumerable(Of ReferencedSymbol),
+        Private Shared Function GetActualReferences(result As ImmutableArray(Of ReferencedSymbol),
                                                     uiVisibleOnly As Boolean,
                                                     options As FindReferencesSearchOptions,
                                                     document As Document,

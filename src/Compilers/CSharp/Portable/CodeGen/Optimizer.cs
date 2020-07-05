@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // a conversion (because the RHS will actually be typed as a native u/int in IL), so
                 // we should not optimize away the local (i.e. schedule it on the stack).
                 if (CanScheduleToStack(localSymbol) &&
-                    assignmentLocal.Type.IsPointerType() && right.Kind == BoundKind.Conversion &&
+                    assignmentLocal.Type.IsPointerOrFunctionPointer() && right.Kind == BoundKind.Conversion &&
                     ((BoundConversion)right).ConversionKind.IsPointerConversion())
                 {
                     ShouldNotSchedule(localSymbol);
@@ -1048,6 +1048,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)lhs).Method.RefKind == RefKind.Ref, "only ref returning methods are assignable");
+                    return true;
+
+                case BoundKind.FunctionPointerInvocation:
+                    Debug.Assert(((BoundFunctionPointerInvocation)lhs).FunctionPointer.Signature.RefKind == RefKind.Ref, "only ref returning function pointers are assignable");
                     return true;
 
                 case BoundKind.ConditionalOperator:

@@ -370,10 +370,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;
 
+                case BoundKind.UnconvertedAddressOfOperator:
+                    var unconvertedAddressOf = (BoundUnconvertedAddressOfOperator)expr;
+                    Error(diagnostics, GetMethodGroupOrFunctionPointerLvalueError(valueKind), node, unconvertedAddressOf.Operand.Name, MessageID.IDS_AddressOfMethodGroup.Localize());
+                    return false;
+
+                case BoundKind.MethodGroup when valueKind == BindValueKind.AddressOf:
+                    // If the addressof operator is used not as an rvalue, that will get flagged when CheckValue
+                    // is called on the parent BoundUnconvertedAddressOf node.
+                    return true;
+
                 case BoundKind.MethodGroup:
-                    // method groups can only be used as RValues
+                    // method groups can only be used as RValues except when taking the address of one
                     var methodGroup = (BoundMethodGroup)expr;
-                    Error(diagnostics, GetMethodGroupLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
+                    Error(diagnostics, GetMethodGroupOrFunctionPointerLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
                     return false;
 
                 case BoundKind.RangeVariable:
@@ -495,9 +505,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var call = (BoundCall)expr;
                     return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);
 
+                case BoundKind.FunctionPointerInvocation:
+                    return CheckMethodReturnValueKind(((BoundFunctionPointerInvocation)expr).FunctionPointer.Signature,
+                        expr.Syntax,
+                        node,
+                        valueKind,
+                        checkingReceiver,
+                        diagnostics);
+
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    // If we got here this should be a pttern indexer taking a Range,
+                    // If we got here this should be a pattern indexer taking a Range,
                     // meaning that the pattern symbol must be a method (either Slice or Substring)
                     return CheckMethodReturnValueKind(
                         (MethodSymbol)patternIndexer.PatternSymbol,
@@ -716,7 +734,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             MethodSymbol containingMethod = (MethodSymbol)containing;
                             MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
-                            canModifyReadonly = containingMethod.MethodKind == desiredMethodKind;
+                            canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
+                                isAssignedFromInitOnlySetterOnThis(fieldAccess.ReceiverOpt);
                         }
                         else if (containing.Kind == SymbolKind.Field)
                         {
@@ -752,6 +771,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+
+            bool isAssignedFromInitOnlySetterOnThis(BoundExpression receiver)
+            {
+                // bad: other.readonlyField = ...
+                // bad: base.readonlyField = ...
+                if (!(receiver is BoundThisReference))
+                {
+                    return false;
+                }
+
+                if (!(ContainingMemberOrLambda is MethodSymbol method))
+                {
+                    return false;
+                }
+
+                return method.IsInitOnly;
+            }
         }
 
         private bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
@@ -977,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
 
-                if ((object)setMethod == null)
+                if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
                     if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing))
@@ -988,6 +1024,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    if (setMethod.IsInitOnly &&
+                        !isAllowedInitOnlySet(receiver))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
+                        return false;
+                    }
+
                     var accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -1087,6 +1130,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     diagnostics.AddDependencies(useSiteInfo);
+                }
+
+                return false;
+            }
+
+            bool isAllowedInitOnlySet(BoundExpression receiver)
+            {
+                // ok: new C() { InitOnlyProperty = ... }
+                if (receiver is BoundObjectOrCollectionValuePlaceholder)
+                {
+                    return true;
+                }
+
+                // bad: other.InitOnlyProperty = ...
+                if (!(receiver is BoundThisReference || receiver is BoundBaseReference))
+                {
+                    return false;
+                }
+
+                var containingMember = ContainingMemberOrLambda;
+                if (!(containingMember is MethodSymbol method))
+                {
+                    return false;
+                }
+
+                if (method.MethodKind == MethodKind.Constructor || method.IsInitOnly)
+                {
+                    // ok: setting on `this` or `base` from an instance constructor or init-only setter
+                    return true;
                 }
 
                 return false;
@@ -1649,13 +1721,8 @@ moreArguments:
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        private static ErrorCode GetMethodGroupLvalueError(BindValueKind valueKind)
+        private static ErrorCode GetMethodGroupOrFunctionPointerLvalueError(BindValueKind valueKind)
         {
-            if (valueKind == BindValueKind.AddressOf)
-            {
-                return ErrorCode.ERR_InvalidAddrOp;
-            }
-
             if (RequiresReferenceToLocation(valueKind))
             {
                 return ErrorCode.ERR_RefReadonlyLocalCause;
@@ -2516,6 +2583,11 @@ moreArguments:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
                     return scopeOfTheContainingExpression;
+
+                case BoundKind.ConvertedSwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                    var switchExpr = (BoundSwitchExpression)expr;
+                    return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
                 default:
                     // in error situations some unexpected nodes could make here

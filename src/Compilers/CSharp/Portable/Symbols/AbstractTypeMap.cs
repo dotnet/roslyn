@@ -108,6 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.PointerType:
                     result = SubstitutePointerType((PointerTypeSymbol)previous);
                     break;
+                case SymbolKind.FunctionPointerType:
+                    result = SubstituteFunctionPointerType((FunctionPointerTypeSymbol)previous);
+                    break;
                 case SymbolKind.DynamicType:
                     result = SubstituteDynamicType();
                     break;
@@ -230,6 +233,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new PointerTypeSymbol(pointedAtType);
+        }
+
+        private FunctionPointerTypeSymbol SubstituteFunctionPointerType(FunctionPointerTypeSymbol f)
+        {
+            var substitutedReturnType = f.Signature.ReturnTypeWithAnnotations.SubstituteType(this);
+            var refCustomModifiers = f.Signature.RefCustomModifiers;
+            var substitutedRefCustomModifiers = SubstituteCustomModifiers(refCustomModifiers);
+
+            var parameterTypesWithAnnotations = f.Signature.ParameterTypesWithAnnotations;
+            ImmutableArray<TypeWithAnnotations> substitutedParamTypes = SubstituteTypes(parameterTypesWithAnnotations);
+
+            ImmutableArray<ImmutableArray<CustomModifier>> substitutedParamModifiers = default;
+
+            var paramCount = f.Signature.Parameters.Length;
+            if (paramCount > 0)
+            {
+                var builder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(paramCount);
+                bool didSubstitute = false;
+                foreach (var param in f.Signature.Parameters)
+                {
+                    var substituted = SubstituteCustomModifiers(param.RefCustomModifiers);
+                    builder.Add(substituted);
+                    if (substituted != param.RefCustomModifiers)
+                    {
+                        didSubstitute = true;
+                    }
+                }
+
+                if (didSubstitute)
+                {
+                    substitutedParamModifiers = builder.ToImmutableAndFree();
+                }
+                else
+                {
+                    builder.Free();
+                }
+            }
+
+            if (substitutedParamTypes != parameterTypesWithAnnotations
+                || !substitutedParamModifiers.IsDefault
+                || !f.Signature.ReturnTypeWithAnnotations.IsSameAs(substitutedReturnType)
+                || substitutedRefCustomModifiers != refCustomModifiers)
+            {
+                f = f.SubstituteTypeSymbol(substitutedReturnType, substitutedParamTypes, refCustomModifiers, substitutedParamModifiers);
+            }
+
+            return f;
         }
 
         internal ImmutableArray<TypeSymbol> SubstituteTypesWithoutModifiers(ImmutableArray<TypeSymbol> original)

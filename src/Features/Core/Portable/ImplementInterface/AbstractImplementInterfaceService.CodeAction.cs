@@ -136,29 +136,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 var assemblyName = interfaceType.ContainingAssembly.Name;
 
-                return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, onlyRemaining, throughMember, codeActionTypeName);
-            }
-
-            private static string GetCodeActionEquivalenceKey(
-                string interfaceTypeAssemblyName,
-                string interfaceTypeFullyQualifiedName,
-                bool explicitly,
-                bool abstractly,
-                bool onlyRemaining,
-                ISymbol throughMember,
-                string codeActionTypeName)
-            {
-                if (throughMember != null)
-                {
-                    return null;
-                }
-
+                // Consider code actions equivalent if they correspond to the same interface being implemented elsewhere
+                // in the same manner.  Note: 'implement through member' means implementing the same interface through
+                // an applicable member with the same name in the destination.
                 return explicitly.ToString() + ";" +
-                    abstractly.ToString() + ";" +
-                    onlyRemaining.ToString() + ":" +
-                    interfaceTypeAssemblyName + ";" +
-                    interfaceTypeFullyQualifiedName + ";" +
-                    codeActionTypeName;
+                   abstractly.ToString() + ";" +
+                   onlyRemaining.ToString() + ":" +
+                   typeName + ";" +
+                   assemblyName + ";" +
+                   codeActionTypeName + ";" +
+                   throughMember?.Name;
             }
 
             public override string EquivalenceKey => _equivalenceKey;
@@ -242,8 +229,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // That's because later members won't conflict with it even if they have the same
                 // signature otherwise.  i.e. if we chose to implement IGoo.Bar explicitly, then we
                 // could implement IQuux.Bar implicitly (and vice versa).
-                var implementedVisibleMembers = new List<ISymbol>();
-                var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
+                using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var implementedVisibleMembers);
+                using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var implementedMembers);
 
                 foreach (var (_, unimplementedInterfaceMembers) in unimplementedMembers)
                 {
@@ -264,7 +251,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                return implementedMembers.ToImmutableAndFree();
+                return implementedMembers.ToImmutable();
             }
 
             private bool IsReservedName(string name)
@@ -274,7 +261,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     State.ClassOrStructType.TypeParameters.Any(t => IdentifiersMatch(t.Name, name));
             }
 
-            private string DetermineMemberName(ISymbol member, List<ISymbol> implementedVisibleMembers)
+            private string DetermineMemberName(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
             {
                 if (HasConflictingMember(member, implementedVisibleMembers))
                 {
@@ -293,7 +280,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private ISymbol GenerateMember(
                 Compilation compilation,
                 ISymbol member,
-                List<ISymbol> implementedVisibleMembers,
+                ArrayBuilder<ISymbol> implementedVisibleMembers,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 // First check if we already generate a member that matches the member we want to
@@ -502,7 +489,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            private bool HasMatchingMember(List<ISymbol> implementedVisibleMembers, ISymbol member)
+            private bool HasMatchingMember(ArrayBuilder<ISymbol> implementedVisibleMembers, ISymbol member)
             {
                 // If this is a language that doesn't support implicit implementation then no
                 // implemented members will ever match.  For example, if you have:

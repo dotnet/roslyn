@@ -1006,6 +1006,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 case SymbolKind.TypeParameter:
                     return Translate((TypeParameterSymbol)typeSymbol);
+
+                case SymbolKind.FunctionPointerType:
+                    return Translate((FunctionPointerTypeSymbol)typeSymbol);
             }
 
             throw ExceptionUtilities.UnexpectedValue(typeSymbol.Kind);
@@ -1369,6 +1372,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal static Cci.IPointerTypeReference Translate(PointerTypeSymbol symbol)
+        {
+            return symbol;
+        }
+
+        internal static Cci.IFunctionPointerTypeReference Translate(FunctionPointerTypeSymbol symbol)
         {
             return symbol;
         }

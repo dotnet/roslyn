@@ -912,16 +912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case useSiteInfo.DiagnosticInfo.Code
                     Case ERRID.ERR_UnsupportedType1
 
-                        Select Case Me.Kind
-                            Case SymbolKind.Field
-                                useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
-
-                            Case SymbolKind.Method
-                                useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
-
-                            Case SymbolKind.Property
-                                useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
-                        End Select
+                        GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(useSiteInfo)
 
                     Case Else
                         ' Nothing to do, simply use the same error info.
@@ -930,6 +921,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return useSiteInfo
         End Function
+
+        Private Sub GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol))
+            Select Case Me.Kind
+                Case SymbolKind.Field
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+
+                Case SymbolKind.Method
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+
+                Case SymbolKind.Property
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+            End Select
+        End Sub
 
         ''' <summary>
         ''' Return error code that has highest priority while calculating use site error for this symbol. 
@@ -1023,7 +1027,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
 
             For Each modifier As CustomModifier In customModifiers
-                If MergeUseSiteInfo(modifiersUseSiteInfo, DeriveUseSiteInfoFromType(DirectCast(modifier.Modifier, TypeSymbol)), highestPriorityUseSiteError) Then
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol)
+
+                If modifier.IsOptional Then
+                    useSiteInfo = DeriveUseSiteInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
+                Else
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
+                    GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(useSiteInfo)
+                End If
+
+                If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo, highestPriorityUseSiteError) Then
                     Exit For
                 End If
             Next

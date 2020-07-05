@@ -365,8 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinition);
 
             // Check return type, custom modifiers and parameters:
-            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations) ||
-                DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers) ||
+            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
+                DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
                 DeriveUseSiteInfoFromParameters(ref result, this.Parameters))
             {
                 return true;
