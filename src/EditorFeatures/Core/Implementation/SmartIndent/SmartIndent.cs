@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         {
             if (lineToBeIndented == null)
             {
-                throw new ArgumentNullException(@"line");
+                throw new ArgumentNullException(nameof(lineToBeIndented));
             }
 
             using (Logger.LogBlock(FunctionId.SmartIndentation_Start, cancellationToken))
