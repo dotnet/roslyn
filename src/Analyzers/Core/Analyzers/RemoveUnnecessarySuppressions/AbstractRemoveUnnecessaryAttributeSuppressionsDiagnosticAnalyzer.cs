@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 {
-    internal abstract class AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer
+    internal abstract class AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer
         : AbstractCodeQualityDiagnosticAnalyzer
     {
         internal const string DocCommentIdKey = nameof(DocCommentIdKey);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         internal static readonly DiagnosticDescriptor LegacyFormatTargetDescriptor = CreateDescriptor(
             IDEDiagnosticIds.LegacyFormatSuppressMessageAttributeDiagnosticId, s_localizableLegacyFormatTitle, s_localizableLegacyFormatMessage, isUnnecessary: false);
 
-        public AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer()
+        protected AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_invalidScopeDescriptor, s_invalidOrMissingTargetDescriptor, LegacyFormatTargetDescriptor), GeneratedCodeAnalysisFlags.None)
         {
         }

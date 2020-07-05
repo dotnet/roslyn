@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IEnumerable<string> usedNames, CancellationToken cancellationToken)
         {
             var container = containerOpt ?? location.AncestorsAndSelf().FirstOrDefault(
-                a => SyntaxFacts.IsExecutableBlock(a) || SyntaxFacts.IsMethodBody(a));
+                a => SyntaxFacts.IsExecutableBlock(a) || SyntaxFacts.IsParameterList(a) || SyntaxFacts.IsMethodBody(a));
 
             var candidates = GetCollidableSymbols(semanticModel, location, container, cancellationToken);
             var filteredCandidates = filter != null ? candidates.Where(filter) : candidates;

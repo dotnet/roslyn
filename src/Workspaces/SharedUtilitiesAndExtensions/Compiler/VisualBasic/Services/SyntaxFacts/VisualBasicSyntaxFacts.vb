@@ -202,6 +202,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.GetParameterList()
         End Function
 
+        Public Function IsParameterList(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterList
+            Return node.IsKind(SyntaxKind.ParameterList)
+        End Function
+
         Public Function ISyntaxFacts_HasIncompleteParentMember(node As SyntaxNode) As Boolean Implements ISyntaxFacts.HasIncompleteParentMember
             Return HasIncompleteParentMember(node)
         End Function
@@ -1600,6 +1604,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsElastic(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsElastic
             Return trivia.IsElastic()
+        End Function
+
+        Public Function IsPragmaDirective(trivia As SyntaxTrivia, ByRef isDisable As Boolean, ByRef isActive As Boolean, ByRef errorCodes As SeparatedSyntaxList(Of SyntaxNode)) As Boolean Implements ISyntaxFacts.IsPragmaDirective
+            Return trivia.IsPragmaDirective(isDisable, isActive, errorCodes)
         End Function
 
         Public Function IsOnTypeHeader(

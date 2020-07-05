@@ -232,6 +232,11 @@
         <target state="translated">不要なかっこの削除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression">
+        <source>Remove unnecessary suppression</source>
+        <target state="new">Remove unnecessary suppression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">読み取られていないプライベート メンバーを削除</target>

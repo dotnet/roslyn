@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
             }
 
-            private void DocumentClosed(object sender, DocumentEventArgs e)
+            private void DocumentClosed(object? sender, DocumentEventArgs e)
             {
                 lock (_trackingSpans)
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
             }
 
-            private void DocumentOpened(object sender, DocumentEventArgs e)
+            private void DocumentOpened(object? sender, DocumentEventArgs e)
                 => _ = TrackActiveSpansAsync(e.Document, _cancellationSource.Token);
 
             private async Task TrackActiveSpansAsync(Document document, CancellationToken cancellationToken)
