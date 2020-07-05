@@ -12597,8 +12597,8 @@ class C
             AssertNonvirtualTupleElementField(m2Item1);
             AssertVirtualTupleElementField(m2a2);
 
+            Assert.Equal("TupleElementFieldSymbol", m1Item1.GetType().Name);
             Assert.Same(m1Item1, m1Item1.OriginalDefinition);
-            Assert.True(m1Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything)); // TODO2
             Assert.True(m1Item1.Equals(m1Item1));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m1Item1.AssociatedSymbol);
@@ -12613,8 +12613,8 @@ class C
             Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
-            Assert.NotSame(m2Item1, m2Item1.OriginalDefinition);
-            Assert.True(m2Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m2Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
+            Assert.Equal("TupleElementFieldSymbol", m2Item1.GetType().Name);
+            Assert.Same(m2Item1, m2Item1.OriginalDefinition);
             Assert.True(m2Item1.Equals(m2Item1));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m2Item1.AssociatedSymbol);
@@ -12632,6 +12632,7 @@ class C
             Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
+            Assert.Equal("TupleVirtualElementFieldSymbol", m2a2.GetType().Name);
             Assert.Same(m2a2, m2a2.OriginalDefinition);
             Assert.True(m2a2.Equals(m2a2));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2a2.TupleUnderlyingField.ToTestDisplayString());
@@ -28177,7 +28178,7 @@ namespace System
                 Assert.True(tuple1.GetMember<FieldSymbol>("Item1").IsDefinition);
 
                 var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M2").ReturnType;
-                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2)", print(tuple2)); // TODO2
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2)", print(tuple2));
                 AssertEx.SetEqual(new[] {
                     "SubstitutedFieldSymbol: field",
                     "TupleElementFieldSymbol: Item1",
@@ -28270,6 +28271,14 @@ public class C
                     "TupleElementFieldSymbol: Item7",
                     "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple1));
                 assertUnderlying(tuple1);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item1").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item2").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item3").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item4").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item5").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item6").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item7").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item8").IsDefinition);
 
                 var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M2").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)", print(tuple2));
@@ -28283,8 +28292,16 @@ public class C
                     "TupleElementFieldSymbol: Item6",
                     "TupleElementFieldSymbol: Item7",
                     "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple2));
-                assertUnderlying(tuple1);
+                assertUnderlying(tuple2);
                 Assert.True(tuple2.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item1").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item2").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item3").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item4").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item5").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item6").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item7").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item8").IsDefinition);
 
                 var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M3").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, System.Int32 h)", print(tuple3));
@@ -28306,8 +28323,24 @@ public class C
                     "TupleVirtualElementFieldSymbol: f",
                     "TupleVirtualElementFieldSymbol: g",
                     "TupleVirtualElementFieldSymbol: h", }, printFields(tuple3));
-                assertUnderlying(tuple1);
-                Assert.True(tuple2.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
+                assertUnderlying(tuple3);
+                Assert.True(tuple3.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item1").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item2").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item3").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item4").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item5").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item6").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item7").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item8").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("a").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("b").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("c").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("d").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("e").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("f").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("g").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("h").IsDefinition);
 
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)", print(tuple3.TupleUnderlyingType));
                 AssertEx.SetEqual(new[] {
@@ -28320,7 +28353,6 @@ public class C
                     "TupleElementFieldSymbol: Item6",
                     "TupleElementFieldSymbol: Item7",
                     "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple3.TupleUnderlyingType));
-                assertUnderlying(tuple1);
 
                 var tuple4 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M4").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)", print(tuple4));
@@ -28334,8 +28366,16 @@ public class C
                     "TupleElementFieldSymbol: Item6",
                     "TupleElementFieldSymbol: Item7",
                     "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple4));
-                assertUnderlying(tuple1);
+                assertUnderlying(tuple4);
                 Assert.True(tuple4.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item1").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item2").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item3").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item4").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item5").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item6").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item7").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item8").IsDefinition);
             }
 
             static void assertUnderlying(NamedTypeSymbol type)
