@@ -715,6 +715,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isStatic)
                 {
+                    if (MethodThisParameter is null)
+                    {
+                        return -1;
+                    }
                     thisSlot = GetOrCreateSlot(MethodThisParameter);
                     if (thisSlot < 0)
                     {
@@ -771,6 +775,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+#if DEBUG
+        /// <summary>
+        /// Analyzes a set of bound nodes, recording updated nullability information. This method is only
+        /// used during debug runs when nullability is disabled to verify that correct semantic information
+        /// is being recorded for all bound nodes. The results are thrown away.
+        /// </summary>
+        internal static void AnalyzeWithoutRewrite(
+            CSharpCompilation compilation,
+            Symbol symbol,
+            BoundNode node,
+            Binder binder,
+            DiagnosticBag diagnostics,
+            bool createSnapshots)
+        {
+            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, diagnostics, createSnapshots);
+        }
+#endif
+
+        /// <summary>
+        /// Analyzes a set of bound nodes, recording updated nullability information, and returns an
+        /// updated BoundNode with the information populated..
+        /// </summary>
         internal static BoundNode AnalyzeAndRewrite(
             CSharpCompilation compilation,
             Symbol symbol,
@@ -780,6 +806,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool createSnapshots,
             out SnapshotManager? snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
+        {
+            ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilitiesMap;
+            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, diagnostics, createSnapshots);
+            return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);
+        }
+
+        private static (SnapshotManager?, ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>) AnalyzeWithSemanticInfo(
+            CSharpCompilation compilation,
+            Symbol symbol,
+            BoundNode node,
+            Binder binder,
+            DiagnosticBag diagnostics,
+            bool createSnapshots)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
 
@@ -802,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnTypesOpt: null);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
-            snapshotManager = snapshotBuilder?.ToManagerAndFree();
+            var snapshotManager = snapshotBuilder?.ToManagerAndFree();
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
@@ -811,7 +850,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
 #endif
-            return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);
+
+            return (snapshotManager, analyzedNullabilitiesMap);
         }
 
         internal static BoundNode AnalyzeAndRewriteSpeculation(
@@ -1268,6 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
 
@@ -1276,6 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty);
         }
+#nullable restore
 
         private void VisitAndUnsplitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
         {
@@ -2122,7 +2164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The starting state is the top state, but with captured
             // variables set according to Joining the state at all the
             // local function use sites
-            State = TopState().Clone();
+            State = TopState();
             for (int slot = 1; slot < localFunctionState.StartingState.Capacity; slot++)
             {
                 var symbol = variableBySlot[RootSlot(slot)].Symbol;

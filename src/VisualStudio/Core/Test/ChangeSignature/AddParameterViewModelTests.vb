@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
+Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
@@ -315,5 +316,46 @@ class MyClass
                 Return New AddParameterViewModelTestState(viewModel)
             End Using
         End Function
+
+        <WorkItem(44958, "https://github.com/dotnet/roslyn/issues/44958")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Sub AddParameter_SubmittingTypeWithModifiersIsInvalid()
+            Dim markup = <Text><![CDATA[
+class MyClass
+{
+    public void M($$) { }
+}"]]></Text>
+
+            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+
+            VerifyOpeningState(viewModel)
+
+            viewModel.ParameterName = "x"
+            viewModel.CallSiteValue = "1"
+
+            viewModel.TypeSymbol = Nothing
+            Dim message As String = Nothing
+
+            viewModel.VerbatimTypeName = "ref int"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+
+            viewModel.VerbatimTypeName = "this int"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+
+            viewModel.VerbatimTypeName = "this ref int"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+
+            viewModel.VerbatimTypeName = "out int"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+
+            viewModel.VerbatimTypeName = "params int[]"
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.Parameter_type_contains_invalid_characters, message)
+        End Sub
     End Class
 End Namespace

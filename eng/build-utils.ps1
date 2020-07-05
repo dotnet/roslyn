@@ -44,6 +44,20 @@ function GetBranchPublishData([string]$branchName) {
   }
 }
 
+function GetFeedPublishData() {
+  $data = GetPublishData
+  return $data.feeds
+}
+
+function GetPackagesPublishData([string]$packageFeeds) {
+  $data = GetPublishData
+  if (Get-Member -InputObject $data.packages -Name $packageFeeds) {
+    return $data.packages.$packageFeeds
+  } else {
+    return $null
+  }
+}
+
 function GetReleasePublishData([string]$releaseName) {
   $data = GetPublishData
 

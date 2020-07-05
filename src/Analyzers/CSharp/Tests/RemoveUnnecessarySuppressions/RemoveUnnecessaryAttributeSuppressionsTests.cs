@@ -5,18 +5,19 @@
 #nullable enable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions.CSharpRemoveUnnecessarySuppressionsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions.RemoveUnnecessarySuppressionsCodeFixProvider>;
+    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions.CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions.RemoveUnnecessaryAttributeSuppressionsCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppressions
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)]
     [WorkItem(44176, "https://github.com/dotnet/roslyn/issues/44176")]
-    public class RemoveUnnecessarySuppressionsTests
+    public class RemoveUnnecessaryAttributeSuppressionsTests
     {
         [Fact]
         public void TestStandardProperties()
@@ -181,6 +182,24 @@ class C
     public void M() {{ }}
 }}";
             await VerifyCS.VerifyCodeFixAsync(input, input);
+        }
+
+        [Fact, WorkItem(45465, "https://github.com/dotnet/roslyn/issues/45465")]
+        public async Task LegacyModeGlobalSuppressionWithNamespaceAndDescendantsScope()
+        {
+            var target = "N:N.InvalidChild";
+            var input = $@"
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""Id: Title"", Scope = ""namespaceanddescendants"", Target = {{|#0:""{target}""|}})]
+
+namespace N
+{{
+    class C {{ }}
+}}";
+            var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
+                                        .WithLocation(0)
+                                        .WithArguments(target);
+
+            await VerifyCS.VerifyCodeFixAsync(input, expectedDiagnostic, input);
         }
     }
 }

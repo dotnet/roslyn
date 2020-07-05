@@ -72,6 +72,11 @@
         <target state="translated">Préférer 'is nul' pour les vérifications d'égalité de référence</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="new">Prefer pattern matching</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
         <target state="translated">Préférer l'expression switch</target>
