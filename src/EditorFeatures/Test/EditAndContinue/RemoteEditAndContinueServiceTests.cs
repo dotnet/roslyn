@@ -135,6 +135,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var mockEncService = (MockEditAndContinueWorkspaceService)SolutionService.PrimaryWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
             var span1 = new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5));
+            var threadId1 = new Guid("{22222222-1111-1111-1111-111111111111}");
+            var threadId2 = new Guid("{33333333-1111-1111-1111-111111111111}");
             var moduleId1 = new Guid("{44444444-1111-1111-1111-111111111111}");
             var instructionId1 = new ActiveInstructionId(moduleId1, methodToken: 0x06000003, methodVersion: 2, ilOffset: 10);
 
@@ -142,10 +144,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 instructionId1,
                 documentName: "test.cs",
                 span1,
-                threadIds: ImmutableArray.Create(new Guid("{22222222-2222-2222-2222-222222222222}"), new Guid("{33333333-3333-3333-3333-333333333333}")),
+                threadIds: ImmutableArray.Create(threadId1, threadId2),
                 flags: ActiveStatementFlags.IsLeafFrame | ActiveStatementFlags.PartiallyExecuted);
 
-            var methodId1 = new ActiveMethodId(new Guid("{22222222-1111-1111-1111-111111111111}"), token: 0x06000002, version: 1);
+            var methodId1 = new ActiveMethodId(new Guid("{11111111-1111-1111-1111-111111111111}"), token: 0x06000002, version: 1);
 
             var region1 = new NonRemappableRegion(
                 new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5)),
@@ -220,10 +222,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                     updatedMethods: ImmutableArray.Create(0x06000001),
                     lineEdits: ImmutableArray.Create(("file.cs", ImmutableArray.Create(new LineChange(1, 2)))),
                     nonRemappableRegions: ImmutableArray.Create((methodId1, region1)),
-                    activeStatementsInUpdatedMethods: ImmutableArray.Create((
-                        new Guid("{33333333-1111-1111-1111-111111111111}"),
-                        instructionId1,
-                        new LinePositionSpan(new LinePosition(5, 6), new LinePosition(5, 10)))))));
+                    activeStatementsInUpdatedMethods: ImmutableArray.Create((threadId1, instructionId1, span1)))));
             };
 
             var (status, deltas) = await proxy.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
@@ -240,6 +239,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             Assert.Equal("file.cs", lineEdit.SourceFilePath);
             AssertEx.Equal(new[] { new LineChange(1, 2) }, lineEdit.Deltas);
             Assert.Equal((methodId1, region1), delta.NonRemappableRegions.Single());
+
+            var activeStatements = delta.ActiveStatementsInUpdatedMethods.Single();
+            Assert.Equal(threadId1, activeStatements.ThreadId);
+            Assert.Equal(instructionId1, activeStatements.OldInstructionId);
+            Assert.Equal(span1, activeStatements.NewSpan);
 
             // CommitUpdates
 

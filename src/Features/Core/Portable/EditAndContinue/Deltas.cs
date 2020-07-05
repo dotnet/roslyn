@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public ImmutableArray<(string SourceFilePath, ImmutableArray<(int OldLine, int NewLine)> Deltas)> LineEdits;
             public ImmutableArray<int> UpdatedMethods;
             public ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> NonRemappableRegions;
-            public ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> ActiveStatementsInUpdatedMethods;
+            public ImmutableArray<(Guid ThreadId, Guid OldModuleId, int OldMethodToken, int OldMethodVersion, int OldILOffset, LinePositionSpan NewSpan)> ActiveStatementsInUpdatedMethods;
 
             public Deltas Deserialize()
                 => new Deltas(
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     UpdatedMethods,
                     LineEdits.SelectAsArray(e => (e.SourceFilePath, e.Deltas.SelectAsArray(ld => new LineChange(ld.OldLine, ld.NewLine)))),
                     NonRemappableRegions,
-                    ActiveStatementsInUpdatedMethods);
+                    ActiveStatementsInUpdatedMethods.SelectAsArray(s => (s.ThreadId, new ActiveInstructionId(s.OldModuleId, s.OldMethodToken, s.OldMethodVersion, s.OldILOffset), s.NewSpan)));
         }
 
         public readonly Guid Mvid;
@@ -76,9 +76,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Metadata = Metadata,
                 Pdb = Pdb,
                 UpdatedMethods = UpdatedMethods,
-                LineEdits = LineEdits.SelectAsArray(e => (e.SourceFilePath, e.Deltas.SelectAsArray(ld => (ld.OldLine, ld.NewLine)))),
+                LineEdits = LineEdits.
+                    SelectAsArray(e => (e.SourceFilePath, e.Deltas.SelectAsArray(ld => (ld.OldLine, ld.NewLine)))),
                 NonRemappableRegions = NonRemappableRegions,
-                ActiveStatementsInUpdatedMethods = ActiveStatementsInUpdatedMethods
+                ActiveStatementsInUpdatedMethods = ActiveStatementsInUpdatedMethods.
+                    SelectAsArray(s => (s.ThreadId, s.OldInstructionId.MethodId.ModuleId, s.OldInstructionId.MethodId.Token, s.OldInstructionId.MethodId.Version, s.OldInstructionId.ILOffset, s.NewSpan))
             };
     }
 }
