@@ -1107,6 +1107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitPatternCommon(IPatternOperation pattern)
         {
             Assert.NotNull(pattern.InputType);
+            Assert.NotNull(pattern.OutputType);
             Assert.Null(pattern.Type);
             Assert.False(pattern.ConstantValue.HasValue);
         }

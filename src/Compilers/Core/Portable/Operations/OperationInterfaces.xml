@@ -2361,6 +2361,11 @@
         <summary>The input type to the pattern-matching operation.</summary>
       </Comments>
     </Property>
+    <Property Name="OutputType" Type="ITypeSymbol">
+      <Comments>
+        <summary>The output type of the pattern-matching operation.</summary>
+      </Comments>
+    </Property>
   </AbstractNode>
   <Node Name="IConstantPatternOperation" Base="IPatternOperation">
     <Comments>
