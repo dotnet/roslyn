@@ -805,9 +805,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             SyntaxGenerator generator, ArrayBuilder<ISymbol> members,
             INamedTypeSymbol tupleType, INamedTypeSymbol structType)
         {
-            const string valueName = "value";
+            const string ValueName = "value";
 
-            var valueNode = generator.IdentifierName(valueName);
+            var valueNode = generator.IdentifierName(ValueName);
             var arguments = tupleType.TupleElements.SelectAsArray<IFieldSymbol, SyntaxNode>(
                 field => generator.Argument(
                     generator.MemberAccessExpression(valueNode, field.Name)));
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 Accessibility.Public,
                 DeclarationModifiers.Static,
                 tupleType,
-                CodeGenerationSymbolFactory.CreateParameterSymbol(structType, valueName),
+                CodeGenerationSymbolFactory.CreateParameterSymbol(structType, ValueName),
                 isImplicit: true,
                 ImmutableArray.Create(convertToTupleStatement)));
             members.Add(CodeGenerationSymbolFactory.CreateConversionSymbol(
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 Accessibility.Public,
                 DeclarationModifiers.Static,
                 structType,
-                CodeGenerationSymbolFactory.CreateParameterSymbol(tupleType, valueName),
+                CodeGenerationSymbolFactory.CreateParameterSymbol(tupleType, ValueName),
                 isImplicit: true,
                 ImmutableArray.Create(convertToStructStatement)));
         }
