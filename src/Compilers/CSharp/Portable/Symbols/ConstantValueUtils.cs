@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             var value = ConstantValue.Bad;
-            CheckConstantInterpolatedStringValidity(boundValue, thisSymbol, typeSymbol, initValueNodeLocation, diagnostics);
             if (!boundValue.HasAnyErrors)
             {
                 if (typeSymbol.TypeKind == TypeKind.TypeParameter)
@@ -154,19 +153,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            var visitor = new CheckConstantInterpolatedString();
+            visitor.Visit(boundValue);
+            if (visitor.ExistsBoundInterpolatedString)
+            {
+                Binder.CheckFeatureAvailability(boundValue.Syntax, MessageID.IDS_FeatureConstantInterpolatedStrings, diagnostics, initValueNodeLocation);
+            }
+
             return value;
         }
 
-        private static void CheckConstantInterpolatedStringValidity(
-            BoundExpression boundValue,
-            Symbol thisSymbol,
-            TypeSymbol typeSymbol,
-            Location initValueNodeLocation,
-            DiagnosticBag diagnostics)
+        private sealed class CheckConstantInterpolatedString : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
-            if (boundValue is BoundInterpolatedString)
+            internal bool ExistsBoundInterpolatedString = false;
+
+            public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
             {
-                Binder.CheckFeatureAvailability(boundValue.Syntax, MessageID.IDS_FeatureConstantInterpolatedStrings, diagnostics, initValueNodeLocation);
+                if (node is BoundInterpolatedString)
+                {
+                    ExistsBoundInterpolatedString = true;
+                }
+                return base.VisitInterpolatedString(node);
             }
         }
     }
