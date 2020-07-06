@@ -69,6 +69,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return memberInfo.LengthLikeProperty != null;
             }
 
+            public bool TryGetMemberInfoOneArgument(IMethodSymbol method, out MemberInfo memberInfo)
+            {
+                if (!IsSliceLikeMethodWithOneArgument(method))
+                {
+                    memberInfo = default;
+                    return false;
+                }
+
+                if (_methodToMemberInfo.TryGetValue(method, out memberInfo))
+                {
+                    return memberInfo.LengthLikeProperty != null;
+                }
+
+                // Find overload of our method that is a slice-like method with two arguments.
+                // Computing member info for this method will also check that the containing type
+                // has an int32 'Length' or 'Count' property, and has a suitable indexer,
+                // so we don't have to.
+                var overloadWithTwoArguments = method.ContainingType
+                    .GetMembers(method.Name)
+                    .OfType<IMethodSymbol>()
+                    .FirstOrDefault(s => IsSliceLikeMethod(s));
+                if (overloadWithTwoArguments is null)
+                {
+                    memberInfo = default;
+                    return false;
+                }
+
+                // Since the search is expensive, we keep both the original one-argument and
+                // two-arguments overload as keys in the cache, pointing to the same
+                // member information object.
+                var newMemberInfo = _methodToMemberInfo.GetOrAdd(overloadWithTwoArguments, _ => ComputeMemberInfo(overloadWithTwoArguments, requireRangeMember: true));
+                _methodToMemberInfo.GetOrAdd(method, _ => newMemberInfo);
+                memberInfo = newMemberInfo;
+                return memberInfo.LengthLikeProperty != null;
+            }
+
             private MemberInfo ComputeMemberInfo(IMethodSymbol sliceLikeMethod, bool requireRangeMember)
             {
                 Debug.Assert(IsSliceLikeMethod(sliceLikeMethod));

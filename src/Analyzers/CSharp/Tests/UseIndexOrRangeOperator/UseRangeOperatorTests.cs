@@ -205,6 +205,96 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestSubstringOneArgument()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|1|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[1..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestSliceOneArgument()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s.Slice([|1|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s[1..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionOneArgument()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s, int bar)
+    {
+        var v = s.Substring([|bar|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s, int bar)
+    {
+        var v = s[bar..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestConstantSubtraction1()
         {
             var source =
@@ -417,6 +507,38 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestFixAllInvocationToElementAccess2()
+        {
+            // Note: once the IOp tree has support for range operators, this should 
+            // simplify even further.
+            var source =
+@"
+class C
+{
+    void Goo(string s, string t)
+    {
+        var v = t.Substring([|s.Substring([|1|])[0]|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s, string t)
+    {
+        var v = t[s[1..][0]..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestWithTypeWithActualSliceMethod1()
         {
             var source =
@@ -469,6 +591,38 @@ class C
     void Goo(Span<int> s)
     {
         var v = s[1..^1];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestWithTypeWithActualSliceMethod3()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s.Slice([|1|]);
+    }
+}";
+            var fixedSource =
+@"
+using System;
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s[1..];
     }
 }";
 

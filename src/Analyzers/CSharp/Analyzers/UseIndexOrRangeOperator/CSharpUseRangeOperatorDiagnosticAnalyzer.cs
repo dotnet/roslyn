@@ -111,13 +111,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 }
             }
 
-            // look for `s.Slice(e1, end - e2)`
-            if (invocation.Instance is null ||
-                invocation.Arguments.Length != 2)
+            // look for `s.Slice(e1, end - e2)` or `s.Slice(e1)`
+            if (invocation.Instance is null)
             {
                 return null;
             }
 
+            return invocation.Arguments.Length switch
+            {
+                1 => AnalyzeInvocationWithOneArgument(invocation, infoCache, invocationSyntax, option),
+                2 => AnalyzeInvocationWithTwoArguments(invocation, infoCache, invocationSyntax, option),
+                _ => null,
+            };
+        }
+
+        private static Result? AnalyzeInvocationWithOneArgument(
+            IInvocationOperation invocation,
+            InfoCache infoCache,
+            InvocationExpressionSyntax invocationSyntax,
+            CodeStyleOption2<bool> option)
+        {
+            // See if the call is to something slice-like.
+            var targetMethod = invocation.TargetMethod;
+
+            // Try to see if we're calling into some sort of Slice method with a matching
+            // indexer or overload
+            if (!infoCache.TryGetMemberInfoOneArgument(targetMethod, out var memberInfo))
+            {
+                return null;
+            }
+
+            var startOperation = invocation.Arguments[0].Value;
+            return new Result(
+                ResultKind.Computed,
+                option,
+                invocation,
+                invocationSyntax,
+                targetMethod,
+                memberInfo,
+                startOperation,
+                null); // secondOperation is null: the range will run to the end.
+        }
+
+        private static Result? AnalyzeInvocationWithTwoArguments(
+            IInvocationOperation invocation,
+            InfoCache infoCache,
+            InvocationExpressionSyntax invocationSyntax,
+            CodeStyleOption2<bool> option)
+        {
             // See if the call is to something slice-like.
             var targetMethod = invocation.TargetMethod;
 
