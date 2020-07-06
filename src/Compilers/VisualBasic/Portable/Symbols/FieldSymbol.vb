@@ -471,7 +471,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitField(Me)
         End Sub
