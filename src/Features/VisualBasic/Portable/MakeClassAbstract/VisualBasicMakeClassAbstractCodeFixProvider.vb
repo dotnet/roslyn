@@ -5,12 +5,12 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.MakeClassAbstract
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeClassAbstract
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicMakeClassAbstractCodeFixProvider)), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicMakeClassAbstractCodeFixProvider)), [Shared]>
     Friend NotInheritable Class VisualBasicMakeClassAbstractCodeFixProvider
         Inherits AbstractMakeClassAbstractCodeFixProvider(Of ClassStatementSyntax)
 
