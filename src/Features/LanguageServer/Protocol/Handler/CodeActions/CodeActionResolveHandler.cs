@@ -90,42 +90,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var applyChangesOperations = operations.OfType<ApplyChangesOperation>();
             if (applyChangesOperations.Any())
             {
-                var workspaceEdits = await ComputeWorkspaceEdits(applyChangesOperations, document!, cancellationToken).ConfigureAwait(false);
-                if (workspaceEdits != null)
-                {
-                    codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = workspaceEdits };
-                }
-                else
-                {
-                    // The workspace edit is something we don't currently support, like adding a new document.
-                    runAsCommand = true;
-                }
-            }
-
-            // Set up to run as command on the server instead of using WorkspaceEdits.
-            var commandOperations = operations.All(operation => !(operation is ApplyChangesOperation));
-            if (commandOperations || runAsCommand)
-            {
-                codeAction.Command = new LSP.Command
-                {
-                    CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
-                    Title = codeAction.Title,
-                    Arguments = new object[] { data }
-                };
-            }
-
-            return codeAction;
-
-            // Local functions
-            static async Task<TextDocumentEdit[]?> ComputeWorkspaceEdits(
-                IEnumerable<ApplyChangesOperation> applyChangesOperations,
-                Document document,
-                CancellationToken cancellationToken)
-            {
                 using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
                 foreach (var applyChangesOperation in applyChangesOperations)
                 {
-                    var solution = document.Project.Solution;
+                    var solution = document!.Project.Solution;
                     var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
                     var projectChanges = changes.GetProjectChanges();
 
@@ -136,7 +104,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         pc => pc.GetAddedDocuments().Concat(pc.GetAddedAdditionalDocuments().Concat(pc.GetAddedAnalyzerConfigDocuments())));
                     if (addedDocuments.Any())
                     {
-                        return null;
+                        runAsCommand = true;
+                        break;
                     }
 
                     var changedDocuments = projectChanges.SelectMany(pc => pc.GetChangedDocuments());
@@ -151,7 +120,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         changedAnalyzerConfigDocuments.Any() ||
                         changedAdditionalDocuments.Any())
                     {
-                        return null;
+                        runAsCommand = true;
+                        break;
                     }
 
                     // Changed documents
@@ -177,32 +147,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         cancellationToken).ConfigureAwait(false);
                 }
 
-                return textDocumentEdits.ToArray();
+                codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
+            }
 
-                static async Task AddTextDocumentEdits<T>(
-                    ArrayBuilder<TextDocumentEdit> textDocumentEdits,
-                    ApplyChangesOperation applyChangesOperation,
-                    Solution solution,
-                    IEnumerable<DocumentId> changedDocuments,
-                    Func<DocumentId, T?> getNewDocumentFunc,
-                    Func<DocumentId, T?> getOldDocumentFunc,
-                    CancellationToken cancellationToken)
-                    where T : TextDocument
+            // Set up to run as command on the server instead of using WorkspaceEdits.
+            var commandOperations = operations.All(operation => !(operation is ApplyChangesOperation));
+            if (commandOperations || runAsCommand)
+            {
+                codeAction.Command = new LSP.Command
                 {
-                    foreach (var docId in changedDocuments)
-                    {
-                        var newDoc = getNewDocumentFunc(docId);
-                        var oldDoc = getOldDocumentFunc(docId);
+                    CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
+                    Title = codeAction.Title,
+                    Arguments = new object[] { data }
+                };
+            }
 
-                        var oldText = await oldDoc!.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        var newText = await newDoc!.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return codeAction;
 
-                        var textChanges = newText.GetTextChanges(oldText).ToList();
+            // Local functions
+            static async Task AddTextDocumentEdits<T>(
+                ArrayBuilder<TextDocumentEdit> textDocumentEdits,
+                ApplyChangesOperation applyChangesOperation,
+                Solution solution,
+                IEnumerable<DocumentId> changedDocuments,
+                Func<DocumentId, T?> getNewDocumentFunc,
+                Func<DocumentId, T?> getOldDocumentFunc,
+                CancellationToken cancellationToken)
+                where T : TextDocument
+            {
+                foreach (var docId in changedDocuments)
+                {
+                    var newDoc = getNewDocumentFunc(docId);
+                    var oldDoc = getOldDocumentFunc(docId);
 
-                        var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                        var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newDoc.GetURI() };
-                        textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits.ToArray() });
-                    }
+                    var oldText = await oldDoc!.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await newDoc!.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    var textChanges = newText.GetTextChanges(oldText).ToList();
+
+                    var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
+                    var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newDoc.GetURI() };
+                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits.ToArray() });
                 }
             }
         }
