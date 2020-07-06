@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// <summary>
         /// Operation visitor to flow the copy values across a given statement in a basic block.
         /// </summary>
-        private sealed class CopyDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyAbstractValue>
+        private sealed class CopyDataFlowOperationVisitor : PredicateAnalysisEntityDataFlowOperationVisitor<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyAbstractValue>
         {
             public CopyDataFlowOperationVisitor(CopyAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -161,12 +161,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     return;
                 }
 
-                if (value.AnalysisEntities.Count > 0)
+                if (!value.AnalysisEntities.IsEmpty)
                 {
                     var validEntities = value.AnalysisEntities.Where(entity => !entity.HasUnknownInstanceLocation).ToImmutableHashSet();
                     if (validEntities.Count < value.AnalysisEntities.Count)
                     {
-                        value = validEntities.Count > 0 ? new CopyAbstractValue(validEntities, value.Kind) : CopyAbstractValue.Unknown;
+                        value = !validEntities.IsEmpty ? new CopyAbstractValue(validEntities, value.Kind) : CopyAbstractValue.Unknown;
                     }
                 }
 

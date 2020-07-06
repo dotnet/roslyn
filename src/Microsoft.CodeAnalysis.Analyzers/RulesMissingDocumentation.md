@@ -31,3 +31,6 @@ RS1027 |  | Types marked with DiagnosticAnalyzerAttribute(s) should inherit from
 RS1028 |  | Provide non-null 'customTags' value to diagnostic descriptor constructor. |
 RS1029 |  | Do not use reserved diagnostic IDs. |
 RS1030 |  | Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer |
+RS1031 |  | Define diagnostic title correctly |
+RS1032 |  | Define diagnostic message correctly |
+RS1033 |  | Define diagnostic description correctly |

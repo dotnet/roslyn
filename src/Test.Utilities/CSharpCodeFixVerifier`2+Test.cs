@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Test.Utilities
 {
@@ -25,12 +26,22 @@ namespace Test.Utilities
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
+                    var project = solution.GetProject(projectId)!;
+                    var parseOptions = (CSharpParseOptions)project.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
+                    var compilationOptions = project.CompilationOptions!;
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(NullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
+
+                    if (AnalyzerConfigDocument is not null)
+                    {
+                        solution = solution.AddAnalyzerConfigDocument(
+                            DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
+                            ".editorconfig",
+                            SourceText.From($"is_global = true" + Environment.NewLine + AnalyzerConfigDocument),
+                            filePath: @"z:\.editorconfig");
+                    }
 
                     return solution;
                 });
@@ -51,6 +62,8 @@ namespace Test.Utilities
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp7_3;
+
+            public string? AnalyzerConfigDocument { get; set; }
         }
     }
 }

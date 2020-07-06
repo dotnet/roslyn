@@ -1,70 +1,73 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class CreateTestAccessorFixer : CodeFixProvider
+    public abstract class AbstractCreateTestAccessor<TTypeDeclarationSyntax> : CodeRefactoringProvider
+        where TTypeDeclarationSyntax : SyntaxNode
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RoslynDiagnosticIds.CreateTestAccessorRuleId);
-
-        public sealed override FixAllProvider? GetFixAllProvider()
+        protected AbstractCreateTestAccessor()
         {
-            // This is a refactoring for one-off test accessor creation. Batch fixing is disabled.
-            return null;
         }
+
+        private protected abstract IRefactoringHelpers RefactoringHelpers { get; }
 
         protected abstract SyntaxNode GetTypeDeclarationForNode(SyntaxNode reportedNode);
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            var type = await context.TryGetRelevantNodeAsync<TTypeDeclarationSyntax>(RefactoringHelpers).ConfigureAwait(false);
+            if (type is null)
+                return;
+
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            var typeSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(type, context.CancellationToken);
+            if (!IsClassOrStruct(typeSymbol))
+                return;
 
-            foreach (var diagnostic in context.Diagnostics)
-            {
-                var syntaxTree = diagnostic.Location.SourceTree;
-                var syntaxRoot = await syntaxTree.GetRootAsync(context.CancellationToken).ConfigureAwait(false);
-                var reportedNode = syntaxRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                var typeDeclaration = GetTypeDeclarationForNode(reportedNode);
-                var type = (ITypeSymbol)semanticModel.GetDeclaredSymbol(typeDeclaration, context.CancellationToken);
-                if (type.GetTypeMembers(CreateTestAccessor.TestAccessorTypeName).Any())
-                {
-                    continue;
-                }
+            if (typeSymbol.GetTypeMembers(TestAccessorHelper.TestAccessorTypeName).Any())
+                return;
 
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        RoslynDiagnosticsAnalyzersResources.CreateTestAccessorMessage,
-                        cancellationToken => CreateTestAccessorAsync(context.Document, diagnostic, cancellationToken),
-                        nameof(CreateTestAccessorFixer)),
-                    diagnostic);
-            }
+            var location = typeSymbol.Locations.FirstOrDefault(location => location.IsInSource && Equals(location.SourceTree, semanticModel.SyntaxTree));
+            if (location is null)
+                return;
+
+            context.RegisterRefactoring(
+                CodeAction.Create(
+                    RoslynDiagnosticsAnalyzersResources.CreateTestAccessorMessage,
+                    cancellationToken => CreateTestAccessorAsync(context.Document, location.SourceSpan, cancellationToken),
+                    nameof(AbstractCreateTestAccessor<TTypeDeclarationSyntax>)));
         }
 
-        private async Task<Document> CreateTestAccessorAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
+            => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
+
+        private async Task<Document> CreateTestAccessorAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var syntaxTree = diagnostic.Location.SourceTree;
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var reportedNode = syntaxRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+            var reportedNode = syntaxRoot.FindNode(sourceSpan, getInnermostNodeForTie: true);
             var typeDeclaration = GetTypeDeclarationForNode(reportedNode);
             var type = (ITypeSymbol)semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
 
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
             var newTestAccessorExpression = syntaxGenerator.ObjectCreationExpression(
-                syntaxGenerator.IdentifierName(CreateTestAccessor.TestAccessorTypeName),
+                syntaxGenerator.IdentifierName(TestAccessorHelper.TestAccessorTypeName),
                 syntaxGenerator.ThisExpression());
             var getTestAccessorMethod = syntaxGenerator.MethodDeclaration(
-                CreateTestAccessor.GetTestAccessorMethodName,
-                returnType: syntaxGenerator.IdentifierName(CreateTestAccessor.TestAccessorTypeName),
+                TestAccessorHelper.GetTestAccessorMethodName,
+                returnType: syntaxGenerator.IdentifierName(TestAccessorHelper.TestAccessorTypeName),
                 accessibility: Accessibility.Internal,
                 statements: new[] { syntaxGenerator.ReturnStatement(newTestAccessorExpression) });
 
@@ -76,12 +79,12 @@ namespace Roslyn.Diagnostics.Analyzers
                 Accessibility.Private,
                 DeclarationModifiers.ReadOnly);
             var testAccessorConstructor = syntaxGenerator.ConstructorDeclaration(
-                containingTypeName: CreateTestAccessor.TestAccessorTypeName,
+                containingTypeName: TestAccessorHelper.TestAccessorTypeName,
                 parameters: new[] { syntaxGenerator.ParameterDeclaration(parameterName, syntaxGenerator.TypeExpression(type)) },
                 accessibility: Accessibility.Internal,
                 statements: new[] { syntaxGenerator.AssignmentStatement(syntaxGenerator.IdentifierName(fieldName), syntaxGenerator.IdentifierName(parameterName)) });
             var testAccessorType = syntaxGenerator.StructDeclaration(
-                CreateTestAccessor.TestAccessorTypeName,
+                TestAccessorHelper.TestAccessorTypeName,
                 accessibility: Accessibility.Internal,
                 modifiers: DeclarationModifiers.ReadOnly,
                 members: new[] { testAccessorField, testAccessorConstructor });

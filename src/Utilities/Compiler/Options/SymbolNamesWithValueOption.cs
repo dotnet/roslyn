@@ -21,7 +21,7 @@ namespace Analyzer.Utilities
         internal const char WildcardChar = '*';
 
         public static readonly SymbolNamesWithValueOption<TValue> Empty = new SymbolNamesWithValueOption<TValue>();
-        internal static readonly KeyValuePair<string, TValue> NoWildcardMatch = default;
+        internal static KeyValuePair<string, TValue> NoWildcardMatch => default;
 
 #pragma warning disable CA1051 // Do not declare visible instance fields
         internal /* for testing purposes */ readonly ImmutableDictionary<string, TValue> _names;
@@ -102,7 +102,7 @@ namespace Analyzer.Utilities
 
                 // Wildcard is not last or is the only char, bail-out
                 if (numberOfWildcards == 1 &&
-                    (parts.SymbolName[parts.SymbolName.Length - 1] != WildcardChar ||
+                    (parts.SymbolName[^1] != WildcardChar ||
                     parts.SymbolName.Length == 1))
                 {
                     continue;
@@ -114,7 +114,7 @@ namespace Analyzer.Utilities
                 }
                 else if (parts.SymbolName.Equals(".ctor", StringComparison.Ordinal) ||
                     parts.SymbolName.Equals(".cctor", StringComparison.Ordinal) ||
-                    !parts.SymbolName.Contains(".") && !parts.SymbolName.Contains(":"))
+                    !parts.SymbolName.Contains(".", StringComparison.Ordinal) && !parts.SymbolName.Contains(":", StringComparison.Ordinal))
                 {
                     ProcessName(parts, namesBuilder);
                 }
@@ -136,7 +136,7 @@ namespace Analyzer.Utilities
             // Local functions
             static void ProcessWildcardName(NameParts parts, PooledDictionary<SymbolKind, PooledDictionary<string, TValue>> wildcardNamesBuilder)
             {
-                Debug.Assert(parts.SymbolName[parts.SymbolName.Length - 1] == WildcardChar);
+                Debug.Assert(parts.SymbolName[^1] == WildcardChar);
                 Debug.Assert(parts.SymbolName.Length >= 2);
 
                 if (parts.SymbolName[1] != ':')
@@ -145,7 +145,7 @@ namespace Analyzer.Utilities
                     {
                         wildcardNamesBuilder.Add(AllKinds, PooledDictionary<string, TValue>.GetInstance());
                     }
-                    wildcardNamesBuilder[AllKinds].Add(parts.SymbolName.Substring(0, parts.SymbolName.Length - 1), parts.AssociatedValue);
+                    wildcardNamesBuilder[AllKinds].Add(parts.SymbolName[0..^1], parts.AssociatedValue);
                     return;
                 }
 
@@ -166,7 +166,7 @@ namespace Analyzer.Utilities
                     {
                         wildcardNamesBuilder.Add(symbolKind.Value, PooledDictionary<string, TValue>.GetInstance());
                     }
-                    wildcardNamesBuilder[symbolKind.Value].Add(parts.SymbolName.Substring(2, parts.SymbolName.Length - 3), parts.AssociatedValue);
+                    wildcardNamesBuilder[symbolKind.Value].Add(parts.SymbolName[2..^1], parts.AssociatedValue);
                 }
             }
 
@@ -227,7 +227,7 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Gets the value associated with the specified symbol in the option specification.
         /// </summary>
-        public bool TryGetValue(ISymbol symbol, [NotNullWhen(true)] out TValue value)
+        public bool TryGetValue(ISymbol symbol, [MaybeNullWhen(false)] out TValue value)
         {
             if (_symbols.TryGetValue(symbol, out value) || _names.TryGetValue(symbol.Name, out value))
             {
@@ -240,15 +240,11 @@ namespace Analyzer.Utilities
                 return true;
             }
 
-#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
-#pragma warning disable CS8601 // Possible null reference assignment.
             value = default;
-#pragma warning restore CS8601 // Possible null reference assignment.
-#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
             return false;
         }
 
-        public override bool Equals(object obj) => Equals(obj as SymbolNamesWithValueOption<TValue>);
+        public override bool Equals(object? obj) => Equals(obj as SymbolNamesWithValueOption<TValue>);
 
         public bool Equals(SymbolNamesWithValueOption<TValue>? other)
             => other != null && _names.IsEqualTo(other._names) && _symbols.IsEqualTo(other._symbols) && _wildcardNamesBySymbolKind.IsEqualTo(other._wildcardNamesBySymbolKind);
@@ -258,15 +254,32 @@ namespace Analyzer.Utilities
 
         private bool TryGetFirstWildcardMatch(ISymbol symbol, out KeyValuePair<string, TValue> firstMatch)
         {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Event:
+                case SymbolKind.Field:
+                case SymbolKind.Method:
+                case SymbolKind.NamedType:
+                case SymbolKind.Namespace:
+                case SymbolKind.Property:
+                    break;
+
+                case SymbolKind.Assembly:
+                case SymbolKind.ErrorType:
+                case SymbolKind.NetModule:
+                    firstMatch = default;
+                    return false;
+
+                default:
+                    throw new ArgumentException($"Unsupported symbol kind: {symbol.Kind} ({symbol})");
+            }
+
             firstMatch = NoWildcardMatch;
 
             if (_wildcardNamesBySymbolKind.IsEmpty)
             {
                 return false;
             }
-
-            Debug.Assert(symbol.Kind == SymbolKind.Event || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.NamedType ||
-                symbol.Kind == SymbolKind.Namespace || symbol.Kind == SymbolKind.Property);
 
             // The matching was already processed
             if (_wildcardMatchResult.ContainsKey(symbol))
@@ -392,11 +405,11 @@ namespace Analyzer.Utilities
 
                 if (addParenthesis)
                 {
-                    nameBuilder.Append("(");
+                    nameBuilder.Append('(');
                 }
                 if (addBrackets)
                 {
-                    nameBuilder.Append("[");
+                    nameBuilder.Append('[');
                 }
 
                 for (int i = 0; i < parameters.Length; i++)
@@ -404,17 +417,17 @@ namespace Analyzer.Utilities
                     AppendParameterFullType(parameters[i], nameBuilder);
                     if (i < parameters.Length - 1)
                     {
-                        nameBuilder.Append(",");
+                        nameBuilder.Append(',');
                     }
                 }
 
                 if (addParenthesis)
                 {
-                    nameBuilder.Append(")");
+                    nameBuilder.Append(')');
                 }
                 if (addBrackets)
                 {
-                    nameBuilder.Append("]");
+                    nameBuilder.Append(']');
                 }
 
                 return nameBuilder.ToString();

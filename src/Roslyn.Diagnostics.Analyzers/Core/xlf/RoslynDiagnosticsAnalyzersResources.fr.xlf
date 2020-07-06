@@ -2,6 +2,26 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
+        <source>Remove the 'Opt' suffix</source>
+        <target state="new">Remove the 'Opt' suffix</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
+        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
+        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
+        <source>Avoid the 'Opt' suffix</source>
+        <target state="new">Avoid the 'Opt' suffix</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BlankLinesMessage">
         <source>Avoid multiple blank lines</source>
         <target state="translated">Éviter plusieurs lignes vides</target>
@@ -205,6 +225,11 @@
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="translated">Placer l'instruction sur la ligne suivante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
+        <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
+        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">

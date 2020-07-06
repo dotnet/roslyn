@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private static ImmutableArray<AbstractIndex> CreateAbstractIndices<T>(ImmutableArray<T> indices)
             where T : IOperation
         {
-            if (indices.Length > 0)
+            if (!indices.IsEmpty)
             {
                 var builder = ArrayBuilder<AbstractIndex>.GetInstance(indices.Length);
                 foreach (var index in indices)
@@ -268,12 +268,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     // 1) Indexers
                     // 2) Read-only properties.
                     // 3) Properties with a backing field (auto-generated properties)
-                    if (propertyReference.Arguments.Length > 0 ||
+                    if (!propertyReference.Arguments.IsEmpty ||
                         propertyReference.Property.IsReadOnly ||
                         propertyReference.Property.IsPropertyWithBackingField())
                     {
                         symbolOpt = propertyReference.Property;
-                        indices = propertyReference.Arguments.Length > 0 ?
+                        indices = !propertyReference.Arguments.IsEmpty ?
                             CreateAbstractIndices(propertyReference.Arguments.Select(a => a.Value).ToImmutableArray()) :
                             ImmutableArray<AbstractIndex>.Empty;
                     }

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         SymbolOpt.Kind != SymbolKind.Local &&
                         !SymbolOpt.IsStatic;
                 }
-                else if (Indices.Length > 0)
+                else if (!Indices.IsEmpty)
                 {
                     result = true;
                 }
@@ -154,6 +154,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Assert(ParentOpt == null || result);
                 return result;
             }
+        }
+
+        internal bool IsChildOrInstanceMemberNeedingCompletePointsToAnalysis()
+        {
+            if (!IsChildOrInstanceMember)
+            {
+                return false;
+            }
+
+            // PERF: This is the core performance optimization for partial PointsToAnalysisKind.
+            // We avoid tracking PointsToValues for all entities that are child or instance members,
+            // except when they are fields or members of a value type (for example, tuple elements or struct members).
+            return ParentOpt == null || !ParentOpt.Type.HasValueCopySemantics();
         }
 
         public bool HasConstantValue

@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
+            PointsToAnalysisKind defaultPointsToAnalysisKind,
             CancellationToken cancellationToken,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
-            bool pessimisticAnalysis = true,
-            bool performPointsToAnalysis = true)
+            bool pessimisticAnalysis = true)
         {
             return TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, analyzerOptions, rule,
-                cancellationToken, out var _, out var _, interproceduralAnalysisKind,
-                pessimisticAnalysis, performPointsToAnalysis);
+                defaultPointsToAnalysisKind, cancellationToken, out var _, out var _, interproceduralAnalysisKind,
+                pessimisticAnalysis);
         }
 
         public static ValueContentAnalysisResult? TryGetOrComputeResult(
@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
+            PointsToAnalysisKind defaultPointsToAnalysisKind,
             CancellationToken cancellationToken,
             out CopyAnalysisResult? copyAnalysisResultOpt,
             out PointsToAnalysisResult? pointsToAnalysisResultOpt,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true,
-            bool performPointsToAnalysis = true,
             bool performCopyAnalysisIfNotUserConfigured = false,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt = null)
         {
@@ -58,8 +58,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, owningSymbol, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
             return TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
+                pointsToAnalysisKind: analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultPointsToAnalysisKind, cancellationToken),
                 interproceduralAnalysisConfig, out copyAnalysisResultOpt,
-                out pointsToAnalysisResultOpt, pessimisticAnalysis, performPointsToAnalysis,
+                out pointsToAnalysisResultOpt, pessimisticAnalysis,
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
                 interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt);
         }
@@ -69,17 +70,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
+            PointsToAnalysisKind pointsToAnalysisKind,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             out CopyAnalysisResult? copyAnalysisResultOpt,
             out PointsToAnalysisResult? pointsToAnalysisResultOpt,
             bool pessimisticAnalysis = true,
-            bool performPointsToAnalysis = true,
             bool performCopyAnalysis = false,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt = null)
         {
             copyAnalysisResultOpt = null;
-            pointsToAnalysisResultOpt = performPointsToAnalysis ?
-                PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, out copyAnalysisResultOpt,
+            pointsToAnalysisResultOpt = pointsToAnalysisKind != PointsToAnalysisKind.None ?
+                PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, pointsToAnalysisKind, out copyAnalysisResultOpt,
                     interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performCopyAnalysis) :
                 null;
 

@@ -32,7 +32,7 @@ namespace Analyzer.Utilities.Extensions
                     GetReceiverType(invocation.Instance.Syntax, compilation, cancellationToken) :
                     invocation.Instance.Type as INamedTypeSymbol;
             }
-            else if (invocation.TargetMethod.IsExtensionMethod && invocation.TargetMethod.Parameters.Length > 0)
+            else if (invocation.TargetMethod.IsExtensionMethod && !invocation.TargetMethod.Parameters.IsEmpty)
             {
                 var firstArg = invocation.Arguments.FirstOrDefault();
                 if (firstArg != null)
@@ -512,6 +512,11 @@ namespace Analyzer.Utilities.Extensions
         {
             return pattern switch
             {
+#if CODEANALYSIS_V3_OR_BETTER
+                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                IRecursivePatternOperation recursivePattern => recursivePattern.MatchedType,
+                IDiscardPatternOperation discardPattern => discardPattern.InputType,
+#else
                 IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
                 {
                     ILocalSymbol local => local.Type,
@@ -520,7 +525,7 @@ namespace Analyzer.Utilities.Extensions
 
                     _ => null,
                 },
-
+#endif
                 IConstantPatternOperation constantPattern => constantPattern.Value.Type,
 
                 _ => null,

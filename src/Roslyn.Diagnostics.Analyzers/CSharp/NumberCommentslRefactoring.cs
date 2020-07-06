@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -30,11 +31,11 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(context.Span);
+            var literal = await context.TryGetRelevantNodeAsync<LiteralExpressionSyntax>(CSharpRefactoringHelpers.Instance).ConfigureAwait(false);
+            if (literal is null)
+                return;
 
-            if (node is LiteralExpressionSyntax literal &&
-                literal.Kind() == SyntaxKind.StringLiteralExpression &&
+            if (literal.Kind() == SyntaxKind.StringLiteralExpression &&
                 !IsProperlyNumbered(literal.Token.ValueText))
             {
                 var action = CodeAction.Create(
@@ -81,7 +82,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 (int commentStartIndex, _) = FindNumberComment(cursor, eolOrEofIndex, text);
                 if (commentStartIndex > 0)
                 {
-                    var separatedNumbers = text.Substring(commentStartIndex, eolOrEofIndex - commentStartIndex);
+                    var separatedNumbers = text[commentStartIndex..eolOrEofIndex];
                     var numbers = separatedNumbers.Split(',').Select(s => removeWhiteSpace(s));
                     foreach (var number in numbers)
                     {
@@ -216,7 +217,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             if (prefixOpt != null)
             {
-                builder.Append("\"");
+                builder.Append('"');
             }
 
             return builder.ToString();
