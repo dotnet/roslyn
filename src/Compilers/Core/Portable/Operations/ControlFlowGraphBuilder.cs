@@ -6797,11 +6797,11 @@ oneMoreTime:
         public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, int? argument)
         {
             return new PropertySubpatternOperation(
-                semanticModel: null,
-                operation.Syntax,
-                IsImplicit(operation),
                 Visit(operation.Member),
-                (IPatternOperation)Visit(operation.Pattern));
+                (IPatternOperation)Visit(operation.Pattern),
+                semanticModel: null,
+                syntax: operation.Syntax,
+                isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)

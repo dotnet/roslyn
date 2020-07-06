@@ -1182,6 +1182,279 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_04()
+        {
+            var source = @"
+class C
+{
+    void M1(object o)
+    {
+        _ = /*<bind>*/o is D { A: var a }/*</bind>*/;
+    }
+}
+class D
+{
+    public event System.Action A;
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,32): error CS0154: The property or indexer 'A' cannot be used in this context because it lacks the get accessor
+                //         _ = /*<bind>*/o is D { A: var a }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "A").WithArguments("A").WithLocation(6, 32),
+                // (11,32): warning CS0067: The event 'D.A' is never used
+                //     public event System.Action A;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "A").WithArguments("D.A").WithLocation(11, 32)
+                );
+
+            var expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is D { A: var a }')
+  Value: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'D { A: var a }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: D, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'A: var a')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'A')
+                Children(0)
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var a') (InputType: ?, DeclaredSymbol: ?? a, MatchesNull: True)
+";
+
+            VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_05()
+        {
+            var source = @"
+class C
+{
+    void M1(object o)
+    {
+        _ = /*<bind>*/o is D { B: var b }/*</bind>*/;
+    }
+}
+class D
+{
+    public void B() { }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,32): error CS0154: The property or indexer 'B' cannot be used in this context because it lacks the get accessor
+                //         _ = /*<bind>*/o is D { B: var b }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "B").WithArguments("B").WithLocation(6, 32)
+                );
+
+            var expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is D { B: var b }')
+  Value: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'D { B: var b }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: D, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'B: var b')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'B')
+                Children(0)
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var b') (InputType: ?, DeclaredSymbol: ?? b, MatchesNull: True)
+";
+
+            VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_06()
+        {
+            var source = @"
+class C
+{
+    void M1(object o)
+    {
+        _ = /*<bind>*/o is D { C: var c }/*</bind>*/;
+    }
+}
+class D
+{
+    public class C { }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,32): error CS0572: 'C': cannot reference a type through an expression; try 'D.C' instead
+                //         _ = /*<bind>*/o is D { C: var c }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "C").WithArguments("C", "D.C").WithLocation(6, 32),
+                // (6,32): error CS0154: The property or indexer 'C' cannot be used in this context because it lacks the get accessor
+                //         _ = /*<bind>*/o is D { C: var c }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "C").WithArguments("C").WithLocation(6, 32)
+                );
+
+            var expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is D { C: var c }')
+  Value: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'D { C: var c }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: D, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'C: var c')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'C')
+                Children(0)
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var c') (InputType: ?, DeclaredSymbol: ?? c, MatchesNull: True)
+";
+
+            VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_07()
+        {
+            var source = @"
+class C
+{
+    void M1(object o)
+    {
+        _ = /*<bind>*/o is D { X: var x }/*</bind>*/;
+    }
+}
+class D
+{
+    public const int X = 3;
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,32): error CS0176: Member 'D.X' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = /*<bind>*/o is D { X: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "X").WithArguments("D.X").WithLocation(6, 32)
+                );
+
+            var expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is D { X: var x }')
+  Value: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'D { X: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: D, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'X: var x')
+            Member: 
+              IFieldReferenceOperation: System.Int32 D.X (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: D, Constant: 3, IsInvalid, IsImplicit) (Syntax: 'X')
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+";
+
+            VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_08()
+        {
+            var source = @"
+class C
+{
+    void M1(object o)
+    {
+        _ = /*<bind>*/o is D { X: var x }/*</bind>*/;
+    }
+}
+class D
+{
+    public static int X = 3;
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,32): error CS0176: Member 'D.X' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = /*<bind>*/o is D { X: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "X").WithArguments("D.X").WithLocation(6, 32)
+                );
+
+            var expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is D { X: var x }')
+  Value: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'D { X: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: D, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'X: var x')
+            Member: 
+              IFieldReferenceOperation: System.Int32 D.X (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: D, IsInvalid, IsImplicit) (Syntax: 'X')
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+";
+
+            VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_09()
+        {
+            var source = @"
+class C
+{
+    void M1(object o)
+    {
+        _ = /*<bind>*/o is D { X: var x }/*</bind>*/;
+    }
+}
+class D
+{
+    public static int X => 3;
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,32): error CS0176: Member 'D.X' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = /*<bind>*/o is D { X: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "X").WithArguments("D.X").WithLocation(6, 32)
+                );
+
+            var expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is D { X: var x }')
+  Value: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'D { X: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: D, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'X: var x')
+            Member: 
+              IPropertyReferenceOperation: System.Int32 D.X { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: D, IsInvalid, IsImplicit) (Syntax: 'X')
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+";
+
+            VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
         [Fact]
         public void IsPattern_ControlFlowInPattern()
