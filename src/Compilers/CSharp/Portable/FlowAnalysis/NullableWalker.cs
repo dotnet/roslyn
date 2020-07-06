@@ -2189,12 +2189,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldUseDelegateInvokeParameterTypes = _useDelegateInvokeParameterTypes;
             _useDelegateInvokeParameterTypes = useDelegateInvokeParameterTypes;
 
-            var savedState = this.State;
+            var oldState = this.State;
             this.State = state;
 
-            var oldPending = SavePending(); // we do not support branches into a lambda
+            var oldPending = SavePending();
 
-            if (!lambdaOrFunction.WasCompilerGenerated) EnterParameters();
+            EnterParameters();
 
             // State changes to captured variables are recorded, as calls to local functions
             // transition the state of captured variables if the variables have state changes
@@ -2239,7 +2239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref stateAtReturn, ref this.State);
             }
 
-            this.State = savedState;
+            this.State = oldState;
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
             _delegateInvokeMethod = oldDelegateInvokeMethod;
             this.CurrentSymbol = oldSymbol;
