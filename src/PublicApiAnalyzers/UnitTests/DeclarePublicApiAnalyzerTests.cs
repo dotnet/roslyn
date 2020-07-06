@@ -1225,7 +1225,7 @@ C<T>.Nested.Nested() -> void
         }
 
         [Fact]
-        public async Task ShippedTextWithMissingImplicitStructConstructorAsync()
+        public async Task ShippedTextWithMissingImplicitStructConstructor()
         {
             var source = @"
 public struct C
