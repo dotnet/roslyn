@@ -1302,7 +1302,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
             Value: 
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, OutputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
   Declarators:
       IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
         Initializer: 
@@ -1359,7 +1359,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Arms(1):
                     ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                       Pattern: 
-                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, OutputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                       Value: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                       Locals: Local_1: System.Int32 z
@@ -1794,7 +1794,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Arms(1):
                     ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                       Pattern: 
-                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, OutputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                       Value: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                       Locals: Local_1: System.Int32 z
@@ -2314,7 +2314,7 @@ class C
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                   Pattern:
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, OutputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                   Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
@@ -2376,7 +2376,7 @@ class C
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                   Pattern:
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, OutputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                   Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
@@ -2435,7 +2435,7 @@ class C
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                   Pattern:
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, OutputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                   Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
@@ -2845,7 +2845,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         Arms(1):
             ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
               Pattern: 
-                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, OutputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
               Value: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
               Locals: Local_1: System.Int32 z
