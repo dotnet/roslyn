@@ -11050,10 +11050,9 @@ class C
             AssertNonvirtualTupleElementField(m2Item1);
             AssertVirtualTupleElementField(m2a2);
 
-            Assert.NotSame(m1Item1, m1Item1.OriginalDefinition);
+            Assert.IsType<TupleElementFieldSymbol>(m1Item1);
+            Assert.Same(m1Item1, m1Item1.OriginalDefinition);
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.ToTestDisplayString());
-            Assert.Equal("T1 (T1, T2).Item1", m1Item1.OriginalDefinition.ToTestDisplayString());
-            Assert.True(m1Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
             Assert.True(m1Item1.Equals(m1Item1));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m1Item1.AssociatedSymbol);
@@ -11068,11 +11067,10 @@ class C
             Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
-            Assert.False(m2Item1.IsDefinition);
-            Assert.NotSame(m2Item1, m2Item1.OriginalDefinition);
+            Assert.IsType<TupleElementFieldSymbol>(m2Item1);
+            Assert.True(m2Item1.IsDefinition);
+            Assert.Same(m2Item1, m2Item1.OriginalDefinition);
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Item1.ToTestDisplayString());
-            Assert.Equal("T1 (T1, T2).Item1", m2Item1.OriginalDefinition.ToTestDisplayString());
-            Assert.True(m2Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m2Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
             Assert.True(m2Item1.Equals(m2Item1));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m2Item1.AssociatedSymbol);
@@ -11091,10 +11089,10 @@ class C
             Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
+            Assert.IsType<TupleVirtualElementFieldSymbol>(m2a2);
             Assert.True(m2a2.IsDefinition);
             Assert.True(m2a2.Equals(m2a2));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).a2", m2a2.ToTestDisplayString());
-            Assert.True(m2a2.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2a2.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m2a2.AssociatedSymbol);
             Assert.Same(m2Tuple, m2a2.ContainingSymbol);
@@ -26886,7 +26884,9 @@ namespace System
             // Tracked by https://github.com/dotnet/roslyn/issues/43621
             //var verifier = CompileAndVerify(comp1, expectedOutput: 12, verify: Verification.Skipped); // unsafe code
 
-            verifier.VerifyTypeIL("ValueTuple", @"
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                verifier.VerifyTypeIL("ValueTuple", @"
 .class public sequential ansi sealed beforefieldinit System.ValueTuple
     extends [netstandard]System.ValueType
 {
@@ -26918,6 +26918,7 @@ namespace System
     )
 } // end of class System.ValueTuple
 ");
+            }
         }
 
         [Fact]

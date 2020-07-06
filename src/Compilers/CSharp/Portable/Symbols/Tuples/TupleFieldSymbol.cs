@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(tupleElementIndex >= 0);
             Debug.Assert(container.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames) || this is TupleVirtualElementFieldSymbol,
                                             "virtual fields should be represented by " + nameof(TupleVirtualElementFieldSymbol));
+            Debug.Assert(!(underlyingField is TupleElementFieldSymbol));
 
             // The fields on definition of ValueTuple<...> types don't need to be wrapped
             Debug.Assert(!container.IsDefinition);
