@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         where TTypeBlockSyntax : SyntaxNode
         where TNamespaceDeclarationSyntax : SyntaxNode
     {
+        protected abstract TArgumentSyntax GetArgumentWithChangedName(TArgumentSyntax argument, string name);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
@@ -305,7 +307,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     // We should only ever get a default array (meaning, update the root), or a
                     // non-empty array.  We should never be asked to update exactly '0' nodes.
                     Debug.Assert(documentToUpdate.NodesToUpdate.IsDefault ||
-                                !documentToUpdate.NodesToUpdate.IsEmpty);
+                                 !documentToUpdate.NodesToUpdate.IsEmpty);
 
                     // If we were given specific nodes to update, only update those.  Otherwise
                     // updated everything from the root down.
@@ -679,8 +681,6 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return (TArgumentSyntax)generator.Argument(expr).WithTriviaFrom(argument);
         }
 
-        protected abstract TArgumentSyntax GetArgumentWithChangedName(TArgumentSyntax argument, string name);
-
         private static async Task<bool> ReplaceMatchingTupleTypesAsync(
             Document document, SyntaxEditor editor, SyntaxNode startingNode,
             INamedTypeSymbol tupleType, TNameSyntax qualifiedTypeName,
@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static string GetConstructorParameterName(string name)
-            => name.ToCamelCase(trimLeadingTypePrefix: false);
+            => name.ToCamelCase(trimLeadingTypePrefix: false); // TODO: This is the common case, but should ideally match the users style preference
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {

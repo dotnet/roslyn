@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
         }
 
         protected override ArgumentSyntax GetArgumentWithChangedName(ArgumentSyntax argument, string name)
-        {
-            return argument.WithNameColon(ChangeName(argument.NameColon, name));
-        }
+            => argument.WithNameColon(ChangeName(argument.NameColon, name));
 
         private static NameColonSyntax? ChangeName(NameColonSyntax? nameColon, string name)
         {

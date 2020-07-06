@@ -40,14 +40,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
 
             Dim nameColonEquals = simpleArgument.NameColonEquals
 
-            If nameColonEquals Is Nothing Then
-                Return argument
-            End If
-
             Return simpleArgument.WithNameColonEquals(ChangeName(nameColonEquals, name))
         End Function
 
         Private Shared Function ChangeName(nameColonEquals As NameColonEqualsSyntax, name As String) As NameColonEqualsSyntax
+            If nameColonEquals Is Nothing Then
+                Return Nothing
+            End If
+
             Dim newName = SyntaxFactory.IdentifierName(name).WithTriviaFrom(nameColonEquals.Name)
             Return nameColonEquals.WithName(newName)
         End Function
