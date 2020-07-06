@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             return TryGetSpeculativeSemanticModelWorkerAsync(previousSemanticModel, currentBodyNode, cancellationToken);
         }
 
-        protected SyntaxNode? GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
+        protected SyntaxNode GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
         {
             if (currentBodyNode is TAccessorDeclarationSyntax currentAccessor)
             {
