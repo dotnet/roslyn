@@ -736,11 +736,11 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class PropertySubpatternOperation : BasePropertySubpatternOperation
     {
         public PropertySubpatternOperation(
+            IOperation member,
+            IPatternOperation pattern,
             SemanticModel semanticModel,
             SyntaxNode syntax,
-            bool isImplicit,
-            IOperation member,
-            IPatternOperation pattern) :
+            bool isImplicit) :
             this(member, pattern, semanticModel, syntax, type: null, constantValue: null, isImplicit)
         { }
     }
