@@ -1882,7 +1882,7 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_member,
                 FeaturesResources.updating_usages_in_containing_type
             })
-            Await TestInRegularAndScriptAsync(text, expected, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1959,7 +1959,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -2038,7 +2038,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -2154,7 +2154,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
         End Function
 
 #End Region
@@ -2278,7 +2278,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=2)
+            Await TestInRegularAndScriptAsync(text, expected, index:=2, options:=GetTestOptions(host))
         End Function
 
 #End Region
@@ -2391,7 +2391,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=3)
+            Await TestInRegularAndScriptAsync(text, expected, index:=3, options:=GetTestOptions(host))
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -2498,7 +2498,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=3)
+            Await TestInRegularAndScriptAsync(text, expected, index:=3, options:=GetTestOptions(host))
         End Function
 
 #End Region
