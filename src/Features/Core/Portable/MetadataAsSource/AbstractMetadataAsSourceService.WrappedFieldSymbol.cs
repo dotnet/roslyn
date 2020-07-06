@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ITypeSymbol Type => _symbol.Type;
 
             public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
+
+            public bool IsExplicitlyNamedTupleElement => _symbol.IsExplicitlyNamedTupleElement;
         }
     }
 }
