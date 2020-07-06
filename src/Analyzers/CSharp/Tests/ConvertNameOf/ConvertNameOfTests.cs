@@ -73,7 +73,7 @@ class Test
     void Method()
     {
         var typeVar = String;
-        var typeName = [||]nameof(typeVar);
+        var typeName = [||]typeof(typeVar).Name;
     }
 }
 ";
