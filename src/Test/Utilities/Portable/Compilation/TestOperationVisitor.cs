@@ -1253,7 +1253,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 case IFieldSymbol field:
                 case IPropertySymbol prop:
-                case IErrorTypeSymbol error:
                     break;
                 case var symbol:
                     Assert.True(false, $"Unexpected symbol {symbol}");
