@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertNameOf;
 using Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpConvertNameOfDiagnosticAnalyzer(), new CSharpConvertNameOfCodeFixProvider());
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         public async Task BasicType()
         {
             var text = @"
@@ -41,7 +42,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         public async Task ClassLibraryType()
         {
             var text = @"
@@ -65,7 +66,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         public async Task NotOnVariableContainingType()
         {
             var text = @"class Test
@@ -80,7 +81,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         public async Task NotOnPrimitiveType()
         {
             var text = @"class Test
