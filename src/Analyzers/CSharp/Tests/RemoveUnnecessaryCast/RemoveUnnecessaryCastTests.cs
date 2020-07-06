@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
         [WorkItem(545979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545979")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToErrorType()
+        public async Task DoNotRemoveCastToErrorType()
         {
             var source =
 @"class Program
@@ -144,7 +144,7 @@ class Program
         [WorkItem(545138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
         [WorkItem(44422, "https://github.com/dotnet/roslyn/issues/44422")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44422"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveTypeParameterCastToObject()
+        public async Task DoNotRemoveTypeParameterCastToObject()
         {
             var source =
 @"class Ð¡
@@ -176,7 +176,7 @@ class Program
         [WorkItem(545139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545139")]
         [WorkItem(44422, "https://github.com/dotnet/roslyn/issues/44422")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44422"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastInIsTest()
+        public async Task DoNotRemoveCastInIsTest()
         {
             var source =
 @"using System;
@@ -211,7 +211,7 @@ class Ð¡
 
         [WorkItem(545142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545142")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastNeedForUserDefinedOperator()
+        public async Task DoNotRemoveCastNeedForUserDefinedOperator()
         {
             var source =
 @"class A
@@ -235,7 +235,7 @@ class Program
 
         [WorkItem(545143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545143")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemovePointerCast1()
+        public async Task DoNotRemovePointerCast1()
         {
             var source =
 @"unsafe class C
@@ -251,7 +251,7 @@ class Program
 
         [WorkItem(545144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545144")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToObjectFromDelegateComparison()
+        public async Task DoNotRemoveCastToObjectFromDelegateComparison()
         {
             // The cast below can't be removed because it would result in the Delegate
             // op_Equality operator overload being used over reference equality.
@@ -274,7 +274,7 @@ class Program
 
         [WorkItem(545145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545145")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
+        public async Task DoNotRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
         {
             await VerifyCS.VerifyCodeFixAsync(
 @"using System;
@@ -303,7 +303,7 @@ class C
 
         [WorkItem(545147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545147")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastInFloatingPointOperation()
+        public async Task DoNotRemoveCastInFloatingPointOperation()
         {
             var source =
 @"class C
@@ -320,7 +320,7 @@ class C
 
         [WorkItem(545157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545157")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveIdentityCastWhichAffectsOverloadResolution1()
+        public async Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution1()
         {
             var source =
 @"using System;
@@ -346,7 +346,7 @@ class Program
 
         [WorkItem(545158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545158")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveIdentityCastWhichAffectsOverloadResolution2()
+        public async Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution2()
         {
             var source =
 @"using System;
@@ -373,7 +373,7 @@ class Program
 
         [WorkItem(545158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545158")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveIdentityCastWhichAffectsOverloadResolution3()
+        public async Task DoNotRemoveIdentityCastWhichAffectsOverloadResolution3()
         {
             var source =
 @"using System;
@@ -401,7 +401,7 @@ class Program
 
         [WorkItem(545747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545747")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastWhichChangesTypeOfInferredLocal()
+        public async Task DoNotRemoveCastWhichChangesTypeOfInferredLocal()
         {
             var source =
 @"class C
@@ -418,7 +418,7 @@ class Program
 
         [WorkItem(545159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545159")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNeededCastToIListOfObject()
+        public async Task DoNotRemoveNeededCastToIListOfObject()
         {
             var source =
 @"using System;
@@ -782,7 +782,7 @@ class Test
 
         [WorkItem(545291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNeededCastInConditionalExpression()
+        public async Task DoNotRemoveNeededCastInConditionalExpression()
         {
             var source =
 @"class Test
@@ -881,7 +881,7 @@ class Test
 
         [WorkItem(545419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545419")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveTriviaWhenRemovingCast()
+        public async Task DoNotRemoveTriviaWhenRemovingCast()
         {
             await VerifyCS.VerifyCodeFixAsync(
             @"
@@ -1007,7 +1007,7 @@ class Program
 
         [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastWhichInCollectionInitializer1()
+        public async Task DoNotRemoveNecessaryCastWhichInCollectionInitializer1()
         {
             var source =
 @"using System;
@@ -1036,7 +1036,7 @@ class X : List<int>
 
         [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
         [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastWhichInCollectionInitializer2()
+        public async Task DoNotRemoveNecessaryCastWhichInCollectionInitializer2()
         {
             var source =
 @"using System;
@@ -1165,7 +1165,7 @@ class Program
 
         [WorkItem(545560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545560")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastWithExplicitUserDefinedConversion()
+        public async Task DoNotRemoveNecessaryCastWithExplicitUserDefinedConversion()
         {
             var source =
 @"using System;
@@ -1197,7 +1197,7 @@ class A
 
         [WorkItem(545608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545608")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastWithImplicitUserDefinedConversion()
+        public async Task DoNotRemoveNecessaryCastWithImplicitUserDefinedConversion()
         {
             var source =
 @"class X
@@ -1228,7 +1228,7 @@ class A
 
         [WorkItem(545941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545941")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastWithImplicitConversionInThrow()
+        public async Task DoNotRemoveNecessaryCastWithImplicitConversionInThrow()
         {
             // The cast below can't be removed because the throw statement expects
             // an expression of type Exception -- not an expression convertible to
@@ -1255,7 +1255,7 @@ class E
 
         [WorkItem(545981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545981")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInThrow()
+        public async Task DoNotRemoveNecessaryCastInThrow()
         {
             // The cast below can't be removed because the throw statement expects
             // an expression of type Exception -- not an expression convertible to
@@ -1308,7 +1308,7 @@ class E
 
         [WorkItem(545945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545945")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryDowncast()
+        public async Task DoNotRemoveNecessaryDowncast()
         {
             var source =
 @"class C
@@ -1324,7 +1324,7 @@ class E
 
         [WorkItem(545591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545591")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastWithinLambda()
+        public async Task DoNotRemoveNecessaryCastWithinLambda()
         {
             var source =
 @"using System;
@@ -1364,7 +1364,7 @@ class Program
 
         [WorkItem(545606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545606")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastFromNullToTypeParameter()
+        public async Task DoNotRemoveNecessaryCastFromNullToTypeParameter()
         {
             var source =
 @"class X
@@ -1380,7 +1380,7 @@ class Program
 
         [WorkItem(545744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545744")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInImplicitlyTypedArray()
+        public async Task DoNotRemoveNecessaryCastInImplicitlyTypedArray()
         {
             var source =
 @"class X
@@ -1535,7 +1535,7 @@ class A
 
         [WorkItem(529816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInQueryExpression()
+        public async Task DoNotRemoveNecessaryCastInQueryExpression()
         {
             var source =
 @"using System;
@@ -1564,7 +1564,7 @@ class A
 
         [WorkItem(545848, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInConstructorInitializer()
+        public async Task DoNotRemoveNecessaryCastInConstructorInitializer()
         {
             var source =
 @"using System;
@@ -1604,7 +1604,7 @@ class C
 
         [WorkItem(529831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastFromTypeParameterToInterface()
+        public async Task DoNotRemoveNecessaryCastFromTypeParameterToInterface()
         {
             await VerifyCS.VerifyCodeFixAsync(
 @"using System;
@@ -1792,7 +1792,7 @@ static class Program
 
         [WorkItem(545877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545877")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontCrashOnIncompleteMethodDeclaration()
+        public async Task DoNotCrashOnIncompleteMethodDeclaration()
         {
             // This test has intentional syntax errors
             var source =
@@ -1816,7 +1816,7 @@ class A
 
         [WorkItem(545777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545777")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveImportantTrailingTrivia()
+        public async Task DoNotRemoveImportantTrailingTrivia()
         {
             await VerifyCS.VerifyCodeFixAsync(
             @"
@@ -1936,7 +1936,7 @@ class Program
 
         [WorkItem(529846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529846")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastFromTypeParameterToObject()
+        public async Task DoNotRemoveNecessaryCastFromTypeParameterToObject()
         {
             var source =
 @"class C
@@ -1954,7 +1954,7 @@ class Program
 
         [WorkItem(545858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545858")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastFromDelegateTypeToMulticastDelegate()
+        public async Task DoNotRemoveNecessaryCastFromDelegateTypeToMulticastDelegate()
         {
             var source =
 @"using System;
@@ -1974,7 +1974,7 @@ class C
 
         [WorkItem(545857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545857")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInSizeOfArrayCreationExpression1()
+        public async Task DoNotRemoveNecessaryCastInSizeOfArrayCreationExpression1()
         {
             // The cast below can't be removed because it would result in the implicit
             // conversion to int being called instead.
@@ -2005,7 +2005,7 @@ class C
 
         [WorkItem(545980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545980")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInSizeOfArrayCreationExpression2()
+        public async Task DoNotRemoveNecessaryCastInSizeOfArrayCreationExpression2()
         {
             // Array bounds must be an int, so the cast below can't be removed.
 
@@ -2023,7 +2023,7 @@ class C
 
         [WorkItem(529842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529842")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInTernaryExpression()
+        public async Task DoNotRemoveNecessaryCastInTernaryExpression()
         {
             var source =
 @"using System;
@@ -2098,7 +2098,7 @@ class C
 
         [WorkItem(545957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545957")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastInConstructorInitializer3()
+        public async Task DoNotRemoveCastInConstructorInitializer3()
         {
             var source =
 @"class C
@@ -2151,7 +2151,7 @@ static class C
 
         [WorkItem(545942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545942")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastFromValueTypeToObjectInReferenceEquality()
+        public async Task DoNotRemoveCastFromValueTypeToObjectInReferenceEquality()
         {
             // Note: The cast below can't be removed because it would result in an
             // illegal reference equality test between object and a value type.
@@ -2173,7 +2173,7 @@ class Program
 
         [WorkItem(545962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545962")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastWhenExpressionDoesntBind()
+        public async Task DoNotRemoveCastWhenExpressionDoesntBind()
         {
             // Note: The cast below can't be removed because its expression doesn't bind.
 
@@ -2193,7 +2193,7 @@ class Program
 
         [WorkItem(545944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545944")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastBeforePointerDereference1()
+        public async Task DoNotRemoveNecessaryCastBeforePointerDereference1()
         {
             // Note: The cast below can't be removed because it would result in *null,
             // which is illegal.
@@ -2209,7 +2209,7 @@ class Program
 
         [WorkItem(545978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545978")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastBeforePointerDereference2()
+        public async Task DoNotRemoveNecessaryCastBeforePointerDereference2()
         {
             // Note: The cast below can't be removed because it would result in dereferencing
             // void*, which is illegal.
@@ -2230,7 +2230,7 @@ class Program
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastBeforePointerDereference3()
+        public async Task DoNotRemoveNecessaryCastBeforePointerDereference3()
         {
             // Conservatively disable cast simplifications for casts involving pointer conversions.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
@@ -2250,7 +2250,7 @@ class Program
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNumericCastInUncheckedExpression()
+        public async Task DoNotRemoveNumericCastInUncheckedExpression()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
@@ -2275,7 +2275,7 @@ class Program
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNumericCastInUncheckedStatement()
+        public async Task DoNotRemoveNumericCastInUncheckedStatement()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked statements.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
@@ -2303,7 +2303,7 @@ class Program
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNumericCastInCheckedExpression()
+        public async Task DoNotRemoveNumericCastInCheckedExpression()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
@@ -2328,7 +2328,7 @@ class Program
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNumericCastInCheckedStatement()
+        public async Task DoNotRemoveNumericCastInCheckedStatement()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked statements.
             // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
@@ -2355,7 +2355,7 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToByteFromIntInConditionalExpression()
+        public async Task DoNotRemoveCastToByteFromIntInConditionalExpression()
         {
             var source =
 @"class C
@@ -2392,7 +2392,7 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToDoubleFromIntInConditionalExpression()
+        public async Task DoNotRemoveCastToDoubleFromIntInConditionalExpression()
         {
             var source =
 @"class C
@@ -2408,7 +2408,7 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToUIntFromCharInConditionalExpression()
+        public async Task DoNotRemoveCastToUIntFromCharInConditionalExpression()
         {
             var source =
 @"class C
@@ -2445,7 +2445,7 @@ class Program
 
         [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInAttribute()
+        public async Task DoNotRemoveNecessaryCastInAttribute()
         {
             var source =
 @"using System;
@@ -2463,7 +2463,7 @@ class A : Attribute
 
         [WorkItem(39042, "https://github.com/dotnet/roslyn/issues/39042")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastForImplicitNumericCastsThatLoseInformation()
+        public async Task DoNotRemoveNecessaryCastForImplicitNumericCastsThatLoseInformation()
         {
             var source =
 @"using System;
@@ -2483,7 +2483,7 @@ class A
 
         [WorkItem(545889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545889")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToInterfaceForUnsealedType()
+        public async Task DoNotRemoveCastToInterfaceForUnsealedType()
         {
             // Note: The cast below can't be removed because X is not sealed.
 
@@ -2622,7 +2622,7 @@ sealed class C : I
 
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToInterfaceForSealedType4()
+        public async Task DoNotRemoveCastToInterfaceForSealedType4()
         {
             var source =
 @"using System;
@@ -2681,7 +2681,7 @@ sealed class C : I
 
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToInterfaceForSealedType6()
+        public async Task DoNotRemoveCastToInterfaceForSealedType6()
         {
             // Note: The cast below can't be removed (even though C is sealed)
             // because the specified named arguments refer to parameters that
@@ -2747,7 +2747,7 @@ sealed class C : I
 
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToInterfaceForSealedType8()
+        public async Task DoNotRemoveCastToInterfaceForSealedType8()
         {
             // Note: The cast below can't be removed (even though C is sealed)
             // because the specified named arguments refer to parameters that
@@ -2813,7 +2813,7 @@ sealed class C : I
 
         [WorkItem(545883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545883")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToInterfaceForSealedType9()
+        public async Task DoNotRemoveCastToInterfaceForSealedType9()
         {
             // Note: The cast below can't be removed (even though C is sealed)
             // because it would result in binding to a Dispose method that doesn't
@@ -2842,7 +2842,7 @@ sealed class C : MemoryStream
 
         [WorkItem(545887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545887")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToInterfaceForStruct1()
+        public async Task DoNotRemoveCastToInterfaceForStruct1()
         {
             // Note: The cast below can't be removed because the cast boxes 's' and
             // unboxing would change program behavior.
@@ -3063,7 +3063,7 @@ class Program
 
         [WorkItem(545141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545141")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToObjectInParamArrayArg1()
+        public async Task DoNotRemoveCastToObjectInParamArrayArg1()
         {
             var source =
 @"using System;
@@ -3086,7 +3086,7 @@ class C
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToIntArrayInParamArrayArg2()
+        public async Task DoNotRemoveCastToIntArrayInParamArrayArg2()
         {
             var source =
 @"using System;
@@ -3109,7 +3109,7 @@ class C
 
         [WorkItem(529911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToObjectArrayInParamArrayArg3()
+        public async Task DoNotRemoveCastToObjectArrayInParamArrayArg3()
         {
             var source =
 @"using System;
@@ -3314,7 +3314,7 @@ class C
 
         [WorkItem(545961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInForEach1()
+        public async Task DoNotRemoveNecessaryCastInForEach1()
         {
             // The cast below can't be removed because it would result an error
             // in the foreach statement.
@@ -3347,7 +3347,7 @@ class Program
 
         [WorkItem(545961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInForEach2()
+        public async Task DoNotRemoveNecessaryCastInForEach2()
         {
             // The cast below can't be removed because it would result an error
             // in the foreach statement.
@@ -3380,7 +3380,7 @@ class Program
 
         [WorkItem(545961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInForEach3()
+        public async Task DoNotRemoveNecessaryCastInForEach3()
         {
             // The cast below can't be removed because it would result an error
             // in the foreach statement since C doesn't contain a GetEnumerator()
@@ -3427,7 +3427,7 @@ class C
 
         [WorkItem(545961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInForEach4()
+        public async Task DoNotRemoveNecessaryCastInForEach4()
         {
             // The cast below can't be removed because it would result in
             // C.GetEnumerator() being called rather than D.GetEnumerator().
@@ -3480,7 +3480,7 @@ class C
 
         [WorkItem(545961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545961")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInForEach5()
+        public async Task DoNotRemoveNecessaryCastInForEach5()
         {
             // The cast below can't be removed because it would change the
             // type of 'x'.
@@ -3510,7 +3510,7 @@ class Program
 
         [WorkItem(545925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545925")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastIfOverriddenMethodHasIncompatibleParameterList()
+        public async Task DoNotRemoveCastIfOverriddenMethodHasIncompatibleParameterList()
         {
             // Note: The cast below can't be removed because the parameter list
             // of Goo and its override have different default values.
@@ -3656,7 +3656,7 @@ class Program
 
         [WorkItem(545995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545995")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToDifferentTypeWithSameName()
+        public async Task DoNotRemoveCastToDifferentTypeWithSameName()
         {
             // Note: The cast below cannot be removed because the it results in
             // a different overload being picked.
@@ -3699,7 +3699,7 @@ class A
 
         [WorkItem(545921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545921")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastWhichWouldChangeAttributeOverloadResolution1()
+        public async Task DoNotRemoveCastWhichWouldChangeAttributeOverloadResolution1()
         {
             // Note: The cast below cannot be removed because it would result in
             // a different attribute constructor being picked
@@ -3745,7 +3745,7 @@ class MyAttributeAttribute : Attribute
         [WorkItem(608180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608180")]
         [WorkItem(624252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624252")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastIfArgumentIsRestricted_TypedReference()
+        public async Task DoNotRemoveCastIfArgumentIsRestricted_TypedReference()
         {
             var source =
 @"using System;
@@ -3772,7 +3772,7 @@ class Program
 
         [WorkItem(627107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnArgumentsWithOtherDynamicArguments()
+        public async Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments()
         {
             var source =
 @"using System;
@@ -3807,7 +3807,7 @@ class C<T>
 
         [WorkItem(627107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnArgumentsWithOtherDynamicArguments_Bracketed()
+        public async Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments_Bracketed()
         {
             var source =
 @"class C<T>
@@ -3847,7 +3847,7 @@ class C<T>
 
         [WorkItem(627107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt()
+        public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt()
         {
             var source =
 @"class C
@@ -3864,7 +3864,7 @@ class C<T>
 
         [WorkItem(627107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt_1()
+        public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_1()
         {
             var source =
 @"class C
@@ -3881,7 +3881,7 @@ class C<T>
 
         [WorkItem(627107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt_2()
+        public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_2()
         {
             var source =
 @"class C
@@ -3898,7 +3898,7 @@ class C<T>
 
         [WorkItem(627107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnArgumentsWithDynamicReceiverOpt_3()
+        public async Task DoNotRemoveCastOnArgumentsWithDynamicReceiverOpt_3()
         {
             var source =
 @"class C
@@ -3915,7 +3915,7 @@ class C<T>
 
         [WorkItem(627107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627107")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnArgumentsWithOtherDynamicArguments_1()
+        public async Task DoNotRemoveCastOnArgumentsWithOtherDynamicArguments_1()
         {
             var source =
 @"using System;
@@ -3950,7 +3950,7 @@ class C<T>
 
         [WorkItem(545998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545998")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastWhichWouldChangeAttributeOverloadResolution2()
+        public async Task DoNotRemoveCastWhichWouldChangeAttributeOverloadResolution2()
         {
             // Note: The cast below cannot be removed because it would result in
             // a different attribute constructor being picked
@@ -3971,7 +3971,7 @@ class A : Attribute
 
         [WorkItem(529894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529894")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontUnnecessaryCastFromEnumToUint()
+        public async Task DoNotUnnecessaryCastFromEnumToUint()
         {
             var source =
 @"using System;
@@ -3995,7 +3995,7 @@ class C
 
         [WorkItem(529846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529846")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontUnnecessaryCastFromTypeParameterToObject()
+        public async Task DoNotUnnecessaryCastFromTypeParameterToObject()
         {
             var source =
 @"class C
@@ -4063,7 +4063,7 @@ class C
 
         [WorkItem(626026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/626026")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastIfUserDefinedExplicitCast()
+        public async Task DoNotRemoveCastIfUserDefinedExplicitCast()
         {
             var source =
 @"class Program
@@ -4092,7 +4092,7 @@ public struct B
 
         [WorkItem(768895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768895")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInTernary()
+        public async Task DoNotRemoveNecessaryCastInTernary()
         {
             var source =
 @"class Program
@@ -4109,7 +4109,7 @@ public struct B
 
         [WorkItem(770187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNecessaryCastInSwitchExpression()
+        public async Task DoNotRemoveNecessaryCastInSwitchExpression()
         {
             var source =
 @"namespace ConsoleApplication23
@@ -4142,7 +4142,7 @@ public struct B
         [WorkItem(844482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844482")]
         [WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastFromBaseToDerivedWithExplicitReference()
+        public async Task DoNotRemoveCastFromBaseToDerivedWithExplicitReference()
         {
             var source =
 @"class Program
@@ -4168,7 +4168,7 @@ class D : C
 
         [WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToTypeParameterWithExceptionConstraint()
+        public async Task DoNotRemoveCastToTypeParameterWithExceptionConstraint()
         {
             var source =
 @"using System;
@@ -4189,7 +4189,7 @@ class Program
 
         [WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
+        public async Task DoNotRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
         {
             var source =
 @"using System;
@@ -4210,7 +4210,7 @@ class Program
 
         [WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastThatChangesShapeOfAnonymousTypeObject()
+        public async Task DoNotRemoveCastThatChangesShapeOfAnonymousTypeObject()
         {
             var source =
 @"class Program
@@ -4335,7 +4335,7 @@ class Program
 
         [WorkItem(12572, "https://github.com/dotnet/roslyn/issues/12572")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastThatUnboxes()
+        public async Task DoNotRemoveCastThatUnboxes()
         {
             // The cast below can't be removed because it could throw a null ref exception.
             var source =
@@ -4366,7 +4366,7 @@ class Program
 
         [WorkItem(17029, "https://github.com/dotnet/roslyn/issues/17029")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnEnumComparison1()
+        public async Task DoNotRemoveCastOnEnumComparison1()
         {
             var source =
 @"
@@ -4394,7 +4394,7 @@ class Program
 
         [WorkItem(17029, "https://github.com/dotnet/roslyn/issues/17029")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnEnumComparison2()
+        public async Task DoNotRemoveCastOnEnumComparison2()
         {
             var source =
 @"
@@ -4422,7 +4422,7 @@ class Program
 
         [WorkItem(18978, "https://github.com/dotnet/roslyn/issues/18978")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToMethodWithParamsArgs()
+        public async Task DoNotRemoveCastOnCallToMethodWithParamsArgs()
         {
             var source =
 @"
@@ -4448,7 +4448,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToMethodWithParamsArgsWithIncorrectMethodDefintion()
+        public async Task DoNotRemoveCastOnCallToMethodWithParamsArgsWithIncorrectMethodDefintion()
         {
             var source =
 @"
@@ -4509,7 +4509,7 @@ class Program
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgs()
+        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgs()
         {
             var source =
 @"
@@ -4538,7 +4538,7 @@ static class Program
 
         [WorkItem(29264, "https://github.com/dotnet/roslyn/issues/29264")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnDictionaryIndexer()
+        public async Task DoNotRemoveCastOnDictionaryIndexer()
         {
             var source =
 @"
@@ -4614,7 +4614,7 @@ static class Program
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
+        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
         {
             var source =
 @"
@@ -4637,7 +4637,7 @@ static class Program
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsPropertyAndOtherArg()
+        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsPropertyAndOtherArg()
         {
             var source =
 @"
@@ -4660,7 +4660,7 @@ static class Program
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsNamedArgsAndProperty()
+        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsNamedArgsAndProperty()
         {
             var source =
 @"
@@ -4683,7 +4683,7 @@ static class Program
 
         [WorkItem(20630, "https://github.com/dotnet/roslyn/issues/20630")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveCastOnCallToAttributeWithParamsArgsNamedArgsWithIncorrectMethodDefintion()
+        public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsNamedArgsWithIncorrectMethodDefintion()
         {
             var source =
 @"
@@ -4801,7 +4801,7 @@ static class Program
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         [InlineData("-")]
         [InlineData("+")]
-        public async Task DontRemoveCastOnInvalidUnaryOperatorEnumValue1(string op)
+        public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue1(string op)
         {
             var source =
 $@"
@@ -4827,7 +4827,7 @@ enum Sign
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         [InlineData("-")]
         [InlineData("+")]
-        public async Task DontRemoveCastOnInvalidUnaryOperatorEnumValue2(string op)
+        public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue2(string op)
         {
             var source =
 $@"
@@ -4972,7 +4972,7 @@ enum Sign
 
         [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456#issuecomment-373549735")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInSwitchCase()
+        public async Task DoNotIntroduceDefaultLiteralInSwitchCase()
         {
             var source =
 @"
@@ -4997,7 +4997,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInSwitchCase_CastInsideParentheses()
+        public async Task DoNotIntroduceDefaultLiteralInSwitchCase_CastInsideParentheses()
         {
             var source =
 @"
@@ -5022,7 +5022,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInSwitchCase_DefaultInsideParentheses()
+        public async Task DoNotIntroduceDefaultLiteralInSwitchCase_DefaultInsideParentheses()
         {
             var source =
 @"
@@ -5047,7 +5047,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInSwitchCase_RemoveDoubleCast()
+        public async Task DoNotIntroduceDefaultLiteralInSwitchCase_RemoveDoubleCast()
         {
             var source =
 @"
@@ -5110,7 +5110,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase()
+        public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase()
         {
             var source =
 @"
@@ -5135,7 +5135,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase_CastInsideParentheses()
+        public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_CastInsideParentheses()
         {
             var source =
 @"
@@ -5160,7 +5160,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase_DefaultInsideParentheses()
+        public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_DefaultInsideParentheses()
         {
             var source =
 @"
@@ -5185,7 +5185,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase_RemoveDoubleCast()
+        public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_RemoveDoubleCast()
         {
             var source =
 @"
@@ -5223,7 +5223,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInPatternSwitchCase_RemoveInsideWhenClause()
+        public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_RemoveInsideWhenClause()
         {
             var source =
 @"
@@ -5261,7 +5261,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInPatternIs()
+        public async Task DoNotIntroduceDefaultLiteralInPatternIs()
         {
             var source =
 @"
@@ -5282,7 +5282,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInPatternIs_CastInsideParentheses()
+        public async Task DoNotIntroduceDefaultLiteralInPatternIs_CastInsideParentheses()
         {
             var source =
 @"
@@ -5303,7 +5303,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInPatternIs_DefaultInsideParentheses()
+        public async Task DoNotIntroduceDefaultLiteralInPatternIs_DefaultInsideParentheses()
         {
             var source =
 @"
@@ -5324,7 +5324,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontIntroduceDefaultLiteralInPatternIs_RemoveDoubleCast()
+        public async Task DoNotIntroduceDefaultLiteralInPatternIs_RemoveDoubleCast()
         {
             var source =
 @"
@@ -5355,7 +5355,7 @@ class C
 
         [WorkItem(27239, "https://github.com/dotnet/roslyn/issues/27239")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontOfferToRemoveCastWhereNoConversionExists()
+        public async Task DoNotOfferToRemoveCastWhereNoConversionExists()
         {
             var source =
                 @"
@@ -5375,7 +5375,7 @@ class C
 
         [WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontOfferToRemoveCastWhenAccessingHiddenProperty()
+        public async Task DoNotOfferToRemoveCastWhenAccessingHiddenProperty()
         {
             var source = @"
 using System.Collections.Generic;
@@ -5401,7 +5401,7 @@ class Tester
 
         [WorkItem(31963, "https://github.com/dotnet/roslyn/issues/31963")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontOfferToRemoveCastInConstructorWhenItNeeded()
+        public async Task DoNotOfferToRemoveCastInConstructorWhenItNeeded()
         {
             var source = @"
 class IntegerWrapper
@@ -5428,7 +5428,7 @@ class Tester
 
         [WorkItem(31963, "https://github.com/dotnet/roslyn/issues/31963")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontOfferToRemoveCastInBaseConstructorInitializerWhenItNeeded()
+        public async Task DoNotOfferToRemoveCastInBaseConstructorInitializerWhenItNeeded()
         {
             var source =
 @"
@@ -5454,7 +5454,7 @@ class C : B
 
         [WorkItem(31963, "https://github.com/dotnet/roslyn/issues/31963")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontOfferToRemoveCastInConstructorInitializerWhenItNeeded()
+        public async Task DoNotOfferToRemoveCastInConstructorInitializerWhenItNeeded()
         {
             var source =
 @"
