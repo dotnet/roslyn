@@ -239,6 +239,7 @@ class C
         {
             var source =
 @"
+using System;
 class C
 {
     void Goo(Span<int> s)
@@ -248,6 +249,7 @@ class C
 }";
             var fixedSource =
 @"
+using System;
 class C
 {
     void Goo(Span<int> s)
