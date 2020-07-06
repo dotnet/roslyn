@@ -64,5 +64,20 @@ class Test
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact]
+        public async Task NotOnVariableContainingType()
+        {
+            var text = @"class Test
+{
+    void Method()
+    {
+        var typeVar = String;
+        var typeName = [||]nameof(typeVar);
+    }
+}
+";
+            await TestMissingInRegularAndScriptAsync(text);
+        }
     }
 }
