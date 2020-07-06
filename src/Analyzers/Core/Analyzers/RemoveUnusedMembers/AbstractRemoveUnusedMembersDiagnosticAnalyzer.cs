@@ -382,9 +382,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 ArrayBuilder<string> debuggerDisplayAttributeArguments = null;
                 try
                 {
+                    var entryPoint = symbolEndContext.Compilation.GetEntryPoint(symbolEndContext.CancellationToken);
+
                     var namedType = (INamedTypeSymbol)symbolEndContext.Symbol;
                     foreach (var member in namedType.GetMembers())
                     {
+                        if (SymbolEqualityComparer.Default.Equals(entryPoint, member))
+                        {
+                            continue;
+                        }
+
                         // Check if the underlying member is neither read nor a readable reference to the member is taken.
                         // If so, we flag the member as either unused (never written) or unread (written but not read).
                         if (TryRemove(member, out var valueUsageInfo) &&
@@ -689,7 +696,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsEntryPoint(IMethodSymbol methodSymbol)
-                => methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName &&
+                => (methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName || methodSymbol.Name == "$Main") &&
                    methodSymbol.IsStatic &&
                    (methodSymbol.ReturnsVoid ||
                     methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
@@ -699,7 +706,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
                 => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
 
-            private bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
+            private static bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
             {
                 // "bool ShouldSerializeXXX()" and "void ResetXXX()" are ok if there is a matching
                 // property XXX as they are used by the windows designer property grid

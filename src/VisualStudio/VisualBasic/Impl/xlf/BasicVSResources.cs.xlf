@@ -89,8 +89,8 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">_Generovat komentáře dokumentace XML pro '''</target>
-        <note />
+        <target state="needs-review-translation">_Generovat komentáře dokumentace XML pro '''</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">Zobrazit poznámky v Rychlých informacích</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">

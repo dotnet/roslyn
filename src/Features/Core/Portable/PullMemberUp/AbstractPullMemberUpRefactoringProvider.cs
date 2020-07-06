@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             context.RegisterRefactoring(nestedCodeAction, selectedMemberNode.Span);
         }
 
-        private ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
+        private static ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
             ISymbol selectedMember,
             Solution solution,
             CancellationToken cancellationToken)
@@ -82,6 +82,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
         }
-
     }
 }

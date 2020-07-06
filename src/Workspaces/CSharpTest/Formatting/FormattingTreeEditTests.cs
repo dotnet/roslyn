@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
     public class FormattingTreeEditTests : CSharpFormattingTestBase
     {
-        private Document GetDocument(string code)
+        private static Document GetDocument(string code)
         {
             var ws = new AdhocWorkspace();
             var project = ws.AddProject("project", LanguageNames.CSharp);

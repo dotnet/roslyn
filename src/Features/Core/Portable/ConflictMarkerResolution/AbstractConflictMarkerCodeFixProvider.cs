@@ -93,7 +93,9 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                 // issue there.
                 if (startTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia ||
                     middleTrivia.RawKind == _syntaxKinds.ConflictMarkerTrivia)
+                {
                     return false;
+                }
             }
 
             return true;
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             return true;
         }
 
-        private void RegisterCodeFixes(
+        private static void RegisterCodeFixes(
             CodeFixContext context, TextLine startLine, TextLine middleLine, TextLine endLine)
         {
             var document = context.Document;

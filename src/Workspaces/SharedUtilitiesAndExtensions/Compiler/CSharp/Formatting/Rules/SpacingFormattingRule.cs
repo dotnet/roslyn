@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // Semicolons in an empty for statement.  i.e.   for(;;)
             if (previousParentKind == SyntaxKind.ForStatement
-                && this.IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
+                && IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
             {
                 if (currentKind == SyntaxKind.SemicolonToken
                     && (previousKind != SyntaxKind.SemicolonToken
@@ -320,6 +320,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // Function pointer type adjustments
+            if (previousParentKind == SyntaxKindEx.FunctionPointerType && currentParentKind == SyntaxKindEx.FunctionPointerType)
+            {
+                // No spacing between delegate and *
+                if (currentKind == SyntaxKind.AsteriskToken && previousKind == SyntaxKind.DelegateKeyword)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
+                // Force a space between * and the calling convention
+                if (currentKind == SyntaxKind.IdentifierToken && previousKind == SyntaxKind.AsteriskToken)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
+                if (currentKind == SyntaxKind.LessThanToken)
+                {
+                    switch (previousKind)
+                    {
+                        // No spacing between the * and < tokens if there is no calling convention
+                        case SyntaxKind.AsteriskToken:
+                        // No spacing between the calling convention and opening angle bracket of function pointer types:
+                        // delegate* cdecl<
+                        case SyntaxKind.IdentifierToken:
+                            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                    }
+                }
+            }
+
             // For spacing after the 'not' pattern operator
             if (previousToken.Parent.IsKind(SyntaxKindEx.NotPattern))
             {
@@ -411,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SuppressVariableDeclaration(list, node);
         }
 
-        private bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
+        private static bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
             forStatement.Initializers.Count == 0
             && forStatement.Declaration == null
             && forStatement.Condition == null
@@ -433,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private AdjustSpacesOperation AdjustSpacesOperationZeroOrOne(bool option, AdjustSpacesOption explicitOption = AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+        private static AdjustSpacesOperation AdjustSpacesOperationZeroOrOne(bool option, AdjustSpacesOption explicitOption = AdjustSpacesOption.ForceSpacesIfOnSingleLine)
         {
             if (option)
             {
@@ -445,13 +474,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private bool HasFormattableBracketParent(SyntaxToken token)
+        private static bool HasFormattableBracketParent(SyntaxToken token)
             => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
 
-        private bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
+        private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
             => (syntaxKind == SyntaxKind.TypeOfExpression || syntaxKind == SyntaxKind.DefaultExpression || syntaxKind == SyntaxKind.SizeOfExpression);
 
-        private bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
+        private static bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
         {
             return (syntaxKind == SyntaxKind.IfStatement || syntaxKind == SyntaxKind.WhileStatement || syntaxKind == SyntaxKind.SwitchStatement ||
                 syntaxKind == SyntaxKind.ForStatement || syntaxKind == SyntaxKind.ForEachStatement || syntaxKind == SyntaxKind.ForEachVariableStatement ||

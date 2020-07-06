@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false, 5)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false, 5)]
         [Theory]
-        internal async Task Project_CompilationOutputFilePaths_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
+        internal async Task Project_CompilationOutputInfo_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
             using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawler);
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var newSolution = workspace.CurrentSolution.WithProjectCompilationOutputFilePaths(project.Id, new CompilationOutputFilePaths(assemblyPath: "/newPath"));
+            var newSolution = workspace.CurrentSolution.WithProjectCompilationOutputInfo(project.Id, new CompilationOutputInfo(assemblyPath: "/newPath"));
             var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, newSolution));
 
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);

@@ -260,8 +260,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected async Task VerifyProviderCommitAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit,
-            char? commitChar, string textTypedSoFar, SourceCodeKind? sourceCodeKind = null)
+        protected async Task VerifyProviderCommitAsync(
+            string markupBeforeCommit,
+            string itemToCommit,
+            string expectedCodeAfterCommit,
+            char? commitChar,
+            string textTypedSoFar,
+            SourceCodeKind? sourceCodeKind = null)
         {
             WorkspaceFixture.GetWorkspace(markupBeforeCommit, ExportProvider);
 
@@ -498,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition ?? textView.Caret.Position.BufferPosition.Position;
 
-            Assert.Equal(actualExpectedCode, actualCodeAfterCommit);
+            AssertEx.EqualOrDiff(actualExpectedCode, actualCodeAfterCommit);
             Assert.Equal(expectedCaretPosition, caretPosition);
         }
 
@@ -780,6 +785,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 if (expectedSymbols >= 1)
                 {
+                    Assert.NotNull(completionList);
                     AssertEx.Any(completionList.Items, c => CompareItems(c.DisplayText, expectedItem));
 
                     var item = completionList.Items.First(c => CompareItems(c.DisplayText, expectedItem));

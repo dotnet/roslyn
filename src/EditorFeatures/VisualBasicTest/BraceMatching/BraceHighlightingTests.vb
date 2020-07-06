@@ -73,7 +73,6 @@ End Module")
             End Using
         End Function
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Async Function TestNestedTouchingItems() As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(

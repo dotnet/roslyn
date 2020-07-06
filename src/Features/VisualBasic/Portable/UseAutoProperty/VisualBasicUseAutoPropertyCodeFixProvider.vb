@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return statement
         End Function
 
-        Private Async Function GetFieldInitializer(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax))
+        Private Shared Async Function GetFieldInitializer(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax))
             Dim identifier = TryCast(Await fieldSymbol.DeclaringSyntaxReferences(0).GetSyntaxAsync(cancellationToken).ConfigureAwait(False), ModifiedIdentifierSyntax)
             Dim declarator = TryCast(identifier?.Parent, VariableDeclaratorSyntax)
             Dim initializer = declarator?.Initializer

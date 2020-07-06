@@ -130,7 +130,6 @@ namespace Microsoft.CodeAnalysis
             return textVersion.GetNewerVersion(projectVersion);
         }
 
-
         /// <summary>
         /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSyntaxTreeAsync"/> and <see cref="GetSyntaxRootAsync"/> methods.

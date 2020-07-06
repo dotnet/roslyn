@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2896,7 +2897,6 @@ class C
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "string s", FeaturesResources.parameter));
         }
-
 
         [Fact]
         public void MethodUpdate_RenameMethodName()

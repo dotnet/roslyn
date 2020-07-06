@@ -154,7 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-
         private static bool TryGetExpressionBody(
             BasePropertyDeclarationSyntax baseProperty, ParseOptions options, ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression, out SyntaxToken semicolonToken)
@@ -258,10 +257,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IPropertySymbol property, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
+            var setAccessorKind = property.SetMethod?.IsInitOnly == true ? SyntaxKind.InitAccessorDeclaration : SyntaxKind.SetAccessorDeclaration;
             var accessors = new List<AccessorDeclarationSyntax>
             {
                 GenerateAccessorDeclaration(property, property.GetMethod, SyntaxKind.GetAccessorDeclaration, destination, workspace, options, parseOptions),
-                GenerateAccessorDeclaration(property, property.SetMethod, SyntaxKind.SetAccessorDeclaration, destination, workspace, options, parseOptions),
+                GenerateAccessorDeclaration(property, property.SetMethod, setAccessorKind, destination, workspace, options, parseOptions),
             };
 
             return accessors[0] == null && accessors[1] == null

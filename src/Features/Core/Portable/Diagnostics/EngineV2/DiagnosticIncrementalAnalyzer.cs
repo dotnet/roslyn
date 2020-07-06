@@ -66,10 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
-        {
-            var stateSet = _stateManager.GetOrCreateStateSet(project, diagnosticAnalyzer);
-            return stateSet != null && stateSet.IsCompilationEndAnalyzer(project, compilation);
-        }
+            => DiagnosticAnalyzerInfoCache.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation) == true;
 
         public bool ContainsDiagnostics(ProjectId projectId)
         {

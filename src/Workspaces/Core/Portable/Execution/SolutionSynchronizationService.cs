@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync, cancellationToken))
                 {
-                    var storage = _assetStorages.CreateStorage(solution.State);
+                    var storage = AssetStorages.CreateStorage(solution.State);
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
                     return PinnedRemotableDataScope.Create(_assetStorages, storage, checksum);

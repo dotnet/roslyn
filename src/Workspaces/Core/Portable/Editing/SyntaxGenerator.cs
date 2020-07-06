@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return decl;
         }
 
-        private OperatorKind GetOperatorKind(IMethodSymbol method)
+        private static OperatorKind GetOperatorKind(IMethodSymbol method)
             => method.Name switch
             {
                 WellKnownMemberNames.ImplicitConversionName => OperatorKind.ImplicitConversion,
@@ -1171,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
         }
 
-        internal SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
+        internal static SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
             => root.ReplaceNode(node, newDeclarations);
 
         /// <summary>
@@ -1294,7 +1294,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
 
+#pragma warning disable CA1822 // Mark members as static - shipped public API
         protected int IndexOf<T>(IReadOnlyList<T> list, T element)
+#pragma warning restore CA1822 // Mark members as static
         {
             for (int i = 0, count = list.Count; i < count; i++)
             {

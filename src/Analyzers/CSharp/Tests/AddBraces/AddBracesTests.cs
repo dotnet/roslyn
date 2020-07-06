@@ -656,7 +656,6 @@ class Program
                 expectDiagnostic);
         }
 
-
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix - Remove the suppression when https://github.com/dotnet/roslyn/issues/42611 is fixed.
         /// <summary>
         /// Verifies that the use of braces in a construct nested within the true portion of an <c>if</c> statement does

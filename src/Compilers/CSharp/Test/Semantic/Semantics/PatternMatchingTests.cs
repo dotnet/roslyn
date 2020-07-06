@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -144,7 +145,7 @@ public class X
             compilation.VerifyDiagnostics(
                 // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
-                Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int?", "int").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int").WithLocation(11, 18)
                 );
         }
 
@@ -218,7 +219,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
                 // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (s is NullableInt x) { } // error: cannot use nullable type
-                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int").WithLocation(11, 18),
                 // (12,18): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'long'.
                 //         if (s is long l) { } // error: cannot convert string to long
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("string", "long").WithLocation(12, 18),

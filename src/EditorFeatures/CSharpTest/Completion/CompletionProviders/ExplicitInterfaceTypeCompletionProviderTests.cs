@@ -40,6 +40,29 @@ class C : IList
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestAtStartOfRecord()
+        {
+            var markup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""Preview"">
+        <Document>
+using System.Collections;
+
+record C : IList
+{
+    int $$
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
+            await VerifyItemExistsAsync(markup, "IEnumerable");
+            await VerifyItemExistsAsync(markup, "ICollection");
+            await VerifyItemExistsAsync(markup, "IList");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(459044, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
         public async Task TestInMisplacedUsing()
         {

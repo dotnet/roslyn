@@ -708,7 +708,6 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "x");
         }
 
-
         [Fact]
         [WorkItem(33250, "https://github.com/dotnet/roslyn/issues/33250")]
         public async Task ConstFields_NotSuggested()

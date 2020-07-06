@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
 #if !CODE_STYLE
 
-                for (int i = 1; i < switchLabels.Count; i++)
+                for (var i = 1; i < switchLabels.Count; i++)
                 {
                     var nextPatternPart = GetPattern(switchLabels[i], out whenClauseUnused);
                     Debug.Assert(whenClauseUnused == null, "We should not have offered to convert multiple cases if any have a when clause");

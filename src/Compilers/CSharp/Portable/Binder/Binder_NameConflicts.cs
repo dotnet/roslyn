@@ -122,9 +122,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return false;
                 }
+
+                if (binder.IsLastBinderWithinMember())
+                {
+                    // Declarations within a member do not conflict with declarations outside.
+                    return false;
+                }
             }
 
             return false;
+        }
+
+        private bool IsLastBinderWithinMember()
+        {
+            var containingMemberOrLambda = this.ContainingMemberOrLambda;
+
+            switch (containingMemberOrLambda?.Kind)
+            {
+                case null:
+                case SymbolKind.NamedType:
+                case SymbolKind.Namespace:
+                    return true;
+                default:
+                    return containingMemberOrLambda.ContainingSymbol?.Kind == SymbolKind.NamedType &&
+                           this.Next?.ContainingMemberOrLambda != containingMemberOrLambda;
+            }
         }
     }
 }

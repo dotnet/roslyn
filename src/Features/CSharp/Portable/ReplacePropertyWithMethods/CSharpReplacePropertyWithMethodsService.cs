@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -16,7 +18,9 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         {
         }
 
-        public override async Task<IList<SyntaxNode>> GetReplacementMembersAsync(
+        public override async Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(
             Document document,
             IPropertySymbol property,
             SyntaxNode propertyDeclarationNode,
@@ -41,12 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             CancellationToken cancellationToken)
         {
             if (!(propertyDeclarationNode is PropertyDeclarationSyntax propertyDeclaration))
-            {
-                return SpecializedCollections.EmptyList<SyntaxNode>();
-            }
+                return ImmutableArray<SyntaxNode>.Empty;
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var parseOptions = syntaxTree.Options;
 
             return ConvertPropertyToMembers(
@@ -57,18 +59,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 cancellationToken);
         }
 
-        private List<SyntaxNode> ConvertPropertyToMembers(
+        private static ImmutableArray<SyntaxNode> ConvertPropertyToMembers(
             DocumentOptionSet documentOptions,
             ParseOptions parseOptions,
             SyntaxGenerator generator,
             IPropertySymbol property,
             PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol propertyBackingField,
+            IFieldSymbol? propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName,
             CancellationToken cancellationToken)
         {
-            var result = new List<SyntaxNode>();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var result);
 
             if (propertyBackingField != null)
             {
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                     cancellationToken: cancellationToken));
             }
 
-            return result;
+            return result.ToImmutable();
         }
 
         private static SyntaxNode GetSetMethod(
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             ParseOptions parseOptions,
             SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol propertyBackingField,
+            IFieldSymbol? propertyBackingField,
             IMethodSymbol setMethod,
             string desiredSetMethodName,
             CancellationToken cancellationToken)
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private static MethodDeclarationSyntax GetSetMethodWorker(
             SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol propertyBackingField,
+            IFieldSymbol? propertyBackingField,
             IMethodSymbol setMethod,
             string desiredSetMethodName,
             CancellationToken cancellationToken)
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             ParseOptions parseOptions,
             SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol propertyBackingField,
+            IFieldSymbol? propertyBackingField,
             IMethodSymbol getMethod,
             string desiredGetMethodName,
             CancellationToken cancellationToken)
@@ -207,8 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private static SyntaxTrivia ConvertDocumentationComment(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
         {
             var structure = trivia.GetStructure();
-            var updatedStructure = (StructuredTriviaSyntax)rewriter.Visit(structure);
-            return SyntaxFactory.Trivia(updatedStructure);
+            var rewritten = rewriter.Visit(structure);
+            Contract.ThrowIfNull(rewritten);
+            return SyntaxFactory.Trivia((StructuredTriviaSyntax)rewritten);
         }
 
         private static SyntaxNode UseExpressionOrBlockBodyIfDesired(
@@ -216,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             MethodDeclarationSyntax methodDeclaration, bool createReturnStatementForExpression)
         {
             var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-            if (methodDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
+            if (methodDeclaration.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (methodDeclaration.Body.TryConvertToArrowExpressionBody(
                         methodDeclaration.Kind(), parseOptions, expressionBodyPreference,
@@ -228,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                                             .WithAdditionalAnnotations(Formatter.Annotation);
                 }
             }
-            else if (methodDeclaration?.ExpressionBody != null && expressionBodyPreference == ExpressionBodyPreference.Never)
+            else if (methodDeclaration.ExpressionBody != null && expressionBodyPreference == ExpressionBodyPreference.Never)
             {
                 if (methodDeclaration.ExpressionBody.TryConvertToBlock(
                         methodDeclaration.SemicolonToken, createReturnStatementForExpression, out var block))
@@ -246,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private static MethodDeclarationSyntax GetGetMethodWorker(
             SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol propertyBackingField,
+            IFieldSymbol? propertyBackingField,
             IMethodSymbol getMethod,
             string desiredGetMethodName,
             CancellationToken cancellationToken)
@@ -305,10 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return propertyDeclaration;
         }
 
-        protected override NameMemberCrefSyntax TryGetCrefSyntax(IdentifierNameSyntax identifierName)
+        protected override NameMemberCrefSyntax? TryGetCrefSyntax(IdentifierNameSyntax identifierName)
             => identifierName.Parent as NameMemberCrefSyntax;
 
-        protected override NameMemberCrefSyntax CreateCrefSyntax(NameMemberCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode parameterType)
+        protected override NameMemberCrefSyntax CreateCrefSyntax(NameMemberCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode? parameterType)
         {
             CrefParameterListSyntax parameterList;
             if (parameterType is TypeSyntax typeSyntax)

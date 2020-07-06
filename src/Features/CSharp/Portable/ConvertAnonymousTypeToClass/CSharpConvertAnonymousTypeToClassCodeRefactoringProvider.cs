@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 ? declOrComma
                 : CreateArgument((AnonymousObjectMemberDeclaratorSyntax)declOrComma);
 
-        private ArgumentSyntax CreateArgument(AnonymousObjectMemberDeclaratorSyntax decl)
+        private static ArgumentSyntax CreateArgument(AnonymousObjectMemberDeclaratorSyntax decl)
             => SyntaxFactory.Argument(decl.Expression);
     }
 }

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
     Public Class ConvertTupleToStructTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(Workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertTupleToStructCodeRefactoringProvider()
         End Function
 
@@ -83,6 +83,63 @@ Friend Structure NewStruct
 
     Public Shared Widening Operator CType(value As (a As Integer, b As Integer)) As NewStruct
         Return New NewStruct(value.a, value.b)
+    End Operator
+End Structure
+"
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+        End Function
+
+        <WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleType_ChangeArgumentNameCase(host As TestHost) As Task
+            Dim text = "
+class Test
+    sub Method()
+        dim t1 = [||](A:=1, B:=2)
+    end sub
+end class
+"
+            Dim expected = "
+class Test
+    sub Method()
+        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+    end sub
+end class
+
+Friend Structure NewStruct
+    Public A As Integer
+    Public B As Integer
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.A = a
+        Me.B = b
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is NewStruct) Then
+            Return False
+        End If
+
+        Dim other = DirectCast(obj, NewStruct)
+        Return A = other.A AndAlso
+               B = other.B
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Return (A, B).GetHashCode()
+    End Function
+
+    Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
+        a = Me.A
+        b = Me.B
+    End Sub
+
+    Public Shared Widening Operator CType(value As NewStruct) As (A As Integer, B As Integer)
+        Return (value.A, value.B)
+    End Operator
+
+    Public Shared Widening Operator CType(value As (A As Integer, B As Integer)) As NewStruct
+        Return New NewStruct(value.A, value.B)
     End Operator
 End Structure
 "
@@ -671,7 +728,7 @@ end class"
 class Test
     sub Method()
         dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
-        dim t2 = New NewStruct(A:=3, B:=4)
+        dim t2 = New NewStruct(a:=3, b:=4)
     end sub
 end class
 
@@ -843,10 +900,6 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        Sub foo(a As Integer, b As Integer)
-
-        End Sub
-
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function TestFixAllMatchesInSingleMethod(host As TestHost) As Task
             Dim text = "
@@ -975,8 +1028,8 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function NotIfReferencesAnonymousTypeInternally(host As TestHost) As Task
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function NotIfReferencesAnonymousTypeInternally() As Task
             Dim text = "
 class Test
     sub Method()
@@ -1547,7 +1600,7 @@ class Test
         dim t1 = New {|Rename:NewStruct|}(1, 2)
         dim t2 = New NewStruct(1, 2)
         dim t3 = (a:=1, b:=2)
-        dim t4 = New NewStruct(Item1:=1, Item2:=2)
+        dim t4 = New NewStruct(item1:=1, item2:=2)
         dim t5 = New NewStruct(item1:=1, item2:=2)
     end sub
 end class
@@ -1616,7 +1669,7 @@ class Test
         dim t1 = New NewStruct(1, 2)
         dim t2 = New NewStruct(1, 2)
         dim t3 = (a:=1, b:=2)
-        dim t4 = New {|Rename:NewStruct|}(Item1:=1, Item2:=2)
+        dim t4 = New {|Rename:NewStruct|}(item1:=1, item2:=2)
         dim t5 = New NewStruct(item1:=1, item2:=2)
     end sub
 end class
@@ -1662,6 +1715,81 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_member,
                 FeaturesResources.updating_usages_in_containing_type
             })
+
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypeWithInaccessibleSystemHashCode(host As TestHost) As Task
+            Dim text = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+Namespace System
+    Friend Class HashCode
+    End Class
+End Namespace
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+class Test
+    sub Method()
+        dim t1 = [||](a:=1, b:=2)
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>"
+
+            Dim expected = "
+class Test
+    sub Method()
+        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+    end sub
+end class
+
+Friend Structure NewStruct
+    Public a As Integer
+    Public b As Integer
+
+    Public Sub New(a As Integer, b As Integer)
+        Me.a = a
+        Me.b = b
+    End Sub
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is NewStruct) Then
+            Return False
+        End If
+
+        Dim other = DirectCast(obj, NewStruct)
+        Return a = other.a AndAlso
+               b = other.b
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Dim hashCode = 2118541809
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
+        Return hashCode
+    End Function
+
+    Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
+        a = Me.a
+        b = Me.b
+    End Sub
+
+    Public Shared Widening Operator CType(value As NewStruct) As (a As Integer, b As Integer)
+        Return (value.a, value.b)
+    End Operator
+
+    Public Shared Widening Operator CType(value As (a As Integer, b As Integer)) As NewStruct
+        Return New NewStruct(value.a, value.b)
+    End Operator
+End Structure
+"
 
             Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
@@ -1754,7 +1882,7 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_member,
                 FeaturesResources.updating_usages_in_containing_type
             })
-            Await TestInRegularAndScriptAsync(text, expected, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1831,7 +1959,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -1910,7 +2038,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -2026,7 +2154,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=1)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1, options:=GetTestOptions(host))
         End Function
 
 #End Region
@@ -2150,7 +2278,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=2)
+            Await TestInRegularAndScriptAsync(text, expected, index:=2, options:=GetTestOptions(host))
         End Function
 
 #End Region
@@ -2263,7 +2391,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=3)
+            Await TestInRegularAndScriptAsync(text, expected, index:=3, options:=GetTestOptions(host))
         End Function
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
@@ -2370,7 +2498,7 @@ end class
         </Document>
     </Project>
 </Workspace>"
-            Await TestInRegularAndScriptAsync(text, expected, index:=3)
+            Await TestInRegularAndScriptAsync(text, expected, index:=3, options:=GetTestOptions(host))
         End Function
 
 #End Region

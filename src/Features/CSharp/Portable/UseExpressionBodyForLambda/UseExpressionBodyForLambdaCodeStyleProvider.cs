@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var body = declaration.Body as BlockSyntax;
 
             return body.TryConvertToExpressionBody(
-                declaration.Kind(), options, conversionPreference,
+                options, conversionPreference,
                 out expression, out semicolon);
         }
 

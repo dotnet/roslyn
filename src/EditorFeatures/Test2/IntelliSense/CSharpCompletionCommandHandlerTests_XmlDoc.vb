@@ -1233,5 +1233,54 @@ class c
                 Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
             End Using
         End Function
+
+        <WorkItem(44472, "https://github.com/dotnet/roslyn/issues/44472")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithAliasAndImportedNamespace(showCompletionInArgumentLists As Boolean) As Task
+
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace First.NestedA
+{
+    public class MyClass
+    {
+    }
+}
+                        </Document>
+                        <Document>
+using First.NestedA;
+using MyClassLongDescription = First.NestedA.MyClass;
+
+namespace Second.NestedB
+{
+    class OtherClass
+    {
+        /// &lt;summary&gt;
+        /// This is from &lt;see cref="MyClassL$$"/&gt;
+        /// &lt;/summary&gt;
+        public void Method()
+        {
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="MyClassLongDescription")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+
+                Await state.AssertLineTextAroundCaret("        /// This is from <see cref=""MyClassLongDescription", """/>")
+            End Using
+        End Function
     End Class
 End Namespace

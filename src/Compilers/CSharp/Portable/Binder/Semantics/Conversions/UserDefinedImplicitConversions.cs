@@ -579,9 +579,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.Unboxing:
                 case ConversionKind.ExplicitDynamic:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
+                case ConversionKind.ExplicitPointerToPointer:
+                case ConversionKind.ExplicitPointerToInteger:
+                case ConversionKind.ExplicitIntegerToPointer:
                 case ConversionKind.IntPtr:
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
@@ -594,11 +594,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
-                case ConversionKind.PointerToVoid:
+                case ConversionKind.ImplicitPointerToVoid:
 
                 // Added to spec in Roslyn timeframe.
                 case ConversionKind.NullLiteral:
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ImplicitNullToPointer:
 
                 // Added for C# 7.
                 case ConversionKind.ImplicitTupleLiteral:

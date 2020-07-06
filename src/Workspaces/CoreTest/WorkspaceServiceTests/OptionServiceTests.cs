@@ -5,11 +5,15 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -214,13 +218,43 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
+        [Fact, WorkItem(43788, "https://github.com/dotnet/roslyn/issues/43788")]
+        public void TestChangedTodoCommentOptions()
+        {
+            var option = TodoCommentOptions.TokenList;
+            var optionService = TestOptionService.GetService(GetOptionProvider<TodoCommentOptionsProvider>());
+            var optionSet = optionService.GetOptions();
+            var optionKey = new OptionKey(option);
+
+            var currentOptionValue = optionSet.GetOption(option);
+            var newOptionValue = currentOptionValue + "newValue";
+            var newOptionSet = optionSet.WithChangedOption(optionKey, newOptionValue);
+
+            optionService.SetOptions(newOptionSet);
+            Assert.Equal(newOptionValue, (string?)optionService.GetOptions().GetOption(optionKey));
+
+            var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
+            var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);
+            var changedOptions = serializableOptionSet.GetChangedOptions();
+            var changedOptionKey = Assert.Single(changedOptions);
+            Assert.Equal(optionKey, changedOptionKey);
+            Assert.Equal(newOptionValue, serializableOptionSet.GetOption(changedOptionKey));
+        }
+
+        private static TOptionProvider GetOptionProvider<TOptionProvider>()
+            where TOptionProvider : IOptionProvider
+        {
+            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(TestHost.Catalog);
+            return factory.CreateExportProvider().GetExportedValues<IOptionProvider>().OfType<TOptionProvider>().FirstOrDefault();
+        }
+
         [Fact]
         public void TestPerLanguageCodeStyleOptions()
         {
-            PerLanguageOption2<CodeStyleOption2<bool>> perLanguageOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
-            PerLanguageOption<CodeStyleOption<bool>> perLanguageOption = perLanguageOption2.ToPublicOption();
-            CodeStyleOption2<bool> newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!perLanguageOption2.DefaultValue.Value, perLanguageOption2.DefaultValue.Notification);
-            CodeStyleOption<bool> newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
+            var perLanguageOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
+            var perLanguageOption = perLanguageOption2.ToPublicOption();
+            var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!perLanguageOption2.DefaultValue.Value, perLanguageOption2.DefaultValue.Notification);
+            var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
 
             // Test "OptionKey" based overloads for get/set options on OptionSet and OptionService using different public and internal type combinations.
 
@@ -263,10 +297,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         [Fact]
         public void TestLanguageSpecificCodeStyleOptions()
         {
-            Option2<CodeStyleOption2<bool>> option2 = new Option2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
-            Option<CodeStyleOption<bool>> option = option2.ToPublicOption();
-            CodeStyleOption2<bool> newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!option2.DefaultValue.Value, option2.DefaultValue.Notification);
-            CodeStyleOption<bool> newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
+            var option2 = new Option2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
+            var option = option2.ToPublicOption();
+            var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!option2.DefaultValue.Value, option2.DefaultValue.Notification);
+            var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
 
             // Test "OptionKey" based overloads for get/set options on OptionSet and OptionService using different public and internal type combinations.
 

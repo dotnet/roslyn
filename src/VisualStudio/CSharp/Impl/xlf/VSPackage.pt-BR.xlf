@@ -80,7 +80,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Mostrar diagnósticos de arquivos fechados;
+        <target state="translated">Mostrar diagnósticos de arquivos fechados;
 Colorir a expressão regular; 
 Realçar os componentes relacionados sob o cursor; 
 Relatar expressões regulares inválidas;
@@ -88,11 +88,11 @@ Habilitar a análise completa da solução;
 Executar análise de recurso do editor em processo externo;
 Habilitar a navegação para fontes decompiladas;
 Diretivas using;
-Colocar as diretivas do sistema primeiro ao classificar usings;
-Separar grupos de diretiva using;
-Sugerir usings para tipos em assemblies de referência;
-Sugerir usings para tipos em pacotes NuGet;
-Realce;
+Colocar as diretivas do sistema primeiro ao classificar usos;
+Separar grupos de diretiva de uso;
+Sugerir usos para tipos em assemblies de referência;
+Sugerir usos para tipos em pacotes NuGet;
+Realçar;
 Realçar as referências a símbolo sob o cursor;
 Realçar as palavras-chave relacionadas sob o cursor;
 Estrutura de tópicos;
@@ -102,8 +102,8 @@ Mostrar estrutura de tópicos para constructos de nível de declaração;
 Mostrar estrutura de tópicos para constructos de nível de código;
 Mostrar estrutura de tópicos para comentários e regiões de pré-processador;
 Recolher regiões ao recolher definições;
-Esmaecendo;
-Esmaecer usings não usadas;
+Esmaecimento;
+Esmaecer usos não usados;
 Esmaecer código inacessível;
 Bloquear Guias de Estrutura;
 Mostrar guias para constructos de nível de declaração;
@@ -111,12 +111,12 @@ Mostrar guias de constructos de nível de código;
 Ajuda do Editor;
 Gerar comentários da documentação XML para ///;
 Inserir * no início de novas linhas ao escrever /* */ comentários;
-Mostrar visualização para acompanhamento de renomeação;
+Mostrar versão prévia para acompanhamento de renomeação;
 Dividir literais de cadeia de caracteres ao pressionar Enter;
 Relatar espaços reservados inválidos nas chamadas a string.Format;
 Extrair Método;
-Não colocar ref ou out na estrutura personalizada;
-Implementar a Classe Interface ou Abstrata;
+Não colocar ref ou out no struct personalizado;
+Implementar a Classe de Interface ou Abstrata;
 Ao inserir propriedades, eventos e métodos, colocá-los;
 com outros membros do mesmo tipo;
 no fim;
@@ -125,7 +125,8 @@ preferir propriedades de lançamento;
 preferir propriedades automáticas;
 regex;
 expressão regular;
-Usar cores avançadas;</target>
+Usar cores avançadas;
+Esquema de Cores do Editor;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

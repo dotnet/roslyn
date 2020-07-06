@@ -149,7 +149,6 @@ new System.Data.DataSet()
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Data").WithArguments("Data", "System"));
         }
 
-
         /// <summary>
         /// Look at base directory (or directory containing #r) before search paths.
         /// </summary>
@@ -244,7 +243,8 @@ System.Diagnostics.Process.GetCurrentProcess()
         [Fact]
         public void References_Versioning_FxUnification1()
         {
-            if (!s_isSystemV2AndV4Available.Value) return;
+            if (!s_isSystemV2AndV4Available.Value)
+                return;
 
             var script = CSharpScript.Create($@"
 #r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
@@ -273,7 +273,8 @@ System.Diagnostics.Process.GetCurrentProcess()
         [Fact]
         public void References_Versioning_FxUnification2()
         {
-            if (!s_isSystemV2AndV4Available.Value) return;
+            if (!s_isSystemV2AndV4Available.Value)
+                return;
 
             var script0 = CSharpScript.Create($@"
 #r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
@@ -582,7 +583,6 @@ x
                 Assert.Equal(3, result);
             }
         }
-
 
         [Fact]
         public async Task SharedLibCopy_Identical_Weak()

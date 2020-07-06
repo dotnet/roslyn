@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).ParameterCount;
                 case SymbolKind.Event:
+                case SymbolKind.Field:
                     return 0;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
@@ -221,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.NamedType:
                 case SymbolKind.PointerType:
                 case SymbolKind.TypeParameter:
+                case SymbolKind.FunctionPointerType:
                     return ((TypeSymbol)m).CustomModifierCount();
                 case SymbolKind.Event:
                     return ((EventSymbol)m).CustomModifierCount();

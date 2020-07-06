@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Remote
                         maxResultCount,
                         cancellationToken).ConfigureAwait(false);
                 }
-
             }, cancellationToken);
         }
 

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
@@ -22,6 +23,16 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {
+    // The option page configuration is duplicated in PackageRegistration.pkgdef.
+    // These attributes specify the menu structure to be used in Tools | Options. These are not
+    // localized because they are for internal use only.
+    [ProvideOptionPage(typeof(InternalFeaturesOnOffPage), @"Roslyn\FeatureManager", @"Features", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
+    [ProvideOptionPage(typeof(InternalComponentsOnOffPage), @"Roslyn\FeatureManager", @"Components", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
+    [ProvideOptionPage(typeof(PerformanceFunctionIdPage), @"Roslyn\Performance", @"FunctionId", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
+    [ProvideOptionPage(typeof(PerformanceLoggersPage), @"Roslyn\Performance", @"Loggers", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
+    [ProvideOptionPage(typeof(InternalDiagnosticsPage), @"Roslyn\Diagnostics", @"Internal", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
+    [ProvideOptionPage(typeof(InternalSolutionCrawlerPage), @"Roslyn\SolutionCrawler", @"Internal", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
+    [ProvideOptionPage(typeof(ExperimentationPage), @"Roslyn\Experimentation", @"Internal", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
     [Guid(GuidList.guidVisualStudioDiagnosticsWindowPkgString)]
     [Description("Roslyn Diagnostics Window")]
     public sealed class VisualStudioDiagnosticsWindowPackage : AsyncPackage
@@ -82,9 +93,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
             // set logger at start up
             var optionService = componentModel.GetService<IGlobalOptionService>();
-            var remoteService = workspace.Services.GetService<IRemoteHostClientService>();
+            var remoteClientProvider = workspace.Services.GetService<IRemoteHostClientProvider>();
 
-            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteService);
+            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteClientProvider);
         }
         #endregion
 

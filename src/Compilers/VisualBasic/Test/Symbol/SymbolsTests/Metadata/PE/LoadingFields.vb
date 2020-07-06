@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -89,8 +90,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.False(f6.IsConst)
             Assert.False(f6.IsReadOnly)
             Assert.False(f6.IsShared)
-            Assert.Equal(0, f6.CustomModifiers.Length)
-            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(f6.Type)
+            Assert.False(f6.CustomModifiers.Single().IsOptional)
+            Assert.Equal("System.Runtime.CompilerServices.IsVolatile", f6.CustomModifiers.Single().Modifier.ToTestDisplayString())
+            Assert.True(f6.HasUnsupportedMetadata)
 
             Assert.Equal(3, csFields.GetMembers("FFF").Length())
             Assert.Equal(3, csFields.GetMembers("Fff").Length())

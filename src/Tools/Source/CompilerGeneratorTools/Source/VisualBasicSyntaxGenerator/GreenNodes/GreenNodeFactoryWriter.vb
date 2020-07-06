@@ -164,7 +164,6 @@ Friend Class GreenNodeFactoryWriter
         End If
     End Sub
 
-
     ' Generate the factory method for a node structure, possibly customized to a particular kind.
     ' If kind is Nothing, generate a factory method that takes a Kind parameter, and can create any kind.
     ' If kind is not Nothing, generator a factory method customized to that particular kind.
@@ -195,7 +194,6 @@ Friend Class GreenNodeFactoryWriter
         ' 1. Generate the Function line
         '------------------------------
         Dim needComma = False  ' do we need a comma before the next parameter?
-
 
         _writer.WriteLine()
         GenerateSummaryXmlComment(_writer, nodeStructure.Description)
@@ -435,8 +433,6 @@ Friend Class GreenNodeFactoryWriter
         _writer.WriteLine("            _factoryContext = factoryContext")
         _writer.WriteLine("        End Sub")
     End Sub
-
-
 
 End Class
 

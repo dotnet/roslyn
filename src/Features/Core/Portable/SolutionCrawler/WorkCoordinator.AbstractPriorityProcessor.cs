@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private void OnNonRoslynBufferTextChanged(object sender, EventArgs e)
+                    private void OnNonRoslynBufferTextChanged(object? sender, EventArgs e)
                     {
                         // There are 2 things incremental processor takes care of
                         //

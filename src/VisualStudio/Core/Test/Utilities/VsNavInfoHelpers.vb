@@ -61,6 +61,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Utilities.VsNavInfo
             End While
         End Sub
 
-
     End Module
 End Namespace

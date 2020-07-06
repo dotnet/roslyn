@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="new">Automatically show completion list in argument lists (experimental)</target>
+        <target state="translated">Автоматически показывать список завершения в списках аргументов (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -72,6 +72,11 @@
         <target state="translated">Использовать "is null" вместо проверки ссылок на равенство.</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="new">Prefer pattern matching</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
         <target state="translated">Предпочитать выражение switch</target>
@@ -94,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">Показать заметки в кратких сведениях</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">

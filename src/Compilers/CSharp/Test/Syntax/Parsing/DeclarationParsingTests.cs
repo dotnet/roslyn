@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
         }
 
+
         [Fact]
         public void TestExternAlias()
         {
@@ -41,31 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ea.AliasKeyword);
             Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.Kind());
             Assert.False(ea.AliasKeyword.IsMissing);
-            Assert.NotEqual(default, ea.Identifier);
-            Assert.Equal("a", ea.Identifier.ToString());
-            Assert.NotEqual(default, ea.SemicolonToken);
-        }
-
-        [Fact]
-        public void TestExternWithoutAlias()
-        {
-            var text = "extern a;";
-            var file = this.ParseFile(text);
-
-            Assert.NotNull(file);
-            Assert.Equal(1, file.Externs.Count);
-            Assert.Equal(text, file.ToString());
-            var errors = file.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
-
-            var ea = file.Externs[0];
-
-            Assert.NotEqual(default, ea.ExternKeyword);
-            Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.Kind());
-            Assert.NotEqual(default, ea.AliasKeyword);
-            Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.Kind());
-            Assert.True(ea.AliasKeyword.IsMissing);
             Assert.NotEqual(default, ea.Identifier);
             Assert.Equal("a", ea.Identifier.ToString());
             Assert.NotEqual(default, ea.SemicolonToken);
@@ -7380,12 +7356,15 @@ class A : B : C
                 // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
-                // (3,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // (3,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(3, 1),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"{
+}").WithArguments("top-level statements").WithLocation(3, 1),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // {
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
+}").WithLocation(3, 1)
+                );
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7412,6 +7391,14 @@ class A : B : C
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "C");
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);

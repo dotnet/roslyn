@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var callbackTarget = new RemoteSymbolSearchService(symbolSearchService);
 
-                var result = await client.TryRunRemoteAsync<IList<AddImportFixData>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<AddImportFixData>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteAddImportFeatureService.GetFixesAsync),
                     document.Project.Solution,
                     new object[]
@@ -76,10 +76,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     callbackTarget,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.ToImmutableArray();
-                }
+                return result.ToImmutableArray();
             }
 
             return await GetFixesInCurrentProcessAsync(
@@ -97,7 +94,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var node = root.FindToken(span.Start, findInsideTrivia: true)
                            .GetAncestor(n => n.Span.Contains(span) && n != root);
 
-            var result = ArrayBuilder<AddImportFixData>.GetInstance();
+            using var _ = ArrayBuilder<AddImportFixData>.GetInstance(out var result);
             if (node != null)
             {
 
@@ -125,7 +122,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
@@ -175,7 +172,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
             Project project, int maxResults, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
-            var allReferences = ArrayBuilder<Reference>.GetInstance();
+            using var _ = ArrayBuilder<Reference>.GetInstance(out var allReferences);
 
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
@@ -202,10 +199,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            return allReferences.ToImmutableAndFree();
+            return allReferences.ToImmutable();
         }
 
-        private async Task FindResultsInAllSymbolsInStartingProjectAsync(
+        private static async Task FindResultsInAllSymbolsInStartingProjectAsync(
             ArrayBuilder<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
@@ -213,7 +210,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             AddRange(allSymbolReferences, references, maxResults);
         }
 
-        private async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
+        private static async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
             Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults,
             SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
@@ -298,7 +295,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// by this project.  The set returned will be tuples containing the PEReference, and the project-id
         /// for the project we found the pe-reference in.
         /// </summary>
-        private ImmutableArray<(ProjectId, PortableExecutableReference)> GetUnreferencedMetadataReferences(
+        private static ImmutableArray<(ProjectId, PortableExecutableReference)> GetUnreferencedMetadataReferences(
             Project project, HashSet<PortableExecutableReference> seenReferences)
         {
             var result = ArrayBuilder<(ProjectId, PortableExecutableReference)>.GetInstance();
@@ -325,7 +322,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return result.ToImmutableAndFree();
         }
 
-        private async Task WaitForTasksAsync(
+        private static async Task WaitForTasksAsync(
             ArrayBuilder<Reference> allSymbolReferences,
             int maxResults,
             HashSet<Task<ImmutableArray<SymbolReference>>> findTasks,
@@ -385,7 +382,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// vastly improved in the common case. This is a totally acceptable and desirable outcome
         /// for such a heuristic.
         /// </summary>
-        private bool IsInPackagesDirectory(PortableExecutableReference reference)
+        private static bool IsInPackagesDirectory(PortableExecutableReference reference)
         {
             return ContainsPathComponent(reference, "packages")
                 || ContainsPathComponent(reference, "packs")
@@ -405,13 +402,12 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// getting the compilation for that project may be extremely expensive.  For example,
         /// in a large solution it may cause us to build an enormous amount of skeleton assemblies.
         /// </summary>
-        private Compilation CreateCompilation(Project project, PortableExecutableReference reference)
+        private static Compilation CreateCompilation(Project project, PortableExecutableReference reference)
         {
             var compilationService = project.LanguageServices.GetService<ICompilationFactoryService>();
             var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions());
             return compilation.WithReferences(reference);
         }
-
 
         bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
             => StringComparer.OrdinalIgnoreCase.Equals(x.FilePath ?? x.Display, y.FilePath ?? y.Display);
@@ -440,13 +436,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             return viableProjects;
         }
 
-        private void AddRange<TReference>(ArrayBuilder<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences, int maxResults)
+        private static void AddRange<TReference>(ArrayBuilder<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences, int maxResults)
             where TReference : Reference
         {
             allSymbolReferences.AddRange(proposedReferences.Take(maxResults - allSymbolReferences.Count));
         }
 
-        protected bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
+        protected static bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
         {
             if (receiver == null || method == null)
             {
@@ -527,7 +523,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return codeActionsBuilder.ToImmutableAndFree();
         }
 
-        private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
+        private static CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
             => fixData.Kind switch
             {
                 AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
@@ -539,7 +535,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        private static ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
 
@@ -548,10 +544,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }
 
-        protected bool AncestorOrSelfIsAwaitExpression(ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        protected static bool AncestorOrSelfIsAwaitExpression(ISyntaxFacts syntaxFactsService, SyntaxNode node)
             => FirstAwaitExpressionAncestor(syntaxFactsService, node) != null;
 
-        private SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        private static SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
             => node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFacts>((n, syntaxFactsService) => syntaxFactsService.IsAwaitExpression(n), syntaxFactsService);
     }
 }

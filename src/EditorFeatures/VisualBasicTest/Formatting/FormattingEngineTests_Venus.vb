@@ -3,10 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     Public Class FormattingEngineTests_Venus
         Inherits VisualBasicFormatterTestBase
+
+        Public Sub New(output As ITestOutputHelper)
+            MyBase.New(output)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function SimpleOneLineNugget() As Threading.Tasks.Task

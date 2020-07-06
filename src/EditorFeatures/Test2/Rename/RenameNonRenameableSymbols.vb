@@ -48,7 +48,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                         </Project>
                     </Workspace>, host:=host, renameTo:="proper")
 
-
                 result.AssertLabeledSpansAre("conflict", "proper", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub

@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                if (!service.ValidateTypeToGenerateIn(document.Project.Solution, TypeToGenerateIn,
-                        IsStatic, ClassInterfaceModuleStructTypes))
+                if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }

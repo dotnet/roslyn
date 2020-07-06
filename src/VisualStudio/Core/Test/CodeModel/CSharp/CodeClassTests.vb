@@ -1025,7 +1025,6 @@ class $$C { void M() { } }
             TestChildren(code, IsElement("Obsolete"), IsElement("M"))
         End Sub
 
-
 #End Region
 
 #Region "ClassKind tests"

@@ -13,6 +13,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\ConvertAnonymousTypeToTupleTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryByVal\RemoveUnnecessaryByValTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessarySuppressionsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.vb" />

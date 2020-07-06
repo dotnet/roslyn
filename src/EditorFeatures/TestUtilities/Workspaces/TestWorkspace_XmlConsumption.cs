@@ -466,7 +466,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static string GetLanguage(TestWorkspace workspace, XElement projectElement)
         {
-            var languageName = projectElement.Attribute(LanguageAttributeName).Value;
+            var languageAttribute = projectElement.Attribute(LanguageAttributeName);
+            if (languageAttribute == null)
+            {
+                throw new ArgumentException($"{projectElement} is missing a {LanguageAttributeName} attribute.");
+            }
+
+            var languageName = languageAttribute.Value;
 
             if (!workspace.Services.SupportedLanguages.Contains(languageName))
             {

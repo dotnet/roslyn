@@ -142,6 +142,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
+        Friend NotOverridable Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+            Return SpecializedCollections.EmptyEnumerable(Of NamedTypeSymbol)()
+        End Function
+
         Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
             Throw ExceptionUtilities.Unreachable
         End Function

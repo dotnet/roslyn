@@ -580,8 +580,6 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-
-
         <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestWhitespaceBetweenMethods1() As Task

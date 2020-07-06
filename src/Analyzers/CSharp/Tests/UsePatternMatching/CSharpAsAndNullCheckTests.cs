@@ -633,7 +633,6 @@ $@"class C
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestDefiniteAssignment6()
         {

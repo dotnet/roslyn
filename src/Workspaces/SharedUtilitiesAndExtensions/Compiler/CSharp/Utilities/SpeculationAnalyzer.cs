@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             var replacedIdentifierNodes = replacedLambdaBody.DescendantNodes().OfType<IdentifierNameSyntax>().Where(node => paramNames.Contains(node.Identifier.ValueText));
-            return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody, replacedLambdaBody);
+            return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody);
         }
 
         private bool HaveSameParameterType(ParameterSyntax originalParam, ParameterSyntax replacedParam)
@@ -249,8 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool ReplacementChangesSemanticsForNodes(
             IEnumerable<IdentifierNameSyntax> originalIdentifierNodes,
             IEnumerable<IdentifierNameSyntax> replacedIdentifierNodes,
-            SyntaxNode originalRoot,
-            SyntaxNode replacedRoot)
+            SyntaxNode originalRoot)
         {
             Debug.Assert(originalIdentifierNodes.Any());
             Debug.Assert(originalIdentifierNodes.Count() == replacedIdentifierNodes.Count());

@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis
             return successfullyMergedChanges.ToImmutableAndFree();
         }
 
-        private IEnumerable<TextChange> MergeChangesWithMergeFailComments(
+        private static IEnumerable<TextChange> MergeChangesWithMergeFailComments(
             IEnumerable<TextChange> mergedChanges,
             IEnumerable<TextChange> commentChanges,
             IList<TextSpan> mergeConflictResolutionSpans,
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
             return NormalizeChanges(combinedChanges);
         }
 
-        private IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
+        private static IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
         {
             if (changes.Count() <= 1)
             {
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
-            LinkedFileDiffMergingLogger.LogSession(this._newSolution.Workspace, sessionInfo);
+            LinkedFileDiffMergingLogger.LogSession(sessionInfo);
         }
 
         internal class LinkedFileDiffMergingSessionInfo

@@ -71,7 +71,6 @@ class PurchaseTransaction
                 out var text,
                 out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
-
             VisualStudio.Editor.SetText(text);
 
             Verify("#if", spans["if"]);

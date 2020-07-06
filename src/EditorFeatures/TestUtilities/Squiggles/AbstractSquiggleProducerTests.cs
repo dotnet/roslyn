@@ -26,21 +26,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
             where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
         {
-            using (var wrapper = new DiagnosticTaggerWrapper<TProvider>(workspace, analyzerMap))
-            {
-                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
-                using (var disposable = tagger as IDisposable)
-                {
-                    await wrapper.WaitForTags();
+            using var wrapper = new DiagnosticTaggerWrapper<TProvider, IErrorTag>(workspace, analyzerMap);
+            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
 
-                    var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution);
+            using var disposable = tagger as IDisposable;
+            await wrapper.WaitForTags();
 
-                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
+            var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution);
 
-                    return (analyzerDiagnostics, spans);
-                }
-            }
+            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
+
+            return (analyzerDiagnostics, spans);
         }
     }
 
@@ -57,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         internal async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource();
-            using (var wrapper = new DiagnosticTaggerWrapper<TProvider>(workspace, updateSource: source))
+            using (var wrapper = new DiagnosticTaggerWrapper<TProvider, IErrorTag>(workspace, updateSource: source))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)

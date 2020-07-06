@@ -128,7 +128,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         Dim handle = GCHandle.Alloc(managedObject, GCHandleType.Normal)
                         Dim freeHandle = True
                         Try
+#Disable Warning RS0042 ' Do not copy value
                             BlindAggregatorFactory.SetInnerObject(wrapperUnknown, innerUnknown, GCHandle.ToIntPtr(handle))
+#Enable Warning RS0042 ' Do not copy value
                             freeHandle = False
                         Finally
                             If freeHandle Then handle.Free()

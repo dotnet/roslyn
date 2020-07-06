@@ -11,7 +11,6 @@ using Xunit;
 using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
-
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
@@ -35,7 +34,6 @@ class FirstClass
 {
     void FirstMethod() { }
 }");
-
 
             VisualStudio.SolutionExplorer.AddFile(project, "test2.cs", open: true, contents: @"
 ");

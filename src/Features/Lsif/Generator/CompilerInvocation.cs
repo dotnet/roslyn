@@ -45,15 +45,15 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             // Unfortunately for us there are a few paths that get directly read by the command line parse which we need to remap,
             // such as /ruleset files. So let's go through and process them now.
-            for (int i = 0; i < splitCommandLine.Count; i++)
+            for (var i = 0; i < splitCommandLine.Count; i++)
             {
                 const string RuleSetSwitch = "/ruleset:";
 
                 if (splitCommandLine[i].StartsWith(RuleSetSwitch, StringComparison.Ordinal))
                 {
-                    string rulesetPath = splitCommandLine[i].Substring(RuleSetSwitch.Length);
+                    var rulesetPath = splitCommandLine[i].Substring(RuleSetSwitch.Length);
 
-                    bool quoted = rulesetPath.Length > 2 &&
+                    var quoted = rulesetPath.Length > 2 &&
                         rulesetPath.StartsWith("\"", StringComparison.Ordinal) &&
                         rulesetPath.EndsWith("\"", StringComparison.Ordinal);
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     {
                         // Trim off any leading \, which would happen if you have a path like C:\Directory\\File.cs with a double slash, and happen to be
                         // mapping C:\Directory somewhere.
-                        string relativePath = unmappedPath.Substring(fromWithDirectorySuffix.Length).TrimStart('\\');
+                        var relativePath = unmappedPath.Substring(fromWithDirectorySuffix.Length).TrimStart('\\');
 
                         return Path.Combine(AddDirectorySuffixIfMissing(potentialPathMapping.To), relativePath);
                     }

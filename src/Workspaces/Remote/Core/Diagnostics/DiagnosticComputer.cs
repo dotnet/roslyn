@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var analyzerDriver = compilation.WithAnalyzers(analyzers, analyzerOptions);
 
             // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
-            var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+            var (analysisResult, additionalPragmaSuppressionDiagnostics) = await analyzerDriver.GetAnalysisResultAsync(_project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
             // record performance if tracker is available
             if (_performanceTracker != null)
@@ -93,14 +93,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), _project.DocumentIds.Count + 1);
             }
 
-            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, skippedAnalyzersInfo, cancellationToken);
+            var builderMap = analysisResult.ToResultBuilderMap(additionalPragmaSuppressionDiagnostics, _project, VersionStamp.Default, compilation, analysisResult.Analyzers, skippedAnalyzersInfo, cancellationToken);
 
             return DiagnosticAnalysisResultMap.Create(
                 builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
                 analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value));
         }
 
-        private string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
+        private static string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
         {
             var analyzerId = analyzerMap.GetKeyOrDefault(analyzer);
             Contract.ThrowIfNull(analyzerId);
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return analyzerId;
         }
 
-        private ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<string> analyzerIds)
+        private static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<string> analyzerIds)
         {
             // TODO: this probably need to be cached as well in analyzer service?
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return builder.ToImmutable();
         }
 
-        private BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(Project project)
+        private static BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(Project project)
         {
             // we could consider creating a service so that we don't do this repeatedly if this shows up as perf cost
             using var pooledObject = SharedPools.Default<HashSet<object>>().GetPooledObject();

@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsGlobalStatementContext ||
                 context.IsObjectCreationTypeContext ||
                 (context.IsGenericTypeArgumentContext && !context.TargetToken.Parent.HasAncestor<XmlCrefAttributeSyntax>()) ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 context.IsEnumBaseListContext ||
                 context.IsIsOrAsTypeContext ||
                 context.IsLocalVariableDeclarationContext ||
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsPossibleTupleContext ||
                 context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }

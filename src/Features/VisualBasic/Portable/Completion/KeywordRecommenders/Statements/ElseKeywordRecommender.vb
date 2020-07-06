@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function IsDirectlyInIfOrElseIf(context As VisualBasicSyntaxContext) As Boolean
+        Private Shared Function IsDirectlyInIfOrElseIf(context As VisualBasicSyntaxContext) As Boolean
             ' Maybe we're after the Then keyword
             If context.TargetToken.IsKind(SyntaxKind.ThenKeyword) AndAlso
                 context.TargetToken.Parent?.Parent.IsKind(SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock) Then

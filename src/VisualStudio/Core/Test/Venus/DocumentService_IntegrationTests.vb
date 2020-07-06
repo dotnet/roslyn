@@ -55,7 +55,6 @@ class {|Definition:C1|}
     </Project>
 </Workspace>
 
-
             Dim exportProvider = ExportProviderCache _
                 .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic() _
                 .WithParts(GetType(MockServiceProvider))) _

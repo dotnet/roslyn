@@ -237,7 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CaseSwitchLabel:
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
-                        SyntaxNode innerExpression = caseLabelSyntax.Value.SkipParens();
                         bool hasErrors = node.HasErrors;
                         BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
                             caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);

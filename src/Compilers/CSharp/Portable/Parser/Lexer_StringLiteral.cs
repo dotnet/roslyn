@@ -372,6 +372,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     switch (lexer.TextWindow.PeekChar())
                     {
+                        case '"' when RecoveringFromRunawayLexing():
+                            // When recovering from mismatched delimiters, we consume the next
+                            // quote character as the close quote for the interpolated string. In
+                            // practice this gets us out of trouble in scenarios we've encountered.
+                            // See, for example, https://github.com/dotnet/roslyn/issues/44789
+                            return;
                         case '"':
                             if (isVerbatim && lexer.TextWindow.PeekChar(1) == '"')
                             {
@@ -588,13 +594,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
 
                             goto default;
+                        case '"' when RecoveringFromRunawayLexing():
+                            // When recovering from mismatched delimiters, we consume the next
+                            // quote character as the close quote for the interpolated string. In
+                            // practice this gets us out of trouble in scenarios we've encountered.
+                            // See, for example, https://github.com/dotnet/roslyn/issues/44789
+                            return;
                         case '"':
                         case '\'':
                             // handle string or character literal inside an expression hole.
                             ScanInterpolatedStringLiteralNestedString();
                             continue;
                         case '@':
-                            if (lexer.TextWindow.PeekChar(1) == '"')
+                            if (lexer.TextWindow.PeekChar(1) == '"' && !RecoveringFromRunawayLexing())
                             {
                                 // check for verbatim string inside an expression hole.
                                 ScanInterpolatedStringLiteralNestedVerbatimString();
@@ -654,6 +666,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
             }
+
+            /// <summary>
+            /// The lexer can run away consuming the rest of the input when delimiters are mismatched.
+            /// This is a test for when we are attempting to recover from that situation.
+            /// </summary>
+            private bool RecoveringFromRunawayLexing() => this.error != null;
 
             private void ScanInterpolatedStringLiteralNestedComment()
             {

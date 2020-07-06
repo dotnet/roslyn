@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var nameToken = nameSyntax.GetNameToken();
 
-            var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: true, cancellationToken);
+            var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
             var firstSymbol = symbols.FirstOrDefault();
 
             var typeSymbol = firstSymbol != null && firstSymbol.Kind == SymbolKind.Alias

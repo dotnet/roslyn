@@ -138,12 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostDocument(
-            string text = "", string displayName = "",
+            string text = "",
+            string displayName = "",
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
-            DocumentId? id = null, string? filePath = null,
-            IReadOnlyList<string>? folders = null)
+            DocumentId? id = null,
+            string? filePath = null,
+            IReadOnlyList<string>? folders = null,
+            ExportProvider? exportProvider = null)
         {
-            _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            _exportProvider = exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             _id = id;
             _initialText = text;
             Name = displayName;
@@ -243,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                             // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
                             workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
                         }
-                    };
+                    }
                 }
             }
 

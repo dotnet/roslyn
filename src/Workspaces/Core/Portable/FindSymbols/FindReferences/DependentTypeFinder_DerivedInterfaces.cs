@@ -17,41 +17,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedInterfacesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             bool transitive,
             CancellationToken cancellationToken)
         {
-            var result = await TryFindAndCacheRemoteTypesAsync(
+            var result = await TryFindRemoteTypesAsync(
                 type, solution, projects, transitive,
                 FunctionId.DependentTypeFinder_FindAndCacheDerivedInterfacesAsync,
-                nameof(IRemoteDependentTypeFinder.FindAndCacheDerivedInterfacesAsync),
+                nameof(IRemoteDependentTypeFinder.FindDerivedInterfacesAsync),
                 cancellationToken).ConfigureAwait(false);
 
             if (result.HasValue)
                 return result.Value;
 
-            return await FindAndCacheDerivedInterfacesInCurrentProcessAsync(
+            return await FindDerivedInterfacesInCurrentProcessAsync(
                 type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedInterfacesInCurrentProcessAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects,
-                transitive ? s_typeToTransitivelyDerivedInterfacesMap : s_typeToImmediatelyDerivedInterfacesMap,
-                c => FindWithoutCachingDerivedInterfacesAsync(type, solution, projects, transitive, c),
-                cancellationToken);
-        }
-
-        private static Task<ImmutableArray<(INamedTypeSymbol, Project)>> FindWithoutCachingDerivedInterfacesAsync(
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -71,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken: cancellationToken);
             }
 
-            return SpecializedTasks.EmptyImmutableArray<(INamedTypeSymbol, Project)>();
+            return SpecializedTasks.EmptyImmutableArray<INamedTypeSymbol>();
         }
     }
 }

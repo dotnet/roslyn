@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 parseOptions: CSharp8ParseOptions);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
         public async Task TestMultipleVariables()
         {

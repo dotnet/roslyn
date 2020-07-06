@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertyAccessorSymbol : SourceMemberMethodSymbol
     {
-        private readonly SourcePropertySymbol _property;
+        private readonly SourcePropertySymbolBase _property;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations _lazyReturnType;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
@@ -23,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly bool _isAutoPropertyAccessor;
         private readonly bool _isExpressionBodied;
+        private readonly bool _usesInit;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
             NamedTypeSymbol containingType,
@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
+            Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration ||
+                syntax.Kind() == SyntaxKind.SetAccessorDeclaration ||
+                syntax.Kind() == SyntaxKind.InitAccessorDeclaration);
 
             bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration);
             string name;
@@ -51,6 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out explicitInterfaceImplementations);
 
             var methodKind = isGetMethod ? MethodKind.PropertyGet : MethodKind.PropertySet;
+
+            bool hasBody = syntax.Body is object;
+            bool hasExpressionBody = syntax.ExpressionBody is object;
+            CheckForBlockAndExpressionBody(syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
             return new SourcePropertyAccessorSymbol(
                 containingType,
                 name,
@@ -59,7 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 explicitInterfaceImplementations,
                 syntax.Keyword.GetLocation(),
                 syntax,
+                hasBody,
+                hasExpressionBody,
+                isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
+                syntax.Modifiers,
                 methodKind,
+                syntax.Keyword.IsKind(SyntaxKind.InitKeyword),
                 isAutoPropertyAccessor,
                 isExplicitInterfaceImplementation,
                 diagnostics);
@@ -99,6 +110,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExplicitInterfaceImplementation,
                 diagnostics);
         }
+
+#nullable enable
+        public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
+            bool isGetMethod,
+            bool usesInit,
+            NamedTypeSymbol containingType,
+            SynthesizedRecordPropertySymbol property,
+            DeclarationModifiers propertyModifiers,
+            string propertyName,
+            Location location,
+            CSharpSyntaxNode syntax,
+            DiagnosticBag diagnostics)
+        {
+            string name;
+            ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
+            GetNameAndExplicitInterfaceImplementations(
+                explicitlyImplementedPropertyOpt: null,
+                propertyName,
+                property.IsCompilationOutputWinMdObj(),
+                aliasQualifierOpt: null,
+                isGetMethod,
+                out name,
+                out explicitInterfaceImplementations);
+
+            var methodKind = isGetMethod ? MethodKind.PropertyGet : MethodKind.PropertySet;
+            return new SourcePropertyAccessorSymbol(
+                containingType,
+                name,
+                property,
+                propertyModifiers,
+                explicitInterfaceImplementations,
+                location,
+                syntax,
+                hasBody: false,
+                hasExpressionBody: false,
+                isIterator: false,
+                modifiers: new SyntaxTokenList(),
+                methodKind,
+                usesInit,
+                isAutoPropertyAccessor: true,
+                isExplicitInterfaceImplementation: false,
+                diagnostics);
+        }
+#nullable restore
 
         internal override bool IsExpressionBodied
             => _isExpressionBodied;
@@ -154,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrowExpressionClauseSyntax syntax,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), location)
+            base(containingType, syntax.GetReference(), location, isIterator: false)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
@@ -172,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
-            CheckModifiersForBody(syntax, location, diagnostics);
+            CheckModifiersForBody(location, diagnostics);
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
@@ -195,33 +250,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         private SourcePropertyAccessorSymbol(
             NamedTypeSymbol containingType,
             string name,
-            SourcePropertySymbol property,
+            SourcePropertySymbolBase property,
             DeclarationModifiers propertyModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations,
             Location location,
-            AccessorDeclarationSyntax syntax,
+            CSharpSyntaxNode syntax,
+            bool hasBody,
+            bool hasExpressionBody,
+            bool isIterator,
+            SyntaxTokenList modifiers,
             MethodKind methodKind,
+            bool usesInit,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
-                   location)
+                   location,
+                   isIterator: isIterator)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
-            var hasBody = syntax.Body != null;
-            var hasExpressionBody = syntax.ExpressionBody != null;
             _isExpressionBodied = !hasBody && hasExpressionBody;
+            _usesInit = usesInit;
+            if (_usesInit)
+            {
+                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInitOnlySetters, diagnostics, location);
+            }
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(modifiers, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
 
             // Include some modifiers from the containing property, but not the accessibility modifiers.
             declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
@@ -240,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasBody || hasExpressionBody)
             {
-                CheckModifiersForBody(syntax, location, diagnostics);
+                CheckModifiersForBody(location, diagnostics);
             }
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
@@ -266,9 +331,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CheckForBlockAndExpressionBody(
-                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
+#nullable restore
 
         private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
             propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
@@ -291,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (this.IsOverride)
             {
-                // This will cause another call to SourceMethodSymbol.LazyMethodChecks, 
+                // This will cause another call to SourceMethodSymbol.LazyMethodChecks,
                 // but that method already handles reentrancy for exactly this case.
                 MethodSymbol overriddenMethod = this.OverriddenMethod;
                 if ((object)overriddenMethod != null)
@@ -414,7 +478,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var binder = GetBinder();
-                return TypeWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
+                var type = TypeWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
+
+                if (IsInitOnly)
+                {
+                    var isInitOnlyType = Binder.GetWellKnownType(this.DeclaringCompilation,
+                        WellKnownType.System_Runtime_CompilerServices_IsExternalInit, diagnostics, this.locations[0]);
+
+                    var modifiers = ImmutableArray.Create<CustomModifier>(
+                        CSharpCustomModifier.CreateRequired(isInitOnlyType));
+                    type = type.WithModifiers(modifiers);
+                }
+
+                return type;
             }
         }
 
@@ -503,7 +579,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
+        internal override bool IsInitOnly => !IsStatic && _usesInit;
+
+        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility
@@ -524,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 defaultInterfaceImplementationModifiers = DeclarationModifiers.AccessibilityMask;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -571,6 +649,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Auto-implemented accessor '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_AutoSetterCantBeReadOnly, location, this);
             }
+            else if (_usesInit && IsStatic)
+            {
+                // The 'init' accessor is not valid on static members
+                diagnostics.Add(ErrorCode.ERR_BadInitAccessor, location);
+            }
         }
 
         /// <summary>
@@ -583,7 +666,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <returns>
-        /// <see cref="AccessorDeclarationSyntax"/> or <see cref="ArrowExpressionClauseSyntax"/>
+        /// The declaring syntax for the accessor, or property if there is no accessor-specific
+        /// syntax.
         /// </returns>
         internal CSharpSyntaxNode GetSyntax()
         {
@@ -614,6 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     return OneOrMany.Create(((AccessorDeclarationSyntax)syntax).AttributeLists);
             }
 
@@ -633,8 +718,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // Per design meeting resolution [see bug 11253], no source accessor is implicitly declared in C#,
-                // because there is "get", "set", or expression-body syntax.
-                return false;
+                // if there is "get", "set", or expression-body syntax.
+                switch (GetSyntax().Kind())
+                {
+                    case SyntaxKind.GetAccessorDeclaration:
+                    case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
+                    case SyntaxKind.ArrowExpressionClause:
+                        return false;
+                };
+
+                return true;
             }
         }
 

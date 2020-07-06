@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _readString = ReadString;
                 _readBoolean = ReadBoolean;
-                _readRefKind = () => (RefKind)ReadInteger();
+                _readRefKind = ReadRefKind;
             }
 
             protected virtual void Initialize(string data, CancellationToken cancellationToken)
@@ -192,6 +192,11 @@ namespace Microsoft.CodeAnalysis
                 EatCloseParen();
                 return builder;
             }
+
+            public RefKind ReadRefKind()
+            {
+                return (RefKind)ReadInteger();
+            }
         }
 
         private class RemoveAssemblySymbolKeysReader : Reader<object>
@@ -275,7 +280,6 @@ namespace Microsoft.CodeAnalysis
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
             private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
-            private bool _resolveLocations;
 
             public SymbolKeyReader()
             {
@@ -289,7 +293,6 @@ namespace Microsoft.CodeAnalysis
                 _idToResult.Clear();
                 Compilation = null;
                 IgnoreAssemblyKey = false;
-                _resolveLocations = false;
                 Comparer = null;
                 _methodSymbolStack.Clear();
 
@@ -299,11 +302,11 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyReader GetReader(
                 string data, Compilation compilation,
-                bool ignoreAssemblyKey, bool resolveLocations,
+                bool ignoreAssemblyKey,
                 CancellationToken cancellationToken)
             {
                 var reader = s_readerPool.Allocate();
-                reader.Initialize(data, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+                reader.Initialize(data, compilation, ignoreAssemblyKey, cancellationToken);
                 return reader;
             }
 
@@ -311,13 +314,11 @@ namespace Microsoft.CodeAnalysis
                 string data,
                 Compilation compilation,
                 bool ignoreAssemblyKey,
-                bool resolveLocations,
                 CancellationToken cancellationToken)
             {
                 base.Initialize(data, cancellationToken);
                 Compilation = compilation;
                 IgnoreAssemblyKey = ignoreAssemblyKey;
-                _resolveLocations = resolveLocations;
 
                 Comparer = ignoreAssemblyKey
                     ? SymbolEquivalenceComparer.IgnoreAssembliesInstance
@@ -422,6 +423,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolKeyType.NamedType => NamedTypeSymbolKey.Resolve(this),
                     SymbolKeyType.ErrorType => ErrorTypeSymbolKey.Resolve(this),
                     SymbolKeyType.Field => FieldSymbolKey.Resolve(this),
+                    SymbolKeyType.FunctionPointer => FunctionPointerTypeSymbolKey.Resolve(this),
                     SymbolKeyType.DynamicType => DynamicTypeSymbolKey.Resolve(this),
                     SymbolKeyType.Method => MethodSymbolKey.Resolve(this),
                     SymbolKeyType.Namespace => NamespaceSymbolKey.Resolve(this),
@@ -508,15 +510,12 @@ namespace Microsoft.CodeAnalysis
                     var start = ReadInteger();
                     var length = ReadInteger();
 
-                    if (_resolveLocations)
+                    // The syntax tree can be null if we're resolving this location in a compilation
+                    // that does not contain this file.  In this case, just map this location to None.
+                    var syntaxTree = GetSyntaxTree(filePath);
+                    if (syntaxTree != null)
                     {
-                        // The syntax tree can be null if we're resolving this location in a compilation
-                        // that does not contain this file.  In this case, just map this location to None.
-                        var syntaxTree = GetSyntaxTree(filePath);
-                        if (syntaxTree != null)
-                        {
-                            return Location.Create(syntaxTree, new TextSpan(start, length));
-                        }
+                        return Location.Create(syntaxTree, new TextSpan(start, length));
                     }
                 }
                 else if (kind == LocationKind.MetadataFile)
@@ -524,20 +523,17 @@ namespace Microsoft.CodeAnalysis
                     var assemblyResolution = ReadSymbolKey();
                     var moduleName = ReadString();
 
-                    if (_resolveLocations)
+                    // We may be resolving in a compilation where we don't have a module
+                    // with this name.  In that case, just map this location to none.
+                    if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
                     {
-                        // We may be resolving in a compilation where we don't have a module
-                        // with this name.  In that case, just map this location to none.
-                        if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
+                        var module = GetModule(assembly.Modules, moduleName);
+                        if (module != null)
                         {
-                            var module = GetModule(assembly.Modules, moduleName);
-                            if (module != null)
+                            var location = FirstOrDefault(module.Locations);
+                            if (location != null)
                             {
-                                var location = FirstOrDefault(module.Locations);
-                                if (location != null)
-                                {
-                                    return location;
-                                }
+                                return location;
                             }
                         }
                     }
@@ -552,6 +548,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     var node = location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, CancellationToken);
                     var semanticModel = Compilation.GetSemanticModel(location.SourceTree);
+                    var symbol = semanticModel.GetDeclaredSymbol(node, CancellationToken);
+                    if (symbol != null)
+                        return new SymbolKeyResolution(symbol);
+
                     var info = semanticModel.GetSymbolInfo(node, CancellationToken);
                     if (info.Symbol != null)
                         return new SymbolKeyResolution(info.Symbol);
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            private IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)
+            private static IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)
             {
                 foreach (var module in modules)
                 {

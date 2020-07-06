@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="new">Automatically show completion list in argument lists (experimental)</target>
+        <target state="translated">Automatycznie pokaż listę uzupełniania na listach argumentów (eksperymentalne)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -72,6 +72,11 @@
         <target state="translated">Preferuj wyrażenie „is null” w przypadku sprawdzeń odwołań pod kątem równości</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_pattern_matching">
+        <source>Prefer pattern matching</source>
+        <target state="new">Prefer pattern matching</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
         <target state="translated">Preferuj wyrażenie switch</target>
@@ -94,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">Pokaż uwagi w szybkich podpowiedziach</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">

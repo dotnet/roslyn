@@ -588,7 +588,6 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
         public void Uncomment_BlockWithSingleInsideAndBlockSelected()

@@ -220,8 +220,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End Select
         End Function
 
+#Disable Warning IDE0060 ' Remove unused parameter
         <Extension()>
         Public Function IsInOutContext(expression As ExpressionSyntax) As Boolean
+#Enable Warning IDE0060 ' Remove unused parameter
             ' NOTE(cyrusn): VB has no concept of an out context.  Even when a parameter has an
             ' '<Out>' attribute on it, it's still treated as ref by VB.  So we always return false
             ' here.
@@ -268,8 +270,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
+#Disable Warning IDE0060 ' Remove unused parameter
         <Extension()>
         Public Function IsInInContext(expression As ExpressionSyntax) As Boolean
+#Enable Warning IDE0060 ' Remove unused parameter
             ' NOTE: VB does not support in parameters. Always return False here.
             Return False
         End Function

@@ -6,7 +6,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <Nullable>enable</Nullable>
     <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
     <AssemblyVersion/>

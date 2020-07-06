@@ -114,7 +114,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             _parameters = GetParameters(Me, _getMethod, _setMethod, propertyParams, parametersMatch)
 
             If Not signaturesMatch OrElse Not parametersMatch OrElse
-               getEx IsNot Nothing OrElse setEx IsNot Nothing OrElse mrEx IsNot Nothing Then
+               getEx IsNot Nothing OrElse setEx IsNot Nothing OrElse mrEx IsNot Nothing OrElse
+               propertyParams.Any(Function(p) p.RefCustomModifiers.AnyRequired() OrElse p.CustomModifiers.AnyRequired()) Then
                 _lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.QualifiedName(Me))
             End If
 

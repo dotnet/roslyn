@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
         <source>Only submission project can reference submission projects.</source>
-        <target state="new">Only submission project can reference submission projects.</target>
+        <target state="translated">Tylko przesyłany projekt może odwoływać się do przesyłanych projektów.</target>
         <note />
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
         <source>Project does not contain specified reference</source>
-        <target state="new">Project does not contain specified reference</target>
+        <target state="translated">Projekt nie zawiera określonego odwołania</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -95,6 +95,11 @@
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
         <target state="translated">Usuwanie dokumentów z konfiguracją analizatora nie jest obsługiwane.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="new">Rename '{0}' to '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
@@ -182,9 +187,14 @@
         <target state="new">Symbol's project could not be found in the provided solution</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="new">Sync namespace to folder structure</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
-        <target state="new">The project already contains the specified reference.</target>
+        <target state="translated">Projekt już zawiera określone odwołanie.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_reference">
@@ -219,7 +229,7 @@
       </trans-unit>
       <trans-unit id="_0_is_in_a_different_project">
         <source>{0} is in a different project.</source>
-        <target state="new">{0} is in a different project.</target>
+        <target state="translated">Element {0} znajduje się w innym projekcie.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">

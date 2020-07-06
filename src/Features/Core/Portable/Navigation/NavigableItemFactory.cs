@@ -65,17 +65,5 @@ namespace Microsoft.CodeAnalysis.Navigation
                 ? visibleSourceLocations
                 : locations.Where(loc => loc.IsInSource);
         }
-
-        public static IEnumerable<INavigableItem> GetPreferredNavigableItems(
-            Solution solution,
-            IEnumerable<INavigableItem> navigableItems,
-            CancellationToken cancellationToken)
-        {
-            navigableItems = navigableItems.Where(n => n.Document != null);
-            var hasNonGeneratedCodeItem = navigableItems.Any(n => !n.Document.IsGeneratedCode(cancellationToken));
-            return hasNonGeneratedCodeItem
-                ? navigableItems.Where(n => !n.Document.IsGeneratedCode(cancellationToken))
-                : navigableItems.Where(n => n.Document.IsGeneratedCode(cancellationToken));
-        }
     }
 }

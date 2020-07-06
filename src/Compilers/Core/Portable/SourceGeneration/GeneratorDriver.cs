@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -35,12 +37,13 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(GeneratorDriverState state)
         {
+            Debug.Assert(state.Generators.GroupBy(s => s.GetType()).Count() == state.Generators.Length); // ensure we don't have duplicate generator types
             _state = state;
         }
 
-        internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
+        internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(parseOptions, generators, additionalTexts, ImmutableDictionary<ISourceGenerator, GeneratorState>.Empty, ImmutableArray<PendingEdit>.Empty, editsFailed: true);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
         }
 
         public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
@@ -55,22 +58,21 @@ namespace Microsoft.CodeAnalysis
 
             // run the actual generation
             var state = StateWithPendingEditsApplied(_state);
-            var stateBuilder = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
+            var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance();
             var receivers = PooledDictionary<ISourceGenerator, ISyntaxReceiver>.GetInstance();
             var diagnosticsBag = new DiagnosticBag();
 
-            foreach (var generator in state.Generators)
+            for (int i = 0; i < state.Generators.Length; i++)
             {
+                var generator = state.Generators[i];
+                var generatorState = state.GeneratorStates[i];
+
                 // initialize the generator if needed
-                if (!state.GeneratorStates.TryGetValue(generator, out GeneratorState generatorState))
+                if (!generatorState.Info.Initialized)
                 {
                     generatorState = InitializeGenerator(generator, diagnosticsBag, cancellationToken);
                 }
-
-                if (generatorState.Info.Initialized)
-                {
-                    stateBuilder.Add(generator, generatorState);
-                }
+                stateBuilder.Add(generatorState);
 
                 // create the syntax receiver if requested
                 if (generatorState.Info.SyntaxReceiverCreator is object)
@@ -86,27 +88,35 @@ namespace Microsoft.CodeAnalysis
                 GeneratorSyntaxWalker walker = new GeneratorSyntaxWalker(receivers.Values.ToImmutableArray());
                 foreach (var syntaxTree in compilation.SyntaxTrees)
                 {
-                    walker.Visit(syntaxTree.GetRoot());
+                    walker.Visit(syntaxTree.GetRoot(cancellationToken));
                 }
             }
 
             // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
-            foreach (var (generator, generatorState) in stateBuilder.ToImmutableArray())
+            for (int i = 0; i < state.Generators.Length; i++)
             {
+                var generator = state.Generators[i];
+                var generatorState = stateBuilder[i];
                 try
                 {
+                    // don't try and generate if initialization failed
+                    if (!generatorState.Info.Initialized)
+                    {
+                        continue;
+                    }
+
                     // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have
                     _ = receivers.TryGetValue(generator, out var syntaxReceiverOpt);
-                    var context = new SourceGeneratorContext(compilation, state.AdditionalTexts.NullToEmpty(), syntaxReceiverOpt, diagnosticsBag);
+                    var context = new SourceGeneratorContext(compilation, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, syntaxReceiverOpt, diagnosticsBag);
                     generator.Execute(context);
-                    stateBuilder[generator] = generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree(), cancellationToken));
+                    stateBuilder[i] = generatorState.WithSources(ParseAdditionalSources(generator, context.AdditionalSources.ToImmutableAndFree(), cancellationToken));
                 }
                 catch
                 {
                     diagnosticsBag.Add(Diagnostic.Create(MessageProvider, MessageProvider.WRN_GeneratorFailedDuringGeneration, generator.GetType().Name));
                 }
             }
-            state = state.With(generatorStates: stateBuilder.ToImmutableDictionaryAndFree());
+            state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
             diagnostics = diagnosticsBag.ToReadOnlyAndFree();
 
             // build the final state, and return 
@@ -127,7 +137,7 @@ namespace Microsoft.CodeAnalysis
             var state = _state;
             foreach (var edit in _state.Edits)
             {
-                state = ApplyPartialEdit(state, edit);
+                state = ApplyPartialEdit(state, edit, cancellationToken);
                 if (state.EditsFailed)
                 {
                     outputCompilation = compilation;
@@ -146,14 +156,25 @@ namespace Microsoft.CodeAnalysis
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
             // set editsFailed true, as we won't be able to apply edits with a new generator
-            var newState = _state.With(generators: _state.Generators.AddRange(generators), editsFailed: true);
+            var newState = _state.With(generators: _state.Generators.AddRange(generators), generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[generators.Length]), editsFailed: true);
             return FromState(newState);
         }
 
         public GeneratorDriver RemoveGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            var newState = _state.With(generators: _state.Generators.RemoveRange(generators), generatorStates: _state.GeneratorStates.RemoveRange(generators));
-            return FromState(newState);
+            var newGenerators = _state.Generators;
+            var newStates = _state.GeneratorStates;
+            for (int i = 0; i < newGenerators.Length; i++)
+            {
+                if (generators.Contains(newGenerators[i]))
+                {
+                    newGenerators = newGenerators.RemoveAt(i);
+                    newStates = newStates.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            return FromState(_state.With(generators: newGenerators, generatorStates: newStates));
         }
 
         public GeneratorDriver AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
@@ -175,8 +196,10 @@ namespace Microsoft.CodeAnalysis
 
             // see if any generators accept this particular edit
             var stateBuilder = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
-            foreach (var (generator, generatorState) in state.GeneratorStates)
+            for (int i = 0; i < initialState.Generators.Length; i++)
             {
+                var generator = initialState.Generators[i];
+                var generatorState = initialState.GeneratorStates[i];
                 if (edit.AcceptedBy(generatorState.Info))
                 {
                     // attempt to apply the edit
@@ -190,7 +213,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // update the state with the new edits
-                    state = state.With(generatorStates: state.GeneratorStates.SetItem(generator, generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree(), cancellationToken))));
+                    state = state.With(generatorStates: state.GeneratorStates.SetItem(i, generatorState.WithSources(ParseAdditionalSources(generator, context.AdditionalSources.ToImmutableAndFree(), cancellationToken))));
                 }
             }
             state = edit.Commit(state);
@@ -230,7 +253,7 @@ namespace Microsoft.CodeAnalysis
         private static Compilation RemoveGeneratedSyntaxTrees(GeneratorDriverState state, Compilation compilation)
         {
             ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
-            foreach (var (_, generatorState) in state.GeneratorStates)
+            foreach (var generatorState in state.GeneratorStates)
             {
                 foreach (var (_, tree) in generatorState.Sources)
                 {
@@ -246,12 +269,14 @@ namespace Microsoft.CodeAnalysis
             return comp;
         }
 
-        private ImmutableDictionary<GeneratedSourceText, SyntaxTree> ParseAdditionalSources(ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
+        private ImmutableDictionary<GeneratedSourceText, SyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = PooledDictionary<GeneratedSourceText, SyntaxTree>.GetInstance();
+            var type = generator.GetType();
+            var prefix = $"{type.Module.ModuleVersionId}_{type.FullName}";
             foreach (var source in generatedSources)
             {
-                trees.Add(source, ParseGeneratedSourceText(source, cancellationToken));
+                trees.Add(source, ParseGeneratedSourceText(source, $"{prefix}_{source.HintName}", cancellationToken));
             }
             return trees.ToImmutableDictionaryAndFree();
         }
@@ -259,7 +284,7 @@ namespace Microsoft.CodeAnalysis
         private GeneratorDriver BuildFinalCompilation(Compilation compilation, out Compilation outputCompilation, GeneratorDriverState state, CancellationToken cancellationToken)
         {
             ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
-            foreach (var (generator, generatorState) in state.GeneratorStates)
+            foreach (var generatorState in state.GeneratorStates)
             {
                 trees.AddRange(generatorState.Sources.Values);
             }
@@ -275,6 +300,6 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract GeneratorDriver FromState(GeneratorDriverState state);
 
-        internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken);
+        internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
     }
 }

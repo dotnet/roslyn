@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
             return Task.CompletedTask;
         }
 
-
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)

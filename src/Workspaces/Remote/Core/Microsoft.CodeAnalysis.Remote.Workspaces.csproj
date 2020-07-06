@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Remote</RootNamespace>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- NuGet -->

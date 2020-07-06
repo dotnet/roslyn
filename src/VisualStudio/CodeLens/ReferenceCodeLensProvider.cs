@@ -201,7 +201,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     new object[] { Descriptor, descriptorContext },
                     cancellationToken).ConfigureAwait(false);
 
-
                 var details = new CodeLensDetailsDescriptor
                 {
                     Headers = s_header,

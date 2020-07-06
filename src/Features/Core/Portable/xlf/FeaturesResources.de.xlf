@@ -137,7 +137,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
         <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <target state="translated">Basisklassen enthalten nicht implementierte Member, auf die nicht zugegriffen werden kann.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -159,6 +159,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Capture number cannot be zero</source>
         <target state="new">Capture number cannot be zero</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterInferValue">
+        <source>&lt;infer&gt;</source>
+        <target state="new">&lt;infer&gt;</target>
+        <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
         <source>TODO</source>
@@ -212,12 +217,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Configure_severity_for_all_0_analyzers">
         <source>Configure severity for all '{0}' analyzers</source>
-        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <target state="translated">Schweregrad für alle Analysetools für "{0}" konfigurieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
-        <target state="new">Configure severity for all analyzers</target>
+        <target state="translated">Schweregrad für alle Analysetools konfigurieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -297,12 +302,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <target state="translated">Ändern Sie diesen Code nicht. Fügen Sie Bereinigungscode in der Methode "{0}" ein.</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="translated">Der aktuelle Inhalt der Quelldatei "{0}" stimmt nicht mit der erstellten Quelle überein. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt der erstellten Quelle entspricht.</target>
+        <target state="translated">Der aktuelle Inhalt der Quelldatei "{0}" stimmt nicht mit dem kompilierten Quellcode überein. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt dem kompilierten Quellcode entspricht.</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
@@ -380,6 +385,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Generate comparison operators</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_fields">
+        <source>Generate constructor in '{0}' (with fields)</source>
+        <target state="new">Generate constructor in '{0}' (with fields)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_properties">
+        <source>Generate constructor in '{0}' (with properties)</source>
+        <target state="new">Generate constructor in '{0}' (with properties)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="new">Generate for '{0}'</target>
@@ -417,12 +432,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
         <source>Implement abstract class</source>
-        <target state="new">Implement abstract class</target>
+        <target state="translated">Abstrakte Klasse implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
-        <target state="new">Implement all interfaces explicitly</target>
+        <target state="translated">Alle Schnittstellen explizit implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
@@ -432,12 +447,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implement_all_members_explicitly">
         <source>Implement all members explicitly</source>
-        <target state="new">Implement all members explicitly</target>
+        <target state="translated">Alle Member explizit implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
-        <target state="new">Implement explicitly</target>
+        <target state="translated">Explizit implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">
@@ -447,12 +462,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implement_remaining_members_explicitly">
         <source>Implement remaining members explicitly</source>
-        <target state="new">Implement remaining members explicitly</target>
+        <target state="translated">Verbleibende Member explizit implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
         <source>Implement through '{0}'</source>
-        <target state="new">Implement through '{0}'</target>
+        <target state="translated">Über "{0}" implementieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -509,6 +524,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="new">Invalid group name: Group names must begin with a word character</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="new">Make class 'abstract'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
@@ -604,6 +624,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Not enough )'s</source>
         <target state="new">Not enough )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
+      </trans-unit>
+      <trans-unit id="Property_reference_cannot_be_updated">
+        <source>Property reference cannot be updated</source>
+        <target state="new">Property reference cannot be updated</target>
+        <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
         <source>Pull '{0}' up</source>
@@ -1772,7 +1797,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
-        <target state="new">Resolve conflict markers</target>
+        <target state="translated">Konfliktmarkierungen auflösen</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -1802,12 +1827,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <target state="translated">TODO: Nicht verwaltete Ressourcen (nicht verwaltete Objekte) freigeben und Finalizer überschreiben</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
         <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
+        <target state="translated">TODO: Finalizer nur überschreiben, wenn "{0}" Code für die Freigabe nicht verwalteter Ressourcen enthält</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -1832,7 +1857,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="translated">Die Quelldatei "{0}" oder die für das enthaltende Projekt erstellte PDB-Datei kann nicht gelesen werden. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt der erstellten Quelle entspricht.</target>
+        <target state="translated">Die Quelldatei "{0}" oder die für das enthaltende Projekt kompilierte PDB-Datei kann nicht gelesen werden. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt dem kompilierten Quellcode entspricht.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -1947,7 +1972,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
-        <target state="new">Value:</target>
+        <target state="translated">Wert:</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -2023,6 +2048,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_cannot_be_null_or_whitespace">
         <source>'{0}' cannot be null or whitespace</source>
         <target state="new">'{0}' cannot be null or whitespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_not_null_here">
+        <source>'{0}' is not null here.</source>
+        <target state="new">'{0}' is not null here.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_may_be_null_here">
+        <source>'{0}' may be null here.</source>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -3412,12 +3447,12 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
         <source>TODO: dispose managed state (managed objects)</source>
-        <target state="needs-review-translation">TODO: verwalteten Zustand (verwaltete Objekte) entsorgen.</target>
+        <target state="translated">TODO: Verwalteten Zustand (verwaltete Objekte) bereinigen</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
         <source>TODO: set large fields to null</source>
-        <target state="needs-review-translation">TODO: große Felder auf Null setzen.</target>
+        <target state="translated">TODO: Große Felder auf NULL setzen</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
@@ -4138,11 +4173,6 @@ Diese Version wird verwendet in: {2}</target>
       <trans-unit id="Convert_to_full_property">
         <source>Convert to full property</source>
         <target state="translated">In vollständige Eigenschaft konvertieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_without_fields">
-        <source>Generate constructor in '{0}' (without fields)</source>
-        <target state="translated">Konstruktor in "{0}" (ohne Felder) generieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">

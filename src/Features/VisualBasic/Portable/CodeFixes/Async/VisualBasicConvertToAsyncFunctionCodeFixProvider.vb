@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return System.Tuple.Create(oldRoot.SyntaxTree, newRoot)
         End Function
 
-        Private Async Function GetMethodFromExpression(oldNode As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxNode, MethodBlockSyntax))
+        Private Shared Async Function GetMethodFromExpression(oldNode As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxNode, MethodBlockSyntax))
             If oldNode Is Nothing Then
                 Return Nothing
             End If
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return Tuple.Create(root, methodBlock)
         End Function
 
-        Private Function ConvertToAsyncFunction(methodBlock As MethodBlockSyntax) As MethodBlockSyntax
+        Private Shared Function ConvertToAsyncFunction(methodBlock As MethodBlockSyntax) As MethodBlockSyntax
             Dim methodNode = methodBlock.SubOrFunctionStatement
 
             Dim blockBegin = SyntaxFactory.FunctionStatement(

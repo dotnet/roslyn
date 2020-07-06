@@ -66,7 +66,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="_Attribute")
 
-
             End Using
         End Sub
     End Class

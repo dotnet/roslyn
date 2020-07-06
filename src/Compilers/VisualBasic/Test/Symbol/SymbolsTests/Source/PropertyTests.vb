@@ -5179,7 +5179,7 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(vbSource, ilSource)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30643: Property 'Goo' is of an unsupported type.
+BC30643: Property 'A.Goo' is of an unsupported type.
         Dim x As Object = A.Goo
                             ~~~
 BC30456: 'get_Goo' is not a member of 'A'.

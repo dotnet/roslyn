@@ -249,5 +249,47 @@ end class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestIndexerReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~P:C.[|Item|](System.Int32)")]
+
+class C
+{
+    public int {|Definition:$$this|}[int y] { get { } }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestParameterizedPropertyReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~P:C.[|Goo|](System.Int32)")>
+
+Class C
+    ReadOnly Property {|Definition:$$Goo|}(x As Integer) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

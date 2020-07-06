@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return false;
             }
 
-
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document?.SupportsSyntaxTree != true)
             {

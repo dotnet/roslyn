@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -512,6 +513,25 @@ namespace N
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is int)$$"));
+        }
+
+        [WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterColonColonPatternSyntax()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is null or global::$$) { }"));
+        }
+
+        [WorkItem(44396, "https://github.com/dotnet/roslyn/issues/44396")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterColonColonPatternSyntax_SwitchExpression()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"var x = false;
+x = e switch
+{
+    global::$$"));
         }
 #endif
     }

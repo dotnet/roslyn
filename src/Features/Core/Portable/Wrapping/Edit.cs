@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             return result.ToStringAndFree();
         }
 
-        private void AppendTrivia(PooledStringBuilder result, SyntaxTriviaList triviaList)
+        private static void AppendTrivia(PooledStringBuilder result, SyntaxTriviaList triviaList)
         {
             foreach (var trivia in triviaList)
             {

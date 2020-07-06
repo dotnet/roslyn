@@ -66,7 +66,9 @@ namespace Roslyn.Test.PdbUtilities
             ppvSig = (byte*)pinnedBuffer.AddrOfPinnedObject();
             pcbSig = signature.Length;
 
+#pragma warning disable RS0042 // Do not copy value
             _pinnedBuffers.Add(pinnedBuffer);
+#pragma warning restore RS0042 // Do not copy value
             return 0;
         }
 

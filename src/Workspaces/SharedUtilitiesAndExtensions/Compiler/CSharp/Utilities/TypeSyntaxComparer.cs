@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
         }
 
-        private TypeSyntax UnwrapType(TypeSyntax type)
+        private static TypeSyntax UnwrapType(TypeSyntax type)
         {
             while (true)
             {

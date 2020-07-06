@@ -25,6 +25,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\AbstractPopulateSwitchStatementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PredefinedCodeFixProviderNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\AbstractQualifyMemberAccessCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessaryPragmaSuppressionsCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessaryAttributeSuppressionsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\AbstractRemoveUnnecessaryParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\AbstractRemoveUnusedMembersCodeFixProvider.cs" />

@@ -46,5 +46,4 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
             return Task.FromResult<IEnumerable<BreakpointResolutionResult>>(ImmutableArray<BreakpointResolutionResult>.Empty);
         }
     }
-
 }

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 
             var typeSymbol = foreachInfo.RequireExplicitCastInterface
                 ? foreachInfo.ExplicitCastInterface
-                : model.GetTypeInfo(foreachCollectionExpression).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object);
+                : model.GetTypeInfo(foreachCollectionExpression, cancellationToken).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object);
 
             var collectionStatementType = typeSymbol.GenerateTypeSyntax();
 

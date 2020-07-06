@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var methodDeclaration = GenerateConversionDeclaration(
-                method, GetDestination(destination), workspace, options,
+                method, workspace, options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
@@ -33,19 +33,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static ConversionOperatorDeclarationSyntax GenerateConversionDeclaration(
             IMethodSymbol method,
-            CodeGenerationDestination destination,
             Workspace workspace,
             CodeGenerationOptions options,
             ParseOptions parseOptions)
         {
-            var declaration = GenerateConversionDeclarationWorker(method, destination, workspace, options, parseOptions);
+            var declaration = GenerateConversionDeclarationWorker(method, workspace, options, parseOptions);
             return AddFormatterAndCodeGeneratorAnnotationsTo(AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options)));
         }
 
         private static ConversionOperatorDeclarationSyntax GenerateConversionDeclarationWorker(
             IMethodSymbol method,
-            CodeGenerationDestination destination,
             Workspace workspace,
             CodeGenerationOptions options,
             ParseOptions parseOptions)
@@ -64,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var declaration = SyntaxFactory.ConversionOperatorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options),
-                modifiers: GenerateModifiers(method),
+                modifiers: GenerateModifiers(),
                 implicitOrExplicitKeyword: keyword,
                 operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
                 type: method.ReturnType.GenerateTypeSyntax(),
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static SyntaxTokenList GenerateModifiers(IMethodSymbol method)
+        private static SyntaxTokenList GenerateModifiers()
         {
             return SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),

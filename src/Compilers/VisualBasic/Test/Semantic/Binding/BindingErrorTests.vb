@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1165,6 +1166,12 @@ Imports System
 </compilation>).
             VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeConstructor1, "myattr1").WithArguments("M1.c1()"),
                               Diagnostic(ERRID.ERR_BadAttributeConstructor1, "myattr2").WithArguments("M1.delegate1()"))
+
+            Dim scen18 = compilation.GlobalNamespace.GetTypeMember("M1").GetTypeMember("Scen18")
+            Dim attribute = scen18.GetAttributes().Single()
+            Assert.Equal("M1.myattr1(Nothing)", attribute.ToString())
+            Dim argument = attribute.CommonConstructorArguments(0)
+            Assert.Null(argument.Type)
         End Sub
 
         <Fact, WorkItem(3380, "DevDiv_Projects/Roslyn")>

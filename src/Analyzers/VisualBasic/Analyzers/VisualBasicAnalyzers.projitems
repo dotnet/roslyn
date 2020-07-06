@@ -23,7 +23,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\VisualBasicOrderModifiersHelper.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\VisualBasicPopulateSwitchStatementDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\VisualBasicQualifyMemberAccessDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryByVal\VisualBasicRemoveUnnecessaryByValDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\VisualBasicRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\VisualBasicRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />

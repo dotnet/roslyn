@@ -92,13 +92,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
         bool IsUsingOrExternOrImport(SyntaxNode node);
         bool IsUsingAliasDirective(SyntaxNode node);
-        bool IsGlobalAttribute(SyntaxNode node);
+        bool IsGlobalAssemblyAttribute(SyntaxNode node);
+        bool IsGlobalModuleAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
         bool IsTypeDeclaration(SyntaxNode node);
 
         bool IsRegularComment(SyntaxTrivia trivia);
         bool IsDocumentationComment(SyntaxTrivia trivia);
         bool IsElastic(SyntaxTrivia trivia);
+        bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes);
 
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
@@ -207,6 +209,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);
+        bool IsParameterList(SyntaxNode node);
 
         bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
@@ -333,14 +336,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// In VB, this includes all block statements such as a MultiLineIfBlockSyntax.
         /// </summary>
         bool IsExecutableBlock(SyntaxNode node);
-        SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
+        IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
         SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
 
+#nullable enable
         /// <summary>
         /// A node that can host a list of statements or a single statement. In addition to
         /// every "executable block", this also includes C# embedded statement owners.
         /// </summary>
-        bool IsStatementContainer(SyntaxNode node);
+        bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
+
         IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
 
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
@@ -397,6 +403,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// that arguments name.
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
+
+        /// <summary>
+        /// Given a <see cref="SyntaxNode"/>, that represents an attribute argument return the string representation of
+        /// that arguments name.
+        /// </summary>
+        string GetNameForAttributeArgument(SyntaxNode argument);
 
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);

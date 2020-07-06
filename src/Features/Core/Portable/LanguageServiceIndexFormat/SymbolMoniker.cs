@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat
 
             static string GetRequiredDocumentationCommentId(ISymbol symbol)
             {
+                symbol = symbol.OriginalDefinition;
                 var documentationCommentId = symbol.GetDocumentationCommentId();
 
                 if (documentationCommentId == null)

@@ -2056,9 +2056,6 @@ class Program
         System.Console.WriteLine([|^1|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 @"
 class Program
@@ -2068,7 +2065,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Index NewMethod()
+    private static System.Index NewMethod()
     {
         return ^1;
     }
@@ -2086,9 +2083,6 @@ class Program
         System.Console.WriteLine([|..|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2098,7 +2092,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return ..;
     }
@@ -2116,9 +2110,6 @@ class Program
         System.Console.WriteLine([|..1|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2128,7 +2119,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return ..1;
     }
@@ -2146,9 +2137,6 @@ class Program
         System.Console.WriteLine([|1..|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2158,7 +2146,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return 1..;
     }
@@ -2176,9 +2164,6 @@ class Program
         System.Console.WriteLine([|1..2|]);
     }
 }",
-@"
-
-using System;" +
 TestSources.Index +
 TestSources.Range + @"
 class Program
@@ -2188,7 +2173,7 @@ class Program
         System.Console.WriteLine({|Rename:NewMethod|}());
     }
 
-    private static Range NewMethod()
+    private static System.Range NewMethod()
     {
         return 1..2;
     }
@@ -2228,7 +2213,6 @@ class C
         return x;
     }
 }");
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestAnnotatedNullableParameters1()
@@ -2888,7 +2872,6 @@ class C
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public Task TestExtractNullableObjectWithExplicitCast()

@@ -406,6 +406,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return false;
         }
 
+        internal bool IsPrimaryProject(ProjectId projectId)
+        {
+            lock (_gate)
+            {
+                foreach (var (_, projects) in this._projectSystemNameToProjectsMap)
+                {
+                    foreach (var project in projects)
+                    {
+                        if (project.Id == projectId)
+                            return project.IsPrimary;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
             => project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
 
@@ -1642,6 +1659,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // We're referencing something that we can't create a compilation from something that can, so keep the metadata reference
                     return false;
                 }
+            }
+
+            // If this is going to cause a circular reference, also disallow it
+            if (CurrentSolution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(referencedProjectId).Contains(projectIdWithMetadataReference))
+            {
+                return false;
             }
 
             return true;

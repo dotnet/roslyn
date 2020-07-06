@@ -254,7 +254,6 @@ class C
             TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
         End Sub
 
-
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterKind_Out()
             Dim code =
@@ -999,7 +998,6 @@ class C
 }
 </Code>
 
-
             TestGetParameterArrayCount(code, 0)
         End Sub
 
@@ -1012,7 +1010,6 @@ class C
     void M(string[] $$s) { }
 }
 </Code>
-
 
             TestGetParameterArrayCount(code, 1)
         End Sub
@@ -1027,7 +1024,6 @@ class C
 }
 </Code>
 
-
             TestGetParameterArrayCount(code, 2)
         End Sub
 
@@ -1040,7 +1036,6 @@ class C
     void M(string[,,] $$s) { }
 }
 </Code>
-
 
             TestGetParameterArrayCount(code, 1)
         End Sub
@@ -1059,7 +1054,6 @@ class C
 }
 </Code>
 
-
             TestGetParameterArrayDimensions(code, index:=0, expected:=1)
         End Sub
 
@@ -1072,7 +1066,6 @@ class C
     void M(string[,] $$s) { }
 }
 </Code>
-
 
             TestGetParameterArrayDimensions(code, index:=0, expected:=2)
         End Sub
@@ -1087,7 +1080,6 @@ class C
 }
 </Code>
 
-
             TestGetParameterArrayDimensions(code, index:=0, expected:=3)
         End Sub
 
@@ -1100,7 +1092,6 @@ class C
     void M(string[,,][] $$s) { }
 }
 </Code>
-
 
             TestGetParameterArrayDimensions(code, index:=1, expected:=1)
         End Sub
@@ -1115,7 +1106,6 @@ class C
 }
 </Code>
 
-
             TestGetParameterArrayDimensions(code, index:=1, expected:=2)
         End Sub
 
@@ -1128,7 +1118,6 @@ class C
     void M(string[,,][,][] $$s) { }
 }
 </Code>
-
 
             TestGetParameterArrayDimensions(code, index:=2, expected:=1)
         End Sub

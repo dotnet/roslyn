@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                         {
                             memberItems.Add(CreateItemForMember(
                                 method,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(method.GetSymbolKey()),
+                                memberSymbolIndexProvider.GetIndexForSymbolId(method.GetSymbolKey(cancellationToken)),
                                 tree,
                                 cancellationToken));
 
                             memberItems.Add(CreateItemForMember(
                                 method.PartialImplementationPart,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(method.PartialImplementationPart.GetSymbolKey()),
+                                memberSymbolIndexProvider.GetIndexForSymbolId(method.PartialImplementationPart.GetSymbolKey(cancellationToken)),
                                 tree,
                                 cancellationToken));
                         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
                             memberItems.Add(CreateItemForMember(
                                 member,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey()),
+                                memberSymbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken)),
                                 tree,
                                 cancellationToken));
                         }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                         return textComparison != 0 ? textComparison : x.Grayed.CompareTo(y.Grayed);
                     });
 
-                    var symbolId = type.GetSymbolKey();
+                    var symbolId = type.GetSymbolKey(cancellationToken);
                     items.Add(new NavigationBarSymbolItem(
                         text: type.ToDisplayString(s_typeFormat),
                         glyph: type.GetGlyph(),
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                 member.ToDisplayString(s_memberFormat),
                 member.GetGlyph(),
                 spans,
-                member.GetSymbolKey(),
+                member.GetSymbolKey(cancellationToken),
                 symbolIndex,
                 grayed: spans.Count == 0);
         }

@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isNameOfContext:=isNameOfContext,
                 isInQuery:=isInQuery,
                 isInImportsDirective:=isInImportsDirective,
-                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken, cancellationToken),
+                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken),
                 isPossibleTupleContext:=isPossibleTupleContext,
                 isAtStartOfPattern:=False,
                 isAtEndOfPattern:=False,
@@ -130,10 +130,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
 
-            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective(position)
+            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
-        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
-                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 
         Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
-                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 
         Public Function IsFollowingParameterListOrAsClauseOfMethodDeclaration() As Boolean

@@ -7729,5 +7729,51 @@ class Program
     }
 }");
         }
+
+        [WorkItem(44291, "https://github.com/dotnet/roslyn/issues/44291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceWithAmbiguousExtensionClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" Name=""P1"" CommonReferences=""true"">
+        <Document>
+public static class Extensions
+{
+    public static void Goo(this string s) { }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" Name=""P2"" CommonReferences=""true"">
+        <Document>
+public static class Extensions
+{
+    public static void Bar(this string s) { }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly3"" Name=""P3"" CommonReferences=""true"">
+        <ProjectReference>P1</ProjectReference>
+        <ProjectReference>P2</ProjectReference>
+        <Document>
+public class P
+{
+    public void M(string s)
+    {
+        s.Bar([|$""""|]);
+    }
+}</Document>
+    </Project>
+</Workspace>",
+@"
+public class P
+{
+    public void M(string s)
+    {
+        string {|Rename:v|} = $"""";
+        s.Bar(v);
+    }
+}");
+        }
     }
 }

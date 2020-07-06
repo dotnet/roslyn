@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
-        private bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
+        private static bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
         {
             return endToken.IsKind(SyntaxKind.CloseBraceToken) &&
                 endToken.Parent.IsKind(SyntaxKind.Block) &&

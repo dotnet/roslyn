@@ -29,10 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            var experimentationService = languageServices.WorkspaceServices.GetService<IExperimentationService>();
-
             return new RoslynSyntaxClassificationService(_roslynLspClientServiceFactory, _remoteLanguageServiceWorkspace,
-                languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, experimentationService, _threadingContext);
+                languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, _threadingContext);
         }
     }
 }

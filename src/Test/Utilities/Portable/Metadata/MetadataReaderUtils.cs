@@ -120,7 +120,11 @@ namespace Roslyn.Test.Utilities
 
         public static (StringHandle Namespace, StringHandle Name)[] GetTypeDefFullNames(this MetadataReader reader)
         {
-            return reader.TypeDefinitions.Select(handle => { var td = reader.GetTypeDefinition(handle); return (td.Namespace, td.Name); }).ToArray();
+            return reader.TypeDefinitions.Select(handle =>
+            {
+                var td = reader.GetTypeDefinition(handle);
+                return (td.Namespace, td.Name);
+            }).ToArray();
         }
 
         public static StringHandle[] GetTypeRefNames(this MetadataReader reader)

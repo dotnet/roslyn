@@ -1521,7 +1521,6 @@ Class Program
 End Class")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function GenericType2() As Task
             Await TestMissingInRegularAndScriptAsync(

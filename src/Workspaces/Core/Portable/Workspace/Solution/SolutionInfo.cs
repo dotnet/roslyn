@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new instance of a SolutionInfo.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static SolutionInfo Create(
             SolutionId id,
             VersionStamp version,
@@ -81,13 +83,17 @@ namespace Microsoft.CodeAnalysis
                 new SolutionAttributes(
                     id ?? throw new ArgumentNullException(nameof(id)),
                     version,
-                    filePath),
+                    filePath,
+                    telemetryId: default),
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)),
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
         }
 
         internal ImmutableHashSet<string> GetProjectLanguages()
             => Projects.Select(p => p.Language).ToImmutableHashSet();
+
+        internal SolutionInfo WithTelemetryId(Guid telemetryId)
+            => new SolutionInfo(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences);
 
         /// <summary>
         /// type that contains information regarding this solution itself but
@@ -112,15 +118,37 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public string? FilePath { get; }
 
-            public SolutionAttributes(SolutionId id, VersionStamp version, string? filePath)
+            /// <summary>
+            /// The id report during telemetry events.
+            /// </summary>
+            public Guid TelemetryId { get; }
+
+            public SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId)
             {
                 Id = id;
                 Version = version;
                 FilePath = filePath;
+                TelemetryId = telemetryId;
             }
 
-            public SolutionAttributes WithVersion(VersionStamp versionStamp)
-                => new SolutionAttributes(Id, versionStamp, FilePath);
+            public SolutionAttributes With(
+                VersionStamp? version = null,
+                Optional<string?> filePath = default,
+                Optional<Guid> telemetryId = default)
+            {
+                var newVersion = version ?? Version;
+                var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
+                var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
+
+                if (newVersion == Version &&
+                    newFilePath == FilePath &&
+                    newTelemetryId == TelemetryId)
+                {
+                    return this;
+                }
+
+                return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId);
+            }
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
 
@@ -133,6 +161,7 @@ namespace Microsoft.CodeAnalysis
                 // info.Version.WriteTo(writer);
 
                 writer.WriteString(FilePath);
+                writer.WriteGuid(TelemetryId);
             }
 
             public static SolutionAttributes ReadFrom(ObjectReader reader)
@@ -140,8 +169,9 @@ namespace Microsoft.CodeAnalysis
                 var solutionId = SolutionId.ReadFrom(reader);
                 // var version = VersionStamp.ReadFrom(reader);
                 var filePath = reader.ReadString();
+                var telemetryId = reader.ReadGuid();
 
-                return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath);
+                return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath, telemetryId);
             }
 
             Checksum IChecksummedObject.Checksum

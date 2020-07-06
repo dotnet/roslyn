@@ -219,7 +219,6 @@ class C
             End Using
         End Sub
 
-
         <Theory>
         <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>

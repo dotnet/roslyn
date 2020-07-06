@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Host
                     return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
                 }
 
-                private unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength)
+                private static unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength)
                 {
                     var src = (char*)accessor.GetPointer();
 

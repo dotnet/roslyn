@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SyntaxReferenceTests : TestBase
     {
-        private Solution CreateSingleFileCSharpSolution(string source)
+        private static Solution CreateSingleFileCSharpSolution(string source)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                            .AddDocument(did, "Test.cs", SourceText.From(source));
         }
 
-        private Solution CreateSingleFileVisualBasicSolution(string source)
+        private static Solution CreateSingleFileVisualBasicSolution(string source)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);

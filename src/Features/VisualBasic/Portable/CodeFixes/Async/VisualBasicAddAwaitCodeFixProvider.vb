@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return New DescriptionAndNode(VBFeaturesResources.Insert_Await, newRoot)
         End Function
 
-        Private Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Private Shared Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim expression = TryCast(oldNode, ExpressionSyntax)
             If expression Is Nothing Then
                 Return SpecializedTasks.Null(Of SyntaxNode)()
@@ -58,20 +58,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
                     If Not DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken) Then
                         Return Task.FromResult(Of SyntaxNode)(Nothing)
                     End If
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case BC37055
                     If Not DoesExpressionReturnTask(expression, semanticModel) Then
                         Return Task.FromResult(Of SyntaxNode)(Nothing)
                     End If
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case BC42358
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case Else
                     Return SpecializedTasks.Null(Of SyntaxNode)()
             End Select
         End Function
 
-        Private Function DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
             If Not IsInAsyncBlock(expression) Then
                 Return False
             End If
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return typeArguments.Any(Function(ta) inferredTypes.Any(Function(it) compilation.ClassifyConversion(it, ta).Exists))
         End Function
 
-        Private Function IsInAsyncBlock(expression As ExpressionSyntax) As Boolean
+        Private Shared Function IsInAsyncBlock(expression As ExpressionSyntax) As Boolean
 
             For Each ancestor In expression.Ancestors
                 Select Case ancestor.Kind
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return False
         End Function
 
-        Private Function DoesExpressionReturnTask(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function DoesExpressionReturnTask(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Dim taskType As INamedTypeSymbol = Nothing
             Dim returnType As INamedTypeSymbol = Nothing
             Return TryGetTaskType(semanticModel, taskType) AndAlso
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
                 semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists
         End Function
 
-        Private Shared Function ConverToAwaitExpression(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
+        Private Shared Function ConverToAwaitExpression(expression As ExpressionSyntax) As ExpressionSyntax
             Return SyntaxFactory.AwaitExpression(expression.WithoutTrivia().Parenthesize()) _
                                 .WithTriviaFrom(expression) _
                                 .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation)

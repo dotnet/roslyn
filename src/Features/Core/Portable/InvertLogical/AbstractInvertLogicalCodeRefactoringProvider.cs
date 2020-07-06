@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 expression.Span);
         }
 
-        private async Task<Document> InvertLogicalAsync(
+        private static async Task<Document> InvertLogicalAsync(
             Document document1, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
             // We invert in two steps.  To invert `a op b` we are effectively generating two negations:
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             return document3;
         }
 
-        private async Task<Document> InvertInnerExpressionAsync(
+        private static async Task<Document> InvertInnerExpressionAsync(
             Document document, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 newBinary.WithAdditionalAnnotations(s_annotation)));
         }
 
-        private async Task<Document> InvertOuterExpressionAsync(
+        private static async Task<Document> InvertOuterExpressionAsync(
             Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                     GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(binaryExprKind)),
                     GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(InvertedKind(syntaxKinds, binaryExprKind))));
 
-        private int InvertedKind(ISyntaxKindsService syntaxKinds, int binaryExprKind)
+        private static int InvertedKind(ISyntaxKindsService syntaxKinds, int binaryExprKind)
             => binaryExprKind == syntaxKinds.LogicalAndExpression
                 ? syntaxKinds.LogicalOrExpression
                 : syntaxKinds.LogicalAndExpression;

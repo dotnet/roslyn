@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -27,9 +28,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         where TPropertySyntax : SyntaxNode
     {
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
-        public abstract Task<IList<SyntaxNode>> GetReplacementMembersAsync(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
 
-        protected abstract TCrefSyntax TryGetCrefSyntax(TIdentifierNameSyntax identifierName);
+        protected abstract TCrefSyntax? TryGetCrefSyntax(TIdentifierNameSyntax identifierName);
         protected abstract TCrefSyntax CreateCrefSyntax(TCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode? parameterType);
 
         protected abstract TExpressionSyntax UnwrapCompoundAssignment(SyntaxNode compoundAssignment, TExpressionSyntax readExpression);
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             private readonly TIdentifierNameSyntax _identifierName;
             private readonly TExpressionSyntax _expression;
-            private readonly TCrefSyntax _cref;
+            private readonly TCrefSyntax? _cref;
             private readonly CancellationToken _cancellationToken;
 
             public ReferenceReplacer(
@@ -95,7 +96,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 ISemanticFactsService semanticFacts,
                 SyntaxEditor editor,
                 TIdentifierNameSyntax identifierName,
-                IPropertySymbol property, IFieldSymbol propertyBackingField,
+                IPropertySymbol property,
+                IFieldSymbol propertyBackingField,
                 string desiredGetMethodName,
                 string desiredSetMethodName,
                 CancellationToken cancellationToken)

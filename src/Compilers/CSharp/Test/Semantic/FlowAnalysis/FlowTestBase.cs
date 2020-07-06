@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected T CompileAndGetModelAndExpression<T>(string program, Func<SemanticModel, ExpressionSyntax, T> analysisDelegate)
         {
-            var comp = CreateCompilation(program);
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularPreview);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             int start = program.IndexOf(StartString, StringComparison.Ordinal) + StartString.Length;

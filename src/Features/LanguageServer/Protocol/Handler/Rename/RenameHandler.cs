@@ -20,20 +20,21 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspMethod(LSP.Methods.TextDocumentRenameName), Shared]
-    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit?>
+    internal class RenameHandler : AbstractRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameHandler()
+        public RenameHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<WorkspaceEdit?> HandleRequestAsync(Solution oldSolution, RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public override async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
             WorkspaceEdit? workspaceEdit = null;
-            var document = oldSolution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
             if (document != null)
             {
+                var oldSolution = document.Project.Solution;
                 var renameService = document.Project.LanguageServices.GetRequiredService<IEditorInlineRenameService>();
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 

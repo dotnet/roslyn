@@ -134,9 +134,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(span.ToTextSpan());
+            var textSpan = span.ToTextSpan();
 
-            return (document.Id, node);
+            // TODO: This check avoids ArgumentOutOfRangeException but it's not clear if this is the right solution
+            // https://github.com/dotnet/roslyn/issues/44639
+            if (!root.FullSpan.Contains(textSpan))
+            {
+                return default;
+            }
+
+            return (document.Id, root.FindNode(textSpan));
         }
 
         private async Task<int> GetMaxResultCapAsync(CancellationToken cancellationToken)

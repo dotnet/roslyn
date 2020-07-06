@@ -281,6 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+
         private BoundExpression MakePropertyAssignment(
             SyntaxNode syntax,
             BoundExpression? rewrittenReceiver,
@@ -296,13 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();
 
-            if ((object)setMethod == null)
+            if (setMethod is null)
             {
-                var sourceProperty = (SourcePropertySymbol)property;
-                Debug.Assert(sourceProperty.IsAutoProperty == true,
+                var autoProp = (SourcePropertySymbolBase)property;
+                Debug.Assert(autoProp.IsAutoProperty,
                     "only autoproperties can be assignable without having setters");
 
-                var backingField = sourceProperty.BackingField;
+                var backingField = autoProp.BackingField;
                 return _factory.AssignmentExpression(
                     _factory.Field(rewrittenReceiver, backingField),
                     rewrittenRight);

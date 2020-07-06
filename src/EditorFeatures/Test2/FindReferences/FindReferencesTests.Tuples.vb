@@ -50,7 +50,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -103,7 +102,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -134,7 +132,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
         <Document><![CDATA[
@@ -176,7 +173,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -203,7 +199,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -231,7 +226,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -258,7 +252,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -285,7 +278,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -313,7 +305,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -341,7 +332,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>

@@ -244,6 +244,5 @@ namespace Roslyn.Test.Performance.Utilities
                 }
             }
         }
-
     }
 }

@@ -69,7 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     [ClassificationTypeNames.Operator] = LightThemeOperator,
                 }.ToImmutableDictionary();
 
-
             // The High Contrast theme is not included because we do not want to make changes when the user is in High Contrast mode.
 
             private IVsFontAndColorStorage? _fontAndColorStorage;
@@ -247,14 +246,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             /// <summary>
             /// Reverts Classifications to their default state.
             /// </summary>
-            public void DefaultClassifications()
+            public void DefaultClassifications(bool isThemeCustomized)
             {
                 AssertIsForeground();
 
                 var themeId = _settings.GetThemeId();
 
-                // Make no changes when in high contast mode, in unknown theme, or if theme has been defaulted.
-                if (SystemParameters.HighContrast || !IsSupportedTheme(themeId) || _settings.HasThemeBeenDefaulted[themeId])
+                // Make no changes when in high contast mode, in unknown theme, in customized theme, or if theme has been defaulted.
+                if (SystemParameters.HighContrast || !IsSupportedTheme(themeId) || isThemeCustomized || _settings.HasThemeBeenDefaulted[themeId])
                 {
                     return;
                 }

@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return BindsWithoutErrors(ns, rightName + "Attribute", isAttributeName: false);
         }
 
-        private bool HasAccessibleTypes(INamespaceSymbol @namespace, SemanticModel model, CancellationToken cancellationToken)
+        private static bool HasAccessibleTypes(INamespaceSymbol @namespace, SemanticModel model, CancellationToken cancellationToken)
             => Enumerable.Any(@namespace.GetAllTypes(cancellationToken), t => t.IsAccessibleWithin(model.Compilation.Assembly));
 
         private static IEnumerable<SymbolResult> GetContainers(
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
         }
 
-        private IEnumerable<INamespaceOrTypeSymbol> FilterAndSort(IEnumerable<SymbolResult> symbols)
+        private static IEnumerable<INamespaceOrTypeSymbol> FilterAndSort(IEnumerable<SymbolResult> symbols)
         {
             symbols ??= SpecializedCollections.EmptyList<SymbolResult>();
             symbols = symbols.Distinct()

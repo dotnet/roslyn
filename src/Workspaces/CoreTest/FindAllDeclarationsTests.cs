@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         InlineData("TestField", true, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
         InlineData("TestField", false, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
 
-
         InlineData("testcase", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases.TestCase" }),
         InlineData("testcase", false, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new string[0]),
         InlineData("testcases", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases" }),
@@ -216,7 +215,6 @@ Inner i;
          InlineData("TestField", true, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
          InlineData("TestField", false, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
 
-
          InlineData("testcase", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases.TestCase" }),
          InlineData("testcase", false, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new string[0]),
          InlineData("testcases", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases" }),
@@ -323,7 +321,6 @@ Inner i;
          InlineData("testfield", false, WorkspaceKind.SingleClassWithSingleField, new string[0]),
          InlineData("TestField", true, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
          InlineData("TestField", false, WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases.TestCase.TestField" }),
-
 
          InlineData("testcase", true, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases.TestCase", "TestCases.TestCase" }),
          InlineData("testcase", false, WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new string[0]),

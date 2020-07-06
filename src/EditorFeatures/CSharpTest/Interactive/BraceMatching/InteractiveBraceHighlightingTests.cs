@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             ITextBuffer buffer,
             int position)
         {
-            var view = new Mock<ITextView>();
+            var view = new Mock<ITextView>(MockBehavior.Strict);
             var producer = new BraceHighlightingViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.GetService<IBraceMatchingService>(),

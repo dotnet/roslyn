@@ -165,7 +165,6 @@ Class C
                     Assert.Equal(document.GetTextAsync().Result.ToString(), finalText)
                 End Using
 
-
             End Using
         End Sub
 

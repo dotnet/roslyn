@@ -408,7 +408,6 @@ $@"""@arg1""
 -arg3
 --arg4");
 
-
             var runner = CreateRunner(
                 args: new[] { $"@{rsp.Path}", "/arg5", "--", "/arg7" },
                 input: "foreach (var arg in Args) Print(arg);");

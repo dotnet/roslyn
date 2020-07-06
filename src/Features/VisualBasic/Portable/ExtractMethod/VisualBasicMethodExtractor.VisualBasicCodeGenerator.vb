@@ -104,9 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim semanticModel = SemanticDocument.SemanticModel
                 Dim context = InsertionPoint.GetContext()
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
-                Dim statements = SpecializedCollections.EmptyEnumerable(Of StatementSyntax)()
 
-                statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(statements, cancellationToken)
+                Dim statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken)
                 statements = postProcessor.MergeDeclarationStatements(statements)
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken)
                 statements = Await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)
@@ -182,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return CheckActiveStatements(statements).With(statements)
             End Function
 
-            Private Function CheckActiveStatements(statements As IEnumerable(Of StatementSyntax)) As OperationStatus
+            Private Shared Function CheckActiveStatements(statements As IEnumerable(Of StatementSyntax)) As OperationStatus
                 Dim count = statements.Count()
                 If count = 0 Then
                     Return OperationStatus.NoActiveStatement
@@ -370,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return invocation
             End Function
 
-            Private Function GetIdentifierName(name As String) As ExpressionSyntax
+            Private Shared Function GetIdentifierName(name As String) As ExpressionSyntax
                 Dim bracket = SyntaxFacts.MakeHalfWidthIdentifier(name.First) = "[" AndAlso SyntaxFacts.MakeHalfWidthIdentifier(name.Last) = "]"
                 If bracket Then
                     Dim unescaped = name.Substring(1, name.Length() - 2)

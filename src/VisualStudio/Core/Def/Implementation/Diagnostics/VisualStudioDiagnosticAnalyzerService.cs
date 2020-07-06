@@ -199,29 +199,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             string? projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
             // Add a message to VS status bar that we are running code analysis.
-            var statusMessage = projectOrSolutionName != null
-                ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
-                : ServicesVSResources.Running_code_analysis_for_Solution;
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
-            statusBar?.SetText(statusMessage);
+            var totalProjectCount = project != null ? 1 : (uint)solution.ProjectIds.Count;
+            var statusBarUpdater = statusBar != null ?
+                new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, totalProjectCount) :
+                null;
 
             // Force complete analyzer execution in background.
             var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
             Task.Run(async () =>
             {
-                await _diagnosticService.ForceAnalyzeAsync(solution, project?.Id, CancellationToken.None).ConfigureAwait(false);
+                try
+                {
+                    var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
+                    await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
 
-                // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
-                // then ForceAnalyzeAsync will not cause analyzers to execute.
-                // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
-                HandleProjectsWithDisabledAnalysis();
-
-                // Add a message to VS status bar that we completed executing code analysis.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var notificationMesage = projectOrSolutionName != null
-                    ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
-                    : ServicesVSResources.Code_analysis_completed_for_Solution;
-                statusBar?.SetText(notificationMesage);
+                    // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
+                    // then ForceAnalyzeAsync will not cause analyzers to execute.
+                    // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
+                    HandleProjectsWithDisabledAnalysis();
+                }
+                finally
+                {
+                    statusBarUpdater?.Dispose();
+                }
             }).CompletesAsyncOperation(asyncToken);
 
             return;
@@ -346,6 +347,95 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     Debug.Fail("Unable to determine whether build is active or not");
                     return true;
                 }
+            }
+        }
+
+        private sealed class StatusBarUpdater : IDisposable
+        {
+            private readonly IVsStatusbar _statusBar;
+            private readonly IThreadingContext _threadingContext;
+            private readonly uint _totalProjectCount;
+            private readonly string _statusMessageWhileRunning;
+            private readonly string _statusMesageOnCompleted;
+            private readonly string _statusMesageOnTerminated;
+            private readonly Timer _timer;
+
+            private int _analyzedProjectCount;
+            private bool _disposed;
+            private uint _statusBarCookie;
+
+            public StatusBarUpdater(IVsStatusbar statusBar, IThreadingContext threadingContext, string? projectOrSolutionName, uint totalProjectCount)
+            {
+                Contract.ThrowIfFalse(threadingContext.HasMainThread);
+                _statusBar = statusBar;
+                _threadingContext = threadingContext;
+                _totalProjectCount = totalProjectCount;
+
+                _statusMessageWhileRunning = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Running_code_analysis_for_Solution;
+                _statusMesageOnCompleted = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Code_analysis_completed_for_Solution;
+                _statusMesageOnTerminated = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Code_analysis_terminated_before_completion_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Code_analysis_terminated_before_completion_for_Solution;
+
+                // Set the initial status bar progress and text.
+                _statusBar.Progress(ref _statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: totalProjectCount);
+                _statusBar.SetText(_statusMessageWhileRunning);
+
+                // Create a timer to periodically update the status message while running analysis.
+                _timer = new Timer(new TimerCallback(UpdateStatusOnTimer), new AutoResetEvent(false),
+                    dueTime: TimeSpan.FromSeconds(5), period: TimeSpan.FromSeconds(5));
+            }
+
+            internal void OnProjectAnalyzed(Project _)
+            {
+                Interlocked.Increment(ref _analyzedProjectCount);
+                UpdateStatusCore();
+            }
+
+            // Add a message to VS status bar that we are running code analysis.
+            private void UpdateStatusOnTimer(object state)
+                => UpdateStatusCore();
+
+            public void Dispose()
+            {
+                _timer.Dispose();
+                _disposed = true;
+                UpdateStatusCore();
+            }
+
+            private void UpdateStatusCore()
+            {
+                _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                    string message;
+                    int fInProgress;
+                    var analyzedProjectCount = (uint)_analyzedProjectCount;
+                    if (analyzedProjectCount == _totalProjectCount)
+                    {
+                        message = _statusMesageOnCompleted;
+                        fInProgress = 0;
+                    }
+                    else if (_disposed)
+                    {
+                        message = _statusMesageOnTerminated;
+                        fInProgress = 0;
+                    }
+                    else
+                    {
+                        message = _statusMessageWhileRunning;
+                        fInProgress = 1;
+                    }
+
+                    // Update the status bar progress and text.
+                    _statusBar.Progress(ref _statusBarCookie, fInProgress, message, analyzedProjectCount, _totalProjectCount);
+                    _statusBar.SetText(message);
+                });
             }
         }
     }

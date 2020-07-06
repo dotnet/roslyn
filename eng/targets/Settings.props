@@ -16,10 +16,9 @@
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
-    <RoslynPortableTargetFrameworks>netcoreapp3.1;net472</RoslynPortableTargetFrameworks>
     <UseSharedCompilation>true</UseSharedCompilation>
 
-    <Features>strict, IOperation</Features>
+    <Features>strict</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateFullPaths>true</GenerateFullPaths>
@@ -123,8 +122,7 @@
     Analyzers
   -->
   <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
-    <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="$(MicrosoftCodeQualityAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.NetCore.Analyzers" Version="$(MicrosoftNetCoreAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="$(MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion)" PrivateAssets="all" />

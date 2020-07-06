@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (name.Parent is ExpressionSyntax expression)
             {
-                var results = semanticModel.LookupName(expression, namespacesAndTypesOnly: true, cancellationToken: cancellationToken);
+                var results = semanticModel.LookupName(expression, cancellationToken: cancellationToken);
                 if (results.Length > 0)
                 {
                     return results.OfType<ITypeSymbol>();
@@ -37,12 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ImmutableArray<ISymbol> LookupName(
             this SemanticModel semanticModel,
             SyntaxToken name,
-            bool namespacesAndTypesOnly,
             CancellationToken cancellationToken)
         {
             if (name.Parent is ExpressionSyntax expression)
             {
-                return semanticModel.LookupName(expression, namespacesAndTypesOnly, cancellationToken);
+                return semanticModel.LookupName(expression, cancellationToken);
             }
 
             return ImmutableArray.Create<ISymbol>();
@@ -101,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ImmutableArray<ISymbol> LookupName(
             this SemanticModel semanticModel,
             ExpressionSyntax expression,
-            bool namespacesAndTypesOnly,
             CancellationToken cancellationToken)
         {
             var expr = SyntaxFactory.GetStandaloneExpression(expression);

@@ -22,15 +22,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
         }
 
-        public event EventHandler<string> Updated;
+        event EventHandler<string> IDynamicFileInfoProvider.Updated { add { } remove { } }
 
         public Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
             => Task.FromResult<DynamicFileInfo>(null);
 
         public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
             => Task.CompletedTask;
-
-        private void OnUpdate()
-            => Updated?.Invoke(this, "test");
     }
 }

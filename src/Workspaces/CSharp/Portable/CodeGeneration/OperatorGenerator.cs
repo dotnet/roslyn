@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var methodDeclaration = GenerateOperatorDeclaration(
-                method, GetDestination(destination), workspace, options,
+                method, workspace, options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
             IMethodSymbol method,
-            CodeGenerationDestination destination,
             Workspace workspace,
             CodeGenerationOptions options,
             ParseOptions parseOptions)
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var operatorDecl = SyntaxFactory.OperatorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options),
-                modifiers: GenerateModifiers(method),
+                modifiers: GenerateModifiers(),
                 returnType: method.ReturnType.GenerateTypeSyntax(),
                 operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
                 operatorToken: operatorToken,
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return operatorDeclaration;
         }
 
-        private static SyntaxTokenList GenerateModifiers(IMethodSymbol method)
+        private static SyntaxTokenList GenerateModifiers()
         {
             return SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),

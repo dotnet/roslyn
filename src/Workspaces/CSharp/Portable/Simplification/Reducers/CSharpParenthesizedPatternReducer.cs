@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            if (node.CanRemoveParentheses(semanticModel))
+            if (node.CanRemoveParentheses())
             {
                 var resultNode = CSharpSyntaxFacts.Instance.Unparenthesize(node);
                 return SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);

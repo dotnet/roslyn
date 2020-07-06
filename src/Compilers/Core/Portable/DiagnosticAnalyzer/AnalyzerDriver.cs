@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Kick off tasks to execute syntax tree actions.
-                    var syntaxTreeActionsTask = Task.Run(() => ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt, cancellationToken));
+                    var syntaxTreeActionsTask = Task.Run(() => ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt, cancellationToken), cancellationToken);
 
                     // Wait for all worker threads to complete processing events.
                     await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask)).ConfigureAwait(false);
@@ -2239,7 +2239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // We only care about the top level symbol declaration and its immediate member declarations.
             int? levelsToCompute = 2;
             var getSymbol = topmostNodeForAnalysis != declaringReferenceSyntax || declaredSymbol.Kind == SymbolKind.Namespace;
-            semanticModel.ComputeDeclarationsInNode(topmostNodeForAnalysis, getSymbol, builder, cancellationToken, levelsToCompute);
+            semanticModel.ComputeDeclarationsInNode(topmostNodeForAnalysis, declaredSymbol, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 
         /// <summary>
@@ -2538,7 +2538,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 first = false;
             }
 
-            bool shouldAddNode(SyntaxNode node) => descendantDeclsToSkipOpt == null || !descendantDeclsToSkipOpt.Contains(node);
+            Func<SyntaxNode, bool> additionalFilterOpt = semanticModel.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
+
+            bool shouldAddNode(SyntaxNode node) => (descendantDeclsToSkipOpt == null || !descendantDeclsToSkipOpt.Contains(node)) && (additionalFilterOpt is null || additionalFilterOpt(node));
             var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {

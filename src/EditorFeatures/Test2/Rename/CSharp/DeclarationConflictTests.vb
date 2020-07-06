@@ -59,7 +59,6 @@ class C
             End Using
         End Sub
 
-
         <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenFields(host As TestHost)

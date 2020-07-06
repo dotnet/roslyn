@@ -36,7 +36,6 @@ Namespace N
 End Namespace
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
 
@@ -61,7 +60,6 @@ End Namespace
 Namespace N
 End Namespace
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -88,7 +86,6 @@ Namespace N
 End Namespace
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
@@ -110,7 +107,6 @@ Namespace N
 	End Class
 End Namespace
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -137,7 +133,6 @@ Namespace N
 End Namespace
 </Code>
             Dim code = <Code></Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code, metaDatacode, False))
                 Dim library = state.GetLibrary()
@@ -181,7 +176,6 @@ Class C
     End Sub
 End Class
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -237,7 +231,6 @@ Class C
     End Sub
 End Class
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -295,7 +288,6 @@ Class C
 End Class
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
@@ -328,7 +320,6 @@ Namespace N
     End Class
 End Namespace
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()

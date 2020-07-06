@@ -4,6 +4,9 @@
 
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public partial class SerializationTests : TestBase
     {
-        private Document CreateSolutionDocument(string sourceText)
+        private static Document CreateSolutionDocument(string sourceText)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(versionStamp, deserializedVersionStamp);
         }
 
-        private void TestSymbolSerialization(Document document, string symbolName)
+        private static void TestSymbolSerialization(Document document, string symbolName)
         {
             var model = document.GetSemanticModelAsync().Result;
             var name = CS.SyntaxFactory.ParseName(symbolName);

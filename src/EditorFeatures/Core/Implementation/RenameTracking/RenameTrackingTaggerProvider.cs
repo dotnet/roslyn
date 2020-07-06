@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             return false;
         }
 
-        public static CodeAction TryGetCodeAction(
+        public static (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
             Document document, TextSpan textSpan,
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
@@ -123,14 +123,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var textBuffer = text.Container.TryGetTextBuffer();
                     if (textBuffer != null &&
                         textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
-                        stateMachine.CanInvokeRename(out _))
+                        stateMachine.CanInvokeRename(out _, cancellationToken: cancellationToken))
                     {
                         return stateMachine.TryGetCodeAction(
                             document, text, textSpan, refactorNotifyServices, undoHistoryRegistry, cancellationToken);
                     }
                 }
 
-                return null;
+                return default;
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {

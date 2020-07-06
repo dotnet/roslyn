@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// </summary>
         private readonly ConcurrentExclusiveSchedulerPair _readerWriterLock = new ConcurrentExclusiveSchedulerPair();
 
-        private async Task<TResult> PerformTaskAsync<TArg, TResult>(
+        private static async Task<TResult> PerformTaskAsync<TArg, TResult>(
             Func<TArg, TResult> func, TArg arg,
             TaskScheduler scheduler, CancellationToken cancellationToken) where TArg : struct
         {

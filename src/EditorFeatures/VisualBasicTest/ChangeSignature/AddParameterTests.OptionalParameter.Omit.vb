@@ -21,7 +21,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
 
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True)}
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired:=False, defaultValue:="1")}
 
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -44,7 +44,7 @@ End Class]]></Text>.NormalizedValue()
 
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
                         New AddedParameterOrExistingIndex(0),
-                        AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True)}
+                        AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired:=False, defaultValue:="1")}
 
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -68,7 +68,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
 
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
-                        AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True),
+                        AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired:=False, defaultValue:="1"),
                         New AddedParameterOrExistingIndex(0)}
 
             Dim updatedCode = <Text><![CDATA[
@@ -98,7 +98,7 @@ End Class]]></Text>.NormalizedValue()
             ' This is an illegal configuration in VB, but can happen if cascaded from the legal C#
             ' version of this configuration. We reinterpret OMIT as TODO in this case.
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
-                        AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True),
+                        AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired:=False, defaultValue:="1"),
                         New AddedParameterOrExistingIndex(0)}
 
             Dim updatedCode = <Text><![CDATA[
@@ -127,7 +127,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(0),
                 New AddedParameterOrExistingIndex(1),
-                AddedParameterOrExistingIndex.CreateAdded("Integer", "x", isRequired:=False, defaultValue:="3", isCallsiteOmitted:=True),
+                AddedParameterOrExistingIndex.CreateAdded("Integer", "x", CallSiteKind.Omitted, isRequired:=False, defaultValue:="3"),
                 New AddedParameterOrExistingIndex(2)}
 
             Dim updatedCode = <Text><![CDATA[

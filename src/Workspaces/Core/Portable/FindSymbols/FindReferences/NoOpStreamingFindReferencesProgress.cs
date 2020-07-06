@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
         }
 
-        public Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
+#pragma warning disable IDE0060 // Remove unused parameter
+        public static Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
+#pragma warning restore IDE0060 // Remove unused parameter
 
         public Task OnCompletedAsync() => Task.CompletedTask;
         public Task OnStartedAsync() => Task.CompletedTask;

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestLoadProjectFromCommandLine()
         {
-            string commandLine = @"goo.cs subdir\bar.cs /out:goo.dll /target:library";
+            var commandLine = @"goo.cs subdir\bar.cs /out:goo.dll /target:library";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
             var ws = new AdhocWorkspace();
             ws.AddProject(info);

@@ -27,7 +27,6 @@ namespace RunTests
             Options = options;
         }
 
-
         public string GetCommandLine(AssemblyInfo assemblyInfo)
         {
             return $"{Options.XunitPath} {GetCommandLineArguments(assemblyInfo)}";

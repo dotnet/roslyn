@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public void UpdateLastActivityTime()
             => _lastActivityTime = DateTime.UtcNow;
 
-        private void Update(Entry entry)
+        private static void Update(Entry entry)
         {
             // entry is reference type. we update it directly. 
             // we don't care about race.

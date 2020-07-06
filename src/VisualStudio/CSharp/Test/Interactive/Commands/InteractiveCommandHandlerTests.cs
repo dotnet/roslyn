@@ -201,7 +201,10 @@ $@"#define DEF
         private static void AssertExecuteInInteractive(ExportProvider exportProvider, string code, string[] expectedSubmissions, string submissionBuffer = null)
         {
             var submissions = new List<string>();
-            void appendSubmission(object _, string item) { submissions.Add(item.TrimEnd()); }
+            void appendSubmission(object _, string item)
+            {
+                submissions.Add(item.TrimEnd());
+            }
 
             using var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(exportProvider, code);
             PrepareSubmissionBuffer(submissionBuffer, workspace);

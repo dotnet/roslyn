@@ -89,6 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int DoesNotReturnBit = 0x1 << 21;
             private const int IsDoesNotReturnPopulatedBit = 0x1 << 22;
             private const int IsMemberNotNullPopulatedBit = 0x1 << 23;
+            private const int IsInitOnlyBit = 0x1 << 24;
+            private const int IsInitOnlyPopulatedBit = 0x1 << 25;
 
             private int _bits;
 
@@ -122,6 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool DoesNotReturn => (_bits & DoesNotReturnBit) != 0;
             public bool IsDoesNotReturnPopulated => (_bits & IsDoesNotReturnPopulatedBit) != 0;
             public bool IsMemberNotNullPopulated => (_bits & IsMemberNotNullPopulatedBit) != 0;
+            public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
+            public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -215,6 +219,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public void SetIsMemberNotNullPopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsMemberNotNullPopulatedBit);
+            }
+
+            public void InitializeIsInitOnly(bool isInitOnly)
+            {
+                int bitsToSet = (isInitOnly ? IsInitOnlyBit : 0) | IsInitOnlyPopulatedBit;
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
         }
 
@@ -1236,6 +1247,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _packedFlags.InitializeIsReadOnly(isReadOnly);
                 }
                 return _packedFlags.IsReadOnly;
+            }
+        }
+
+        internal override bool IsInitOnly
+        {
+            get
+            {
+                if (!_packedFlags.IsInitOnlyPopulated)
+                {
+                    bool isInitOnly = !this.IsStatic &&
+                        this.MethodKind == MethodKind.PropertySet &&
+                        ReturnTypeWithAnnotations.CustomModifiers.HasIsExternalInitModifier();
+                    _packedFlags.InitializeIsInitOnly(isInitOnly);
+                }
+                return _packedFlags.IsInitOnly;
             }
         }
 

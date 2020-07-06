@@ -6230,9 +6230,9 @@ class C
                 // (6,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [A]a switch { };
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "a switch { }").WithLocation(6, 12),
-                // (6,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (6,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         [A]a switch { };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 14),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(6, 14),
                 // (6,14): error CS8506: No best type was found for the switch expression.
                 //         [A]a switch { };
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(6, 14));

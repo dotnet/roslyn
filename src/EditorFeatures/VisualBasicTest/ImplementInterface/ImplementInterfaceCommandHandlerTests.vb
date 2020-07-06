@@ -265,7 +265,6 @@ Interface IGoo
     Sub TestSub()
 End Interface</text>
 
-
             Dim expectedText = <text>   
     Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
@@ -285,7 +284,6 @@ Class Goo
 End Class
 Interface IGoo
 End Interface</text>
-
 
             Dim expectedText = <text>   
 Class Goo

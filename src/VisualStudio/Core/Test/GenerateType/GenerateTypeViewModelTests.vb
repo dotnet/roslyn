@@ -247,7 +247,6 @@ namespace A
             Dim projectToSelect = viewModel.ProjectList.Where(Function(p) p.Name = "CS2").Single().Project
             viewModel.SelectedProject = projectToSelect
 
-
             ' Check if the option for Existing File is disabled
             Assert.Equal(0, viewModel.DocumentList.Count())
             Assert.Equal(False, viewModel.IsExistingFileEnabled)
@@ -396,7 +395,6 @@ public class CCC
 
             Assert.Equal("GooattributeAttribute", viewModel.TypeName)
         End Function
-
 
         <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>

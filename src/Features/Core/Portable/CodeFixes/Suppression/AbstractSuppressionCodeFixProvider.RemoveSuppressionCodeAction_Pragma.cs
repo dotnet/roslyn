@@ -169,9 +169,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 private SyntaxToken GetNewTokenWithRemovedOrToggledPragma(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, bool isStartToken, bool toggle)
-                    => GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle);
+                    => GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, Fixer, isStartToken, toggle);
 
-                private static SyntaxToken GetNewTokenWithPragmaUnsuppress(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, Diagnostic diagnostic, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, bool toggle)
+                private static SyntaxToken GetNewTokenWithPragmaUnsuppress(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, bool toggle)
                 {
                     Contract.ThrowIfFalse(indexOfTriviaToRemoveOrToggle >= 0);
 

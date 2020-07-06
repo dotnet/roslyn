@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        private async Task<OptionSet> GetOptionsAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<OptionSet> GetOptionsAsync(Document document, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var analyzerConfigOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             protected override async Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
-                var options = await _formattingCodeFixProvider.GetOptionsAsync(document, fixAllContext.CancellationToken).ConfigureAwait(false);
+                var options = await GetOptionsAsync(document, fixAllContext.CancellationToken).ConfigureAwait(false);
                 var syntaxRoot = await document.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
                 var updatedSyntaxRoot = Formatter.Format(syntaxRoot, _formattingCodeFixProvider.SyntaxFormattingService, options, fixAllContext.CancellationToken);
                 return updatedSyntaxRoot;

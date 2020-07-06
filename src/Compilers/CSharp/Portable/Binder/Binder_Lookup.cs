@@ -99,6 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = scope;
                     }
                 }
+
+                if ((options & LookupOptions.LabelsOnly) != 0 && scope.IsLastBinderWithinMember())
+                {
+                    // Labels declared outside of a member are not visible inside.
+                    break;
+                }
             }
             return binder;
         }
@@ -198,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     result.Clear();
                     break;
 
@@ -953,7 +960,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersInInterfacesWithoutInheritance(current, GetBaseInterfaces(type, basesBeingResolved, ref useSiteDiagnostics),
                     name, arity, basesBeingResolved, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics);
             }
-
         }
 
         private static ImmutableArray<NamedTypeSymbol> GetBaseInterfaces(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1559,7 +1565,7 @@ symIsHidden:;
                     break;
             }
 
-            return (object)type != null && (type.IsDelegateType() || type.IsDynamic());
+            return (object)type != null && (type.IsDelegateType() || type.IsDynamic() || type.IsFunctionPointer());
         }
 
         private static bool IsInstance(Symbol symbol)
@@ -1648,6 +1654,12 @@ symIsHidden:;
             for (var scope = this; scope != null; scope = scope.Next)
             {
                 scope.AddLookupSymbolsInfoInSingleBinder(result, options, originalBinder: this);
+
+                if ((options & LookupOptions.LabelsOnly) != 0 && scope.IsLastBinderWithinMember())
+                {
+                    // Labels declared outside of a member are not visible inside.
+                    break;
+                }
             }
         }
 

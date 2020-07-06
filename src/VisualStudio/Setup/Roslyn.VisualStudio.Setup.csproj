@@ -244,12 +244,6 @@
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
       <NgenPriority>1</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\Razor\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.csproj">
-      <Name>RazorVisualStudio</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <PkgDefEntry>BindingRedirect</PkgDefEntry>
-    </ProjectReference>
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
       <Name>Scripting</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>

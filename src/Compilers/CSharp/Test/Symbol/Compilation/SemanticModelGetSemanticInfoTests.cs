@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -7951,7 +7952,7 @@ class Program
         [Fact]
         public void DelegateSignatureMismatch3()
         {
-            // This test and the DelgateSignatureMismatch4 should have identical results, as they are semantically identical
+            // This test and the DelegateSignatureMismatch4 should have identical results, as they are semantically identical
 
             string sourceCode = @"
 using System;
@@ -8484,7 +8485,7 @@ public class Test
             Assert.Equal(true, semanticInfo.ConstantValue);
         }
 
-        [ConditionalFact(typeof(IsDebug))]
+        [Fact]
         [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_Constant02()
         {
@@ -8512,11 +8513,11 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.Nullability.FlowState);
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.ConvertedNullability.FlowState);
-            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.ConvertedNullability.FlowState);
+            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -8530,7 +8531,7 @@ public class Test
             Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
-        [ConditionalFact(typeof(IsDebug))]
+        [Fact]
         [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_NotConstant()
         {
@@ -8557,11 +8558,11 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.Nullability.FlowState);
-            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, semanticInfo.ConvertedNullability.FlowState);
-            Assert.Equal("System.String?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.ConvertedNullability.FlowState);
+            Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.String?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
@@ -11358,14 +11359,7 @@ public class Class1
             string sourceCode = "/*<bind>*/C<object, string/*</bind>*/";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
             var type = (INamedTypeSymbol)semanticInfo.Type;
-            Assert.Equal("C<System.Object, System.String>", type.ToTestDisplayString());
-            Assert.Equal(2, type.TypeParameters.Length);
-            var typeParameter = type.TypeParameters[0];
-            Assert.Equal(0, typeParameter.Ordinal);
-            Assert.Equal(string.Empty, typeParameter.Name);
-            typeParameter = type.TypeParameters[1];
-            Assert.Equal(1, typeParameter.Ordinal);
-            Assert.Equal(string.Empty, typeParameter.Name);
+            Assert.Equal("System.Boolean", type.ToTestDisplayString());
         }
 
         [WorkItem(542452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542452")]

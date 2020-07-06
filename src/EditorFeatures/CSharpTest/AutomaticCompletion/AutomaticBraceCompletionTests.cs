@@ -19,6 +19,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     public class AutomaticBraceCompletionTests : AbstractAutomaticBraceCompletionTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void WithExpressionBracesSameLine()
+        {
+            var code = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with { }
+    }
+}";
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void WithExpressionBracesSameLine_Enter()
+        {
+            var code = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with $$
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with
+        {
+
+        }
+    }
+}";
+            using var session = CreateSession(code);
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
             using var session = CreateSession("$$");

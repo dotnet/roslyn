@@ -926,7 +926,6 @@ namespace N
             Await TestAsync(code, changedCode)
         End Function
 
-
         <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedMethodsInNamespace() As Task
