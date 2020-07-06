@@ -8059,5 +8059,48 @@ class C { void f(E e = (E)byte.MaxValue) { } }";
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [WorkItem(45695, "https://github.com/dotnet/roslyn/issues/45695")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveNonObjectCastInsideInterpolation()
+        {
+            var source =
+@"
+class Other
+{
+    void Goo()
+    {  
+        char c = '4';
+        string s = $""{(int)c:X4}"";
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(45695, "https://github.com/dotnet/roslyn/issues/45695")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveObjectCastInsideInterpolation()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+class Other
+{
+    void Goo()
+    {  
+        char c = '4';
+        string s = $""{[|(object)|]c:X4}"";
+    }
+}",
+@"
+class Other
+{
+    void Goo()
+    {  
+        char c = '4';
+        string s = $""{c:X4}"";
+    }
+}");
+        }
     }
 }
