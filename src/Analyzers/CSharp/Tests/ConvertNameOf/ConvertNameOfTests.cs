@@ -94,5 +94,20 @@ class Test
 ";
             await TestMissingInRegularAndScriptAsync(text);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        public async Task NotOnGenericType()
+        {
+            var text = @"class Test<T>
+{
+    void Method()[||]
+    {
+        var typeName = typeof(T).Name;
+    }
+}
+";
+";
+            await TestMissingInRegularAndScriptAsync(text);
+        }
     }
 }
