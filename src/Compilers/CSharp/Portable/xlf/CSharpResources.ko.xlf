@@ -232,9 +232,14 @@
         <target state="translated">무시 패턴은 switch 문의 case 레이블로 사용할 수 없습니다. 무시 패턴에 대해 'case var _:'을 사용하거나 이름이 '_'인 상수에 대해 'case @_:'을 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseEquals">
+        <source>'{0}' does not override expected method from '{1}'.</source>
+        <target state="new">'{0}' does not override expected method from '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
-        <source>'{0}' does not override the method from 'object'.</source>
-        <target state="new">'{0}' does not override the method from 'object'.</target>
+        <source>'{0}' does not override expected method from 'object'.</source>
+        <target state="new">'{0}' does not override expected method from 'object'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
@@ -1797,6 +1802,16 @@
       <trans-unit id="WRN_CaseConstantNamedUnderscore_Title">
         <source>Do not use '_' for a case constant.</source>
         <target state="translated">case 상수에 '_'을 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked">
+        <source>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked_Title">
+        <source>Constant value may overflow at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value may overflow at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
