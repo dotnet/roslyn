@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     // We should only ever get a default array (meaning, update the root), or a
                     // non-empty array.  We should never be asked to update exactly '0' nodes.
                     Debug.Assert(documentToUpdate.NodesToUpdate.IsDefault ||
-                                 documentToUpdate.NodesToUpdate.Length >= 1);
+                                !documentToUpdate.NodesToUpdate.IsEmpty);
 
                     // If we were given specific nodes to update, only update those.  Otherwise
                     // updated everything from the root down.
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 structNameToken = structNameToken.WithAdditionalAnnotations(RenameAnnotation.Create());
             }
 
-            return typeParameters.Length == 0
+            return typeParameters.IsEmpty
                 ? (TNameSyntax)generator.IdentifierName(structNameToken)
                 : (TNameSyntax)generator.GenericName(structNameToken, typeParameters.Select(tp => generator.IdentifierName(tp.Name)));
         }
