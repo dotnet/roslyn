@@ -2,19 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
 {
@@ -26,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
     {
         public CSharpConvertNameOfDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertNameOfDiagnosticId,
-                   CSharpCodeStyleOptions.PreferBraces, //TODO: Update code style options
+                   option: null,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Convert_type_name_to_nameof), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -38,12 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
             context.RegisterOperationAction(AnalyzeTypeOfAction, OperationKind.TypeOf);
         }
 
-        private void AnalyzeTypeOfAction(OperationAnalysisContext typeofOp)
+        private void AnalyzeTypeOfAction(OperationAnalysisContext context)
         {
-            //var options = syntaxContext.Options;
-            var syntaxTree = typeofOp.Operation.Syntax.SyntaxTree;
-            //var cancellationToken = syntaxContext.CancellationToken;
-            var node = typeofOp.Operation.Syntax;
+            var syntaxTree = context.Operation.Syntax.SyntaxTree;
+            var node = context.Operation.Syntax;
 
             // nameof was added in CSharp 6.0, so don't offer it for any languages before that time
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
@@ -51,59 +41,49 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
                 return;
             }
 
-            // TODO: Check for compiler errors on the declaration
-
-            // We know that it is a typeof() instance, but we only want to offer the fix if it is a .Name access
-            var parent = node.Parent;
-            if (!(node.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) && parent.IsNameMemberAccess()))
-            {
-                return;
-            }
-
-            // Analyze the argument to determine if argument is generic or a primitive 
-            if (ArgumentIsGeneric(typeofOp.Operation) || ArgumentIsPrimitive(typeofOp.Operation))
+            if (!IsValidOperation(context.Operation))
             {
                 return;
             }
 
             // Current case can be effectively changed to a nameof instance so report a diagnostic
-            var location = Location.Create(syntaxTree, parent.Span);
-            var additionalLocations = ImmutableArray.Create(node.GetLocation());
+            var parent = node.Parent;
+            var location = parent.GetLocation();
 
-            typeofOp.ReportDiagnostic(DiagnosticHelper.Create(
-                     Descriptor,
-                     location,
-                     ReportDiagnostic.Hidden,
-                     additionalLocations,
-                     properties: null));
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
         }
-        // TODO: Overwrite GetAnalyzerCategory
+        // Overwrite GetAnalyzerCategory
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        private static bool ArgumentIsGeneric(IOperation op)
+        private static bool IsValidOperation(IOperation operation)
         {
-            // Cast it to a ITypeOfOperation
-            var tOp = (ITypeOfOperation)op;
-
-            if (((INamedTypeSymbol)(tOp).TypeOperand).IsGenericType)
+            // Cast to a typeof operation & check parent is a property reference
+            var typeofOperation = (ITypeOfOperation)operation;
+            if (!(operation.Parent is IPropertyReferenceOperation))
             {
-                return true;
+                return false;
             }
-            return false;
-        }
 
-        private static bool ArgumentIsPrimitive(IOperation op)
-        {
-            // Get the argument's syntax node
-            var child = op.Syntax.ChildNodes().ElementAt(0);
-
-            if (child.IsKind(SyntaxKind.PredefinedType))
+            // Check Parent is a .Name access
+            var operationParent = (IPropertyReferenceOperation)operation.Parent;
+            if (!(operationParent.Property.Name == "Name"))
             {
-                return true;
+                return false;
             }
-            return false;
-        }
 
+            // Check if it's a generic type
+            if (((INamedTypeSymbol)(typeofOperation).TypeOperand).IsGenericType)
+            {
+                return false;
+            }
+
+            // Check if it's a primitive type
+            if (!(((ITypeSymbol)(typeofOperation.TypeOperand)).SpecialType.ToPredefinedType() is PredefinedType.None))
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }
