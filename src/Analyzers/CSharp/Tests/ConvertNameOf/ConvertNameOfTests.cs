@@ -40,5 +40,29 @@ class Test
 ";
             await TestInRegularAndScriptAsync(text, expected);
         }
+
+        [Fact]
+        public async Task ClassLibraryType()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var typeName = [||]typeof(String).Name;
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var typeName = [||]nameof(String);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }
