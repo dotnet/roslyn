@@ -17,7 +17,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpConvertNameOfDiagnosticAnalyzer(), new CSharpConvertNameOfCodeFixProvider());
 
-       
-
+        [Fact]
+        public async Task BasicType()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var typeName = [||]typeof(Test).Name;
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var typeName = [||]nameof(Test);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
     }
 }
