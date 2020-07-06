@@ -4624,6 +4624,7 @@ namespace System
             Assert.True(mItem1.IsImplicitlyDeclared);
             Assert.Null(mItem1.TypeLayoutOffset);
 
+            // Note: fields come first
             AssertTestDisplayString(mTuple.GetMembers(),
                 "System.Int32 (System.String, System.String).Item2",
                 "System.String (System.String, System.String).Item1",
@@ -21824,12 +21825,16 @@ public class B
                 );
 
             var methodM = comp.GetMember<MethodSymbol>("A.M");
+            Assert.Equal("RetargetingMethodSymbol", methodM.GetType().Name);
 
             Assert.Equal("(System.Int32, System.Int32)[missing]", methodM.ReturnTypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("ConstructedErrorTypeSymbol", methodM.ReturnType.GetType().Name);
+            Assert.Equal("TopLevel", methodM.ReturnType.OriginalDefinition.GetType().Name);
             Assert.True(methodM.ReturnType.IsTupleType);
             Assert.True(methodM.ReturnType.IsErrorType());
             foreach (var item in methodM.ReturnType.TupleElements)
             {
+                Assert.Equal("TupleErrorFieldSymbol", item.GetType().Name);
                 Assert.False(item.IsExplicitlyNamedTupleElement);
             }
         }
@@ -21860,12 +21865,16 @@ public class B
                 );
 
             var methodM = comp.GetMember<MethodSymbol>("A.M");
+            Assert.Equal("RetargetingMethodSymbol", methodM.GetType().Name);
 
             Assert.Equal("(System.Int32 Item1, System.Int32 Bob)[missing]", methodM.ReturnTypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("ConstructedErrorTypeSymbol", methodM.ReturnType.GetType().Name);
+            Assert.Equal("TopLevel", methodM.ReturnType.OriginalDefinition.GetType().Name);
             Assert.True(methodM.ReturnType.IsTupleType);
             Assert.True(methodM.ReturnType.IsErrorType());
             foreach (var item in methodM.ReturnType.TupleElements)
             {
+                Assert.Equal("TupleErrorFieldSymbol", item.GetType().Name);
                 Assert.True(item.IsExplicitlyNamedTupleElement);
             }
         }
