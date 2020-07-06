@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return invocation.Arguments.Length switch
             {
                 1 => AnalyzeInvocationWithOneArgument(invocation, infoCache, invocationSyntax, option),
-                2 => AnalyzeInvocationWithTwoArguments(invocation, infoCache, invocationSyntax, option),
+                2 => AnalyzeTwoArgumentInvocation(invocation, infoCache, invocationSyntax, option),
                 _ => null,
             };
         }
@@ -131,11 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             InvocationExpressionSyntax invocationSyntax,
             CodeStyleOption2<bool> option)
         {
-            // See if the call is to something slice-like.
             var targetMethod = invocation.TargetMethod;
 
-            // Try to see if we're calling into some sort of Slice method with a matching
-            // indexer or overload
+            // We are dealing with a call like `.Substring(expr)`.
+            // Ensure that there is an overload with signature like `Substring(int start, int length)`
+            // and there is a suitable indexer to replace this with `[expr..]`.
             if (!infoCache.TryGetMemberInfoOneArgument(targetMethod, out var memberInfo))
             {
                 return null;
@@ -149,11 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 invocationSyntax,
                 targetMethod,
                 memberInfo,
-                startOperation,
-                null); // secondOperation is null: the range will run to the end.
+                op1: startOperation,
+                op2: null); // The range will run to the end.
         }
 
-        private static Result? AnalyzeInvocationWithTwoArguments(
+        private static Result? AnalyzeTwoArgumentInvocation(
             IInvocationOperation invocation,
             InfoCache infoCache,
             InvocationExpressionSyntax invocationSyntax,

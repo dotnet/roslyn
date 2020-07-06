@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
@@ -32,13 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// <summary>
             /// Can be null, if we are dealing with one-argument call to a slice-like method.
             /// </summary>
-            public readonly IOperation Op2;
+            public readonly IOperation? Op2;
 
             public Result(
                 ResultKind kind, CodeStyleOption2<bool> option,
                 IInvocationOperation invocationOperation, InvocationExpressionSyntax invocation,
                 IMethodSymbol sliceLikeMethod, MemberInfo memberInfo,
-                IOperation op1, IOperation op2)
+                IOperation op1, IOperation? op2)
             {
                 Kind = kind;
                 Option = option;

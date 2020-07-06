@@ -80,31 +80,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// names of the parameters are checked to ensure they are appropriate slice-like.  These
         /// names were picked by examining the patterns in the BCL for slicing members.
         /// </summary>
-        public static bool IsSliceLikeMethod(IMethodSymbol method)
-            => method != null &&
-               IsPublicInstance(method) &&
-               method.Parameters.Length == 2 &&
-               // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
-               //
-               // When looking for the pattern members, we look for original definitions, not
-               // constructed members
-               IsSliceFirstParameter(method.OriginalDefinition.Parameters[0]) &&
-               IsSliceSecondParameter(method.OriginalDefinition.Parameters[1]);
+        public static bool IsTwoArgumentSliceLikeMethod(IMethodSymbol method)
+        {
+            // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+            //
+            // When looking for the pattern members, we look for original definitions, not
+            // constructed members
+            return method != null &&
+                IsPublicInstance(method) &&
+                method.Parameters.Length == 2 &&
+                IsSliceFirstParameter(method.OriginalDefinition.Parameters[0]) &&
+                IsSliceSecondParameter(method.OriginalDefinition.Parameters[1]);
+        }
 
         /// <summary>
         /// Look for methods like "SomeType MyType.Slice(int start)".  Note that the
         /// name of the parameter is checked to ensure it is appropriate slice-like.
         /// This name was picked by examining the patterns in the BCL for slicing members.
         /// </summary>
-        public static bool IsSliceLikeMethodWithOneArgument(IMethodSymbol method)
-            => method != null &&
-               IsPublicInstance(method) &&
-               method.Parameters.Length == 1 &&
-               // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
-               //
-               // When looking for the pattern members, we look for original definitions, not
-               // constructed members
-               IsSliceFirstParameter(method.OriginalDefinition.Parameters[0]);
+        public static bool IsOneArgumentSliceLikeMethod(IMethodSymbol method)
+        {
+            // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+            //
+            // When looking for the pattern members, we look for original definitions, not
+            // constructed members
+            return method != null &&
+                IsPublicInstance(method) &&
+                method.Parameters.Length == 1 &&
+                IsSliceFirstParameter(method.OriginalDefinition.Parameters[0]);
+        }
 
         private static bool IsSliceFirstParameter(IParameterSymbol parameter)
             => parameter.Type.SpecialType == SpecialType.System_Int32 &&

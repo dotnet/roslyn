@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             var startExpr = (ExpressionSyntax)startOperation.Syntax;
 
             var endFromEnd = false;
-            ExpressionSyntax endExpr;
+            ExpressionSyntax endExpr = null;
 
             if (!(endOperation is null))
             {
@@ -159,20 +159,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
                 // change our end-op to be `val` and record that we should emit it as `^val`.
                 endFromEnd = IsFromEnd(lengthLikeProperty, instance, ref endOperation);
-                endExpr = (ExpressionSyntax)endOperation.Syntax;
 
-                // If the range operation goes to 'expr.Length' then we can just leave off the end part
-                // of the range.  i.e. `start..`
-                if (IsInstanceLengthCheck(lengthLikeProperty, instance, endOperation))
+                // Check if the range goes to 'expr.Length'; if it does, we leave off
+                // the end part of the range, i.e. `start..`.
+                if (!IsInstanceLengthCheck(lengthLikeProperty, instance, endOperation))
                 {
-                    endExpr = null;
+                    endExpr = (ExpressionSyntax)endOperation.Syntax;
                 }
-            }
-            else
-            {
-                // We are dealing with one-argument case, so we should leave off
-                // the end part of the range: `start..`.
-                endExpr = null;
             }
 
             // If we're starting the range operation from 0, then we can just leave off the start of
