@@ -377,15 +377,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// </summary>
         public static bool IsNameMemberAccess(this SyntaxNode node)
         {
-            var access = node.IsKind(SyntaxKind.SimpleMemberAccessExpression);
-            if (node != null && access)
+            if (node != null && node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 var name = ((MemberAccessExpressionSyntax)node).Name;
-
-                if (name.Identifier.ValueText == "Name")
-                {
-                    return true;
-                }
+                return name.Identifier.ValueText == "Name";
             }
             return false;
         }
