@@ -900,10 +900,6 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        Sub foo(a As Integer, b As Integer)
-
-        End Sub
-
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
         Public Async Function TestFixAllMatchesInSingleMethod(host As TestHost) As Task
             Dim text = "
