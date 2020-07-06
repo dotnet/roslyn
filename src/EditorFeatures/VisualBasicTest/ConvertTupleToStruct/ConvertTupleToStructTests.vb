@@ -1028,8 +1028,8 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function NotIfReferencesAnonymousTypeInternally(host As TestHost) As Task
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function NotIfReferencesAnonymousTypeInternally() As Task
             Dim text = "
 class Test
     sub Method()
