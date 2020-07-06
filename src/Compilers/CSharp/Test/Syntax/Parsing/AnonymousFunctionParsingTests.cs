@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -875,6 +876,928 @@ public class C
                 // (8,28): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<int, int> v = static async => async;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 28));
+        }
+
+        [Fact]
+        public void StaticLambdaPassedAsArgument()
+        {
+            var test = @"M1(static x => x);";
+
+            UsingStatement(test, options: TestOptions.RegularPreview);
+            verify();
+
+            UsingStatement(test,
+                // (1,4): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // M1(static x => x);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 4)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M1");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.SimpleLambdaExpression);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void StaticAnonymousFunctionPassedAsArgument()
+        {
+            var test = @"M1(static delegate(int x) { });";
+
+            UsingStatement(test, options: TestOptions.RegularPreview);
+            verify();
+
+            UsingStatement(test,
+                // (1,4): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // M1(static x => x);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 4)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M1");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.AnonymousMethodExpression);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void StaticLambdaRankSpecifier()
+        {
+            var test = @"_ = new int[static x => x];";
+
+            UsingStatement(test, options: TestOptions.RegularPreview);
+            verify();
+
+            UsingStatement(test,
+                // (1,13): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = new int[static x => x];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 13)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.SimpleLambdaExpression);
+                                    {
+                                        N(SyntaxKind.StaticKeyword);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void StaticLambdaRankSpecifier_Incomplete_01(bool preview)
+        {
+            var test = @"_ = new int[static];";
+
+            UsingStatement(test, options: preview ? TestOptions.RegularPreview : null,
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // _ = new int[static];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 13)
+                );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ArrayCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void StaticLambdaRankSpecifier_Incomplete_02(bool preview)
+        {
+            var test = @"_ = new int[static x];";
+
+            UsingStatement(test, options: preview ? TestOptions.RegularPreview : null,
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // _ = new int[static x];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 13));
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ArrayCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void StaticLambdaRankSpecifier_Incomplete_03()
+        {
+            var test = @"_ = new int[static x =>];";
+
+            UsingStatement(test, options: TestOptions.RegularPreview,
+                // (1,24): error CS1525: Invalid expression term ']'
+                // _ = new int[static x =>];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 24));
+            verify();
+
+            UsingStatement(test,
+                // (1,13): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = new int[static x =>];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 13),
+                // (1,24): error CS1525: Invalid expression term ']'
+                // _ = new int[static x =>];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 24)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.SimpleLambdaExpression);
+                                    {
+                                        N(SyntaxKind.StaticKeyword);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void StaticDelegateRankSpecifier_Incomplete()
+        {
+            var test = @"_ = new int[static delegate];";
+
+            UsingStatement(test, options: TestOptions.RegularPreview,
+                // (1,28): error CS1514: { expected
+                // _ = new int[static delegate];
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "]").WithLocation(1, 28));
+            verify();
+
+            UsingStatement(test,
+                // (1,13): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = new int[static delegate];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 13),
+                // (1,28): error CS1514: { expected
+                // _ = new int[static delegate];
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "]").WithLocation(1, 28)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    {
+                                        N(SyntaxKind.StaticKeyword);
+                                        N(SyntaxKind.DelegateKeyword);
+                                        M(SyntaxKind.Block);
+                                        {
+                                            M(SyntaxKind.OpenBraceToken);
+                                            M(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void StaticLambdaArrayInitializer_Incomplete_01(bool preview)
+        {
+            var test = @"_ = new Action[] { static }";
+
+            UsingStatement(test, options: preview ? TestOptions.RegularPreview : null,
+                // (1,20): error CS1003: Syntax error, ',' expected
+                // _ = new Action[] { static }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 20),
+                // (1,28): error CS1002: ; expected
+                // _ = new Action[] { static }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 28)
+                );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ArrayCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.ArrayInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void StaticLambdaArrayInitializer_Incomplete_02(bool preview)
+        {
+            var test = @"_ = new Action[] { static x }";
+
+            UsingStatement(test, options: preview ? TestOptions.RegularPreview : null,
+                // (1,20): error CS1003: Syntax error, ',' expected
+                // _ = new Action[] { static x }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 20),
+                // (1,30): error CS1002: ; expected
+                // _ = new Action[] { static x }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 30)
+                );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ArrayCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.ArrayInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void StaticLambdaArrayInitializer_Incomplete_03()
+        {
+            var test = @"_ = new Action[] { static x => }";
+
+            UsingStatement(test, options: TestOptions.RegularPreview,
+                // (1,32): error CS1525: Invalid expression term '}'
+                // _ = new Action[] { static x => }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 32),
+                // (1,33): error CS1002: ; expected
+                // _ = new Action[] { static x => }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 33)
+                );
+            verify();
+
+            UsingStatement(test,
+                // (1,20): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = new Action[] { static x => }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 20),
+                // (1,32): error CS1525: Invalid expression term '}'
+                // _ = new Action[] { static x => }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 32),
+                // (1,33): error CS1002: ; expected
+                // _ = new Action[] { static x => }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 33)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Action");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.ArrayInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleLambdaExpression);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void StaticDelegateArrayInitializer_Incomplete()
+        {
+            var test = @"_ = new Action[] { static delegate }";
+
+            UsingStatement(test, options: TestOptions.RegularPreview,
+                // (1,36): error CS1514: { expected
+                // _ = new Action[] { static delegate }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 36),
+                // (1,37): error CS1002: ; expected
+                // _ = new Action[] { static delegate }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 37)
+                );
+            verify();
+
+            UsingStatement(test,
+                // (1,20): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = new Action[] { static delegate }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 20),
+                // (1,36): error CS1514: { expected
+                // _ = new Action[] { static delegate }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 36),
+                // (1,37): error CS1002: ; expected
+                // _ = new Action[] { static delegate }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 37)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Action");
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.ArrayInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.AnonymousMethodExpression);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.DelegateKeyword);
+                                    M(SyntaxKind.Block);
+                                    {
+                                        M(SyntaxKind.OpenBraceToken);
+                                        M(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void StaticAnonymousFunctionRankSpecifier()
+        {
+            var test = @"_ = new int[static delegate(int x) { }];";
+
+            UsingStatement(test, options: TestOptions.RegularPreview);
+            verify();
+
+            UsingStatement(test,
+                // (1,13): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = new int[static delegate(int x) { }];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 13)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "_");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ArrayCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    {
+                                        N(SyntaxKind.StaticKeyword);
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Parameter);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.IdentifierToken, "x");
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void IncompleteAttributeFollowedByStaticMember()
+        {
+            var test = @"
+class Program
+{
+    [ObsoleteAttribute(x
+    static void Main()
+    {
+    }
+}";
+            var tree = UsingTree(test);
+            tree.GetDiagnostics().Verify(
+                // (4,25): error CS1026: ) expected
+                //     [ObsoleteAttribute(x
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 25),
+                // (4,25): error CS1003: Syntax error, ']' expected
+                //     [ObsoleteAttribute(x
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "static").WithLocation(4, 25)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "ObsoleteAttribute");
+                                }
+                                N(SyntaxKind.AttributeArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                    }
+                                    M(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Main");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IncompleteAttributeFollowedByStaticAsyncMember()
+        {
+            var test = @"
+class Program
+{
+    [ObsoleteAttribute(x
+    async static Task Main()
+    {
+    }
+}";
+            var tree = UsingTree(test);
+            tree.GetDiagnostics().Verify(
+                // (4,25): error CS1003: Syntax error, ',' expected
+                //     [ObsoleteAttribute(x
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "").WithLocation(4, 25),
+                // (5,11): error CS1026: ) expected
+                //     async static Task Main()
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "static").WithLocation(5, 11),
+                // (5,11): error CS1003: Syntax error, ']' expected
+                //     async static Task Main()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments("]", "static").WithLocation(5, 11)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "ObsoleteAttribute");
+                                }
+                                N(SyntaxKind.AttributeArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                    }
+                                    M(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "async");
+                                        }
+                                    }
+                                    M(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Task");
+                        }
+                        N(SyntaxKind.IdentifierToken, "Main");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]

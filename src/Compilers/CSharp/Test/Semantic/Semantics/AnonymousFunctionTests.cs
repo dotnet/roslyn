@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -17,6 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public static CSharpCompilation VerifyInPreview(string source, params DiagnosticDescription[] expected)
             => CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expected);
+
+        internal CompilationVerifier VerifyInPreview(CSharpTestSource source, string expectedOutput, Action<ModuleSymbol> symbolValidator, params DiagnosticDescription[] expected)
+            => CompileAndVerify(
+                    source,
+                    options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                    parseOptions: TestOptions.RegularPreview,
+                    symbolValidator: symbolValidator,
+                    expectedOutput: expectedOutput)
+                .VerifyDiagnostics(expected);
 
         [Fact]
         public void DisallowInNonPreview()
@@ -799,6 +810,94 @@ public class C
             Assert.False(anonymousMethod.IsStatic);
             Assert.False(simpleLambda.IsStatic);
             Assert.False(parenthesizedLambda.IsStatic);
+        }
+
+        [Fact]
+        public void TestStaticLambdaCallArgument()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public static void F(Func<string> fn)
+    {
+        Console.WriteLine(fn());
+    }
+
+    public static void Main()
+    {
+        F(static () => ""hello"");
+    }
+}";
+            var verifier = VerifyInPreview(source, expectedOutput: "hello", symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.<>c.<Main>b__1_0");
+                // note that static anonymous functions do not guarantee that the lowered method will be static.
+                Assert.False(method.IsStatic);
+            }
+        }
+
+        [Fact]
+        public void TestStaticLambdaIndexerArgument()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public object this[Func<object> fn]
+    {
+        get
+        {
+            Console.WriteLine(fn());
+            return null;
+        }
+    }
+
+    public static void Main()
+    {
+        _ = new C()[static () => ""hello""];
+    }
+}";
+            var verifier = VerifyInPreview(source, expectedOutput: "hello", symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.<>c.<Main>b__2_0");
+                // note that static anonymous functions do not guarantee that the lowered method will be static.
+                Assert.False(method.IsStatic);
+            }
+        }
+
+        [Fact]
+        public void TestStaticDelegateCallArgument()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public static void F(Func<string> fn)
+    {
+        Console.WriteLine(fn());
+    }
+
+    public static void Main()
+    {
+        F(static delegate() { return ""hello""; });
+    }
+}";
+            var verifier = VerifyInPreview(source, expectedOutput: "hello", symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.<>c.<Main>b__1_0");
+                // note that static anonymous functions do not guarantee that the lowered method will be static.
+                Assert.False(method.IsStatic);
+            }
         }
     }
 }
