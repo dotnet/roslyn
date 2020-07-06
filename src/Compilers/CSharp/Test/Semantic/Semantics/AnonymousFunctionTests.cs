@@ -1,6 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Linq;
@@ -19,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public static CSharpCompilation VerifyInPreview(string source, params DiagnosticDescription[] expected)
             => CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expected);
-
-        internal CompilationVerifier VerifyInPreview(CSharpTestSource source, string expectedOutput, Action<ModuleSymbol> symbolValidator, params DiagnosticDescription[] expected)
+        internal CompilationVerifier VerifyInPreview(CSharpTestSource source, string expectedOutput, Action<ModuleSymbol>? symbolValidator = null, params DiagnosticDescription[] expected)
             => CompileAndVerify(
                     source,
                     options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
@@ -28,6 +30,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     symbolValidator: symbolValidator,
                     expectedOutput: expectedOutput)
                 .VerifyDiagnostics(expected);
+
+        internal void VerifyInPreview(string source, string expectedOutput, string metadataName, string expectedIL)
+        {
+            verify(source);
+            verify(source.Replace("static (", "("));
+
+            void verify(string source)
+            {
+                var verifier = CompileAndVerify(
+                        source,
+                        options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                        parseOptions: TestOptions.RegularPreview,
+                        symbolValidator: symbolValidator,
+                        expectedOutput: expectedOutput)
+                    .VerifyDiagnostics();
+
+                verifier.VerifyIL(metadataName, expectedIL);
+            }
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>(metadataName);
+                // note that static anonymous functions do not guarantee that the lowered method will be static.
+                Assert.False(method.IsStatic);
+            }
+        }
 
         [Fact]
         public void DisallowInNonPreview()
@@ -60,12 +88,25 @@ public class C
 {
     public static int a;
 
-    public void F()
+    public static void Main()
     {
         Func<int> f = static () => a;
+        a = 42;
+        Console.Write(f());
     }
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(
+                source,
+                expectedOutput: "42",
+                metadataName: "C.<>c.<Main>b__1_0",
+                expectedIL: @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldsfld     ""int C.a""
+  IL_0005:  ret
+}
+");
         }
 
         [Fact]
@@ -76,14 +117,26 @@ using System;
 
 public class C
 {
-    static int A { get; }
+    static int A { get; set; }
 
-    public void F()
+    public static void Main()
     {
         Func<int> f = static () => A;
+        A = 42;
+        Console.Write(f());
     }
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(
+                source,
+                expectedOutput: "42",
+                metadataName: "C.<>c.<Main>b__4_0",
+                expectedIL: @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  call       ""int C.A.get""
+  IL_0005:  ret
+}");
         }
 
         [Fact]
@@ -94,14 +147,25 @@ using System;
 
 public class C
 {
-    public const int a = 0;
+    public const int a = 42;
 
-    public void F()
+    public static void Main()
     {
         Func<int> f = static () => a;
+        Console.Write(f());
     }
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(
+                source,
+                expectedOutput: "42",
+                metadataName: "C.<>c.<Main>b__1_0",
+                expectedIL: @"
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  ret
+}");
         }
 
         [Fact]
@@ -112,13 +176,24 @@ using System;
 
 public class C
 {
-    public void F()
+    public static void Main()
     {
-        const int a = 0;
+        const int a = 42;
         Func<int> f = static () => a;
+        Console.Write(f());
     }
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(
+                source,
+                expectedOutput: "42",
+                metadataName: "C.<>c.<Main>b__0_0",
+                expectedIL: @"
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  ret
+}");
         }
 
         [Fact]
@@ -129,16 +204,28 @@ using System;
 
 public class C
 {
-    public void F()
+    public static void Main()
     {
         Func<int> f = static () =>
         {
-            const int a = 0;
+            const int a = 42;
             return a;
         };
+        Console.Write(f());
     }
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(source, expectedOutput: "42", metadataName: "C.<>c.<Main>b__0_0", expectedIL: @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  stloc.0
+  IL_0004:  br.s       IL_0006
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}");
         }
 
         [Fact]
@@ -233,16 +320,35 @@ using System;
 
 public class C
 {
-    public void F()
+    public static void Main()
     {
         Func<int> f = static () =>
         {
-            int a = 0;
+            int a = 42;
             return a;
         };
+        Console.Write(f());
     }
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(
+                source,
+                expectedOutput: "42",
+                metadataName: "C.<>c.<Main>b__0_0",
+                expectedIL: @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (int V_0, //a
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  stloc.1
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.1
+  IL_0009:  ret
+}");
         }
 
         [Fact]
@@ -329,18 +435,21 @@ using System;
 
 public class C
 {
-    public void F()
+    public static void Main()
     {
-        Func<int> f = static () =>
-        {
-            F();
-            return 0;
-        };
+        Func<int> f = static () => local();
+        Console.WriteLine(f());
 
-        static void F() {}
+        static int local() => 42;
     }
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(source, expectedOutput: "42", metadataName: "C.<>c.<Main>b__0_0", expectedIL: @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  call       ""int C.<Main>g__local|0_1()""
+  IL_0005:  ret
+}");
         }
 
         [Fact]
@@ -351,17 +460,42 @@ using System;
 
 public class C
 {
-    public void F()
+    public static void Main()
     {
         Func<int> f = static () =>
         {
-            int i = 0;
+            int i = 42;
             Func<int> g = () => i;
-            return 0;
+            return g();
         };
+
+        Console.Write(f());
     }
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(source, expectedOutput: "42", metadataName: "C.<>c.<Main>b__0_0", expectedIL: @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Func<int> V_1, //g
+                int V_2)
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  nop
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.s   42
+  IL_000a:  stfld      ""int C.<>c__DisplayClass0_0.i""
+  IL_000f:  ldloc.0
+  IL_0010:  ldftn      ""int C.<>c__DisplayClass0_0.<Main>b__1()""
+  IL_0016:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  callvirt   ""int System.Func<int>.Invoke()""
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  ret
+}");
         }
 
         [Fact]
@@ -420,17 +554,36 @@ using System;
 
 public class C
 {
-    public void F()
+    public static void Main()
     {
         Func<int> f = static () =>
         {
-            int i = 0;
+            int i = 42;
             int g() => i;
             return g();
         };
+
+        Console.Write(f());
     }
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(source, expectedOutput: "42", metadataName: "C.<>c.<Main>b__0_0", expectedIL: @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.s   42
+  IL_0005:  stfld      ""int C.<>c__DisplayClass0_0.i""
+  IL_000a:  nop
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int C.<Main>g__g|0_1(ref C.<>c__DisplayClass0_0)""
+  IL_0012:  stloc.1
+  IL_0013:  br.s       IL_0015
+  IL_0015:  ldloc.1
+  IL_0016:  ret
+}");
         }
 
         [Fact]
@@ -485,24 +638,55 @@ public class C
         public void StaticLocalFunctionCanHaveLocalsCapturedByInnerInstanceLocalFunction()
         {
             var source = @"
-
+using System;
 
 public class C
 {
-    public void F()
+    public static void Main()
     {
         static int f()
         {
-            int i = 0;
+            int i = 42;
             int g() => i;
             return g();
         };
+
+        Console.Write(f());
     }
 }";
-            VerifyInPreview(source,
-                // (8,20): warning CS8321: The local function 'f' is declared but never used
-                //         static int f()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(8, 20));
+            var verifier = VerifyInPreview(
+                source,
+                expectedOutput: "42",
+                symbolValidator);
+
+            const string metadataName = "C.<Main>g__f|0_0";
+            if (RuntimeUtilities.IsCoreClrRuntime)
+            {
+                verifier.VerifyIL(metadataName, @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.s   42
+  IL_0005:  stfld      ""int C.<>c__DisplayClass0_0.i""
+  IL_000a:  nop
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int C.<Main>g__g|0_1(ref C.<>c__DisplayClass0_0)""
+  IL_0012:  stloc.1
+  IL_0013:  br.s       IL_0015
+  IL_0015:  ldloc.1
+  IL_0016:  ret
+}");
+            }
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>(metadataName);
+                Assert.True(method.IsStatic);
+            }
         }
 
         [Fact]
@@ -645,20 +829,22 @@ using System;
 
 public class C
 {
-    public void F()
+    public static void Main()
     {
-        Func<int> f = static () =>
-        {
-            M();
-            return 0;
-        };
+        Func<int> f = static () => M();
+        Console.Write(f());
     }
 
-    static void M()
-    {
-    }
+    static int M() => 42;
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(source, expectedOutput: "42", metadataName: "C.<>c.<Main>b__0_0", expectedIL: @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  call       ""int C.M()""
+  IL_0005:  ret
+}
+");
         }
 
         [Fact]
@@ -696,24 +882,56 @@ public class C
             var source = @"
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 public class C
 {
     public static string[] args;
 
-    public void F()
+    public static void Main()
     {
-        Func<int> f = static () =>
+        args = new[] { """" };
+        Func<IEnumerable<int>> f = static () =>
         {
             var q = from a in args
                     select M(a);
-            return 0;
+            return q;
         };
+
+        foreach (var x in f())
+        {
+            Console.Write(x);
+        }
     }
 
-    static int M(string a) => 0;
+    static int M(string a) => 42;
 }";
-            VerifyInPreview(source);
+            VerifyInPreview(source, expectedOutput: "42", metadataName: "C.<>c.<Main>b__1_0", expectedIL: @"
+{
+  // Code size       49 (0x31)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable<int> V_0, //q
+                System.Collections.Generic.IEnumerable<int> V_1)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""string[] C.args""
+  IL_0006:  ldsfld     ""System.Func<string, int> C.<>c.<>9__1_1""
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0025
+  IL_000e:  pop
+  IL_000f:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0014:  ldftn      ""int C.<>c.<Main>b__1_1(string)""
+  IL_001a:  newobj     ""System.Func<string, int>..ctor(object, System.IntPtr)""
+  IL_001f:  dup
+  IL_0020:  stsfld     ""System.Func<string, int> C.<>c.<>9__1_1""
+  IL_0025:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<string, int>(System.Collections.Generic.IEnumerable<string>, System.Func<string, int>)""
+  IL_002a:  stloc.0
+  IL_002b:  ldloc.0
+  IL_002c:  stloc.1
+  IL_002d:  br.s       IL_002f
+  IL_002f:  ldloc.1
+  IL_0030:  ret
+}
+");
         }
 
         [Fact]
@@ -830,14 +1048,13 @@ public class C
         F(static () => ""hello"");
     }
 }";
-            var verifier = VerifyInPreview(source, expectedOutput: "hello", symbolValidator: validate);
-
-            void validate(ModuleSymbol module)
-            {
-                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.<>c.<Main>b__1_0");
-                // note that static anonymous functions do not guarantee that the lowered method will be static.
-                Assert.False(method.IsStatic);
-            }
+            VerifyInPreview(source, expectedOutput: "hello", metadataName: "C.<>c.<Main>b__1_0", expectedIL: @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldstr      ""hello""
+  IL_0005:  ret
+}");
         }
 
         [Fact]
@@ -862,14 +1079,13 @@ public class C
         _ = new C()[static () => ""hello""];
     }
 }";
-            var verifier = VerifyInPreview(source, expectedOutput: "hello", symbolValidator: validate);
-
-            void validate(ModuleSymbol module)
-            {
-                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.<>c.<Main>b__2_0");
-                // note that static anonymous functions do not guarantee that the lowered method will be static.
-                Assert.False(method.IsStatic);
-            }
+            VerifyInPreview(source, expectedOutput: "hello", metadataName: "C.<>c.<Main>b__2_0", expectedIL: @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldstr      ""hello""
+  IL_0005:  ret
+}");
         }
 
         [Fact]
@@ -890,14 +1106,203 @@ public class C
         F(static delegate() { return ""hello""; });
     }
 }";
-            var verifier = VerifyInPreview(source, expectedOutput: "hello", symbolValidator: validate);
+            VerifyInPreview(source, expectedOutput: "hello", metadataName: "C.<>c.<Main>b__1_0", expectedIL: @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldstr      ""hello""
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_0009
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}");
+        }
 
-            void validate(ModuleSymbol module)
+        [Fact]
+        public void StaticLambdaNameof()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public int w;
+    public static int x;
+
+    public static void F(Func<int, string> fn)
+    {
+        Console.WriteLine(fn(0));
+    }
+
+    public static void Main()
+    {
+        int y = 0;
+        F(static (int z) => { return nameof(w) + nameof(x) + nameof(y) + nameof(z); });
+    }
+}";
+            VerifyInPreview(source, expectedOutput: "wxyz", metadataName: "C.<>c.<Main>b__3_0", expectedIL: @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldstr      ""wxyz""
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_0009
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void StaticLambdaTypeParams()
+        {
+            var source = @"
+using System;
+
+public class C<T>
+{
+    public static void F(Func<int, string> fn)
+    {
+        Console.WriteLine(fn(0));
+    }
+
+    public static void M<U>()
+    {
+        F(static (int x) => { return default(T).ToString() + default(U).ToString(); });
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        C<int>.M<bool>();
+    }
+}";
+            verify(source);
+            verify(source.Replace("static (", "("));
+
+            void verify(string source)
             {
-                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.<>c.<Main>b__1_0");
+                var verifier = CompileAndVerify(
+                        source,
+                        options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                        parseOptions: TestOptions.RegularPreview,
+                        symbolValidator: symbolValidator,
+                        expectedOutput: "0False")
+                    .VerifyDiagnostics();
+
+                verifier.VerifyIL("C<T>.<>c__1<U>.<M>b__1_0", @"
+{
+    // Code size       51 (0x33)
+    .maxstack  3
+    .locals init (T V_0,
+                U V_1,
+                string V_2)
+    IL_0000:  nop
+    IL_0001:  ldloca.s   V_0
+    IL_0003:  dup
+    IL_0004:  initobj    ""T""
+    IL_000a:  constrained. ""T""
+    IL_0010:  callvirt   ""string object.ToString()""
+    IL_0015:  ldloca.s   V_1
+    IL_0017:  dup
+    IL_0018:  initobj    ""U""
+    IL_001e:  constrained. ""U""
+    IL_0024:  callvirt   ""string object.ToString()""
+    IL_0029:  call       ""string string.Concat(string, string)""
+    IL_002e:  stloc.2
+    IL_002f:  br.s       IL_0031
+    IL_0031:  ldloc.2
+    IL_0032:  ret
+}");
+            }
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.<>c__1.<M>b__1_0");
                 // note that static anonymous functions do not guarantee that the lowered method will be static.
                 Assert.False(method.IsStatic);
             }
+        }
+
+        [Fact]
+        public void StaticLambda_Nint()
+        {
+            var source = @"
+using System;
+
+local(static x => x + 1);
+
+void local(Func<nint, nint> fn)
+{
+    Console.WriteLine(fn(0));
+}";
+            VerifyInPreview(source, expectedOutput: "1", metadataName: "$Program.<>c.<$Main>b__0_0", expectedIL: @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  conv.i
+  IL_0003:  add
+  IL_0004:  ret
+}");
+        }
+
+        [Fact]
+        public void StaticLambda_ExpressionTree()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    static void Main()
+    {
+        local(static x => x + 1);
+
+        static void local(Expression<Func<int, int>> fn)
+        {
+            Console.WriteLine(fn.Compile()(0));
+        }
+    }
+}";
+            var verifier = VerifyInPreview(source, expectedOutput: "1");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""int""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldc.i4.1
+  IL_0018:  box        ""int""
+  IL_001d:  ldtoken    ""int""
+  IL_0022:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0027:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_002c:  call       ""System.Linq.Expressions.BinaryExpression System.Linq.Expressions.Expression.Add(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression)""
+  IL_0031:  ldc.i4.1
+  IL_0032:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0037:  dup
+  IL_0038:  ldc.i4.0
+  IL_0039:  ldloc.0
+  IL_003a:  stelem.ref
+  IL_003b:  call       ""System.Linq.Expressions.Expression<System.Func<int, int>> System.Linq.Expressions.Expression.Lambda<System.Func<int, int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0040:  call       ""void C.<Main>g__local|0_1(System.Linq.Expressions.Expression<System.Func<int, int>>)""
+  IL_0045:  nop
+  IL_0046:  nop
+  IL_0047:  ret
+}");
         }
     }
 }
