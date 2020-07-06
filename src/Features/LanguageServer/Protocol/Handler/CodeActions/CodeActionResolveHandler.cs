@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -14,19 +15,18 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Resolves a code action by filling out its Edit or Command property.
+    /// Resolves a code action by filling out its Edit and/or Command property.
+    /// The handler is triggered only when a user hovers over a code action, which
+    /// saves us from having to compute unnecessary edits.
     /// </summary>
     [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName), Shared]
     internal class CodeActionResolveHandler : AbstractRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
@@ -54,19 +54,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
             var document = SolutionProvider.GetDocument(data.TextDocument, clientName);
-            var codeActions = await CodeActionsHandler.GetCodeActionsAsync(
+            var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 document,
                 _codeFixService,
                 _codeRefactoringService,
                 data.Range,
                 cancellationToken).ConfigureAwait(false);
 
-            if (codeActions == null || !codeActions.Any())
-            {
-                return codeAction;
-            }
-
-            var codeActionToResolve = GetCodeActionToResolve(data.DistinctTitle, codeActions);
+            var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(
+                data.UniqueIdentifier, codeActions.ToImmutableArray());
 
             // We didn't find a matching action, so just return the action without an edit or command.
             if (codeActionToResolve == null)
@@ -90,11 +86,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
             var runAsCommand = false;
 
-            var applyChangesOperations = operations.Where(operation => operation is ApplyChangesOperation);
+            // Add workspace edits
+            var applyChangesOperations = operations.OfType<ApplyChangesOperation>();
             if (applyChangesOperations.Any())
             {
                 var workspaceEdits = await ComputeWorkspaceEdits(applyChangesOperations, document!, cancellationToken).ConfigureAwait(false);
-                if (workspaceEdits.Any())
+                if (workspaceEdits != null)
                 {
                     codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = workspaceEdits };
                 }
@@ -109,19 +106,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var commandOperations = operations.All(operation => !(operation is ApplyChangesOperation));
             if (commandOperations || runAsCommand)
             {
-                codeAction.Command = SetCommand(codeAction, data);
+                codeAction.Command = new LSP.Command
+                {
+                    CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
+                    Title = codeAction.Title,
+                    Arguments = new object[] { data }
+                };
             }
 
             return codeAction;
 
             // Local functions
-            static async Task<TextDocumentEdit[]> ComputeWorkspaceEdits(
-                IEnumerable<CodeActionOperation> applyChangesOperations,
+            static async Task<TextDocumentEdit[]?> ComputeWorkspaceEdits(
+                IEnumerable<ApplyChangesOperation> applyChangesOperations,
                 Document document,
                 CancellationToken cancellationToken)
             {
                 using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
-                foreach (ApplyChangesOperation applyChangesOperation in applyChangesOperations)
+                foreach (var applyChangesOperation in applyChangesOperations)
                 {
                     var solution = document.Project.Solution;
                     var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         pc => pc.GetAddedDocuments().Concat(pc.GetAddedAdditionalDocuments().Concat(pc.GetAddedAnalyzerConfigDocuments())));
                     if (addedDocuments.Any())
                     {
-                        return Array.Empty<TextDocumentEdit>();
+                        return null;
                     }
 
                     var changedDocuments = projectChanges.SelectMany(pc => pc.GetChangedDocuments());
@@ -149,11 +151,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         changedAnalyzerConfigDocuments.Any() ||
                         changedAdditionalDocuments.Any())
                     {
-                        return Array.Empty<TextDocumentEdit>();
+                        return null;
                     }
 
                     // Changed documents
-                    await GetTextDocumentEdits(
+                    await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedDocuments,
                         applyChangesOperation.ChangedSolution.GetDocument, solution.GetDocument,
                         cancellationToken).ConfigureAwait(false);
@@ -161,23 +163,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Changed analyzer config documents
                     // We won't get any results until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
                     // is fixed.
-                    await GetTextDocumentEdits(
-                        textDocumentEdits, applyChangesOperation, solution, changedDocuments,
+                    await AddTextDocumentEdits(
+                        textDocumentEdits, applyChangesOperation, solution, changedAnalyzerConfigDocuments,
                         applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument, solution.GetAnalyzerConfigDocument,
                         cancellationToken).ConfigureAwait(false);
 
                     // Changed additional documents
                     // We won't get any results until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
                     // is fixed.
-                    await GetTextDocumentEdits(
-                        textDocumentEdits, applyChangesOperation, solution, changedDocuments,
+                    await AddTextDocumentEdits(
+                        textDocumentEdits, applyChangesOperation, solution, changedAdditionalDocuments,
                         applyChangesOperation.ChangedSolution.GetAdditionalDocument, solution.GetAdditionalDocument,
                         cancellationToken).ConfigureAwait(false);
                 }
 
                 return textDocumentEdits.ToArray();
 
-                static async Task GetTextDocumentEdits<T>(
+                static async Task AddTextDocumentEdits<T>(
                     ArrayBuilder<TextDocumentEdit> textDocumentEdits,
                     ApplyChangesOperation applyChangesOperation,
                     Solution solution,
@@ -191,67 +193,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         var newDoc = getNewDocumentFunc(docId);
                         var oldDoc = getOldDocumentFunc(docId);
-                        if (oldDoc == null || newDoc == null)
-                        {
-                            continue;
-                        }
 
-                        var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        var newText = await newDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var oldText = await oldDoc!.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var newText = await newDoc!.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                         var textChanges = newText.GetTextChanges(oldText).ToList();
 
                         var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                        var documentIdentifier = new VersionedTextDocumentIdentifier() { Uri = newDoc.GetURI() };
-                        textDocumentEdits.Add(new TextDocumentEdit() { TextDocument = documentIdentifier, Edits = edits.ToArray() });
+                        var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newDoc.GetURI() };
+                        textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits.ToArray() });
                     }
                 }
             }
-
-            static LSP.Command SetCommand(VSCodeAction codeAction, CodeActionResolveData data) => new LSP.Command
-            {
-                CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
-                Title = codeAction.Title,
-                Arguments = new object[] { data }
-            };
-        }
-
-        internal static CodeAction? GetCodeActionToResolve(string distinctTitle, IEnumerable<CodeAction> codeActions)
-        {
-            // Searching for the matching code action. We compare against the distinct title (e.g. "Suppress IDExxxxNone")
-            // instead of the regular title (e.g. "None") since there's a chance that multiple code actions may have
-            // the same regular title.
-            CodeAction? codeActionToResolve = null;
-            foreach (var c in codeActions)
-            {
-                var action = CheckForMatchingAction(c, distinctTitle, currentTitle: "");
-                if (action != null)
-                {
-                    codeActionToResolve = action;
-                    break;
-                }
-            }
-
-            return codeActionToResolve;
-        }
-
-        private static CodeAction? CheckForMatchingAction(CodeAction codeAction, string goalTitle, string currentTitle)
-        {
-            if (currentTitle + codeAction.Title == goalTitle)
-            {
-                return codeAction;
-            }
-
-            foreach (var nestedAction in codeAction.NestedCodeActions)
-            {
-                var match = CheckForMatchingAction(nestedAction, goalTitle, currentTitle + codeAction.Title);
-                if (match != null)
-                {
-                    return match;
-                }
-            }
-
-            return null;
         }
     }
 }

@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,7 +25,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Handles the get code actions command.
+    /// Handles the initial request for code actions. Leaves the Edit and Command properties
+    /// of the returned VSCodeActions blank, as these properties should be populated by the
+    /// CodeActionsResolveHandler only when the user requests them.
     /// </summary>
     [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName), Shared]
     internal class CodeActionsHandler : AbstractRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
@@ -60,19 +61,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<VSCodeAction>();
             }
 
-            var (codeFixCollections, codeRefactorings) = await GetCodeFixesAndRefactoringsAsync(
-                                document, _codeFixService, _codeRefactoringService,
-                                request.Range, cancellationToken).ConfigureAwait(false);
+            var (codeFixCollections, codeRefactorings) = await CodeActionHelpers.GetCodeFixesAndRefactoringsAsync(
+                document, _codeFixService, _codeRefactoringService,
+                request.Range, cancellationToken).ConfigureAwait(false);
 
             var codeFixes = codeFixCollections.SelectMany(c => c.Fixes);
-
-            var suppressionActions = codeFixes.Where(
-                a => a.Action is AbstractConfigurationActionWithNestedActions &&
-                (a.Action as AbstractConfigurationActionWithNestedActions)?.IsBulkConfigurationAction == false);
-
             using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var results);
 
-            // We go through code fixes and code refactorings separately so that we can properly set the CodeActionKind.
+            // Go through code fixes and code refactorings separately so that we can properly set the CodeActionKind.
             foreach (var codeFix in codeFixes)
             {
                 // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
@@ -122,6 +118,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 string parentTitle = "")
             {
                 using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var nestedActions);
+
+                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues.Suppress IDEXXXX.in Source'
+                if (parentTitle != "")
+                {
+                    parentTitle += '.';
+                }
+
+                // Nested code actions' unique identifiers consist of: parent code action unique identifier + '.' + title of code action
                 foreach (var action in codeAction.NestedCodeActions)
                 {
                     nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind, codeAction.Title));
@@ -133,51 +137,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Kind = codeActionKind,
                     Diagnostics = request.Context.Diagnostics,
                     Children = nestedActions.ToArray(),
-                    Data = new CodeActionResolveData
-                    {
-                        DistinctTitle = parentTitle + codeAction.Title,
-                        Range = request.Range,
-                        TextDocument = request.TextDocument
-                    }
+                    Data = new CodeActionResolveData(parentTitle + codeAction.Title, request.Range, request.TextDocument)
                 };
             }
-        }
-
-        internal static async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(
-            Document? document,
-            ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            LSP.Range selection,
-            CancellationToken cancellationToken)
-        {
-            if (document == null)
-            {
-                return ImmutableArray<CodeAction>.Empty;
-            }
-
-            var (codeFixCollections, codeRefactorings) = await GetCodeFixesAndRefactoringsAsync(
-                document, codeFixService,
-                codeRefactoringService, selection,
-                cancellationToken).ConfigureAwait(false);
-
-            var codeActions = codeFixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).Concat(
-                    codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));
-
-            return codeActions;
-        }
-
-        internal static async Task<(ImmutableArray<CodeFixCollection>, ImmutableArray<CodeRefactoring>)> GetCodeFixesAndRefactoringsAsync(
-            Document document,
-            ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            LSP.Range selection,
-            CancellationToken cancellationToken)
-        {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
-            var codeFixCollections = await codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).ConfigureAwait(false);
-            var codeRefactorings = await codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return (codeFixCollections, codeRefactorings);
         }
     }
 }

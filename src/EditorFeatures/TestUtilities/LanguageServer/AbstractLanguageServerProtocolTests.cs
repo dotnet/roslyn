@@ -154,7 +154,7 @@ namespace Roslyn.Test.Utilities
 
         protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
         {
-            var documentIdentifier = new LSP.VSTextDocumentIdentifier() { Uri = uri };
+            var documentIdentifier = new LSP.VSTextDocumentIdentifier { Uri = uri };
 
             if (projectContext != null)
             {
@@ -209,12 +209,7 @@ namespace Roslyn.Test.Utilities
             };
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string codeActionTitle, LSP.Location location)
-            => new CodeActionResolveData()
-            {
-                DistinctTitle = codeActionTitle,
-                Range = location.Range,
-                TextDocument = CreateTextDocumentIdentifier(location.Uri)
-            };
+            => new CodeActionResolveData(codeActionTitle, location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         /// <summary>
         /// Creates a solution with a document.

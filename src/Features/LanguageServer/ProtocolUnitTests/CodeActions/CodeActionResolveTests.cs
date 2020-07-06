@@ -50,21 +50,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
                 diagnostics: null,
-                edit: new LSP.WorkspaceEdit()
+                edit: new LSP.WorkspaceEdit
                 {
                     DocumentChanges = new TextDocumentEdit[]
                     {
-                        new TextDocumentEdit()
+                        new TextDocumentEdit
                         {
-                            TextDocument = new VersionedTextDocumentIdentifier()
+                            TextDocument = new VersionedTextDocumentIdentifier
                             {
                                 Uri = locations["caret"].Single().Uri
                             },
                             Edits = new TextEdit[] {
-                                new TextEdit()
+                                new TextEdit
                                 {
                                     NewText = expectedMarkup,
-                                    Range = new LSP.Range() { Start = new Position(0, 0), End = new Position(6, 1) }
+                                    Range = new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }
                                 }
                             }
                         }
@@ -116,21 +116,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                     FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     locations["caret"].Single()),
                 diagnostics: null,
-                edit: new LSP.WorkspaceEdit()
+                edit: new LSP.WorkspaceEdit
                 {
                     DocumentChanges = new TextDocumentEdit[]
                     {
-                        new TextDocumentEdit()
+                        new TextDocumentEdit
                         {
-                            TextDocument = new VersionedTextDocumentIdentifier()
+                            TextDocument = new VersionedTextDocumentIdentifier
                             {
                                 Uri = locations["caret"].Single().Uri
                             },
                             Edits = new TextEdit[] {
-                                new TextEdit()
+                                new TextEdit
                                 {
                                     NewText = expectedMarkup,
-                                    Range = new LSP.Range() { Start = new Position(0, 0), End = new Position(6, 1) }
+                                    Range = new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }
                                 }
                             }
                         }

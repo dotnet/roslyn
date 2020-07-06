@@ -7,22 +7,31 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
     /// <summary>
-    /// Provides data needed to resolve code actions.
+    /// This class provides the intermediate data passed between CodeActionsHandler, CodeActionResolveHandler,
+    /// and RunCodeActionsHandler. The class provides enough information for each handler to identify the code
+    /// action that it is dealing with. The information is passed along via the Data property in LSP.VSCodeAction. 
     /// </summary>
     internal class CodeActionResolveData
     {
         /// <summary>
-        /// The unique title of a code action. No two code actions should
-        /// have the same unique title.
+        /// The unique identifier of a code action. No two code actions should have the same unique identifier.
         /// </summary>
         /// <remarks>
-        /// The distinct tiel is currently set as:
-        /// name of top level code action + name of nested code action + nested nested code action etc.
+        /// The unique identifier is currently set as:
+        /// name of top level code action + '.' + name of nested code action + '.' + name of nested nested code action + etc.
+        /// e.g. 'Suppress or Configure issues.Suppress IDEXXXX.in Source'
         /// </remarks>
-        public string DistinctTitle { get; set; }
+        public string UniqueIdentifier { get; }
 
-        public LSP.Range Range { get; set; }
+        public LSP.Range Range { get; }
 
-        public LSP.TextDocumentIdentifier TextDocument { get; set; }
+        public LSP.TextDocumentIdentifier TextDocument { get; }
+
+        public CodeActionResolveData(string uniqueIdentifier, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
+        {
+            UniqueIdentifier = uniqueIdentifier;
+            Range = range;
+            TextDocument = textDocument;
+        }
     }
 }

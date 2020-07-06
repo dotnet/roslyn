@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -12,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
@@ -22,7 +22,11 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     /// <summary>
-    /// Runs code actions as a command on the server.
+    /// Runs a code action as a command on the server.
+    /// This is done when a code action cannot be applied as a WorkspaceEdit on the LSP client.
+    /// For example, all non-ApplyChangesOperations must be applied as a command.
+    /// TO-DO: Currently, any ApplyChangesOperation that adds or modifies an outside document must also be
+    /// applied as a command due to an LSP bug (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/).
     /// Commands must be applied from the UI thread in VS.
     /// </summary>
     [ExportExecuteWorkspaceCommand(CodeActionsHandler.RunCodeActionCommandName)]
@@ -54,28 +58,28 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             var document = _solutionProvider.GetDocument(runRequest.TextDocument);
-            var codeActions = await CodeActionsHandler.GetCodeActionsAsync(document, _codeFixService, _codeRefactoringService,
+            var codeActions = await CodeActionHelpers.GetCodeActionsAsync(document, _codeFixService, _codeRefactoringService,
                 runRequest.Range, cancellationToken).ConfigureAwait(false);
             if (codeActions == null)
             {
                 return false;
             }
 
-            var actionToRun = CodeActionResolveHandler.GetCodeActionToResolve(runRequest.DistinctTitle, codeActions);
-            if (actionToRun != null)
+            var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions.ToImmutableArray());
+            if (actionToRun == null)
             {
-                foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    // TODO - This UI thread dependency should be removed.
-                    // https://github.com/dotnet/roslyn/projects/45#card-20619668
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    operation.Apply(document.Project.Solution.Workspace, cancellationToken);
-                }
-
-                return true;
+                return false;
             }
 
-            return false;
+            foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
+            {
+                // TODO - This UI thread dependency should be removed.
+                // https://github.com/dotnet/roslyn/projects/45#card-20619668
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                operation.Apply(document.Project.Solution.Workspace, cancellationToken);
+            }
+
+            return true;
         }
     }
 }

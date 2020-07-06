@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: new CodeActionResolveData
                 {
-                    DistinctTitle = CSharpAnalyzersResources.Use_implicit_type,
+                    UniqueIdentifier = CSharpAnalyzersResources.Use_implicit_type,
                     Range = caretLocation.Range,
-                    TextDocument = new TextDocumentIdentifier() { Uri = caretLocation.Uri }
+                    TextDocument = new TextDocumentIdentifier { Uri = caretLocation.Uri }
                 },
                 diagnostics: null);
 
@@ -71,15 +71,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: new CodeActionResolveData
                 {
-                    DistinctTitle = FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+                    UniqueIdentifier = FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     Range = caretLocation.Range,
-                    TextDocument = new TextDocumentIdentifier() { Uri = caretLocation.Uri }
+                    TextDocument = new TextDocumentIdentifier { Uri = caretLocation.Uri }
                 },
                 diagnostics: null);
 
             var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
             var introduceConstant = results[0].Children.FirstOrDefault(
-                r => ((CodeActionResolveData)r.Data).DistinctTitle == FeaturesResources.Introduce_constant
+                r => ((CodeActionResolveData)r.Data).UniqueIdentifier == FeaturesResources.Introduce_constant
                 + string.Format(FeaturesResources.Introduce_constant_for_0, "1"));
 
             AssertJsonEquals(expected, introduceConstant);
@@ -97,11 +97,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         }
 
         internal static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
-            => new LSP.CodeActionParams()
+            => new LSP.CodeActionParams
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Range = caret.Range,
-                Context = new LSP.CodeActionContext()
+                Context = new LSP.CodeActionContext
                 {
                     // TODO - Code actions should respect context.
                 }
