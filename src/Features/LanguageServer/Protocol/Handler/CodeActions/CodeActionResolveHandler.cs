@@ -19,14 +19,17 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
     /// Resolves a code action by filling out its Edit and/or Command property.
-    /// The handler is triggered only when a user hovers over a code action, which
-    /// saves us from having to compute unnecessary edits.
+    /// The handler is triggered only when a user hovers over a code action. This
+    /// system allows the basic code action data to be computed quickly, and the
+    /// complex data, such as edits and commands, to be computed only when necessary
+    /// (i.e. when hovering/previewing a code action).
     /// </summary>
     [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName), Shared]
     internal class CodeActionResolveHandler : AbstractRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
@@ -54,6 +57,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
             var document = SolutionProvider.GetDocument(data.TextDocument, clientName);
+            Contract.ThrowIfNull(document);
+
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 document,
                 _codeFixService,
@@ -63,12 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(
                 data.UniqueIdentifier, codeActions.ToImmutableArray());
-
-            // We didn't find a matching action, so just return the action without an edit or command.
-            if (codeActionToResolve == null)
-            {
-                return codeAction;
-            }
+            Contract.ThrowIfNull(codeActionToResolve);
 
             var operations = await codeActionToResolve.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             if (operations.IsEmpty)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
                 foreach (var applyChangesOperation in applyChangesOperations)
                 {
-                    var solution = document!.Project.Solution;
+                    var solution = document.Project.Solution;
                     var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
                     var projectChanges = changes.GetProjectChanges();
 
@@ -180,10 +180,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var newDoc = getNewDocumentFunc(docId);
                     var oldDoc = getOldDocumentFunc(docId);
 
-                    var oldText = await oldDoc!.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = await newDoc!.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(oldDoc);
+                    Contract.ThrowIfNull(newDoc);
 
-                    var textChanges = newText.GetTextChanges(oldText).ToList();
+                    var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await newDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    var textChanges = newText.GetTextChanges(oldText);
 
                     var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
                     var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newDoc.GetURI() };

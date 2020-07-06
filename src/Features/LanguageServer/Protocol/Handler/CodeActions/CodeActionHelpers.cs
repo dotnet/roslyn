@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
@@ -20,17 +20,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     internal static class CodeActionHelpers
     {
         public static async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(
-            Document? document,
+            Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
-            if (document == null)
-            {
-                return ImmutableArray<CodeAction>.Empty;
-            }
-
             var (codeFixCollections, codeRefactorings) = await GetCodeFixesAndRefactoringsAsync(
                 document, codeFixService,
                 codeRefactoringService, selection,
@@ -52,18 +47,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
-            var codeFixCollections = Array.Empty<CodeFixCollection>().ToImmutableArray();
-            var codeRefactorings = Array.Empty<CodeRefactoring>().ToImmutableArray();
-
             var codeFixCollectionsTask = Task.Run(
-                async () => codeFixCollections = await codeFixService.GetFixesAsync(
-                    document, textSpan, includeSuppressionFixes: true, cancellationToken).ConfigureAwait(false));
+                () => codeFixService.GetFixesAsync(document, textSpan, includeSuppressionFixes: true, cancellationToken));
             var codeRefactoringsTask = Task.Run(
-                async () => codeRefactorings = await codeRefactoringService.GetRefactoringsAsync(
-                    document, textSpan, cancellationToken).ConfigureAwait(false));
+                () => codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken));
 
             await Task.WhenAll(codeFixCollectionsTask, codeRefactoringsTask).ConfigureAwait(false);
-            return (codeFixCollections, codeRefactorings);
+            return (await codeFixCollectionsTask.ConfigureAwait(false), await codeRefactoringsTask.ConfigureAwait(false));
         }
 
         public static CodeAction? GetCodeActionToResolve(string distinctTitle, ImmutableArray<CodeAction> codeActions)

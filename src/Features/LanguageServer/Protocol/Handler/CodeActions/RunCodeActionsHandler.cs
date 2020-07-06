@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
@@ -58,24 +59,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             var document = _solutionProvider.GetDocument(runRequest.TextDocument);
-            var codeActions = await CodeActionHelpers.GetCodeActionsAsync(document, _codeFixService, _codeRefactoringService,
-                runRequest.Range, cancellationToken).ConfigureAwait(false);
-            if (codeActions == null)
-            {
-                return false;
-            }
+            var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
+                document, _codeFixService, _codeRefactoringService, runRequest.Range, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(codeActions);
 
             var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions.ToImmutableArray());
-            if (actionToRun == null)
-            {
-                return false;
-            }
+            Contract.ThrowIfNull(actionToRun);
+
+            // TODO - This UI thread dependency should be removed.
+            // https://github.com/dotnet/roslyn/projects/45#card-20619668
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
             {
-                // TODO - This UI thread dependency should be removed.
-                // https://github.com/dotnet/roslyn/projects/45#card-20619668
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 operation.Apply(document.Project.Solution.Workspace, cancellationToken);
             }
 
