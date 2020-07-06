@@ -663,13 +663,18 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         private static TArgumentSyntax ConvertArgument(
             SyntaxGenerator generator, TArgumentSyntax argument)
         {
-            // Keep named arguments for literal args.  It helps keep the code self-documenting.
+            // If the original arguments had names then we keep them, but convert the case to match the
+            // the constructor parameters they now refer to. It helps keep the code self-documenting.
             // Remove for complex args as it's most likely just clutter a person doesn't need
             // when instantiating their new type.
             var expr = generator.SyntaxFacts.GetExpressionOfArgument(argument);
-            if (expr is TLiteralExpressionSyntax)
+            var argumentName = generator.SyntaxFacts.GetNameForArgument(argument);
+            if (expr is TLiteralExpressionSyntax && !string.IsNullOrEmpty(argumentName))
             {
-                return argument;
+                var newArgumentName = GetConstructorParameterName(argumentName);
+                var refKind = generator.SyntaxFacts.GetRefKindOfArgument(argument);
+
+                return (TArgumentSyntax)generator.Argument(newArgumentName, refKind, expr).WithTriviaFrom(argument);
             }
 
             return (TArgumentSyntax)generator.Argument(expr).WithTriviaFrom(argument);
@@ -854,7 +859,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var parameters = fields.SelectAsArray<IFieldSymbol, IParameterSymbol>(field =>
             {
                 var parameter = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    field.Type, field.Name.ToCamelCase(trimLeadingTypePrefix: false));
+                    field.Type, GetConstructorParameterName(field.Name));
 
                 parameterToPropMap[parameter.Name] = field;
 
@@ -871,6 +876,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             return constructor;
         }
+
+        private static string GetConstructorParameterName(string name)
+            => name.ToCamelCase(trimLeadingTypePrefix: false);
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
