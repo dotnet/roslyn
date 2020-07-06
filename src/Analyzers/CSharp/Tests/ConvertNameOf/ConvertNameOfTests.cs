@@ -106,6 +106,21 @@ class Test
     }
 }
 ";
+            await TestMissingInRegularAndScriptAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        public async Task NotOnSimilarStatements()
+        {
+            var text = @"class Test
+{
+    void Method()[||]
+    {
+        var typeName1 = typeof(Test);
+        var typeName2 = typeof(Test).toString();
+        var typeName3 = typeof(Test).FullName;
+    }
+}
 ";
             await TestMissingInRegularAndScriptAsync(text);
         }
