@@ -242,7 +242,7 @@
         <summary>SyntaxToken representing the optional calling convention.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Parameters" Type="FunctionPointerParameterList">
+    <Field Name="ParameterList" Type="FunctionPointerParameterList">
       <PropertyComment>
         <summary>List of the parameter types and return type of the function pointer.</summary>
       </PropertyComment>
@@ -275,7 +275,7 @@
     <TypeComment>
       <summary>Function pointer calling convention syntax.</summary>
     </TypeComment>
-    <Kind Name="FunctionPointerCallingConventionList"/>
+    <Kind Name="FunctionPointerCallingConvention"/>
     <Field Name="ManagedSpecifier" Type="SyntaxToken">
       <Kind Name="ManagedKeyword"/>
       <Kind Name="UnmanagedKeyword"/>
@@ -283,7 +283,7 @@
         <summary>SyntaxToken representing whether the calling convention is managed or unmanaged.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="UnmanagedCallingConventionSpecifiers" Type="FunctionPointerUnmanagedCallingConventionSyntaxList" Optional="true">
+    <Field Name="UnmanagedCallingConventionList" Type="FunctionPointerUnmanagedCallingConventionSyntaxList" Optional="true">
       <PropertyComment>
         <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
       </PropertyComment>
@@ -317,7 +317,7 @@
       <summary>Individual function pointer unmanaged calling convention.</summary>
     </TypeComment>
     <Kind Name="FunctionPointerUnmanagedCallingConvention"/>
-    <Field Name="CallingConvention" Type="SyntaxToken">
+    <Field Name="Name" Type="SyntaxToken">
       <Kind Name="IdentifierToken"/>
       <PropertyComment>
         <summary>SyntaxToken the calling convention identifier.</summary>

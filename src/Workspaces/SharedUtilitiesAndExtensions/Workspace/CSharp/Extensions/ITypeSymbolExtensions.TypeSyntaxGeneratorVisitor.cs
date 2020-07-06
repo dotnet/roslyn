@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     .Concat(SpecializedCollections.SingletonEnumerable((
                         Type: symbol.Signature.ReturnType,
                         RefKindModifiers: CSharpSyntaxGenerator.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))))
-                    .SelectAsArray(t => SyntaxFactory.Parameter(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)).WithModifiers(t.RefKindModifiers).WithType(t.Type.GenerateTypeSyntax()));
+                    .SelectAsArray(t => SyntaxFactory.FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
 
                 return AddInformationTo(
-                    SyntaxFactory.FunctionPointerType(SyntaxFactory.SeparatedList(parameters)), symbol);
+                    SyntaxFactory.FunctionPointerType(callingConvention: null, SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.SeparatedList(parameters))), symbol);
             }
 
 #endif

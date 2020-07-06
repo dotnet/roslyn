@@ -153,7 +153,7 @@ unsafe class C
     void M()
     {
         delegate*<void> ptr1 = null;
-        delegate* cdecl<void> ptr2 = null;
+        delegate* unmanaged[Cdecl]<void> ptr2 = null;
         delegate*<string> ptr3 = null;
         delegate*<C, int> ptr4 = null;
     }
@@ -970,22 +970,22 @@ unsafe class C
 {
     void M(delegate*<void> param1)
     {
-        delegate* cdecl<void> ptr1 = param1;
-        delegate* thiscall<void> ptr2 = param1;
-        delegate* stdcall<void> ptr3 = param1;
+        delegate* unmanaged[Cdecl]<void> ptr1 = param1;
+        delegate* unmanaged[Thiscall]<void> ptr2 = param1;
+        delegate* unmanaged[Stdcall]<void> ptr3 = param1;
     }
 }");
 
             comp.VerifyDiagnostics(
-                // (6,38): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate* cdecl<void> ptr1 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(6, 38),
-                // (7,41): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate* thiscall<void> ptr2 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(7, 41),
-                // (8,40): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate* stdcall<void> ptr3 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(8, 40)
+                // (6,49): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Cdecl]<void> ptr1 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(6, 49),
+                // (7,52): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Thiscall]<void> ptr2 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(7, 52),
+                // (8,51): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* unmanaged[Stdcall]<void> ptr3 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(8, 51)
             );
 
             var tree = comp.SyntaxTrees[0];
@@ -1394,7 +1394,7 @@ unsafe class D : C<delegate*<void>>
         SubstitutedStatic(ptr1);
         delegate*<object, void> ptr2 = null;
         delegate*<int, void> ptr3 = null;
-        delegate* cdecl<string, void> ptr4 = null;
+        delegate* unmanaged[Cdecl]<string, void> ptr4 = null;
         SubstitutedStatic2(ptr1, ptr1);
         SubstitutedStatic2(ptr1, ptr2);
         SubstitutedStatic2(ptr1, ptr3);
@@ -1403,7 +1403,7 @@ unsafe class D : C<delegate*<void>>
         delegate*<object> ptr5 = null;
         delegate*<string> ptr6 = null;
         delegate*<int> ptr7 = null;
-        delegate* cdecl<object> ptr8 = null;
+        delegate* unmanaged[Cdecl]<object> ptr8 = null;
         SubstitutedStatic2(ptr5, ptr5);
         SubstitutedStatic2(ptr5, ptr6);
         SubstitutedStatic2(ptr5, ptr7);
@@ -1546,7 +1546,7 @@ unsafe class C
         delegate*<string, void>[] ptr1 = null;
         delegate*<ref string, void>[] ptr2 = null;
         delegate*<int, void>[] ptr3 = null;
-        delegate* cdecl<string, void>[] ptr4 = null;
+        delegate* unmanaged[Cdecl]<string, void>[] ptr4 = null;
         SubstitutedStatic2(ptr1, ptr2);
         SubstitutedStatic2(ptr1, ptr3);
         SubstitutedStatic2(ptr1, ptr4);
@@ -1554,7 +1554,7 @@ unsafe class C
         delegate*<string>[] ptr5 = null;
         delegate*<ref string>[] ptr6 = null;
         delegate*<int>[] ptr7 = null;
-        delegate* cdecl<string>[] ptr8 = null;
+        delegate* unmanaged[Cdecl]<string>[] ptr8 = null;
         SubstitutedStatic2(ptr5, ptr6);
         SubstitutedStatic2(ptr5, ptr7);
         SubstitutedStatic2(ptr5, ptr8);
@@ -1620,7 +1620,7 @@ unsafe class C
         delegate*<string, void>[] ptr1 = null;
         delegate*<ref string, void>[] ptr2 = null;
         delegate*<int, void>[] ptr3 = null;
-        delegate* cdecl<string, void>[] ptr4 = null;
+        delegate* unmanaged[Cdecl]<string, void>[] ptr4 = null;
         var arr1 = new[] { ptr1, ptr2 };
         var arr2 = new[] { ptr1, ptr3 };
         var arr3 = new[] { ptr1, ptr4 };
@@ -1628,7 +1628,7 @@ unsafe class C
         delegate*<string>[] ptr5 = null;
         delegate*<ref string>[] ptr6 = null;
         delegate*<int>[] ptr7 = null;
-        delegate* cdecl<string>[] ptr8 = null;
+        delegate* unmanaged[Cdecl]<string>[] ptr8 = null;
         var arr4 = new[] { ptr5, ptr6 };
         var arr5 = new[] { ptr5, ptr7 };
         var arr6 = new[] { ptr5, ptr8 };
@@ -1688,7 +1688,7 @@ unsafe class C
         delegate*<string, void>[] ptr1 = null;
         delegate*<ref string, void>[] ptr2 = null;
         delegate*<int, void>[] ptr3 = null;
-        delegate* cdecl<string, void>[] ptr4 = null;
+        delegate* unmanaged[Cdecl]<string, void>[] ptr4 = null;
         _ = b ? ptr1 : ptr2;
         _ = b ? ptr1 : ptr3;
         _ = b ? ptr1 : ptr4;
@@ -1696,7 +1696,7 @@ unsafe class C
         delegate*<string>[] ptr5 = null;
         delegate*<ref string>[] ptr6 = null;
         delegate*<int>[] ptr7 = null;
-        delegate* cdecl<string>[] ptr8 = null;
+        delegate* unmanaged[Cdecl]<string>[] ptr8 = null;
         _ = b ? ptr5 : ptr6;
         _ = b ? ptr5 : ptr7;
         _ = b ? ptr5 : ptr8;

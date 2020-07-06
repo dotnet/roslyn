@@ -223,9 +223,11 @@ class C
 
         [InlineData("", CallingConvention.Default)]
         [InlineData("managed", CallingConvention.Default)]
-        [InlineData("cdecl", CallingConvention.CDecl)]
-        [InlineData("stdcall", CallingConvention.Standard)]
-        [InlineData("thiscall", CallingConvention.ThisCall)]
+        [InlineData("unmanaged[Cdecl]", CallingConvention.CDecl)]
+        [InlineData("unmanaged[Stdcall]", CallingConvention.Standard)]
+        [InlineData("unmanaged[Thiscall]", CallingConvention.ThisCall)]
+        [InlineData("unmanaged[Fastcall]", CallingConvention.FastCall)]
+        [InlineData("unmanaged", CallingConvention.Unmanaged, Skip = "PROTOTYPE(func-ptr): Update SRM to understand the new bit")]
         [Theory]
         internal void ValidCallingConventions(string convention, CallingConvention expectedConvention)
         {
@@ -260,12 +262,12 @@ class C
             var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    public unsafe void M(delegate* invalid<void> p) {}
+    public unsafe void M(delegate* unmanaged[invalid]<void> p) {}
 }");
             comp.VerifyDiagnostics(
-                    // (4,36): error CS8807: 'invalid' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
-                    //     public void M(delegate* invalid<void> p) {}
-                    Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "invalid").WithArguments("invalid").WithLocation(4, 36));
+                // (4,36): error CS8807: 'invalid' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
+                //     public unsafe void M(delegate* unmanaged[invalid]<void> p) {}
+                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "unmanaged[invalid]").WithArguments("invalid").WithLocation(4, 36));
 
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
@@ -279,7 +281,7 @@ class C
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model,
                 syntaxTree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single(),
-                expectedSyntax: "delegate* invalid<void>",
+                expectedSyntax: "delegate* unmanaged[invalid]<void>",
                 expectedType: "delegate*<System.Void>",
                 expectedSymbol: "delegate*<System.Void>");
         }
@@ -756,8 +758,8 @@ class C
             var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    unsafe void M(delegate* cdecl<string, object, C, object, void> p1,
-                  delegate* thiscall<string, object, C, object, void> p2) {}
+    unsafe void M(delegate* unmanaged[Cdecl]<string, object, C, object, void> p1,
+                  delegate* unmanaged[Thiscall]<string, object, C, object, void> p2) {}
 }");
 
             comp.VerifyDiagnostics();
@@ -1088,7 +1090,7 @@ class C
 
             var misplacedDeclaration =
                 ((ArrayTypeSyntax)functionPointerTypeSyntax
-                    .Parameters.Single().Type!)
+                    .ParameterList.Parameters.Single().Type!)
                     .RankSpecifiers.Single()
                     .Sizes.Single();
 
@@ -1198,7 +1200,7 @@ class E
             Assert.Equal("delegate*<C.D>", typeInfo.Type.ToTestDisplayString());
             Assert.True(((IFunctionPointerTypeSymbol)typeInfo.Type!).Signature.ReturnType.IsErrorType());
 
-            var nestedTypeInfo = model.GetTypeInfo(functionPointerTypeSyntax.Parameters.Single().Type!);
+            var nestedTypeInfo = model.GetTypeInfo(functionPointerTypeSyntax.ParameterList.Parameters.Single().Type!);
             Assert.Equal("C.D", nestedTypeInfo.Type!.ToTestDisplayString());
             Assert.False(nestedTypeInfo.Type!.IsErrorType());
 

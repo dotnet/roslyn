@@ -619,9 +619,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullableDirectiveTrivia = 9055,
 
         FunctionPointerType = 9056,
+        // PROTOTYPE(func-ptr): Go through the things that use SyntaxKind.Parameter and adjust as necessary
         FunctionPointerParameter = 9057,
         FunctionPointerParameterList = 9058,
-        FunctionPointerCallingConventionList = 9059,
+        FunctionPointerCallingConvention = 9059,
 
         InitAccessorDeclaration = 9060,
 
@@ -632,5 +633,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         PrimaryConstructorBaseType = 9065,
 
         FunctionPointerUnmanagedCallingConventionList = 9066,
+        FunctionPointerUnmanagedCallingConvention = 9067,
     }
 }

@@ -1860,6 +1860,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DoesNotOverrideBaseEquals = 8871,
 
         #endregion diagnostics introduced for C# 9.0
+
+        // PROTOTYPE(func-ptr): Pack before merge
+
+        ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 9500,
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax GenerateFunctionPointerUnmanagedCallingConvention()
-            => InternalSyntaxFactory.FunctionPointerUnmanagedCallingConvention(InternalSyntaxFactory.Identifier("CallingConvention"));
+            => InternalSyntaxFactory.FunctionPointerUnmanagedCallingConvention(InternalSyntaxFactory.Identifier("Name"));
 
         private static Syntax.InternalSyntax.NullableTypeSyntax GenerateNullableType()
             => InternalSyntaxFactory.NullableType(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.QuestionToken));
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind);
             Assert.Equal(SyntaxKind.AsteriskToken, node.AsteriskToken.Kind);
             Assert.Null(node.CallingConvention);
-            Assert.NotNull(node.Parameters);
+            Assert.NotNull(node.ParameterList);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateFunctionPointerCallingConvention();
 
             Assert.Equal(SyntaxKind.ManagedKeyword, node.ManagedSpecifier.Kind);
-            Assert.Null(node.UnmanagedCallingConventionSpecifiers);
+            Assert.Null(node.UnmanagedCallingConventionList);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateFunctionPointerUnmanagedCallingConvention();
 
-            Assert.Equal(SyntaxKind.IdentifierToken, node.CallingConvention.Kind);
+            Assert.Equal(SyntaxKind.IdentifierToken, node.Name.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -9674,7 +9674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static FunctionPointerUnmanagedCallingConventionSyntax GenerateFunctionPointerUnmanagedCallingConvention()
-            => SyntaxFactory.FunctionPointerUnmanagedCallingConvention(SyntaxFactory.Identifier("CallingConvention"));
+            => SyntaxFactory.FunctionPointerUnmanagedCallingConvention(SyntaxFactory.Identifier("Name"));
 
         private static NullableTypeSyntax GenerateNullableType()
             => SyntaxFactory.NullableType(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.QuestionToken));
@@ -10435,8 +10435,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind());
             Assert.Equal(SyntaxKind.AsteriskToken, node.AsteriskToken.Kind());
             Assert.Null(node.CallingConvention);
-            Assert.NotNull(node.Parameters);
-            var newNode = node.WithDelegateKeyword(node.DelegateKeyword).WithAsteriskToken(node.AsteriskToken).WithCallingConvention(node.CallingConvention).WithParameters(node.Parameters);
+            Assert.NotNull(node.ParameterList);
+            var newNode = node.WithDelegateKeyword(node.DelegateKeyword).WithAsteriskToken(node.AsteriskToken).WithCallingConvention(node.CallingConvention).WithParameterList(node.ParameterList);
             Assert.Equal(node, newNode);
         }
 
@@ -10458,8 +10458,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateFunctionPointerCallingConvention();
 
             Assert.Equal(SyntaxKind.ManagedKeyword, node.ManagedSpecifier.Kind());
-            Assert.Null(node.UnmanagedCallingConventionSpecifiers);
-            var newNode = node.WithManagedSpecifier(node.ManagedSpecifier).WithUnmanagedCallingConventionSpecifiers(node.UnmanagedCallingConventionSpecifiers);
+            Assert.Null(node.UnmanagedCallingConventionList);
+            var newNode = node.WithManagedSpecifier(node.ManagedSpecifier).WithUnmanagedCallingConventionList(node.UnmanagedCallingConventionList);
             Assert.Equal(node, newNode);
         }
 
@@ -10480,8 +10480,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateFunctionPointerUnmanagedCallingConvention();
 
-            Assert.Equal(SyntaxKind.IdentifierToken, node.CallingConvention.Kind());
-            var newNode = node.WithCallingConvention(node.CallingConvention);
+            Assert.Equal(SyntaxKind.IdentifierToken, node.Name.Kind());
+            var newNode = node.WithName(node.Name);
             Assert.Equal(node, newNode);
         }
 

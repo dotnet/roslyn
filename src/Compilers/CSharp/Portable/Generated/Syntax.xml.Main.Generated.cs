@@ -1659,19 +1659,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update((TypeSyntax?)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.AsteriskToken));
 
         public override SyntaxNode? VisitFunctionPointerType(FunctionPointerTypeSyntax node)
-            => node.Update(VisitToken(node.DelegateKeyword), VisitToken(node.AsteriskToken), (FunctionPointerCallingConventionSyntax?)Visit(node.CallingConvention), (FunctionPointerParameterList?)Visit(node.Parameters) ?? throw new ArgumentNullException("parameters"));
+            => node.Update(VisitToken(node.DelegateKeyword), VisitToken(node.AsteriskToken), (FunctionPointerCallingConventionSyntax?)Visit(node.CallingConvention), (FunctionPointerParameterList?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"));
 
         public override SyntaxNode? VisitFunctionPointerParameterList(FunctionPointerParameterList node)
             => node.Update(VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
 
         public override SyntaxNode? VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node)
-            => node.Update(VisitToken(node.ManagedSpecifier), (FunctionPointerUnmanagedCallingConventionSyntaxList?)Visit(node.UnmanagedCallingConventionSpecifiers));
+            => node.Update(VisitToken(node.ManagedSpecifier), (FunctionPointerUnmanagedCallingConventionSyntaxList?)Visit(node.UnmanagedCallingConventionList));
 
         public override SyntaxNode? VisitFunctionPointerUnmanagedCallingConventionSyntaxList(FunctionPointerUnmanagedCallingConventionSyntaxList node)
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.CallingConventions), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode? VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node)
-            => node.Update(VisitToken(node.CallingConvention));
+            => node.Update(VisitToken(node.Name));
 
         public override SyntaxNode? VisitNullableType(NullableTypeSyntax node)
             => node.Update((TypeSyntax?)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.QuestionToken));
@@ -2456,17 +2456,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.PointerType(elementType, SyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameters)
+        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList)
         {
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
-            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
-            return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, callingConvention == null ? null : (Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)callingConvention.Green, (Syntax.InternalSyntax.FunctionPointerParameterList)parameters.Green).CreateRed();
+            if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
+            return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, callingConvention == null ? null : (Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)callingConvention.Green, (Syntax.InternalSyntax.FunctionPointerParameterList)parameterList.Green).CreateRed();
         }
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameters)
-            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), callingConvention, parameters);
+        public static FunctionPointerTypeSyntax FunctionPointerType(FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList)
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), callingConvention, parameterList);
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
         public static FunctionPointerTypeSyntax FunctionPointerType()
@@ -2485,7 +2485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
         /// <summary>Creates a new FunctionPointerCallingConventionSyntax instance.</summary>
-        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers)
+        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList)
         {
             switch (managedSpecifier.Kind())
             {
@@ -2493,7 +2493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnmanagedKeyword: break;
                 default: throw new ArgumentException(nameof(managedSpecifier));
             }
-            return (FunctionPointerCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerCallingConvention((Syntax.InternalSyntax.SyntaxToken)managedSpecifier.Node!, unmanagedCallingConventionSpecifiers == null ? null : (Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntaxList)unmanagedCallingConventionSpecifiers.Green).CreateRed();
+            return (FunctionPointerCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerCallingConvention((Syntax.InternalSyntax.SyntaxToken)managedSpecifier.Node!, unmanagedCallingConventionList == null ? null : (Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntaxList)unmanagedCallingConventionList.Green).CreateRed();
         }
 
         /// <summary>Creates a new FunctionPointerCallingConventionSyntax instance.</summary>
@@ -2513,10 +2513,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), callingConventions, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionSyntax instance.</summary>
-        public static FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken callingConvention)
+        public static FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken name)
         {
-            if (callingConvention.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(callingConvention));
-            return (FunctionPointerUnmanagedCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConvention((Syntax.InternalSyntax.SyntaxToken)callingConvention.Node!).CreateRed();
+            if (name.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
+            return (FunctionPointerUnmanagedCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConvention((Syntax.InternalSyntax.SyntaxToken)name.Node!).CreateRed();
         }
 
         /// <summary>Creates a new NullableTypeSyntax instance.</summary>

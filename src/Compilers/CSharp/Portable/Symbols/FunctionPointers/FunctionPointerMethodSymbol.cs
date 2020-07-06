@@ -22,24 +22,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
-            var (callingConvention, conventionIsValid) = FunctionPointerTypeSymbol.GetCallingConvention(syntax.CallingConvention.Text);
-            if (!conventionIsValid)
-            {
-                // '{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
-                diagnostics.Add(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, syntax.CallingConvention.GetLocation(), syntax.CallingConvention.Text);
-            }
+            var callingConvention = getCallingConvention(syntax.CallingConvention, diagnostics);
 
             RefKind refKind = RefKind.None;
             TypeWithAnnotations returnType;
             var refReadonlyModifiers = ImmutableArray<CustomModifier>.Empty;
 
-            if (syntax.Parameters.Count == 0)
+            if (syntax.ParameterList.Parameters.Count == 0)
             {
                 returnType = TypeWithAnnotations.Create(typeBinder.CreateErrorType());
             }
             else
             {
-                var returnTypeParameter = syntax.Parameters[^1];
+                var returnTypeParameter = syntax.ParameterList.Parameters[^1];
                 var modifiers = returnTypeParameter.Modifiers;
                 for (int i = 0; i < modifiers.Count; i++)
                 {
@@ -98,6 +93,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeBinder,
                 diagnostics,
                 suppressUseSiteDiagnostics);
+
+            // PROTOTYPE(func-ptr): Do this right. Just making compatible changes for now
+            static CallingConvention getCallingConvention(FunctionPointerCallingConventionSyntax? callingConventionSyntax, DiagnosticBag diagnostics)
+            {
+                switch (callingConventionSyntax)
+                {
+                    case null:
+                        return CallingConvention.Default;
+                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.ManagedKeyword } }:
+                        Debug.Assert(callingConventionSyntax.UnmanagedCallingConventionList is null || callingConventionSyntax.ContainsDiagnostics);
+                        return CallingConvention.Default;
+                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: { } specifiers } when isCallingConvention(specifiers, "Cdecl"):
+                        return CallingConvention.CDecl;
+                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: { } specifiers } when isCallingConvention(specifiers, "Thiscall"):
+                        return CallingConvention.ThisCall;
+                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: { } specifiers } when isCallingConvention(specifiers, "Fastcall"):
+                        return CallingConvention.FastCall;
+                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: { } specifiers } when isCallingConvention(specifiers, "Stdcall"):
+                        return CallingConvention.Standard;
+                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: null }:
+                        return CallingConvention.Unmanaged;
+
+                    default:
+                        // PROTOTYPE(func-ptr): Handle the possible null and actually construct the correct convention
+                        diagnostics.Add(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, callingConventionSyntax.GetLocation(), callingConventionSyntax.UnmanagedCallingConventionList!.CallingConventions[0].Name.Text);
+                        return CallingConvention.Default;
+                }
+
+                static bool isCallingConvention(FunctionPointerUnmanagedCallingConventionSyntaxList specifiers, string expected)
+                    => specifiers.CallingConventions[0].Name.Text == expected;
+            }
         }
 
         /// <summary>
@@ -322,11 +348,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind = refKind;
             ReturnTypeWithAnnotations = returnType;
 
-            _parameters = syntax.Parameters.Count > 1
+            _parameters = syntax.ParameterList.Parameters.Count > 1
                 ? ParameterHelpers.MakeFunctionPointerParameters(
                     typeBinder,
                     this,
-                    syntax.Parameters,
+                    syntax.ParameterList.Parameters,
                     diagnostics,
                     suppressUseSiteDiagnostics)
                 : ImmutableArray<FunctionPointerParameterSymbol>.Empty;

@@ -1054,9 +1054,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal readonly SyntaxToken delegateKeyword;
         internal readonly SyntaxToken asteriskToken;
         internal readonly FunctionPointerCallingConventionSyntax? callingConvention;
-        internal readonly FunctionPointerParameterList parameters;
+        internal readonly FunctionPointerParameterList parameterList;
 
-        internal FunctionPointerTypeSyntax(SyntaxKind kind, SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameters, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal FunctionPointerTypeSyntax(SyntaxKind kind, SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 4;
@@ -1069,11 +1069,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(callingConvention);
                 this.callingConvention = callingConvention;
             }
-            this.AdjustFlagsAndWidth(parameters);
-            this.parameters = parameters;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
         }
 
-        internal FunctionPointerTypeSyntax(SyntaxKind kind, SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameters, SyntaxFactoryContext context)
+        internal FunctionPointerTypeSyntax(SyntaxKind kind, SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
@@ -1087,11 +1087,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(callingConvention);
                 this.callingConvention = callingConvention;
             }
-            this.AdjustFlagsAndWidth(parameters);
-            this.parameters = parameters;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
         }
 
-        internal FunctionPointerTypeSyntax(SyntaxKind kind, SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameters)
+        internal FunctionPointerTypeSyntax(SyntaxKind kind, SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList)
           : base(kind)
         {
             this.SlotCount = 4;
@@ -1104,8 +1104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(callingConvention);
                 this.callingConvention = callingConvention;
             }
-            this.AdjustFlagsAndWidth(parameters);
-            this.parameters = parameters;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
         }
 
         /// <summary>SyntaxToken representing the delegate keyword.</summary>
@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>SyntaxToken representing the optional calling convention.</summary>
         public FunctionPointerCallingConventionSyntax? CallingConvention => this.callingConvention;
         /// <summary>List of the parameter types and return type of the function pointer.</summary>
-        public FunctionPointerParameterList Parameters => this.parameters;
+        public FunctionPointerParameterList ParameterList => this.parameterList;
 
         internal override GreenNode? GetSlot(int index)
             => index switch
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 0 => this.delegateKeyword,
                 1 => this.asteriskToken,
                 2 => this.callingConvention,
-                3 => this.parameters,
+                3 => this.parameterList,
                 _ => null,
             };
 
@@ -1132,11 +1132,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerType(this);
 
-        public FunctionPointerTypeSyntax Update(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax callingConvention, FunctionPointerParameterList parameters)
+        public FunctionPointerTypeSyntax Update(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax callingConvention, FunctionPointerParameterList parameterList)
         {
-            if (delegateKeyword != this.DelegateKeyword || asteriskToken != this.AsteriskToken || callingConvention != this.CallingConvention || parameters != this.Parameters)
+            if (delegateKeyword != this.DelegateKeyword || asteriskToken != this.AsteriskToken || callingConvention != this.CallingConvention || parameterList != this.ParameterList)
             {
-                var newNode = SyntaxFactory.FunctionPointerType(delegateKeyword, asteriskToken, callingConvention, parameters);
+                var newNode = SyntaxFactory.FunctionPointerType(delegateKeyword, asteriskToken, callingConvention, parameterList);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1150,10 +1150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new FunctionPointerTypeSyntax(this.Kind, this.delegateKeyword, this.asteriskToken, this.callingConvention, this.parameters, diagnostics, GetAnnotations());
+            => new FunctionPointerTypeSyntax(this.Kind, this.delegateKeyword, this.asteriskToken, this.callingConvention, this.parameterList, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new FunctionPointerTypeSyntax(this.Kind, this.delegateKeyword, this.asteriskToken, this.callingConvention, this.parameters, GetDiagnostics(), annotations);
+            => new FunctionPointerTypeSyntax(this.Kind, this.delegateKeyword, this.asteriskToken, this.callingConvention, this.parameterList, GetDiagnostics(), annotations);
 
         internal FunctionPointerTypeSyntax(ObjectReader reader)
           : base(reader)
@@ -1171,9 +1171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AdjustFlagsAndWidth(callingConvention);
                 this.callingConvention = callingConvention;
             }
-            var parameters = (FunctionPointerParameterList)reader.ReadValue();
-            AdjustFlagsAndWidth(parameters);
-            this.parameters = parameters;
+            var parameterList = (FunctionPointerParameterList)reader.ReadValue();
+            AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
         }
 
         internal override void WriteTo(ObjectWriter writer)
@@ -1182,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             writer.WriteValue(this.delegateKeyword);
             writer.WriteValue(this.asteriskToken);
             writer.WriteValue(this.callingConvention);
-            writer.WriteValue(this.parameters);
+            writer.WriteValue(this.parameterList);
         }
 
         static FunctionPointerTypeSyntax()
@@ -1324,58 +1324,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal sealed partial class FunctionPointerCallingConventionSyntax : CSharpSyntaxNode
     {
         internal readonly SyntaxToken managedSpecifier;
-        internal readonly FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers;
+        internal readonly FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList;
 
-        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 2;
             this.AdjustFlagsAndWidth(managedSpecifier);
             this.managedSpecifier = managedSpecifier;
-            if (unmanagedCallingConventionSpecifiers != null)
+            if (unmanagedCallingConventionList != null)
             {
-                this.AdjustFlagsAndWidth(unmanagedCallingConventionSpecifiers);
-                this.unmanagedCallingConventionSpecifiers = unmanagedCallingConventionSpecifiers;
+                this.AdjustFlagsAndWidth(unmanagedCallingConventionList);
+                this.unmanagedCallingConventionList = unmanagedCallingConventionList;
             }
         }
 
-        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers, SyntaxFactoryContext context)
+        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 2;
             this.AdjustFlagsAndWidth(managedSpecifier);
             this.managedSpecifier = managedSpecifier;
-            if (unmanagedCallingConventionSpecifiers != null)
+            if (unmanagedCallingConventionList != null)
             {
-                this.AdjustFlagsAndWidth(unmanagedCallingConventionSpecifiers);
-                this.unmanagedCallingConventionSpecifiers = unmanagedCallingConventionSpecifiers;
+                this.AdjustFlagsAndWidth(unmanagedCallingConventionList);
+                this.unmanagedCallingConventionList = unmanagedCallingConventionList;
             }
         }
 
-        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers)
+        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList)
           : base(kind)
         {
             this.SlotCount = 2;
             this.AdjustFlagsAndWidth(managedSpecifier);
             this.managedSpecifier = managedSpecifier;
-            if (unmanagedCallingConventionSpecifiers != null)
+            if (unmanagedCallingConventionList != null)
             {
-                this.AdjustFlagsAndWidth(unmanagedCallingConventionSpecifiers);
-                this.unmanagedCallingConventionSpecifiers = unmanagedCallingConventionSpecifiers;
+                this.AdjustFlagsAndWidth(unmanagedCallingConventionList);
+                this.unmanagedCallingConventionList = unmanagedCallingConventionList;
             }
         }
 
         /// <summary>SyntaxToken representing whether the calling convention is managed or unmanaged.</summary>
         public SyntaxToken ManagedSpecifier => this.managedSpecifier;
         /// <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
-        public FunctionPointerUnmanagedCallingConventionSyntaxList? UnmanagedCallingConventionSpecifiers => this.unmanagedCallingConventionSpecifiers;
+        public FunctionPointerUnmanagedCallingConventionSyntaxList? UnmanagedCallingConventionList => this.unmanagedCallingConventionList;
 
         internal override GreenNode? GetSlot(int index)
             => index switch
             {
                 0 => this.managedSpecifier,
-                1 => this.unmanagedCallingConventionSpecifiers,
+                1 => this.unmanagedCallingConventionList,
                 _ => null,
             };
 
@@ -1384,11 +1384,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerCallingConvention(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerCallingConvention(this);
 
-        public FunctionPointerCallingConventionSyntax Update(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList unmanagedCallingConventionSpecifiers)
+        public FunctionPointerCallingConventionSyntax Update(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList unmanagedCallingConventionList)
         {
-            if (managedSpecifier != this.ManagedSpecifier || unmanagedCallingConventionSpecifiers != this.UnmanagedCallingConventionSpecifiers)
+            if (managedSpecifier != this.ManagedSpecifier || unmanagedCallingConventionList != this.UnmanagedCallingConventionList)
             {
-                var newNode = SyntaxFactory.FunctionPointerCallingConvention(managedSpecifier, unmanagedCallingConventionSpecifiers);
+                var newNode = SyntaxFactory.FunctionPointerCallingConvention(managedSpecifier, unmanagedCallingConventionList);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1402,10 +1402,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new FunctionPointerCallingConventionSyntax(this.Kind, this.managedSpecifier, this.unmanagedCallingConventionSpecifiers, diagnostics, GetAnnotations());
+            => new FunctionPointerCallingConventionSyntax(this.Kind, this.managedSpecifier, this.unmanagedCallingConventionList, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new FunctionPointerCallingConventionSyntax(this.Kind, this.managedSpecifier, this.unmanagedCallingConventionSpecifiers, GetDiagnostics(), annotations);
+            => new FunctionPointerCallingConventionSyntax(this.Kind, this.managedSpecifier, this.unmanagedCallingConventionList, GetDiagnostics(), annotations);
 
         internal FunctionPointerCallingConventionSyntax(ObjectReader reader)
           : base(reader)
@@ -1414,11 +1414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var managedSpecifier = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(managedSpecifier);
             this.managedSpecifier = managedSpecifier;
-            var unmanagedCallingConventionSpecifiers = (FunctionPointerUnmanagedCallingConventionSyntaxList?)reader.ReadValue();
-            if (unmanagedCallingConventionSpecifiers != null)
+            var unmanagedCallingConventionList = (FunctionPointerUnmanagedCallingConventionSyntaxList?)reader.ReadValue();
+            if (unmanagedCallingConventionList != null)
             {
-                AdjustFlagsAndWidth(unmanagedCallingConventionSpecifiers);
-                this.unmanagedCallingConventionSpecifiers = unmanagedCallingConventionSpecifiers;
+                AdjustFlagsAndWidth(unmanagedCallingConventionList);
+                this.unmanagedCallingConventionList = unmanagedCallingConventionList;
             }
         }
 
@@ -1426,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             base.WriteTo(writer);
             writer.WriteValue(this.managedSpecifier);
-            writer.WriteValue(this.unmanagedCallingConventionSpecifiers);
+            writer.WriteValue(this.unmanagedCallingConventionList);
         }
 
         static FunctionPointerCallingConventionSyntax()
@@ -1567,49 +1567,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Individual function pointer unmanaged calling convention.</summary>
     internal sealed partial class FunctionPointerUnmanagedCallingConventionSyntax : CSharpSyntaxNode
     {
-        internal readonly SyntaxToken callingConvention;
+        internal readonly SyntaxToken name;
 
-        internal FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind kind, SyntaxToken callingConvention, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind kind, SyntaxToken name, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 1;
-            this.AdjustFlagsAndWidth(callingConvention);
-            this.callingConvention = callingConvention;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
-        internal FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind kind, SyntaxToken callingConvention, SyntaxFactoryContext context)
+        internal FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind kind, SyntaxToken name, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 1;
-            this.AdjustFlagsAndWidth(callingConvention);
-            this.callingConvention = callingConvention;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
-        internal FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind kind, SyntaxToken callingConvention)
+        internal FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind kind, SyntaxToken name)
           : base(kind)
         {
             this.SlotCount = 1;
-            this.AdjustFlagsAndWidth(callingConvention);
-            this.callingConvention = callingConvention;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         /// <summary>SyntaxToken the calling convention identifier.</summary>
-        public SyntaxToken CallingConvention => this.callingConvention;
+        public SyntaxToken Name => this.name;
 
         internal override GreenNode? GetSlot(int index)
-            => index == 0 ? this.callingConvention : null;
+            => index == 0 ? this.name : null;
 
         internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax(this, parent, position);
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerUnmanagedCallingConvention(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerUnmanagedCallingConvention(this);
 
-        public FunctionPointerUnmanagedCallingConventionSyntax Update(SyntaxToken callingConvention)
+        public FunctionPointerUnmanagedCallingConventionSyntax Update(SyntaxToken name)
         {
-            if (callingConvention != this.CallingConvention)
+            if (name != this.Name)
             {
-                var newNode = SyntaxFactory.FunctionPointerUnmanagedCallingConvention(callingConvention);
+                var newNode = SyntaxFactory.FunctionPointerUnmanagedCallingConvention(name);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1623,24 +1623,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new FunctionPointerUnmanagedCallingConventionSyntax(this.Kind, this.callingConvention, diagnostics, GetAnnotations());
+            => new FunctionPointerUnmanagedCallingConventionSyntax(this.Kind, this.name, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new FunctionPointerUnmanagedCallingConventionSyntax(this.Kind, this.callingConvention, GetDiagnostics(), annotations);
+            => new FunctionPointerUnmanagedCallingConventionSyntax(this.Kind, this.name, GetDiagnostics(), annotations);
 
         internal FunctionPointerUnmanagedCallingConventionSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 1;
-            var callingConvention = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(callingConvention);
-            this.callingConvention = callingConvention;
+            var name = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteValue(this.callingConvention);
+            writer.WriteValue(this.name);
         }
 
         static FunctionPointerUnmanagedCallingConventionSyntax()
@@ -33369,19 +33369,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((TypeSyntax)Visit(node.ElementType), (SyntaxToken)Visit(node.AsteriskToken));
 
         public override CSharpSyntaxNode VisitFunctionPointerType(FunctionPointerTypeSyntax node)
-            => node.Update((SyntaxToken)Visit(node.DelegateKeyword), (SyntaxToken)Visit(node.AsteriskToken), (FunctionPointerCallingConventionSyntax)Visit(node.CallingConvention), (FunctionPointerParameterList)Visit(node.Parameters));
+            => node.Update((SyntaxToken)Visit(node.DelegateKeyword), (SyntaxToken)Visit(node.AsteriskToken), (FunctionPointerCallingConventionSyntax)Visit(node.CallingConvention), (FunctionPointerParameterList)Visit(node.ParameterList));
 
         public override CSharpSyntaxNode VisitFunctionPointerParameterList(FunctionPointerParameterList node)
             => node.Update((SyntaxToken)Visit(node.LessThanToken), VisitList(node.Parameters), (SyntaxToken)Visit(node.GreaterThanToken));
 
         public override CSharpSyntaxNode VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node)
-            => node.Update((SyntaxToken)Visit(node.ManagedSpecifier), (FunctionPointerUnmanagedCallingConventionSyntaxList)Visit(node.UnmanagedCallingConventionSpecifiers));
+            => node.Update((SyntaxToken)Visit(node.ManagedSpecifier), (FunctionPointerUnmanagedCallingConventionSyntaxList)Visit(node.UnmanagedCallingConventionList));
 
         public override CSharpSyntaxNode VisitFunctionPointerUnmanagedCallingConventionSyntaxList(FunctionPointerUnmanagedCallingConventionSyntaxList node)
             => node.Update((SyntaxToken)Visit(node.OpenBracketToken), VisitList(node.CallingConventions), (SyntaxToken)Visit(node.CloseBracketToken));
 
         public override CSharpSyntaxNode VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node)
-            => node.Update((SyntaxToken)Visit(node.CallingConvention));
+            => node.Update((SyntaxToken)Visit(node.Name));
 
         public override CSharpSyntaxNode VisitNullableType(NullableTypeSyntax node)
             => node.Update((TypeSyntax)Visit(node.ElementType), (SyntaxToken)Visit(node.QuestionToken));
@@ -34252,17 +34252,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameters)
+        public FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList)
         {
 #if DEBUG
             if (delegateKeyword == null) throw new ArgumentNullException(nameof(delegateKeyword));
             if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken == null) throw new ArgumentNullException(nameof(asteriskToken));
             if (asteriskToken.Kind != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
-            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+            if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
 #endif
 
-            return new FunctionPointerTypeSyntax(SyntaxKind.FunctionPointerType, delegateKeyword, asteriskToken, callingConvention, parameters, this.context);
+            return new FunctionPointerTypeSyntax(SyntaxKind.FunctionPointerType, delegateKeyword, asteriskToken, callingConvention, parameterList, this.context);
         }
 
         public FunctionPointerParameterList FunctionPointerParameterList(SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
@@ -34287,7 +34287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers)
+        public FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList)
         {
 #if DEBUG
             if (managedSpecifier == null) throw new ArgumentNullException(nameof(managedSpecifier));
@@ -34300,10 +34300,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerCallingConventionList, managedSpecifier, unmanagedCallingConventionSpecifiers, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerCallingConvention, managedSpecifier, unmanagedCallingConventionList, this.context, out hash);
             if (cached != null) return (FunctionPointerCallingConventionSyntax)cached;
 
-            var result = new FunctionPointerCallingConventionSyntax(SyntaxKind.FunctionPointerCallingConventionList, managedSpecifier, unmanagedCallingConventionSpecifiers, this.context);
+            var result = new FunctionPointerCallingConventionSyntax(SyntaxKind.FunctionPointerCallingConvention, managedSpecifier, unmanagedCallingConventionList, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -34334,18 +34334,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken callingConvention)
+        public FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken name)
         {
 #if DEBUG
-            if (callingConvention == null) throw new ArgumentNullException(nameof(callingConvention));
-            if (callingConvention.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(callingConvention));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (name.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerUnmanagedCallingConvention, callingConvention, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerUnmanagedCallingConvention, name, this.context, out hash);
             if (cached != null) return (FunctionPointerUnmanagedCallingConventionSyntax)cached;
 
-            var result = new FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind.FunctionPointerUnmanagedCallingConvention, callingConvention, this.context);
+            var result = new FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind.FunctionPointerUnmanagedCallingConvention, name, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -39127,17 +39127,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameters)
+        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList)
         {
 #if DEBUG
             if (delegateKeyword == null) throw new ArgumentNullException(nameof(delegateKeyword));
             if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken == null) throw new ArgumentNullException(nameof(asteriskToken));
             if (asteriskToken.Kind != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
-            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+            if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
 #endif
 
-            return new FunctionPointerTypeSyntax(SyntaxKind.FunctionPointerType, delegateKeyword, asteriskToken, callingConvention, parameters);
+            return new FunctionPointerTypeSyntax(SyntaxKind.FunctionPointerType, delegateKeyword, asteriskToken, callingConvention, parameterList);
         }
 
         public static FunctionPointerParameterList FunctionPointerParameterList(SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
@@ -39162,7 +39162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionSpecifiers)
+        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList)
         {
 #if DEBUG
             if (managedSpecifier == null) throw new ArgumentNullException(nameof(managedSpecifier));
@@ -39175,10 +39175,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerCallingConventionList, managedSpecifier, unmanagedCallingConventionSpecifiers, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerCallingConvention, managedSpecifier, unmanagedCallingConventionList, out hash);
             if (cached != null) return (FunctionPointerCallingConventionSyntax)cached;
 
-            var result = new FunctionPointerCallingConventionSyntax(SyntaxKind.FunctionPointerCallingConventionList, managedSpecifier, unmanagedCallingConventionSpecifiers);
+            var result = new FunctionPointerCallingConventionSyntax(SyntaxKind.FunctionPointerCallingConvention, managedSpecifier, unmanagedCallingConventionList);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -39209,18 +39209,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken callingConvention)
+        public static FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken name)
         {
 #if DEBUG
-            if (callingConvention == null) throw new ArgumentNullException(nameof(callingConvention));
-            if (callingConvention.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(callingConvention));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (name.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerUnmanagedCallingConvention, callingConvention, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerUnmanagedCallingConvention, name, out hash);
             if (cached != null) return (FunctionPointerUnmanagedCallingConventionSyntax)cached;
 
-            var result = new FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind.FunctionPointerUnmanagedCallingConvention, callingConvention);
+            var result = new FunctionPointerUnmanagedCallingConventionSyntax(SyntaxKind.FunctionPointerUnmanagedCallingConvention, name);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
