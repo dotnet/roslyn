@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             return invocation.Arguments.Length switch
             {
-                1 => AnalyzeInvocationWithOneArgument(invocation, infoCache, invocationSyntax, option),
+                1 => AnalyzeOneArgumentInvocation(invocation, infoCache, invocationSyntax, option),
                 2 => AnalyzeTwoArgumentInvocation(invocation, infoCache, invocationSyntax, option),
                 _ => null,
             };
         }
 
-        private static Result? AnalyzeInvocationWithOneArgument(
+        private static Result? AnalyzeOneArgumentInvocation(
             IInvocationOperation invocation,
             InfoCache infoCache,
             InvocationExpressionSyntax invocationSyntax,
