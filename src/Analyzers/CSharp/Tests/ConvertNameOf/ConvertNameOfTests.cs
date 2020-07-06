@@ -79,5 +79,19 @@ class Test
 ";
             await TestMissingInRegularAndScriptAsync(text);
         }
+
+        [Fact]
+        public async Task NotOnPrimitiveType()
+        {
+            var text = @"class Test
+{
+    void Method()
+    {
+        var typeName = [||]typeof(int).Name;
+    }
+}
+";
+            await TestMissingInRegularAndScriptAsync(text);
+        }
     }
 }
