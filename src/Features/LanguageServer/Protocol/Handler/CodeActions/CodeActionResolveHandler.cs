@@ -76,6 +76,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
+            // If we have all non-ApplyChangesOperations, set up to run as command on the server
+            // instead of using WorkspaceEdits.
+            if (operations.All(operation => !(operation is ApplyChangesOperation)))
+            {
+                codeAction.Command = SetCommand(codeAction.Title, data);
+                return codeAction;
+            }
+
             // TO-DO:
             // 1) We currently must execute code actions which add new documents on the server as commands,
             // since there is no LSP support for adding documents yet. In the future, we should move these actions
@@ -84,7 +92,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // one where the code action was invoked from do not work. We must temporarily execute these as commands
             // as well.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
-            var runAsCommand = false;
 
             // Add workspace edits
             var applyChangesOperations = operations.OfType<ApplyChangesOperation>();
@@ -104,8 +111,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         pc => pc.GetAddedDocuments().Concat(pc.GetAddedAdditionalDocuments().Concat(pc.GetAddedAnalyzerConfigDocuments())));
                     if (addedDocuments.Any())
                     {
-                        runAsCommand = true;
-                        break;
+                        codeAction.Command = SetCommand(codeAction.Title, data);
+                        return codeAction;
                     }
 
                     var changedDocuments = projectChanges.SelectMany(pc => pc.GetChangedDocuments());
@@ -120,8 +127,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         changedAnalyzerConfigDocuments.Any() ||
                         changedAdditionalDocuments.Any())
                     {
-                        runAsCommand = true;
-                        break;
+                        codeAction.Command = SetCommand(codeAction.Title, data);
+                        return codeAction;
                     }
 
                     // Changed documents
@@ -150,21 +157,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 codeAction.Edit = new LSP.WorkspaceEdit { DocumentChanges = textDocumentEdits.ToArray() };
             }
 
-            // Set up to run as command on the server instead of using WorkspaceEdits.
-            var commandOperations = operations.All(operation => !(operation is ApplyChangesOperation));
-            if (commandOperations || runAsCommand)
-            {
-                codeAction.Command = new LSP.Command
-                {
-                    CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
-                    Title = codeAction.Title,
-                    Arguments = new object[] { data }
-                };
-            }
-
             return codeAction;
 
             // Local functions
+            static LSP.Command SetCommand(string title, CodeActionResolveData data) => new LSP.Command
+            {
+                CommandIdentifier = CodeActionsHandler.RunCodeActionCommandName,
+                Title = title,
+                Arguments = new object[] { data }
+            };
+
             static async Task AddTextDocumentEdits<T>(
                 ArrayBuilder<TextDocumentEdit> textDocumentEdits,
                 ApplyChangesOperation applyChangesOperation,

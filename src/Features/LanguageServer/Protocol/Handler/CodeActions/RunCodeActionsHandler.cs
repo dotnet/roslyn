@@ -66,11 +66,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions.ToImmutableArray());
             Contract.ThrowIfNull(actionToRun);
 
+            var operations = await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+
             // TODO - This UI thread dependency should be removed.
             // https://github.com/dotnet/roslyn/projects/45#card-20619668
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
+            foreach (var operation in operations)
             {
                 operation.Apply(document.Project.Solution.Workspace, cancellationToken);
             }
