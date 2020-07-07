@@ -370,10 +370,10 @@ new C()
         public void References_Versioning_WeakNames1()
         {
             var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
-                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { Net451.mscorlib }, assemblyName: "C").EmitToArray());
 
             var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
-                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { Net451.mscorlib }, assemblyName: "C").EmitToArray());
 
             var result = CSharpScript.EvaluateAsync($@"
 #r ""{c1.Path}""
@@ -389,10 +389,10 @@ new C()
         public void References_Versioning_WeakNames2()
         {
             var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
-                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { Net451.mscorlib }, assemblyName: "C").EmitToArray());
 
             var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
-                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { Net451.mscorlib }, assemblyName: "C").EmitToArray());
 
             var result = CSharpScript.Create($@"
 #r ""{c1.Path}""
@@ -409,10 +409,10 @@ new C()
         public void References_Versioning_WeakNames3()
         {
             var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
-                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", new[] { Net451.mscorlib }, assemblyName: "C").EmitToArray());
 
             var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(
-                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, assemblyName: "C").EmitToArray());
+                CreateCSharpCompilation(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", new[] { Net451.mscorlib }, assemblyName: "C").EmitToArray());
 
             var script0 = CSharpScript.Create($@"
 #r ""{c1.Path}""
@@ -561,7 +561,7 @@ x
         [Fact]
         public void HostObjectInInMemoryAssembly()
         {
-            var lib = CreateCSharpCompilation("public class C { public int X = 1, Y = 2; }", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, "HostLib");
+            var lib = CreateCSharpCompilation("public class C { public int X = 1, Y = 2; }", new[] { Net451.mscorlib }, "HostLib");
             var libImage = lib.EmitToArray();
             var libRef = MetadataImageReference.CreateFromImage(libImage);
 
@@ -596,21 +596,21 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+", new[] { Net451.mscorlib }, libBaseName);
 
             var lib1 = CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { Net451.mscorlib, libBase.ToMetadataReference() }, lib1Name);
 
             var lib2 = CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { Net451.mscorlib, libBase.ToMetadataReference() }, lib2Name);
 
             var libBaseImage = libBase.EmitToArray();
             var lib1Image = lib1.EmitToArray();
@@ -654,21 +654,21 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+", new[] { Net451.mscorlib }, libBaseName, s_signedDll);
 
             var lib1 = CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { Net451.mscorlib, libBase.ToMetadataReference() }, lib1Name);
 
             var lib2 = CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { Net451.mscorlib, libBase.ToMetadataReference() }, lib2Name);
 
             var libBaseImage = libBase.EmitToArray();
             var lib1Image = lib1.EmitToArray();
@@ -712,28 +712,28 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+", new[] { Net451.mscorlib }, libBaseName);
 
             var libBase2 = CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 2;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+", new[] { Net451.mscorlib }, libBaseName);
 
             var lib1 = CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
             var lib2 = CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
 
             var libBase1Image = libBase1.EmitToArray();
             var libBase2Image = libBase2.EmitToArray();
@@ -779,7 +779,7 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+", new[] { Net451.mscorlib }, libBaseName, s_signedDll);
 
             var libBase2 = CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
@@ -787,21 +787,21 @@ public class LibBase
 {
     public readonly int X = 2;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+", new[] { Net451.mscorlib }, libBaseName, s_signedDll);
 
             var lib1 = CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
             var lib2 = CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
 
             var libBase1Image = libBase1.EmitToArray();
             var libBase2Image = libBase2.EmitToArray();
@@ -847,7 +847,7 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+", new[] { Net451.mscorlib }, libBaseName, s_signedDll);
 
             var libBase2 = CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
@@ -855,21 +855,21 @@ public class LibBase
 {
     public readonly int X = 2;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+", new[] { Net451.mscorlib }, libBaseName);
 
             var lib1 = CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
             var lib2 = CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
 
             var libBase1Image = libBase1.EmitToArray();
             var libBase2Image = libBase2.EmitToArray();
@@ -915,7 +915,7 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+", new[] { Net451.mscorlib }, libBaseName, s_signedDll);
 
             var libBase2 = CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
@@ -923,21 +923,21 @@ public class LibBase
 {
     public readonly int X = 2;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll2);
+", new[] { Net451.mscorlib }, libBaseName, s_signedDll2);
 
             var lib1 = CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
             var lib2 = CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
 
             var libBase1Image = libBase1.EmitToArray();
             var libBase2Image = libBase2.EmitToArray();
@@ -983,7 +983,7 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+", new[] { Net451.mscorlib }, libBaseName);
 
             var libBase2 = CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
@@ -991,21 +991,21 @@ public class LibBase
 {
     public readonly int X = 2;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+", new[] { Net451.mscorlib }, libBaseName);
 
             var lib1 = CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
             var lib2 = CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase2.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { Net451.mscorlib, libBase2.ToMetadataReference() }, lib2Name);
 
             var libBase1Image = libBase1.EmitToArray();
             var libBase2Image = libBase2.EmitToArray();
@@ -1051,7 +1051,7 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+", new[] { Net451.mscorlib }, libBaseName, s_signedDll);
 
             var libBase2 = CreateCSharpCompilation(@"
 [assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
@@ -1059,21 +1059,21 @@ public class LibBase
 {
     public readonly int X = 2;
 }
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
+", new[] { Net451.mscorlib }, libBaseName, s_signedDll);
 
             var lib1 = CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
             var lib2 = CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase2.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { Net451.mscorlib, libBase2.ToMetadataReference() }, lib2Name);
 
             var libBase1Image = libBase1.EmitToArray();
             var libBase2Image = libBase2.EmitToArray();
@@ -1110,7 +1110,7 @@ public class C
             var lib = CSharpCompilation.Create(
                 "Lib",
                 new[] { SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System },
+                new[] { Net451.mscorlib, Net451.System },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());

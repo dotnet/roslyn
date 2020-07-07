@@ -1969,7 +1969,7 @@ End Module
             Dim spans As New List(Of TextSpan)
             ExtractTextIntervals(text, spans)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(text, {SystemRef, SystemCoreRef, MsvbRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(text, {Net40.System, Net40.SystemCore, Net40.MicrosoftVisualBasic})
             If errors Is Nothing Then
                 CompilationUtils.AssertNoErrors(compilation)
             Else

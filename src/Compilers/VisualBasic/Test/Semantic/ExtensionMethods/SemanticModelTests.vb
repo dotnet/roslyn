@@ -1423,7 +1423,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {SystemCoreRef})
+</compilation>, {Net40.SystemCore})
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30456: 'F' is not a member of 'B'.
         _b.F()

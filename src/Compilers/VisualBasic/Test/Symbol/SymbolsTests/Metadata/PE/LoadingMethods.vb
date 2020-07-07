@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestResources.General.MDTestLib2,
                     TestResources.SymbolsTests.Methods.CSMethods,
                     TestResources.SymbolsTests.Methods.VBMethods,
-                    TestResources.NetFX.v4_0_21006.mscorlib,
+                    ResourcesNet40.mscorlib,
                     TestResources.SymbolsTests.Methods.ByRefReturn
                 }, importInternals:=True)
 
@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationGeneric()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationConstructed()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -529,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationOfUnrelatedGenericInterfaceMethod()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
 
@@ -558,7 +558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestTypeParameterPositions()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace

@@ -259,7 +259,7 @@ Module Program
     End Class
 End Module
     ]]></file>
-</compilation>, {SystemCoreRef})
+</compilation>, {Net40.SystemCore})
 
             compilation.AssertNoDiagnostics()
 
@@ -400,7 +400,7 @@ Module Ext
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, additionalRefs:={Net40.SystemCore})
 
             compilation.AssertTheseDiagnostics()
 
@@ -452,7 +452,7 @@ Module Ext
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, additionalRefs:={Net40.SystemCore})
 
             compilation.AssertTheseDiagnostics()
 
@@ -509,7 +509,7 @@ Module Ext
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef})
+</compilation>, additionalRefs:={Net40.SystemCore})
 
             compilation.AssertTheseDiagnostics()
 

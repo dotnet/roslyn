@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
 
             var addedSolution = previewWorkspace.CurrentSolution.Projects.First()
-                                                .AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+                                                .AddMetadataReference(Net451.mscorlib)
                                                 .AddDocument("document", "").Project.Solution;
             Assert.True(previewWorkspace.TryApplyChanges(addedSolution));
             Assert.Equal(1, previewWorkspace.CurrentSolution.Projects.First().MetadataReferences.Count);
