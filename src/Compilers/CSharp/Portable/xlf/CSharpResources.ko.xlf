@@ -662,6 +662,16 @@
         <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">대상 런타임이 인터페이스 멤버의 'protected', 'protected internal' 또는 'private protected' 접근성을 지원하지 않습니다.</target>
@@ -1987,6 +1997,16 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="translated">nullable 참조 형식에 대한 주석은 코드에서 '#nullable' 주석 컨텍스트 내에만 사용되어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -7318,21 +7338,11 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">이 경고는 두 인터페이스 메서드에서 특정 매개 변수가 ref로 표시되는지 out으로 표시되는지 여부만 다른 경우에 생성될 수 있습니다. 런타임에 호출되는 메서드가 명확하거나 보장되지 않으므로 이 경고를 방지하도록 코드를 변경하는 것이 좋습니다.
+        <target state="needs-review-translation">이 경고는 두 인터페이스 메서드에서 특정 매개 변수가 ref로 표시되는지 out으로 표시되는지 여부만 다른 경우에 생성될 수 있습니다. 런타임에 호출되는 메서드가 명확하거나 보장되지 않으므로 이 경고를 방지하도록 코드를 변경하는 것이 좋습니다.
 
 C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간주합니다. 따라서 인터페이스를 구현할 메서드를 결정할 때 CLR에서는 하나만 선택합니다.
 
 컴파일러에서 두 메서드를 구분할 수 있는 몇 가지 방법을 지정하세요. 예를 들어 다른 이름을 지정하거나 둘 중 하나에 대해 추가 매개 변수를 제공할 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">{1}' 멤버는 '{0}'을(를) 재정의합니다. 런타임에 여러 재정의 후보가 있습니다. 호출되는 메서드는 구현에 따라 다릅니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">멤버가 런타임에 여러 재정의 후보로 기본 멤버를 재정의합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">

@@ -4771,11 +4771,20 @@ public class Derived : Base<int>, Interface<int, int>
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 15, Column = 35, IsWarning = true }, //Both Base methods implement Interface.Method(int)
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 15, Column = 35, IsWarning = true }, //Both Base methods implement Interface.Method(T)
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 15, Column = 35, IsWarning = true }, //Both Base methods implement Interface.Method(U)
-            });
+            //Both Base methods implement Interface.Method(int)
+            //Both Base methods implement Interface.Method(T)
+            //Both Base methods implement Interface.Method(U)
+            CreateCompilation(text).VerifyDiagnostics(
+                // (15,35): warning CS1956: Member 'Base<int>.Method(int)' implements interface member 'Interface<int, int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.Method(int)", "Interface<int, int>.Method(int)", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.Method(int)' implements interface member 'Interface<int, int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.Method(int)", "Interface<int, int>.Method(int)", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.Method(int)' implements interface member 'Interface<int, int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.Method(int)", "Interface<int, int>.Method(int)", "Derived").WithLocation(15, 35)
+                );
         }
 
         [Fact]
@@ -4925,10 +4934,26 @@ public class Derived : Base<short, int>
     public override void Method(short s, int i) { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 4, Column = 25, IsWarning = true }, //can't tell which method Derived is trying to override
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigOverride, Line = 10, Column = 26 }, //can't override either Method since they unify to the same signature
-            });
+            CSharpCompilation comp = CreateCompilation(text);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<TShort, TInt>.Method(TShort, int)' and 'Base<TShort, TInt>.Method(short, TInt)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(short s, int i) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<TShort, TInt>.Method(TShort, int)", "Base<TShort, TInt>.Method(short, TInt)", "Derived").WithLocation(10, 26)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (4,25): warning CS1957: Member 'Derived.Method(short, int)' overrides 'Base<short, int>.Method(short, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(TShort s, int i) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<short, int>.Method(short, int)", "Derived.Method(short, int)").WithLocation(4, 25),
+                    // (10,26): error CS0462: The inherited members 'Base<TShort, TInt>.Method(TShort, int)' and 'Base<TShort, TInt>.Method(short, TInt)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(short s, int i) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<TShort, TInt>.Method(TShort, int)", "Base<TShort, TInt>.Method(short, TInt)", "Derived").WithLocation(10, 26)
+                    );
+            }
         }
 
         [Fact]
@@ -4967,9 +4992,22 @@ class Derived : Base<int>
     public override void Method(int @in, ref int @ref) { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 5, Column = 25, IsWarning = true }, //C# can distinguish, but runtime can't
-            });
+            var compilation = CreateCompilation(text);
+            if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
+            {
+                // We no longer report a runtime ambiguous override because the compiler
+                // produces a methodimpl record to disambiguate.
+                compilation.VerifyDiagnostics(
+                    );
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // (5,25): warning CS1957: Member 'Derived.Method(int, ref int)' overrides 'Base<int>.Method(int, ref int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(int @in, ref int @ref) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int>.Method(int, ref int)", "Derived.Method(int, ref int)").WithLocation(5, 25)
+                    );
+            }
         }
 
         [Fact]

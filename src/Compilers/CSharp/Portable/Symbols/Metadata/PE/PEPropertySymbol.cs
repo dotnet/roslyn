@@ -543,21 +543,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal PropertySymbol ExplicitlyOverriddenClassProperty
-        {
-            get
-            {
-                // A covariant return readonly property override is indicated in metadata by
-                // a get accessor with an explicit override (methodimpl).
-                if (GetMethod is PEMethodSymbol { ExplicitlyOverriddenClassMethod: { AssociatedSymbol: PropertySymbol overriddenProperty } })
-                {
-                    return overriddenProperty;
-                }
-
-                return null;
-            }
-        }
-
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             if (_lazyCustomAttributes.IsDefault)

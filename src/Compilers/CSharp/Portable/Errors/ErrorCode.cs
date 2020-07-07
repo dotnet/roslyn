@@ -1837,6 +1837,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_8821 = 8821, // used by features/static-lambdas
 
+        ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
+        ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
+
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,

@@ -7721,9 +7721,26 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 3, Column = 24, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigOverride, Line = 9, Column = 25 });
+            var comp = CreateCompilation(text);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (9,25): error CS0462: The inherited members 'C<T>.F(T)' and 'C<T>.F(int)' have the same signature in type 'D', so they cannot be overridden
+                    //    public override void F(int t) {}   // CS0462
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("C<T>.F(T)", "C<T>.F(int)", "D").WithLocation(9, 25)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,24): warning CS1957: Member 'D.F(int)' overrides 'C<int>.F(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //    public virtual void F(T t) {}
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "F").WithArguments("C<int>.F(int)", "D.F(int)").WithLocation(3, 24),
+                    // (9,25): error CS0462: The inherited members 'C<T>.F(T)' and 'C<T>.F(int)' have the same signature in type 'D', so they cannot be overridden
+                    //    public override void F(int t) {}   // CS0462
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("C<T>.F(T)", "C<T>.F(int)", "D").WithLocation(9, 25)
+                    );
+            }
         }
 
         [Fact]
@@ -18259,7 +18276,8 @@ class Derived : Base<int, int>, IFace
         [Fact]
         public void CS1957WRN_MultipleRuntimeOverrideMatches()
         {
-            var text = @"class Base<TString>
+            var text =
+@"class Base<TString>
 {
     public virtual void Test(TString s, out int x)
     {
@@ -18274,8 +18292,21 @@ class Derived : Base<string>
     public override void Test(string s, ref int x) { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 8, Column = 25, IsWarning = true });
+            // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
+            CSharpCompilation comp = CreateCompilation(text);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (8,25): warning CS1957: Member 'Derived.Test(string, ref int)' overrides 'Base<string>.Test(string, ref int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Test(string s, ref int x) { } // CS1957
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Test").WithArguments("Base<string>.Test(string, ref int)", "Derived.Test(string, ref int)").WithLocation(8, 25)
+                    );
+            }
         }
 
         [Fact]

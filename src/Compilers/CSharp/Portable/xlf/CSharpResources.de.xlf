@@ -662,6 +662,16 @@
         <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Die Zugriffsoptionen "protected", "protected internal" oder "private protected" werden von der Zielruntime für einen Member einer Schnittstelle nicht unterstützt.</target>
@@ -1987,6 +1997,16 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="translated">Die Anmerkung für Nullable-Verweistypen darf nur in Code innerhalb eines #nullable-Anmerkungskontexts verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -7318,21 +7338,11 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">Diese Warnung kann generiert werden, wenn sich zwei Schnittstellenmethoden nur dain unterscheiden, ob ein bestimmter Parameter mit Verweis oder Ausgabe markiert wird. Am besten ändern Sie Ihren Code, um diese Warnung zu vermeiden, da es nicht offensichtlich ist und nicht sichergestellt werden kann, welche Methode zur Laufzeit aufgerufen wird.
+        <target state="needs-review-translation">Diese Warnung kann generiert werden, wenn sich zwei Schnittstellenmethoden nur dain unterscheiden, ob ein bestimmter Parameter mit Verweis oder Ausgabe markiert wird. Am besten ändern Sie Ihren Code, um diese Warnung zu vermeiden, da es nicht offensichtlich ist und nicht sichergestellt werden kann, welche Methode zur Laufzeit aufgerufen wird.
 
 Obwohl C# zwischen Ausgabe und Verweis unterscheidet, sieht CLR da keinen Unterschied. Bei der Entscheidung welche Methode die Schnittstelle implementiert, wählt CLR nur eine aus.
 
 Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Dazu können Sie beispielsweise unterschiedliche Namen vergeben oder einen zusätzlichen Parameter angeben.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Der Member "{1}" überschreibt "{0}". Zur Laufzeit sind mehrere Kandidaten zum Überschreiben verfügbar. Die aufgerufene Methode ist implementierungsabhängig.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">Element überschreibt Basiselement mit mehreren Überschreibungskandidaten zur Laufzeit</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">

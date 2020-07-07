@@ -662,6 +662,16 @@
         <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje specyfikatorów dostępu „protected”, „protected internal” i „private protected” dla składowej interfejsu.</target>
@@ -1987,6 +1997,16 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="translated">Adnotacja dla typów referencyjnych dopuszczających wartość null powinna być używana tylko w kodzie z kontekstem adnotacji „#nullable”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="new">Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
+        <source>Member overrides base member with multiple override candidates at run-time</source>
+        <target state="new">Member overrides base member with multiple override candidates at run-time</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -7318,21 +7338,11 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
 Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
 
 Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</source>
-        <target state="translated">To ostrzeżenie może zostać wygenerowane, gdy dwie metody interfejsu różnią się tylko oznaczeniem określonego parametru specyfikatorem ref lub out. Aby zapobiec występowaniu tego ostrzeżenia, zmień kod, ponieważ nie można jednoznacznie określić ani zagwarantować, która metoda zostanie wywołana w czasie wykonywania.
+        <target state="needs-review-translation">To ostrzeżenie może zostać wygenerowane, gdy dwie metody interfejsu różnią się tylko oznaczeniem określonego parametru specyfikatorem ref lub out. Aby zapobiec występowaniu tego ostrzeżenia, zmień kod, ponieważ nie można jednoznacznie określić ani zagwarantować, która metoda zostanie wywołana w czasie wykonywania.
 
 Język C# rozróżnia specyfikatory out i ref, jednak dla środowiska CLR są one takie same. Wybiera ono dowolny z nich podczas określania, która metoda zawiera implementację interfejsu.
 
 Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nadać im różne nazwy lub określić dla jednej z nich dodatkowy parametr.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">Składowa „{1}” przesłania element „{0}”. W czasie wykonywania jest możliwych wiele różnych przesłonięć. Od implementacji zależy, która metoda zostanie wywołana.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
-        <source>Member overrides base member with multiple override candidates at run-time</source>
-        <target state="translated">Składowa przesłania podstawową składową za pomocą wielu możliwych przesłonięć w czasie wykonywania</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ObjectOrCollectionInitializerWithDelegateCreation">
