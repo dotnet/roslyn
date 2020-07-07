@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
             }
 
             // Check if it's a generic type
-            if (!(typeofOperation.TypeOperand is INamedTypeSymbol) || (((INamedTypeSymbol)(typeofOperation).TypeOperand).IsGenericType))
+            if (!(typeofOperation.TypeOperand is INamedTypeSymbol namedType) || namedType.IsGenericType)
             {
                 return false;
             }
