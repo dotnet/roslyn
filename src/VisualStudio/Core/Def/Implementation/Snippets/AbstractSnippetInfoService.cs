@@ -17,6 +17,7 @@ using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     internal abstract class AbstractSnippetInfoService : ForegroundThreadAffinitizedObject, ISnippetInfoService, IVsExpansionEvents
     {
         private readonly Guid _languageGuidForSnippets;
-        private readonly IVsExpansionManager _expansionManager;
+        private IVsExpansionManager _expansionManager;
 
         /// <summary>
         /// Initialize these to empty values. When returning from <see cref="GetSnippetsIfAvailable "/> 
@@ -51,18 +52,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
-            AssertIsForeground();
-
             if (serviceProvider != null)
             {
-                var textManager = (IVsTextManager2)serviceProvider.GetService(typeof(SVsTextManager));
-                if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
-                {
-                    ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);
-                    _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
-                    _languageGuidForSnippets = languageGuidForSnippets;
-                    PopulateSnippetCaches();
-                }
+                _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
+                _languageGuidForSnippets = languageGuidForSnippets;
+
+                InitializeAndPopulateSnippetsCacheAsync(threadingContext, serviceProvider).Forget();
+            }
+        }
+
+        private async Task InitializeAndPopulateSnippetsCacheAsync(IThreadingContext threadingContext, Shell.SVsServiceProvider serviceProvider)
+        {
+            var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
+
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var textManager = (IVsTextManager2)serviceProvider.GetService(typeof(SVsTextManager));
+            if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
+            {
+                ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);
+                PopulateSnippetCaches(token);
             }
         }
 
@@ -72,7 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (_expansionManager != null)
             {
-                PopulateSnippetCaches();
+                var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
+                PopulateSnippetCaches(token);
             }
 
             return VSConstants.S_OK;
@@ -109,11 +119,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public virtual bool ShouldFormatSnippet(SnippetInfo snippetInfo)
             => false;
 
-        private void PopulateSnippetCaches()
+        private void PopulateSnippetCaches(IAsyncToken token)
         {
             Debug.Assert(_expansionManager != null);
-
-            var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
+            AssertIsForeground();
 
             // In Dev14 Update2+ the platform always provides an IExpansion Manager
             var asyncExpansionManager = (IExpansionManager)_expansionManager;
