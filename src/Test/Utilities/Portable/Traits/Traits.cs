@@ -200,6 +200,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CompleteStatement = nameof(CompleteStatement);
             public const string Completion = nameof(Completion);
             public const string ConvertAutoPropertyToFullProperty = nameof(ConvertAutoPropertyToFullProperty);
+            public const string ConvertNameOf = nameof(ConvertNameOf);
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";
             public const string DebuggingDataTips = "Debugging.DataTips";
             public const string DebuggingEditAndContinue = "Debugging.EditAndContinue";
