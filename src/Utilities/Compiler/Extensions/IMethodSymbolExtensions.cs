@@ -70,7 +70,7 @@ namespace Analyzer.Utilities.Extensions
                    method.IsOverride &&
                    method.Name == WellKnownMemberNames.ObjectGetHashCode &&
                    method.ReturnType.SpecialType == SpecialType.System_Int32 &&
-                   method.Parameters.Length == 0 &&
+                   method.Parameters.IsEmpty &&
                    IsObjectMethodOverride(method);
         }
 
@@ -83,7 +83,7 @@ namespace Analyzer.Utilities.Extensions
                    method.IsOverride &&
                    method.ReturnType.SpecialType == SpecialType.System_String &&
                    method.Name == WellKnownMemberNames.ObjectToString &&
-                   method.Parameters.Length == 0 &&
+                   method.Parameters.IsEmpty &&
                    IsObjectMethodOverride(method);
         }
 
@@ -116,7 +116,7 @@ namespace Analyzer.Utilities.Extensions
                 return true; // for C#
             }
 
-            if (method.Name != WellKnownMemberNames.DestructorName || method.Parameters.Length != 0 || !method.ReturnsVoid)
+            if (method.Name != WellKnownMemberNames.DestructorName || !method.Parameters.IsEmpty || !method.ReturnsVoid)
             {
                 return false;
             }
@@ -180,7 +180,7 @@ namespace Analyzer.Utilities.Extensions
             // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
             // if it is the given method.
             return method.ReturnsVoid &&
-                method.Parameters.Length == 0 &&
+                method.Parameters.IsEmpty &&
                 method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
         }
 
@@ -228,6 +228,12 @@ namespace Analyzer.Utilities.Extensions
             return method.Name == "Close" && method.MethodKind == MethodKind.Ordinary &&
                 method.ReturnsVoid && method.Parameters.IsEmpty;
         }
+
+        /// <summary>
+        /// Checks if the given method has the signature "Task CloseAsync()".
+        /// </summary>
+        private static bool HasDisposeCloseAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol? taskType)
+            => taskType != null && method.Parameters.IsEmpty && method.Name == "CloseAsync" && method.ReturnType.Equals(taskType);
 
         /// <summary>
         /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()".
@@ -306,6 +312,10 @@ namespace Analyzer.Utilities.Extensions
                 else if (method.HasDisposeCloseMethodSignature())
                 {
                     return DisposeMethodKind.Close;
+                }
+                else if (method.HasDisposeCloseAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.CloseAsync;
                 }
             }
 
@@ -561,10 +571,12 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Returns true for void returning methods with two parameters, where
         /// the first parameter is of <see cref="object"/> type and the second
-        /// parameter inherits from or equals <see cref="EventArgs"/> type.
+        /// parameter inherits from or equals <see cref="EventArgs"/> type or
+        /// whose name ends with 'EventArgs'.
         /// </summary>
         public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
             => eventArgsType != null &&
+               method.ReturnsVoid &&
                method.Parameters.Length == 2 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
                // FxCop compat: Struct with name ending with "EventArgs" are allowed
@@ -578,7 +590,7 @@ namespace Analyzer.Utilities.Extensions
             return method.Name == "Enter" &&
                    method.ContainingType.Equals(systemThreadingMonitor) &&
                    method.ReturnsVoid &&
-                   method.Parameters.Length >= 1 &&
+                   !method.Parameters.IsEmpty &&
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
         }
 

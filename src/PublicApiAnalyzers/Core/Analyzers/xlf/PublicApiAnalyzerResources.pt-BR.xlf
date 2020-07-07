@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="needs-review-translation">Todos os tipos e membros públicos devem ser declarados com anotações de nulidade no PublicAPI.txt. Isso chama a atenção para as alterações de nulidade da API no histórico de revisões de código e de controle do código-fonte e ajuda a evitar alterações da falha.</target>
+        <target state="translated">Os arquivos PublicAPI.txt devem ter `#nullable enable` para controlar as informações de nulidade ou esse diagnóstico deve ser suprimido. Com a nulidade habilitada, o PublicAPI.txt registra quais tipos são anuláveis (sufixo `?` no tipo) ou não anuláveis (sufixo `!`). Ele também rastreia APIs que ainda estejam usando um tipo de referência inconsistente (prefixo `~` na linha).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -188,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">Anotar a nulidade de tipos e membros na API declarada</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Habilitar o acompanhamento de nulidade de tipos de referência na API declarada</target>
         <note />
       </trans-unit>
     </body>

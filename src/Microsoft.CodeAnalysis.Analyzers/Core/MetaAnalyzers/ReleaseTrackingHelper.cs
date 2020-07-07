@@ -415,9 +415,9 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
             public static readonly IComparer<Version> Instance = new ReverseComparer();
             private ReverseComparer() { }
 
-            public int Compare(Version x, Version y)
+            public int Compare([AllowNull] Version x, [AllowNull] Version y)
             {
-                return x.CompareTo(y) * -1;
+                return (x?.CompareTo(y)).GetValueOrDefault() * -1;
             }
         }
     }

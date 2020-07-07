@@ -125,7 +125,7 @@ namespace Analyzer.Utilities.UnitTests.Lightup
             TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor)
                 => throw new NotImplementedException();
 
-            public bool Equals(ISymbol other)
+            public bool Equals(ISymbol? other)
                 => throw new NotImplementedException();
 
             ImmutableArray<AttributeData> ISymbol.GetAttributes()

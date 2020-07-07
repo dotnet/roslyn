@@ -68,6 +68,13 @@ namespace Analyzer.Utilities
         public const string AdditionalStringFormattingMethods = "additional_string_formatting_methods";
 
         /// <summary>
+        /// Boolean option to enable heuristically detecting of additional string formatting methods for CA2241 (https://docs.microsoft.com/visualstudio/code-quality/ca2241).
+        /// A method is considered a string formatting method if it has a '<see cref="string"/> <c>format</c>' parameter followed by a <see langword="params"/> <see cref="object"/>[]' parameter.
+        /// The default value of this is <c>false</c>.
+        /// </summary>
+        public const string TryDetermineAdditionalStringFormattingMethodsAutomatically = "try_determine_additional_string_formatting_methods_automatically";
+
+        /// <summary>
         /// String option to configure names of symbols (separated by '|') that are excluded for analysis.
         /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303).
         /// Allowed method name formats:
@@ -175,5 +182,11 @@ namespace Analyzer.Utilities
         ///      with an optional "M:" prefix.
         /// </summary>
         public const string AdditionalUseResultsMethods = "additional_use_results_methods";
+
+        /// <summary>
+        /// String option to configure allowed suffixed (separated by '|').
+        /// Configurable rule: CA1711 (https://docs.microsoft.com/visualstudio/code-quality/ca1711).
+        /// </summary>
+        public const string AllowedSuffixes = "allowed_suffixes";
     }
 }

@@ -19,11 +19,13 @@ This can be done by:
 
 ## Nullable reference type support
 
-To enable support for [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references) add the following at the top of each `PublicAPI.*.txt` file:
+To enable support for [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references), make sure that you are using a Roslyn compiler version 3.5 (or newer) in your build process and then add the following at the top of each `PublicAPI.*.txt` file:
 
 ```xml
 #nullable enable
 ```
+
+One way of checking the version of your compiler is to add `#error version` in a source file, then looking at the error message output in your build logs.
 
 At that point, reference types in annotated code will need to be annotated with either a `?` (nullable) or a `!` (non-nullable). For instance, `C.AnnotatedMethod(string! nonNullableParameter, string? nullableParameter, int valueTypeParameter) -> void`.
 

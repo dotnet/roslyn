@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public abstract class AnalysisEntityDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisData : AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue>
+        where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
         where TAbstractAnalysisValue : IEquatable<TAbstractAnalysisValue>
@@ -29,8 +29,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected AnalysisEntityDataFlowOperationVisitor(TAnalysisContext analysisContext)
             : base(analysisContext)
         {
+            Debug.Assert(!analysisContext.PredicateAnalysis || SupportsPredicateAnalysis);
         }
 
+        protected virtual bool SupportsPredicateAnalysis => false;
         protected void AddTrackedEntities(HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false)
             => AddTrackedEntities(CurrentAnalysisData, builder, forInterproceduralAnalysis);
         protected abstract void AddTrackedEntities(TAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false);
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             foreach (var entity in allEntities)
             {
-                if (entity.Indices.Length > 0 &&
+                if (!entity.Indices.IsEmpty &&
                     entity.InstanceLocation.Equals(analysisEntity.InstanceLocation))
                 {
                     StopTrackingEntity(entity, analysisData);
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected sealed override void StopTrackingDataForParameters(ImmutableDictionary<IParameterSymbol, AnalysisEntity> parameterEntities)
         {
-            if (parameterEntities.Count > 0)
+            if (!parameterEntities.IsEmpty)
             {
                 var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
 
@@ -237,7 +239,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (AnalysisEntityFactory.TryCreate(target, out var targetAnalysisEntity))
             {
-                if (mayBeAssignment)
+                if (!HasCompletePointsToAnalysisResult &&
+                    targetAnalysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis())
+                {
+                    // We are not tracking points to values for fields and properties.
+                    // So, it is not possible to accurately track value changes to target entity which is a member.
+                    // Conservatively assume that the entity is assigned an unknown value.
+                    assignedValue = ValueDomain.UnknownOrMayBeValue;
+                }
+                else if (mayBeAssignment)
                 {
                     assignedValue = ValueDomain.Merge(GetAbstractValue(targetAnalysisEntity), assignedValue);
                 }
@@ -407,11 +417,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity)
         {
+            // PERF: If we do not have complete points to analysis data, then there cannot be any
+            // child entities for reference type entities.
+            if (!HasCompletePointsToAnalysisResult && analysisEntity.Type.IsReferenceType)
+            {
+                return ImmutableHashSet<AnalysisEntity>.Empty;
+            }
+
             return GetChildAnalysisEntities(analysisEntity.InstanceLocation, entity => IsChildAnalysisEntity(entity, analysisEntity));
         }
 
-        protected static IEnumerable<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity, HashSet<AnalysisEntity> allEntities)
+        private static IEnumerable<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity, HashSet<AnalysisEntity> allEntities)
         {
+            Debug.Assert(analysisEntity.Type.HasValueCopySemantics());
+
             foreach (var entity in allEntities)
             {
                 if (IsChildAnalysisEntity(entity, ancestorEntity: analysisEntity))
@@ -428,7 +447,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue? instanceLocationOpt)
-           => GetChildAnalysisEntities(instanceLocationOpt, predicateOpt: null);
+        {
+            return GetChildAnalysisEntities(instanceLocationOpt, predicateOpt: null);
+        }
 
         private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue? instanceLocationOpt, Func<AnalysisEntity, bool>? predicateOpt)
         {
@@ -461,43 +482,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return trackedEntitiesBuilder.ToImmutableAndFree();
         }
 
-        #endregion
-
-        #region Predicate analysis
-        protected override void UpdateReachability(BasicBlock basicBlock, TAnalysisData analysisData, bool isReachable)
-        {
-            Debug.Assert(PredicateAnalysis);
-            if (analysisData is AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue> predicatedData)
-            {
-                Debug.Assert(!isReachable || predicatedData.IsReachableBlockData);
-                predicatedData.IsReachableBlockData = isReachable;
-            }
-        }
-
-        protected override bool IsReachableBlockData(TAnalysisData analysisData)
-            => analysisData?.IsReachableBlockData ?? true;
-
-        protected sealed override void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, TAnalysisData? truePredicateData, TAnalysisData? falsePredicateData)
-                => CurrentAnalysisData?.StartTrackingPredicatedData(
-                        predicatedEntity,
-                        truePredicateData,
-                        falsePredicateData);
-        protected sealed override void StopTrackingPredicatedData(AnalysisEntity predicatedEntity)
-            => CurrentAnalysisData?.StopTrackingPredicatedData(predicatedEntity);
-        protected sealed override bool HasPredicatedDataForEntity(TAnalysisData analysisData, AnalysisEntity predicatedEntity)
-            => analysisData?.HasPredicatedDataForEntity(predicatedEntity) == true;
-        protected sealed override void TransferPredicatedData(AnalysisEntity fromEntity, AnalysisEntity toEntity)
-            => CurrentAnalysisData?.TransferPredicatedData(fromEntity, toEntity);
-        protected sealed override PredicateValueKind ApplyPredicatedDataForEntity(TAnalysisData analysisData, AnalysisEntity predicatedEntity, bool trueData)
-            => analysisData?.ApplyPredicatedDataForEntity(predicatedEntity, trueData) ?? PredicateValueKind.Unknown;
-        protected override void SetPredicateValueKind(IOperation operation, TAnalysisData analysisData, PredicateValueKind predicateValueKind)
-        {
-            base.SetPredicateValueKind(operation, analysisData, predicateValueKind);
-            if (predicateValueKind == PredicateValueKind.AlwaysFalse)
-            {
-                analysisData.IsReachableBlockData = false;
-            }
-        }
         #endregion
 
         #region Interprocedural analysis
@@ -579,14 +563,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         candidateEntitiesBuilder.ExceptWith(worklistEntities);
 
                         // Add child entities of worklistEntities to childWorklistEntities.
-                        foreach (var candidateEntity in candidateEntitiesBuilder)
+                        // PERF: We cannot have any child entities for PointsToAnalysis if we
+                        // not computing complete PointsToAnalysis data.
+                        if (HasCompletePointsToAnalysisResult || !IsPointsToAnalysis)
                         {
-                            foreach (var ancestorEntity in worklistEntities)
+                            foreach (var candidateEntity in candidateEntitiesBuilder)
                             {
-                                if (IsChildAnalysisEntity(candidateEntity, ancestorEntity))
+                                foreach (var ancestorEntity in worklistEntities)
                                 {
-                                    childWorklistEntities.Add(candidateEntity);
-                                    break;
+                                    if (IsChildAnalysisEntity(candidateEntity, ancestorEntity))
+                                    {
+                                        childWorklistEntities.Add(candidateEntity);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -597,15 +586,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     if (worklistPointsToValues.Count > 0)
                     {
                         // Add child entities which are accessible from PointsTo chain to childWorklistEntities.
-                        foreach (var candidateEntity in candidateEntitiesBuilder)
+                        // PERF: We cannot have any child entities for PointsToAnalysis if we
+                        // not computing complete PointsToAnalysis data.
+                        if (HasCompletePointsToAnalysisResult || !IsPointsToAnalysis)
                         {
-                            foreach (var pointsToValue in worklistPointsToValues)
+                            foreach (var candidateEntity in candidateEntitiesBuilder)
                             {
-                                Debug.Assert(ShouldProcessPointsToValue(pointsToValue));
-                                if (IsChildAnalysisEntity(candidateEntity, pointsToValue))
+                                foreach (var pointsToValue in worklistPointsToValues)
                                 {
-                                    childWorklistEntities.Add(candidateEntity);
-                                    break;
+                                    Debug.Assert(ShouldProcessPointsToValue(pointsToValue));
+                                    if (IsChildAnalysisEntity(candidateEntity, pointsToValue))
+                                    {
+                                        childWorklistEntities.Add(candidateEntity);
+                                        break;
+                                    }
                                 }
                             }
                         }

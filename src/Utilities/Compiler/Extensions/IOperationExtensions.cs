@@ -32,7 +32,7 @@ namespace Analyzer.Utilities.Extensions
                     GetReceiverType(invocation.Instance.Syntax, compilation, cancellationToken) :
                     invocation.Instance.Type as INamedTypeSymbol;
             }
-            else if (invocation.TargetMethod.IsExtensionMethod && invocation.TargetMethod.Parameters.Length > 0)
+            else if (invocation.TargetMethod.IsExtensionMethod && !invocation.TargetMethod.Parameters.IsEmpty)
             {
                 var firstArg = invocation.Arguments.FirstOrDefault();
                 if (firstArg != null)
@@ -512,6 +512,11 @@ namespace Analyzer.Utilities.Extensions
         {
             return pattern switch
             {
+#if CODEANALYSIS_V3_OR_BETTER
+                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                IRecursivePatternOperation recursivePattern => recursivePattern.MatchedType,
+                IDiscardPatternOperation discardPattern => discardPattern.InputType,
+#else
                 IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
                 {
                     ILocalSymbol local => local.Type,
@@ -520,7 +525,7 @@ namespace Analyzer.Utilities.Extensions
 
                     _ => null,
                 },
-
+#endif
                 IConstantPatternOperation constantPattern => constantPattern.Value.Type,
 
                 _ => null,
@@ -572,9 +577,24 @@ namespace Analyzer.Utilities.Extensions
             return invocationOperation.TargetMethod.IsExtensionMethod && (invocationOperation.Language != LanguageNames.VisualBasic || invocationOperation.Instance == null);
         }
 
-        public static SyntaxNode GetInstance(this IInvocationOperation invocationOperation)
+        public static IOperation? GetInstance(this IInvocationOperation invocationOperation)
+            => invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value : invocationOperation.Instance;
+
+        public static SyntaxNode? GetInstanceSyntax(this IInvocationOperation invocationOperation)
+            => invocationOperation.GetInstance()?.Syntax;
+
+        public static ITypeSymbol? GetInstanceType(this IOperation operation)
         {
-            return invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value.Syntax : invocationOperation.Instance.Syntax;
+            IOperation? instance = operation switch
+            {
+                IInvocationOperation invocation => invocation.GetInstance(),
+
+                IPropertyReferenceOperation propertyReference => propertyReference.Instance,
+
+                _ => throw new NotImplementedException()
+            };
+
+            return instance?.WalkDownConversion().Type;
         }
 
         public static ISymbol? GetReferencedMemberOrLocalOrParameter(this IOperation operation)
@@ -610,6 +630,16 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
+        public static IOperation WalkUpParentheses(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Parent;
+            }
+
+            return operation;
+        }
+
         /// <summary>
         /// Walks down consequtive conversion operations until an operand is reached that isn't a conversion operation.
         /// </summary>
@@ -620,6 +650,16 @@ namespace Analyzer.Utilities.Extensions
             while (operation is IConversionOperation conversionOperation)
             {
                 operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        public static IOperation WalkUpConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Parent;
             }
 
             return operation;

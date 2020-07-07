@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
+            PointsToAnalysisKind defaultPointsToAnalysisKind,
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
             CancellationToken cancellationToken,
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
                 disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor,
                 disposeOwnershipTransferAtMethodCall, trackInstanceFields, exceptionPathsAnalysis,
+                pointsToAnalysisKind: analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultPointsToAnalysisKind, cancellationToken),
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
                 excludedSymbols: analyzerOptions.GetExcludedSymbolNamesWithValueOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, cancellationToken),
                 out pointsToAnalysisResult);
@@ -78,6 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             bool disposeOwnershipTransferAtMethodCall,
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
+            PointsToAnalysisKind pointsToAnalysisKind,
             bool performCopyAnalysis,
             SymbolNamesWithValueOption<Unit> excludedSymbols,
             out PointsToAnalysisResult? pointsToAnalysisResult)
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable, out _));
 
             pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(
-                cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
+                cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, pointsToAnalysisKind, interproceduralAnalysisConfig,
                 interproceduralAnalysisPredicateOpt, PessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
             if (pointsToAnalysisResult == null)
             {

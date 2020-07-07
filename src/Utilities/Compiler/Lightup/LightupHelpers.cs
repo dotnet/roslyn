@@ -180,7 +180,7 @@ namespace Analyzer.Utilities.Lightup
             }
         }
 
-        private static bool TryGetProperty<T, TProperty>(Type? type, string propertyName, [NotNullWhen(true)] out PropertyInfo? propertyInfo)
+        private static bool TryGetProperty<T, TProperty>([NotNullWhen(true)] Type? type, string propertyName, [NotNullWhen(true)] out PropertyInfo? propertyInfo)
         {
             if (type is null)
             {
@@ -200,7 +200,7 @@ namespace Analyzer.Utilities.Lightup
             return true;
         }
 
-        private static bool TryGetMethod<T, TReturn>(Type? type, string methodName, [NotNullWhen(true)] out MethodInfo? methodInfo)
+        private static bool TryGetMethod<T, TReturn>([NotNullWhen(true)] Type? type, string methodName, [NotNullWhen(true)] out MethodInfo? methodInfo)
         {
             if (type is null)
             {

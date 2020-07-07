@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private static bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, out List<Diagnostic> errors)
         {
             errors = new List<Diagnostic>();
-            if (shippedData.RemovedApiList.Length > 0)
+            if (!shippedData.RemovedApiList.IsEmpty)
             {
                 errors.Add(Diagnostic.Create(PublicApiFilesInvalid, Location.None, InvalidReasonShippedCantHaveRemoved));
             }

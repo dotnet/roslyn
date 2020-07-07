@@ -366,6 +366,60 @@
             ]
           }
         },
+        "RS1031": {
+          "id": "RS1031",
+          "shortDescription": "Define diagnostic title correctly",
+          "fullDescription": "The diagnostic title should not contain a period or any line return character",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1032": {
+          "id": "RS1032",
+          "shortDescription": "Define diagnostic message correctly",
+          "fullDescription": "The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1033": {
+          "id": "RS1033",
+          "shortDescription": "Define diagnostic description correctly",
+          "fullDescription": "The diagnostic description should be one or multiple sentences ending with a punctuation sign.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
         "RS2000": {
           "id": "RS2000",
           "shortDescription": "Add analyzer diagnostic IDs to analyzer release.",

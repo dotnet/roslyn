@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             if (sourceText.Length == 0)
                 return string.Empty;
 
-            var lastLine = sourceText.Lines[sourceText.Lines.Count - 1];
+            var lastLine = sourceText.Lines[^1];
             return lastLine.Span.IsEmpty ? Environment.NewLine : string.Empty;
         }
 

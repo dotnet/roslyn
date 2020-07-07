@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -15,9 +14,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             foreach (ControlFlowBranch predecessorBranch in basicBlock.Predecessors)
             {
                 var branchWithInfo = new BranchWithInfo(predecessorBranch);
-                if (predecessorBranch.FinallyRegions.Length > 0)
+                if (!predecessorBranch.FinallyRegions.IsEmpty)
                 {
-                    var lastFinally = predecessorBranch.FinallyRegions[predecessorBranch.FinallyRegions.Length - 1];
+                    var lastFinally = predecessorBranch.FinallyRegions[^1];
                     yield return (predecessorBlock: cfg.Blocks[lastFinally.LastBlockOrdinal], branchWithInfo);
                 }
                 else
@@ -167,22 +166,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             => Math.Max(basicBlock.FallThroughSuccessor?.Destination?.Ordinal ?? -1,
                         basicBlock.ConditionalSuccessor?.Destination?.Ordinal ?? -1);
 
-        internal static IOperation? GetPreviousOperationInBlock(this BasicBlock basicBlock, IOperation operation)
+        internal static bool DominatesPredecessors(this BasicBlock? basicBlock)
         {
-            Debug.Assert(operation != null);
-
-            IOperation? previousOperation = null;
-            foreach (var currentOperation in basicBlock.Operations)
+            if (basicBlock == null ||
+                basicBlock.Predecessors.IsEmpty)
             {
-                if (operation == currentOperation)
-                {
-                    return previousOperation;
-                }
-
-                previousOperation = currentOperation;
+                return false;
             }
 
-            return null;
+            foreach (var predecessor in basicBlock.Predecessors)
+            {
+                if (!Dominates(predecessor.Source.ConditionalSuccessor, basicBlock) ||
+                    !Dominates(predecessor.Source.FallThroughSuccessor, basicBlock))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+
+            static bool Dominates(ControlFlowBranch? branch, BasicBlock basicBlock)
+            {
+                return branch?.Destination == null ||
+                    branch.Destination.Ordinal <= basicBlock.Ordinal;
+            }
         }
     }
 }

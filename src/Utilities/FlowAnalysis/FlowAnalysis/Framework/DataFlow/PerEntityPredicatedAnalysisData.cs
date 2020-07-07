@@ -6,6 +6,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     public abstract partial class PredicatedAnalysisData<TKey, TValue>
+        where TKey : notnull
     {
         /// <summary>
         /// Analysis data predicated by true/false value of an <see cref="AnalysisEntity"/>.

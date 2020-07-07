@@ -225,6 +225,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
+            public override ParameterValidationAbstractValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
+            {
+                var value = base.VisitReDimClause(operation, argument);
+                MarkValidatedLocations(operation.Operand);
+                return value;
+            }
+
             public override ParameterValidationAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
             {
                 var value = base.VisitObjectCreation(operation, argument);
@@ -279,8 +286,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                         MarkValidatedLocations(arguments[0]);
                     }
                 }
-                else if (targetMethod.Parameters.Length > 0 &&
-                         arguments.Length > 0 &&
+                else if (!targetMethod.Parameters.IsEmpty &&
+                         !arguments.IsEmpty &&
                          ExceptionNamedType != null &&
                          targetMethod.ContainingType.DerivesFrom(ExceptionNamedType))
                 {
@@ -319,7 +326,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     Debug.Assert(!targetMethod.IsVirtual && !targetMethod.IsOverride);
 
                     var hazardousParameterUsagesInInvokedMethod = invokedMethodAnalysisResult.HazardousParameterUsages;
-                    if (hazardousParameterUsagesInInvokedMethod.Count > 0)
+                    if (!hazardousParameterUsagesInInvokedMethod.IsEmpty)
                     {
                         foreach (var argument in arguments)
                         {
@@ -428,6 +435,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 // Mark a location as validated on paths where user has performed an IsNull check.
                 // See comments in VisitBinaryOperatorCore override above for further details.
                 MarkValidatedLocations(operation.Operand);
+
+                return value;
+            }
+
+            public override ParameterValidationAbstractValue VisitIsPattern(IIsPatternOperation operation, object? argument)
+            {
+                var value = base.VisitIsPattern(operation, argument);
+
+                // Mark a location as validated on false path where user has performed an IsPattern check with null on true path.
+                // See comments in VisitBinaryOperatorCore override above for further details.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
+                    GetNullAbstractValue(operation.Pattern) == NullAbstractValue.Null)
+                {
+                    MarkValidatedLocations(operation.Value);
+                }
 
                 return value;
             }

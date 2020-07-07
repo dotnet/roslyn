@@ -13,6 +13,7 @@ namespace Analyzer.Utilities.PooledObjects
     // Dictionary that can be recycled via an object pool
     // NOTE: these dictionaries always have the default comparer.
     internal sealed class PooledDictionary<K, V> : Dictionary<K, V>, IDisposable
+        where K : notnull
     {
         private readonly ObjectPool<PooledDictionary<K, V>>? _pool;
 

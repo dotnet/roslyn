@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Analyzer.Utilities.Extensions
@@ -208,8 +209,13 @@ namespace Analyzer.Utilities.Extensions
                 _compare = compare;
             }
 
-            public override int Compare(T x, T y)
+            public override int Compare([AllowNull] T x, [AllowNull] T y)
             {
+                if (x is null)
+                    return y is null ? 0 : -1;
+                else if (y is null)
+                    return 1;
+
                 return _compare(x, y);
             }
         }

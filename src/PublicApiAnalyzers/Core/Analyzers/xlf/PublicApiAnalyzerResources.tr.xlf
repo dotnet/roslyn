@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="needs-review-translation">Tüm genel türler ve üyeler PublicAPI.txt içinde null atanabilirlik ek açıklamalarıyla bildirilmelidir. Bu işlem, kod incelemeleri ve kaynak denetimi geçmişindeki API null atanabilirlik değişikliklerine dikkat çeker ve hataya neden olan değişikliklerin önlenmesine yardımcı olur.</target>
+        <target state="translated">PublicAPI.txt dosyalarında null değer alabilme bilgilerini izlemek için `#nullable enable` bulunmalıdır veya bu tanılama gizlenmelidir. Null değer alabilme etkin olduğunda, PublicAPI.txt, null değer alabilen (türde `?` soneki) veya null değer alamayan `!` türleri kaydeder Ayrıca, hala bir kayıtsız başvuru türünü (satırda `~` ön eki) kullanan tüm API'leri de izler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -188,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">Bildirilen API'deki türlerin ve üyelerin null atanabilirliğine not ekle</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Bildirilen API'de başvuru türlerinin null olduğunu izlemeyi etkinleştir</target>
         <note />
       </trans-unit>
     </body>
