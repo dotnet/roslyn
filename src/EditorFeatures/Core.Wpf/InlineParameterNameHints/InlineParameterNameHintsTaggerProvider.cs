@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// The provider that is used as a middleman to create the tagger so that the data tag
     /// can be used to create the UI tag
     /// </summary>
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(IntraTextAdornmentTag))]
     [Name(nameof(InlineParameterNameHintsTaggerProvider))]
-    internal class InlineParameterNameHintsTaggerProvider : ITaggerProvider
+    internal class InlineParameterNameHintsTaggerProvider : IViewTaggerProvider
     {
         private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
 
@@ -31,10 +31,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
         }
 
+        /*
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             var tagAggregator = _bufferTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(buffer);
             return new InlineParameterNameHintsTagger(buffer, tagAggregator) as ITagger<T>;
+        }
+        */
+
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        {
+            var tagAggregator = _bufferTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(buffer);
+            return new InlineParameterNameHintsTagger(textView, buffer, tagAggregator) as ITagger<T>;
         }
     }
 }

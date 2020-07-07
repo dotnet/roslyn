@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineParameterNameHints;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
 {
@@ -45,6 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
 
             foreach (var node in nodes)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return SpecializedCollections.EmptyEnumerable<InlineParameterHint>();
+                }
+
                 if (node is ArgumentSyntax argument)
                 {
                     if (argument.NameColon == null && IsExpressionWithNoName(argument.Expression))

@@ -936,4 +936,7 @@ Do you want to proceed?</value>
   <data name="external" xml:space="preserve">
     <value>(external)</value>
   </data>
+  <data name="Inline_Parameter_Name_Hints" xml:space="preserve">
+    <value>Inline Parameter Name Hints</value>
+  </data>
 </root>
