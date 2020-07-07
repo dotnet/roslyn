@@ -352,11 +352,11 @@ function_pointer_type
   ;
 
 function_pointer_calling_convention
-  : 'managed' function_pointer_unmanaged_calling_convention_syntax_list?
-  | 'unmanaged' function_pointer_unmanaged_calling_convention_syntax_list?
+  : 'managed' function_pointer_unmanaged_calling_convention_list?
+  | 'unmanaged' function_pointer_unmanaged_calling_convention_list?
   ;
 
-function_pointer_unmanaged_calling_convention_syntax_list
+function_pointer_unmanaged_calling_convention_list
   : '[' function_pointer_unmanaged_calling_convention (',' function_pointer_unmanaged_calling_convention)* ']'
   ;
 

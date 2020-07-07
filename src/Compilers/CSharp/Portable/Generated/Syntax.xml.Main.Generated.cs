@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionSyntaxList node.</summary>
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionListSyntax node.</summary>
         [return: MaybeNull]
-        public virtual TResult VisitFunctionPointerUnmanagedCallingConventionSyntaxList(FunctionPointerUnmanagedCallingConventionSyntaxList node) => this.DefaultVisit(node);
+        public virtual TResult VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionSyntax node.</summary>
         [return: MaybeNull]
@@ -974,8 +974,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a FunctionPointerCallingConventionSyntax node.</summary>
         public virtual void VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionSyntaxList node.</summary>
-        public virtual void VisitFunctionPointerUnmanagedCallingConventionSyntaxList(FunctionPointerUnmanagedCallingConventionSyntaxList node) => this.DefaultVisit(node);
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionListSyntax node.</summary>
+        public virtual void VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionSyntax node.</summary>
         public virtual void VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node) => this.DefaultVisit(node);
@@ -1665,9 +1665,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
 
         public override SyntaxNode? VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node)
-            => node.Update(VisitToken(node.ManagedSpecifier), (FunctionPointerUnmanagedCallingConventionSyntaxList?)Visit(node.UnmanagedCallingConventionList));
+            => node.Update(VisitToken(node.ManagedSpecifier), (FunctionPointerUnmanagedCallingConventionListSyntax?)Visit(node.UnmanagedCallingConventionList));
 
-        public override SyntaxNode? VisitFunctionPointerUnmanagedCallingConventionSyntaxList(FunctionPointerUnmanagedCallingConventionSyntaxList node)
+        public override SyntaxNode? VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node)
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.CallingConventions), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode? VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node)
@@ -2485,7 +2485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
         /// <summary>Creates a new FunctionPointerCallingConventionSyntax instance.</summary>
-        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList)
+        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
         {
             switch (managedSpecifier.Kind())
             {
@@ -2493,24 +2493,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnmanagedKeyword: break;
                 default: throw new ArgumentException(nameof(managedSpecifier));
             }
-            return (FunctionPointerCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerCallingConvention((Syntax.InternalSyntax.SyntaxToken)managedSpecifier.Node!, unmanagedCallingConventionList == null ? null : (Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntaxList)unmanagedCallingConventionList.Green).CreateRed();
+            return (FunctionPointerCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerCallingConvention((Syntax.InternalSyntax.SyntaxToken)managedSpecifier.Node!, unmanagedCallingConventionList == null ? null : (Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)unmanagedCallingConventionList.Green).CreateRed();
         }
 
         /// <summary>Creates a new FunctionPointerCallingConventionSyntax instance.</summary>
         public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier)
             => SyntaxFactory.FunctionPointerCallingConvention(managedSpecifier, default);
 
-        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionSyntaxList instance.</summary>
-        public static FunctionPointerUnmanagedCallingConventionSyntaxList FunctionPointerUnmanagedCallingConventionSyntaxList(SyntaxToken openBracketToken, SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, SyntaxToken closeBracketToken)
+        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionListSyntax instance.</summary>
+        public static FunctionPointerUnmanagedCallingConventionListSyntax FunctionPointerUnmanagedCallingConventionList(SyntaxToken openBracketToken, SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, SyntaxToken closeBracketToken)
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            return (FunctionPointerUnmanagedCallingConventionSyntaxList)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, callingConventions.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
+            return (FunctionPointerUnmanagedCallingConventionListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConventionList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, callingConventions.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
-        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionSyntaxList instance.</summary>
-        public static FunctionPointerUnmanagedCallingConventionSyntaxList FunctionPointerUnmanagedCallingConventionSyntaxList(SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions = default)
-            => SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), callingConventions, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionListSyntax instance.</summary>
+        public static FunctionPointerUnmanagedCallingConventionListSyntax FunctionPointerUnmanagedCallingConventionList(SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions = default)
+            => SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), callingConventions, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionSyntax instance.</summary>
         public static FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken name)

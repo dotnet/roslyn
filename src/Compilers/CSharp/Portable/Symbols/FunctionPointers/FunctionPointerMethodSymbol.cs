@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return CallingConvention.Default;
                 }
 
-                static bool isCallingConvention(FunctionPointerUnmanagedCallingConventionSyntaxList specifiers, string expected)
+                static bool isCallingConvention(FunctionPointerUnmanagedCallingConventionListSyntax specifiers, string expected)
                     => specifiers.CallingConventions[0].Name.Text == expected;
             }
         }

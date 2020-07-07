@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Function pointer calling convention syntax.</summary>
     public sealed partial class FunctionPointerCallingConventionSyntax : CSharpSyntaxNode
     {
-        private FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList;
+        private FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList;
 
         internal FunctionPointerCallingConventionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SyntaxToken ManagedSpecifier => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)this.Green).managedSpecifier, Position, 0);
 
         /// <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
-        public FunctionPointerUnmanagedCallingConventionSyntaxList? UnmanagedCallingConventionList => GetRed(ref this.unmanagedCallingConventionList, 1);
+        public FunctionPointerUnmanagedCallingConventionListSyntax? UnmanagedCallingConventionList => GetRed(ref this.unmanagedCallingConventionList, 1);
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.unmanagedCallingConventionList, 1) : null;
 
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerCallingConvention(this);
 
-        public FunctionPointerCallingConventionSyntax Update(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList)
+        public FunctionPointerCallingConventionSyntax Update(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
         {
             if (managedSpecifier != this.ManagedSpecifier || unmanagedCallingConventionList != this.UnmanagedCallingConventionList)
             {
@@ -617,27 +617,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         public FunctionPointerCallingConventionSyntax WithManagedSpecifier(SyntaxToken managedSpecifier) => Update(managedSpecifier, this.UnmanagedCallingConventionList);
-        public FunctionPointerCallingConventionSyntax WithUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventionList) => Update(this.ManagedSpecifier, unmanagedCallingConventionList);
+        public FunctionPointerCallingConventionSyntax WithUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList) => Update(this.ManagedSpecifier, unmanagedCallingConventionList);
 
         public FunctionPointerCallingConventionSyntax AddUnmanagedCallingConventionListCallingConventions(params FunctionPointerUnmanagedCallingConventionSyntax[] items)
         {
-            var unmanagedCallingConventionList = this.UnmanagedCallingConventionList ?? SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList();
+            var unmanagedCallingConventionList = this.UnmanagedCallingConventionList ?? SyntaxFactory.FunctionPointerUnmanagedCallingConventionList();
             return WithUnmanagedCallingConventionList(unmanagedCallingConventionList.WithCallingConventions(unmanagedCallingConventionList.CallingConventions.AddRange(items)));
         }
     }
 
     /// <summary>Function pointer calling convention syntax.</summary>
-    public sealed partial class FunctionPointerUnmanagedCallingConventionSyntaxList : CSharpSyntaxNode
+    public sealed partial class FunctionPointerUnmanagedCallingConventionListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? callingConventions;
 
-        internal FunctionPointerUnmanagedCallingConventionSyntaxList(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+        internal FunctionPointerUnmanagedCallingConventionListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
 
         /// <summary>SyntaxToken representing open bracket.</summary>
-        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntaxList)this.Green).openBracketToken, Position, 0);
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).openBracketToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of calling convention identifiers.</summary>
         public SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> CallingConventions
@@ -650,21 +650,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing close bracket.</summary>
-        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntaxList)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.callingConventions, 1)! : null;
 
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.callingConventions : null;
 
-        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerUnmanagedCallingConventionSyntaxList(this);
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerUnmanagedCallingConventionList(this);
         [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerUnmanagedCallingConventionSyntaxList(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerUnmanagedCallingConventionList(this);
 
-        public FunctionPointerUnmanagedCallingConventionSyntaxList Update(SyntaxToken openBracketToken, SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, SyntaxToken closeBracketToken)
+        public FunctionPointerUnmanagedCallingConventionListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, SyntaxToken closeBracketToken)
         {
             if (openBracketToken != this.OpenBracketToken || callingConventions != this.CallingConventions || closeBracketToken != this.CloseBracketToken)
             {
-                var newNode = SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList(openBracketToken, callingConventions, closeBracketToken);
+                var newNode = SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(openBracketToken, callingConventions, closeBracketToken);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -672,11 +672,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public FunctionPointerUnmanagedCallingConventionSyntaxList WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.CallingConventions, this.CloseBracketToken);
-        public FunctionPointerUnmanagedCallingConventionSyntaxList WithCallingConventions(SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions) => Update(this.OpenBracketToken, callingConventions, this.CloseBracketToken);
-        public FunctionPointerUnmanagedCallingConventionSyntaxList WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.CallingConventions, closeBracketToken);
+        public FunctionPointerUnmanagedCallingConventionListSyntax WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.CallingConventions, this.CloseBracketToken);
+        public FunctionPointerUnmanagedCallingConventionListSyntax WithCallingConventions(SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions) => Update(this.OpenBracketToken, callingConventions, this.CloseBracketToken);
+        public FunctionPointerUnmanagedCallingConventionListSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.CallingConventions, closeBracketToken);
 
-        public FunctionPointerUnmanagedCallingConventionSyntaxList AddCallingConventions(params FunctionPointerUnmanagedCallingConventionSyntax[] items) => WithCallingConventions(this.CallingConventions.AddRange(items));
+        public FunctionPointerUnmanagedCallingConventionListSyntax AddCallingConventions(params FunctionPointerUnmanagedCallingConventionSyntax[] items) => WithCallingConventions(this.CallingConventions.AddRange(items));
     }
 
     /// <summary>Individual function pointer unmanaged calling convention.</summary>

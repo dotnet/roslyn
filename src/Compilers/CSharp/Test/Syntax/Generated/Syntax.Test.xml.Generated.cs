@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax GenerateFunctionPointerCallingConvention()
             => InternalSyntaxFactory.FunctionPointerCallingConvention(InternalSyntaxFactory.Token(SyntaxKind.ManagedKeyword), null);
 
-        private static Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntaxList GenerateFunctionPointerUnmanagedCallingConventionSyntaxList()
-            => InternalSyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+        private static Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax GenerateFunctionPointerUnmanagedCallingConventionList()
+            => InternalSyntaxFactory.FunctionPointerUnmanagedCallingConventionList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax GenerateFunctionPointerUnmanagedCallingConvention()
             => InternalSyntaxFactory.FunctionPointerUnmanagedCallingConvention(InternalSyntaxFactory.Identifier("Name"));
@@ -840,9 +840,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionSyntaxListFactoryAndProperties()
+        public void TestFunctionPointerUnmanagedCallingConventionListFactoryAndProperties()
         {
-            var node = GenerateFunctionPointerUnmanagedCallingConventionSyntaxList();
+            var node = GenerateFunctionPointerUnmanagedCallingConventionList();
 
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
             Assert.Equal(default, node.CallingConventions);
@@ -3962,9 +3962,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionSyntaxListTokenDeleteRewriter()
+        public void TestFunctionPointerUnmanagedCallingConventionListTokenDeleteRewriter()
         {
-            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionSyntaxList();
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -3978,9 +3978,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionSyntaxListIdentityRewriter()
+        public void TestFunctionPointerUnmanagedCallingConventionListIdentityRewriter()
         {
-            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionSyntaxList();
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -9668,10 +9668,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.Token(SyntaxKind.LessThanToken), new SeparatedSyntaxList<FunctionPointerParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
         private static FunctionPointerCallingConventionSyntax GenerateFunctionPointerCallingConvention()
-            => SyntaxFactory.FunctionPointerCallingConvention(SyntaxFactory.Token(SyntaxKind.ManagedKeyword), default(FunctionPointerUnmanagedCallingConventionSyntaxList));
+            => SyntaxFactory.FunctionPointerCallingConvention(SyntaxFactory.Token(SyntaxKind.ManagedKeyword), default(FunctionPointerUnmanagedCallingConventionListSyntax));
 
-        private static FunctionPointerUnmanagedCallingConventionSyntaxList GenerateFunctionPointerUnmanagedCallingConventionSyntaxList()
-            => SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+        private static FunctionPointerUnmanagedCallingConventionListSyntax GenerateFunctionPointerUnmanagedCallingConventionList()
+            => SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static FunctionPointerUnmanagedCallingConventionSyntax GenerateFunctionPointerUnmanagedCallingConvention()
             => SyntaxFactory.FunctionPointerUnmanagedCallingConvention(SyntaxFactory.Identifier("Name"));
@@ -10464,9 +10464,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionSyntaxListFactoryAndProperties()
+        public void TestFunctionPointerUnmanagedCallingConventionListFactoryAndProperties()
         {
-            var node = GenerateFunctionPointerUnmanagedCallingConventionSyntaxList();
+            var node = GenerateFunctionPointerUnmanagedCallingConventionList();
 
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
             Assert.Equal(default, node.CallingConventions);
@@ -13586,9 +13586,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionSyntaxListTokenDeleteRewriter()
+        public void TestFunctionPointerUnmanagedCallingConventionListTokenDeleteRewriter()
         {
-            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionSyntaxList();
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -13602,9 +13602,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestFunctionPointerUnmanagedCallingConventionSyntaxListIdentityRewriter()
+        public void TestFunctionPointerUnmanagedCallingConventionListIdentityRewriter()
         {
-            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionSyntaxList();
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

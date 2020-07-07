@@ -283,13 +283,13 @@
         <summary>SyntaxToken representing whether the calling convention is managed or unmanaged.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="UnmanagedCallingConventionList" Type="FunctionPointerUnmanagedCallingConventionSyntaxList" Optional="true">
+    <Field Name="UnmanagedCallingConventionList" Type="FunctionPointerUnmanagedCallingConventionListSyntax" Optional="true">
       <PropertyComment>
         <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
       </PropertyComment>
     </Field>
   </Node>
-  <Node Name="FunctionPointerUnmanagedCallingConventionSyntaxList" Base="CSharpSyntaxNode">
+  <Node Name="FunctionPointerUnmanagedCallingConventionListSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
       <summary>Function pointer calling convention syntax.</summary>
     </TypeComment>

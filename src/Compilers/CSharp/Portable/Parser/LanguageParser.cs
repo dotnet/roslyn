@@ -7034,7 +7034,7 @@ done:;
                             return null;
                     }
 
-                    FunctionPointerUnmanagedCallingConventionSyntaxList? unmanagedCallingConventions = null;
+                    FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventions = null;
                     if (CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                     {
                         var openBracket = EatToken(SyntaxKind.OpenBracketToken);
@@ -7059,7 +7059,7 @@ done:;
 
                             var closeBracket = EatToken(SyntaxKind.CloseBracketToken);
 
-                            unmanagedCallingConventions = SyntaxFactory.FunctionPointerUnmanagedCallingConventionSyntaxList(openBracket, callingConventionModifiers, closeBracket);
+                            unmanagedCallingConventions = SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(openBracket, callingConventionModifiers, closeBracket);
                         }
                         finally
                         {
