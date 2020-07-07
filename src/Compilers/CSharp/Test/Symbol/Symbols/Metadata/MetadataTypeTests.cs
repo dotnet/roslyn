@@ -140,12 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(type1.IsVirtual);
             Assert.False(type1.IsOverride);
 
-            // 4 nested types, 64 members overall
-            Assert.Equal(64, type1.GetMembers().Length);
-            Assert.Equal(4, type1.GetTypeMembers().Length);
+            // 4 nested types, 67 members overall
+            Assert.Equal(67, type1.GetMembers().Length);
+            Assert.Equal(3, type1.GetTypeMembers().Length);
             // IDictionary<TKey, TValue>, ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, 
             // IDictionary, ICollection, IEnumerable, ISerializable, IDeserializationCallback
-            Assert.Equal(8, type1.Interfaces().Length);
+            Assert.Equal(10, type1.Interfaces().Length);
 
             var fullName = "System.Collections.Generic.Dictionary<TKey, TValue>";
             // Internal Assert.Equal(fullName, class1.GetFullNameWithoutGenericArgs());
@@ -252,17 +252,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE")]
         public void MetadataArrayTypeSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef },
+            var compilation = CreateEmptyCompilation(text, new[] { Net40.mscorlib, Net40.SystemCore },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
-            Assert.Equal("mscorlib", mscorNS.Name);
-            var ns1 = mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
+            var systemCoreLib = compilation.ExternalReferences[1];
+            var systemCoreNS = compilation.GetReferencedAssemblySymbol(systemCoreLib);
+            Assert.Equal("System.Core", systemCoreNS.Name);
+            var ns1 = systemCoreNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("Diagnostics").Single() as NamespaceSymbol;
             var ns3 = ns2.GetMembers("Eventing").Single() as NamespaceSymbol;
 

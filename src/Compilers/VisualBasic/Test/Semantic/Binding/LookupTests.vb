@@ -1608,7 +1608,7 @@ Imports Undefined
 
         <Fact()>
         Public Sub AmbiguousNamespaces_01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilation(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1620,7 +1620,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, {SystemWindowsFormsRef})
+</compilation>, references:={Net451.mscorlib, Net451.System, Net451.MicrosoftVisualBasic, Net451.SystemWindowsForms})
 
             CompilationUtils.AssertNoDiagnostics(compilation)
 
@@ -1633,7 +1633,7 @@ End Module
 
             Dim ns = DirectCast(info.Symbol, NamespaceSymbol)
 
-            Assert.Equal(NamespaceKind.Compilation, ns.NamespaceKind)
+            Assert.Equal(NamespaceKind.Module, ns.NamespaceKind)
             Assert.Equal("System.ComponentModel", ns.ToTestDisplayString())
 
             Assert.Equal({"System.ComponentModel", "System.Windows.Forms.ComponentModel"},
