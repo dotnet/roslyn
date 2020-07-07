@@ -1858,6 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DoesNotOverrideMethodFromObject = 8869,
         ERR_SealedGetHashCodeInRecord = 8870,
         ERR_DoesNotOverrideBaseEquals = 8871,
+        ERR_CloneDisallowedInRecord = 8872,
 
         #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

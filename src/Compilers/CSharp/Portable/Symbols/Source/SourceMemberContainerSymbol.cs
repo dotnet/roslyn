@@ -1371,6 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckMemberNamesDistinctFromType(diagnostics);
             CheckMemberNameConflicts(diagnostics);
+            CheckRecordMemberNames(diagnostics);
             CheckSpecialMemberErrors(diagnostics);
             CheckTypeParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
@@ -1448,6 +1449,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in GetMembersAndInitializers().NonTypeNonIndexerMembers)
             {
                 CheckMemberNameDistinctFromType(member, diagnostics);
+            }
+        }
+
+        private void CheckRecordMemberNames(DiagnosticBag diagnostics)
+        {
+            if (declaration.Kind != DeclarationKind.Record)
+            {
+                return;
+            }
+
+            Dictionary<string, ImmutableArray<Symbol>> membersByName = GetMembersByName();
+            if (membersByName.TryGetValue("Clone", out var members))
+            {
+                foreach (var member in members)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CloneDisallowedInRecord, member.Locations[0]);
+                }
             }
         }
 
@@ -3008,7 +3026,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             otherEqualsMethods.Free();
             memberSignatures.Free();
-
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
