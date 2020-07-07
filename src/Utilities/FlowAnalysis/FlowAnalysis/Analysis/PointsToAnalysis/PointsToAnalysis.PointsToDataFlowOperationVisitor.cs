@@ -765,6 +765,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return VisitTypeCreationWithArgumentsAndInitializer(operation, argument, base.VisitAnonymousObjectCreation);
             }
 
+            public override PointsToAbstractValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
+            {
+                if (operation.Operand.Type == null)
+                {
+                    return base.VisitReDimClause(operation, argument);
+                }
+
+                AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, operation.Operand.Type, DataFlowAnalysisContext);
+                var pointsToAbstractValue = PointsToAbstractValue.Create(location, mayBeNull: false);
+                CacheAbstractValue(operation, pointsToAbstractValue);
+
+                _ = base.VisitReDimClause(operation, argument);
+
+                return pointsToAbstractValue;
+            }
+
             public override PointsToAbstractValue VisitTuple(ITupleOperation operation, object? argument)
             {
                 var type = operation.Type.GetUnderlyingValueTupleTypeOrThis();

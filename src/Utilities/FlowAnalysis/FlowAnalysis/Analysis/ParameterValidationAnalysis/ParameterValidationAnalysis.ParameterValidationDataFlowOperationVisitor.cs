@@ -225,6 +225,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return value;
             }
 
+            public override ParameterValidationAbstractValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
+            {
+                var value = base.VisitReDimClause(operation, argument);
+                MarkValidatedLocations(operation.Operand);
+                return value;
+            }
+
             public override ParameterValidationAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object? argument)
             {
                 var value = base.VisitObjectCreation(operation, argument);
