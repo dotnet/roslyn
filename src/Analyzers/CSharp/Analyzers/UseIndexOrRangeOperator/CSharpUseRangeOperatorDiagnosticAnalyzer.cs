@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
-
             // See if we have: (start, end - start).  Specifically where the start operation it the
             // same as the right side of the subtraction.
             var startOperation = invocation.Arguments[0].Value;
