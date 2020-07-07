@@ -31,7 +31,7 @@
         <NgenArchitecture>X86</NgenArchitecture>
         <NgenApplication>/InteractiveHost/Desktop/InteractiveHost32.exe</NgenApplication>
       </_PublishProjectOutputGroup>
-      <_PublishProjectOutputGroup Include="$(TargetPath).config" />
+      <_PublishProjectOutputGroup Include="$(TargetPath).config" TargetPath="$(TargetFileName).config"/>
     </ItemGroup>
   </Target>
 </Project>
