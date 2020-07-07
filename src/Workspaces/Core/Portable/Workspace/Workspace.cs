@@ -1424,7 +1424,7 @@ namespace Microsoft.CodeAnalysis
 
             // todo: The underlying OnProjectNameChanged method also optionally changes the FilePath.
             // should that be checked here too?
-            if (projectChanges.OldProject.Name != projectChanges.NewProject.Name) 
+            if (projectChanges.OldProject.Name != projectChanges.NewProject.Name)
             {
                 var newFilePath = projectChanges.NewProject.FilePath ?? projectChanges.OldProject.FilePath;
                 this.ApplyProjectNameChanged(projectChanges.OldProject.Id, projectChanges.NewProject.Name, newFilePath);
@@ -1665,7 +1665,7 @@ namespace Microsoft.CodeAnalysis
             this.OnProjectRemoved(projectId);
         }
 
-        protected virtual void ApplyProjectNameChanged(ProjectId projectId, string name, string? filePath) 
+        protected virtual void ApplyProjectNameChanged(ProjectId projectId, string name, string? filePath)
         {
             // todo: there's no ApplyChangesKind. Should it be added?
 
