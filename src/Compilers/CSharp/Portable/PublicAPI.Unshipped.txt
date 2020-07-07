@@ -107,7 +107,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointer
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterList node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerUnmanagedCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerUnmanagedCallingConventionListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerUnmanagedCallingConventionList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitPrimaryConstructorBaseType(Microsoft.CodeAnalysis.CSharp.Syntax.PrimaryConstructorBaseTypeSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitRecordDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerCallingConventionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -277,7 +277,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerPa
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerParameterList node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerUnmanagedCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax node) -> void
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerUnmanagedCallingConventionListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerUnmanagedCallingConventionList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitPrimaryConstructorBaseType(Microsoft.CodeAnalysis.CSharp.Syntax.PrimaryConstructorBaseTypeSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitRecordDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax node) -> void
@@ -297,6 +297,9 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithExpression(Microsoft.Code
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseTypeName(string text, int offset = 0, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitBinaryPattern(Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitImplicitObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax node) -> void
@@ -306,7 +309,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitUnaryPattern(Micr
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitBinaryPattern(Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerUnmanagedCallingConvention(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionSyntax node) -> TResult
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerUnmanagedCallingConventionListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerUnmanagedCallingConventionList(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerUnmanagedCallingConventionListSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitImplicitObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitPrimaryConstructorBaseType(Microsoft.CodeAnalysis.CSharp.Syntax.PrimaryConstructorBaseTypeSyntax node) -> TResult

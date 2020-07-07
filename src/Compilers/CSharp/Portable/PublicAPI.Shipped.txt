@@ -1721,11 +1721,8 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax.WithParameters(Microsof
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Default.get -> Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
-Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax default) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax.WithDefault(Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax default) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax

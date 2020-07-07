@@ -1682,9 +1682,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordKeyword:
                     return "record";
                 case SyntaxKind.ManagedKeyword:
-                    return "managed"; 
+                    return "managed";
                 case SyntaxKind.UnmanagedKeyword:
-                    return "unmanaged"; 
+                    return "unmanaged";
                 default:
                     return string.Empty;
             }
