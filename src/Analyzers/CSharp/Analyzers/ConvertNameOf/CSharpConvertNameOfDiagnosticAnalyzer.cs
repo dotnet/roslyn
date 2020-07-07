@@ -78,12 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
             {
                 return false;
             }
-
-            // Check if it's a primitive type
-            if (!(((ITypeSymbol)(typeofOperation.TypeOperand)).SpecialType.ToPredefinedType() is PredefinedType.None))
-            {
-                return false;
-            }
             return true;
         }
     }
