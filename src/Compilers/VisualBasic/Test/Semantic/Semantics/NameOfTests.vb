@@ -3652,13 +3652,13 @@ Module Module1
     End Sub
     Async Function M() As Task
         Console.WriteLine(NameOf(M))
-        Await Task.Delay(0)
+        Await Task.CompletedTask
     End Function
 End Module
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.DebugExe)
+            Dim comp = CreateCompilation(compilationDef, options:=TestOptions.DebugExe)
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
 M
