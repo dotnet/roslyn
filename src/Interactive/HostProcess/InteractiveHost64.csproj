@@ -26,7 +26,16 @@
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
       <_PublishedFiles Include="$(PublishDir)**\*.*" />
-      <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
+      <_PublishedFiles TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
+
+      <_PublishedFiles Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">        
+        <Ngen Condition="'%(Extension)' == '.dll' or '%(Extension)' == '.exe'">true</Ngen>
+        <NgenPriority>3</NgenPriority>
+        <NgenArchitecture Condition="'%(Filename)' != 'InteractiveHost64'">All</NgenArchitecture>
+        <NgenArchitecture Condition="'%(Filename)' == 'InteractiveHost64'">X64</NgenArchitecture>
+        <NgenApplication>/InteractiveHost/Desktop/InteractiveHost64.exe</NgenApplication>
+      </_PublishedFiles>
     </ItemGroup>
   </Target>
 </Project>

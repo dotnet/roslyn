@@ -24,8 +24,14 @@
   -->
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="BuiltProjectOutputGroup" Returns="@(_PublishProjectOutputGroup)">
     <ItemGroup>
-      <_PublishProjectOutputGroup Include="$(TargetPath)" TargetPath="$(TargetFileName)"/>
-      <_PublishProjectOutputGroup Include="$(TargetPath).config" TargetPath="$(TargetFileName).config"/>
+      <_PublishProjectOutputGroup Include="$(TargetPath)">
+        <TargetPath>$(TargetFileName)</TargetPath>
+        <Ngen>true</Ngen>
+        <NgenPriority>3</NgenPriority>
+        <NgenArchitecture>X86</NgenArchitecture>
+        <NgenApplication>/InteractiveHost/Desktop/InteractiveHost32.exe</NgenApplication>
+      </_PublishProjectOutputGroup>
+      <_PublishProjectOutputGroup Include="$(TargetPath).config" />
     </ItemGroup>
   </Target>
 </Project>
