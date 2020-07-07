@@ -6401,11 +6401,13 @@ done:
 
             if (CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
+                var peek1 = PeekToken(1);
                 switch (CurrentToken)
                 {
                     case { ContextualKind: SyntaxKind.ManagedKeyword }:
                     case { ContextualKind: SyntaxKind.UnmanagedKeyword }:
-                    case var _ when PeekToken(1).Kind == SyntaxKind.OpenBracketToken:
+                    case var _ when IsPossibleFunctionPointerParameterListStart(peek1):
+                    case var _ when peek1.Kind == SyntaxKind.OpenBracketToken:
                         lastTokenOfType = EatToken();
                         break;
 
@@ -7008,6 +7010,7 @@ done:;
                 if (CurrentToken.Kind == SyntaxKind.IdentifierToken)
                 {
                     SyntaxToken managedSpecifier;
+                    SyntaxToken peek1 = PeekToken(1);
                     switch (CurrentToken)
                     {
                         case { ContextualKind: SyntaxKind.ManagedKeyword }:
@@ -7015,7 +7018,12 @@ done:;
                             managedSpecifier = EatContextualToken(CurrentToken.ContextualKind);
                             break;
 
-                        case var _ when PeekToken(1).Kind == SyntaxKind.OpenBracketToken:
+                        case var _ when IsPossibleFunctionPointerParameterListStart(peek1):
+                            // If there's a possible parameter list next, treat this as a bad identifier that should have been managed or unmanaged
+                            managedSpecifier = EatTokenAsKind(SyntaxKind.ManagedKeyword);
+                            break;
+
+                        case var _ when peek1.Kind == SyntaxKind.OpenBracketToken:
                             // If there's an open brace next, treat this as a bad identifier that should have been unmanaged
                             managedSpecifier = EatTokenAsKind(SyntaxKind.UnmanagedKeyword);
                             break;

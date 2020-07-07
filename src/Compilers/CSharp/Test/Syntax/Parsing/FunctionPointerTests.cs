@@ -337,6 +337,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
+        public void InvalidConventionFollowedByTypeArguments()
+        {
+            UsingStatement("delegate* invalid<void> ptr;", options: TestOptions.RegularPreview,
+                // (1,11): error CS1003: Syntax error, 'managed' expected
+                // delegate* invalid<void>
+                Diagnostic(ErrorCode.ERR_SyntaxError, "invalid").WithArguments("managed", "").WithLocation(1, 11));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        M(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            M(SyntaxKind.ManagedKeyword);
+                        }
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ptr");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void EmptyUnmanagedSpecifierBraces()
         {
             UsingStatement("delegate* unmanaged[]<void> ptr;", options: TestOptions.RegularPreview,
