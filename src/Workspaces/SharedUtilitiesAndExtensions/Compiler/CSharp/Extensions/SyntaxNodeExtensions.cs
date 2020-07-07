@@ -373,19 +373,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         /// <summary>
-        /// Returns if <paramref name="node"/> is a member access to the .Name attribute of a type.
-        /// </summary>
-        public static bool IsNameMemberAccess(this SyntaxNode node)
-        {
-            if (node != null && node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-            {
-                var name = ((MemberAccessExpressionSyntax)node).Name;
-                return name.Identifier.ValueText == "Name";
-            }
-            return false;
-        }
-
-        /// <summary>
         /// Returns the list of using directives that affect <paramref name="node"/>. The list will be returned in
         /// top down order.  
         /// </summary>
