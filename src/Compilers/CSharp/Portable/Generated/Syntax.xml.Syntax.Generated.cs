@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class FunctionPointerTypeSyntax : TypeSyntax
     {
         private FunctionPointerCallingConventionSyntax? callingConvention;
-        private FunctionPointerParameterList? parameterList;
+        private FunctionPointerParameterListSyntax? parameterList;
 
         internal FunctionPointerTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FunctionPointerCallingConventionSyntax? CallingConvention => GetRed(ref this.callingConvention, 2);
 
         /// <summary>List of the parameter types and return type of the function pointer.</summary>
-        public FunctionPointerParameterList ParameterList => GetRed(ref this.parameterList, 3)!;
+        public FunctionPointerParameterListSyntax ParameterList => GetRed(ref this.parameterList, 3)!;
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerType(this);
 
-        public FunctionPointerTypeSyntax Update(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList)
+        public FunctionPointerTypeSyntax Update(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterListSyntax parameterList)
         {
             if (delegateKeyword != this.DelegateKeyword || asteriskToken != this.AsteriskToken || callingConvention != this.CallingConvention || parameterList != this.ParameterList)
             {
@@ -522,23 +522,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FunctionPointerTypeSyntax WithDelegateKeyword(SyntaxToken delegateKeyword) => Update(delegateKeyword, this.AsteriskToken, this.CallingConvention, this.ParameterList);
         public FunctionPointerTypeSyntax WithAsteriskToken(SyntaxToken asteriskToken) => Update(this.DelegateKeyword, asteriskToken, this.CallingConvention, this.ParameterList);
         public FunctionPointerTypeSyntax WithCallingConvention(FunctionPointerCallingConventionSyntax? callingConvention) => Update(this.DelegateKeyword, this.AsteriskToken, callingConvention, this.ParameterList);
-        public FunctionPointerTypeSyntax WithParameterList(FunctionPointerParameterList parameterList) => Update(this.DelegateKeyword, this.AsteriskToken, this.CallingConvention, parameterList);
+        public FunctionPointerTypeSyntax WithParameterList(FunctionPointerParameterListSyntax parameterList) => Update(this.DelegateKeyword, this.AsteriskToken, this.CallingConvention, parameterList);
 
         public FunctionPointerTypeSyntax AddParameterListParameters(params FunctionPointerParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
 
     /// <summary>Function pointer parameter list syntax.</summary>
-    public sealed partial class FunctionPointerParameterList : CSharpSyntaxNode
+    public sealed partial class FunctionPointerParameterListSyntax : CSharpSyntaxNode
     {
         private SyntaxNode? parameters;
 
-        internal FunctionPointerParameterList(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+        internal FunctionPointerParameterListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
 
         /// <summary>SyntaxToken representing the less than token.</summary>
-        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterList)this.Green).lessThanToken, Position, 0);
+        public SyntaxToken LessThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterListSyntax)this.Green).lessThanToken, Position, 0);
 
         /// <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
         public SeparatedSyntaxList<FunctionPointerParameterSyntax> Parameters
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>SyntaxToken representing the greater than token.</summary>
-        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterList)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
+        public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         [return: MaybeNull]
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerParameterList(this);
 
-        public FunctionPointerParameterList Update(SyntaxToken lessThanToken, SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        public FunctionPointerParameterListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
         {
             if (lessThanToken != this.LessThanToken || parameters != this.Parameters || greaterThanToken != this.GreaterThanToken)
             {
@@ -573,11 +573,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public FunctionPointerParameterList WithLessThanToken(SyntaxToken lessThanToken) => Update(lessThanToken, this.Parameters, this.GreaterThanToken);
-        public FunctionPointerParameterList WithParameters(SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters) => Update(this.LessThanToken, parameters, this.GreaterThanToken);
-        public FunctionPointerParameterList WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanToken, this.Parameters, greaterThanToken);
+        public FunctionPointerParameterListSyntax WithLessThanToken(SyntaxToken lessThanToken) => Update(lessThanToken, this.Parameters, this.GreaterThanToken);
+        public FunctionPointerParameterListSyntax WithParameters(SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters) => Update(this.LessThanToken, parameters, this.GreaterThanToken);
+        public FunctionPointerParameterListSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanToken, this.Parameters, greaterThanToken);
 
-        public FunctionPointerParameterList AddParameters(params FunctionPointerParameterSyntax[] items) => WithParameters(this.Parameters.AddRange(items));
+        public FunctionPointerParameterListSyntax AddParameters(params FunctionPointerParameterSyntax[] items) => WithParameters(this.Parameters.AddRange(items));
     }
 
     /// <summary>Function pointer calling convention syntax.</summary>

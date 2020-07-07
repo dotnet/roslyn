@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a FunctionPointerParameterList node.</summary>
+        /// <summary>Called when the visitor visits a FunctionPointerParameterListSyntax node.</summary>
         [return: MaybeNull]
-        public virtual TResult VisitFunctionPointerParameterList(FunctionPointerParameterList node) => this.DefaultVisit(node);
+        public virtual TResult VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FunctionPointerCallingConventionSyntax node.</summary>
         [return: MaybeNull]
@@ -968,8 +968,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a FunctionPointerTypeSyntax node.</summary>
         public virtual void VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a FunctionPointerParameterList node.</summary>
-        public virtual void VisitFunctionPointerParameterList(FunctionPointerParameterList node) => this.DefaultVisit(node);
+        /// <summary>Called when the visitor visits a FunctionPointerParameterListSyntax node.</summary>
+        public virtual void VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FunctionPointerCallingConventionSyntax node.</summary>
         public virtual void VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node) => this.DefaultVisit(node);
@@ -1659,9 +1659,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update((TypeSyntax?)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.AsteriskToken));
 
         public override SyntaxNode? VisitFunctionPointerType(FunctionPointerTypeSyntax node)
-            => node.Update(VisitToken(node.DelegateKeyword), VisitToken(node.AsteriskToken), (FunctionPointerCallingConventionSyntax?)Visit(node.CallingConvention), (FunctionPointerParameterList?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"));
+            => node.Update(VisitToken(node.DelegateKeyword), VisitToken(node.AsteriskToken), (FunctionPointerCallingConventionSyntax?)Visit(node.CallingConvention), (FunctionPointerParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"));
 
-        public override SyntaxNode? VisitFunctionPointerParameterList(FunctionPointerParameterList node)
+        public override SyntaxNode? VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node)
             => node.Update(VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
 
         public override SyntaxNode? VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node)
@@ -2456,32 +2456,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.PointerType(elementType, SyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList)
+        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterListSyntax parameterList)
         {
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
-            return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, callingConvention == null ? null : (Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)callingConvention.Green, (Syntax.InternalSyntax.FunctionPointerParameterList)parameterList.Green).CreateRed();
+            return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, callingConvention == null ? null : (Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)callingConvention.Green, (Syntax.InternalSyntax.FunctionPointerParameterListSyntax)parameterList.Green).CreateRed();
         }
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterList parameterList)
+        public static FunctionPointerTypeSyntax FunctionPointerType(FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterListSyntax parameterList)
             => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), callingConvention, parameterList);
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
         public static FunctionPointerTypeSyntax FunctionPointerType()
             => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default, SyntaxFactory.FunctionPointerParameterList());
 
-        /// <summary>Creates a new FunctionPointerParameterList instance.</summary>
-        public static FunctionPointerParameterList FunctionPointerParameterList(SyntaxToken lessThanToken, SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        /// <summary>Creates a new FunctionPointerParameterListSyntax instance.</summary>
+        public static FunctionPointerParameterListSyntax FunctionPointerParameterList(SyntaxToken lessThanToken, SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
         {
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
-            return (FunctionPointerParameterList)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameterList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
+            return (FunctionPointerParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameterList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
-        /// <summary>Creates a new FunctionPointerParameterList instance.</summary>
-        public static FunctionPointerParameterList FunctionPointerParameterList(SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters = default)
+        /// <summary>Creates a new FunctionPointerParameterListSyntax instance.</summary>
+        public static FunctionPointerParameterListSyntax FunctionPointerParameterList(SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters = default)
             => SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
         /// <summary>Creates a new FunctionPointerCallingConventionSyntax instance.</summary>

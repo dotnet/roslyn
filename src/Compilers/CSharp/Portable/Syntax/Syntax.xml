@@ -242,13 +242,13 @@
         <summary>SyntaxToken representing the optional calling convention.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ParameterList" Type="FunctionPointerParameterList">
+    <Field Name="ParameterList" Type="FunctionPointerParameterListSyntax">
       <PropertyComment>
         <summary>List of the parameter types and return type of the function pointer.</summary>
       </PropertyComment>
     </Field>
   </Node>
-  <Node Name="FunctionPointerParameterList" Base="CSharpSyntaxNode">
+  <Node Name="FunctionPointerParameterListSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
       <summary>Function pointer parameter list syntax.</summary>
     </TypeComment>

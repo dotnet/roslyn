@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.CommaToken:
-                    return token.Parent is FunctionPointerParameterList;
+                    return token.Parent is FunctionPointerParameterListSyntax;
             }
 
             return token.IsFunctionPointerParameterOrReturnType();
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
 #if !CODE_STYLE
             if (token.IsKind(SyntaxKind.CommaToken) &&
-                token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList, out FunctionPointerParameterList funcPtrParamList))
+                token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList, out FunctionPointerParameterListSyntax funcPtrParamList))
             {
                 var commaIndex = funcPtrParamList.Parameters.GetWithSeparators().IndexOf(token);
 

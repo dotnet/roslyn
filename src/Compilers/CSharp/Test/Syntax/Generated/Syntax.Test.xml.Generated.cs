@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.FunctionPointerTypeSyntax GenerateFunctionPointerType()
             => InternalSyntaxFactory.FunctionPointerType(InternalSyntaxFactory.Token(SyntaxKind.DelegateKeyword), InternalSyntaxFactory.Token(SyntaxKind.AsteriskToken), null, GenerateFunctionPointerParameterList());
 
-        private static Syntax.InternalSyntax.FunctionPointerParameterList GenerateFunctionPointerParameterList()
+        private static Syntax.InternalSyntax.FunctionPointerParameterListSyntax GenerateFunctionPointerParameterList()
             => InternalSyntaxFactory.FunctionPointerParameterList(InternalSyntaxFactory.Token(SyntaxKind.LessThanToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.FunctionPointerParameterSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
         private static Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax GenerateFunctionPointerCallingConvention()
@@ -9664,7 +9664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static FunctionPointerTypeSyntax GenerateFunctionPointerType()
             => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default(FunctionPointerCallingConventionSyntax), GenerateFunctionPointerParameterList());
 
-        private static FunctionPointerParameterList GenerateFunctionPointerParameterList()
+        private static FunctionPointerParameterListSyntax GenerateFunctionPointerParameterList()
             => SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.Token(SyntaxKind.LessThanToken), new SeparatedSyntaxList<FunctionPointerParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
         private static FunctionPointerCallingConventionSyntax GenerateFunctionPointerCallingConvention()
