@@ -352,6 +352,16 @@
         <target state="translated">Ad Alanına Taşı</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_conflicts_with_an_existing_type_name">
+        <source>Name conflicts with an existing type name.</source>
+        <target state="new">Name conflicts with an existing type name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_is_not_a_valid_0_identifier">
+        <source>Name is not a valid {0} identifier.</source>
+        <target state="new">Name is not a valid {0} identifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
         <target state="translated">Ad alanı</target>
@@ -875,16 +885,6 @@
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">En az bir üye seçmelisiniz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
-        <source>Interface name conflicts with an existing type name.</source>
-        <target state="translated">Arabirim adı, mevcut bir tür adıyla çakışıyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
-        <source>Interface name is not a valid {0} identifier.</source>
-        <target state="translated">Arabirim adı, geçerli bir {0} tanımlayıcısı değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_characters_in_path">

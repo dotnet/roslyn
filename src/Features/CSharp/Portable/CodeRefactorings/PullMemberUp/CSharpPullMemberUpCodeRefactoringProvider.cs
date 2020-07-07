@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
         }
 
-        protected override async Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context)
+        protected override Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context) => GetSelectedDeclarationOrVariableAsync(context);
+
+        internal static async Task<SyntaxNode> GetSelectedDeclarationOrVariableAsync(CodeRefactoringContext context)
         {
             // Consider:
             // MemberDeclaration: member that can be declared in type (those are the ones we can pull up) 

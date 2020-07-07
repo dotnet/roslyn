@@ -123,11 +123,11 @@
   <data name="You_must_select_at_least_one_member" xml:space="preserve">
     <value>You must select at least one member.</value>
   </data>
-  <data name="Interface_name_conflicts_with_an_existing_type_name" xml:space="preserve">
-    <value>Interface name conflicts with an existing type name.</value>
+  <data name="Name_conflicts_with_an_existing_type_name" xml:space="preserve">
+    <value>Name conflicts with an existing type name.</value>
   </data>
-  <data name="Interface_name_is_not_a_valid_0_identifier" xml:space="preserve">
-    <value>Interface name is not a valid {0} identifier.</value>
+  <data name="Name_is_not_a_valid_0_identifier" xml:space="preserve">
+    <value>Name is not a valid {0} identifier.</value>
   </data>
   <data name="Illegal_characters_in_path" xml:space="preserve">
     <value>Illegal characters in path.</value>

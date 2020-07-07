@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
-    internal abstract partial class AbstractExtractInterfaceService : ILanguageService
+    internal abstract class AbstractExtractInterfaceService : ILanguageService
     {
         protected abstract Task<SyntaxNode> GetTypeDeclarationAsync(
             Document document,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             Solution solution, string containingNamespaceDisplay, INamedTypeSymbol extractedInterfaceSymbol,
             ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
-            var symbolMapping = await CreateSymbolMappingAsync(
+            var symbolMapping = await AnnotatedSymbolMapping.CreateAsync(
                 extractInterfaceOptions.IncludedMembers,
                 solution,
                 refactoringResult.TypeNode,
@@ -184,15 +184,13 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var originalDocumentSyntaxRoot = await refactoringResult.DocumentToExtractFrom.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var fileBanner = syntaxFactsService.GetFileBanner(originalDocumentSyntaxRoot);
 
-            var interfaceDocumentId = DocumentId.CreateNewId(refactoringResult.DocumentToExtractFrom.Project.Id, debugName: extractInterfaceOptions.FileName);
-
-            var unformattedInterfaceDocument = await GetUnformattedInterfaceDocumentAsync(
+            var unformattedInterfaceDocument = await ExtractTypeHelpers.AddTypeToNewFileAsync(
                 symbolMapping.AnnotatedSolution,
                 containingNamespaceDisplay,
                 extractInterfaceOptions.FileName,
+                refactoringResult.DocumentToExtractFrom.Project.Id,
                 refactoringResult.DocumentToExtractFrom.Folders,
                 extractedInterfaceSymbol,
-                interfaceDocumentId,
                 fileBanner,
                 cancellationToken).ConfigureAwait(false);
 
@@ -214,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return new ExtractInterfaceResult(
                 succeeded: true,
                 updatedSolution: completedSolution,
-                navigationDocumentId: interfaceDocumentId);
+                navigationDocumentId: unformattedInterfaceDocument.Id);
         }
 
         private async Task<ExtractInterfaceResult> ExtractInterfaceToSameFileAsync(
@@ -222,30 +220,21 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
             // Track all of the symbols we need to modify, which includes the original type declaration being modified
-            var symbolMapping = await CreateSymbolMappingAsync(
+            var symbolMapping = await AnnotatedSymbolMapping.CreateAsync(
                 extractInterfaceOptions.IncludedMembers,
                 solution,
                 refactoringResult.TypeNode,
                 cancellationToken).ConfigureAwait(false);
 
             var document = symbolMapping.AnnotatedSolution.GetDocument(refactoringResult.DocumentToExtractFrom.Id);
-            var originalRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
 
-            var trackedDocument = document.WithSyntaxRoot(originalRoot.TrackNodes(typeDeclaration));
+            var documentWithInterface = await ExtractTypeHelpers.AddTypeToExistingFileAsync(
+                document,
+                extractedInterfaceSymbol,
+                symbolMapping,
+                cancellationToken).ConfigureAwait(false);
 
-            var currentRoot = await trackedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(currentRoot, symbolMapping.AnnotatedSolution.Workspace);
-
-            // Generate the interface syntax node, which will be inserted above the type it's extracted from
-            var codeGenService = trackedDocument.GetLanguageService<ICodeGenerationService>();
-            var interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol, cancellationToken: cancellationToken)
-                .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
-
-            typeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
-            editor.InsertBefore(typeDeclaration, interfaceNode);
-
-            var unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
+            var unformattedSolution = documentWithInterface.Project.Solution;
 
             // After the interface is inserted, update the original type to show it implements the new interface
             var unformattedSolutionWithUpdatedType = await GetSolutionWithOriginalTypeUpdatedAsync(
@@ -263,48 +252,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 succeeded: true,
                 updatedSolution: completedSolution,
                 navigationDocumentId: refactoringResult.DocumentToExtractFrom.Id);
-        }
-
-        private static async Task<SymbolMapping> CreateSymbolMappingAsync(
-                IEnumerable<ISymbol> includedMembers,
-                Solution solution,
-                SyntaxNode typeNode,
-                CancellationToken cancellationToken)
-        {
-            var symbolToDeclarationAnnotationMap = new Dictionary<ISymbol, SyntaxAnnotation>();
-            var currentRoots = new Dictionary<SyntaxTree, SyntaxNode>();
-            using var _ = ArrayBuilder<DocumentId>.GetInstance(out var documentIds);
-
-            var typeNodeRoot = await typeNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var typeNodeAnnotation = new SyntaxAnnotation();
-            currentRoots[typeNode.SyntaxTree] = typeNodeRoot.ReplaceNode(typeNode, typeNode.WithAdditionalAnnotations(typeNodeAnnotation));
-            documentIds.Add(solution.GetDocument(typeNode.SyntaxTree).Id);
-
-            foreach (var includedMember in includedMembers)
-            {
-                var location = includedMember.Locations.Single();
-                var tree = location.SourceTree;
-                if (!currentRoots.TryGetValue(tree, out var root))
-                {
-                    root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    documentIds.Add(solution.GetDocument(tree).Id);
-                }
-
-                var token = root.FindToken(location.SourceSpan.Start);
-
-                var annotation = new SyntaxAnnotation();
-                symbolToDeclarationAnnotationMap.Add(includedMember, annotation);
-                currentRoots[tree] = root.ReplaceToken(token, token.WithAdditionalAnnotations(annotation));
-            }
-
-            var annotatedSolution = solution;
-            foreach (var root in currentRoots)
-            {
-                var document = annotatedSolution.GetDocument(root.Key);
-                annotatedSolution = document.WithSyntaxRoot(root.Value).Project.Solution;
-            }
-
-            return new SymbolMapping(symbolToDeclarationAnnotationMap, annotatedSolution, documentIds.ToImmutable(), typeNodeAnnotation);
         }
 
         internal Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
@@ -331,35 +278,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 containingNamespace,
                 generatedNameTypeParameterSuffix,
                 document.Project.Language);
-        }
-
-        private static async Task<Document> GetUnformattedInterfaceDocumentAsync(
-            Solution solution,
-            string containingNamespaceDisplay,
-            string name,
-            IEnumerable<string> folders,
-            INamedTypeSymbol extractedInterfaceSymbol,
-            DocumentId interfaceDocumentId,
-            ImmutableArray<SyntaxTrivia> fileBanner,
-            CancellationToken cancellationToken)
-        {
-            var solutionWithInterfaceDocument = solution.AddDocument(interfaceDocumentId, name, text: "", folders: folders);
-            var interfaceDocument = solutionWithInterfaceDocument.GetDocument(interfaceDocumentId);
-            var interfaceDocumentSemanticModel = await interfaceDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var namespaceParts = containingNamespaceDisplay.Split('.').Where(s => !string.IsNullOrEmpty(s));
-            var unformattedInterfaceDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
-                interfaceDocument.Project.Solution,
-                interfaceDocumentSemanticModel.GetEnclosingNamespace(0, cancellationToken),
-                extractedInterfaceSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
-                options: new CodeGenerationOptions(
-                    contextLocation: interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
-                    generateMethodBodies: false,
-                    options: await interfaceDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            var syntaxRoot = await unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return unformattedInterfaceDocument.WithSyntaxRoot(syntaxRoot.WithPrependedLeadingTrivia(fileBanner));
         }
 
         private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
