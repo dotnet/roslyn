@@ -38,6 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return false;
             }
 
+            // Never show `when` after `var` in a pattern.  It's virtually always going to be unhelpful as the user is
+            // far more likely to be writing `case var someName...` rather than typing `cae var when...` (in the case
+            // that `var` is a constant).  In other words, it's fine to make that rare case have to manually type out
+            // `when` rather than risk having `when` pop up when it's not desired.
             if (context.TargetToken.Text == "var")
                 return false;
 
