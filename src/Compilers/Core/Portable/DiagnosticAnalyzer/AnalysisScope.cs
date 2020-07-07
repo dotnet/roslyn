@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class AnalysisScope
     {
+        private readonly Lazy<ImmutableHashSet<DiagnosticAnalyzer>> _lazyAnalyzersSet;
+
         public SyntaxTree FilterTreeOpt { get; }
         public TextSpan? FilterSpanOpt { get; }
 
@@ -77,28 +80,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IsSyntaxOnlyTreeAnalysis = isSyntaxOnlyTreeAnalysis;
             ConcurrentAnalysis = concurrentAnalysis;
             CategorizeDiagnostics = categorizeDiagnostics;
+
+            _lazyAnalyzersSet = new Lazy<ImmutableHashSet<DiagnosticAnalyzer>>(CreateAnalyzersSet);
         }
 
-        private ImmutableHashSet<DiagnosticAnalyzer> _lazyAnalyzersSet;
+        private ImmutableHashSet<DiagnosticAnalyzer> CreateAnalyzersSet() => Analyzers.ToImmutableHashSet();
+
         public bool Contains(DiagnosticAnalyzer analyzer)
         {
             if (!IsPartialAnalysis)
             {
-                Debug.Assert(containsCore());
+                Debug.Assert(_lazyAnalyzersSet.Value.Contains(analyzer));
                 return true;
             }
 
-            return containsCore();
-
-            bool containsCore()
-            {
-                if (_lazyAnalyzersSet == null)
-                {
-                    Interlocked.CompareExchange(ref _lazyAnalyzersSet, Analyzers.ToImmutableHashSet(), null);
-                }
-
-                return _lazyAnalyzersSet.Contains(analyzer);
-            }
+            return _lazyAnalyzersSet.Value.Contains(analyzer);
         }
 
         public AnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers)

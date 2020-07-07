@@ -602,22 +602,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void MarkEventCompleteForUnprocessedAnalyzers(
             CompilationEvent completedEvent,
             AnalysisScope analysisScope,
-            PooledHashSet<DiagnosticAnalyzer> processedAnalyzers)
-        {
-            Debug.Assert(processedAnalyzers.All(analysisScope.Contains));
-            if (analysisScope.Analyzers.Length == processedAnalyzers.Count)
-            {
-                return;
-            }
-
-            foreach (var analyzer in analysisScope.Analyzers)
-            {
-                if (!processedAnalyzers.Contains(analyzer))
-                {
-                    MarkEventComplete(completedEvent, analyzer);
-                }
-            }
-        }
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkEventComplete, completedEvent);
 
         /// <summary>
         /// Checks if the given event has been fully analyzed for the given analyzer.
@@ -665,22 +651,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void MarkSymbolCompleteForUnprocessedAnalyzers(
             ISymbol symbol,
             AnalysisScope analysisScope,
-            PooledHashSet<DiagnosticAnalyzer> processedAnalyzers)
-        {
-            Debug.Assert(processedAnalyzers.All(analysisScope.Contains));
-            if (analysisScope.Analyzers.Length == processedAnalyzers.Count)
-            {
-                return;
-            }
-
-            foreach (var analyzer in analysisScope.Analyzers)
-            {
-                if (!processedAnalyzers.Contains(analyzer))
-                {
-                    MarkSymbolComplete(symbol, analyzer);
-                }
-            }
-        }
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSymbolComplete, symbol);
 
         /// <summary>
         /// True if the given symbol is fully analyzed for the given analyzer.
@@ -826,7 +798,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(
             SyntaxTree tree,
             AnalysisScope analysisScope,
-            PooledHashSet<DiagnosticAnalyzer> processedAnalyzers)
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSyntaxAnalysisComplete, tree);
+
+        private static void MarkAnalysisCompleteForUnprocessedAnalyzers<T>(
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers,
+            Action<T, DiagnosticAnalyzer> markComplete,
+            T arg)
         {
             Debug.Assert(processedAnalyzers.All(analysisScope.Contains));
             if (analysisScope.Analyzers.Length == processedAnalyzers.Count)
@@ -838,7 +817,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (!processedAnalyzers.Contains(analyzer))
                 {
-                    MarkSyntaxAnalysisComplete(tree, analyzer);
+                    markComplete(arg, analyzer);
                 }
             }
         }

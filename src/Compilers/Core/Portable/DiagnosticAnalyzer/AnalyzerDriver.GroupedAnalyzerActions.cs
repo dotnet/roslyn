@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return new GroupedAnalyzerActions(builder.ToImmutableAndFree(), in analyzerActions);
             }
 
-            IGroupedAnalyzerActions IGroupedAnalyzerActions.Append(in IGroupedAnalyzerActions igroupedAnalyzerActions)
+            IGroupedAnalyzerActions IGroupedAnalyzerActions.Append(IGroupedAnalyzerActions igroupedAnalyzerActions)
             {
                 var groupedAnalyzerActions = (GroupedAnalyzerActions)igroupedAnalyzerActions;
 
