@@ -389,7 +389,7 @@ Block[B1] - Block
           Value: 
             IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
           Pattern: 
-            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Object)
+            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Object, OutputType: System.Object)
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1*2]

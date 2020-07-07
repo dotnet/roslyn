@@ -2238,7 +2238,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'pt
   Value: 
     ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var v') (InputType: delegate*<System.Void>, DeclaredSymbol: delegate*<System.Void> v, MatchesNull: True)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var v') (InputType: delegate*<System.Void>, OutputType: delegate*<System.Void>, DeclaredSymbol: delegate*<System.Void> v, MatchesNull: True)
 ");
 
             comp = CreateCompilationWithFunctionPointers(source, parseOptions: TestOptions.Regular7_3);
@@ -2442,7 +2442,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
                 Instance Receiver: 
                   IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'O')
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'delegate*<void> _') (InputType: System.Object, DeclaredSymbol: null, MatchesNull: False)
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'delegate*<void> _') (InputType: System.Object, OutputType: delegate*<System.Void>, DeclaredSymbol: null, MatchesNull: False)
 ");
         }
 
