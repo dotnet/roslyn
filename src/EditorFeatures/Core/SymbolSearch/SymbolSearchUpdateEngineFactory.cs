@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         /// <summary>
-        /// This returns a No-op engine if called on non-Windows OS, becuase the backing storage dependes on Windows APIs.
+        /// This returns a No-op engine if called on non-Windows OS, because the backing storage depends on Windows APIs.
         /// </summary>
         public static ISymbolSearchUpdateEngine CreateEngineInProcess(
             ISymbolSearchLogService logService,
