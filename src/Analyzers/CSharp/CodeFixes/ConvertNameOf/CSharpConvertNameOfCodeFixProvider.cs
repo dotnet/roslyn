@@ -15,7 +15,9 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -66,9 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             //example: int -> Int32, string -> String, etc
             if (exp.Type.IsKind(SyntaxKind.PredefinedType))
             {
-                idName = semanticModel.GetSymbolInfo(exp.Type).Symbol.
-                                       GetSymbolType().SpecialType.
-                                       ToPredefinedType().ToString();
+                idName = "System." + semanticModel.GetSymbolInfo(exp.Type).Symbol.
+                                                   GetSymbolType().SpecialType.
+                                                   ToPredefinedType().ToString();
             }
 
             var nameOfSyntax = InvocationExpression(IdentifierName("nameof")).
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
                                Argument(
                                IdentifierName(idName)))));
 
-            editor.ReplaceNode(node, nameOfSyntax);
+            editor.ReplaceNode(node, nameOfSyntax.WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation));
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
