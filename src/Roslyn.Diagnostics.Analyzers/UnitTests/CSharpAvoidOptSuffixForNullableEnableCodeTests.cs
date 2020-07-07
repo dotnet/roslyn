@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.CSharp.Analyzers.CSharpAvoidOptSuffixForNullableEnableCode,
@@ -262,6 +263,100 @@ public class Class1
         {|CS0246:Class2|}? local;
     }
 }",
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(3813, "https://github.com/dotnet/roslyn-analyzers/issues/3813")]
+        public async Task RS0046_CSharp8_NullableEnabledCode_InterfaceImplementation_NoDiagnostic()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp8,
+                TestCode = @"
+#nullable enable
+
+public interface ISomething
+{
+    void Method1(string? [|sOpt|]);
+}
+
+public class Class1 : ISomething
+{
+    public void Method1(string? sOpt)
+    {
+        string? [|localOpt|] = null, [|otherLocalOpt|] = null;
+
+        System.Console.WriteLine(""{0}, {1}, {2}"", sOpt, localOpt, otherLocalOpt);
+    }
+}",
+                FixedCode = @"
+#nullable enable
+
+public interface ISomething
+{
+    void Method1(string? s);
+}
+
+public class Class1 : ISomething
+{
+    public void Method1(string? sOpt)
+    {
+        string? local = null, otherLocal = null;
+
+        System.Console.WriteLine(""{0}, {1}, {2}"", sOpt, local, otherLocal);
+    }
+}",
+
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(3813, "https://github.com/dotnet/roslyn-analyzers/issues/3813")]
+        public async Task RS0046_CSharp8_NullableEnabledCode_Override_NoDiagnostic()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp8,
+                TestCode = @"
+#nullable enable
+
+public class Base
+{
+    public virtual void Method1(string? [|sOpt|])
+    {
+        System.Console.WriteLine(""{0}"", sOpt);
+    }
+}
+
+public class Derived : Base
+{
+    public override void Method1(string? sOpt)
+    {
+        string? [|localOpt|] = null, [|otherLocalOpt|] = null;
+
+        System.Console.WriteLine(""{0}, {1}, {2}"", sOpt, localOpt, otherLocalOpt);
+    }
+}",
+                FixedCode = @"
+#nullable enable
+
+public class Base
+{
+    public virtual void Method1(string? s)
+    {
+        System.Console.WriteLine(""{0}"", s);
+    }
+}
+
+public class Derived : Base
+{
+    public override void Method1(string? sOpt)
+    {
+        string? local = null, otherLocal = null;
+
+        System.Console.WriteLine(""{0}, {1}, {2}"", sOpt, local, otherLocal);
+    }
+}",
+
             }.RunAsync();
         }
     }
