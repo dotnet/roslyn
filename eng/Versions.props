@@ -64,7 +64,7 @@
     <MicrosoftCodeAnalysisCSharpCodeRefactoringTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeRefactoringTestingXUnitVersion>
     <MicrosoftCodeAnalysisCSharpCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisCSharpCodeStyleVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.19</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.28</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
@@ -87,7 +87,13 @@
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta3.20174.1</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0</MicrosoftMSXMLVersion>
+    <MicrosoftNETBuildExtensionsVersion>2.2.101</MicrosoftNETBuildExtensionsVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.2</MicrosoftNETCorePlatformsVersion>
+    <MicrosoftNETFrameworkReferenceAssembliesnet461Version>1.0.0</MicrosoftNETFrameworkReferenceAssembliesnet461Version>
+    <MicrosoftNETFrameworkReferenceAssembliesnet451Version>1.0.0</MicrosoftNETFrameworkReferenceAssembliesnet451Version>
+    <MicrosoftNETFrameworkReferenceAssembliesnet40Version>1.0.0</MicrosoftNETFrameworkReferenceAssembliesnet40Version>
+    <MicrosoftNETFrameworkReferenceAssembliesnet20Version>1.0.0</MicrosoftNETFrameworkReferenceAssembliesnet20Version>
+    <jnm2ReferenceAssembliesnet35Version>1.0.1</jnm2ReferenceAssembliesnet35Version>
     <MicrosoftNETTestSdkVersion>16.0.1</MicrosoftNETTestSdkVersion>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
     <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>
