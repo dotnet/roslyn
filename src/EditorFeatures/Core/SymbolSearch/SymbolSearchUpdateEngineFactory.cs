@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 => Task.CompletedTask;
         }
 
-        private sealed partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine
+        private sealed class RemoteUpdateEngine : ISymbolSearchUpdateEngine
         {
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
