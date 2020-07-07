@@ -213,6 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case IncompleteMember:
                         return ((IncompleteMemberSyntax)parent).Type == node;
+
+                    case RecursivePattern:
+                        return ((RecursivePatternSyntax)parent).Type == node;
                 }
             }
 

@@ -3912,5 +3912,70 @@ class Program
     }
 }");
         }
+
+        [Fact, WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        public async Task TestRecursivePatternRewrite()
+        {
+            await TestInRegularAndScript1Async(@"
+using System;
+
+namespace N
+{
+    class Context
+    {
+    }
+
+    class C
+    {
+        public void DoAction(Action<Context> action)
+        {
+        }
+
+        private void Recursive(object context)
+        {
+            DoAction(context =>
+            {
+                if (context is Context { })
+                {
+                    DoAction(
+                        [|context =>|] context.ToString());
+                }
+            });
+        }
+    }
+}", @"
+using System;
+
+namespace N
+{
+    class Context
+    {
+    }
+
+    class C
+    {
+        public void DoAction(Action<Context> action)
+        {
+        }
+
+        private void Recursive(object context)
+        {
+            DoAction(context =>
+            {
+                if (context is Context { })
+                {
+                    DoAction(
+                        {|Rename:NewMethod|}());
+                }
+            });
+        }
+
+        private static Action<Context> NewMethod()
+        {
+            return context => context.ToString();
+        }
+    }
+}");
+        }
     }
 }
