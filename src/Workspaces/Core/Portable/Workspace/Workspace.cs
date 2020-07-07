@@ -1270,6 +1270,8 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
+            // todo: check for allowed project name changes here?
+
             // It's OK to use the null-suppression operator when calling CanApplyCompilationOptionChange: if they were both null,
             // we'd bail right away since they didn't change. Thus, at least one is non-null, and once you have a non-null CompilationOptions and ParseOptions
             // you can't ever make it null again, and it'll be non-null as long as the language supported it in the first place.
@@ -1419,6 +1421,14 @@ namespace Microsoft.CodeAnalysis
         {
             // It's OK to use the null-suppression operator when calling ApplyCompilation/ParseOptionsChanged: the only change that is allowed
             // is going from one non-null value to another which is blocked by the Project.WithCompilationOptions() API directly.
+
+            // todo: The underlying OnProjectNameChanged method also optionally changes the FilePath.
+            // should that be checked here too?
+            if (projectChanges.OldProject.Name != projectChanges.NewProject.Name) 
+            {
+                var newFilePath = projectChanges.NewProject.FilePath ?? projectChanges.OldProject.FilePath;
+                this.ApplyProjectNameChanged(projectChanges.OldProject.Id, projectChanges.NewProject.Name, newFilePath);
+            }
 
             // changed compilation options
             if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
@@ -1653,6 +1663,13 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveProject));
             this.OnProjectRemoved(projectId);
+        }
+
+        protected virtual void ApplyProjectNameChanged(ProjectId projectId, string name, string? filePath) 
+        {
+            // todo: there's no ApplyChangesKind. Should it be added?
+
+            this.OnProjectNameChanged(projectId, name, filePath);
         }
 
         /// <summary>
