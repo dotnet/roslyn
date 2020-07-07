@@ -111,7 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this;
+                NamedTypeSymbol originalContainer = ContainingType.OriginalDefinition;
+                if (!originalContainer.IsTupleType)
+                {
+                    return this;
+                }
+                return originalContainer.GetTupleMemberSymbolForUnderlyingMember(_underlyingField.OriginalDefinition)!;
             }
         }
 
@@ -296,6 +301,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return null;
+            }
+        }
+
+        public override FieldSymbol OriginalDefinition
+        {
+            get
+            {
+                return this;
             }
         }
 

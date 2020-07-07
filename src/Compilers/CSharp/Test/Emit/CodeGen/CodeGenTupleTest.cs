@@ -11052,8 +11052,10 @@ class C
             AssertVirtualTupleElementField(m2a2);
 
             Assert.IsType<TupleElementFieldSymbol>(m1Item1);
-            Assert.Same(m1Item1, m1Item1.OriginalDefinition);
+            Assert.NotSame(m1Item1, m1Item1.OriginalDefinition);
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.ToTestDisplayString());
+            Assert.Equal("T1 (T1, T2).Item1", m1Item1.OriginalDefinition.ToTestDisplayString());
+            Assert.True(m1Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
             Assert.True(m1Item1.Equals(m1Item1));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m1Item1.AssociatedSymbol);
@@ -11069,9 +11071,11 @@ class C
             Assert.Null(m1Item1.TypeLayoutOffset);
 
             Assert.IsType<TupleElementFieldSymbol>(m2Item1);
-            Assert.True(m2Item1.IsDefinition);
-            Assert.Same(m2Item1, m2Item1.OriginalDefinition);
+            Assert.False(m2Item1.IsDefinition);
+            Assert.NotSame(m2Item1, m2Item1.OriginalDefinition);
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Item1.ToTestDisplayString());
+            Assert.Equal("T1 (T1, T2).Item1", m2Item1.OriginalDefinition.ToTestDisplayString());
+            Assert.True(m2Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m2Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
             Assert.True(m2Item1.Equals(m2Item1));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m2Item1.AssociatedSymbol);
@@ -11094,6 +11098,7 @@ class C
             Assert.True(m2a2.IsDefinition);
             Assert.True(m2a2.Equals(m2a2));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).a2", m2a2.ToTestDisplayString());
+            Assert.True(m2a2.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2a2.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m2a2.AssociatedSymbol);
             Assert.Same(m2Tuple, m2a2.ContainingSymbol);
@@ -12598,7 +12603,10 @@ class C
             AssertVirtualTupleElementField(m2a2);
 
             Assert.Equal("TupleElementFieldSymbol", m1Item1.GetType().Name);
-            Assert.Same(m1Item1, m1Item1.OriginalDefinition);
+            Assert.NotSame(m1Item1, m1Item1.OriginalDefinition);
+            Assert.True(m1Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
+            Assert.Equal("T1 (T1, T2).Item1", m1Item1.OriginalDefinition.ToTestDisplayString());
+            Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(m1Item1.OriginalDefinition);
             Assert.True(m1Item1.Equals(m1Item1));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m1Item1.AssociatedSymbol);
@@ -12614,7 +12622,10 @@ class C
             Assert.Null(m1Item1.TypeLayoutOffset);
 
             Assert.Equal("TupleElementFieldSymbol", m2Item1.GetType().Name);
-            Assert.Same(m2Item1, m2Item1.OriginalDefinition);
+            Assert.NotSame(m2Item1, m2Item1.OriginalDefinition);
+            Assert.True(m2Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m2Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
+            Assert.Equal("T1 (T1, T2).Item1", m2Item1.OriginalDefinition.ToTestDisplayString());
+            Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(m2Item1.OriginalDefinition);
             Assert.True(m2Item1.Equals(m2Item1));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m2Item1.AssociatedSymbol);
@@ -28185,8 +28196,10 @@ namespace System
                     "TupleElementFieldSymbol: Item1",
                     "TupleElementFieldSymbol: Item2" }, printFields(tuple1));
                 assertTupleUnderlyingFields(tuple1);
-                // The tuple syntax introduces new locations for Item1 and Item2, so we're dealing with a definition
-                Assert.True(tuple1.GetMember<FieldSymbol>("Item1").IsDefinition);
+                var tuple1Item1 = tuple1.GetMember<FieldSymbol>("Item1");
+                Assert.False(tuple1Item1.IsDefinition);
+                Assert.Equal("T1 (T1, T2).Item1", tuple1Item1.OriginalDefinition.ToTestDisplayString());
+                Assert.Equal(isSourceSymbol ? "SourceMemberFieldSymbolFromDeclarator" : "PEFieldSymbol", tuple1Item1.OriginalDefinition.GetType().Name);
 
                 var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M2").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2)", print(tuple2));
@@ -28195,8 +28208,10 @@ namespace System
                     "TupleElementFieldSymbol: Item1",
                     "TupleElementFieldSymbol: Item2" }, printFields(tuple2));
                 assertTupleUnderlyingFields(tuple2);
-                // The tuple syntax introduces new locations for Item1 and Item2, so we're dealing with a definition
-                Assert.True(tuple2.GetMember<FieldSymbol>("Item1").IsDefinition);
+                var tuple2Item1 = tuple2.GetMember<FieldSymbol>("Item1");
+                Assert.False(tuple2Item1.IsDefinition);
+                Assert.Equal("T1 (T1, T2).Item1", tuple2Item1.OriginalDefinition.ToTestDisplayString());
+                Assert.Equal(isSourceSymbol ? "SourceMemberFieldSymbolFromDeclarator" : "PEFieldSymbol", tuple2Item1.OriginalDefinition.GetType().Name);
 
                 var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M3").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 a, System.Int32 b)", print(tuple3));
@@ -28207,8 +28222,11 @@ namespace System
                     "TupleElementFieldSymbol: Item2",
                     "TupleVirtualElementFieldSymbol: b", }, printFields(tuple3));
                 assertTupleUnderlyingFields(tuple3);
-                // The tuple syntax introduces new locations for Item1 and Item2, so we're dealing with a definition
-                Assert.True(tuple3.GetMember<FieldSymbol>("Item1").IsDefinition);
+                var tuple3Item1 = tuple3.GetMember<FieldSymbol>("Item1");
+                Assert.False(tuple3Item1.IsDefinition);
+                Assert.Equal("T1 (T1, T2).Item1", tuple3Item1.OriginalDefinition.ToTestDisplayString());
+                Assert.Equal(isSourceSymbol ? "SourceMemberFieldSymbolFromDeclarator" : "PEFieldSymbol", tuple3Item1.OriginalDefinition.GetType().Name);
+
                 Assert.True(tuple3.GetMember<FieldSymbol>("a").IsDefinition);
 
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32)", print(tuple3.TupleUnderlyingType));
