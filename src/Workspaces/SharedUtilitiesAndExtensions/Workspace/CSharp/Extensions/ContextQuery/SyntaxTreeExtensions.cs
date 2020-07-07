@@ -956,7 +956,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            // https://github.com/dotnet/roslyn/issues/39865: When the syntax rewrite is done, the parents here will need to change.
             switch (token.Kind())
             {
                 case SyntaxKind.LessThanToken:
@@ -964,22 +963,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return token.Parent is FunctionPointerParameterListSyntax;
             }
 
-            return token.IsFunctionPointerParameterOrReturnType();
-#else
-            return false;
-#endif
-        }
-
-        public static bool IsFunctionPointerParameterOrReturnType(this SyntaxToken syntaxToken)
-        {
-            return syntaxToken switch
+            return token switch
             {
                 // ref modifiers
                 { Parent: { RawKind: (int)SyntaxKindEx.FunctionPointerParameter } } => true,
                 // Regular type specifiers
-                { Parent: { Parent: { RawKind: (int)SyntaxKindEx.FunctionPointerParameter } } } => true,
+                { Parent: TypeSyntax { Parent: { RawKind: (int)SyntaxKindEx.FunctionPointerParameter } } } => true,
                 _ => false
             };
+#else
+            return false;
+#endif
         }
 
         public static bool IsGenericTypeArgumentContext(
