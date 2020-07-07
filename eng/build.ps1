@@ -199,8 +199,7 @@ function Process-Arguments() {
 }
 
 function BuildSolution() {
-  # Roslyn.sln can't be built with dotnet due to WPF and VSIX build task dependencies
-  $solution = if ($msbuildEngine -eq 'dotnet') { "Compilers.sln" } else { "Roslyn.sln" }
+  $solution = "Roslyn.sln"
 
   Write-Host "$($solution):"
 
