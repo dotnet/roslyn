@@ -3913,7 +3913,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
         public async Task TestRecursivePatternRewrite()
         {
             await TestInRegularAndScript1Async(@"
