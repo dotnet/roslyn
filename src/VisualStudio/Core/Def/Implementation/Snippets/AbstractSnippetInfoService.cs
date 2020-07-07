@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
             {
                 ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);
-                PopulateSnippetCaches(token);
+                PopulateSnippetCachesAsync().CompletesAsyncOperation(token).Forget();
             }
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (_expansionManager != null)
             {
                 var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
-                PopulateSnippetCaches(token);
+                PopulateSnippetCachesAsync().CompletesAsyncOperation(token).Forget();
             }
 
             return VSConstants.S_OK;
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public virtual bool ShouldFormatSnippet(SnippetInfo snippetInfo)
             => false;
 
-        private void PopulateSnippetCaches(IAsyncToken token)
+        private async Task PopulateSnippetCachesAsync()
         {
             Debug.Assert(_expansionManager != null);
             AssertIsForeground();
@@ -127,11 +127,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // In Dev14 Update2+ the platform always provides an IExpansion Manager
             var asyncExpansionManager = (IExpansionManager)_expansionManager;
             // Call the asynchronous IExpansionManager API from a background thread
-            Task.Factory.StartNew(() => PopulateSnippetCacheAsync(asyncExpansionManager),
+            await Task.Factory.StartNew(() => PopulateSnippetCacheAsync(asyncExpansionManager),
                             CancellationToken.None,
                             TaskCreationOptions.None,
-                            TaskScheduler.Default).CompletesAsyncOperation(token);
-
+                            TaskScheduler.Default).ConfigureAwait(false);
         }
 
         private async Task PopulateSnippetCacheAsync(IExpansionManager expansionManager)
