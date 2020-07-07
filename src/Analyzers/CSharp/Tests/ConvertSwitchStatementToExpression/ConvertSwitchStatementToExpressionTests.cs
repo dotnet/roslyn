@@ -1666,10 +1666,10 @@ class Program
         [|switch|] (a)
         {
             case 0:
-                o = default;
+                o = default(object);
                 break;
             default:
-                o = default;
+                o = default(object);
                 break;
         }
     }
@@ -1682,8 +1682,8 @@ class Program
         var a = 0;
         var o = a switch
         {
-            0 => default,
-            _ => default,
+            0 => default(object),
+            _ => default(object),
         };
     }
 }";
