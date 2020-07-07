@@ -424,6 +424,82 @@ class Program
             Assert.Same(lambdaOperation, lambdaOperationSecondRequest);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IAnonymousFunctionExpression_StaticLambda()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        /*<bind>*/Action x = static () => F();/*</bind>*/
+    }
+
+    static void F()
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'var x = () => F();')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x = () => F()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: var x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = () => F()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= () => F()')
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '() => F()')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
+                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'F()')
+                    Expression: 
+                      IInvocationOperation (void Program.F()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'F()')
+                        Instance Receiver: 
+                          null
+                        Arguments(0)
+    Initializer: 
+      null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         /*<bind>*/var x = () => F();/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = () => F()").WithArguments("lambda expression").WithLocation(8, 23),
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(
+                source,
+                expectedOperationTree,
+                expectedDiagnostics
+                );
+
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var syntaxTree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+            var variableDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+            var lambdaSyntax = (LambdaExpressionSyntax)variableDeclaration.Declaration.Variables.Single().Initializer.Value;
+
+            var variableDeclarationGroupOperation = (IVariableDeclarationGroupOperation)semanticModel.GetOperation(variableDeclaration);
+            var variableTreeLambdaOperation = (IAnonymousFunctionOperation)variableDeclarationGroupOperation.Declarations.Single().Declarators.Single().Initializer.Value;
+            var lambdaOperation = (IAnonymousFunctionOperation)semanticModel.GetOperation(lambdaSyntax);
+
+            // Assert that both ways of getting to the lambda (requesting the lambda directly, and requesting via the lambda syntax)
+            // return the same bound node.
+            Assert.Same(variableTreeLambdaOperation, lambdaOperation);
+
+            Assert.True(lambdaOperation.Symbol.IsStatic);
+
+            var variableDeclarationGroupOperationSecondRequest = (IVariableDeclarationGroupOperation)semanticModel.GetOperation(variableDeclaration);
+            var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionOperation)variableDeclarationGroupOperation.Declarations.Single().Declarators.Single().Initializer.Value;
+            var lambdaOperationSecondRequest = (IAnonymousFunctionOperation)semanticModel.GetOperation(lambdaSyntax);
+
+            // Assert that, when request the variable declaration or the lambda for a second time, there is no rebinding of the
+            // underlying UnboundLambda, and we get the same IAnonymousFunctionExpression as before
+            Assert.Same(variableTreeLambdaOperation, variableTreeLambdaOperationSecondRequest);
+            Assert.Same(lambdaOperation, lambdaOperationSecondRequest);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void LambdaFlow_01()

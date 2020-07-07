@@ -1304,5 +1304,318 @@ class C
   IL_0047:  ret
 }");
         }
+
+        [Fact]
+        public void StaticLambda_FunctionPointer_01()
+        {
+            var source = @"
+class C
+{
+    unsafe void M()
+    {
+        delegate*<void> ptr = &static () => { };
+        ptr();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS1525: Invalid expression term 'static'
+                //         delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(6, 32),
+                // (6,32): error CS1002: ; expected
+                //         delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(6, 32),
+                // (6,32): error CS0106: The modifier 'static' is not valid for this item
+                //         delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(6, 32),
+                // (6,40): error CS8124: Tuple must contain at least two elements.
+                //         delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(6, 40),
+                // (6,42): error CS1001: Identifier expected
+                //         delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(6, 42),
+                // (6,42): error CS1003: Syntax error, ',' expected
+                //         delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 42),
+                // (6,45): error CS1002: ; expected
+                //         delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 45)
+                );
+        }
+
+        [Fact]
+        public void StaticLambda_FunctionPointer_02()
+        {
+            var source = @"
+class C
+{
+    unsafe void M()
+    {
+        delegate*<void> ptr = static () => { };
+        ptr();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,31): error CS1660: Cannot convert lambda expression to type 'delegate*<void>' because it is not a delegate type
+                //         delegate*<void> ptr = static () => { };
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static () => { }").WithArguments("lambda expression", "delegate*<void>").WithLocation(6, 31)
+                );
+        }
+
+        [Fact]
+        public void StaticAnonymousMethod_FunctionPointer_01()
+        {
+            var source = @"
+class C
+{
+    unsafe void M()
+    {
+        delegate*<void> ptr = &static delegate() { };
+        ptr();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS0211: Cannot take the address of the given expression
+                //         delegate*<void> ptr = &static delegate() { };
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "static delegate() { }").WithLocation(6, 32)
+                );
+        }
+
+        [Fact]
+        public void StaticAnonymousMethod_FunctionPointer_02()
+        {
+            var source = @"
+class C
+{
+    unsafe void M()
+    {
+        delegate*<void> ptr = static delegate() { };
+        ptr();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,31): error CS1660: Cannot convert anonymous method to type 'delegate*<void>' because it is not a delegate type
+                //         delegate*<void> ptr = static delegate() { };
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static delegate() { }").WithArguments("anonymous method", "delegate*<void>").WithLocation(6, 31)
+                );
+        }
+
+        [Fact]
+        public void ConditionalExpr()
+        {
+            var source = @"
+using static System.Console;
+
+class C
+{
+    static void M(bool b, System.Action a)
+    {
+        a = b ? () => Write(1) : a;
+        a();
+
+        a = b ? static () => Write(2) : a;
+        a();
+
+        a = b ? () => { Write(3); } : a;
+        a();
+
+        a = b ? static () => { Write(4); } : a;
+        a();
+
+        a = b ? a : () => { };
+        a = b ? a : static () => { };
+
+        a = b ? delegate() { Write(5); } : a;
+        a();
+
+        a = b ? static delegate() { Write(6); } : a;
+        a();
+
+        a = b ? a : delegate() { };
+        a = b ? a : static delegate() { };
+    }
+
+    static void Main()
+    {
+        M(true, () => { });
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "123456", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public void RefConditionalExpr()
+        {
+            var source = @"
+using static System.Console;
+
+class C
+{
+    static void M(bool b, ref System.Action a)
+    {
+        a = ref b ? ref () => Write(1) : ref a;
+        a();
+
+        a = ref b ? ref static () => Write(2) : ref a;
+        a();
+
+        a = ref b ? ref () => { Write(3); } : ref a;
+        a();
+
+        a = ref b ? ref static () => { Write(4); } : ref a;
+        a();
+
+        a = ref b ? ref a : ref () => { };
+        a = ref b ? ref a : ref static () => { };
+
+        a = ref b ? ref delegate() { Write(5); } : ref a;
+        a();
+
+        a = ref b ? ref static delegate() { Write(6); } : ref a;
+        a();
+
+        a = ref b ? ref a : ref delegate() { };
+        a = b ? ref a : ref static delegate() { };
+    }
+}
+";
+            VerifyInPreview(source,
+                // (8,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = ref b ? ref () => Write(1) : ref a;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "() => Write(1)").WithLocation(8, 25),
+                // (11,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = ref b ? ref static () => Write(2) : ref a;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "static () => Write(2)").WithLocation(11, 25),
+                // (14,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = ref b ? ref () => { Write(3); } : ref a;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "() => { Write(3); }").WithLocation(14, 25),
+                // (17,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = ref b ? ref static () => { Write(4); } : ref a;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "static () => { Write(4); }").WithLocation(17, 25),
+                // (20,33): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = ref b ? ref a : ref () => { };
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "() => { }").WithLocation(20, 33),
+                // (21,33): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = ref b ? ref a : ref static () => { };
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "static () => { }").WithLocation(21, 33),
+                // (23,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = ref b ? ref delegate() { Write(5); } : ref a;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "delegate() { Write(5); }").WithLocation(23, 25),
+                // (26,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = ref b ? ref static delegate() { Write(6); } : ref a;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "static delegate() { Write(6); }").WithLocation(26, 25),
+                // (29,33): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = ref b ? ref a : ref delegate() { };
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "delegate() { }").WithLocation(29, 33),
+                // (30,29): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         a = b ? ref a : ref static delegate() { };
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "static delegate() { }").WithLocation(30, 29)
+                );
+        }
+
+        [Fact]
+        public void SwitchExpr()
+        {
+            var source = @"
+using static System.Console;
+
+class C
+{
+    static void M(bool b, System.Action a)
+    {
+        a = b switch { true => () => Write(1), false => a };
+        a();
+
+        a = b switch { true => static () => Write(2), false => a };
+        a();
+
+        a = b switch { true => () => { Write(3); }, false => a };
+        a();
+
+        a = b switch { true => static () => { Write(4); }, false => a };
+        a();
+
+        a = b switch { true => a , false => () => { Write(0); } };
+        a = b switch { true => a , false => static () => { Write(0); } };
+
+        a = b switch { true => delegate() { Write(5); }, false => a };
+        a();
+
+        a = b switch { true => static delegate() { Write(6); }, false => a };
+        a();
+
+        a = b switch { true => a , false => delegate() { Write(0); } };
+        a = b switch { true => a , false => static delegate() { Write(0); } };
+    }
+
+    static void Main()
+    {
+        M(true, () => { });
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "123456", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public void DiscardParams()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Action<int, int, string> fn = static (_, _, z) => Console.Write(z);
+        fn(1, 2, ""hello"");
+
+        fn = static delegate(int _, int _, string z) { Console.Write(z); };
+        fn(3, 4, "" world"");
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "hello world", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public void PrivateMemberAccessibility()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    private static void M1(int i) { Console.Write(i); }
+
+    class Inner
+    {
+        static void Main()
+        {
+            Action a = static () => M1(1);
+            a();
+
+            a = static delegate() { M1(2); };
+            a();
+        }
+    }
+}
+";
+            verify(source);
+            verify(source.Replace("static (", "("));
+
+            void verify(string source)
+            {
+                CompileAndVerify(source, expectedOutput: "12", parseOptions: TestOptions.RegularPreview);
+            }
+        }
     }
 }

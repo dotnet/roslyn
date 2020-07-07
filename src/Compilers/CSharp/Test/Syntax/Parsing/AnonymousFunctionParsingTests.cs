@@ -932,6 +932,121 @@ public class C
         }
 
         [Fact]
+        public void StaticLambdaPassedAsRefArgument()
+        {
+            var test = @"M1(ref static x => x);";
+
+            UsingStatement(test, options: TestOptions.RegularPreview);
+            verify();
+
+            UsingStatement(test,
+                // (1,8): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // M1(ref static x => x);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 8)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M1");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.SimpleLambdaExpression);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void StaticLambdaPassedAsLabeledArgument()
+        {
+            var test = @"M1(param: static x => x);";
+
+            UsingStatement(test, options: TestOptions.RegularPreview);
+            verify();
+
+            UsingStatement(test,
+                // (1,11): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // M1(param: static x => x);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(1, 11)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M1");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NameColon);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "param");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                }
+                                N(SyntaxKind.SimpleLambdaExpression);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
         public void StaticAnonymousFunctionPassedAsArgument()
         {
             var test = @"M1(static delegate(int x) { });";
@@ -1623,6 +1738,303 @@ public class C
                                         }
                                     }
                                     N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void LambdaFunctionPointer()
+        {
+            var test = @"delegate*<void> ptr = &() => { };";
+
+            UsingStatement(test, options: TestOptions.RegularPreview,
+                // (1,25): error CS1525: Invalid expression term ')'
+                // delegate*<void> ptr = &() => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 25),
+                // (1,27): error CS1003: Syntax error, ',' expected
+                // delegate*<void> ptr = &() => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27)
+                );
+            verify();
+
+            UsingStatement(test,
+                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // delegate*<void> ptr = &() => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1),
+                // (1,25): error CS1525: Invalid expression term ')'
+                // delegate*<void> ptr = &() => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 25),
+                // (1,27): error CS1003: Syntax error, ',' expected
+                // delegate*<void> ptr = &() => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27));
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.FunctionPointerType);
+                        {
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ptr");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.AddressOfExpression);
+                                {
+                                    N(SyntaxKind.AmpersandToken);
+                                    N(SyntaxKind.ParenthesizedExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void StaticLambdaFunctionPointer()
+        {
+            var test = @"delegate*<void> ptr = &static () => { };";
+
+            UsingStatement(test, options: TestOptions.RegularPreview,
+                // (1,1): error CS1073: Unexpected token ')'
+                // delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate*<void> ptr = &static (").WithArguments(")").WithLocation(1, 1),
+                // (1,24): error CS1525: Invalid expression term 'static'
+                // delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 24),
+                // (1,24): error CS1003: Syntax error, ',' expected
+                // delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 24),
+                // (1,32): error CS1002: ; expected
+                // delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 32)
+                );
+            verify();
+
+            UsingStatement(test,
+                // (1,1): error CS1073: Unexpected token ')'
+                // delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate*<void> ptr = &static (").WithArguments(")").WithLocation(1, 1),
+                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1),
+                // (1,24): error CS1525: Invalid expression term 'static'
+                // delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 24),
+                // (1,24): error CS1003: Syntax error, ',' expected
+                // delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 24),
+                // (1,32): error CS1002: ; expected
+                // delegate*<void> ptr = &static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 32)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.FunctionPointerType);
+                        {
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ptr");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.AddressOfExpression);
+                                {
+                                    N(SyntaxKind.AmpersandToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void AnonymousMethodFunctionPointer()
+        {
+            var test = @"delegate*<void> ptr = &delegate() { };";
+
+            UsingStatement(test, options: TestOptions.RegularPreview);
+            verify();
+
+            UsingStatement(test,
+                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // delegate*<void> ptr = &delegate() { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1));
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.FunctionPointerType);
+                        {
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ptr");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.AddressOfExpression);
+                                {
+                                    N(SyntaxKind.AmpersandToken);
+                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void StaticAnonymousMethodFunctionPointer()
+        {
+            var test = @"delegate*<void> ptr = &delegate() { };";
+
+            UsingStatement(test, options: TestOptions.RegularPreview);
+            verify();
+
+            UsingStatement(test,
+                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // delegate*<void> ptr = &delegate() { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1)
+                );
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.FunctionPointerType);
+                        {
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ptr");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.AddressOfExpression);
+                                {
+                                    N(SyntaxKind.AmpersandToken);
+                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
                                 }
                             }
                         }
