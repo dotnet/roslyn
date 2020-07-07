@@ -1822,6 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 remainingTests.RemoveAt(i);
                                 break;
                             case False f:
+                                remainingTests.Free();
                                 return f;
                             case AndSequence seq:
                                 var testsToInsert = seq.RemainingTests;
@@ -1891,6 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 remainingTests.RemoveAt(i);
                                 break;
                             case True t:
+                                remainingTests.Free();
                                 return t;
                             case OrSequence seq:
                                 remainingTests.RemoveAt(i);

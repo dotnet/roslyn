@@ -17,9 +17,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public static async Task<UnitTestingChecksumWrapper> GetChecksumAsync(this Solution solution, CancellationToken cancellationToken)
             => new UnitTestingChecksumWrapper(await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
-
-        [Obsolete("Use GetChecksumAsync instead")]
-        public static UnitTestingSolutionStateWrapper GetState(this Solution solution)
-            => new UnitTestingSolutionStateWrapper(solution.State);
     }
 }
