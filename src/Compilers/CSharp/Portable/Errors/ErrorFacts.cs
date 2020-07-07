@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -203,6 +204,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return s_resourceManager;
+            }
+        }
+
+        /// <summary>
+        /// For each warning that is linked to a warning "wave" (/warnversion), the number of
+        /// the warning wave in which it was introduced.
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        internal static decimal GetWarningVersion(this ErrorCode code)
+        {
+            switch (code)
+            {
+                case ErrorCode.WRN_NubExprIsConstBool2:
+                    return 5m;
+                // If you introduce a new warning "wave" version, please update
+                // CSharpResources.resx to include documentation for the "latest"
+                // warning version in "IDS_CSCHelp" under "-warnversion". Note that
+                // it is our intention that warning wave version numbers correspond
+                // to the dotnet platform with which the compiler is released.
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(code);
             }
         }
 

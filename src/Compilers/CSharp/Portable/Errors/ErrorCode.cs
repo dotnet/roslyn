@@ -1837,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_8821 = 8821, // used by features/static-lambdas
 
+        ERR_BadWarningVersion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,
