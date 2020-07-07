@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -42,32 +43,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 var node = (MemberAccessExpressionSyntax)root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                ConvertNameOf(editor, node);
+                ConvertNameOf(editor, node, semanticModel);
             }
-
-            return Task.CompletedTask;
         }
 
         internal static void ConvertNameOf(
-            SyntaxEditor editor, MemberAccessExpressionSyntax node)
+            SyntaxEditor editor, MemberAccessExpressionSyntax node, SemanticModel semanticModel)
         {
             var exp = (TypeOfExpressionSyntax)node.Expression;
             var idName = exp.Type.ToString();
 
+            //check if exp type is predefined type and convert
+            //example: int -> Int32, string -> String, etc
+            if (exp.Type.IsKind(SyntaxKind.PredefinedType))
+            {
+                idName = semanticModel.GetSymbolInfo(exp.Type).Symbol.
+                                       GetSymbolType().SpecialType.
+                                       ToPredefinedType().ToString();
+            }
+
             var nameOfSyntax = InvocationExpression(IdentifierName("nameof")).
-                WithArgumentList(
-                ArgumentList(
-                    SingletonSeparatedList<ArgumentSyntax>(
-                        Argument(
-                            IdentifierName(idName)))));
+                               WithArgumentList(
+                               ArgumentList(
+                               SingletonSeparatedList<ArgumentSyntax>(
+                               Argument(
+                               IdentifierName(idName)))));
 
             editor.ReplaceNode(node, nameOfSyntax);
         }
