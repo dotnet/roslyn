@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
                 return;
             }
 
+            // Check if the operation is one that we want to offer the fix for
             if (!IsValidOperation(context.Operation))
             {
                 return;
@@ -73,13 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNameOf
             }
 
             // Check if it's a generic type
-            if (((INamedTypeSymbol)(typeofOperation).TypeOperand).IsGenericType)
-            {
-                return false;
-            }
-
-            // Check if it's a primitive type
-            if (!(((ITypeSymbol)(typeofOperation.TypeOperand)).SpecialType.ToPredefinedType() is PredefinedType.None))
+            if (!(typeofOperation.TypeOperand is INamedTypeSymbol namedType) || namedType.IsGenericType)
             {
                 return false;
             }
