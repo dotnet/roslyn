@@ -114,7 +114,8 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         public async Task PrimitiveType()
         {
-            var text = @"class Test
+            var text = @"
+class Test
 {
     void Method()
     {

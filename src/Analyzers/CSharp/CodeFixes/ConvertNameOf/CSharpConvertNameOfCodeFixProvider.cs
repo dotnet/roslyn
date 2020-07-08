@@ -49,17 +49,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = editor.OriginalRoot;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var isUsingSystem = root.
+                                DescendantNodes().
+                                OfType<UsingDirectiveSyntax>().
+                                Any(node => node.Name.ToString().Equals("System"));
+
             foreach (var diagnostic in diagnostics)
             {
                 var node = (MemberAccessExpressionSyntax)root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                ConvertNameOf(editor, node, semanticModel);
+                ConvertNameOf(editor, node, semanticModel, isUsingSystem);
             }
         }
 
+        /**
+         * Method converts typeof(...).Name to nameof(...)
+         * The isUsingSystem parameter determines whether includes the System directive.
+         */
         internal static void ConvertNameOf(
-            SyntaxEditor editor, MemberAccessExpressionSyntax node, SemanticModel semanticModel)
+            SyntaxEditor editor, MemberAccessExpressionSyntax node, SemanticModel semanticModel, bool isUsingSystem)
         {
             var exp = (TypeOfExpressionSyntax)node.Expression;
             var idName = exp.Type.ToString();
@@ -68,10 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             //example: int -> Int32, string -> String, etc
             if (exp.Type.IsKind(SyntaxKind.PredefinedType))
             {
-                idName = "System." + semanticModel.GetSymbolInfo(exp.Type).Symbol.
-                                                   GetSymbolType().SpecialType.
-                                                   ToPredefinedType().ToString();
+                idName = semanticModel.GetSymbolInfo(exp.Type).Symbol.
+                                       GetSymbolType().SpecialType.
+                                       ToPredefinedType().ToString();
             }
+
+            //check if user is using System;
+            idName = isUsingSystem ? idName : "System." + idName;
 
             var nameOfSyntax = InvocationExpression(IdentifierName("nameof")).
                                WithArgumentList(
@@ -80,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
                                Argument(
                                IdentifierName(idName)))));
 
-            editor.ReplaceNode(node, nameOfSyntax.WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation));
+            editor.ReplaceNode(node, nameOfSyntax.WithAdditionalAnnotations(Simplifier.Annotation));
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
