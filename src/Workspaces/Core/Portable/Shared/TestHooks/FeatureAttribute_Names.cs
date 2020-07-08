@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string GoToImplementation = nameof(GoToImplementation);
         public const string GraphProvider = nameof(GraphProvider);
         public const string InfoBar = nameof(InfoBar);
+        public const string InteractiveEvaluator = nameof(InteractiveEvaluator);
         public const string KeywordHighlighting = nameof(KeywordHighlighting);
         public const string LightBulb = nameof(LightBulb);
         public const string LineSeparators = nameof(LineSeparators);
@@ -41,6 +42,5 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string TodoCommentList = nameof(TodoCommentList);
         public const string LanguageServer = nameof(LanguageServer);
         public const string Workspace = nameof(Workspace);
-        public const string InteractiveEvaluator = nameof(InteractiveEvaluator);
     }
 }

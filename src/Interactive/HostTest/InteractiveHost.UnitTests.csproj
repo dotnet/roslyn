@@ -41,16 +41,6 @@
       <OutputItemType>InteractiveHostFiles_Core</OutputItemType>
     </CopyPublishedOutputProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\HostProcess\Desktop\CSharpInteractive.rsp">
-      <Link>Host\Desktop\CSharpInteractive.rsp</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\HostProcess\Core\CSharpInteractive.rsp">
-      <Link>Host\Core\CSharpInteractive.rsp</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 
   <!--
     Creates the same directory structure containing flavors of InteractiveHost under the output directory as is used in VSIX.

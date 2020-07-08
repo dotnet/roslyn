@@ -40,8 +40,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public VisualStudioInstanceFactory()
         {
-            AppContext.SetSwitch("Switch.System.Diagnostics.IgnorePortablePDBsInStackTraces", false);
-
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
 

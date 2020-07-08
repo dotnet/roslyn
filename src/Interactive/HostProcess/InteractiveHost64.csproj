@@ -27,10 +27,17 @@
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
       <_PublishedFiles Include="$(PublishDir)**\*.*" />
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
+
+      <!-- Include .rsp file -->
+      <_PublishedFiles Include="$(MSBuildProjectDirectory)\Desktop\CSharpInteractive.rsp" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+      <_PublishedFiles Include="$(MSBuildProjectDirectory)\Core\CSharpInteractive.rsp" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" />
+
+      <!-- Set TargetPath -->
       <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
 
-      <_PublishedFiles Update="@(_PublishedFiles)" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-        <Ngen Condition="'%(Extension)' == '.dll' or '%(Extension)' == '.exe'">true</Ngen>
+      <!-- Set NGEN metadata -->
+      <_PublishedFiles Update="@(_PublishedFiles)" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and ('%(Extension)' == '.dll' or '%(Extension)' == '.exe')">
+        <Ngen>true</Ngen>
         <NgenPriority>3</NgenPriority>
         <NgenArchitecture Condition="'%(Filename)' != 'InteractiveHost64'">All</NgenArchitecture>
         <NgenArchitecture Condition="'%(Filename)' == 'InteractiveHost64'">X64</NgenArchitecture>

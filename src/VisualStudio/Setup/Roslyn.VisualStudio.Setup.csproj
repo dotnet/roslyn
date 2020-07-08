@@ -21,12 +21,6 @@
     <!-- Path to our servicehub entry point dll in the vsix directory relative 
          to our servicehub.servicehub.json files in the same vsix directory -->
     <ServiceHubAssemblyBasePath>.\</ServiceHubAssemblyBasePath>
-
-    <!--
-      Warning MSB3270: There was a mismatch between the processor architecture of the project being built "MSIL" 
-      and the processor architecture of the reference "net472\win10-x64\InteractiveHost64.exe", "AMD64".
-    -->
-    <NoWarn>$(NoWarn);MSB3270</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
@@ -338,16 +332,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <Visible>false</Visible>
-    </Content>
-    <Content Include="..\..\Interactive\HostProcess\Desktop\CSharpInteractive.rsp">
-      <Link>InteractiveHost\Desktop\CSharpInteractive.rsp</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\..\Interactive\HostProcess\Core\CSharpInteractive.rsp">
-      <Link>InteractiveHost\Core\CSharpInteractive.rsp</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
   </ItemGroup>
   <ItemGroup>
