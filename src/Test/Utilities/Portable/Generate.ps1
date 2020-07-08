@@ -167,7 +167,7 @@ $targetsContent += @"
 "@;
 
 $codeContent += @"
-   }
+    }
 }
 "@
 

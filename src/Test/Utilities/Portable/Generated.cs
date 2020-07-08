@@ -172,5 +172,5 @@ namespace Roslyn.Test.Utilities
         {
             public static PortableExecutableReference NetStandard461 { get; } = AssemblyMetadata.CreateFromImage(ResourcesBuildExtensions.NetStandard461).GetReference(display: "netstandard.dll (BuildExtensions)");
         }
-   }
+    }
 }
