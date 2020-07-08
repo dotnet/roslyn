@@ -51,7 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 ? list
                     .Replace(
                         list[^2],
-                        list[^2].AsNode().WithAppendedTrailingTrivia(list[^1].GetTrailingTrivia()))
+                        list[^2].AsNode()
+                            .WithAppendedTrailingTrivia(list[^1].GetLeadingTrivia())
+                            .WithAppendedTrailingTrivia(list[^1].GetTrailingTrivia()))
                     .RemoveAt(list.Count - 1)
                 : list;
         }

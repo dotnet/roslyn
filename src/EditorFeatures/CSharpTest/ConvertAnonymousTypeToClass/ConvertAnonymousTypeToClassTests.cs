@@ -1499,6 +1499,7 @@ class Test
         {
             a = 1,
             b = 2 // and
+                  // more
             ,
         };
     }
@@ -1512,6 +1513,7 @@ class Test
         var t1 = new {|Rename:NewClass|}(
 1,
 2 // and
+  // more
 
         );
     }
