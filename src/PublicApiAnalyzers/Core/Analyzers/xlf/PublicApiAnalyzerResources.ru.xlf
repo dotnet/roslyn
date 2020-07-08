@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
-        <target state="translated">В объявленном API для символа "{0}" отсутствуют заметки допустимости значений NULL.</target>
+        <target state="translated">В объявленном API для символа "{0}" отсутствуют заметки о допустимости значений NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for project '{0}'</source>
-        <target state="translated">Включите заметки допустимости значений NULL в общедоступном API для проекта "{0}"</target>
+        <target state="translated">Включите заметки о допустимости значений NULL в общедоступном API для проекта "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for the solution</source>
-        <target state="translated">Включите заметки допустимости значений NULL в общедоступном API для решения</target>
+        <target state="translated">Включите заметки о допустимости значений NULL в общедоступном API для решения</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
@@ -179,12 +179,12 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Для файлов PublicAPI.txt необходимо установить директиву #nullable enable, чтобы отслеживать сведения о допустимости значений NULL, либо отключить этот параметр диагностики. Если значения NULL являются допустимыми, в файлах PublicAPI.txt записываются типы, которые допускают значения NULL (суффикс "?" типа) или не допускают значения NULL (суффикс "!"). Также отслеживаются все API, в которых все еще используется абстрактный ссылочный тип (префикс "~" в строке).</target>
+        <target state="translated">Для файлов PublicAPI.txt необходимо установить директиву #nullable enable, чтобы отслеживать сведения о допустимости значений NULL, либо отключить этот параметр диагностики. Если значения NULL являются допустимыми, в файлах PublicAPI.txt записываются типы, которые допускают значения NULL (суффикс "?" типа) или не допускают значения NULL (суффикс "!"). Также отслеживаются все API, в которых все еще используется ссылочный тип без заметок о допустимости значений NULL (префикс "~" в строке).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="translated">В файле PublicAPI.txt отсутствует "#nullable enable", поэтому заметки допустимости значений NULL для API не записываются. Рекомендуется включить их отслеживание.</target>
+        <target state="translated">В файле PublicAPI.txt отсутствует "#nullable enable", поэтому заметки о допустимости значений NULL для API не записываются. Рекомендуется включить их отслеживание.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
