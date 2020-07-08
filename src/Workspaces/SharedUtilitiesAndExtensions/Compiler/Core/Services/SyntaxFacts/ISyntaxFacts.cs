@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// preprocessor directive.  For example `if` or `pragma`.
         /// </summary>
         bool IsPreprocessorKeyword(SyntaxToken token);
+        bool IsPreProcessorDirectiveContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
@@ -374,8 +375,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
-        int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
-        SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId);
         TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
         /// <summary>

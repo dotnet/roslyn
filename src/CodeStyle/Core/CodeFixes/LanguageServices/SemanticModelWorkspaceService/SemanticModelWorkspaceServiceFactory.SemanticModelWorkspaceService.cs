@@ -9,13 +9,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
+namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
-    internal partial class SemanticModelWorkspaceServiceFactory : IWorkspaceServiceFactory
+    internal partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
     {
-        private sealed class SemanticModelService : ISemanticModelService
+        private sealed class SemanticModelReuseWorkspaceService : ISemanticModelReuseWorkspaceService
         {
-            public Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
+            public SemanticModelReuseWorkspaceService(Workspace _)
+            {
+            }
+
+            public Task<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 // TODO: port the GetSemanticModelForNodeAsync implementation from Workspaces layer,
                 // which currently relies on a bunch of internal APIs.
