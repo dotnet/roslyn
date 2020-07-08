@@ -6,6 +6,7 @@
 
 using FsCheck;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
