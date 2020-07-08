@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Storage.CloudKernel;
 
 // When building for source-build, there is no sqlite dependency
 #if !DOTNET_BUILD_FROM_SOURCE
@@ -31,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Storage
             var database = optionService.GetOption(StorageOptions.Database);
             switch (database)
             {
+                case StorageDatabase.CloudKernel:
+                    return new CloudKernelPersistentStorageService();
+
                 case StorageDatabase.SQLite:
                     var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
                     if (locationService != null)

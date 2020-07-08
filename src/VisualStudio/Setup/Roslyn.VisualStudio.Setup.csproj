@@ -286,6 +286,15 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" PkgDefEntry="CodeBase" />
+
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.Caching" PkgDefEntry="CodeBase" />
+    <NuGetPackageToIncludeInVsix Include="Azure.Identity" PkgDefEntry="CodeBase" />
+    <NuGetPackageToIncludeInVsix Include="Azure.Core" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="Azure.Storage.Blobs" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="Azure.Storage.Common" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.DiagnosticSource" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.ProtectedData" PkgDefEntry="BindingRedirect" />
+
     <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol" PkgDefEntry="CodeBase" />
     <NugetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" PkgDefEntry="CodeBase" />
   </ItemGroup>

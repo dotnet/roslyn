@@ -55,7 +55,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 lock (s_hostServicesGuard)
                 {
-                    return s_hostServices ?? (s_hostServices = MefHostServices.Create(RemoteHostAssemblies));
+                    try
+                    {
+                        return s_hostServices ?? (s_hostServices = MefHostServices.Create(RemoteHostAssemblies));
+                    }
+                    catch (Exception e)
+                    {
+                        throw;
+                    }
                 }
             }
         }

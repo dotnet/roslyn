@@ -46,6 +46,18 @@
   -->
   <ItemGroup>
     <ExpectedDependency Include="Humanizer.Core"/>
+    
+    <ExpectedDependency Include="Azure.Core"/>
+    <ExpectedDependency Include="Azure.Identity"/>
+    <ExpectedDependency Include="Azure.Storage.Blobs"/>
+    <ExpectedDependency Include="Azure.Storage.Common"/>
+    <ExpectedDependency Include="Microsoft.Identity.Client"/>
+    <ExpectedDependency Include="System.Diagnostics.DiagnosticSource"/>
+    <ExpectedDependency Include="System.Security.Cryptography.ProtectedData"/>
+    <ExpectedDependency Include="System.Text.Encodings.Web"/>
+    <ExpectedDependency Include="System.Text.Json"/>
+    <ExpectedDependency Include="Microsoft.VisualStudio.Caching"/>
+    
     <ExpectedDependency Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
