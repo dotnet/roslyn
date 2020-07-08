@@ -12,21 +12,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
     <ExportLanguageService(GetType(IInlineParameterNameHintsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class InlineParameterNameHintsService
-        Implements IInlineParameterNameHintsService
+        Inherits AbstractInlineParameterNameHintsService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Async Function GetInlineParameterNameHintsAsync(document As Document, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of InlineParameterHint)) Implements IInlineParameterNameHintsService.GetInlineParameterNameHintsAsync
-            Dim tree = Await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            Dim root = Await tree.GetRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim spans = New List(Of InlineParameterHint)
-
-            Dim semanticModel = Await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-            Dim nodes = root.DescendantNodes()
-
+        Protected Overrides Function AddAllParameterNameHintLocations(semanticModel As SemanticModel, nodes As IEnumerable(Of SyntaxNode), spans As List(Of InlineParameterHint), cancellationToken As CancellationToken) As List(Of InlineParameterHint)
             For Each node In nodes
                 cancellationToken.ThrowIfCancellationRequested()
                 Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)

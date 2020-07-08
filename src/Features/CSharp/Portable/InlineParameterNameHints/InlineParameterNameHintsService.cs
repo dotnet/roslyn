@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
     /// as well as associate the adornments back to the parameter name
     /// </summary>
     [ExportLanguageService(typeof(IInlineParameterNameHintsService), LanguageNames.CSharp), Shared]
-    internal class InlineParameterNameHintsService : IInlineParameterNameHintsService
+    internal class InlineParameterNameHintsService : AbstractInlineParameterNameHintsService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -31,18 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
         {
         }
 
-        public async Task<IEnumerable<InlineParameterHint>> GetInlineParameterNameHintsAsync(
-            Document document,
-            TextSpan textSpan,
-            CancellationToken cancellationToken)
+        protected override List<InlineParameterHint> AddAllParameterNameHintLocations(
+             SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, List<InlineParameterHint> spans, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var spans = new List<InlineParameterHint>();
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var nodes = root.DescendantNodes(textSpan);
-
             foreach (var node in nodes)
             {
                 if (node is ArgumentSyntax argument)
