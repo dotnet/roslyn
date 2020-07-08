@@ -2309,9 +2309,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ITypeSymbol InputType { get; }
         /// <summary>
-        /// The output type of the pattern-matching operation.
+        /// The narrowed type of the pattern-matching operation.
         /// </summary>
-        ITypeSymbol OutputType { get; }
+        ITypeSymbol NarrowedType { get; }
     }
     /// <summary>
     /// Represents a pattern with a constant value.
@@ -7170,19 +7170,19 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BasePatternOperation : Operation, IPatternOperation
     {
-        protected BasePatternOperation(ITypeSymbol inputType, ITypeSymbol outputType, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+        protected BasePatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
             : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InputType = inputType;
-            OutputType = outputType;
+            NarrowedType = narrowedType;
         }
         public ITypeSymbol InputType { get; }
-        public ITypeSymbol OutputType { get; }
+        public ITypeSymbol NarrowedType { get; }
     }
     internal abstract partial class BaseConstantPatternOperation : BasePatternOperation, IConstantPatternOperation
     {
-        internal BaseConstantPatternOperation(ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, OperationKind.ConstantPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal BaseConstantPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, OperationKind.ConstantPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
         public abstract IOperation Value { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -7196,8 +7196,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
     {
-        internal ConstantPatternOperation(IOperation value, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit)
+        internal ConstantPatternOperation(IOperation value, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
@@ -7206,8 +7206,8 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class LazyConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
     {
         private IOperation _lazyValue = s_unset;
-        internal LazyConstantPatternOperation(ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyConstantPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IOperation CreateValue();
         public override IOperation Value
         {
@@ -7225,8 +7225,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class DeclarationPatternOperation : BasePatternOperation, IDeclarationPatternOperation
     {
-        internal DeclarationPatternOperation(ITypeSymbol matchedType, bool matchesNull, ISymbol declaredSymbol, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, OperationKind.DeclarationPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        internal DeclarationPatternOperation(ITypeSymbol matchedType, bool matchesNull, ISymbol declaredSymbol, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, OperationKind.DeclarationPattern, semanticModel, syntax, type, constantValue, isImplicit)
         {
             MatchedType = matchedType;
             MatchesNull = matchesNull;
@@ -7751,8 +7751,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseRecursivePatternOperation : BasePatternOperation, IRecursivePatternOperation
     {
-        internal BaseRecursivePatternOperation(ITypeSymbol matchedType, ISymbol deconstructSymbol, ISymbol declaredSymbol, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, OperationKind.RecursivePattern, semanticModel, syntax, type, constantValue, isImplicit)
+        internal BaseRecursivePatternOperation(ITypeSymbol matchedType, ISymbol deconstructSymbol, ISymbol declaredSymbol, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, OperationKind.RecursivePattern, semanticModel, syntax, type, constantValue, isImplicit)
         {
             MatchedType = matchedType;
             DeconstructSymbol = deconstructSymbol;
@@ -7782,8 +7782,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class RecursivePatternOperation : BaseRecursivePatternOperation, IRecursivePatternOperation
     {
-        internal RecursivePatternOperation(ITypeSymbol matchedType, ISymbol deconstructSymbol, ImmutableArray<IPatternOperation> deconstructionSubpatterns, ImmutableArray<IPropertySubpatternOperation> propertySubpatterns, ISymbol declaredSymbol, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(matchedType, deconstructSymbol, declaredSymbol, inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit)
+        internal RecursivePatternOperation(ITypeSymbol matchedType, ISymbol deconstructSymbol, ImmutableArray<IPatternOperation> deconstructionSubpatterns, ImmutableArray<IPropertySubpatternOperation> propertySubpatterns, ISymbol declaredSymbol, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(matchedType, deconstructSymbol, declaredSymbol, inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit)
         {
             DeconstructionSubpatterns = SetParentOperation(deconstructionSubpatterns, this);
             PropertySubpatterns = SetParentOperation(propertySubpatterns, this);
@@ -7795,8 +7795,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IPatternOperation> _lazyDeconstructionSubpatterns;
         private ImmutableArray<IPropertySubpatternOperation> _lazyPropertySubpatterns;
-        internal LazyRecursivePatternOperation(ITypeSymbol matchedType, ISymbol deconstructSymbol, ISymbol declaredSymbol, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(matchedType, deconstructSymbol, declaredSymbol, inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyRecursivePatternOperation(ITypeSymbol matchedType, ISymbol deconstructSymbol, ISymbol declaredSymbol, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(matchedType, deconstructSymbol, declaredSymbol, inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns();
         public override ImmutableArray<IPatternOperation> DeconstructionSubpatterns
         {
@@ -7828,8 +7828,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class DiscardPatternOperation : BasePatternOperation, IDiscardPatternOperation
     {
-        internal DiscardPatternOperation(ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, OperationKind.DiscardPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal DiscardPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, OperationKind.DiscardPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
         public override void Accept(OperationVisitor visitor) => visitor.VisitDiscardPattern(this);
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitDiscardPattern(this, argument);
@@ -8392,8 +8392,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseNegatedPatternOperation : BasePatternOperation, INegatedPatternOperation
     {
-        internal BaseNegatedPatternOperation(ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, OperationKind.NegatedPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal BaseNegatedPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, OperationKind.NegatedPattern, semanticModel, syntax, type, constantValue, isImplicit) { }
         public abstract IPatternOperation Pattern { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -8407,8 +8407,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class NegatedPatternOperation : BaseNegatedPatternOperation, INegatedPatternOperation
     {
-        internal NegatedPatternOperation(IPatternOperation pattern, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit)
+        internal NegatedPatternOperation(IPatternOperation pattern, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Pattern = SetParentOperation(pattern, this);
         }
@@ -8417,8 +8417,8 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class LazyNegatedPatternOperation : BaseNegatedPatternOperation, INegatedPatternOperation
     {
         private IPatternOperation _lazyPattern = s_unsetPattern;
-        internal LazyNegatedPatternOperation(ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyNegatedPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IPatternOperation CreatePattern();
         public override IPatternOperation Pattern
         {
@@ -8436,8 +8436,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseBinaryPatternOperation : BasePatternOperation, IBinaryPatternOperation
     {
-        internal BaseBinaryPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, OperationKind.BinaryPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        internal BaseBinaryPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, OperationKind.BinaryPattern, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
         }
@@ -8457,8 +8457,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class BinaryPatternOperation : BaseBinaryPatternOperation, IBinaryPatternOperation
     {
-        internal BinaryPatternOperation(BinaryOperatorKind operatorKind, IPatternOperation leftPattern, IPatternOperation rightPattern, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit)
+        internal BinaryPatternOperation(BinaryOperatorKind operatorKind, IPatternOperation leftPattern, IPatternOperation rightPattern, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(operatorKind, inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LeftPattern = SetParentOperation(leftPattern, this);
             RightPattern = SetParentOperation(rightPattern, this);
@@ -8470,8 +8470,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IPatternOperation _lazyLeftPattern = s_unsetPattern;
         private IPatternOperation _lazyRightPattern = s_unsetPattern;
-        internal LazyBinaryPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyBinaryPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(operatorKind, inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IPatternOperation CreateLeftPattern();
         public override IPatternOperation LeftPattern
         {
@@ -8503,8 +8503,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class TypePatternOperation : BasePatternOperation, ITypePatternOperation
     {
-        internal TypePatternOperation(ITypeSymbol matchedType, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, OperationKind.TypePattern, semanticModel, syntax, type, constantValue, isImplicit)
+        internal TypePatternOperation(ITypeSymbol matchedType, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, OperationKind.TypePattern, semanticModel, syntax, type, constantValue, isImplicit)
         {
             MatchedType = matchedType;
         }
@@ -8515,8 +8515,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseRelationalPatternOperation : BasePatternOperation, IRelationalPatternOperation
     {
-        internal BaseRelationalPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(inputType, outputType, OperationKind.RelationalPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        internal BaseRelationalPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(inputType, narrowedType, OperationKind.RelationalPattern, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
         }
@@ -8534,8 +8534,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class RelationalPatternOperation : BaseRelationalPatternOperation, IRelationalPatternOperation
     {
-        internal RelationalPatternOperation(BinaryOperatorKind operatorKind, IOperation value, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit)
+        internal RelationalPatternOperation(BinaryOperatorKind operatorKind, IOperation value, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(operatorKind, inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
@@ -8544,8 +8544,8 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class LazyRelationalPatternOperation : BaseRelationalPatternOperation, IRelationalPatternOperation
     {
         private IOperation _lazyValue = s_unset;
-        internal LazyRelationalPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, ITypeSymbol outputType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
-            : base(operatorKind, inputType, outputType, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyRelationalPatternOperation(BinaryOperatorKind operatorKind, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ConstantValue constantValue, bool isImplicit)
+            : base(operatorKind, inputType, narrowedType, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IOperation CreateValue();
         public override IOperation Value
         {

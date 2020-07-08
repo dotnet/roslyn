@@ -94,7 +94,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case 1:')
                 Pattern: 
-                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: Program, OutputType: Program)
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: Program, NarrowedType: Program)
                     Value: 
                       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsInvalid, IsImplicit) (Syntax: '1')
                         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -389,10 +389,10 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
             Value: 
               IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[], IsInvalid) (Syntax: 'args')
             Pattern: 
-              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(var x1, var x2)') (InputType: System.String[], OutputType: System.String[], DeclaredSymbol: null, MatchedType: System.String[], DeconstructSymbol: null)
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(var x1, var x2)') (InputType: System.String[], NarrowedType: System.String[], DeclaredSymbol: null, MatchedType: System.String[], DeconstructSymbol: null)
                 DeconstructionSubpatterns (2):
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x1') (InputType: ?, OutputType: ?, DeclaredSymbol: ?? x1, MatchesNull: True)
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x2') (InputType: ?, OutputType: ?, DeclaredSymbol: ?? x2, MatchesNull: True)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x1') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x1, MatchesNull: True)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x2') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x2, MatchesNull: True)
                 PropertySubpatterns (0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

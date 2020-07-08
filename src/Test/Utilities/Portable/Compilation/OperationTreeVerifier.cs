@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(" (");
             LogType(operation.InputType, $"{nameof(operation.InputType)}");
             LogString(", ");
-            LogType(operation.OutputType, $"{nameof(operation.OutputType)}");
+            LogType(operation.NarrowedType, $"{nameof(operation.NarrowedType)}");
         }
 
         private void LogCommonPropertiesAndNewLine(IOperation operation)

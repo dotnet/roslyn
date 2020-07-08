@@ -31,7 +31,7 @@ Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.OperatorKind.get -> Mi
 Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.RightPattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
 Microsoft.CodeAnalysis.Operations.INegatedPatternOperation
 Microsoft.CodeAnalysis.Operations.INegatedPatternOperation.Pattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
-Microsoft.CodeAnalysis.Operations.IPatternOperation.OutputType.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.Operations.IPatternOperation.NarrowedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation
 Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation.OperatorKind.get -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
 Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation.Value.get -> Microsoft.CodeAnalysis.IOperation

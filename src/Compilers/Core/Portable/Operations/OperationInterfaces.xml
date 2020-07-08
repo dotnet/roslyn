@@ -2361,9 +2361,9 @@
         <summary>The input type to the pattern-matching operation.</summary>
       </Comments>
     </Property>
-    <Property Name="OutputType" Type="ITypeSymbol">
+    <Property Name="NarrowedType" Type="ITypeSymbol">
       <Comments>
-        <summary>The output type of the pattern-matching operation.</summary>
+        <summary>The narrowed type of the pattern-matching operation.</summary>
       </Comments>
     </Property>
   </AbstractNode>
