@@ -226,6 +226,7 @@ dotnet_diagnostic.RS0037.severity = none
 dotnet_diagnostic.RS0005.severity = none
 
 [src/{Analyzers,CodeStyle,Features,Workspaces}/**/*.{cs,vb}]
+
 # IDE0011: Add braces
 csharp_prefer_braces = when_multiline:warning
 # NOTE: We need the below severity entry for Add Braces due to https://github.com/dotnet/roslyn/issues/44201
@@ -267,3 +268,7 @@ dotnet_diagnostic.IDE0007.severity = warning
 csharp_style_var_for_built_in_types = true:warning
 csharp_style_var_when_type_is_apparent = true:warning
 csharp_style_var_elsewhere = true:warning
+
+[src/{EditorFeatures}/**/*.{cs,vb}]
+# CA1822: Make member static
+dotnet_diagnostic.CA1822.severity = warning
