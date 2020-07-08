@@ -1459,13 +1459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            Dictionary<string, ImmutableArray<Symbol>> membersByName = GetMembersByName();
-            if (membersByName.TryGetValue("Clone", out var members))
+            foreach (var member in GetMembers("Clone"))
             {
-                foreach (var member in members)
-                {
-                    diagnostics.Add(ErrorCode.ERR_CloneDisallowedInRecord, member.Locations[0]);
-                }
+                diagnostics.Add(ErrorCode.ERR_CloneDisallowedInRecord, member.Locations[0]);
             }
         }
 
