@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNamespaceDeclarationNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsTypeDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsMemberDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
-        bool IsPreProcessorDirectiveContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
@@ -79,11 +78,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
 
         bool LastEnumValueHasInitializer(INamedTypeSymbol namedTypeSymbol);
-
-        /// <summary>
-        /// return speculative semantic model for supported node. otherwise, it will return null
-        /// </summary>
-        bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel);
 
         /// <summary>
         /// get all alias names defined in the semantic model

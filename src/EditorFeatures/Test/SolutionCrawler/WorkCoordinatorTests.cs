@@ -1063,27 +1063,6 @@ class C
             await InsertText(code, textToInsert, expectDocumentAnalysis: true);
         }
 
-        [Fact]
-        public void VBPropertyTest()
-        {
-            var markup = @"Class C
-    Default Public Property G(x As Integer) As Integer
-        Get
-            $$
-        End Get
-        Set(value As Integer)
-        End Set
-    End Property
-End Class";
-            MarkupTestFile.GetPosition(markup, out var code, out int position);
-
-            var root = Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseCompilationUnit(code);
-            var property = root.FindToken(position).Parent.FirstAncestorOrSelf<Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyBlockSyntax>();
-            var memberId = Microsoft.CodeAnalysis.VisualBasic.LanguageServices.VisualBasicSyntaxFacts.Instance.GetMethodLevelMemberId(root, property);
-
-            Assert.Equal(0, memberId);
-        }
-
         [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
         public async Task SemanticChange_Propagation_Transitive()
         {

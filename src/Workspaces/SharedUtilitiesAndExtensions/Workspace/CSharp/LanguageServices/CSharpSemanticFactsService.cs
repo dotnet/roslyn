@@ -99,12 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken));
         }
 
-        public bool IsPreProcessorDirectiveContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsPreProcessorDirectiveContext(
-                position, semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true), cancellationToken);
-        }
-
         public bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             => semanticModel.SyntaxTree.IsGlobalStatementContext(position, cancellationToken);
 
@@ -180,22 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool SupportsParameterizedProperties => false;
-
-        public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
-        {
-            Debug.Assert(oldNode.Kind() == newNode.Kind());
-
-            var model = oldSemanticModel;
-            if (!(oldNode is BaseMethodDeclarationSyntax oldMethod) || !(newNode is BaseMethodDeclarationSyntax newMethod) || oldMethod.Body == null)
-            {
-                speculativeModel = null;
-                return false;
-            }
-
-            var success = model.TryGetSpeculativeSemanticModelForMethodBody(oldMethod.Body.OpenBraceToken.Span.End, newMethod, out var csharpModel);
-            speculativeModel = csharpModel;
-            return success;
-        }
 
         public ImmutableHashSet<string> GetAliasNameSet(SemanticModel model, CancellationToken cancellationToken)
         {

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = receiver.Type;
 
             var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-
             bool hasErrors = false;
 
             if (receiverType is null || receiverType.IsVoidType())
@@ -38,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? cloneMethod = null;
             if (!receiverType.IsErrorType())
             {
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+
                 LookupMembersInType(
                     lookupResult,
                     receiverType,
@@ -69,10 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeCompareKind.ConsiderEverything,
                         ref useSiteDiagnostics))
                 {
-                    useSiteDiagnostics = null;
                     hasErrors = true;
                     diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
                 }
+
+                diagnostics.Add(syntax.Expression, useSiteDiagnostics);
             }
 
             var initializer = BindInitializerExpression(
