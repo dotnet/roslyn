@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -276,7 +277,7 @@ namespace System.Diagnostics.Eventing
             compilation1.VerifyDiagnostics();
 
             var source2 = "public class A {}";
-            var compilation2 = CreateEmptyCompilation(source2, new MetadataReference[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore, compilation1.ToMetadataReference() },
+            var compilation2 = CreateEmptyCompilation(source2, new MetadataReference[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore, compilation1.EmitToImageReference() },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var compilation1Lib = compilation2.ExternalReferences[2];
