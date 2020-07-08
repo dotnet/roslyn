@@ -262,5 +262,49 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Empty(getReferencingProject().MetadataReferences)
             End Using
         End Sub
+
+        <WpfFact>
+        <WorkItem(39904, "https://github.com/dotnet/roslyn/issues/39904")>
+        Public Sub MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenAddingReferencesFirst()
+            Using environment = New TestEnvironment()
+                Dim project1 = environment.ProjectFactory.CreateAndAddToWorkspace("project1", LanguageNames.CSharp)
+                Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("project2", LanguageNames.CSharp)
+
+                Const ReferencePath1 = "C:\project1.dll"
+                Const ReferencePath2 = "C:\project2.dll"
+
+                project1.AddMetadataReference(ReferencePath2, MetadataReferenceProperties.Assembly)
+                project2.AddMetadataReference(ReferencePath1, MetadataReferenceProperties.Assembly)
+
+                project1.OutputFilePath = ReferencePath1
+                project2.OutputFilePath = ReferencePath2
+
+                ' Remove both from the workspace to ensure we aren't in a corrupted state somehow where removal will break further
+                project1.RemoveFromWorkspace()
+                project2.RemoveFromWorkspace()
+            End Using
+        End Sub
+
+        <WpfFact>
+        <WorkItem(39904, "https://github.com/dotnet/roslyn/issues/39904")>
+        Public Sub MetadataReferenceCycleDoesNotCreateProjectReferenceCycleWhenSettingOutputPathsFirst()
+            Using environment = New TestEnvironment()
+                Dim project1 = environment.ProjectFactory.CreateAndAddToWorkspace("project1", LanguageNames.CSharp)
+                Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("project2", LanguageNames.CSharp)
+
+                Const ReferencePath1 = "C:\project1.dll"
+                Const ReferencePath2 = "C:\project2.dll"
+
+                project1.OutputFilePath = ReferencePath1
+                project2.OutputFilePath = ReferencePath2
+
+                project1.AddMetadataReference(ReferencePath2, MetadataReferenceProperties.Assembly)
+                project2.AddMetadataReference(ReferencePath1, MetadataReferenceProperties.Assembly)
+
+                ' Remove both from the workspace to ensure we aren't in a corrupted state somehow where removal will break further
+                project1.RemoveFromWorkspace()
+                project2.RemoveFromWorkspace()
+            End Using
+        End Sub
     End Class
 End Namespace

@@ -16604,7 +16604,7 @@ BC40001: 'Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), 
         End Sub
 
         <Fact>
-        Public Sub OverridenMethodWithDifferentTupleNamesInParameters()
+        Public Sub OverriddenMethodWithDifferentTupleNamesInParameters()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

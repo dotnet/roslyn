@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "Hi!");
+            Assert.Same(entryPoint, comp.GetEntryPoint(default));
+            Assert.False(entryPoint.CanBeReferencedByName);
+            Assert.False(entryPoint.ContainingType.CanBeReferencedByName);
         }
 
         private static void AssertEntryPointParameter(SynthesizedSimpleProgramEntryPointSymbol entryPoint)

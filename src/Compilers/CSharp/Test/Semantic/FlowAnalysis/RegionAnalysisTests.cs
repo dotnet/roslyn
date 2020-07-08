@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
@@ -4160,6 +4159,56 @@ struct S
 }
 ");
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+        }
+
+        [Fact]
+        [WorkItem(4950, "https://github.com/dotnet/roslyn/issues/4950")]
+        public void RegionWithUnsafeBlock()
+        {
+            var source =
+@"using System;
+class Program {
+    static void Main(string[] args) {
+        object value = args;
+
+        // start
+        IntPtr p;
+        unsafe
+        {
+            object t = value;
+            p = IntPtr.Zero;
+        }
+        // end
+
+        Console.WriteLine(p);
+    }
+}
+";
+            foreach (string keyword in new[] { "unsafe", "checked", "unchecked" })
+            {
+                var compilation = CreateCompilation(source.Replace("unsafe", keyword));
+                var tree = compilation.SyntaxTrees[0];
+                var model = compilation.GetSemanticModel(tree);
+
+                var stmt1 = tree.GetCompilationUnitRoot().DescendantNodesAndSelf().OfType<StatementSyntax>().Where(n => n.ToString() == "IntPtr p;").Single();
+                var stmt2 = tree.GetCompilationUnitRoot().DescendantNodesAndSelf().OfType<StatementSyntax>().Where(n => n.ToString().StartsWith(keyword)).First();
+
+                var dataFlowAnalysisResults = model.AnalyzeDataFlow(stmt1, stmt2);
+                Assert.True(dataFlowAnalysisResults.Succeeded);
+                Assert.Equal("p, t", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+                Assert.Equal("p, t", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+                Assert.Equal("value", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+                Assert.Equal("p", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+                Assert.Equal("args, value", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry));
+                Assert.Equal("args, value, p, t", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
+                Assert.Equal("value", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+                Assert.Equal("args, p", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+                Assert.Equal("p, t", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+                Assert.Equal("args, value", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+            }
         }
 
         #endregion

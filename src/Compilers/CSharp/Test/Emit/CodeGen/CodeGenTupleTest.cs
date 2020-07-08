@@ -19374,7 +19374,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenMethodWithDifferentTupleNamesInParameters()
+        public void OverriddenMethodWithDifferentTupleNamesInParameters()
         {
             var source = @"
 public class Base
@@ -19446,7 +19446,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenPropertiesWithDifferentTupleNames()
+        public void OverriddenPropertiesWithDifferentTupleNames()
         {
             var source = @"
 public class Base
@@ -19506,7 +19506,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenEventsWithDifferentTupleNames()
+        public void OverriddenEventsWithDifferentTupleNames()
         {
             var source = @"
 using System;

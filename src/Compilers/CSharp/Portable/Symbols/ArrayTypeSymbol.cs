@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // check element type
             // check custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.ElementTypeWithAnnotations))
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.ElementTypeWithAnnotations, AllowedRequiredModifierType.None))
             {
                 return result;
             }

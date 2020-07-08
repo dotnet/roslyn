@@ -2145,7 +2145,7 @@ class C
 
             SemanticModel speculativeModel;
             Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, statement: null, speculativeModel: out speculativeModel));
-            Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, constructorInitializer: null, speculativeModel: out speculativeModel));
+            Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, constructorInitializer: (ConstructorInitializerSyntax)null, speculativeModel: out speculativeModel));
             Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, attribute: null, speculativeModel: out speculativeModel));
 
             // Speculate on a node from the same syntax tree.

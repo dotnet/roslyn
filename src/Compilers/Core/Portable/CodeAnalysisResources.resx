@@ -702,6 +702,6 @@
   </data>
   <data name="HintNameInvalidChar" xml:space="preserve">
     <value>The hintName contains an invalid character '{0}' at position {1}.</value>
-    <comment>{0}: the invalid character, {1} the position it occured at</comment>
+    <comment>{0}: the invalid character, {1} the position it occurred at</comment>
   </data>
 </root>

@@ -8,7 +8,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio;
@@ -39,9 +38,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 projectSystemName: projectName,
                 hierarchy: hierarchy,
                 serviceProvider: environment.ServiceProvider,
-                threadingContext: environment.ThreadingContext,
-                hostDiagnosticUpdateSourceOpt: null,
-                commandLineParserServiceOpt: new CSharpCommandLineParserService());
+                threadingContext: environment.ThreadingContext);
         }
 
         public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, params string[] commandLineArguments)

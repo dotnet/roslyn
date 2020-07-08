@@ -201,7 +201,8 @@ namespace Roslyn.Test.Utilities
                 Data = new CompletionResolveData()
                 {
                     DisplayText = text,
-                    CompletionParams = requestParameters
+                    TextDocument = requestParameters.TextDocument,
+                    Position = requestParameters.Position
                 },
                 Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null
             };

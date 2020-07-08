@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestRulesetBasedDiagnosticFiltering()
+        Public Async Function TestRulesetBasedDiagnosticFiltering() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
@@ -274,10 +274,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
                 Dim document = project.Documents.Single()
-                Dim span = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
 
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span).WaitAndGetResult(CancellationToken.None).ToImmutableArray()
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span)
                 Assert.Equal(1, diagnostics.Length)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, diagnostics(0).Id)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.DefaultSeverity, diagnostics(0).Severity)
@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim newCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(suppressDiagOptions)
                 project = project.WithCompilationOptions(newCompilationOptions)
                 document = project.Documents.Single()
-                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span).WaitAndGetResult(CancellationToken.None).ToImmutableArray()
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span)
                 Assert.Equal(0, diagnostics.Length)
 
                 Dim changeSeverityDiagOptions = New Dictionary(Of String, ReportDiagnostic)
@@ -296,13 +296,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 newCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(changeSeverityDiagOptions)
                 project = project.WithCompilationOptions(newCompilationOptions)
                 document = project.Documents.Single()
-                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span).WaitAndGetResult(CancellationToken.None).ToImmutableArray()
+                diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document, span)
                 Assert.Equal(1, diagnostics.Length)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, diagnostics(0).Id)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.DefaultSeverity, diagnostics(0).DefaultSeverity)
                 Assert.Equal(DiagnosticSeverity.Error, diagnostics(0).Severity)
             End Using
-        End Sub
+        End Function
 
         <Fact>
         Public Sub TestProjectAnalyzerMessages()
@@ -799,10 +799,6 @@ class AnonymousFunctions
             Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
-                ' turn off heuristic
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic, False)))
-
                 Dim solution = workspace.CurrentSolution
                 Dim analyzer = New CompilationEndedAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -815,22 +811,21 @@ class AnonymousFunctions
                 Dim descriptorsMap = solution.State.Analyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache, project)
                 Assert.Equal(1, descriptorsMap.Count)
 
-                ' Ask for document diagnostics multiple times, and verify compilation diagnostics are reported.
+                ' Test "GetDiagnosticsForSpanAsync" used from CodeFixService does not force computation of compilation end diagnostics.
+                ' Ask for document diagnostics for multiple times, and verify compilation end diagnostics are not reported.
                 Dim document = project.Documents.Single()
 
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(1, diagnostics.Count())
-                Assert.Equal(document.Id, diagnostics.First().DocumentId)
+                Assert.Empty(diagnostics)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(1, diagnostics.Count())
-                Assert.Equal(document.Id, diagnostics.First().DocumentId)
+                Assert.Empty(diagnostics)
 
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(1, diagnostics.Count())
-                Assert.Equal(document.Id, diagnostics.First().DocumentId)
+                Assert.Empty(diagnostics)
 
+                ' Test "GetDiagnosticsForIdsAsync" does force computation of compilation end diagnostics.
                 ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
                 Dim projectDiagnostics = diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(2, projectDiagnostics.Count())

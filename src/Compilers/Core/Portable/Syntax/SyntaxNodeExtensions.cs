@@ -261,12 +261,12 @@ namespace Microsoft.CodeAnalysis
         /// <param name="root">The root node from which to remove a descendant node from.</param>
         /// <param name="node">The node to remove.</param>
         /// <param name="options">Options that determine how the node's trivia is treated.</param>
-        public static TRoot RemoveNode<TRoot>(this TRoot root,
+        public static TRoot? RemoveNode<TRoot>(this TRoot root,
             SyntaxNode node,
             SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
         {
-            return (TRoot)root.RemoveNodesCore(new[] { node }, options);
+            return (TRoot?)root.RemoveNodesCore(new[] { node }, options);
         }
 
         /// <summary>
@@ -276,13 +276,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="root">The root node from which to remove a descendant node from.</param>
         /// <param name="nodes">The nodes to remove.</param>
         /// <param name="options">Options that determine how the nodes' trivia is treated.</param>
-        public static TRoot RemoveNodes<TRoot>(
+        public static TRoot? RemoveNodes<TRoot>(
             this TRoot root,
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
         {
-            return (TRoot)root.RemoveNodesCore(nodes, options);
+            return (TRoot?)root.RemoveNodesCore(nodes, options);
         }
 
         internal const string DefaultIndentation = "    ";

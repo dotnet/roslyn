@@ -1543,7 +1543,7 @@
   </Node>
   <Node Name="WithExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="WithExpression"/>
-    <Field Name="Receiver" Type="ExpressionSyntax" />
+    <Field Name="Expression" Type="ExpressionSyntax" />
     <Field Name="WithKeyword" Type="SyntaxToken">
       <Kind Name="WithKeyword" />
     </Field>
@@ -3451,9 +3451,14 @@
     <Kind Name="SimpleBaseType"/>
     <Field Name="Type" Type="TypeSyntax" Override="true">
     </Field>
-    <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true"/>
   </Node>
 
+  <Node Name="PrimaryConstructorBaseTypeSyntax" Base="BaseTypeSyntax">
+    <Kind Name="PrimaryConstructorBaseType"/>
+    <Field Name="Type" Type="TypeSyntax" Override="true"/>
+    <Field Name="ArgumentList" Type="ArgumentListSyntax"/>
+  </Node>
+  
   <Node Name="TypeParameterConstraintClauseSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
       <summary>Type parameter constraint clause.</summary>

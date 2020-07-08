@@ -1384,12 +1384,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lookupResult.Kind != LookupResultKind.Empty)
             {
                 // have we detected an error with the current node?
-                bool isError = false;
-                bool wasError;
+                bool isError;
                 var members = ArrayBuilder<Symbol>.GetInstance();
-                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out wasError);  // reports diagnostics in result.
-
-                isError |= wasError;
+                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out isError);  // reports diagnostics in result.
 
                 if ((object)symbol == null)
                 {
@@ -3777,9 +3774,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="initializerArgumentListOpt">
         /// Null for implicit, 
-        /// BaseConstructorInitializerSyntax.ArgumentList, or 
-        /// ThisConstructorInitializerSyntax.ArgumentList, or 
-        /// SimpleBaseTypeSyntax.ArgumentList for explicit.</param>
+        /// <see cref="ConstructorInitializerSyntax.ArgumentList"/>, or 
+        /// <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/> for explicit.</param>
         /// <param name="constructor">Constructor containing the initializer.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. unable to find constructor to invoke).</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
@@ -3853,6 +3849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol constructorReturnType = constructor.ReturnType;
                 Debug.Assert(constructorReturnType.IsVoidType()); //true of all constructors
+                NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
                 // Get the bound arguments and the argument names.
                 // : this(__arglist()) is legal
@@ -3920,9 +3917,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         errorLocation = initializerSyntax.ThisOrBaseKeyword.GetLocation();
                         break;
 
-                    case SimpleBaseTypeSyntax baseWithArguments:
-                        Debug.Assert(baseWithArguments.Parent?.Parent is RecordDeclarationSyntax recordDecl && recordDecl.BaseList.Types.FirstOrDefault() == baseWithArguments);
-                        nonNullSyntax = initializerArgumentListOpt;
+                    case PrimaryConstructorBaseTypeSyntax baseWithArguments:
+                        nonNullSyntax = baseWithArguments;
                         errorLocation = initializerArgumentListOpt.GetLocation();
                         break;
 
@@ -3949,19 +3945,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MemberResolutionResult<MethodSymbol> memberResolutionResult;
                 ImmutableArray<MethodSymbol> candidateConstructors;
-                if (TryPerformConstructorOverloadResolution(
-                    initializerType,
-                    analyzedArguments,
-                    WellKnownMemberNames.InstanceConstructorName,
-                    errorLocation,
-                    false, // Don't suppress result diagnostics
-                    diagnostics,
-                    out memberResolutionResult,
-                    out candidateConstructors,
-                    allowProtectedConstructorsOfBaseType: true))
+                bool found = TryPerformConstructorOverloadResolution(
+                                    initializerType,
+                                    analyzedArguments,
+                                    WellKnownMemberNames.InstanceConstructorName,
+                                    errorLocation,
+                                    false, // Don't suppress result diagnostics
+                                    diagnostics,
+                                    out memberResolutionResult,
+                                    out candidateConstructors,
+                                    allowProtectedConstructorsOfBaseType: true);
+                MethodSymbol resultMember = memberResolutionResult.Member;
+
+                validateRecordCopyConstructor(constructor, baseType, resultMember, errorLocation, diagnostics);
+
+                if (found)
                 {
                     bool hasErrors = false;
-                    MethodSymbol resultMember = memberResolutionResult.Member;
 
                     if (resultMember == constructor)
                     {
@@ -3990,7 +3990,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                     var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
-
                     if (!hasErrors)
                     {
                         hasErrors = !CheckInvocationArgMixing(
@@ -4041,6 +4040,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 analyzedArguments.Free();
             }
+
+            static void validateRecordCopyConstructor(MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol resultMember, Location errorLocation, DiagnosticBag diagnostics)
+            {
+                if (IsUserDefinedRecordCopyConstructor(constructor))
+                {
+                    if (baseType.SpecialType == SpecialType.System_Object)
+                    {
+                        if (resultMember is null || resultMember.ContainingType.SpecialType != SpecialType.System_Object)
+                        {
+                            // Record deriving from object must use `base()`, not `this()`
+                            diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation);
+                        }
+
+                        return;
+                    }
+
+                    // Unless the base type is 'object', the constructor should invoke a base type copy constructor
+                    if (resultMember is null || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(resultMember))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation);
+                    }
+                }
+            }
+        }
+
+        internal static bool IsUserDefinedRecordCopyConstructor(MethodSymbol constructor)
+        {
+            return constructor.ContainingType is SourceNamedTypeSymbol sourceType &&
+                sourceType.IsRecord &&
+                SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor);
         }
 
         private BoundExpression BindImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
@@ -6207,9 +6236,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult,
                         flags);
 
-                    if (!boundMethodGroup.HasErrors && boundMethodGroup.ResultKind == LookupResultKind.Empty && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+                    if (!boundMethodGroup.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadArity, node, rightName, MessageID.IDS_MethodGroup.Localize(), typeArgumentsSyntax.Count);
+                        Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, node);
                     }
 
                     return boundMethodGroup;

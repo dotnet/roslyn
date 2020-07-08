@@ -272,11 +272,16 @@ base_list
   ;
 
 base_type
-  : simple_base_type
+  : primary_constructor_base_type
+  | simple_base_type
+  ;
+
+primary_constructor_base_type
+  : type argument_list
   ;
 
 simple_base_type
-  : type argument_list?
+  : type
   ;
 
 enum_member_declaration

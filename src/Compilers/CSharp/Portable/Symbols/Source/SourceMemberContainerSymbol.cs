@@ -764,6 +764,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool IsRecord
+        {
+            get
+            {
+                return this.declaration.Declarations[0].Kind == DeclarationKind.Record;
+            }
+        }
+
         public override bool IsImplicitlyDeclared
         {
             get
@@ -978,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //                                 |<-----------distanceFromCtorBody----------->|
             // [      initializer 0    ][ initializer 1 ][ initializer 2 ][ctor initializer][ctor body]
             // |<--preceding init len-->|      ^
-            //                             position 
+            //                             position
 
             int initializersLength = isStatic ? membersAndInitializers.StaticInitializersSyntaxLength : membersAndInitializers.InstanceInitializersSyntaxLength;
             int distanceFromInitializerStart = position - siblingInitializers[index].Syntax.Span.Start;
@@ -1247,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// During early attribute decoding, we consider a safe subset of all members that will not
         /// cause cyclic dependencies.  Get all such members for this symbol.
-        /// 
+        ///
         /// In particular, this method will return nested types and fields (other than auto-property
         /// backing fields).
         /// </summary>
@@ -1259,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// During early attribute decoding, we consider a safe subset of all members that will not
         /// cause cyclic dependencies.  Get all such members for this symbol that have a particular name.
-        /// 
+        ///
         /// In particular, this method will return nested types and fields (other than auto-property
         /// backing fields).
         /// </summary>
@@ -1470,23 +1478,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // not need any special handling in this method.
             //
             // However, we must have special handling for conversions because conversions
-            // use a completely different rule for detecting collisions between two 
+            // use a completely different rule for detecting collisions between two
             // conversions: conversion signatures consist only of the source and target
             // types of the conversions, and not the kind of the conversion (implicit or explicit),
             // the name of the method, and so on.
             //
             // Therefore we must detect the following kinds of member name conflicts:
             //
-            // 1. a method, conversion or field has the same name as a (different) field (* see note below) 
+            // 1. a method, conversion or field has the same name as a (different) field (* see note below)
             // 2. a method has the same method signature as another method or conversion
             // 3. a conversion has the same conversion signature as another conversion.
             //
-            // However, we must *not* detect "a conversion has the same *method* signature 
-            // as another conversion" because conversions are allowed to overload on 
+            // However, we must *not* detect "a conversion has the same *method* signature
+            // as another conversion" because conversions are allowed to overload on
             // return type but methods are not.
             //
             // (*) NOTE: Throughout the rest of this method I will use "field" as a shorthand for
-            // "non-method, non-conversion, non-type member", rather than spelling out 
+            // "non-method, non-conversion, non-type member", rather than spelling out
             // "field, property or event...")
 
             foreach (var pair in membersByName)
@@ -1513,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // * a field directly following a field
                     // * a field directly following a method or conversion
                     //
-                    // Furthermore: we do not wish to detect collisions between nested types in 
+                    // Furthermore: we do not wish to detect collisions between nested types in
                     // this code; that is tested elsewhere. However, we do wish to detect a collision
                     // between a nested type and a field, method or conversion. Therefore we
                     // initialize our "bad transition" detector with a type of the given name,
@@ -1529,8 +1537,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     //
                     // If either the current symbol or the "last symbol" are not methods then
                     // there must be a collision:
-                    // 
-                    // * if the current symbol is not a method and the last symbol is, then 
+                    //
+                    // * if the current symbol is not a method and the last symbol is, then
                     //   there is a field directly following a method of the same name
                     // * if the current symbol is a method and the last symbol is not, then
                     //   there is a method directly or indirectly following a field of the same name,
@@ -1690,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var indexersBySignature = new Dictionary<PropertySymbol, PropertySymbol>(MemberSignatureComparer.DuplicateSourceComparer);
 
-            // Note: Can't assume that all indexers are called WellKnownMemberNames.Indexer because 
+            // Note: Can't assume that all indexers are called WellKnownMemberNames.Indexer because
             // they may be explicit interface implementations.
             foreach (var members in membersByName.Values)
             {
@@ -1947,17 +1955,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckForUnmatchedOperators(DiagnosticBag diagnostics)
         {
             // SPEC: The true and false unary operators require pairwise declaration.
-            // SPEC: A compile-time error occurs if a class or struct declares one 
+            // SPEC: A compile-time error occurs if a class or struct declares one
             // SPEC: of these operators without also declaring the other.
             //
             // SPEC DEFICIENCY: The line of the specification quoted above should say
             // the same thing as the lines below: that the formal parameters of the
-            // paired true/false operators must match exactly. You can't do 
+            // paired true/false operators must match exactly. You can't do
             // op true(S) and op false(S?) for example.
 
             // SPEC: Certain binary operators require pairwise declaration. For every
             // SPEC: declaration of either operator of a pair, there must be a matching
-            // SPEC: declaration of the other operator of the pair. Two operator 
+            // SPEC: declaration of the other operator of the pair. Two operator
             // SPEC: declarations match when they have the same return type and the same
             // SPEC: type for each parameter. The following operators require pairwise
             // SPEC: declaration: == and !=, > and <, >= and <=.
@@ -2317,7 +2325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class MembersAndInitializersBuilder
         {
-            public ArrayBuilder<Symbol> NonTypeNonIndexerMembers { get; private set; } = ArrayBuilder<Symbol>.GetInstance();
+            public ArrayBuilder<Symbol> NonTypeNonIndexerMembers { get; set; } = ArrayBuilder<Symbol>.GetInstance();
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> StaticInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>>.GetInstance();
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> InstanceInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>>.GetInstance();
             public readonly ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
@@ -2957,14 +2965,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterListSyntax? paramList = builder.RecordDeclarationWithParameters?.ParameterList;
 
             var memberSignatures = s_duplicateMemberSignatureDictionary.Allocate();
-            var members = builder.NonTypeNonIndexerMembers;
-            foreach (var member in members)
+            var members = ArrayBuilder<Symbol>.GetInstance(builder.NonTypeNonIndexerMembers.Count + 1);
+            foreach (var member in builder.NonTypeNonIndexerMembers)
             {
                 if (!memberSignatures.ContainsKey(member))
                 {
                     memberSignatures.Add(member, member);
                 }
             }
+
+            CSharpCompilation compilation = this.DeclaringCompilation;
 
             // Positional record
             if (!(paramList is null))
@@ -2979,9 +2989,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
                 }
 
-                BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
-                var binder = binderFactory.GetBinder(paramList);
-
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
                 var existingOrAddedMembers = addProperties(ctor.Parameters);
                 addDeconstruct(ctor.Parameters, existingOrAddedMembers);
@@ -2995,12 +3002,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             getOtherEquals(otherEqualsMethods, equalityContract);
 
             var thisEquals = addThisEquals(equalityContract, otherEqualsMethod: otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
-            addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
+            addOtherEquals();
             addObjectEquals(thisEquals);
             addHashCode(equalityContract);
 
             otherEqualsMethods.Free();
             memberSignatures.Free();
+
+
+            // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
+            // going to the record declaration
+            members.AddRange(builder.NonTypeNonIndexerMembers);
+            builder.NonTypeNonIndexerMembers.Free();
+            builder.NonTypeNonIndexerMembers = members;
 
             return;
 
@@ -3053,10 +3067,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
-                    var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
-                    _ = memberSignatures.TryGetValue(property, out var existingMember);
-                    existingMember ??= getInheritedMember(property, this);
+                    bool isInherited = false;
+                    var syntax = param.GetNonNullSyntaxNode();
+                    var property = new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics);
+                    if (!memberSignatures.TryGetValue(property, out var existingMember))
+                    {
+                        Debug.Assert(property.OverriddenOrHiddenMembers.OverriddenMembers.Length == 0); // property is not virtual and should not have overrides
+                        existingMember = property.OverriddenOrHiddenMembers.HiddenMembers.FirstOrDefault();
+                        isInherited = true;
+                    }
                     if (existingMember is null)
+                    {
+                        addProperty(property);
+                    }
+                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
+                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        // There already exists a member corresponding to the candidate synthesized property.
+                        if (isInherited && prop.IsAbstract)
+                        {
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
+                        }
+                        else
+                        {
+                            // Deconstruct() is specified to simply assign from this property to the corresponding out parameter.
+                            existingOrAddedMembers.Add(prop);
+                        }
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
+                            param.Locations[0],
+                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
+                            param.TypeWithAnnotations,
+                            param.Name);
+                    }
+
+                    void addProperty(SynthesizedRecordPropertySymbol property)
                     {
                         existingOrAddedMembers.Add(property);
                         members.Add(property);
@@ -3066,21 +3113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
-                    }
-                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
-                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        // There already exists a member corresponding to the candidate synthesized property.
-                        // The deconstructor is specified to simply assign from this property to the corresponding out parameter.
-                        existingOrAddedMembers.Add(prop);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
-                            param.Locations[0],
-                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
-                            param.TypeWithAnnotations,
-                            param.Name);
                     }
                 }
 
@@ -3095,69 +3127,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return existingOrAddedMembers.ToImmutableAndFree();
             }
 
-            static Symbol? getInheritedMember(Symbol symbol, NamedTypeSymbol type)
-            {
-                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
-                {
-                    OverriddenOrHiddenMembersHelpers.FindOverriddenOrHiddenMembersInType(
-                        symbol,
-                        memberIsFromSomeCompilation: true,
-                        memberContainingType: symbol.ContainingType,
-                        currType: type,
-                        out var bestMatch,
-                        out bool hasSameKindNonMatch,
-                        out var hiddenBuilder);
-                    if (hiddenBuilder is object)
-                    {
-                        var result = hiddenBuilder[0];
-                        hiddenBuilder.Free();
-                        return result;
-                    }
-                    if (bestMatch is object)
-                    {
-                        return bestMatch;
-                    }
-                }
-                return null;
-            }
-
             void addObjectEquals(MethodSymbol thisEquals)
             {
-                var objEquals = new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count);
-                if (!memberSignatures.ContainsKey(objEquals))
-                {
-                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
-                    members.Add(objEquals);
-                }
+                var objEquals = new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count, diagnostics);
+                members.Add(objEquals);
             }
 
             void addHashCode(PropertySymbol equalityContract)
             {
-                var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count);
-                if (!memberSignatures.ContainsKey(hashCode))
+                var targetMethod = new SignatureOnlyMethodSymbol(
+                    WellKnownMemberNames.ObjectGetHashCode,
+                    this,
+                    MethodKind.Ordinary,
+                    Cci.CallingConvention.HasThis,
+                    ImmutableArray<TypeParameterSymbol>.Empty,
+                    ImmutableArray<ParameterSymbol>.Empty,
+                    RefKind.None,
+                    isInitOnly: false,
+                    TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray<MethodSymbol>.Empty);
+
+                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
-                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
+                    var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
                     members.Add(hashCode);
                 }
-            }
-
-            static PropertySymbol? getInheritedEqualityContract(NamedTypeSymbol type)
-            {
-                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
+                else
                 {
-                    var members = type.GetMembers(SynthesizedRecordEqualityContractProperty.PropertyName);
-                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
-                    if (members.FirstOrDefault(m => m is PropertySymbol property && property.ParameterCount == 0) is PropertySymbol property)
+                    var method = (MethodSymbol)existingHashCodeMethod;
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(method, SpecialType.System_Int32, diagnostics) && method.IsSealed && !IsSealed)
                     {
-                        return property;
+                        diagnostics.Add(ErrorCode.ERR_SealedGetHashCodeInRecord, method.Locations[0], method);
                     }
                 }
-                return null;
             }
 
             PropertySymbol addEqualityContract()
             {
-                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: getInheritedEqualityContract(this) is object);
+                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: SynthesizedRecordClone.FindValidCloneMethod(BaseTypeNoUseSiteDiagnostics) is object);
                 // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
                 if (!memberSignatures.ContainsKey(property))
                 {
@@ -3202,21 +3210,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract, MethodSymbol thisEquals)
+            void addOtherEquals()
             {
-                foreach (var otherEqualsMethod in otherEqualsMethods)
+                if (!BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
-                    var method = new SynthesizedRecordEquals(
-                        this,
-                        parameterType: otherEqualsMethod.Parameters[0].Type,
-                        isOverride: true,
-                        equalityContract,
-                        otherEqualsMethod: thisEquals,
-                        memberOffset: members.Count);
-                    if (!memberSignatures.ContainsKey(method))
-                    {
-                        members.Add(method);
-                    }
+                    var method = new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics);
+                    members.Add(method);
                 }
             }
         }
@@ -3272,8 +3271,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // constants don't count, since they do not exist as fields at runtime
-            // NOTE: even for decimal constants (which require field initializers), 
-            // we do not create .cctor here since a static constructor implicitly created for a decimal 
+            // NOTE: even for decimal constants (which require field initializers),
+            // we do not create .cctor here since a static constructor implicitly created for a decimal
             // should not appear in the list returned by public API like GetMembers().
             if (!hasStaticConstructor && HasNonConstantInitializer(staticInitializers))
             {
@@ -3430,7 +3429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
-                            //   In addition, we will change autoproperties to behavior in 
+                            //   In addition, we will change autoproperties to behavior in
                             //   a similar manner and make the autoproperty fields private.
                             if ((object)backingField != null)
                             {
@@ -3590,7 +3589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 var innerStatement = globalStatement;
 
-                                // drill into any LabeledStatements 
+                                // drill into any LabeledStatements
                                 while (innerStatement.Kind() == SyntaxKind.LabeledStatement)
                                 {
                                     innerStatement = ((LabeledStatementSyntax)innerStatement).Statement;

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
 
-                var semanticModel = await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
 
                 ISymbol declaredSymbol = null;
                 var memberDeclaration = attachedToken.GetAncestor<MemberDeclarationSyntax>();

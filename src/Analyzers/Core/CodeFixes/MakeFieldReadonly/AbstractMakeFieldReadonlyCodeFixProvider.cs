@@ -45,10 +45,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             CancellationToken cancellationToken)
         {
             var declarators = new List<TSymbolSyntax>();
-
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var diagnosticSpan = diagnostic.Location.SourceSpan;
 
                 declarators.Add(root.FindNode(diagnosticSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<TSymbolSyntax>());

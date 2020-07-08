@@ -295,7 +295,7 @@ class Test<T>
                 // (28,20): error CS0103: The name 'List2' does not exist in the current context
                 //         s = nameof(List2<>.Add);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List2<>").WithArguments("List2").WithLocation(28, 20),
-                // (31,20): error CS8149: An alias-qualified name is not an expression.
+                // (31,20): error CS8083: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
                 // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
@@ -307,7 +307,7 @@ class Test<T>
                 // (33,20): error CS0841: Cannot use local variable 'b' before it is declared
                 //         s = nameof(b); // cannot use before declaration
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(33, 20),
-                // (35,20): error CS8150: Type parameters are not allowed on a method group as an argument to 'nameof'.
+                // (35,20): error CS8084: Type parameters are not allowed on a method group as an argument to 'nameof'.
                 //         s = nameof(System.Linq.Enumerable.Select<int, int>); // type parameters not allowed on method group in nameof
                 Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "System.Linq.Enumerable.Select<int, int>").WithLocation(35, 20),
                 // (43,13): error CS0103: The name 'nameof' does not exist in the current context

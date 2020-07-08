@@ -2575,11 +2575,11 @@ class Test
   .maxstack  2
   .locals init (Test.<F>d__1 V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  ldarg.0
-  IL_0003:  stfld      ""System.Threading.AutoResetEvent Test.<F>d__1.handle""
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
-  IL_000f:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
+  IL_0002:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
+  IL_0007:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<F>d__1.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldarg.0
+  IL_000f:  stfld      ""System.Threading.AutoResetEvent Test.<F>d__1.handle""
   IL_0014:  ldloca.s   V_0
   IL_0016:  ldc.i4.m1
   IL_0017:  stfld      ""int Test.<F>d__1.<>1__state""

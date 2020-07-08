@@ -10,12 +10,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Diagnostics\";
 
-        public static readonly Option2<bool> CompilationEndCodeFix = new Option2<bool>(nameof(InternalDiagnosticsOptions), "Enable Compilation End Code Fix", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Enable Compilation End Code Fix"));
-
-        public static readonly Option2<bool> UseCompilationEndCodeFixHeuristic = new Option2<bool>(nameof(InternalDiagnosticsOptions), "Enable Compilation End Code Fix With Heuristic", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Enable Compilation End Code Fix With Heuristic"));
-
         public static readonly Option2<bool> PreferLiveErrorsOnOpenedFiles = new Option2<bool>(nameof(InternalDiagnosticsOptions), "Live errors will be preferred over errors from build on opened files from same analyzer", defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Live errors will be preferred over errors from build on opened files from same analyzer"));
 
