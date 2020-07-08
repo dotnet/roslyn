@@ -537,5 +537,94 @@ class C
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+
+        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestIntWritableType()
+        {
+            var source =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null; 
+    public int Length { get; } 
+    public S this[int r] { get => default; } 
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s.Slice([|1, s.Length - 2|]) = default;
+    }
+}";
+            var fixedSource =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null;
+    public int Length { get; }
+    public S this[int r] { get => default; }
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s[1..^1] = default;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestReadWriteProperty()
+        {
+            var source =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null; 
+    public int Length { get; } 
+    public S this[System.Range r] { get => default; set { } } 
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s.Slice(1, s.Length - 2) = default;
+    }
+}";
+            var fixedSource =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null;
+    public int Length { get; }
+    public S this[System.Range r] { get => default; set { } }
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s[1..^1] = default;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
     }
 }
