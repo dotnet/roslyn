@@ -21,8 +21,10 @@
     
     Ideally this would just return @(BuiltProjectOutputGroupOutput) but that does not reliably include the generated App.config file.
     See https://github.com/microsoft/msbuild/issues/5433.
+
+    Use BuiltProjectOutputGroup as the dependend target to ensure the targets has all dependencies that BuiltProjectOutputGroupOutput would have.
   -->
-  <Target Name="PublishProjectOutputGroup" DependsOnTargets="Build" Returns="@(_PublishProjectOutputGroup)">
+  <Target Name="PublishProjectOutputGroup" DependsOnTargets="BuiltProjectOutputGroup" Returns="@(_PublishProjectOutputGroup)">
     <ItemGroup>
       <_PublishProjectOutputGroup Include="$(TargetPath)">
         <TargetPath>$(TargetFileName)</TargetPath>
