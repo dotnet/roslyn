@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var languageHeuristicsService = document.GetLanguageService<IRenameTrackingLanguageHeuristicsService>();
                     if (syntaxFactsService.IsIdentifier(token) && languageHeuristicsService.IsIdentifierValidForRenameTracking(token.Text))
                     {
-                        var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, _cancellationToken).ConfigureAwait(false);
+                        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, _cancellationToken).ConfigureAwait(false);
                         var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
                         var renameSymbolInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, token, _cancellationToken);
