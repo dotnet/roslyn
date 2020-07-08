@@ -50,11 +50,39 @@ class Test
 {
     void Method()
     {
+        var typeName = [||]typeof(System.String).Name;
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var typeName = [||]nameof(System.String);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        public async Task ClassLibraryTypeWithUsing()
+        {
+            var text = @"
+using System;
+
+class Test
+{
+    void Method()
+    {
         var typeName = [||]typeof(String).Name;
     }
 }
 ";
             var expected = @"
+using System;
+
 class Test
 {
     void Method()
@@ -69,7 +97,9 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         public async Task NotOnVariableContainingType()
         {
-            var text = @"class Test
+            var text = @"using System;
+
+class Test
 {
     void Method()
     {
@@ -82,7 +112,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
-        public async Task NotOnPrimitiveType()
+        public async Task PrimitiveType()
         {
             var text = @"class Test
 {
@@ -92,7 +122,42 @@ class Test
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var typeName = [||]nameof(System.Int32);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        public async Task PrimitiveTypeWithUsing()
+        {
+            var text = @"using System;
+
+class Test
+{
+    void Method()
+    {
+        var typeName = [||]typeof(int).Name;
+    }
+}
+";
+            var expected = @"using System;
+
+class Test
+{
+    void Method()
+    {
+        var typeName = [||]nameof(Int32);
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
