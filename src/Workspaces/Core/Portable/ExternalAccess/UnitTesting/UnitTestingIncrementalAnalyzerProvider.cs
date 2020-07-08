@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         public UnitTestingIncrementalAnalyzerProvider(IUnitTestingIncrementalAnalyzerProviderImplementation incrementalAnalyzerProvider)
             => _incrementalAnalyzerProvider = incrementalAnalyzerProvider;
 
-        IIncrementalAnalyzer IIncrementalAnalyzerProvider.CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
             // NOTE: We're currently expecting the analyzer to be singleton, so that
             //       analyzers returned when calling this method twice would pass a reference equality check.

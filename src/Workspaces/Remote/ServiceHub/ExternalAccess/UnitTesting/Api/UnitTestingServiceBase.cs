@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         protected Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
             => EndPoint.InvokeAsync(targetName, arguments, cancellationToken);
 
-        protected UnitTestingIncrementalAnalyzerProvider? TryRegisterAnalyzerProvider(string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
+        public UnitTestingIncrementalAnalyzerProvider? TryRegisterAnalyzerProvider(string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
         {
             var workspace = SolutionService.PrimaryWorkspace;
             var solutionCrawlerRegistrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
