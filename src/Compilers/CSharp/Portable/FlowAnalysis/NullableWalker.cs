@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _useDelegateInvokeParameterTypes;
 
         /// <summary>
-        /// Method signature used for return type. Distinct from CurrentSymbol signature 
+        /// Method signature used for return or parameter types. Distinct from CurrentSymbol signature
         /// when CurrentSymbol is a lambda and type is inferred from MethodTypeInferrer.
         /// </summary>
         private MethodSymbol? _delegateInvokeMethod;
@@ -731,7 +731,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnforceDoesNotReturn(SyntaxNode? syntaxOpt)
         {
-            if (_symbol is MethodSymbol method &&
+            // DoesNotReturn is only supported in member methods
+            if (CurrentSymbol is MethodSymbol { ContainingSymbol: TypeSymbol _ } method &&
                 ((method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn) &&
                 this.IsReachable())
             {
@@ -2143,10 +2144,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
+        public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            var localFuncSymbol = localFunc.Symbol;
-            var localFunctionState = GetOrCreateLocalFuncUsages(localFunc.Symbol);
+            var localFunc = node.Symbol;
+            var localFunctionState = GetOrCreateLocalFuncUsages(localFunc);
             // The starting state is the top state, but with captured
             // variables set according to Joining the state at all the
             // local function use sites
@@ -2154,7 +2155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int slot = 1; slot < localFunctionState.StartingState.Capacity; slot++)
             {
                 var symbol = variableBySlot[RootSlot(slot)].Symbol;
-                if (Symbol.IsCaptured(symbol, localFunc.Symbol))
+                if (Symbol.IsCaptured(symbol, localFunc))
                 {
                     state[slot] = localFunctionState.StartingState[slot];
                 }
@@ -2162,8 +2163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             localFunctionState.Visited = true;
 
             AnalyzeLocalFunctionOrLambda(
+                node,
                 localFunc,
-                localFuncSymbol,
                 state,
                 delegateInvokeMethod: null,
                 useDelegateInvokeParameterTypes: false);
@@ -2188,6 +2189,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _delegateInvokeMethod = delegateInvokeMethod;
             var oldUseDelegateInvokeParameterTypes = _useDelegateInvokeParameterTypes;
             _useDelegateInvokeParameterTypes = useDelegateInvokeParameterTypes;
+
+            var oldReturnTypes = _returnTypesOpt;
+            _returnTypesOpt = null;
 
             var oldState = this.State;
             this.State = state;
@@ -2214,13 +2218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
 
-            Location? location = null;
-
-            if (!lambdaOrFunctionSymbol.Locations.IsDefaultOrEmpty)
-            {
-                location = lambdaOrFunctionSymbol.Locations[0];
-            }
-
+            var location = lambdaOrFunctionSymbol.Locations.FirstOrNone();
             LeaveParameters(lambdaOrFunctionSymbol.Parameters, lambdaOrFunction.Syntax, location);
 
             // Intersect the state of all branches out of the local function
@@ -2240,6 +2238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             this.State = oldState;
+            _returnTypesOpt = oldReturnTypes;
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
             _delegateInvokeMethod = oldDelegateInvokeMethod;
             this.CurrentSymbol = oldSymbol;
@@ -2804,7 +2803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _placeholderLocalsOpt ??= PooledDictionary<object, PlaceholderLocal>.GetInstance();
             if (!_placeholderLocalsOpt.TryGetValue(identifier, out PlaceholderLocal placeholder))
             {
-                placeholder = new PlaceholderLocal(_symbol, identifier, type);
+                placeholder = new PlaceholderLocal(CurrentSymbol, identifier, type);
                 _placeholderLocalsOpt.Add(identifier, placeholder);
             }
 
@@ -6915,9 +6914,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUpdatedSymbol(node, node.Symbol, delegateTypeOpt);
             }
 
-            var oldReturnTypes = _returnTypesOpt;
-            _returnTypesOpt = null;
-
             var oldDisableDiagnostics = _disableDiagnostics;
             _disableDiagnostics |= disableDiagnostics;
 
@@ -6929,7 +6925,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useDelegateInvokeParameterTypes);
 
             _disableDiagnostics = oldDisableDiagnostics;
-            _returnTypesOpt = oldReturnTypes;
         }
 
         private static bool UseDelegateInvokeParameterTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod)
