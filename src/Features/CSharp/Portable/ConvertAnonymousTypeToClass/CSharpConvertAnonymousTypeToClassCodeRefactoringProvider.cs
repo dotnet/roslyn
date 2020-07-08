@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // Trailing comma is allowed in initializer list, but disallowed in method calls.
             if (list.Count == 0 || list.Count % 2 == 1)
             {
+                // The list is either empty, or does not end with a trailing comma.
                 return list;
             }
 
