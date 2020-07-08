@@ -2818,7 +2818,7 @@ class Test
 ";
             #endregion
 
-            var comp1 = CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
+            var comp1 = CreateEmptyCompilation(src1, new[] { TestMetadata.Net40.mscorlib });
             var comp2 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
 
             var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IGoo");

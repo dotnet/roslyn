@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using static TestReferences;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Roslyn.Test.Utilities
 {

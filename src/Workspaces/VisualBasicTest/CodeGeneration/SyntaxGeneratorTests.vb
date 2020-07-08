@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
 
-        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={Net451.mscorlib, Net451.System})
+        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestMetadata.Net451.mscorlib, TestMetadata.Net451.System})
 
         Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         End Property
 
         Public Shared Function Compile(code As String) As Compilation
-            Return VisualBasicCompilation.Create("test").AddReferences(Net451.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
+            Return VisualBasicCompilation.Create("test").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
         End Function
 
         Private Shared Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)

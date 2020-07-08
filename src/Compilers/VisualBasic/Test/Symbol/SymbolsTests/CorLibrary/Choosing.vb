@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.CorLibrary.GuidTest2,
-                                ResourcesNet40.mscorlib
+                                TestMetadata.ResourcesNet40.mscorlib
                              })
 
             Assert.Same(assemblies(1), DirectCast(assemblies(0).Modules(0), PEModuleSymbol).CorLibrary)

@@ -2004,7 +2004,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib, Net40.MicrosoftVisualBasic}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net40.mscorlib, TestMetadata.Net40.MicrosoftVisualBasic}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>

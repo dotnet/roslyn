@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                     {TestReferences.SymbolsTests.MissingTypes.MDMissingType,
                                      TestReferences.SymbolsTests.MissingTypes.MDMissingTypeLib,
-                                     Net40.mscorlib})
+                                     TestMetadata.Net40.mscorlib})
 
             TestMissingTypeReferencesHelper2(assemblies)
         End Sub

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.CustomModifiers.Modifiers,
-                                ResourcesNet40.mscorlib
+                                TestMetadata.ResourcesNet40.mscorlib
                              })
 
             Dim modifiersModule = assemblies(0).Modules(0)

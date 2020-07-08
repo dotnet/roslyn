@@ -252,16 +252,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact]
         public void MetadataArrayTypeSymbol01()
         {
-            var text = "public class A {}";
-            var compilation = CreateEmptyCompilation(text, new[] { Net40.mscorlib, Net40.SystemCore },
+            // This is a copy of the EventProviderBase type which existed in a beta of .NET framework
+            // 4.5. Replicating the structure of the type to maintain the test validation.
+            var source1 = @"
+namespace System.Diagnostics.Eventing
+{
+    internal class EventProviderBase
+    {
+
+        internal struct EventData { }
+
+        internal EventData[] m_eventData = null;
+
+        protected void WriteTransferEventHelper(int eventId, Guid relatedActivityId, params object[] args) { }
+    }
+}
+";
+
+            var compilation1 = CreateEmptyCompilation(source1, new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore });
+            compilation1.VerifyDiagnostics();
+
+            var source2 = "public class A {}";
+            var compilation2 = CreateEmptyCompilation(source2, new MetadataReference[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore, compilation1.ToMetadataReference() },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var systemCoreLib = compilation.ExternalReferences[1];
-            var systemCoreNS = compilation.GetReferencedAssemblySymbol(systemCoreLib);
-            Assert.Equal("System.Core", systemCoreNS.Name);
+            var compilation1Lib = compilation2.ExternalReferences[2];
+            var systemCoreNS = compilation2.GetReferencedAssemblySymbol(compilation1Lib);
             var ns1 = systemCoreNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("Diagnostics").Single() as NamespaceSymbol;
             var ns3 = ns2.GetMembers("Eventing").Single() as NamespaceSymbol;
@@ -315,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, type2.GetTypeMembers(String.Empty).Length);
             Assert.Equal(0, type3.GetTypeMembers(String.Empty, 0).Length);
 
-            Assert.Empty(compilation.GetDeclarationDiagnostics());
+            Assert.Empty(compilation2.GetDeclarationDiagnostics());
         }
 
         [Fact, WorkItem(531619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619"), WorkItem(531619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619")]

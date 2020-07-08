@@ -5233,7 +5233,7 @@ End Class")
             expectedText As String,
             ParamArray kinds As SymbolDisplayPartKind())
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={Net40.SystemCore})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={TestMetadata.Net40.SystemCore})
 
             ' symbol:
             Dim symbol = findSymbol(comp.GlobalNamespace)

@@ -32,7 +32,7 @@ End NameSpace"
                     "test",
                     "test.dll",
                     LanguageNames.VisualBasic,
-                    metadataReferences:={Net451.mscorlib}))
+                    metadataReferences:={TestMetadata.Net451.mscorlib}))
 
             If globalImports IsNot Nothing Then
                 Dim gi = GlobalImport.Parse(globalImports)

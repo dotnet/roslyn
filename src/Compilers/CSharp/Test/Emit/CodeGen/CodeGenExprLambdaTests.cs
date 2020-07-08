@@ -3486,7 +3486,7 @@ class Program
 
             var comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
-                new[] { Net40.mscorlib, Net40.SystemCore },
+                new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);

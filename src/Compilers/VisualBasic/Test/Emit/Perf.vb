@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
                                  <file name="VBPerfTest.vb">
                                      <%= TestResources.PerfTests.VBPerfTest %>
                                  </file>
-                             </compilation>, references:={Net40.SystemCore}).VerifyDiagnostics()
+                             </compilation>, references:={TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
         End Sub
     End Class
 End Namespace

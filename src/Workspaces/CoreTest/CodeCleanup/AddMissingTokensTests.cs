@@ -2853,7 +2853,7 @@ End Class";
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(Net451.mscorlib)
+            return project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
     }

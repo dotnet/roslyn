@@ -4961,9 +4961,9 @@ End Class
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
 
             Dim refBuilder = ArrayBuilder(Of MetadataReference).GetInstance()
-            refBuilder.Add(Net40.mscorlib)
-            refBuilder.Add(Net40.System)
-            refBuilder.Add(Net40.MicrosoftVisualBasic)
+            refBuilder.Add(TestMetadata.Net40.mscorlib)
+            refBuilder.Add(TestMetadata.Net40.System)
+            refBuilder.Add(TestMetadata.Net40.MicrosoftVisualBasic)
             refBuilder.AddRange(Net40XmlReferences)
             Dim refs = refBuilder.ToImmutableAndFree()
 

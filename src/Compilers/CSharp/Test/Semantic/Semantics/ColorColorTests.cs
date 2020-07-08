@@ -1835,7 +1835,7 @@ public class Example
         {
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { Net40.SystemCore });
+            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { TestMetadata.Net40.SystemCore });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var model = comp.GetSemanticModel(tree);
@@ -2081,7 +2081,7 @@ public enum Color { Red }
             var refLib = CreateEmptyCompilation(
                 sourceRefLib,
                 assemblyName: "RefLib",
-                references: new[] { Net20.mscorlib });
+                references: new[] { TestMetadata.Net20.mscorlib });
 
             refLib.VerifyEmitDiagnostics();
 
@@ -2102,7 +2102,7 @@ class M
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(refLib),
-                    Net451.mscorlib
+                    TestMetadata.Net451.mscorlib
                 });
 
             var unifyReferenceWarning =

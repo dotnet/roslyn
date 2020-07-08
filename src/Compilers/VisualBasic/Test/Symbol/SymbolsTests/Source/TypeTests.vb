@@ -674,7 +674,7 @@ End Namespace
         <WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")>
         <Fact>
         Public Sub UseTypeInNetModule()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = TestMetadata.Net40.mscorlib
             Dim module1Ref = TestReferences.SymbolsTests.netModule.netModule1
             Dim text = <literal>
 Class Test

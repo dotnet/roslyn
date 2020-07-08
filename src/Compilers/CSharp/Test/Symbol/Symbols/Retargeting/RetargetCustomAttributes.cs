@@ -158,7 +158,7 @@ class TestClass
         {
             get
             {
-                return Net40.mscorlib;
+                return TestMetadata.Net40.mscorlib;
             }
         }
 
@@ -166,7 +166,7 @@ class TestClass
         {
             get
             {
-                return Net451.mscorlib;
+                return TestMetadata.Net451.mscorlib;
             }
         }
 

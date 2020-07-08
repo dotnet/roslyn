@@ -530,7 +530,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateEmptyCompilation(text, new[] { Net40.mscorlib });
+            var compilation = CreateEmptyCompilation(text, new[] { TestMetadata.Net40.mscorlib });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;

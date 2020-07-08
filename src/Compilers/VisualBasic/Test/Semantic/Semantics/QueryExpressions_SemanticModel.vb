@@ -3821,7 +3821,7 @@ Module AggrArgsInvalidmod
     End Sub
 End Module
     ]]></file>
-</compilation>, references:={Net40.SystemCore})
+</compilation>, references:={TestMetadata.Net40.SystemCore})
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_QueryOperatorNotFound, "aggr4").WithArguments("aggr4"))
 

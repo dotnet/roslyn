@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                 Dim project = solution.AddProject(projId, "Project", "Project.dll", LanguageNames.CSharp) _
                     .GetProject(projId)
 
-                Dim document = project.AddMetadataReference(Net451.mscorlib) _
+                Dim document = project.AddMetadataReference(TestMetadata.Net451.mscorlib) _
                     .AddDocument("Document", SourceText.From(input))
 
                 Dim annotatedDocument = document.WithSyntaxRoot(

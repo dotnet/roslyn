@@ -87,7 +87,7 @@ End Class
 </compilation>
 
             Dim allReferences As MetadataReference() = {
-                            Net20.mscorlib,
+                            TestMetadata.Net20.mscorlib,
                             SystemRef,
                             MsvbRef}
 

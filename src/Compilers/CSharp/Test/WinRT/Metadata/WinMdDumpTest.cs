@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
     public class WinMdDumpTest : CSharpTestBase
     {
         private readonly MetadataReference _windowsRef = MetadataReference.CreateFromImage(TestResources.WinRt.Windows.AsImmutableOrNull());
-        private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(ResourcesNet451.SystemRuntime.AsImmutableOrNull());
-        private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(ResourcesNet451.SystemObjectModel.AsImmutableOrNull());
+        private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.SystemRuntime.AsImmutableOrNull());
+        private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.SystemObjectModel.AsImmutableOrNull());
         private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
-        private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(ResourcesNet451.SystemRuntimeInteropServicesWindowsRuntime.AsImmutableOrNull());
+        private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.SystemRuntimeInteropServicesWindowsRuntime.AsImmutableOrNull());
 
         private void AppendMembers(StringBuilder result, NamespaceOrTypeSymbol container, string indent)
         {

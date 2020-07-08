@@ -873,7 +873,7 @@ public class A
                 references.Add(PortableExecutableReference.CreateFromFile(Path.Combine(directory.Path, referenceName + ".dll")))
             Next
 
-            references.Add(Net451.mscorlib)
+            references.Add(TestMetadata.Net451.mscorlib)
 
             Dim compilation = CSharpCompilation.Create(libraryName, syntaxTrees, references, New CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim emitResult = compilation.Emit(libraryOut)

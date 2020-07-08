@@ -753,7 +753,7 @@ End Select
     Public Sub ParseFileOnBinaryFile()
         ' This is doing the same thing as ParseFile, but using a MemoryStream
         ' instead of FileStream (because I don't want to write a file to disk).
-        Using data As New MemoryStream(ResourcesNet451.mscorlib)
+        Using data As New MemoryStream(TestMetadata.ResourcesNet451.mscorlib)
             Const bug103047IsFixed = False
 
             If bug103047IsFixed Then

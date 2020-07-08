@@ -279,7 +279,7 @@ namespace Test
     }
 }
 ";
-            var mscorlib17626 = MetadataReference.CreateFromImage(ResourcesNet451.mscorlib);
+            var mscorlib17626 = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
             CompileAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1", targetFramework: TargetFramework.Empty);
         }
 

@@ -3,14 +3,14 @@ function Add-TargetFramework($name, $packagePath, $list)
   $refName = [char]::toupper($name[0]) + $name.Substring(1)
   $resourceTypeName = "Resources" + $refName
   $script:codeContent += @"
-    public static class $resourceTypeName
-    {
+        public static class $resourceTypeName
+        {
 
 "@;
 
   $refContent = @"
-    public static class $refName
-    {
+        public static class $refName
+        {
 
 "@
 
@@ -40,26 +40,26 @@ function Add-TargetFramework($name, $packagePath, $list)
     $propName = $dllName.Replace(".", "");
     $fieldName = "_" + $propName
     $script:codeContent += @"
-        private static byte[] $fieldName;
-        public static byte[] $propName => ResourceLoader.GetOrCreateResource(ref $fieldName, "$logicalName");
+            private static byte[] $fieldName;
+            public static byte[] $propName => ResourceLoader.GetOrCreateResource(ref $fieldName, "$logicalName");
 
 "@
 
     $refContent += @"
-        public static PortableExecutableReference $propName { get; } = AssemblyMetadata.CreateFromImage($($resourceTypeName).$($propName)).GetReference(display: "$dll ($name)");
+            public static PortableExecutableReference $propName { get; } = AssemblyMetadata.CreateFromImage($($resourceTypeName).$($propName)).GetReference(display: "$dll ($name)");
 
 "@
 
   }
 
   $script:codeContent += @"
-    }
+        }
 
 "@
 
     $script:codeContent += $refContent;
     $script:codeContent += @"
-    }
+        }
 
 "@
 }
@@ -71,10 +71,18 @@ $targetsContent = @"
 "@;
 
 $codeContent = @"
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// This is a generated file, please edit Generate.ps1 to change the contents
+
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Test.Utilities
 {
+    public static class TestMetadata
+    {
 
 "@
 
@@ -84,13 +92,13 @@ $net20 = @(
   'Microsoft.VisualBasic.dll'
 )
 
-Add-TargetFramework "net20" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net20)\build\.NETFramework\v2.0\' $net20
+Add-TargetFramework "net20" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net20)\build\.NETFramework\v2.0' $net20
 
 $net35 = @(
   'System.Core.dll'
 )
 
-Add-TargetFramework "net35" '$(Pkgjnm2_ReferenceAssemblies_net35)\build\.NETFramework\v3.5\' $net35
+Add-TargetFramework "net35" '$(Pkgjnm2_ReferenceAssemblies_net35)\build\.NETFramework\v3.5' $net35
 
 $net40 = @(
   'mscorlib.dll',
@@ -103,7 +111,7 @@ $net40 = @(
   'Microsoft.CSharp.dll'
 )
 
-Add-TargetFramework "net40" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\' $net40
+Add-TargetFramework "net40" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0' $net40
 
 $net451 = @(
   'mscorlib.dll',
@@ -127,7 +135,7 @@ $net451 = @(
   'Facades\System.Threading.Tasks.dll'
 )
 
-Add-TargetFramework "net451" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net451)\build\.NETFramework\v4.5.1\' $net451
+Add-TargetFramework "net451" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net451)\build\.NETFramework\v4.5.1' $net451
 
 $net461 = @(
   'mscorlib.dll',
@@ -139,7 +147,7 @@ $net461 = @(
   'Microsoft.VisualBasic.dll'
 )
 
-Add-TargetFramework "net461" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\' $net461
+Add-TargetFramework "net461" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1' $net461
 
 $tasksExtensions = @(
   'System.Threading.Tasks.Extensions.dll'
@@ -159,6 +167,7 @@ $targetsContent += @"
 "@;
 
 $codeContent += @"
+   }
 }
 "@
 

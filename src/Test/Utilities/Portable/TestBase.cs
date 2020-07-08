@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using static TestReferences.NetFx;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Roslyn.Test.Utilities
 {

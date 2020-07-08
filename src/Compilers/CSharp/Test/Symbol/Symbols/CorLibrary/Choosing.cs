@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CorLibrary.GuidTest2.exe,
-                Net40.mscorlib
+                TestMetadata.Net40.mscorlib
             });
 
             Assert.Same(assemblies[1], assemblies[0].Modules[0].CorLibrary());

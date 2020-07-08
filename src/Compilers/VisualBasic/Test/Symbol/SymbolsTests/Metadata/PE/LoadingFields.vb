@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                              {
                                 TestResources.SymbolsTests.Fields.CSFields,
                                 TestResources.SymbolsTests.Fields.VBFields,
-                                ResourcesNet40.mscorlib
+                                TestMetadata.ResourcesNet40.mscorlib
                              }, importInternals:=True)
 
             Dim module1 = assemblies(0).Modules(0)
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.Fields.ConstantFields,
-                                ResourcesNet40.mscorlib
+                                TestMetadata.ResourcesNet40.mscorlib
                              })
 
             Dim module1 = assemblies(0).Modules(0)

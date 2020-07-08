@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var projectId = ProjectId.CreateNewId();
             var metadataProject = context.CurrentSolution
                 .AddProject(projectId, "Metadata", "Metadata", LanguageNames.CSharp).GetProject(projectId)
-                .AddMetadataReference(Net451.mscorlib)
+                .AddMetadataReference(TestMetadata.Net451.mscorlib)
                 .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release));
 
             var references = new List<MetadataReference>();

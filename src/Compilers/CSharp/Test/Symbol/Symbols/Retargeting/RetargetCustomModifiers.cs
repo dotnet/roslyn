@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         [Fact]
         public void Test1()
         {
-            var oldMsCorLib = Net40.mscorlib;
-            var newMsCorLib = Net451.mscorlib;
+            var oldMsCorLib = TestMetadata.Net40.mscorlib;
+            var newMsCorLib = TestMetadata.Net451.mscorlib;
 
             var c1 = CSharpCompilation.Create("C1", references: new[]
             {
@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         [Fact]
         public void Test2()
         {
-            var oldMsCorLib = Net40.mscorlib;
-            var newMsCorLib = Net451.mscorlib;
+            var oldMsCorLib = TestMetadata.Net40.mscorlib;
+            var newMsCorLib = TestMetadata.Net451.mscorlib;
 
             var source = @"
 public class Modifiers

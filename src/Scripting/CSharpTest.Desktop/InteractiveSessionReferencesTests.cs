@@ -22,6 +22,7 @@ using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using WorkItemAttribute = PortableTestUtils::Roslyn.Test.Utilities.WorkItemAttribute;
 using static Microsoft.CodeAnalysis.Scripting.TestCompilationFactory;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {

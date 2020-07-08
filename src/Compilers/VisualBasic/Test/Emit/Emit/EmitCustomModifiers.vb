@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
         <Fact>
         Public Sub Test1()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = TestMetadata.Net40.mscorlib
 
             Dim source As String = <text> 
 Public Class A
