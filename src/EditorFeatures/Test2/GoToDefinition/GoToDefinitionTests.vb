@@ -1036,7 +1036,7 @@ class Foo : IFoo1, IFoo2
 #End Region
 
 #Region "CSharp TupleTests"
-        Private tuple2 As XCData =
+        Private ReadOnly tuple2 As XCData =
         <![CDATA[
 namespace System
 {

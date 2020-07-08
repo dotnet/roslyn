@@ -8,9 +8,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Friend Class MockNavigationBarPresenter
         Implements INavigationBarPresenter
 
-        Private _textView As ITextView
-        Private _presentItemsCallback As Action
-        Private _presentItemsWithValuesCallback As Action(Of IList(Of NavigationBarProjectItem), NavigationBarProjectItem, IList(Of NavigationBarItem), NavigationBarItem, NavigationBarItem)
+        Private ReadOnly _textView As ITextView
+        Private ReadOnly _presentItemsCallback As Action
+        Private ReadOnly _presentItemsWithValuesCallback As Action(Of IList(Of NavigationBarProjectItem), NavigationBarProjectItem, IList(Of NavigationBarItem), NavigationBarItem, NavigationBarItem)
 
         Public Sub New(textView As ITextView, presentItemsCallback As Action)
             _textView = textView

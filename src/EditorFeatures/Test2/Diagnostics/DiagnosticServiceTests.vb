@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     <[UseExportProvider]>
     Public Class DiagnosticServiceTests
 
-        Private _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
+        Private ReadOnly _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
 
         Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Class FailingTextLoader
             Inherits TextLoader
 
-            Private _path As String
+            Private ReadOnly _path As String
 
             Friend Overrides ReadOnly Property FilePath As String
                 Get

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
     internal class TestUIThreadOperationContext : AbstractUIThreadOperationContext
     {
-        private CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly int _maxUpdates;
         private int _updates;
 

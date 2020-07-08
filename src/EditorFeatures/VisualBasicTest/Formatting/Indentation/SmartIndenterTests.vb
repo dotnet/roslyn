@@ -15,14 +15,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
     Public Class SmartIndenterTests
         Inherits VisualBasicFormatterTestBase
 
-        Private Shared s_htmlMarkup As String = <text>
+        Private Shared ReadOnly s_htmlMarkup As String = <text>
 &lt;html&gt;
     &lt;body&gt;
         &lt;%{|S1:|}%&gt;
     &lt;/body&gt;
 &lt;/html&gt;
 </text>.NormalizedValue
-        Private Shared s_baseIndentationOfNugget As Integer = 8
+        Private Shared ReadOnly s_baseIndentationOfNugget As Integer = 8
 
         Public Sub New(output As ITestOutputHelper)
             MyBase.New(output)

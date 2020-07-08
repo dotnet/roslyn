@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
     End Class
 
     Friend Class LocalSymbolDumper
-        Private _comp As VisualBasicCompilation
+        Private ReadOnly _comp As VisualBasicCompilation
         Public Sub New(comp As VisualBasicCompilation)
             Me._comp = comp
         End Sub

@@ -5973,7 +5973,7 @@ End Class
             Return New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyPropertyAccess, languageName), New CodeStyleOption2(Of Boolean)(True, notification)}}
         End Function
 
-        Private Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey2, Object) = New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), CodeStyleOption2(Of Boolean).Default}}
+        Private Shared ReadOnly DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey2, Object) = New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), CodeStyleOption2(Of Boolean).Default}}
 
 #End Region
 
