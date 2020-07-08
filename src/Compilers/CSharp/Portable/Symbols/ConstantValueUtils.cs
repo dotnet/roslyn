@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class CheckConstantInterpolatedStringValidity : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
-            internal DiagnosticBag diagnostics;
+            readonly internal DiagnosticBag diagnostics;
 
             public CheckConstantInterpolatedStringValidity(DiagnosticBag diagnostics)
             {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
             {
                 Binder.CheckFeatureAvailability(node.Syntax, MessageID.IDS_FeatureConstantInterpolatedStrings, diagnostics);
-                return base.VisitInterpolatedString(node);
+                return null;
             }
         }
     }

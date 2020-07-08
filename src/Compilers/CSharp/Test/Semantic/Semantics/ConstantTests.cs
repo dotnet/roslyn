@@ -3515,11 +3515,12 @@ $""{F1} the {S2}"" --> Testing the Level 5 Number 3";
             string source = @"
 class C
 {
-    void M()
+    void M(string ParamDefault = ""Academy City"")
     {
         const string S1 = $""Testing"";
         const string S2 = $""{""Level 5""} {3}"";
         const string S3 = $""{$""{""Spinning Top"", 10}""}"";
+        const string S4 = $""{ParamDefault}"";
         const int I1 = 0;
         const string F1 = $""{I1}"";
         const string F2 = $""{I1} the {S1}"";
@@ -3533,13 +3534,15 @@ class C
                 // (8,27): error CS0133: The expression being assigned to 'S3' must be constant
                 //         const string S3 = $"{$"{"Spinning Top", 10}"}";
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{$""{""Spinning Top"", 10}""}""").WithArguments("S3").WithLocation(8, 27),
-                // (10,27): error CS0133: The expression being assigned to 'F1' must be constant
+                // (9,27): error CS0133: The expression being assigned to 'S4' must be constant
+                //         const string S4 = $"{ParamDefault}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{ParamDefault}""").WithArguments("S4").WithLocation(9, 27),
+                // (11,27): error CS0133: The expression being assigned to 'F1' must be constant
                 //         const string F1 = $"{I1}";
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1}""").WithArguments("F1").WithLocation(10, 27),
-                // (11,27): error CS0133: The expression being assigned to 'F2' must be constant
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1}""").WithArguments("F1").WithLocation(11, 27),
+                // (12,27): error CS0133: The expression being assigned to 'F2' must be constant
                 //         const string F2 = $"{I1} the {S1}";
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1} the {S1}""").WithArguments("F2").WithLocation(11, 27)
-            );
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1} the {S1}""").WithArguments("F2").WithLocation(12, 27));
         }
 
         [Fact]
@@ -3609,9 +3612,21 @@ class C
         const string S5 = ""Hybrid"" + ""Testing"" + $""321"";
         const string F1 = $""{S1}"";
         const string F2 = F1 + $"" the {S2}"";
+
+        string VS = ""Change"";
+        const string S6 = $""Failed to {VS}"";
+
+        // Remove unused variable warnings from diagnostics.
+        System.Console.WriteLine(S3 + S4 + S5 + F2);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (15,27): error CS0133: The expression being assigned to 'S6' must be constant
+                //         const string S6 = $"Failed to {VS}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(15, 27));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         const string S1 = $"Testing";
@@ -3622,9 +3637,6 @@ class C
                 // (8,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         const string S3 = $"{$"{"Spinning Top"}"}";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{$""{""Spinning Top""}""}""").WithArguments("constant interpolated strings").WithLocation(8, 27),
-                // (8,30): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         const string S3 = $"{$"{"Spinning Top"}"}";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{""Spinning Top""}""").WithArguments("constant interpolated strings").WithLocation(8, 30),
                 // (9,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         const string S4 = $"Hybrid" + "Testing" + "123";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Hybrid""").WithArguments("constant interpolated strings").WithLocation(9, 27),
@@ -3636,7 +3648,13 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{S1}""").WithArguments("constant interpolated strings").WithLocation(11, 27),
                 // (12,32): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         const string F2 = F1 + $" the {S2}";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$"" the {S2}""").WithArguments("constant interpolated strings").WithLocation(12, 32));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$"" the {S2}""").WithArguments("constant interpolated strings").WithLocation(12, 32),
+                // (15, 27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and * unsupported *.To use Preview features, use the 'preview' language version.
+                //         const string S6 = $"Failed to {VS}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Failed to {VS}""").WithArguments("constant interpolated strings").WithLocation(15, 27),
+                // (15,27): error CS0133: The expression being assigned to 'S6' must be constant
+                //         const string S6 = $"Failed to {VS}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(15, 27));
         }
     }
 
