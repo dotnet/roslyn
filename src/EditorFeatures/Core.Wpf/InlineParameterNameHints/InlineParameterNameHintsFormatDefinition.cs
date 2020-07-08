@@ -6,11 +6,16 @@ using System;
 using System.ComponentModel.Composition;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 {
     [Export(typeof(EditorFormatDefinition))]
+    [Name(InlineParameterNameHintsTag.TagId)]
+    [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
+    [UserVisible(true)]
     internal sealed class InlineParameterNameHintsFormatDefinition : EditorFormatDefinition
     {
         [ImportingConstructor]

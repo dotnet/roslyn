@@ -25,13 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     {
         private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
         public readonly IClassificationFormatMapService ClassificationFormatMapService;
+        public readonly IClassificationTypeRegistryService ClassificationTypeRegistryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, [Import] IClassificationFormatMapService classificationFormatMapService)
+        public InlineParameterNameHintsTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
+                                                      [Import] IClassificationFormatMapService classificationFormatMapService,
+                                                      [Import] IClassificationTypeRegistryService classificationTypeRegistryService)
         {
             _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;
+            this.ClassificationTypeRegistryService = classificationTypeRegistryService;
         }
 
         /*

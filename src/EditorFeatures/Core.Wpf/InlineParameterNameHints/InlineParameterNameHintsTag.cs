@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     /// </summary>
     internal class InlineParameterNameHintsTag : IntraTextAdornmentTag
     {
+        public const string TagId = "inline parameter name hints";
         /// <summary>
         /// Creates the UIElement on call
         /// Uses PositionAffinity.Successor because we want the tag to be associated with the following character
@@ -41,15 +42,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 FontFamily = format.Typeface.FontFamily, //new System.Windows.Media.FontFamily("Consolas"),
                 FontSize = format.FontRenderingEmSize - 1,
                 Padding = new Thickness(0),
-                Background = System.Windows.Media.Brushes.Lavender,
-                Foreground = System.Windows.Media.Brushes.Gray
+                Background = format.BackgroundBrush,//System.Windows.Media.Brushes.Lavender,
+                Foreground = format.ForegroundBrush //System.Windows.Media.Brushes.Gray
             };
 
             var border = new Border
             {
                 CornerRadius = new CornerRadius(2),
-                Background = System.Windows.Media.Brushes.Lavender,
-                BorderBrush = System.Windows.Media.Brushes.Lavender,
+                Background = format.BackgroundBrush,//System.Windows.Media.Brushes.Lavender,
+                BorderBrush = format.BackgroundBrush, //System.Windows.Media.Brushes.Lavender,
                 BorderThickness = new Thickness(1),
                 VerticalAlignment = VerticalAlignment.Center,
                 Height = lineHeight,

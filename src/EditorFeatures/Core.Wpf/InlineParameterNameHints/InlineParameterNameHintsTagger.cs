@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private ITextSnapshot _cacheSnapshot;
         private readonly IClassificationFormatMap _formatMap;
         private TextFormattingRunProperties _format;
+        private readonly IClassificationType _keyword;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _buffer = buffer;
             _tagAggregator = tagAggregator;
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
+            _keyword = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineParameterNameHintsTag.TagId);
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
             _format = _formatMap.DefaultTextProperties;
             _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             get
             {
                 if (_format == null)
-                    _format = _formatMap.DefaultTextProperties;
+                    _format = _formatMap.GetTextProperties(_keyword);
 
                 return _format;
             }
