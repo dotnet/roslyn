@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             return InMemberDeclarationContext(position, context, cancellationToken)
-                || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken)
-                || context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.StaticKeyword, cancellationToken);
+                || context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.StaticKeyword, cancellationToken)
+                || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
         }
 
         private static bool InMemberDeclarationContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
