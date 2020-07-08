@@ -21,6 +21,5 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             this.ForegroundBrush = Brushes.Black;
             this.BackgroundBrush = Brushes.LightGray;
         }
-
     }
 }

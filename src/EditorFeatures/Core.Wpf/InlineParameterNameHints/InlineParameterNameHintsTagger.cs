@@ -4,9 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
@@ -23,25 +26,50 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly ITextView _textView;
         private readonly List<ITagSpan<IntraTextAdornmentTag>> _cache;
         private ITextSnapshot _cacheSnapshot;
+        private readonly IClassificationFormatMap _formatMap;
+        private TextFormattingRunProperties _format;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-        public InlineParameterNameHintsTagger(ITextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
+        public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, ITextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
         {
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
             _textView = textView;
             _buffer = buffer;
             _tagAggregator = tagAggregator;
+            _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
+            _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
+            _format = _formatMap.DefaultTextProperties;
             _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
+        }
+
+        private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
+        {
+            if (_format != null)
+            {
+                _format = null;
+                _cache.Clear();
+            }
         }
 
         private void OnTagAggregatorTagsChanged(object sender, TagsChangedEventArgs e)
         {
+            _cache.Clear();
             var spans = e.Span.GetSpans(_buffer);
             foreach (var span in spans)
             {
-                _cache.Clear();
                 TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
+            }
+        }
+
+        private TextFormattingRunProperties Format
+        {
+            get
+            {
+                if (_format == null)
+                    _format = _formatMap.DefaultTextProperties;
+
+                return _format;
             }
         }
 
@@ -70,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), new InlineParameterNameHintsTag(textTag.ParameterName, _textView.LineHeight)));
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), new InlineParameterNameHintsTag(textTag.ParameterName, _textView.LineHeight, Format)));
                     }
                 }
             }
