@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
             if (!TryInitializeLibraries())
             {
                 // SQLite is not supported on the current platform
+                Console.WriteLine("Couldn't initialize sqlite");
                 return null;
             }
 
