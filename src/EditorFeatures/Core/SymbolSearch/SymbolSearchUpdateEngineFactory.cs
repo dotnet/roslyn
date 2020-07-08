@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// </summary>
     /// <remarks>
     /// This returns an No-op engine on non-Windows OS, because the backing storage depends on Windows APIs.
-    /// <remarks>
+    /// </remarks>
     internal static partial class SymbolSearchUpdateEngineFactory
     {
         public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
