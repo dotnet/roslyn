@@ -118,16 +118,15 @@ class Test
 {
     void Method()
     {
-        var typeName = [||]typeof(int).Name;
+        [||]var typeName = typeof(int).Name;
     }
 }
 ";
-            var expected = @"
-class Test
+            var expected = @"class Test
 {
     void Method()
     {
-        var typeName = [||]nameof(System.Int32);
+        [||]var typeName = nameof(System.Int32);
     }
 }
 ";
@@ -141,9 +140,9 @@ class Test
 
 class Test
 {
-    void Method()
+    void Method()[||]
     {
-        var typeName = [||]typeof(int).Name;
+        var typeName = typeof(int).Name;
     }
 }
 ";
@@ -151,9 +150,9 @@ class Test
 
 class Test
 {
-    void Method()
+    void Method()[||]
     {
-        var typeName = [||]nameof(Int32);
+        var typeName = nameof(Int32);
     }
 }
 ";
