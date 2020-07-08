@@ -921,7 +921,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
 
             // See https://github.com/dotnet/roslyn/issues/45453. No need to warn when the runtime
-            // supports covariant returns because the methodimpl is unambiguously understood by the runtime.
+            // supports covariant returns because any methodimpl we produce to identify the specific
+            // overridden method is unambiguously understood by the runtime.
             if (method.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses)
                 return true;
 
@@ -938,9 +939,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!methodimplWouldBeAmbiguous)
                 return true;
 
+            Debug.Assert(runtimeOverriddenMethod is { });
+
             // We produce the warning when a methodimpl would be required but would be ambiguous to the runtime.
-            // This ambiguity only arises due to collision after generic substitution.
-            warnAmbiguous = csharpOverriddenMethod.ContainingType.IsGenericType;
+            // However, if there was a duplicate definition for the runtime signature of the overridden
+            // method where it was originally delcared, that would have been an error.  In that case we suppress
+            // the warning as a cascaded diagnostic.
+            bool originalOverriddenMethodWasAmbiguious =
+                csharpOverriddenMethod.IsDefinition || csharpOverriddenMethod.OriginalDefinition.MethodHasRuntimeCollisionInSubstututedForm();
+            warnAmbiguous = !originalOverriddenMethodWasAmbiguious;
 
             bool overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod =
                 csharpOverriddenMethod.ContainingType.Equals(runtimeOverriddenMethod.ContainingType, TypeCompareKind.CLRSignatureCompareOptions);
@@ -949,10 +956,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // method, then the runtime overridden method could not possibly resolve correctly to the overridden method.
             // In this case we might as well produce a methodimpl. At least it has a chance of being correctly resolved
             // by the runtime, where the runtime resolution without the methodimpl would definitely be wrong.
-            return
-                !overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod ||
-                // This is the historical test, preserved since the days of the native compiler in case it turns out to affect compatibility
-                csharpOverriddenMethod != runtimeOverriddenMethod && method.IsAccessor() != runtimeOverriddenMethod.IsAccessor();
+            if (!overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod)
+                return true;
+
+            // This is the historical test, preserved since the days of the native compiler in case it turns out to affect compatibility.
+            // However, this test cannot be true in a program free of errors.
+            return csharpOverriddenMethod != runtimeOverriddenMethod && method.IsAccessor() != runtimeOverriddenMethod.IsAccessor();
         }
 
         internal static bool MethodHasRuntimeCollisionInSubstututedForm(this MethodSymbol method)

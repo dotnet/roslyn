@@ -18,11 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class CovariantReturnTests : CSharpTestBase
     {
-        private static readonly MetadataReference
-            CorelibraryWithCovariantReturnSupport1,
-            CorelibraryWithCovariantReturnSupport2,
-            CorelibraryWithoutCovariantReturnSupport1,
-            CorelibraryWithoutCovariantReturnSupport2;
+        private static readonly MetadataReference CorelibraryWithCovariantReturnSupport1;
+        private static readonly MetadataReference CorelibraryWithCovariantReturnSupport2;
+        private static readonly MetadataReference CorelibraryWithoutCovariantReturnSupport1;
+        private static readonly MetadataReference CorelibraryWithoutCovariantReturnSupport2;
 
         static CovariantReturnTests()
         {
@@ -365,7 +364,8 @@ namespace System.Runtime.CompilerServices
         }
 
         private CSharpCompilation CreateCompilationWithCovariantReturns(
-            string source, MetadataReference[] references = null,
+            string source,
+            MetadataReference[] references = null,
             string assemblyName = "",
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null)
@@ -399,6 +399,19 @@ namespace System.Runtime.CompilerServices
                 targetFramework: TargetFramework.Empty,
                 assemblyName: assemblyName,
                 options: options);
+        }
+
+        private CSharpCompilation CreateCompilation(
+            bool withCovariantReturns,
+            string source,
+            MetadataReference[] references = null,
+            string assemblyName = "",
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null)
+        {
+            return withCovariantReturns
+                ? CreateCompilationWithCovariantReturns(source, references, assemblyName, options, parseOptions)
+                : CreateCompilationWithoutCovariantReturns(source, references, assemblyName, options, parseOptions);
         }
 
         private static CSharpCompilation SourceView(
@@ -453,7 +466,14 @@ namespace System.Runtime.CompilerServices
             CompilationReference compAsMetadata = comp.ToMetadataReference();
             references = references?.Append(compAsMetadata) ?? new[] { compAsMetadata };
             if (!withoutCorlib)
-                references = references.Prepend(CorelibraryWithCovariantReturnSupport2).ToArray();
+            {
+                var coreLibrary = comp.GetMetadataReference(comp.Assembly.CorLibrary);
+                MetadataReference alternateCorlib =
+                    (coreLibrary == CorelibraryWithCovariantReturnSupport1) ? CorelibraryWithCovariantReturnSupport2 :
+                    (coreLibrary == CorelibraryWithoutCovariantReturnSupport1) ? CorelibraryWithoutCovariantReturnSupport2 :
+                    throw ExceptionUtilities.Unreachable;
+                references = references.Prepend(alternateCorlib).ToArray();
+            }
             var result = CreateCompilation(
                 assignments,
                 references: references,
@@ -3678,12 +3698,12 @@ public class Program
         [Theory]
         [CombinatorialData]
         public void OverrideAmbiguities_01(
-            [CombinatorialValues(true, false)] bool withCovariantReturnFeatureEnabled,
-            [CombinatorialValues(true, false)] bool withCovariantCapableRuntime,
-            [CombinatorialValues(true, false)] bool methodRuntimeOverriddenSignatureAmbiguity,
-            [CombinatorialValues(true, false)] bool overriddenRuntimeSignatureAmbiguity,
-            [CombinatorialValues(true, false)] bool useCovariantReturns,
-            [CombinatorialValues(true, false)] bool useSeparateCompilation
+            bool withCovariantReturnFeatureEnabled,
+            bool withCovariantCapableRuntime,
+            bool methodRuntimeOverriddenSignatureAmbiguity,
+            bool overriddenRuntimeSignatureAmbiguity,
+            bool useCovariantReturns,
+            bool useSeparateCompilation
             )
         {
             var overriddenMethodReturnType = useCovariantReturns ? "object" : "string";
@@ -3795,12 +3815,12 @@ public class Derived : Base2<string>
         [Theory]
         [CombinatorialData]
         public void OverrideAmbiguities_02(
-            [CombinatorialValues(true, false)] bool withCovariantReturnFeatureEnabled,
-            [CombinatorialValues(true, false)] bool withCovariantCapableRuntime,
-            [CombinatorialValues(true, false)] bool methodRuntimeOverriddenSignatureAmbiguity,
-            [CombinatorialValues(true, false)] bool overriddenRuntimeSignatureAmbiguity,
-            [CombinatorialValues(true, false)] bool useCovariantReturns,
-            [CombinatorialValues(true, false)] bool useSeparateCompilation
+            bool withCovariantReturnFeatureEnabled,
+            bool withCovariantCapableRuntime,
+            bool methodRuntimeOverriddenSignatureAmbiguity,
+            bool overriddenRuntimeSignatureAmbiguity,
+            bool useCovariantReturns,
+            bool useSeparateCompilation
             )
         {
             var overriddenMethodReturnType = useCovariantReturns ? "object" : "string";
@@ -3920,12 +3940,12 @@ public class Derived : Base2<string>
         [Theory]
         [CombinatorialData]
         public void OverrideAmbiguities_03(
-            [CombinatorialValues(true, false)] bool withCovariantReturnFeatureEnabled,
-            [CombinatorialValues(true, false)] bool withCovariantCapableRuntime,
-            [CombinatorialValues(true, false)] bool methodRuntimeOverriddenSignatureAmbiguity,
-            [CombinatorialValues(true, false)] bool overriddenRuntimeSignatureAmbiguity,
-            [CombinatorialValues(true, false)] bool useCovariantReturns,
-            [CombinatorialValues(true, false)] bool useSeparateCompilation
+            bool withCovariantReturnFeatureEnabled,
+            bool withCovariantCapableRuntime,
+            bool methodRuntimeOverriddenSignatureAmbiguity,
+            bool overriddenRuntimeSignatureAmbiguity,
+            bool useCovariantReturns,
+            bool useSeparateCompilation
             )
         {
             var overriddenMethodReturnType = useCovariantReturns ? "object" : "string";
@@ -4033,12 +4053,12 @@ public class Derived : Base<string>
         [Theory]
         [CombinatorialData]
         public void OverrideAmbiguities_04(
-            [CombinatorialValues(true, false)] bool withCovariantReturnFeatureEnabled,
-            [CombinatorialValues(true, false)] bool withCovariantCapableRuntime,
-            [CombinatorialValues(true, false)] bool methodRuntimeOverriddenSignatureAmbiguity,
-            [CombinatorialValues(true, false)] bool overriddenRuntimeSignatureAmbiguity,
-            [CombinatorialValues(true, false)] bool useCovariantReturns,
-            [CombinatorialValues(true, false)] bool useSeparateCompilation
+            bool withCovariantReturnFeatureEnabled,
+            bool withCovariantCapableRuntime,
+            bool methodRuntimeOverriddenSignatureAmbiguity,
+            bool overriddenRuntimeSignatureAmbiguity,
+            bool useCovariantReturns,
+            bool useSeparateCompilation
             )
         {
             var overriddenMethodReturnType = useCovariantReturns ? "object" : "string";
@@ -4154,9 +4174,9 @@ public class Derived : Base<string>
         [Theory]
         [CombinatorialData]
         public void OverrideAmbiguities_05(
-            [CombinatorialValues(true, false)] bool withCovariantReturnFeatureEnabled,
-            [CombinatorialValues(true, false)] bool withCovariantCapableRuntime,
-            [CombinatorialValues(true, false)] bool useSeparateCompilation
+            bool withCovariantReturnFeatureEnabled,
+            bool withCovariantCapableRuntime,
+            bool useSeparateCompilation
             )
         {
             var baseSource = $@"
@@ -4253,12 +4273,12 @@ public class Derived : Base2<string>
         [Theory]
         [CombinatorialData]
         public void OverrideAmbiguities_06(
-            [CombinatorialValues(true, false)] bool withCovariantReturnFeatureEnabled,
-            [CombinatorialValues(true, false)] bool withCovariantCapableRuntime,
-            [CombinatorialValues(true, false)] bool withPropertyDeclarationFirst,
-            [CombinatorialValues(true, false)] bool overrideProperty,
-            [CombinatorialValues(true, false)] bool useCovariantReturns,
-            [CombinatorialValues(true, false)] bool useSeparateCompilation
+            bool withCovariantReturnFeatureEnabled,
+            bool withCovariantCapableRuntime,
+            bool withPropertyDeclarationFirst,
+            bool overrideProperty,
+            bool useCovariantReturns,
+            bool useSeparateCompilation
             )
         {
             var propertyDeclaration = "public virtual Pbject Prop => default(Pbject);";
@@ -4434,6 +4454,306 @@ public class Derived : Base<object>
                         overriddenMemberDisplay: "System.Object Base<System.Object>.get_Prop()",
                         requiresMethodimpl: requiresMethodImpl);
                 }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DuplicateDeclarations_01(
+            bool withCovariantReturns
+            )
+        {
+            var source = @"
+class Base
+{
+    public virtual void M(int x) => throw null; // 1
+    public virtual void M(int y) => throw null; // 2
+}
+
+class Derived : Base
+{
+    public override void M(int z) => throw null; // 3
+}
+";
+            var comp = CreateCompilation(withCovariantReturns: withCovariantReturns, source);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS0111: Type 'Base' already defines a member called 'M' with the same parameter types
+                //     public virtual void M(int y) => throw null; // 2
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "Base").WithLocation(5, 25)
+                );
+
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.False(shouldWarn);
+            Assert.Equal(withCovariantReturns, useMethodImpl);
+
+            verify(SourceView(comp, ""));
+            verify(CompilationReferenceView(comp, ""));
+            verify(RetargetingView(comp, ""));
+
+            void verify(CSharpCompilation compilation)
+            {
+                VerifyOverride(compilation,
+                    methodName: "Derived.M",
+                    overridingMemberDisplay: "void Derived.M(System.Int32 z)",
+                    overriddenMemberDisplay: "void Base.M(System.Int32 x)",
+                    requiresMethodimpl: useMethodImpl);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DuplicateDeclarations_02(
+            bool withCovariantReturns
+            )
+        {
+            var source = @"
+class Base<T>
+{
+    public virtual void M(int x) => throw null; // 1
+    public virtual void M(int y) => throw null; // 2
+}
+
+class Derived : Base<int>
+{
+    public override void M(int z) => throw null; // 3
+}
+";
+            var comp = CreateCompilation(withCovariantReturns: withCovariantReturns, source);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS0111: Type 'Base<T>' already defines a member called 'M' with the same parameter types
+                //     public virtual void M(int y) => throw null; // 2
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "Base<T>").WithLocation(5, 25),
+                // (10,26): error CS0462: The inherited members 'Base<T>.M(int)' and 'Base<T>.M(int)' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override void M(int z) => throw null; // 3
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Base<T>.M(int)", "Base<T>.M(int)", "Derived").WithLocation(10, 26)
+                );
+
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.False(shouldWarn);
+            Assert.Equal(withCovariantReturns, useMethodImpl);
+
+            verify(SourceView(comp, ""));
+            verify(CompilationReferenceView(comp, ""));
+            verify(RetargetingView(comp, ""));
+
+            void verify(CSharpCompilation compilation)
+            {
+                VerifyOverride(compilation,
+                    methodName: "Derived.M",
+                    overridingMemberDisplay: "void Derived.M(System.Int32 z)",
+                    overriddenMemberDisplay: "void Base<System.Int32>.M(System.Int32 x)",
+                    requiresMethodimpl: useMethodImpl);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DuplicateDeclarations_03(
+            bool withCovariantReturns
+            )
+        {
+            var source = @"
+class Container<T>
+{
+    class Base
+    {
+        public virtual void M(int x) => throw null; // 1
+        public virtual void M(int y) => throw null; // 2
+    }
+
+    class Derived : Base
+    {
+        public override void M(int z) => throw null; // 3
+    }
+}
+";
+            var comp = CreateCompilation(withCovariantReturns: withCovariantReturns, source);
+            comp.VerifyDiagnostics(
+                // (7,29): error CS0111: Type 'Container<T>.Base' already defines a member called 'M' with the same parameter types
+                //         public virtual void M(int y) => throw null; // 2
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "Container<T>.Base").WithLocation(7, 29)
+                );
+
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Container.Derived.M");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.False(shouldWarn);
+            Assert.Equal(withCovariantReturns, useMethodImpl);
+
+            verify(SourceView(comp, ""));
+            verify(CompilationReferenceView(comp, ""));
+            verify(RetargetingView(comp, ""));
+
+            void verify(CSharpCompilation compilation)
+            {
+                VerifyOverride(compilation,
+                    methodName: "Container.Derived.M",
+                    overridingMemberDisplay: "void Container<T>.Derived.M(System.Int32 z)",
+                    overriddenMemberDisplay: "void Container<T>.Base.M(System.Int32 x)",
+                    requiresMethodimpl: useMethodImpl);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DuplicateDeclarations_04(
+            bool withCovariantReturns
+            )
+        {
+            var s0 = @"
+public class Container<T>
+{
+    public class Base
+    {
+        public virtual void M(int x) => throw null; // 1
+        public virtual void M(int y) => throw null; // 2
+    }
+}
+";
+            var baseCompilation = CreateCompilation(withCovariantReturns: withCovariantReturns, s0);
+            baseCompilation.VerifyDiagnostics(
+                // (7,29): error CS0111: Type 'Container<T>.Base' already defines a member called 'M' with the same parameter types
+                //         public virtual void M(int y) => throw null; // 2
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "Container<T>.Base").WithLocation(7, 29)
+                );
+            var baseMetadata = baseCompilation.ToMetadataReference();
+
+            var source = @"
+class Derived : Container<int>.Base
+{
+    public override void M(int z) => throw null; // 3
+}
+";
+            var comp = CreateCompilation(withCovariantReturns: withCovariantReturns, source, references: new[] { baseMetadata });
+            comp.VerifyDiagnostics(
+                // (4,26): error CS0462: The inherited members 'Container<T>.Base.M(int)' and 'Container<T>.Base.M(int)' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override void M(int z) => throw null; // 3
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Container<T>.Base.M(int)", "Container<T>.Base.M(int)", "Derived").WithLocation(4, 26)
+                );
+
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.False(shouldWarn);
+            Assert.Equal(withCovariantReturns, useMethodImpl);
+
+            verify(SourceView(comp, ""));
+
+            void verify(CSharpCompilation compilation)
+            {
+                VerifyOverride(compilation,
+                    methodName: "Derived.M",
+                    overridingMemberDisplay: "void Derived.M(System.Int32 z)",
+                    overriddenMemberDisplay: "void Container<System.Int32>.Base.M(System.Int32 x)",
+                    requiresMethodimpl: useMethodImpl);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DuplicateDeclarations_05(
+            bool withCovariantReturns
+            )
+        {
+            var s0 = @"
+public class Container<T>
+{
+    public class Base
+    {
+        public virtual void M(int x) => throw null; // 1
+        public virtual void M(T y) => throw null;   // 2
+        public virtual void M(int z) => throw null; // 3
+    }
+}
+";
+            var baseCompilation = CreateCompilation(withCovariantReturns: withCovariantReturns, s0);
+            baseCompilation.VerifyDiagnostics(
+                // (8,29): error CS0111: Type 'Container<T>.Base' already defines a member called 'M' with the same parameter types
+                //         public virtual void M(int z) => throw null; // 3
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "Container<T>.Base").WithLocation(8, 29)
+                );
+            var baseMetadata = baseCompilation.ToMetadataReference();
+
+            var source = @"
+class Derived : Container<int>.Base
+{
+    public override void M(int w) => throw null; // 4
+}
+";
+            var comp = CreateCompilation(withCovariantReturns: withCovariantReturns, source, references: new[] { baseMetadata });
+            comp.VerifyDiagnostics(
+                // (4,26): error CS0462: The inherited members 'Container<T>.Base.M(int)' and 'Container<T>.Base.M(T)' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override void M(int w) => throw null; // 4
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Container<T>.Base.M(int)", "Container<T>.Base.M(T)", "Derived").WithLocation(4, 26)
+                );
+
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.False(shouldWarn);
+            Assert.Equal(withCovariantReturns, useMethodImpl);
+
+            verify(SourceView(comp, ""));
+
+            void verify(CSharpCompilation compilation)
+            {
+                VerifyOverride(compilation,
+                    methodName: "Derived.M",
+                    overridingMemberDisplay: "void Derived.M(System.Int32 w)",
+                    overriddenMemberDisplay: "void Container<System.Int32>.Base.M(System.Int32 x)",
+                    requiresMethodimpl: useMethodImpl);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DuplicateDeclarations_06(
+            bool withCovariantReturns
+            )
+        {
+            var s0 = @"
+public class Root
+{
+    public virtual int get_P() => throw null; // 1
+    public virtual int get_P() => throw null; // 2
+}
+
+public class Base : Root
+{
+    public virtual int P => 1;
+}
+";
+            var baseCompilation = CreateCompilation(withCovariantReturns: withCovariantReturns, s0);
+            baseCompilation.VerifyDiagnostics(
+                // (5,24): error CS0111: Type 'Root' already defines a member called 'get_P' with the same parameter types
+                //     public virtual int get_P() => throw null; // 2
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "get_P").WithArguments("get_P", "Root").WithLocation(5, 24)
+                );
+            var baseMetadata = baseCompilation.ToMetadataReference();
+
+            var source = @"
+class Derived : Base
+{
+    public override int get_P() => throw null; // 3
+}
+";
+            var comp = CreateCompilation(withCovariantReturns: withCovariantReturns, source, references: new[] { baseMetadata });
+            comp.VerifyDiagnostics(
+                );
+
+            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.get_P");
+            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+            Assert.False(shouldWarn);
+            Assert.True(useMethodImpl);
+
+            verify(SourceView(comp, ""));
+
+            void verify(CSharpCompilation compilation)
+            {
+                VerifyOverride(compilation,
+                    methodName: "Derived.get_P",
+                    overridingMemberDisplay: "System.Int32 Derived.get_P()",
+                    overriddenMemberDisplay: "System.Int32 Root.get_P()",
+                    requiresMethodimpl: useMethodImpl);
             }
         }
     }
