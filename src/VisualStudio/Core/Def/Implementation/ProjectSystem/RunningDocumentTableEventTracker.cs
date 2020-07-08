@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Editor;
@@ -25,24 +28,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-        private readonly IRunningDocumentTableEventListener _listener;
+        private readonly IRunningDocumentTableEventListener? _listener;
         private uint _runningDocumentTableEventsCookie;
 
         public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable runningDocumentTable,
-            IRunningDocumentTableEventListener listener)
+            IRunningDocumentTableEventListener? listener)
         {
             Contract.ThrowIfNull(threadingContext);
             Contract.ThrowIfNull(editorAdaptersFactoryService);
             Contract.ThrowIfNull(runningDocumentTable);
-            Contract.ThrowIfNull(listener);
 
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _listener = listener;
 
-            // Advise / Unadvise for the RDT is free threaded past 16.0
-            ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
+            // Only track events if we have a listener.
+            if (listener != null)
+            {
+                // Advise / Unadvise for the RDT is free threaded past 16.0
+                ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
+            }
         }
 
         public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
@@ -55,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _foregroundAffinitization.AssertIsForeground();
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie))
                 {
-                    _listener.OnCloseDocument(_runningDocumentTable.GetDocumentMoniker(docCookie));
+                    _listener?.OnCloseDocument(_runningDocumentTable.GetDocumentMoniker(docCookie));
                 }
             }
 
@@ -76,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _foregroundAffinitization.AssertIsForeground();
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetBuffer(docCookie, out var buffer))
                 {
-                    _listener.OnRenameDocument(newMoniker: pszMkDocumentNew, oldMoniker: pszMkDocumentOld, textBuffer: buffer);
+                    _listener?.OnRenameDocument(newMoniker: pszMkDocumentNew, oldMoniker: pszMkDocumentOld, textBuffer: buffer);
                 }
             }
 
@@ -90,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
                 {
                     _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
-                    _listener.OnOpenDocument(moniker, buffer, hierarchy);
+                    _listener?.OnOpenDocument(moniker, buffer, hierarchy);
                 }
             }
 
@@ -100,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker))
                 {
                     _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
-                    _listener.OnRefreshDocumentContext(moniker, hierarchy);
+                    _listener?.OnRefreshDocumentContext(moniker, hierarchy);
                 }
             }
 
@@ -113,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (fFirstShow != 0 && _runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
             {
                 _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
-                _listener.OnOpenDocument(moniker, buffer, hierarchy);
+                _listener?.OnOpenDocument(moniker, buffer, hierarchy);
             }
 
             return VSConstants.S_OK;
@@ -133,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <param name="moniker">the moniker to retrieve the text buffer for.</param>
         /// <param name="textBuffer">the output text buffer or null if the moniker is invalid / document is not initialized.</param>
         /// <returns>true if the buffer was found with a non null value.</returns>
-        public bool TryGetBufferFromMoniker(string moniker, out ITextBuffer textBuffer)
+        public bool TryGetBufferFromMoniker(string moniker, [NotNullWhen(true)] out ITextBuffer? textBuffer)
         {
             _foregroundAffinitization.AssertIsForeground();
 
@@ -152,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return TryGetBuffer(cookie, out textBuffer);
         }
 
-        public IVsHierarchy GetDocumentHierarchy(string moniker)
+        public IVsHierarchy? GetDocumentHierarchy(string moniker)
         {
             if (!IsFileOpen(moniker))
             {
@@ -213,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return !string.IsNullOrEmpty(moniker);
         }
 
-        private bool TryGetBuffer(uint docCookie, out ITextBuffer textBuffer)
+        private bool TryGetBuffer(uint docCookie, [NotNullWhen(true)] out ITextBuffer? textBuffer)
         {
             textBuffer = null;
 
