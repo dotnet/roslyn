@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 {
     internal class TypingFormattingRule : BaseFormattingRule
     {
-        public readonly static TypingFormattingRule Instance = new TypingFormattingRule();
+        public static readonly TypingFormattingRule Instance = new TypingFormattingRule();
 
         public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {

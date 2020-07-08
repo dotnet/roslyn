@@ -26,10 +26,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             RaiseEvent DropDownFocused(Nothing, EventArgs.Empty)
         End Sub
 
-        Event CaretMoved As EventHandler(Of CaretPositionChangedEventArgs) Implements INavigationBarPresenter.CaretMoved
-        Event DropDownFocused As EventHandler Implements INavigationBarPresenter.DropDownFocused
-        Event ItemSelected As EventHandler(Of NavigationBarItemSelectedEventArgs) Implements INavigationBarPresenter.ItemSelected
-        Event ViewFocused As EventHandler(Of EventArgs) Implements INavigationBarPresenter.ViewFocused
+        Public Event CaretMoved As EventHandler(Of CaretPositionChangedEventArgs) Implements INavigationBarPresenter.CaretMoved
+        Public Event DropDownFocused As EventHandler Implements INavigationBarPresenter.DropDownFocused
+        Public Event ItemSelected As EventHandler(Of NavigationBarItemSelectedEventArgs) Implements INavigationBarPresenter.ItemSelected
+        Public Event ViewFocused As EventHandler(Of EventArgs) Implements INavigationBarPresenter.ViewFocused
 
         Public Sub Disconnect() Implements INavigationBarPresenter.Disconnect
 

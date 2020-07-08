@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Return hostDocument
         End Function
 
-        Shared Sub AddAnalyzerToWorkspace(workspace As Workspace, analyzer As DiagnosticAnalyzer)
+        Public Shared Sub AddAnalyzerToWorkspace(workspace As Workspace, analyzer As DiagnosticAnalyzer)
             Dim analyzeReferences As AnalyzerReference()
             If analyzer IsNot Nothing Then
                 analyzeReferences = {New AnalyzerImageReference(ImmutableArray.Create(analyzer))}

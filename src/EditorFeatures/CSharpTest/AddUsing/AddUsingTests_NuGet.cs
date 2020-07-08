@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 
     public class AddUsingNuGetTests : AbstractAddUsingTests
     {
-        const string NugetOrgSource = "nuget.org";
+        private const string NugetOrgSource = "nuget.org";
 
         private static readonly ValueTask<ImmutableArray<PackageSource>?> NugetPackageSources =
             new ValueTask<ImmutableArray<PackageSource>?>(ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/")));

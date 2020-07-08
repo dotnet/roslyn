@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
     Public Class AddImportNuGetTests
         Inherits AbstractAddImportTests
 
-        Const NugetOrgSource = "nuget.org"
+        Private Const NugetOrgSource = "nuget.org"
 
         Private Shared ReadOnly NugetPackageSources As ValueTask(Of ImmutableArray(Of PackageSource)?) =
             New ValueTask(Of ImmutableArray(Of PackageSource)?)(ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org")))

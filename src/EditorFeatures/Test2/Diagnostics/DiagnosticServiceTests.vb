@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Class FailingTextLoader
             Inherits TextLoader
 
-            Dim _path As String
+            Private _path As String
 
             Friend Overrides ReadOnly Property FilePath As String
                 Get
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 End Get
             End Property
 
-            Sub New(path As String)
+            Public Sub New(path As String)
                 _path = path
             End Sub
 

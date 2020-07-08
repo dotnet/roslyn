@@ -14,8 +14,8 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
     <[UseExportProvider]>
     Public Class InteractivePasteCommandhandlerTests
-        Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
-        Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
+        Private Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
+        Private Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
 
         Private Shared Function CreateCommandHandler(workspace As TestWorkspace) As InteractivePasteCommandHandler
             Dim handler = New InteractivePasteCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService),
