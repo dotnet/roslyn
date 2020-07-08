@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineParameterNameHints
 {
-    internal class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
+    internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
         public async Task<IEnumerable<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
             return spans;
         }
 
-        protected virtual List<InlineParameterHint> AddAllParameterNameHintLocations(
-            SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, List<InlineParameterHint> spans, CancellationToken cancellationToken)
-        {
-            return new List<InlineParameterHint>();
-        }
+        protected abstract List<InlineParameterHint> AddAllParameterNameHintLocations(
+            SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, List<InlineParameterHint> spans, CancellationToken cancellationToken);
     }
 }
