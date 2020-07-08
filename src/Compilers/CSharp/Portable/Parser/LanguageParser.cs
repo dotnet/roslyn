@@ -6427,7 +6427,7 @@ done:
                     {
                         while (true)
                         {
-                            lastTokenOfType = EatToken(SyntaxKind.IdentifierToken);
+                            lastTokenOfType = TryEatToken(SyntaxKind.IdentifierToken) ?? lastTokenOfType;
 
                             if (skipBadFunctionPointerTokens() == PostSkipAction.Abort)
                             {
@@ -6438,7 +6438,7 @@ done:
                             lastTokenOfType = EatToken();
                         }
 
-                        lastTokenOfType = EatToken(SyntaxKind.CloseBracketToken);
+                        lastTokenOfType = TryEatToken(SyntaxKind.CloseBracketToken) ?? lastTokenOfType;
                     }
                     finally
                     {

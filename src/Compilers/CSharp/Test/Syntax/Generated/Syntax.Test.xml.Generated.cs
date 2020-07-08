@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateFunctionPointerCallingConvention();
 
-            Assert.Equal(SyntaxKind.ManagedKeyword, node.ManagedSpecifier.Kind);
+            Assert.Equal(SyntaxKind.ManagedKeyword, node.ManagedOrUnmanagedKeyword.Kind);
             Assert.Null(node.UnmanagedCallingConventionList);
 
             AttachAndCheckDiagnostics(node);
@@ -10457,9 +10457,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateFunctionPointerCallingConvention();
 
-            Assert.Equal(SyntaxKind.ManagedKeyword, node.ManagedSpecifier.Kind());
+            Assert.Equal(SyntaxKind.ManagedKeyword, node.ManagedOrUnmanagedKeyword.Kind());
             Assert.Null(node.UnmanagedCallingConventionList);
-            var newNode = node.WithManagedSpecifier(node.ManagedSpecifier).WithUnmanagedCallingConventionList(node.UnmanagedCallingConventionList);
+            var newNode = node.WithManagedOrUnmanagedKeyword(node.ManagedOrUnmanagedKeyword).WithUnmanagedCallingConventionList(node.UnmanagedCallingConventionList);
             Assert.Equal(node, newNode);
         }
 

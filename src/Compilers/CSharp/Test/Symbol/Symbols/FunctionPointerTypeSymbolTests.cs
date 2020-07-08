@@ -262,25 +262,39 @@ class C
             var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    public unsafe void M(delegate* unmanaged[invalid]<void> p) {}
+    public unsafe void M1(delegate* unmanaged[invalid]<void> p) {}
+    public unsafe void M2(delegate* unmanaged[invalid, Stdcall]<void> p) {}
+    public unsafe void M3(delegate* unmanaged[]<void> p) {}
 }");
+
             comp.VerifyDiagnostics(
-                // (4,36): error CS8807: 'invalid' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
-                //     public unsafe void M(delegate* unmanaged[invalid]<void> p) {}
-                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "unmanaged[invalid]").WithArguments("invalid").WithLocation(4, 36));
+                // (4,47): error CS8807: 'invalid' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                //     public unsafe void M1(delegate* unmanaged[invalid]<void> p) {}
+                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "invalid").WithArguments("invalid").WithLocation(4, 47),
+                // (5,47): error CS8807: 'invalid' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                //     public unsafe void M2(delegate* unmanaged[invalid, Stdcall]<void> p) {}
+                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "invalid").WithArguments("invalid").WithLocation(5, 47),
+                // (5,56): error CS8807: 'Stdcall' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                //     public unsafe void M2(delegate* unmanaged[invalid, Stdcall]<void> p) {}
+                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "Stdcall").WithArguments("Stdcall").WithLocation(5, 56),
+                // (6,47): error CS1001: Identifier expected
+                //     public unsafe void M3(delegate* unmanaged[]<void> p) {}
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(6, 47));
 
             var c = comp.GetTypeByMetadataName("C");
-            var m = c.GetMethod("M");
+            var m = c.GetMethod("M1");
             var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
             FunctionPointerUtilities.CommonVerifyFunctionPointer(pointerType);
             Assert.Equal(CallingConvention.Default, pointerType.Signature.CallingConvention);
+
+            // PROTOTYPE(func-ptr): Verify the public results of M2 and M3
 
             // https://github.com/dotnet/roslyn/issues/43321 test public calling convention exposure when added to the API
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model,
-                syntaxTree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single(),
+                syntaxTree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().First(),
                 expectedSyntax: "delegate* unmanaged[invalid]<void>",
                 expectedType: "delegate*<System.Void>",
                 expectedSymbol: "delegate*<System.Void>");

@@ -97,32 +97,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // PROTOTYPE(func-ptr): Do this right. Just making compatible changes for now
             static CallingConvention getCallingConvention(FunctionPointerCallingConventionSyntax? callingConventionSyntax, DiagnosticBag diagnostics)
             {
-                switch (callingConventionSyntax)
+                switch (callingConventionSyntax?.ManagedOrUnmanagedKeyword.Kind())
                 {
                     case null:
                         return CallingConvention.Default;
-                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.ManagedKeyword } }:
-                        Debug.Assert(callingConventionSyntax.UnmanagedCallingConventionList is null || callingConventionSyntax.ContainsDiagnostics);
-                        return CallingConvention.Default;
-                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: { } specifiers } when isCallingConvention(specifiers, "Cdecl"):
-                        return CallingConvention.CDecl;
-                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: { } specifiers } when isCallingConvention(specifiers, "Thiscall"):
-                        return CallingConvention.ThisCall;
-                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: { } specifiers } when isCallingConvention(specifiers, "Fastcall"):
-                        return CallingConvention.FastCall;
-                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: { } specifiers } when isCallingConvention(specifiers, "Stdcall"):
-                        return CallingConvention.Standard;
-                    case { ManagedSpecifier: { RawKind: (int)SyntaxKind.UnmanagedKeyword }, UnmanagedCallingConventionList: null }:
-                        return CallingConvention.Unmanaged;
 
-                    default:
-                        // PROTOTYPE(func-ptr): Handle the possible null and actually construct the correct convention
-                        diagnostics.Add(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, callingConventionSyntax.GetLocation(), callingConventionSyntax.UnmanagedCallingConventionList!.CallingConventions[0].Name.Text);
+                    case SyntaxKind.ManagedKeyword:
+                        // Possible if we get a node not constructed by the parser
+                        if (callingConventionSyntax.UnmanagedCallingConventionList is object && !callingConventionSyntax.ContainsDiagnostics)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_CannotSpecifyManagedWithUnmanagedSpecifiers, callingConventionSyntax.UnmanagedCallingConventionList.GetLocation());
+                        }
                         return CallingConvention.Default;
+
+                    case SyntaxKind.UnmanagedKeyword:
+                        switch (callingConventionSyntax.UnmanagedCallingConventionList)
+                        {
+                            case null:
+                                return CallingConvention.Unmanaged;
+
+                            case { CallingConventions: { Count: 1 } specifiers }:
+                                return specifiers[0].Name switch
+                                {
+                                    { Text: "Cdecl" } => CallingConvention.CDecl,
+                                    { Text: "Stdcall" } => CallingConvention.Standard,
+                                    { Text: "Thiscall" } => CallingConvention.ThisCall,
+                                    { Text: "Fastcall" } => CallingConvention.FastCall,
+                                    // PROTOTYPE(func-ptr): Handle unrecognized specifiers
+                                    var name => reportBadConventionAndReturn(name.Text, name, diagnostics)
+                                };
+
+                            case { CallingConventions: { Count: 0 } } unmanagedList:
+                                // Should never be possible from parser-constructed code (parser will always provide at least a missing identifier token),
+                                // so diagnostic quality isn't hugely important
+                                return reportBadConventionAndReturn(givenConvention: "", unmanagedList, diagnostics);
+
+                            case { CallingConventions: var specifiers }:
+                                // PROTOTYPE(func-ptr): Handle multiple specifiers
+                                foreach (var convention in specifiers)
+                                {
+                                    _ = reportBadConventionAndReturn(convention.Name.Text, convention.Name, diagnostics);
+                                }
+
+                                return CallingConvention.Default;
+                        }
+
+                    case var unexpected:
+                        throw ExceptionUtilities.UnexpectedValue(unexpected);
                 }
 
-                static bool isCallingConvention(FunctionPointerUnmanagedCallingConventionListSyntax specifiers, string expected)
-                    => specifiers.CallingConventions[0].Name.Text == expected;
+                static CallingConvention reportBadConventionAndReturn(string givenConvention, SyntaxNodeOrToken node, DiagnosticBag diagnostics)
+                {
+                    if (!node.ContainsDiagnostics)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, node.GetLocation(), givenConvention);
+                    }
+                    return CallingConvention.Default;
+                }
             }
         }
 

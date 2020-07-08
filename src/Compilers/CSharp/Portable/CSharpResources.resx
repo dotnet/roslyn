@@ -6053,7 +6053,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>&amp;method group</value>
   </data>
   <data name="ERR_InvalidFunctionPointerCallingConvention" xml:space="preserve">
-    <value>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</value>
+    <value>'{0}' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.</value>
   </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>

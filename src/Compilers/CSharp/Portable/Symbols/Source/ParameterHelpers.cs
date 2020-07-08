@@ -134,16 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (parameterIndex > lastIndex) break;
 
-                if (mustBeLastParameter == null)
-                {
-                    if (parameterSyntax is ParameterSyntax concreteParam &&
-                        (concreteParam.Modifiers.Any(SyntaxKind.ParamsKeyword) ||
-                         concreteParam.Identifier.Kind() == SyntaxKind.ArgListKeyword))
-                    {
-                        mustBeLastParameter = concreteParam;
-                    }
-                }
-
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
@@ -152,25 +142,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
                 }
 
-                if (parameterSyntax is ParameterSyntax { IsArgList: true, Identifier: var identifier })
+                if (parameterSyntax is ParameterSyntax concreteParam)
                 {
-                    arglistToken = identifier;
-                    // The native compiler produces "Expected type" here, in the parser. Roslyn produces
-                    // the somewhat more informative "arglist not valid" error.
-                    if (paramsKeyword.Kind() != SyntaxKind.None
-                        || refnessKeyword.Kind() != SyntaxKind.None
-                        || thisKeyword.Kind() != SyntaxKind.None)
+                    if (mustBeLastParameter == null &&
+                        (concreteParam.Modifiers.Any(SyntaxKind.ParamsKeyword) ||
+                         concreteParam.Identifier.Kind() == SyntaxKind.ArgListKeyword))
                     {
-                        // CS1669: __arglist is not valid in this context
-                        diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
+                        mustBeLastParameter = concreteParam;
                     }
 
-                    continue;
-                }
+                    if (concreteParam.IsArgList)
+                    {
+                        arglistToken = concreteParam.Identifier;
+                        // The native compiler produces "Expected type" here, in the parser. Roslyn produces
+                        // the somewhat more informative "arglist not valid" error.
+                        if (paramsKeyword.Kind() != SyntaxKind.None
+                            || refnessKeyword.Kind() != SyntaxKind.None
+                            || thisKeyword.Kind() != SyntaxKind.None)
+                        {
+                            // CS1669: __arglist is not valid in this context
+                            diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
+                        }
 
-                if (parameterSyntax is ParameterSyntax { Default: { } } && firstDefault == -1)
-                {
-                    firstDefault = parameterIndex;
+                        continue;
+                    }
+
+                    if (concreteParam.Default != null && firstDefault == -1)
+                    {
+                        firstDefault = parameterIndex;
+                    }
                 }
 
                 Debug.Assert(parameterSyntax.Type != null);

@@ -276,7 +276,7 @@
       <summary>Function pointer calling convention syntax.</summary>
     </TypeComment>
     <Kind Name="FunctionPointerCallingConvention"/>
-    <Field Name="ManagedSpecifier" Type="SyntaxToken">
+    <Field Name="ManagedOrUnmanagedKeyword" Type="SyntaxToken">
       <Kind Name="ManagedKeyword"/>
       <Kind Name="UnmanagedKeyword"/>
       <PropertyComment>

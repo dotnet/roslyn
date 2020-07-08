@@ -1323,15 +1323,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>Function pointer calling convention syntax.</summary>
     internal sealed partial class FunctionPointerCallingConventionSyntax : CSharpSyntaxNode
     {
-        internal readonly SyntaxToken managedSpecifier;
+        internal readonly SyntaxToken managedOrUnmanagedKeyword;
         internal readonly FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList;
 
-        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(managedSpecifier);
-            this.managedSpecifier = managedSpecifier;
+            this.AdjustFlagsAndWidth(managedOrUnmanagedKeyword);
+            this.managedOrUnmanagedKeyword = managedOrUnmanagedKeyword;
             if (unmanagedCallingConventionList != null)
             {
                 this.AdjustFlagsAndWidth(unmanagedCallingConventionList);
@@ -1339,13 +1339,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList, SyntaxFactoryContext context)
+        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(managedSpecifier);
-            this.managedSpecifier = managedSpecifier;
+            this.AdjustFlagsAndWidth(managedOrUnmanagedKeyword);
+            this.managedOrUnmanagedKeyword = managedOrUnmanagedKeyword;
             if (unmanagedCallingConventionList != null)
             {
                 this.AdjustFlagsAndWidth(unmanagedCallingConventionList);
@@ -1353,12 +1353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
+        internal FunctionPointerCallingConventionSyntax(SyntaxKind kind, SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
           : base(kind)
         {
             this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(managedSpecifier);
-            this.managedSpecifier = managedSpecifier;
+            this.AdjustFlagsAndWidth(managedOrUnmanagedKeyword);
+            this.managedOrUnmanagedKeyword = managedOrUnmanagedKeyword;
             if (unmanagedCallingConventionList != null)
             {
                 this.AdjustFlagsAndWidth(unmanagedCallingConventionList);
@@ -1367,14 +1367,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>SyntaxToken representing whether the calling convention is managed or unmanaged.</summary>
-        public SyntaxToken ManagedSpecifier => this.managedSpecifier;
+        public SyntaxToken ManagedOrUnmanagedKeyword => this.managedOrUnmanagedKeyword;
         /// <summary>Optional list of identifiers that will contribute to an unmanaged calling convention.</summary>
         public FunctionPointerUnmanagedCallingConventionListSyntax? UnmanagedCallingConventionList => this.unmanagedCallingConventionList;
 
         internal override GreenNode? GetSlot(int index)
             => index switch
             {
-                0 => this.managedSpecifier,
+                0 => this.managedOrUnmanagedKeyword,
                 1 => this.unmanagedCallingConventionList,
                 _ => null,
             };
@@ -1384,11 +1384,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerCallingConvention(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerCallingConvention(this);
 
-        public FunctionPointerCallingConventionSyntax Update(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionListSyntax unmanagedCallingConventionList)
+        public FunctionPointerCallingConventionSyntax Update(SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax unmanagedCallingConventionList)
         {
-            if (managedSpecifier != this.ManagedSpecifier || unmanagedCallingConventionList != this.UnmanagedCallingConventionList)
+            if (managedOrUnmanagedKeyword != this.ManagedOrUnmanagedKeyword || unmanagedCallingConventionList != this.UnmanagedCallingConventionList)
             {
-                var newNode = SyntaxFactory.FunctionPointerCallingConvention(managedSpecifier, unmanagedCallingConventionList);
+                var newNode = SyntaxFactory.FunctionPointerCallingConvention(managedOrUnmanagedKeyword, unmanagedCallingConventionList);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1402,18 +1402,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new FunctionPointerCallingConventionSyntax(this.Kind, this.managedSpecifier, this.unmanagedCallingConventionList, diagnostics, GetAnnotations());
+            => new FunctionPointerCallingConventionSyntax(this.Kind, this.managedOrUnmanagedKeyword, this.unmanagedCallingConventionList, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new FunctionPointerCallingConventionSyntax(this.Kind, this.managedSpecifier, this.unmanagedCallingConventionList, GetDiagnostics(), annotations);
+            => new FunctionPointerCallingConventionSyntax(this.Kind, this.managedOrUnmanagedKeyword, this.unmanagedCallingConventionList, GetDiagnostics(), annotations);
 
         internal FunctionPointerCallingConventionSyntax(ObjectReader reader)
           : base(reader)
         {
             this.SlotCount = 2;
-            var managedSpecifier = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(managedSpecifier);
-            this.managedSpecifier = managedSpecifier;
+            var managedOrUnmanagedKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(managedOrUnmanagedKeyword);
+            this.managedOrUnmanagedKeyword = managedOrUnmanagedKeyword;
             var unmanagedCallingConventionList = (FunctionPointerUnmanagedCallingConventionListSyntax?)reader.ReadValue();
             if (unmanagedCallingConventionList != null)
             {
@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteValue(this.managedSpecifier);
+            writer.WriteValue(this.managedOrUnmanagedKeyword);
             writer.WriteValue(this.unmanagedCallingConventionList);
         }
 
@@ -33375,7 +33375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.LessThanToken), VisitList(node.Parameters), (SyntaxToken)Visit(node.GreaterThanToken));
 
         public override CSharpSyntaxNode VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node)
-            => node.Update((SyntaxToken)Visit(node.ManagedSpecifier), (FunctionPointerUnmanagedCallingConventionListSyntax)Visit(node.UnmanagedCallingConventionList));
+            => node.Update((SyntaxToken)Visit(node.ManagedOrUnmanagedKeyword), (FunctionPointerUnmanagedCallingConventionListSyntax)Visit(node.UnmanagedCallingConventionList));
 
         public override CSharpSyntaxNode VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenBracketToken), VisitList(node.CallingConventions), (SyntaxToken)Visit(node.CloseBracketToken));
@@ -34287,23 +34287,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
+        public FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
         {
 #if DEBUG
-            if (managedSpecifier == null) throw new ArgumentNullException(nameof(managedSpecifier));
-            switch (managedSpecifier.Kind)
+            if (managedOrUnmanagedKeyword == null) throw new ArgumentNullException(nameof(managedOrUnmanagedKeyword));
+            switch (managedOrUnmanagedKeyword.Kind)
             {
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword: break;
-                default: throw new ArgumentException(nameof(managedSpecifier));
+                default: throw new ArgumentException(nameof(managedOrUnmanagedKeyword));
             }
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerCallingConvention, managedSpecifier, unmanagedCallingConventionList, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerCallingConvention, managedOrUnmanagedKeyword, unmanagedCallingConventionList, this.context, out hash);
             if (cached != null) return (FunctionPointerCallingConventionSyntax)cached;
 
-            var result = new FunctionPointerCallingConventionSyntax(SyntaxKind.FunctionPointerCallingConvention, managedSpecifier, unmanagedCallingConventionList, this.context);
+            var result = new FunctionPointerCallingConventionSyntax(SyntaxKind.FunctionPointerCallingConvention, managedOrUnmanagedKeyword, unmanagedCallingConventionList, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -39162,23 +39162,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedSpecifier, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
+        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
         {
 #if DEBUG
-            if (managedSpecifier == null) throw new ArgumentNullException(nameof(managedSpecifier));
-            switch (managedSpecifier.Kind)
+            if (managedOrUnmanagedKeyword == null) throw new ArgumentNullException(nameof(managedOrUnmanagedKeyword));
+            switch (managedOrUnmanagedKeyword.Kind)
             {
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword: break;
-                default: throw new ArgumentException(nameof(managedSpecifier));
+                default: throw new ArgumentException(nameof(managedOrUnmanagedKeyword));
             }
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerCallingConvention, managedSpecifier, unmanagedCallingConventionList, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FunctionPointerCallingConvention, managedOrUnmanagedKeyword, unmanagedCallingConventionList, out hash);
             if (cached != null) return (FunctionPointerCallingConventionSyntax)cached;
 
-            var result = new FunctionPointerCallingConventionSyntax(SyntaxKind.FunctionPointerCallingConvention, managedSpecifier, unmanagedCallingConventionList);
+            var result = new FunctionPointerCallingConventionSyntax(SyntaxKind.FunctionPointerCallingConvention, managedOrUnmanagedKeyword, unmanagedCallingConventionList);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);

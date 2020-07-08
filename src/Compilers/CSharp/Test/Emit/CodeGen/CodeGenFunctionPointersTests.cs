@@ -93,6 +93,35 @@ class C
         }
 
         [Fact]
+        public void MultipleCallingConventions()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#pragma warning disable CS0168
+unsafe class C
+{
+    public void M()
+    {
+        delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
+    }
+}");
+
+            // PROTOTYPE(func-ptr): Should pass, verify emit and readback
+            comp.VerifyDiagnostics(
+                // (7,29): error CS8807: 'Thiscall' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                //         delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
+                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "Thiscall").WithArguments("Thiscall").WithLocation(7, 29),
+                // (7,39): error CS8807: 'Stdcall' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                //         delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
+                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "Stdcall").WithArguments("Stdcall").WithLocation(7, 39)
+            );
+        }
+
+        [Fact]
+        public void UnrecognizedCallingConventions()
+        {
+        }
+
+        [Fact]
         public void RefParameters()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"

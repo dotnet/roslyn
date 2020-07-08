@@ -212,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
         /// <see cref="SyntaxFacts.GetContextualKeywordKind(string)"/>
+        /// <see cref="SyntaxFacts.GetText(SyntaxKind)"/>
 
         // keywords with an enum value less than ElifKeyword are considered i.a. contextual keywords
         // additional preprocessor keywords
