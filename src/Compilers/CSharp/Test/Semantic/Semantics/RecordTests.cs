@@ -841,7 +841,7 @@ record C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,19): error CS8872: Members named 'Clone' are disallowed in records.
+                // (4,19): error CS8859: Members named 'Clone' are disallowed in records.
                 //     public string Clone() => null;
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(4, 19)
             );
@@ -1243,34 +1243,34 @@ record Clone
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,18): error CS8872: Members named 'Clone' are disallowed in records.
+                // (2,18): error CS8859: Members named 'Clone' are disallowed in records.
                 // record C1(string Clone); // 1
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(2, 18),
-                // (5,12): error CS8872: Members named 'Clone' are disallowed in records.
+                // (5,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone; // 2
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(5, 12),
-                // (9,12): error CS8872: Members named 'Clone' are disallowed in records.
+                // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone { get; set; } // 3
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
                 // (13,10): error CS1519: Invalid token 'string' in class, struct, or interface member declaration
                 //     data string Clone; // 4 not yet supported
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "string").WithArguments("string").WithLocation(13, 10),
-                // (13,17): error CS8872: Members named 'Clone' are disallowed in records.
+                // (13,17): error CS8859: Members named 'Clone' are disallowed in records.
                 //     data string Clone; // 4 not yet supported
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(13, 17),
-                // (17,10): error CS8872: Members named 'Clone' are disallowed in records.
+                // (17,10): error CS8859: Members named 'Clone' are disallowed in records.
                 //     void Clone() { } // 5
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(17, 10),
-                // (18,10): error CS8872: Members named 'Clone' are disallowed in records.
+                // (18,10): error CS8859: Members named 'Clone' are disallowed in records.
                 //     void Clone(int i) { } // 6
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(18, 10),
-                // (22,11): error CS8872: Members named 'Clone' are disallowed in records.
+                // (22,11): error CS8859: Members named 'Clone' are disallowed in records.
                 //     class Clone { } // 7
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(22, 11),
-                // (26,19): error CS8872: Members named 'Clone' are disallowed in records.
+                // (26,19): error CS8859: Members named 'Clone' are disallowed in records.
                 //     delegate void Clone(); // 8
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(26, 19),
-                // (30,25): error CS8872: Members named 'Clone' are disallowed in records.
+                // (30,25): error CS8859: Members named 'Clone' are disallowed in records.
                 //     event System.Action Clone;  // 9
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(30, 25)
                 );
