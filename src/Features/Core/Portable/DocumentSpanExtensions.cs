@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis
             return service.CanNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan);
         }
 
-        public static bool TryNavigateTo(this DocumentSpan documentSpan, NavigationBehavior navigationBehavior)
+        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab)
         {
             var solution = documentSpan.Document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
 
-            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, navigationBehavior != NavigationBehavior.Normal);
-            options = options.WithChangedOption(NavigationOptions.ActivateTab, navigationBehavior == NavigationBehavior.PreviewWithFocus);
+            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, showInPreviewTab);
+            options = options.WithChangedOption(NavigationOptions.ActivateTab, activateTab);
 
             return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options);
         }

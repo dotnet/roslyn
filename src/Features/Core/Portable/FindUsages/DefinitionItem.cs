@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         public abstract bool CanNavigateTo(Workspace workspace);
-        public abstract bool TryNavigateTo(Workspace workspace, NavigationBehavior navigationBehavior);
+        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
