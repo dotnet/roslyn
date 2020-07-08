@@ -382,11 +382,22 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var generator = SyntaxGenerator.GetGenerator(originalDocument.Document);
             var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, withinNodeInCurrent, allOccurrences, cancellationToken);
 
+            if (allOccurrences)
+            {
+                // we can't replace l-value expressions with r-value ones (our temporary variable), because it would invalidate the assignment
+                // this check is already done for non-allOccurences, it's just allOccurences that doesn't do it
+                var semanticFacts = currentDocument.Project.LanguageServices.GetService<ISemanticFactsService>();
+
+                var filteredMatches = new HashSet<TExpressionSyntax>();
+                filteredMatches.AddRange(matches.Where(expression => semanticFacts.CanReplaceWithRValue(currentDocument.SemanticModel, expression, cancellationToken)));
+                matches = filteredMatches;
+            }
+
             // Parenthesize the variable, and go and replace anything we find with it.
             // NOTE: we do not want elastic trivia as we want to just replace the existing code 
             // as is, while preserving the trivia there.  We do not want to update it.
             var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false)
-                                         .WithAdditionalAnnotations(Formatter.Annotation);
+                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
             return RewriteCore(withinNodeInCurrent, replacement, matches);
         }
