@@ -3,24 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Diagnosers;
-using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Jobs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.SQLite.v1;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
@@ -32,7 +27,7 @@ namespace IdeCoreBenchmarks
         {
             public ServerGCConfig()
             {
-                AddJob(Job.Default.WithGcMode(new GcMode { Server = true }));
+                // AddJob(Job.Default.WithGcMode(new GcMode { Server = true }));
             }
         }
 

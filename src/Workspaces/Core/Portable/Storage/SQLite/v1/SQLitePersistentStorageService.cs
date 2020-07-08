@@ -48,12 +48,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
                 return null;
             }
 
+            Console.WriteLine("Trying to get lock on: " + databaseFilePath);
+
             // try to get db ownership lock. if someone else already has the lock. it will throw
             var dbOwnershipLock = TryGetDatabaseOwnership(databaseFilePath);
             if (dbOwnershipLock == null)
             {
                 return null;
             }
+
+            Console.WriteLine("Got lock on: " + databaseFilePath);
 
             SQLitePersistentStorage? sqlStorage = null;
             try

@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 }
 
                 var storage = CreatePersistentStorage(solution, workingFolder);
+                Console.WriteLine("Storage type: " + storage.GetType());
                 Contract.ThrowIfNull(storage);
 
                 // Create and cache a new storage instance associated with this particular solution.
