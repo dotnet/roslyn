@@ -350,9 +350,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 baseDirectory: baseDirectory,
                 fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
 
-            return compilationOptions.
-                WithMetadataReferenceResolver(referenceResolver).
-                WithSourceReferenceResolver(new SourceFileResolver(scriptEnvironmentService.SourceReferenceSearchPaths, baseDirectory));
+            return compilationOptions
+                .WithMetadataReferenceResolver(referenceResolver)
+                .WithSourceReferenceResolver(new SourceFileResolver(scriptEnvironmentService.SourceReferenceSearchPaths, baseDirectory));
         }
 
         private SourceCodeKind GetSourceCodeKind(

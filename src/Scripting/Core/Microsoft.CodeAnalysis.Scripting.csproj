@@ -53,7 +53,7 @@
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveHost" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />

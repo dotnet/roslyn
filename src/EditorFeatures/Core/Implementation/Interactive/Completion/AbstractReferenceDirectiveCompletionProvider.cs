@@ -51,13 +51,10 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             var resolver = context.Document.Project.CompilationOptions.MetadataReferenceResolver as RuntimeMetadataReferenceResolver;
             if (resolver != null && pathThroughLastSlash.IndexOfAny(s_pathIndicators) < 0)
             {
-                if (!resolver.TrustedPlatformAssemblies.IsEmpty)
+                foreach (var (name, path) in resolver.TrustedPlatformAssemblies)
                 {
-                    foreach (var (name, path) in resolver.TrustedPlatformAssemblies)
-                    {
-                        context.AddItem(CommonCompletionItem.Create(name, displayTextSuffix: "", glyph: Glyph.Assembly, rules: s_rules));
-                        context.AddItem(CommonCompletionItem.Create(PathUtilities.GetFileName(path, includeExtension: true), displayTextSuffix: "", glyph: Glyph.Assembly, rules: s_rules));
-                    }
+                    context.AddItem(CommonCompletionItem.Create(name, displayTextSuffix: "", glyph: Glyph.Assembly, rules: s_rules));
+                    context.AddItem(CommonCompletionItem.Create(PathUtilities.GetFileName(path, includeExtension: true), displayTextSuffix: "", glyph: Glyph.Assembly, rules: s_rules));
                 }
 
                 if (resolver.GacFileResolver is object)

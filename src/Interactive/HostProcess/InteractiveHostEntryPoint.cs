@@ -20,12 +20,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             FatalError.Handler = FailFast.OnFatalException;
 
             // Disables Windows Error Reporting for the process, so that the process fails fast.
-            // Unfortunately, this doesn't work on Windows Server 2008 (OS v6.0), Vista (OS v6.0) and XP (OS v5.1)
-            // Note that GetErrorMode is not available on XP at all.
-            if (Environment.OSVersion.Version >= new Version(6, 1, 0, 0))
-            {
-                SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
-            }
+            SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
 
             Control? control = null;
             using (var resetEvent = new ManualResetEventSlim(false))
