@@ -281,15 +281,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
 
                 var analyzerConfigSpecificDiagnosticOptions = project.GetAnalyzerConfigSpecialDiagnosticOptions();
+                var analyzerConfigGlobalDiagnosticOptions = project.GetAnalyzerGlobalConfigDiagnosticOptions();
 
                 foreach (var diagnosticItem in group)
                 {
                     var severity = ReportDiagnostic.Default;
                     if (project.CompilationOptions.SpecificDiagnosticOptions.ContainsKey(diagnosticItem.Descriptor.Id) ||
-                        analyzerConfigSpecificDiagnosticOptions.ContainsKey(diagnosticItem.Descriptor.Id))
+                        analyzerConfigSpecificDiagnosticOptions.ContainsKey(diagnosticItem.Descriptor.Id) ||
+                        analyzerConfigGlobalDiagnosticOptions.ContainsKey(diagnosticItem.Descriptor.Id))
                     {
                         // Severity is overridden by end user.
-                        severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigSpecificDiagnosticOptions);
+                        severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigSpecificDiagnosticOptions, analyzerConfigGlobalDiagnosticOptions);
                     }
 
                     selectedItemSeverities.Add(severity);

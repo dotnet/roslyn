@@ -611,6 +611,9 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
             => _projectState.GetAnalyzerConfigSpecialDiagnosticOptions();
 
+        internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerGlobalConfigDiagnosticOptions()
+            => _projectState.GetAnalyzerGlobalConfigDiagnosticOptions();
+
         private string GetDebuggerDisplay()
             => this.Name;
 

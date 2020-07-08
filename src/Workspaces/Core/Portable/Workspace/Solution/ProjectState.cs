@@ -287,6 +287,12 @@ namespace Microsoft.CodeAnalysis
                 ?? ImmutableDictionary<string, ReportDiagnostic>.Empty;
         }
 
+        public ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerGlobalConfigDiagnosticOptions()
+        {
+            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GlobalConfigOptions.TreeOptions
+                ?? ImmutableDictionary<string, ReportDiagnostic>.Empty;
+        }
+
         private sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         {
             private readonly ProjectState _projectState;

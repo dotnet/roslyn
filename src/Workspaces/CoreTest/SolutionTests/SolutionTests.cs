@@ -2795,6 +2795,37 @@ public class C : A {
 
         [Theory]
         [CombinatorialData]
+        public void TestAddingAndRemovingGlobalEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
+        {
+            var solution = useRecoverableTrees ? CreateNotKeptAliveSolution() : CreateSolution();
+            var extension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", languageName);
+            solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: @"Z:\Test" + extension);
+
+            var originalOptions = solution.GetProject(projectId).GetAnalyzerGlobalConfigDiagnosticOptions();
+            Assert.Empty(originalOptions);
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".globalconfig",
+                    filePath: @"Z:\.globalconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("is_global = true\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
+
+            var newOptions = solution.GetProject(projectId).GetAnalyzerGlobalConfigDiagnosticOptions();
+            Assert.Equal(ReportDiagnostic.Error, newOptions["CA1234"]);
+
+            solution = solution.RemoveAnalyzerConfigDocument(editorConfigDocumentId);
+            var finalOptions = solution.GetProject(projectId).GetAnalyzerGlobalConfigDiagnosticOptions();
+            Assert.Empty(finalOptions);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestChangingAnEditorConfigFile([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
         {
             var solution = useRecoverableTrees ? CreateNotKeptAliveSolution() : CreateSolution();
@@ -3093,6 +3124,35 @@ class C
                 using var reader = ObjectReader.TryGetReader(stream);
                 return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
             }
+        }
+
+        [Fact]
+        public void DiagnosticSeverityIsOverridenCorrectly()
+        {
+            var diagnosticDescriptor = new DiagnosticDescriptor("CA1234", "", "", "", DiagnosticSeverity.Warning, true);
+            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            var analyzerConfigOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty;
+            var globalConfigOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty;
+
+            // defaults
+            var severity = diagnosticDescriptor.GetEffectiveSeverity(options, analyzerConfigOptions, globalConfigOptions);
+            Assert.Equal(ReportDiagnostic.Warn, severity);
+
+            // with global analyzer config
+            globalConfigOptions = globalConfigOptions.Add("CA1234", ReportDiagnostic.Hidden);
+            severity = diagnosticDescriptor.GetEffectiveSeverity(options, analyzerConfigOptions, globalConfigOptions);
+            Assert.Equal(ReportDiagnostic.Hidden, severity);
+
+            // override global analyzer with command line
+            options = options.WithSpecificDiagnosticOptions(options.SpecificDiagnosticOptions.Add("CA1234", ReportDiagnostic.Error));
+            severity = diagnosticDescriptor.GetEffectiveSeverity(options, analyzerConfigOptions, globalConfigOptions);
+            Assert.Equal(ReportDiagnostic.Error, severity);
+
+            // override command line with analyzer config
+            analyzerConfigOptions = analyzerConfigOptions.Add("CA1234", ReportDiagnostic.Suppress);
+            severity = diagnosticDescriptor.GetEffectiveSeverity(options, analyzerConfigOptions, globalConfigOptions);
+            Assert.Equal(ReportDiagnostic.Suppress, severity);
         }
     }
 }
