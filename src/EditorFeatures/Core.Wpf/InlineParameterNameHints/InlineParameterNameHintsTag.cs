@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             // space around the block to 0
             var block = new TextBlock
             {
-                Text = text + ": ",
+                Text = text + ":",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 FontStyle = FontStyles.Normal,
@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 BorderBrush = format.BackgroundBrush, //System.Windows.Media.Brushes.Lavender,
                 BorderThickness = new Thickness(1),
                 VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 5, 0),
                 Height = lineHeight,
                 Child = block,
             };

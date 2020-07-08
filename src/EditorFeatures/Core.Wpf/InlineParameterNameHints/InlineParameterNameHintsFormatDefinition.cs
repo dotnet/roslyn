@@ -12,19 +12,27 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 {
-    [Export(typeof(EditorFormatDefinition))]
-    [Name(InlineParameterNameHintsTag.TagId)]
-    [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
-    [UserVisible(true)]
-    internal sealed class InlineParameterNameHintsFormatDefinition : EditorFormatDefinition
+    internal sealed class ClassificationTypeDefinitions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsFormatDefinition()
+        [Export]
+        [Name(InlineParameterNameHintsTag.TagId)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal ClassificationTypeDefinition InlineParameterNameHints;
+
+        [Export(typeof(EditorFormatDefinition))]
+        [Name(InlineParameterNameHintsTag.TagId)]
+        [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
+        [UserVisible(true)]
+        internal sealed class InlineParameterNameHintsFormatDefinition : EditorFormatDefinition
         {
-            this.DisplayName = EditorFeaturesResources.Inline_Parameter_Name_Hints;
-            this.ForegroundBrush = Brushes.Black;
-            this.BackgroundBrush = Brushes.LightGray;
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public InlineParameterNameHintsFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Inline_Parameter_Name_Hints;
+                this.ForegroundBrush = Brushes.Black;
+                this.BackgroundBrush = Brushes.LightGray;
+            }
         }
     }
 }
