@@ -122,16 +122,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            private static bool SequenceEquals(IEnumerable<string> s1, IEnumerable<string> s2)
-            {
-                if (s1 == s2)
-                {
-                    return true;
-                }
-
-                return s1 != null && s2 != null && s1.SequenceEqual(s2);
-            }
-
             private static SignatureHelpItem GetSelectedItem(Model currentModel, SignatureHelpItems items, ISignatureHelpProvider provider, out bool userSelected)
             {
                 // Try to find the most appropriate item in the list to select by default.

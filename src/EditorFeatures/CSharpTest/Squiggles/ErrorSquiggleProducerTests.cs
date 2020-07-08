@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
     [UseExportProvider]
     public class ErrorSquiggleProducerTests
     {
-        private readonly DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>();
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForError()
         {

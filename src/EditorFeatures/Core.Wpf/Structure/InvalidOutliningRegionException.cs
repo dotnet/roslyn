@@ -10,10 +10,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
     internal class InvalidOutliningRegionException : Exception
     {
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly BlockStructureService _service;
         private readonly ITextSnapshot _snapshot;
         private readonly Span _snapshotSpan;
         private readonly Span _regionSpan;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public InvalidOutliningRegionException(BlockStructureService service, ITextSnapshot snapshot, Span snapshotSpan, Span regionSpan)
             : base(GetExceptionMessage(service, snapshot, snapshotSpan, regionSpan))

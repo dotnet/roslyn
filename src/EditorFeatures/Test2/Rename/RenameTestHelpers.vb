@@ -126,11 +126,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Function CreateRenameTrackingTagger(workspace As TestWorkspace, document As TestHostDocument) As ITagger(Of RenameTrackingTag)
             Dim tracker = New RenameTrackingTaggerProvider(
                 workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                workspace.ExportProvider.GetExport(Of ITextUndoHistoryRegistry)().Value,
-                workspace.ExportProvider.GetExport(Of IWaitIndicator)().Value,
                 workspace.ExportProvider.GetExport(Of IInlineRenameService)().Value,
                 workspace.ExportProvider.GetExport(Of IDiagnosticAnalyzerService)().Value,
-                {New MockRefactorNotifyService()},
                 workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
 
             Return tracker.CreateTagger(Of RenameTrackingTag)(document.GetTextBuffer())

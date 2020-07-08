@@ -29,10 +29,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return CheckResultAsync(validLocation, position, tree)
         End Function
 
-        Private Function VerifyAsPositionAsync(text As String, position As Integer, validLocation As Boolean) As Task
-            Return VerifyAtPositionAsync(text, position, validLocation, "")
-        End Function
-
         Private Function VerifyAtPosition_TypePartiallyWrittenAsync(text As String, position As Integer, validLocation As Boolean) As Threading.Tasks.Task
             Return VerifyAtPositionAsync(text, position, validLocation, "Str")
         End Function
@@ -49,10 +45,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text))
             Await CheckResultAsync(validLocation, position, tree)
-        End Function
-
-        Private Function VerifyAtEndOfFileAsync(text As String, position As Integer, validLocation As Boolean) As Task
-            Return VerifyAtEndOfFileAsync(text, position, validLocation, "")
         End Function
 
         Private Function VerifyAtEndOfFile_TypePartiallyWrittenAsync(text As String, position As Integer, validLocation As Boolean) As Task

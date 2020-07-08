@@ -544,8 +544,5 @@ class Program
                 ++i;
             }
         }
-
-        private static SyntaxToken GetOpenBrace(SyntaxTree syntaxTree, SyntaxToken token)
-            => token.Parent.ChildTokens().Where(n => n.Kind() == SyntaxKind.OpenBraceToken).Single();
     }
 }

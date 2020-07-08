@@ -377,14 +377,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     New = partners.Value.ToString().Replace("\r\n", " ").Replace("\n", " ")
                 }));
         }
-
-        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K, V>(IEnumerable<KeyValuePair<V, K>> mapping)
-        {
-            foreach (var pair in mapping)
-            {
-                yield return KeyValuePairUtil.Create(pair.Value, pair.Key);
-            }
-        }
     }
 
     internal static class EditScriptTestUtils

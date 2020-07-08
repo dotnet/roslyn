@@ -696,24 +696,6 @@ class Program
             Assert.Equal(expectedSpace, actualIndentation);
         }
 
-        private static async Task ExpectException_SmartTokenFormatterOpenBraceAsync(
-            string code,
-            int indentationLine,
-            int expectedSpace)
-        {
-            await ExpectException_SmartTokenFormatterOpenBraceAsync(code, indentationLine, expectedSpace, useTabs: false).ConfigureAwait(false);
-            await ExpectException_SmartTokenFormatterOpenBraceAsync(code.Replace("    ", "\t"), indentationLine, expectedSpace, useTabs: true).ConfigureAwait(false);
-        }
-
-        private static async Task ExpectException_SmartTokenFormatterOpenBraceAsync(
-            string code,
-            int indentationLine,
-            int expectedSpace,
-            bool useTabs)
-        {
-            Assert.NotNull(await Record.ExceptionAsync(() => GetSmartTokenFormatterIndentationAsync(code, indentationLine, '{', useTabs)));
-        }
-
         private static async Task ExpectException_SmartTokenFormatterCloseBraceAsync(
             string code,
             int indentationLine,

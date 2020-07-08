@@ -347,14 +347,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return new VirtualTreePoint(location.SourceTree, location.SourceTree.GetText(cancellationToken), location.SourceSpan.Start);
         }
 
-        [Conditional("DEBUG")]
-        private static void ValidateSpanFromBounds(ITextSnapshot snapshot, int start, int end)
-            => Debug.Assert(start >= 0 && end <= snapshot.Length && start <= end);
-
-        [Conditional("DEBUG")]
-        private static void ValidateSpan(ITextSnapshot snapshot, int start, int length)
-            => ValidateSpanFromBounds(snapshot, start, start + length);
-
         public override void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
             => NavigateToSymbolItem(document, (NavigationBarSymbolItem)item, cancellationToken);
     }

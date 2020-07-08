@@ -232,16 +232,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             object ICachedObjectOwner.CachedObject { get; set; }
         }
 
-        private static void CollectGarbage()
-        {
-            for (var i = 0; i < 10; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-            }
-        }
-
         private class MockHostServices : HostServices
         {
             public static readonly MockHostServices Instance = new MockHostServices();
