@@ -47,15 +47,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         private static SyntaxNodeOrTokenList OmitTrailingComma(SyntaxNodeOrTokenList list)
         {
             // Trailing comma is allowed in initializer list, but disallowed in method calls.
-            return list.Count >= 2 && list[^1].IsToken
-                ? list
-                    .Replace(
-                        list[^2],
-                        list[^2].AsNode()
-                            .WithAppendedTrailingTrivia(list[^1].GetLeadingTrivia())
-                            .WithAppendedTrailingTrivia(list[^1].GetTrailingTrivia()))
-                    .RemoveAt(list.Count - 1)
-                : list;
+            if (list.Count == 0 || list.Count % 2 == 1)
+            {
+                return list;
+            }
+
+            return list
+                .Replace(
+                    list[^2],
+                    list[^2].AsNode()
+                        .WithAppendedTrailingTrivia(list[^1].GetLeadingTrivia())
+                        .WithAppendedTrailingTrivia(list[^1].GetTrailingTrivia()))
+                .RemoveAt(list.Count - 1);
         }
 
         private SyntaxNodeOrTokenList CreateArguments(SyntaxNodeOrTokenList list)
