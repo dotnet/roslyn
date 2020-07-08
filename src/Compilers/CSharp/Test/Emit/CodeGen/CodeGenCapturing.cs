@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     /// </summary>
     public class CodeGenCapturing : CSharpTestBase
     {
-        [Fact]
+        // FsCheck doesn't currently have a signed binary, so this only works on CoreClr
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void CompileSamples()
         {
             const string template = @"
