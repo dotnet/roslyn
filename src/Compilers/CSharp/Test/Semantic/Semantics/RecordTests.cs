@@ -1239,6 +1239,10 @@ record Clone
 {
     Clone(int i) => throw null;
 }
+record C9 : System.ICloneable
+{
+    object System.ICloneable.Clone() => throw null;
+}
 ";
 
             var comp = CreateCompilation(src);
