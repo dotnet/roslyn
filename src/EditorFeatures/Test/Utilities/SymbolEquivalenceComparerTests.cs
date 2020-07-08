@@ -1426,7 +1426,7 @@ End Class
             Assert.True(identityComparer.Equals(f1[3], f2[3]));
         }
 
-        private void TestReducedExtension<TInvocation>(Compilation comp1, Compilation comp2, string typeName, string methodName)
+        private static void TestReducedExtension<TInvocation>(Compilation comp1, Compilation comp2, string typeName, string methodName)
             where TInvocation : SyntaxNode
         {
             var method1 = GetInvokedSymbol<TInvocation>(comp1, typeName, methodName);
@@ -1446,7 +1446,7 @@ End Class
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(cfmethod1, cfmethod2));
         }
 
-        private IMethodSymbol GetInvokedSymbol<TInvocation>(Compilation compilation, string typeName, string methodName)
+        private static IMethodSymbol GetInvokedSymbol<TInvocation>(Compilation compilation, string typeName, string methodName)
             where TInvocation : SyntaxNode
         {
             var type1 = compilation.GlobalNamespace.GetTypeMembers(typeName).Single();

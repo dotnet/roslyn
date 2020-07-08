@@ -36,13 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             return s_lazyTestFileContent;
         }
 
-        private SyntaxTree GetTree()
+        private static SyntaxTree GetTree()
             => SyntaxFactory.ParseSyntaxTree(GetTestFileContent());
 
-        private SyntaxTree GetTreeFromCode(string code)
+        private static SyntaxTree GetTreeFromCode(string code)
             => SyntaxFactory.ParseSyntaxTree(code);
 
-        private async Task GenerateBaseline()
+        private static async Task GenerateBaseline()
         {
             Console.WriteLine(typeof(FactAttribute));
 
@@ -127,7 +127,7 @@ namespace ConsoleApplication1
             AssertEx.Equal(new[] { "yy", "xx" }, terms);
         }
 
-        private async Task TestProximityExpressionGetterAsync(
+        private static async Task TestProximityExpressionGetterAsync(
             string markup,
             Func<CSharpProximityExpressionsService, Document, int, Task> continuation)
         {
@@ -143,7 +143,7 @@ namespace ConsoleApplication1
             await continuation(proximityExpressionsGetter, document, caretPosition);
         }
 
-        private async Task TestTryDoAsync(string input, params string[] expectedTerms)
+        private static async Task TestTryDoAsync(string input, params string[] expectedTerms)
         {
             await TestProximityExpressionGetterAsync(input, async (getter, document, position) =>
             {
@@ -157,7 +157,7 @@ namespace ConsoleApplication1
             });
         }
 
-        private async Task TestIsValidAsync(string input, string expression, bool expectedValid)
+        private static async Task TestIsValidAsync(string input, string expression, bool expectedValid)
         {
             await TestProximityExpressionGetterAsync(input, async (getter, semanticSnapshot, position) =>
             {

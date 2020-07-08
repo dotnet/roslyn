@@ -1275,7 +1275,7 @@ End Class
                 context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.Method)
             End Sub
 
-            Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+            Public Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
                 Dim method = DirectCast(context.Symbol, IMethodSymbol)
                 If method.IsAbstract Then
                     Dim sourceLoc = context.Symbol.Locations.First(Function(l) l.IsInSource)
@@ -1396,7 +1396,7 @@ public class B
                 context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, CodeAnalysis.CSharp.SyntaxKind.FieldDeclaration)
             End Sub
 
-            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+            Public Shared Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                 Dim fieldDecl = DirectCast(context.Node, CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax)
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor1, fieldDecl.GetLocation, fieldDecl.ToString()))
             End Sub
@@ -1662,7 +1662,7 @@ public class B
                 Throw New NotImplementedException()
             End Sub
 
-            Private ReadOnly Property SymbolKindsOfInterest As SymbolKind()
+            Private Shared ReadOnly Property SymbolKindsOfInterest As SymbolKind()
                 Get
                     Throw New NotImplementedException()
                 End Get
@@ -1839,7 +1839,7 @@ public class B
                     context.RegisterCodeBlockAction(AddressOf OnCodeBlockEnded)
                 Else
                     Dim analyzer = New NodeAnalyzer
-                    analyzer.Initialize(Sub(action, Kinds) context.RegisterSyntaxNodeAction(action, Kinds))
+                    NodeAnalyzer.Initialize(Sub(action, Kinds) context.RegisterSyntaxNodeAction(action, Kinds))
                 End If
             End Sub
 
@@ -1849,11 +1849,11 @@ public class B
 
             Public Shared Sub OnCodeBlockStarted(context As CodeBlockStartAnalysisContext(Of CodeAnalysis.CSharp.SyntaxKind))
                 Dim analyzer = New NodeAnalyzer
-                analyzer.Initialize(Sub(action, Kinds) context.RegisterSyntaxNodeAction(action, Kinds))
+                NodeAnalyzer.Initialize(Sub(action, Kinds) context.RegisterSyntaxNodeAction(action, Kinds))
             End Sub
 
             Protected Class NodeAnalyzer
-                Public Sub Initialize(registerSyntaxNodeAction As Action(Of Action(Of SyntaxNodeAnalysisContext), ImmutableArray(Of CodeAnalysis.CSharp.SyntaxKind)))
+                Public Shared Sub Initialize(registerSyntaxNodeAction As Action(Of Action(Of SyntaxNodeAnalysisContext), ImmutableArray(Of CodeAnalysis.CSharp.SyntaxKind)))
                     registerSyntaxNodeAction(Sub(context)
                                                  context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor2, context.Node.GetLocation()))
                                              End Sub, ImmutableArray.Create(CodeAnalysis.CSharp.SyntaxKind.EqualsValueClause))
@@ -1967,7 +1967,7 @@ End Class
             TestCodeBlockActionCore(test, onlyStatelessAction:=True)
         End Sub
 
-        Private Sub TestCodeBlockActionCore(test As XElement, Optional onlyStatelessAction As Boolean = False)
+        Private Shared Sub TestCodeBlockActionCore(test As XElement, Optional onlyStatelessAction As Boolean = False)
             Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim solution = workspace.CurrentSolution
                 Dim project = solution.Projects.Single()
@@ -2029,7 +2029,7 @@ namespace ConsoleApplication1
             TestGenericNameCore(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New CSharpGenericNameAnalyzer)
         End Sub
 
-        Private Sub TestGenericNameCore(test As XElement, expectedMessage As String, expectedId As String, ParamArray analyzers As DiagnosticAnalyzer())
+        Private Shared Sub TestGenericNameCore(test As XElement, expectedMessage As String, expectedId As String, ParamArray analyzers As DiagnosticAnalyzer())
             Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim solution = workspace.CurrentSolution
                 Dim project = solution.Projects.Single()

@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected abstract TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters);
 
-        private TestParameters WithRegularOptions(TestParameters parameters)
+        private static TestParameters WithRegularOptions(TestParameters parameters)
             => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
 
         private TestParameters WithScriptOptions(TestParameters parameters)
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 warningSpans, navigationSpans, expectedChangedDocumentId: null);
         }
 
-        protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
+        protected static async Task<Tuple<Solution, Solution>> TestOperationsAsync(
             TestWorkspace workspace,
             string expectedText,
             ImmutableArray<CodeActionOperation> operations,
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return await action.GetOperationsAsync(CancellationToken.None);
         }
 
-        protected Tuple<Solution, Solution> ApplyOperationsAndGetSolution(
+        protected static Tuple<Solution, Solution> ApplyOperationsAndGetSolution(
             TestWorkspace workspace,
             IEnumerable<CodeActionOperation> operations)
         {

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
-        protected void VerifyNavigateToResultItems(
+        protected static void VerifyNavigateToResultItems(
             List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
             expecteditems = expecteditems.OrderBy(i => i.Name).ToList();
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             }
         }
 
-        internal BitmapSource CreateIconBitmapSource()
+        internal static BitmapSource CreateIconBitmapSource()
         {
             var stride = PixelFormats.Bgr32.BitsPerPixel / 8 * 16;
             return BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgr32, null, new byte[16 * stride], stride);

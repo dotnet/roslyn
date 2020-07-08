@@ -183,13 +183,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal(1, character);
         }
 
-        private string GetLeadingWhitespaceOfLineAtPosition(string code, int position)
+        private static string GetLeadingWhitespaceOfLineAtPosition(string code, int position)
         {
             var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code).CurrentSnapshot;
             return snapshot.GetLeadingWhitespaceOfLineAtPosition(position);
         }
 
-        private ITextSnapshot GetSampleCodeSnapshot()
+        private static ITextSnapshot GetSampleCodeSnapshot()
         {
             // to make verification simpler, each line of code is 4 characters and will be joined to other lines
             // with a single newline character making the formula to calculate the offset from a given line and

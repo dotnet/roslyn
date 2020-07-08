@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return completionServiceWithProviders;
         }
 
-        internal ImmutableHashSet<string> GetRoles(Document document)
+        internal static ImmutableHashSet<string> GetRoles(Document document)
             => document.SourceCodeKind == SourceCodeKind.Regular ? ImmutableHashSet<string>.Empty : ImmutableHashSet.Create(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole);
 
         protected abstract string ItemPartiallyWritten(string expectedItemOrNull);
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string inlineDescription, List<CompletionFilter> matchingFilters, CompletionItemFlags? flags);
 
-        internal Task<RoslynCompletion.CompletionList> GetCompletionListAsync(
+        internal static Task<RoslynCompletion.CompletionList> GetCompletionListAsync(
             CompletionService service,
             Document document,
             int position,
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return catalog;
         }
 
-        private bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
+        private static bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
         {
             var matchingFilters = FilterSet.GetFilters(item);
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return workspace.CurrentSolution.GetDocument(document.Id);
         }
 
-        private Document WithChangedOption(Document document, OptionKey optionKey, object value)
+        private static Document WithChangedOption(Document document, OptionKey optionKey, object value)
         {
             var workspace = document.Project.Solution.Workspace;
             var newOptions = workspace.Options.WithChangedOption(optionKey, value);
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private const char NonBreakingSpace = (char)0x00A0;
 
-        private string GetExpectedOverloadSubstring(int expectedSymbols)
+        private static string GetExpectedOverloadSubstring(int expectedSymbols)
         {
             if (expectedSymbols <= 1)
             {

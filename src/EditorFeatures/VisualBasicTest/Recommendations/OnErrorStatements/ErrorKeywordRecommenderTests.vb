@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.On
 
         <WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ErrorStatementInLambdaTest() As Task
+        Public Shared Async Function ErrorStatementInLambdaTest() As Task
             Dim code = <File>
 Public Class Z
     Public Sub Main()

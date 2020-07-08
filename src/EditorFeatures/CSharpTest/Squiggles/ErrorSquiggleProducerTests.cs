@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml);
-            var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
+            var spans = (await DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
             Assert.Equal(1, spans.Count());
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
@@ -129,7 +129,7 @@ class Program
                     }
                 };
 
-            var diagnosticsAndSpans = await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap);
+            var diagnosticsAndSpans = await DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.GetDiagnosticsAndErrorSpans(workspace, analyzerMap);
 
             var spans =
                 diagnosticsAndSpans.Item1
@@ -207,7 +207,7 @@ class Program
         {
             using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }");
 
-            var spans = await _producer.GetDiagnosticsAndErrorSpans(workspace);
+            var spans = await DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.GetDiagnosticsAndErrorSpans(workspace);
 
             Assert.Equal(1, spans.Item2.Count());
 
@@ -299,10 +299,10 @@ class Program
             var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                     ImmutableArray.Create(
-                        _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
-                        _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
+                        DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                        DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-            var spans = await _producer.GetErrorsFromUpdateSource(workspace, updateArgs);
+            var spans = await DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.GetErrorsFromUpdateSource(workspace, updateArgs);
 
             Assert.Equal(1, spans.Count());
             var first = spans.First();
@@ -330,10 +330,10 @@ class Program
             var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                     ImmutableArray.Create(
-                        _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
-                        _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
+                        DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                        DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-            var spans = await _producer.GetErrorsFromUpdateSource(workspace, updateArgs);
+            var spans = await DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.GetErrorsFromUpdateSource(workspace, updateArgs);
 
             Assert.Equal(2, spans.Count());
             var first = spans.First();
@@ -350,10 +350,10 @@ class Program
             }
         }
 
-        private async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content);
-            return (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
+            return (await DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }
 
         private sealed class ReportOnClassWithLink : DiagnosticAnalyzer

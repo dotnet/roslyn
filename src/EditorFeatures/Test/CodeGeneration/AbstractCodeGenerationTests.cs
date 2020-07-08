@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 );
         }
 
-        internal void Test(
+        internal static void Test(
             Func<SyntaxGenerator, SyntaxNode> nodeCreator,
             string cs, string csSimple,
             string vb, string vbSimple)

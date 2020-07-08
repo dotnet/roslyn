@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             return false;
         }
 
-        private (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             return (document, document?.GetLanguageService<IFindUsagesService>());

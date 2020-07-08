@@ -116,7 +116,7 @@ End Class"
             End Using
         End Function
 
-        Private Function ExtractSymbol(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task(Of INavigableSymbol)
+        Private Shared Function ExtractSymbol(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task(Of INavigableSymbol)
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Return)
             Dim service = New NavigableSymbolService(TestWaitIndicator.Default, threadingContext, presenter)
@@ -127,7 +127,7 @@ End Class"
             Return source.GetNavigableSymbolAsync(triggerSpan, CancellationToken.None)
         End Function
 
-        Private Async Function TestNavigated(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
+        Private Shared Async Function TestNavigated(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
             Dim symbol = Await ExtractSymbol(workspace, position, spans)
 
             Dim highlightedSpan = spans("highlighted").First()
@@ -145,7 +145,7 @@ End Class"
             Assert.Equal(navigationTarget, navigationService.ProvidedTextSpan)
         End Function
 
-        Private Async Function TestNotNavigated(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
+        Private Shared Async Function TestNotNavigated(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
             Dim symbol = Await ExtractSymbol(workspace, position, spans)
             Assert.Null(symbol)
         End Function

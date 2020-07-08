@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 .GetDocument(documentId)
                 .GetSemanticModelAsync();
 
-            var symbol = context.GetSelectedSymbol<INamespaceOrTypeSymbol>(destSpan, semanticModel);
+            var symbol = TestContext.GetSelectedSymbol<INamespaceOrTypeSymbol>(destSpan, semanticModel);
             var destination = context.GetDestination();
             if (destination.IsType)
             {
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 }
             }
 
-            public T GetSelectedSymbol<T>(TextSpan selection, SemanticModel semanticModel)
+            public static T GetSelectedSymbol<T>(TextSpan selection, SemanticModel semanticModel)
                 where T : class, ISymbol
             {
                 var token = semanticModel.SyntaxTree.GetRoot().FindToken(selection.Start);

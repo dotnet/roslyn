@@ -261,7 +261,7 @@ if (true)
 {");
         }
 
-        private QuickInfoProvider CreateProvider(TestWorkspace workspace)
+        private static QuickInfoProvider CreateProvider(TestWorkspace workspace)
             => new CSharpSyntacticQuickInfoProvider();
 
         protected override async Task AssertNoContentAsync(

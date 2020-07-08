@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             return orderedTagSpans[destIndex];
         }
 
-        private SnapshotSpan? FindTagUnderCaret(
+        private static SnapshotSpan? FindTagUnderCaret(
             ITagAggregator<NavigableHighlightTag> tagAggregator,
             ITextView textView)
         {

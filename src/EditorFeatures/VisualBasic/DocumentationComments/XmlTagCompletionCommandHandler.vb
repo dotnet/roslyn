@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             End If
         End Sub
 
-        Private Function AlreadyHasEndTag(element As XmlElementSyntax, elementName As String) As Boolean
+        Private Shared Function AlreadyHasEndTag(element As XmlElementSyntax, elementName As String) As Boolean
             If element.IsParentKind(SyntaxKind.DocumentationCommentTrivia) Then
                 Dim trivia = DirectCast(element.Parent, DocumentationCommentTriviaSyntax)
                 Dim index = trivia.Content.IndexOf(element)
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             Return False
         End Function
 
-        Private Function HasMatchingEndTag(element As XmlElementSyntax) As Boolean
+        Private Shared Function HasMatchingEndTag(element As XmlElementSyntax) As Boolean
             Dim startTag = element.StartTag
             Dim endTag = element.EndTag
 

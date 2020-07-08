@@ -48,11 +48,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End If
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+        Private Shared Async Function TestStreamingFeature(element As XElement, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=host = TestHost.OutOfProcess)
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement,
+        Private Shared Async Function TestStreamingFeature(element As XElement,
                                                     searchSingleFileOnly As Boolean,
                                                     uiVisibleOnly As Boolean,
                                                     outOfProcess As Boolean) As Task
@@ -177,14 +177,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Return additionalPropertiesMap
         End Function
 
-        Private Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentSpan)) As List(Of FileNameAndSpans)
+        Private Shared Function GetFileNamesAndSpans(items As IEnumerable(Of DocumentSpan)) As List(Of FileNameAndSpans)
             Return items.Where(Function(i) i.Document IsNot Nothing).
                          GroupBy(Function(i) i.Document).
                          OrderBy(Function(g) g.Key.Name).
                          Select(Function(g) GetFileNameAndSpans(g)).ToList()
         End Function
 
-        Private Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentSpan)) As FileNameAndSpans
+        Private Shared Function GetFileNameAndSpans(g As IGrouping(Of Document, DocumentSpan)) As FileNameAndSpans
             Return New FileNameAndSpans(
                 g.Key.Name,
                 g.Select(Function(i) i.SourceSpan).OrderBy(Function(s) s.Start).
@@ -476,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Return True
         End Function
 
-        Private Function IsImplicitNamespace(referencedSymbol As ReferencedSymbol) As Boolean
+        Private Shared Function IsImplicitNamespace(referencedSymbol As ReferencedSymbol) As Boolean
             Return referencedSymbol.Definition.IsImplicitlyDeclared AndAlso
                    referencedSymbol.Definition.Kind = SymbolKind.Namespace
         End Function

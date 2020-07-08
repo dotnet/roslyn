@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         Inherits AbstractSimplificationTests
 
 #Region "CSharp tests"
-        Private Async Function TestDocumentSimplificationAsync(input As String, expected As String) As System.Threading.Tasks.Task
+        Private Shared Async Function TestDocumentSimplificationAsync(input As String, expected As String) As System.Threading.Tasks.Task
             Using workspace = New AdhocWorkspace()
                 Dim solution = workspace.CurrentSolution
                 Dim projId = ProjectId.CreateNewId()

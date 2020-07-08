@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
         private const string _statmentPrefix = "var v = ";
 
-        private SyntaxToken GetStringToken(string text)
+        private static SyntaxToken GetStringToken(string text)
         {
             var statement = _statmentPrefix + text;
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return element;
         }
 
-        private XElement TokenToElement(RegexToken token)
+        private static XElement TokenToElement(RegexToken token)
         {
             var element = new XElement(token.Kind.ToString());
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return element;
         }
 
-        private XElement TriviaToElement(RegexTrivia trivia)
+        private static XElement TriviaToElement(RegexTrivia trivia)
             => new XElement(
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString());
@@ -282,13 +282,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private void CheckInvariants(RegexToken token, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(RegexToken token, ref int position, VirtualCharSequence allChars)
         {
             CheckInvariants(token.LeadingTrivia, ref position, allChars);
             CheckCharacters(token.VirtualChars, ref position, allChars);
         }
 
-        private void CheckInvariants(ImmutableArray<RegexTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(ImmutableArray<RegexTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
         {
             foreach (var trivia in leadingTrivia)
             {
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private void CheckInvariants(RegexTrivia trivia, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(RegexTrivia trivia, ref int position, VirtualCharSequence allChars)
         {
             switch (trivia.Kind)
             {

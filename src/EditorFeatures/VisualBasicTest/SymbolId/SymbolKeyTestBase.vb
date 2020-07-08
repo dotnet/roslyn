@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
         End Sub
 
-        Private Sub GetLocalAndType(df As DataFlowAnalysis, list As List(Of ISymbol))
+        Private Shared Sub GetLocalAndType(df As DataFlowAnalysis, list As List(Of ISymbol))
             ' add local symbols to list
             For Each v As ISymbol In df.VariablesDeclared
                 list.Add(v)
@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Next
         End Sub
 
-        Private Sub GetLabelSymbols(body As MethodBlockSyntax, model As SemanticModel, list As List(Of ISymbol))
+        Private Shared Sub GetLabelSymbols(body As MethodBlockSyntax, model As SemanticModel, list As List(Of ISymbol))
             Dim labels = body.DescendantNodes().OfType(Of LabelStatementSyntax)()
             For Each lb As LabelStatementSyntax In labels
                 Dim sym = model.GetDeclaredSymbol(lb)
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             ' VB has not SwitchLabel; it's CaseStatement
         End Sub
 
-        Private Sub GetAnonymousTypeAndFuncSymbols(body As MethodBlockSyntax, model As SemanticModel, list As List(Of ISymbol))
+        Private Shared Sub GetAnonymousTypeAndFuncSymbols(body As MethodBlockSyntax, model As SemanticModel, list As List(Of ISymbol))
 
             Dim exprs As IEnumerable(Of ExpressionSyntax), tmp As IEnumerable(Of ExpressionSyntax)
             exprs = body.DescendantNodes().OfType(Of AnonymousObjectCreationExpressionSyntax)()
@@ -304,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Next
         End Sub
 
-        Private Sub GetAnonymousExprSymbols(expr As ExpressionSyntax, model As SemanticModel, list As List(Of ISymbol))
+        Private Shared Sub GetAnonymousExprSymbols(expr As ExpressionSyntax, model As SemanticModel, list As List(Of ISymbol))
 
             Dim kind = expr.Kind
             If kind <> SyntaxKind.AnonymousObjectCreationExpression AndAlso

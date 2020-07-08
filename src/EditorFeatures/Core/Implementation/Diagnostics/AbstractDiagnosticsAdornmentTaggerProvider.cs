@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return new TagSpan<TTag>(adjustedSpan, errorTag);
         }
 
-        protected object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
+        protected static object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
         {
             Action? navigationAction = null;
             string? tooltip = null;
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         }
 
         protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
-            => AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
+            => AbstractDiagnosticsAdornmentTaggerProvider<TTag>.AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
 
-        protected SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
+        protected static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
         {
             var snapshot = span.Snapshot;
 

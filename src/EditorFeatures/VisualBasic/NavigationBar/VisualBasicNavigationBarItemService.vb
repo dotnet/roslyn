@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return TypeOf item IsNot AbstractGenerateCodeItem
         End Function
 
-        Private Function GetTypesAndDeclarationsInFile(semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of Tuple(Of INamedTypeSymbol, SyntaxNode))
+        Private Shared Function GetTypesAndDeclarationsInFile(semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of Tuple(Of INamedTypeSymbol, SyntaxNode))
             Try
                 Dim typesAndDeclarations As New Dictionary(Of INamedTypeSymbol, SyntaxNode)
                 Dim nodesToVisit As New Stack(Of SyntaxNode)
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return items
         End Function
 
-        Private Function CreateItemForEnum(type As INamedTypeSymbol,
+        Private Shared Function CreateItemForEnum(type As INamedTypeSymbol,
                                            typeSymbolIdIndex As Integer,
                                            tree As SyntaxTree,
                                            symbolDeclarationService As ISymbolDeclarationService,
@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         ''' type of the eventContainer.</param>
         ''' <param name="eventContainer">If this is an entry for a WithEvents member, the WithEvents
         ''' property itself.</param>
-        Private Function CreateItemForEvents(containingType As INamedTypeSymbol,
+        Private Shared Function CreateItemForEvents(containingType As INamedTypeSymbol,
                                              position As Integer,
                                              eventType As ITypeSymbol,
                                              eventContainer As IPropertySymbol,
@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End If
         End Function
 
-        Private Function GetSpansInDocument(symbol As ISymbol, tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As IList(Of TextSpan)
+        Private Shared Function GetSpansInDocument(symbol As ISymbol, tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As IList(Of TextSpan)
             If cancellationToken.IsCancellationRequested Then
                 Return SpecializedCollections.EmptyList(Of TextSpan)()
             End If
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return GetSpansInDocument(SpecializedCollections.SingletonEnumerable(symbol), tree, symbolDeclarationService, cancellationToken)
         End Function
 
-        Private Function GetSpansInDocument(list As IEnumerable(Of ISymbol), tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As IList(Of TextSpan)
+        Private Shared Function GetSpansInDocument(list As IEnumerable(Of ISymbol), tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As IList(Of TextSpan)
             Return list.SelectMany(AddressOf symbolDeclarationService.GetDeclarations) _
                         .Where(Function(r) r.SyntaxTree.Equals(tree)) _
                         .Select(Function(r) r.GetSyntax().FullSpan) _

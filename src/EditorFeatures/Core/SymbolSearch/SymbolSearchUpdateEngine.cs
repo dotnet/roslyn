@@ -191,14 +191,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return Task.FromResult(results.ToImmutableAndFree());
         }
 
-        private List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)
+        private static List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)
         {
             // Don't return nested types.  Currently their value does not seem worth
             // it given all the extra stuff we'd have to plumb through.  Namely 
             // going down the "using static" code path and whatnot.
             return new List<Symbol>(
                 from symbol in symbols
-                where this.IsType(symbol) && !this.IsType(symbol.Parent())
+                where IsType(symbol) && !IsType(symbol.Parent())
                 select symbol);
         }
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 containingNamespaceNames: nameParts.ToImmutableAndFree());
         }
 
-        private int GetRank(Symbol symbol)
+        private static int GetRank(Symbol symbol)
         {
             if (!TryGetRankingSymbol(symbol, out var rankingSymbol) ||
                 !int.TryParse(rankingSymbol.Name.ToString(), out var rank))
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return rank;
         }
 
-        private bool TryGetRankingSymbol(Symbol symbol, out Symbol rankingSymbol)
+        private static bool TryGetRankingSymbol(Symbol symbol, out Symbol rankingSymbol)
         {
             for (var current = symbol; current.IsValid; current = current.Parent())
             {
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return false;
         }
 
-        private bool TryGetRankingSymbolForPackage(Symbol package, out Symbol rankingSymbol)
+        private static bool TryGetRankingSymbolForPackage(Symbol package, out Symbol rankingSymbol)
         {
             for (var child = package.FirstChild(); child.IsValid; child = child.NextSibling())
             {
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return false;
         }
 
-        private bool IsType(Symbol symbol)
+        private static bool IsType(Symbol symbol)
             => symbol.Type.IsType();
 
         private void GetFullName(ArrayBuilder<string> nameParts, Path8 path)

@@ -5953,23 +5953,23 @@ End Class
 
 #Region "Helpers"
 
-        Private Protected Function QualifyFieldAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
+        Private Protected Shared Function QualifyFieldAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
             Return New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyFieldAccess, languageName), New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
         End Function
 
-        Private Protected Function QualifyPropertyAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
+        Private Protected Shared Function QualifyPropertyAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
             Return QualifyPropertyAccessOptionWithNotification(languageName, NotificationOption2.Error)
         End Function
 
-        Private Protected Function QualifyMethodAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
+        Private Protected Shared Function QualifyMethodAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
             Return New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyMethodAccess, languageName), New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
         End Function
 
-        Private Protected Function QualifyEventAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
+        Private Protected Shared Function QualifyEventAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
             Return New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyEventAccess, languageName), New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
         End Function
 
-        Private Protected Function QualifyPropertyAccessOptionWithNotification(languageName As String, notification As NotificationOption2) As Dictionary(Of OptionKey2, Object)
+        Private Protected Shared Function QualifyPropertyAccessOptionWithNotification(languageName As String, notification As NotificationOption2) As Dictionary(Of OptionKey2, Object)
             Return New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyPropertyAccess, languageName), New CodeStyleOption2(Of Boolean)(True, notification)}}
         End Function
 

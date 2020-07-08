@@ -21,16 +21,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
     {
         #region Helpers 
 
-        private void TestSpan(string markup, ParseOptions options = null)
+        private static void TestSpan(string markup, ParseOptions options = null)
             => Test(markup, isMissing: false, isLine: false, options: options);
 
-        private void TestMissing(string markup)
+        private static void TestMissing(string markup)
             => Test(markup, isMissing: true, isLine: false);
 
-        private void TestLine(string markup)
+        private static void TestLine(string markup)
             => Test(markup, isMissing: false, isLine: true);
 
-        private void Test(string markup, bool isMissing, bool isLine, ParseOptions options = null)
+        private static void Test(string markup, bool isMissing, bool isLine, ParseOptions options = null)
         {
             MarkupTestFile.GetPositionAndSpan(
                 markup, out var source, out var position, out TextSpan? expectedSpan);
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             }
         }
 
-        private void TestAll(string markup)
+        private static void TestAll(string markup)
         {
             MarkupTestFile.GetPositionAndSpans(markup,
                 out var source, out var position, out ImmutableArray<TextSpan> expectedSpans);

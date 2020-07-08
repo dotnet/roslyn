@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             return ProduceTagsAsync(context, caretPosition, document);
         }
 
-        internal async Task ProduceTagsAsync(
+        internal static async Task ProduceTagsAsync(
             TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
             Document document)
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
         }
 
-        private async Task AddTagSpansAsync(
+        private static async Task AddTagSpansAsync(
             TaggerContext<NavigableHighlightTag> context,
             Solution solution,
             DocumentHighlights documentHighlights)

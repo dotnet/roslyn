@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             /// Gets a list of block comments that intersect the span.
             /// Spans are intersecting if 1 location is the same between them (empty spans look at the start).
             /// </summary>
-            private ImmutableArray<TextSpan> GetIntersectingBlockComments(ImmutableArray<TextSpan> allBlockComments, TextSpan span)
+            private static ImmutableArray<TextSpan> GetIntersectingBlockComments(ImmutableArray<TextSpan> allBlockComments, TextSpan span)
                 => allBlockComments.WhereAsArray(blockCommentSpan => span.OverlapsWith(blockCommentSpan) || blockCommentSpan.Contains(span));
 
             /// <summary>

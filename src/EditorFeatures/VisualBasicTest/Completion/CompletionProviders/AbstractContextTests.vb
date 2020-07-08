@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return VerifyWorkerAsync(text, validLocation:=False)
         End Function
 
-        Protected Function AddInsideMethod(text As String) As String
+        Protected Shared Function AddInsideMethod(text As String) As String
             Return "Class C" & vbCrLf &
                    "    Function F()" & vbCrLf &
                    "        " & text & vbCrLf &
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                    "End Class"
         End Function
 
-        Protected Function CreateContent(ParamArray contents As String()) As String
+        Protected Shared Function CreateContent(ParamArray contents As String()) As String
             Return String.Join(vbCrLf, contents)
         End Function
     End Class

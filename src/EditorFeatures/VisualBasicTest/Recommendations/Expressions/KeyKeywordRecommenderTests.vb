@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         End Function
 
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function KeyNotAfterArrayInitializerSquiggleTest() As Task
+        Public Shared Async Function KeyNotAfterArrayInitializerSquiggleTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = {|</MethodBody>, "Key")
         End Function
 

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
         End Sub
 
         ''' <summary>Node types that are interesting for line separation.</summary>
-        Private Function IsSeparableBlock(nodeOrToken As SyntaxNodeOrToken) As Boolean
+        Private Shared Function IsSeparableBlock(nodeOrToken As SyntaxNodeOrToken) As Boolean
             If nodeOrToken.IsToken Then
                 Return False
             End If
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
         ''' If node is separable and not the first in its container => ensure separator before the node
         ''' last separable node in Program needs separator after it.
         ''' </summary>
-        Private Sub ProcessNodeList(Of T As SyntaxNode)(syntaxTree As SyntaxTree, children As SyntaxList(Of T), spans As List(Of TextSpan), token As CancellationToken)
+        Private Shared Sub ProcessNodeList(Of T As SyntaxNode)(syntaxTree As SyntaxTree, children As SyntaxList(Of T), spans As List(Of TextSpan), token As CancellationToken)
             Contract.ThrowIfNull(spans)
 
             If children.Count = 0 Then
@@ -135,13 +135,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
 
         End Sub
 
-        Private Sub ProcessImports(syntaxTree As SyntaxTree, importsList As SyntaxList(Of ImportsStatementSyntax), spans As List(Of TextSpan), token As CancellationToken)
+        Private Shared Sub ProcessImports(syntaxTree As SyntaxTree, importsList As SyntaxList(Of ImportsStatementSyntax), spans As List(Of TextSpan), token As CancellationToken)
             If importsList.Any() Then
                 spans.Add(GetLineSeparatorSpanForNode(syntaxTree, importsList.Last()))
             End If
         End Sub
 
-        Private Function GetLineSeparatorSpanForNode(syntaxTree As SyntaxTree, node As SyntaxNode) As TextSpan
+        Private Shared Function GetLineSeparatorSpanForNode(syntaxTree As SyntaxTree, node As SyntaxNode) As TextSpan
             Contract.ThrowIfNull(node)
 
             ' PERF: Reverse the list to only realize the last child

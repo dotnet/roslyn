@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             return null;
         }
 
-        private SyntaxNode ParseNode(SyntaxTree tree, SyntaxNode owningNode, string textToParse)
+        private static SyntaxNode ParseNode(SyntaxTree tree, SyntaxNode owningNode, string textToParse)
             => owningNode switch
             {
                 BaseFieldDeclarationSyntax n => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// <summary>
         /// wrap field in type
         /// </summary>
-        private string WrapInType(string textToParse)
+        private static string WrapInType(string textToParse)
             => "class C { " + textToParse + " }";
 
         /// <summary>

@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected string GetUndoTransactionDescription(string replacementText)
+        protected static string GetUndoTransactionDescription(string replacementText)
             => replacementText == string.Empty ? "Delete Text" : replacementText;
     }
 }

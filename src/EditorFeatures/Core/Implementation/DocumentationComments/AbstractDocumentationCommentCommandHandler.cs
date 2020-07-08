@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return targetMember;
         }
 
-        private void AddLineBreaks(SourceText text, IList<string> lines, string newLine)
+        private static void AddLineBreaks(SourceText text, IList<string> lines, string newLine)
         {
             for (var i = 0; i < lines.Count; i++)
             {

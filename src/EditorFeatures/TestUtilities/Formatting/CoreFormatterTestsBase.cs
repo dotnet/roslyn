@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         protected abstract string GetLanguageName();
         protected abstract SyntaxNode ParseCompilationUnit(string expected);
 
-        protected void TestIndentation(
+        protected static void TestIndentation(
             int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument)
         {
             var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(expectedIndentation, actualIndentation.Value);
         }
 
-        protected void TestIndentation(TestWorkspace workspace, int indentationLine, int? expectedIndentation)
+        protected static void TestIndentation(TestWorkspace workspace, int indentationLine, int? expectedIndentation)
         {
             var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         /// </summary>
         /// <param name="node">the <see cref="SyntaxNode"/> to format.</param>
         /// <remarks>uses an <see cref="AdhocWorkspace"/> for formatting context, since the <paramref name="node"/> is not associated with a <see cref="SyntaxTree"/> </remarks>
-        protected void AssertFormatOnArbitraryNode(SyntaxNode node, string expected)
+        protected static void AssertFormatOnArbitraryNode(SyntaxNode node, string expected)
         {
             var result = Formatter.Format(node, new AdhocWorkspace());
             var actual = result.GetText().ToString();

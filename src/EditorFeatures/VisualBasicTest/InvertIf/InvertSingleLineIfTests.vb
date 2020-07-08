@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
             Await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected))
         End Function
 
-        Function CreateTreeText(initial As String) As String
+        Shared Function CreateTreeText(initial As String) As String
             Return "
 Module Module1
     Sub Main()

@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Return (Await GetDiagnosticAndFixesAsync(workspace)).FirstOrDefault()
         End Function
 
-        Private Function GetHostDocument(workspace As TestWorkspace) As TestHostDocument
+        Private Shared Function GetHostDocument(workspace As TestWorkspace) As TestHostDocument
             Dim hostDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
 
             Return hostDocument
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Return result
         End Function
 
-        Private Async Function GetDocumentAndDiagnosticsAsync(workspace As TestWorkspace) As Task(Of Tuple(Of Document, IEnumerable(Of Diagnostic)))
+        Private Shared Async Function GetDocumentAndDiagnosticsAsync(workspace As TestWorkspace) As Task(Of Tuple(Of Document, IEnumerable(Of Diagnostic)))
             Dim hostDocument = GetHostDocument(workspace)
 
             Dim invocationBuffer = hostDocument.GetTextBuffer()

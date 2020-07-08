@@ -1247,7 +1247,7 @@ class C
             service.Unregister(workspace);
         }
 
-        private async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
+        private static async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
             using var workspace = TestWorkspace.Create(
                 SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code, exportProvider: EditorServicesUtil.ExportProvider);
@@ -1277,7 +1277,7 @@ class C
             Assert.Equal(expectDocumentAnalysis ? 1 : 0, analyzer.DocumentIds.Count);
         }
 
-        private async Task<Analyzer> ExecuteOperation(TestWorkspace workspace, Action<TestWorkspace> operation)
+        private static async Task<Analyzer> ExecuteOperation(TestWorkspace workspace, Action<TestWorkspace> operation)
         {
             var worker = new Analyzer();
             var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
@@ -1297,7 +1297,7 @@ class C
             return worker;
         }
 
-        private async Task TouchEverything(Solution solution)
+        private static async Task TouchEverything(Solution solution)
         {
             foreach (var project in solution.Projects)
             {
@@ -1310,14 +1310,14 @@ class C
             }
         }
 
-        private async Task WaitAsync(SolutionCrawlerRegistrationService service, TestWorkspace workspace)
+        private static async Task WaitAsync(SolutionCrawlerRegistrationService service, TestWorkspace workspace)
         {
             await WaitWaiterAsync(workspace.ExportProvider);
 
             service.WaitUntilCompletion_ForTestingPurposesOnly(workspace);
         }
 
-        private async Task WaitWaiterAsync(ExportProvider provider)
+        private static async Task WaitWaiterAsync(ExportProvider provider)
         {
             var workspaceWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.Workspace);
             await workspaceWaiter.ExpeditedWaitAsync();

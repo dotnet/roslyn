@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         /// </summary>
         /// <param name="selectionSpan">Selection that user has originally made.</param>
         /// <param name="root">Root of the syntax tree.</param>
-        private SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
+        private static SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
         {
             GetSelectedTokens(selectionSpan, root, out var startToken, out var endToken);
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 || node.IsKind(SyntaxKind.UsingDirective);
         }
 
-        private void GetSelectedTokens(
+        private static void GetSelectedTokens(
             TextSpan selectionSpan,
             SyntaxNode root,
             out SyntaxToken startToken,

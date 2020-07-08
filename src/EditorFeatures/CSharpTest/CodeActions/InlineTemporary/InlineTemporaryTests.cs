@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         private async Task TestFixOneAsync(string initial, string expected)
             => await TestInRegularAndScript1Async(GetTreeText(initial), GetTreeText(expected));
 
-        private string GetTreeText(string initial)
+        private static string GetTreeText(string initial)
         {
             return @"class C
 {
@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 }";
         }
 
-        private SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
+        private static SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
             => initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
 
-        private SyntaxNode GetFixedNode(dynamic fixedRoot)
+        private static SyntaxNode GetFixedNode(dynamic fixedRoot)
             => fixedRoot.Members[0].Members[0].BodyOpt;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]

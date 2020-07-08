@@ -321,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Return TryCast(token.Parent, T)
         End Function
 
-        Private Function InsertEndTextAndUpdateCaretPosition(
+        Private Shared Function InsertEndTextAndUpdateCaretPosition(
             view As ITextView,
             subjectBuffer As ITextBuffer,
             insertPosition As Integer,

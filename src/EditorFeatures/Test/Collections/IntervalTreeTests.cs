@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
                 => value;
         }
 
-        private IntervalTree<int> CreateIntTree(params int[] values)
+        private static IntervalTree<int> CreateIntTree(params int[] values)
             => IntervalTree<int>.Create(new Int32Introspector(), values);
 
         [Fact]
@@ -346,10 +346,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        private ISet<T> Set<T>(params T[] values)
+        private static ISet<T> Set<T>(params T[] values)
             => new HashSet<T>(values);
 
-        private IList<T> List<T>(params T[] values)
+        private static IList<T> List<T>(params T[] values)
             => new List<T>(values);
     }
 }

@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private static bool CompareParts(TaggedText p1, TaggedText p2)
                 => p1.ToString() == p2.ToString();
 
-            private async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)> ComputeItemsAsync(
+            private static async Task<(ISignatureHelpProvider provider, SignatureHelpItems items)> ComputeItemsAsync(
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SnapshotPoint caretPosition,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            private bool IsBetter(SignatureHelpItems bestItems, TextSpan? currentTextSpan)
+            private static bool IsBetter(SignatureHelpItems bestItems, TextSpan? currentTextSpan)
             {
                 // If we have no best text span, then this span is definitely better.
                 if (bestItems == null)

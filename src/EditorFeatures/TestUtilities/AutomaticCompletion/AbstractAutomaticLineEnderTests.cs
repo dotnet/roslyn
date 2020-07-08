@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        private void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
+        private static void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
         {
             MarkupTestFile.GetPosition(expectedWithAnnotations, out var expected, out int expectedPosition);
 
@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             Assert.Equal(expectedPosition, virtualPosition.Position.Position + virtualPosition.VirtualSpaces);
         }
 
-        public T GetService<T>(TestWorkspace workspace)
+        public static T GetService<T>(TestWorkspace workspace)
             => workspace.GetService<T>();
 
-        public T GetExportedValue<T>(TestWorkspace workspace)
+        public static T GetExportedValue<T>(TestWorkspace workspace)
             => workspace.ExportProvider.GetExportedValue<T>();
     }
 }
