@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
 
                 Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
                 If Not symbols.Any() Then
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
             Dim workspace = document.Project.Solution.Workspace
 
             Dim symbols = GetSymbols(token, semanticModel, cancellationToken)

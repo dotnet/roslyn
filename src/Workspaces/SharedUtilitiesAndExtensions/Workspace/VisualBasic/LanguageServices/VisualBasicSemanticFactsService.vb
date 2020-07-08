@@ -98,10 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return semanticModel.SyntaxTree.IsTypeDeclarationContext(position, token, cancellationToken)
         End Function
 
-        Public Function IsPreProcessorDirectiveContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsPreProcessorDirectiveContext
-            Return semanticModel.SyntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
-        End Function
-
         Public Function IsGlobalStatementContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsGlobalStatementContext
             Return False
         End Function
@@ -199,42 +195,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End Get
         End Property
-
-        Public Function TryGetSpeculativeSemanticModel(oldSemanticModel As SemanticModel, oldNode As SyntaxNode, newNode As SyntaxNode, <Out> ByRef speculativeModel As SemanticModel) As Boolean Implements ISemanticFactsService.TryGetSpeculativeSemanticModel
-            Debug.Assert(oldNode.Kind = newNode.Kind)
-
-            Dim model = oldSemanticModel
-
-            ' currently we only support method. field support will be added later.
-            Dim oldMethod = TryCast(oldNode, MethodBlockBaseSyntax)
-            Dim newMethod = TryCast(newNode, MethodBlockBaseSyntax)
-            If oldMethod Is Nothing OrElse newMethod Is Nothing Then
-                speculativeModel = Nothing
-                Return False
-            End If
-
-            ' No method body?
-            If oldMethod.Statements.IsEmpty AndAlso oldMethod.EndBlockStatement.IsMissing Then
-                speculativeModel = Nothing
-                Return False
-            End If
-
-            Dim position As Integer
-            If model.IsSpeculativeSemanticModel Then
-                ' Chaining speculative semantic model is not supported, use the original model.
-                position = model.OriginalPositionForSpeculation
-                model = model.ParentModel
-                Contract.ThrowIfNull(model)
-                Contract.ThrowIfTrue(model.IsSpeculativeSemanticModel)
-            Else
-                position = oldMethod.BlockStatement.FullSpan.End
-            End If
-
-            Dim vbSpeculativeModel As SemanticModel = Nothing
-            Dim success = model.TryGetSpeculativeSemanticModelForMethodBody(position, newMethod, vbSpeculativeModel)
-            speculativeModel = vbSpeculativeModel
-            Return success
-        End Function
 
         Public Function GetAliasNameSet(model As SemanticModel, cancellationToken As CancellationToken) As ImmutableHashSet(Of String) Implements ISemanticFactsService.GetAliasNameSet
             Dim original = DirectCast(model.GetOriginalSemanticModel(), SemanticModel)
