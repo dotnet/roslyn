@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
     {
         private const string CommandPrefix = "#";
 
-        private readonly string? _responseFileName;
+        private readonly string _responseFileName;
 
         private readonly InteractiveHost _interactiveHost;
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             string initialWorkingDirectory,
             Type replType)
         {
-            Debug.Assert(responseFileName == null || responseFileName.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) == -1);
+            Debug.Assert(responseFileName.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) == -1);
 
             _threadingContext = threadingContext;
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
@@ -217,13 +217,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             Contract.ThrowIfFalse(result.InitializationResult != null);
 
-            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                 CaptureClassificationSpans();
             });
 
-            _taskQueue.ScheduleTask(nameof(ProcessInitialized), () =>
+            _ = _taskQueue.ScheduleTask(nameof(ProcessInitialized), () =>
             {
                 // clear workspace state:
                 _workspace.ClearSolution();
