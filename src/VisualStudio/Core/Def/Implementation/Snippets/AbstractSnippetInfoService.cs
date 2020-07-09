@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        public void Dispose() => _asyncTasks.Join();
+        public void Dispose() => ThreadingContext.JoinableTaskFactory.Run(() => _asyncTasks.JoinTillEmptyAsync());
 
         /// <summary>
         /// This structure is used to facilitate the interop calls with IVsExpansionEnumeration.
