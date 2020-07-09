@@ -87,6 +87,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new Dictionary<string, List<VisualStudioProject>>();
 
         private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new Dictionary<string, UIContext?>();
+
+        private readonly CancellationTokenSource _disposalTokenSource = new CancellationTokenSource();
         private readonly JoinableTaskCollection _deferredJoinableTasks;
 
         /// <summary>
@@ -1311,7 +1313,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
 
-                _deferredJoinableTasks.Join();
+                // https://github.com/Microsoft/vs-threading/blob/master/doc/cookbook_vs.md#how-to-write-a-fire-and-forget-method-responsibly
+                _disposalTokenSource.Cancel();
+
+                try
+                {
+                    // Block Dispose until all async work has completed.
+                    _threadingContext.JoinableTaskContext.Factory.Run(_deferredJoinableTasks.JoinTillEmptyAsync);
+                }
+                catch (OperationCanceledException)
+                {
+                    // this exception is expected because we signaled the cancellation token
+                }
+                catch (AggregateException ex)
+                {
+                    // ignore AggregateException containing only OperationCanceledException
+                    ex.Handle(inner => inner is OperationCanceledException);
+                }
             }
 
             base.Dispose(finalize);
