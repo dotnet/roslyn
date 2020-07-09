@@ -127,6 +127,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Compilation wide suppression with a non-null target is considered invalid.
                 return targetSymbolString == null;
             }
+            else if (targetScope == TargetScope.NamespaceAndDescendants)
+            {
+                // TargetSymbolResolver expects the callers to normalize 'NamespaceAndDescendants' and 'Namespace' scopes to 'Namespace' scope.
+                targetScope = TargetScope.Namespace;
+            }
 
             var resolver = new TargetSymbolResolver(_compilation, targetScope, targetSymbolString);
             resolvedSymbols = resolver.Resolve(out targetHasDocCommentIdFormat);

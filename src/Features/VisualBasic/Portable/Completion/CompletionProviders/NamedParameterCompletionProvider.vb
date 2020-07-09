@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     End If
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(argumentList, cancellationToken).ConfigureAwait(False)
                 Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
                 If parameterLists Is Nothing Then
                     Return

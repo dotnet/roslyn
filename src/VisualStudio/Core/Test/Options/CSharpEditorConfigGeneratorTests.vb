@@ -83,6 +83,9 @@ dotnet_style_readonly_field = true:suggestion
 # Parameter preferences
 dotnet_code_quality_unused_parameters = all:suggestion
 
+# Suppression preferences
+dotnet_remove_unnecessary_suppression_exclusions = none
+
 #### C# Coding Conventions ####
 
 # var preferences
@@ -296,6 +299,9 @@ dotnet_style_readonly_field = true:suggestion
 
 # Parameter preferences
 dotnet_code_quality_unused_parameters = all:suggestion
+
+# Suppression preferences
+dotnet_remove_unnecessary_suppression_exclusions = none
 
 #### C# Coding Conventions ####
 

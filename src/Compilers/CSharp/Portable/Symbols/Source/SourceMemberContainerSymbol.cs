@@ -2974,6 +2974,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            CSharpCompilation compilation = this.DeclaringCompilation;
+
             // Positional record
             if (!(paramList is null))
             {
@@ -2996,20 +2998,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addCloneMethod();
 
             PropertySymbol equalityContract = addEqualityContract();
-            var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            getOtherEquals(otherEqualsMethods, equalityContract);
 
-            var thisEquals = addThisEquals(equalityContract, otherEqualsMethod: otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
-            addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
+            var thisEquals = addThisEquals(equalityContract);
+            addOtherEquals();
             addObjectEquals(thisEquals);
             addHashCode(equalityContract);
 
-            otherEqualsMethods.Free();
             memberSignatures.Free();
 
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
-            // go to the record declaration
+            // going to the record declaration
             members.AddRange(builder.NonTypeNonIndexerMembers);
             builder.NonTypeNonIndexerMembers.Free();
             builder.NonTypeNonIndexerMembers = members;
@@ -3133,76 +3132,114 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addHashCode(PropertySymbol equalityContract)
             {
-                var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count);
-                if (!memberSignatures.ContainsKey(hashCode))
+                var targetMethod = new SignatureOnlyMethodSymbol(
+                    WellKnownMemberNames.ObjectGetHashCode,
+                    this,
+                    MethodKind.Ordinary,
+                    Cci.CallingConvention.HasThis,
+                    ImmutableArray<TypeParameterSymbol>.Empty,
+                    ImmutableArray<ParameterSymbol>.Empty,
+                    RefKind.None,
+                    isInitOnly: false,
+                    TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray<MethodSymbol>.Empty);
+
+                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
-                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
+                    var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
                     members.Add(hashCode);
+                }
+                else
+                {
+                    var method = (MethodSymbol)existingHashCodeMethod;
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(method, SpecialType.System_Int32, diagnostics) && method.IsSealed && !IsSealed)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SealedGetHashCodeInRecord, method.Locations[0], method);
+                    }
                 }
             }
 
             PropertySymbol addEqualityContract()
             {
-                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: SynthesizedRecordClone.FindValidCloneMethod(BaseTypeNoUseSiteDiagnostics) is object);
+                var targetProperty = new SignatureOnlyPropertySymbol(SynthesizedRecordEqualityContractProperty.PropertyName,
+                                                                     this,
+                                                                     ImmutableArray<ParameterSymbol>.Empty,
+                                                                     RefKind.None,
+                                                                     TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Type)),
+                                                                     ImmutableArray<CustomModifier>.Empty,
+                                                                     isStatic: false,
+                                                                     ImmutableArray<PropertySymbol>.Empty);
+
                 // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
-                if (!memberSignatures.ContainsKey(property))
+                if (!memberSignatures.TryGetValue(targetProperty, out Symbol? existingEqualityContractProperty))
                 {
+                    var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: SynthesizedRecordClone.FindValidCloneMethod(BaseTypeNoUseSiteDiagnostics) is object);
                     members.Add(property);
                     members.Add(property.GetMethod);
+                    return property;
                 }
-                return property;
+
+                return (PropertySymbol)existingEqualityContractProperty;
             }
 
-            MethodSymbol addThisEquals(PropertySymbol equalityContract, MethodSymbol? otherEqualsMethod)
+            MethodSymbol addThisEquals(PropertySymbol equalityContract)
             {
-                var thisEquals = new SynthesizedRecordEquals(this, parameterType: this, isOverride: false, equalityContract, otherEqualsMethod, memberOffset: members.Count);
-                if (!memberSignatures.TryGetValue(thisEquals, out var existing))
+                var targetMethod = new SignatureOnlyMethodSymbol(
+                    WellKnownMemberNames.ObjectEquals,
+                    this,
+                    MethodKind.Ordinary,
+                    Cci.CallingConvention.HasThis,
+                    ImmutableArray<TypeParameterSymbol>.Empty,
+                    ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
+                                                                TypeWithAnnotations.Create(this),
+                                                                ImmutableArray<CustomModifier>.Empty,
+                                                                isParams: false,
+                                                                RefKind.None
+                                                                )),
+                    RefKind.None,
+                    isInitOnly: false,
+                    TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Boolean)),
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray<MethodSymbol>.Empty);
+
+                MethodSymbol thisEquals;
+
+                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingEqualsMethod))
                 {
+                    thisEquals = new SynthesizedRecordEquals(this, equalityContract, memberOffset: members.Count, diagnostics);
                     members.Add(thisEquals);
-                    return thisEquals;
                 }
-                return (MethodSymbol)existing;
-            }
-
-            static void getOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract)
-            {
-                while ((equalityContract = equalityContract.OverriddenProperty) is object)
+                else
                 {
-                    var member = equalityContract.ContainingType.GetMembers("Equals").FirstOrDefault(m =>
+                    thisEquals = (MethodSymbol)existingEqualsMethod;
+
+                    if (thisEquals.DeclaredAccessibility != Accessibility.Public)
                     {
-                        if (m is MethodSymbol method)
-                        {
-                            var parameters = method.Parameters;
-                            if (parameters.Length == 1 && parameters[0].Type.Equals(m.ContainingType, TypeCompareKind.AllIgnoreOptions))
-                            {
-                                return true;
-                            }
-                        }
-                        return false;
-                    });
-                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
-                    if (member is MethodSymbol method)
+                        diagnostics.Add(ErrorCode.ERR_NonPublicAPIInRecord, thisEquals.Locations[0], thisEquals);
+                    }
+
+                    if (thisEquals.ReturnType.SpecialType != SpecialType.System_Boolean && !thisEquals.ReturnType.IsErrorType())
                     {
-                        otherEqualsMethods.Add(method);
+                        diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, thisEquals.Locations[0], thisEquals, targetMethod.ReturnType);
+                    }
+
+                    if (!IsSealed &&
+                        ((!thisEquals.IsAbstract && !thisEquals.IsVirtual && !thisEquals.IsOverride) || thisEquals.IsSealed))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, thisEquals.Locations[0], thisEquals);
                     }
                 }
+
+                return thisEquals;
             }
 
-            void addOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract, MethodSymbol thisEquals)
+            void addOtherEquals()
             {
-                foreach (var otherEqualsMethod in otherEqualsMethods)
+                if (!BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
-                    var method = new SynthesizedRecordEquals(
-                        this,
-                        parameterType: otherEqualsMethod.Parameters[0].Type,
-                        isOverride: true,
-                        equalityContract,
-                        otherEqualsMethod: thisEquals,
-                        memberOffset: members.Count);
-                    if (!memberSignatures.ContainsKey(method))
-                    {
-                        members.Add(method);
-                    }
+                    var method = new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics);
+                    members.Add(method);
                 }
             }
         }

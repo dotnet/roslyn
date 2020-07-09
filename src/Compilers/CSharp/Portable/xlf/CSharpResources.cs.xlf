@@ -232,9 +232,14 @@
         <target state="translated">Tento vzor discard není povolený jako návěstí příkazu case v příkazu switch. Použijte „case var _:“ pro vzor discard nebo „case @_:“ pro konstantu s názvem „_“.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseEquals">
+        <source>'{0}' does not override expected method from '{1}'.</source>
+        <target state="new">'{0}' does not override expected method from '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
-        <source>'{0}' does not override the method from 'object'.</source>
-        <target state="new">'{0}' does not override the method from 'object'.</target>
+        <source>'{0}' does not override expected method from 'object'.</source>
+        <target state="new">'{0}' does not override expected method from 'object'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
@@ -527,6 +532,16 @@
         <target state="new">The receiver type '{0}' is not a valid record type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicAPIInRecord">
+        <source>Record member '{0}' must be public.</source>
+        <target state="new">Record member '{0}' must be public.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotOverridableAPIInRecord">
+        <source>'{0}' disallows overriding and containing 'record' is not sealed.</source>
+        <target state="new">'{0}' disallows overriding and containing 'record' is not sealed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="translated">Očekávala se hodnota enable, disable nebo restore.</target>
@@ -660,6 +675,16 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Cílový modul runtime nepodporuje pro člena rozhraní přístupnost na úrovni Protected, Protected internal nebo Private protected.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SealedGetHashCodeInRecord">
+        <source>'{0}' cannot be sealed because containing 'record' is not sealed.</source>
+        <target state="new">'{0}' cannot be sealed because containing 'record' is not sealed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SignatureMismatchInRecord">
+        <source>Record member '{0}' must return '{1}'.</source>
+        <target state="new">Record member '{0}' must return '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramDisallowsMainType">
@@ -1792,6 +1817,16 @@
       <trans-unit id="WRN_CaseConstantNamedUnderscore_Title">
         <source>Do not use '_' for a case constant.</source>
         <target state="translated">Nepoužívejte „_“ jako konstantu case.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked">
+        <source>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked_Title">
+        <source>Constant value may overflow at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value may overflow at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">

@@ -121,7 +121,6 @@
     <RestrictedInternalsVisibleTo Include="ManagedSourceCodeAnalysis" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
     <RestrictedInternalsVisibleTo Include="CodeAnalysis" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
     <RestrictedInternalsVisibleTo Include="StanCore" Key="$(TypeScriptKey)" Partner="LegacyCodeAnalysis" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Design" />
