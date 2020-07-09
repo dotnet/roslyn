@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     /// This service is created on the UI thread during package initialization, but it must not
     /// block the initialization process.
     /// </summary>
-    internal abstract class AbstractSnippetInfoService : ForegroundThreadAffinitizedObject, ISnippetInfoService, IVsExpansionEvents
+    internal abstract class AbstractSnippetInfoService : ForegroundThreadAffinitizedObject, ISnippetInfoService, IVsExpansionEvents, IDisposable
     {
         private readonly Guid _languageGuidForSnippets;
         private IVsExpansionManager _expansionManager;
@@ -45,6 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         private readonly IAsynchronousOperationListener _waiter;
 
+        /// <summary>
+        /// Collection of tasks started to populate the snippets cache.
+        /// This ensures we wait for them during shutdown.
+        /// </summary>
+        private readonly JoinableTaskCollection _asyncTasks;
+
         public AbstractSnippetInfoService(
             IThreadingContext threadingContext,
             Shell.SVsServiceProvider serviceProvider,
@@ -54,24 +60,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             if (serviceProvider != null)
             {
+                _asyncTasks = new JoinableTaskCollection(threadingContext.JoinableTaskContext);
                 _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
                 _languageGuidForSnippets = languageGuidForSnippets;
 
-                InitializeAndPopulateSnippetsCacheAsync(threadingContext, serviceProvider).Forget();
+                _asyncTasks.Add(threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await InitializeAndPopulateSnippetsCacheAsync(threadingContext, (Shell.IAsyncServiceProvider)serviceProvider).ConfigureAwait(false);
+                }));
             }
         }
 
-        private async Task InitializeAndPopulateSnippetsCacheAsync(IThreadingContext threadingContext, Shell.SVsServiceProvider serviceProvider)
+        private async Task InitializeAndPopulateSnippetsCacheAsync(IThreadingContext threadingContext, Shell.IAsyncServiceProvider serviceProvider)
         {
-            var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
-
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var textManager = (IVsTextManager2)serviceProvider.GetService(typeof(SVsTextManager));
+            var textManager = (IVsTextManager2)await serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
             if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
             {
                 ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);
-                PopulateSnippetCachesAsync().CompletesAsyncOperation(token).Forget();
+                await PopulateSnippetCacheAsync().ConfigureAwait(false);
             }
         }
 
@@ -81,8 +89,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (_expansionManager != null)
             {
-                var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
-                PopulateSnippetCachesAsync().CompletesAsyncOperation(token).Forget();
+                _asyncTasks.Add(ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await PopulateSnippetCacheAsync().ConfigureAwait(false);
+                }));
             }
 
             return VSConstants.S_OK;
@@ -119,24 +129,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public virtual bool ShouldFormatSnippet(SnippetInfo snippetInfo)
             => false;
 
-        private async Task PopulateSnippetCachesAsync()
+        private async Task PopulateSnippetCacheAsync()
         {
+            using var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
             Debug.Assert(_expansionManager != null);
-            AssertIsForeground();
 
             // In Dev14 Update2+ the platform always provides an IExpansion Manager
-            var asyncExpansionManager = (IExpansionManager)_expansionManager;
+            var expansionManager = (IExpansionManager)_expansionManager;
             // Call the asynchronous IExpansionManager API from a background thread
-            await Task.Factory.StartNew(() => PopulateSnippetCacheAsync(asyncExpansionManager),
-                            CancellationToken.None,
-                            TaskCreationOptions.None,
-                            TaskScheduler.Default).ConfigureAwait(false);
-        }
-
-        private async Task PopulateSnippetCacheAsync(IExpansionManager expansionManager)
-        {
-            AssertIsBackground();
-
+            await TaskScheduler.Default;
             var expansionEnumerator = await expansionManager.EnumerateExpansionsAsync(
                 _languageGuidForSnippets,
                 0, // shortCutOnly
@@ -257,6 +258,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 ptr = IntPtr.Zero;
             }
         }
+
+        public void Dispose() => _asyncTasks.Join();
 
         /// <summary>
         /// This structure is used to facilitate the interop calls with IVsExpansionEnumeration.
