@@ -5,6 +5,7 @@
 #nullable enable
 
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -37,6 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
             var syntaxTree = context.Operation.Syntax.SyntaxTree;
             var node = context.Operation.Syntax;
 
+            // Make sure that the syntax that we're looking at is actually a typeof expression
+            if (!(node is TypeOfExpressionSyntax))
+            {
+                return;
+            }
+
             // nameof was added in CSharp 6.0, so don't offer it for any languages before that time
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
             {
@@ -49,11 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
                 return;
             }
 
-            // Current case can be effectively changed to a nameof instance so report a diagnostic
             var parent = node.Parent;
-            var location = parent.GetLocation();
+            // If the parent node is null then it cannot be a member access, so do not report a diagnostic
+            if (parent is null)
+            {
+                return;
+            }
 
-            context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
+            // Current case can be effectively changed to a nameof instance so report a diagnosti
+            var location = parent.GetLocation();
+            context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, location, ReportDiagnostic.Hidden, additionalLocations: null,
+                properties: null, messageArgs: null));
         }
         // Overwrite GetAnalyzerCategory
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -75,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
                 return false;
             }
 
-            // Check if it's a generic type
+            // If it's a generic type, do not offer the fix
             if (!(typeofOperation.TypeOperand is INamedTypeSymbol namedType) || namedType.IsGenericType)
             {
                 return false;
