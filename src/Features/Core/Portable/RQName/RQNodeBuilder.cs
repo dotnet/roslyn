@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
         /// Builds the RQName for a given symbol.
         /// </summary>
         /// <returns>The node if it could be created, otherwise null</returns>
-        public static UnresolvedRQNode? Build(ISymbol symbol)
+        public static RQNode? Build(ISymbol symbol)
             => symbol switch
             {
                 INamespaceSymbol namespaceSymbol => BuildNamespace(namespaceSymbol),
