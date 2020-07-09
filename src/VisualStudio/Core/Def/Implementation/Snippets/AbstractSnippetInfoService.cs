@@ -58,12 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
+            _asyncTasks = new JoinableTaskCollection(threadingContext.JoinableTaskContext);
+            _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
+            _languageGuidForSnippets = languageGuidForSnippets;
+
             if (serviceProvider != null)
             {
-                _asyncTasks = new JoinableTaskCollection(threadingContext.JoinableTaskContext);
-                _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
-                _languageGuidForSnippets = languageGuidForSnippets;
-
                 _asyncTasks.Add(threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await InitializeAndPopulateSnippetsCacheAsync(threadingContext, (Shell.IAsyncServiceProvider)serviceProvider).ConfigureAwait(false);
