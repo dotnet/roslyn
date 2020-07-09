@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal abstract class RQNode<ResolvedType> : UnresolvedRQNode
+    internal abstract class RQNode : UnresolvedRQNode
     {
     }
 }

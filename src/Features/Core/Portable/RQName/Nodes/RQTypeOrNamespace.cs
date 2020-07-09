@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal abstract class RQTypeOrNamespace<ResolvedType> : RQNode<ResolvedType>
+    internal abstract class RQTypeOrNamespace : RQNode
     {
         public readonly ReadOnlyCollection<string> NamespaceNames;
 
