@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     { ValueText: "Thiscall" } => CallingConvention.ThisCall,
                                     { ValueText: "Fastcall" } => CallingConvention.FastCall,
                                     // PROTOTYPE(func-ptr): Handle unrecognized specifiers
-                                    var name => reportBadConventionAndReturn(name.Text, name, diagnostics)
+                                    var name => reportBadConventionAndReturn(name.ValueText, name, diagnostics)
                                 };
 
                             case { CallingConventions: { Count: 0 } } unmanagedList:
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // PROTOTYPE(func-ptr): Handle multiple specifiers
                                 foreach (var convention in specifiers)
                                 {
-                                    _ = reportBadConventionAndReturn(convention.Name.Text, convention.Name, diagnostics);
+                                    _ = reportBadConventionAndReturn(convention.Name.ValueText, convention.Name, diagnostics);
                                 }
 
                                 return CallingConvention.Default;
