@@ -308,6 +308,8 @@ function GetIbcDropName() {
     
     # Find the matching drop
     $branch = GetIbcSourceBranchName
+    Write-Host "Optimization data branch name is '$branch'."
+
     $drop = Find-OptimizationInputsStoreForBranch -ProjectName "DevDiv" -RepositoryName "VS" -BranchName $branch
     return $drop.Name
 }

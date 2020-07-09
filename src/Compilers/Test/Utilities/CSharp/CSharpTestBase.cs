@@ -27,6 +27,7 @@ using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -1037,11 +1038,18 @@ namespace System.Runtime.CompilerServices
                 string assemblyName = "",
                 string sourceFileName = "")
         {
-            IEnumerable<MetadataReference> allReferences = RuntimeUtilities.IsCoreClrRuntime
-                ? TargetFrameworkUtil.NetStandard20References
-                : TargetFrameworkUtil.Mscorlib461ExtendedReferences;
+            IEnumerable<MetadataReference> allReferences;
 
-            allReferences = allReferences.Concat(new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef });
+            if (RuntimeUtilities.IsCoreClrRuntime)
+            {
+                allReferences = TargetFrameworkUtil.NetStandard20References;
+                allReferences = allReferences.Concat(new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef });
+            }
+            else
+            {
+                allReferences = TargetFrameworkUtil.Mscorlib461ExtendedReferences;
+                allReferences = allReferences.Concat(new[] { Net461.SystemThreadingTasks, ValueTask.SystemThreadingTasksExtensions });
+            }
 
             if (references != null)
             {
@@ -1950,14 +1958,14 @@ namespace System.Runtime.CompilerServices
         {
             var reference = CreateEmptyCompilation(
                 SpanSource,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                references: new List<MetadataReference>() { Net451.mscorlib, Net451.SystemCore, Net451.MicrosoftCSharp },
                 options: TestOptions.UnsafeReleaseDll);
 
             reference.VerifyDiagnostics();
 
             var comp = CreateEmptyCompilation(
                 text,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                references: new List<MetadataReference>() { Net451.mscorlib, Net451.SystemCore, Net451.MicrosoftCSharp, reference.EmitToImageReference() },
                 options: options,
                 parseOptions: parseOptions);
 

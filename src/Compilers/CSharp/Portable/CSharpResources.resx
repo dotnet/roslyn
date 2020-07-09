@@ -6297,4 +6297,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ConstOutOfRangeChecked_Title" xml:space="preserve">
     <value>Constant value may overflow at runtime (use 'unchecked' syntax to override)</value>
   </data>
+  <data name="ERR_NotOverridableAPIInRecord" xml:space="preserve">
+    <value>'{0}' disallows overriding and containing 'record' is not sealed.</value>
+  </data>
+  <data name="ERR_NonPublicAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' must be public.</value>
+  </data>
+  <data name="ERR_SignatureMismatchInRecord" xml:space="preserve">
+    <value>Record member '{0}' must return '{1}'.</value>
+  </data>
 </root>
