@@ -135,6 +135,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RemoveConfusingSuppressionForIsExpressionDiagnosticId = "IDE0080";
 
+        public const string ConvertTypeOfToNameOfDiagnosticId = "IDE0081";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
@@ -144,8 +146,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";
         public const string UnboundConstructorId = "IDE1008";
-
-        public const string ConvertTypeOfToNameOfDiagnosticId = "IDE1009";
 
         // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
     }
