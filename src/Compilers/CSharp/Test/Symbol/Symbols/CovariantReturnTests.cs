@@ -3120,9 +3120,6 @@ public class Program : Derived
 ";
             var comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            {
-                System.Delegate x;
-            }
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
 {
