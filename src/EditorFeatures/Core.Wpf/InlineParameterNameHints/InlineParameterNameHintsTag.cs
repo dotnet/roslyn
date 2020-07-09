@@ -53,8 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 BorderBrush = format.BackgroundBrush, //System.Windows.Media.Brushes.Lavender,
                 BorderThickness = new Thickness(1),
                 VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 0, 5, 0),
-                Height = lineHeight,
+                Height = lineHeight - 3,
                 Child = block,
             };
             block.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));

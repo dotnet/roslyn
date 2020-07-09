@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
             _keyword = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineParameterNameHintsTag.TagId);
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
-            _format = _formatMap.DefaultTextProperties;
             _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
         }
 
@@ -112,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         {
             _tagAggregator.TagsChanged -= OnTagAggregatorTagsChanged;
             _tagAggregator.Dispose();
+            _formatMap.ClassificationFormatMappingChanged -= OnClassificationFormatMappingChanged;
         }
     }
 }
