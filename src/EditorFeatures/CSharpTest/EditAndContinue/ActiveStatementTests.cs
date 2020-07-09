@@ -9766,7 +9766,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+            _ = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics();
         }
@@ -9801,7 +9801,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+            _ = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics();
         }
@@ -9840,7 +9840,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            var active = GetActiveStatements(src1, src2);
+            _ = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(targetFrameworks: new[] { TargetFramework.NetCoreApp30 });
         }

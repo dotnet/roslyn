@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         [Fact]
         public void TestCrash1()
         {
-            foreach (var tree in CreateTrees(Tuple.Create(8, 1, "A"), Tuple.Create(59, 1, "B"), Tuple.Create(52, 1, "C")))
+            foreach (var _ in CreateTrees(Tuple.Create(8, 1, "A"), Tuple.Create(59, 1, "B"), Tuple.Create(52, 1, "C")))
             {
             }
         }
@@ -273,8 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         [Fact]
         public void TestSortedEnumerable1()
         {
-            var tree = IntervalTree<int>.Create(new Int32Introspector(), new[] { 0, 0, 0 });
-
             Assert.Equal(CreateIntTree(0, 0, 0), new[] { 0, 0, 0 });
             Assert.Equal(CreateIntTree(0, 0, 1), new[] { 0, 0, 1 });
             Assert.Equal(CreateIntTree(0, 0, 2), new[] { 0, 0, 2 });

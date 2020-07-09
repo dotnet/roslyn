@@ -329,7 +329,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 aoeu
 aoeu
 #endif";
-            var start = code.IndexOf("#endif", StringComparison.Ordinal);
             await TestAsync(code,
                 PPKeyword("#"),
                 PPKeyword("if"),

@@ -95,7 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 Dim span As TextSpan?
                 Try
                     span = VisualBasicEditAndContinueAnalyzer.TryGetDiagnosticSpanImpl(k, Nothing, EditKind.Update)
+#Disable Warning IDE0059 ' Unnecessary assignment of a value - false positive, TODO: File a bug.
                 Catch e1 As NullReferenceException
+#Enable Warning IDE0059 ' Unnecessary assignment of a value
                     ' expected, we passed null node
                     Continue For
                 End Try

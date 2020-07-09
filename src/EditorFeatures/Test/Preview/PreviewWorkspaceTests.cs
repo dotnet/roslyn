@@ -262,7 +262,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var project = previewWorkspace.CurrentSolution.Projects.Single();
             var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;
-            var compilationReference = ObjectReference.Create(compilation);
             var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);
             var result = compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
             Assert.Equal(1, result.CompilationDiagnostics.Count);

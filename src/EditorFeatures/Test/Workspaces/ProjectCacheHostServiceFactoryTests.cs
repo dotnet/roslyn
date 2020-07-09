@@ -188,7 +188,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 cache.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, compilations[i]);
             }
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value - testing weak reference to compilations
             compilations = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             weakFirst.AssertReleased();
             weakLast.AssertHeld();
@@ -217,9 +219,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             // When we cache 3 again, 1 should stay in the cache
             cache.CacheObjectIfCachingEnabledForKey(key, owner, comp3);
+#pragma warning disable IDE0059 // Unnecessary assignment of a value - testing weak references to compilations
             comp1 = null;
             comp2 = null;
             comp3 = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             weak3.AssertHeld();
             weak1.AssertHeld();

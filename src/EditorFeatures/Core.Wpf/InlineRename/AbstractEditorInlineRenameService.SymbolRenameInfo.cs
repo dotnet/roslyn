@@ -95,9 +95,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Ok, the symbol is good.  Now, make sure that the trigger text starts with the prefix
                 // of the attribute.  If it does, then we can rename just the attribute prefix (otherwise
                 // we need to rename the entire attribute).
+#pragma warning disable IDE0059 // Unnecessary assignment of a value - TODO: File a bug, the code here is definitely incorrect.
                 var nameWithoutAttribute = GetWithoutAttributeSuffix(this.RenameSymbol.Name);
 
                 return triggerText.StartsWith(triggerText); // TODO: Always true? What was it supposed to do?
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             }
 
             /// <summary>

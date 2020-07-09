@@ -689,7 +689,6 @@ namespace Root
 
             foreach (var pair in builtInTypeMap)
             {
-                var position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
                 await TestWithPredefinedTypeOptionsAsync(newContent, expected);

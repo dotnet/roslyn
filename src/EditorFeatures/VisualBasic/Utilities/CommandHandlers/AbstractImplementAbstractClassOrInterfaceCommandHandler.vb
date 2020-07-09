@@ -96,7 +96,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
             Dim endConstructGenerationService = document.GetLanguageService(Of IEndConstructGenerationService)()
 
-            Dim applicable As Boolean = False
             Return endConstructGenerationService.TryDo(args.TextView, args.SubjectBuffer, vbLf(0), cancellationToken)
         End Function
 

@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (!foundApplyChanges)
                 {
-                    if (operation is ApplyChangesOperation applyChangesOperation)
+                    if (operation is ApplyChangesOperation)
                     {
                         foundApplyChanges = true;
                         result.Add(new ApplyChangesOperation(newSolution));

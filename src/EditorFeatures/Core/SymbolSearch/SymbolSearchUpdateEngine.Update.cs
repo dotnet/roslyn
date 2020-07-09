@@ -400,8 +400,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return await DownloadFullDatabaseAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
                 }
 
-                var databaseVersion = database.DatabaseVersion;
-
                 // Now attempt to download and apply patch file.
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
 
