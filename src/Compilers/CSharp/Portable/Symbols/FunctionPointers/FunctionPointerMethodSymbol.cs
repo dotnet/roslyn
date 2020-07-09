@@ -119,10 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case { CallingConventions: { Count: 1 } specifiers }:
                                 return specifiers[0].Name switch
                                 {
-                                    { Text: "Cdecl" } => CallingConvention.CDecl,
-                                    { Text: "Stdcall" } => CallingConvention.Standard,
-                                    { Text: "Thiscall" } => CallingConvention.ThisCall,
-                                    { Text: "Fastcall" } => CallingConvention.FastCall,
+                                    { ValueText: "Cdecl" } => CallingConvention.CDecl,
+                                    { ValueText: "Stdcall" } => CallingConvention.Standard,
+                                    { ValueText: "Thiscall" } => CallingConvention.ThisCall,
+                                    { ValueText: "Fastcall" } => CallingConvention.FastCall,
                                     // PROTOTYPE(func-ptr): Handle unrecognized specifiers
                                     var name => reportBadConventionAndReturn(name.Text, name, diagnostics)
                                 };

@@ -68,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [InlineData("unmanaged[Thiscall]", CallingConvention.ThisCall)]
         [InlineData("unmanaged[Stdcall]", CallingConvention.Standard)]
         [InlineData("unmanaged[Fastcall]", CallingConvention.FastCall)]
+        [InlineData("unmanaged[@Cdecl]", CallingConvention.CDecl)]
+        [InlineData("unmanaged[@Thiscall]", CallingConvention.ThisCall)]
+        [InlineData("unmanaged[@Stdcall]", CallingConvention.Standard)]
+        [InlineData("unmanaged[@Fastcall]", CallingConvention.FastCall)]
         // PROTOTYPE(func-ptr): Update SRM so it can decode the convention correctly
         //[InlineData("unmanaged", CallingConvention.Unmanaged)]
         internal void CallingConventions(string conventionString, CallingConvention expectedConvention)
@@ -114,11 +118,6 @@ unsafe class C
                 //         delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
                 Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "Stdcall").WithArguments("Stdcall").WithLocation(7, 39)
             );
-        }
-
-        [Fact]
-        public void UnrecognizedCallingConventions()
-        {
         }
 
         [Fact]
