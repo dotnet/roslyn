@@ -1311,7 +1311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
 
-                _deferredJoinableTasks.Join();
+                _threadingContext.JoinableTaskFactory.Run(() => _deferredJoinableTasks.JoinTillEmptyAsync());
             }
 
             base.Dispose(finalize);

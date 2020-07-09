@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _cancellationTokenSource.Cancel();
 
             // Now wait for all our cleanup tasks to finish before we return.
-            _deferredCleanupTasks.Join();
+            _threadingContext.JoinableTaskFactory.Run(() => _deferredCleanupTasks.JoinTillEmptyAsync());
         }
     }
 }
