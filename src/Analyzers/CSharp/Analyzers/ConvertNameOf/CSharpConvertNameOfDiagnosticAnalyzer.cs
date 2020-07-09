@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
 
             // Check Parent is a .Name access
             var operationParent = (IPropertyReferenceOperation)operation.Parent;
-            if (!(operationParent.Property.Name == "Name"))
+            if (!(operationParent.Property.Name == nameof(Type.Name)))
             {
                 return false;
             }
