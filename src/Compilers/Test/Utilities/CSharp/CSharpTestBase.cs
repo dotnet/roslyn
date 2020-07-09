@@ -1224,9 +1224,9 @@ namespace System.Runtime.CompilerServices
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        public static MetadataReference CreateMetadataReferenceFromIlSource(string ilSource)
+        public static MetadataReference CreateMetadataReferenceFromIlSource(string ilSource, bool prependDefaultHeader = true)
         {
-            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
+            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader))
             {
                 return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
             }

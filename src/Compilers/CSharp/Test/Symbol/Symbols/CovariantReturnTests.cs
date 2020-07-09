@@ -18,12 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class CovariantReturnTests : CSharpTestBase
     {
-        // https://github.com/dotnet/roslyn/issues/44206: For testing purposes, we support a compiler "feature" flag that permits us to skip
-        // the requirement for a runtime feature indicator. We should remove it once we have a runtime that
-        // we can test against that actually supports the feature.
-        private const string s_pretendRuntimeSupportsCovariantReturnsFeature = "DoNotRequireRuntimeCovariantReturnsSupport";
-
-        private static MetadataReference
+        private static readonly MetadataReference
             CorelibraryWithCovariantReturnSupport1,
             CorelibraryWithCovariantReturnSupport2,
             CorelibraryWithoutCovariantReturnSupport1,
@@ -31,34 +26,178 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
         static CovariantReturnTests()
         {
-            const string corlibWithoutCovariantSupport = @"
+            const string corLibraryCore = @"
 namespace System
 {
-    public class Object { }
-    public class String { }
-    public class ValueType { }
+    public class Array
+    {
+        public static T[] Empty<T>() => throw null;
+    }
     public class Attribute { }
+    [Flags]
+    public enum AttributeTargets
+    {
+        Assembly = 0x1,
+        Module = 0x2,
+        Class = 0x4,
+        Struct = 0x8,
+        Enum = 0x10,
+        Constructor = 0x20,
+        Method = 0x40,
+        Property = 0x80,
+        Field = 0x100,
+        Event = 0x200,
+        Interface = 0x400,
+        Parameter = 0x800,
+        Delegate = 0x1000,
+        ReturnValue = 0x2000,
+        GenericParameter = 0x4000,
+        All = 0x7FFF
+    }
+    [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+    public sealed class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple
+        {
+            get => throw null;
+            set { }
+        }
+        public bool Inherited
+        {
+            get => throw null;
+            set { }
+        }
+        public AttributeTargets ValidOn => throw null;
+    }
+    public struct Boolean { }
+    public struct Byte { }
+    public class Delegate
+    {
+        public static Delegate CreateDelegate(Type type, object firstArgument, Reflection.MethodInfo method) => null;
+    }
+    public abstract class Enum : IComparable { }
+    public class Exception { }
+    public class FlagsAttribute : Attribute { }
+    public delegate T Func<out T>();
+    public delegate U Func<in T, out U>(T arg);
+    public interface IComparable { }
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+    public struct Int16 { }
     public struct Int32 { }
+    public struct IntPtr { }
+    public class MulticastDelegate : Delegate { }
+    public struct Nullable<T> { }
+    public class Object { }
+    public sealed class ParamArrayAttribute : Attribute { }
+    public struct RuntimeMethodHandle { }
+    public struct RuntimeTypeHandle { }
+    public class String : IComparable { public static String Empty = null; }
+    public class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => null;
+    }
+    public class ValueType { }
     public struct Void { }
+
+    namespace Collections
+    {
+        public interface IEnumerable
+        {
+            IEnumerator GetEnumerator();
+        }
+        public interface IEnumerator
+        {
+            object Current
+            {
+                get;
+            }
+            bool MoveNext();
+            void Reset();
+        }
+    }
+    namespace Collections.Generic
+    {
+        public interface IEnumerable<out T> : IEnumerable
+        {
+            new IEnumerator<T> GetEnumerator();
+        }
+        public interface IEnumerator<out T> : IEnumerator, IDisposable
+        {
+            new T Current
+            {
+                get;
+            }
+        }
+    }
+    namespace Linq.Expressions
+    {
+        public class Expression
+        {
+            public static ParameterExpression Parameter(Type type) => throw null;
+            public static ParameterExpression Parameter(Type type, string name) => throw null;
+            public static MethodCallExpression Call(Expression instance, Reflection.MethodInfo method, params Expression[] arguments) => throw null;
+            public static Expression<TDelegate> Lambda<TDelegate>(Expression body, params ParameterExpression[] parameters) => throw null;
+            public static MemberExpression Property(Expression expression, Reflection.MethodInfo propertyAccessor) => throw null;
+            public static ConstantExpression Constant(object value, Type type) => throw null;
+            public static UnaryExpression Convert(Expression expression, Type type) => throw null;
+        }
+        public class ParameterExpression : Expression { }
+        public class MethodCallExpression : Expression { }
+        public abstract class LambdaExpression : Expression { }
+        public class Expression<T> : LambdaExpression { }
+        public class MemberExpression : Expression { }
+        public class ConstantExpression : Expression { }
+        public sealed class UnaryExpression : Expression { }
+    }
     namespace Reflection
     {
-        public class DefaultMemberAttribute : Attribute
-        {
-            public DefaultMemberAttribute(string name) { }
-        }
         public class AssemblyVersionAttribute : Attribute
         {
             public AssemblyVersionAttribute(string version) { }
         }
+        public class DefaultMemberAttribute : Attribute
+        {
+            public DefaultMemberAttribute(string name) { }
+        }
+        public abstract class MemberInfo { }
+        public abstract class MethodBase : MemberInfo
+        {
+            public static MethodBase GetMethodFromHandle(RuntimeMethodHandle handle) => throw null;
+        }
+        public abstract class MethodInfo : MethodBase
+        {
+            public virtual Delegate CreateDelegate(Type delegateType, object? target) => throw null;
+        }
+    }
+    namespace Runtime.CompilerServices
+    {
+        public static class RuntimeHelpers
+        {
+            public static object GetObjectValue(object obj) => null;
+        }
     }
 }
 ";
-            const string corlibWithCovariantSupport = corlibWithoutCovariantSupport + @"
+            const string corlibWithoutCovariantSupport = corLibraryCore + @"
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeFeature
+    {
+        public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+    }
+}
+";
+            const string corlibWithCovariantSupport = corLibraryCore + @"
 namespace System.Runtime.CompilerServices
 {
     public static class RuntimeFeature
     {
         public const string CovariantReturnsOfClasses = nameof(CovariantReturnsOfClasses);
+        public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
     }
     public sealed class PreserveBaseOverridesAttribute : Attribute { }
 }
@@ -66,19 +205,19 @@ namespace System.Runtime.CompilerServices
             CorelibraryWithoutCovariantReturnSupport1 = CreateEmptyCompilation(new string[] {
                 corlibWithoutCovariantSupport,
                 @"[assembly: System.Reflection.AssemblyVersion(""4.1.0.0"")]"
-            }, assemblyName: "mycorlib").EmitToImageReference();
+            }, assemblyName: "mscorlib").EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v4.1"));
             CorelibraryWithoutCovariantReturnSupport2 = CreateEmptyCompilation(new string[] {
                 corlibWithoutCovariantSupport,
                 @"[assembly: System.Reflection.AssemblyVersion(""4.2.0.0"")]"
-            }, assemblyName: "mycorlib").EmitToImageReference();
+            }, assemblyName: "mscorlib").EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v4.2"));
             CorelibraryWithCovariantReturnSupport1 = CreateEmptyCompilation(new string[] {
                 corlibWithCovariantSupport,
                 @"[assembly: System.Reflection.AssemblyVersion(""5.0.0.0"")]"
-            }, assemblyName: "mycorlib").EmitToImageReference();
+            }, assemblyName: "mscorlib").EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.0"));
             CorelibraryWithCovariantReturnSupport2 = CreateEmptyCompilation(new string[] {
                 corlibWithCovariantSupport,
                 @"[assembly: System.Reflection.AssemblyVersion(""5.1.0.0"")]"
-            }, assemblyName: "mycorlib").EmitToImageReference();
+            }, assemblyName: "mscorlib").EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.1"));
         }
 
         private static void VerifyOverride(
@@ -227,20 +366,18 @@ namespace System.Runtime.CompilerServices
 
         private CSharpCompilation CreateCompilationWithCovariantReturns(
             string source, MetadataReference[] references = null,
-            TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
-            bool pretendRuntimeSupportsCovariantReturnsFeature = true,
-            CSharpCompilationOptions options = null)
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null)
         {
-            var parseOptions = TestOptions.WithCovariantReturns;
-            if (pretendRuntimeSupportsCovariantReturnsFeature)
-                parseOptions = parseOptions.WithFeature(s_pretendRuntimeSupportsCovariantReturnsFeature);
+            parseOptions ??= TestOptions.WithCovariantReturns;
+            references = references?.Prepend(CorelibraryWithCovariantReturnSupport1).ToArray() ?? new[] { CorelibraryWithCovariantReturnSupport1 };
 
             return CreateCompilation(
                 source,
                 parseOptions: parseOptions,
                 references: references,
-                targetFramework: targetFramework,
+                targetFramework: TargetFramework.Empty,
                 assemblyName: assemblyName,
                 options: options);
         }
@@ -248,20 +385,18 @@ namespace System.Runtime.CompilerServices
         private CSharpCompilation CreateCompilationWithoutCovariantReturns(
             string source,
             MetadataReference[] references = null,
-            TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
-            bool pretendRuntimeSupportsCovariantReturnsFeature = true,
-            CSharpCompilationOptions options = null)
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null)
         {
-            var parseOptions = TestOptions.WithoutCovariantReturns;
-            if (pretendRuntimeSupportsCovariantReturnsFeature)
-                parseOptions = parseOptions.WithFeature(s_pretendRuntimeSupportsCovariantReturnsFeature);
+            parseOptions ??= TestOptions.WithoutCovariantReturns;
+            references = references?.Prepend(CorelibraryWithoutCovariantReturnSupport1).ToArray() ?? new[] { CorelibraryWithoutCovariantReturnSupport1 };
 
             return CreateCompilation(
                 source,
                 parseOptions: parseOptions,
                 references: references,
-                targetFramework: targetFramework,
+                targetFramework: TargetFramework.Empty,
                 assemblyName: assemblyName,
                 options: options);
         }
@@ -277,11 +412,13 @@ namespace System.Runtime.CompilerServices
             CSharpCompilation comp,
             string assignments,
             MetadataReference[] references = null,
-            TargetFramework targetFramework = TargetFramework.Standard)
+            bool withoutCorlib = false)
         {
             CompilationReference compAsMetadata = comp.ToMetadataReference();
             references = references?.Append(compAsMetadata) ?? new[] { compAsMetadata };
-            var result = CreateCompilation(assignments, references: references, targetFramework: targetFramework);
+            if (!withoutCorlib)
+                references = references.Prepend(comp.References.First()).ToArray();
+            var result = CreateCompilation(assignments, references: references, targetFramework: TargetFramework.Empty);
             result.VerifyDiagnostics();
             var originalCorLib = comp.Assembly.CorLibrary;
             var newCorLib = result.Assembly.CorLibrary;
@@ -295,26 +432,30 @@ namespace System.Runtime.CompilerServices
             CSharpCompilation comp,
             string assignments,
             MetadataReference[] references = null,
-            TargetFramework targetFramework = TargetFramework.Standard)
+            bool withoutCorlib = false)
         {
             var compAsImage = comp.EmitToImageReference();
             references = references?.Append(compAsImage) ?? new[] { compAsImage };
-            return CreateCompilation(assignments, references: references, targetFramework: targetFramework);
+            if (!withoutCorlib)
+                references = references.Prepend(comp.References.First()).ToArray();
+            return CreateCompilation(assignments, references: references, targetFramework: TargetFramework.Empty);
         }
 
         private static CSharpCompilation RetargetingView(
             CSharpCompilation comp,
             string assignments,
             MetadataReference[] references = null,
-            TargetFramework targetFramework = TargetFramework.NetStandardLatest,
+            bool withoutCorlib = false,
             params DiagnosticDescription[] expectedDiagnostics)
         {
             CompilationReference compAsMetadata = comp.ToMetadataReference();
             references = references?.Append(compAsMetadata) ?? new[] { compAsMetadata };
+            if (!withoutCorlib)
+                references = references.Prepend(CorelibraryWithCovariantReturnSupport2).ToArray();
             var result = CreateCompilation(
                 assignments,
                 references: references,
-                targetFramework: targetFramework,
+                targetFramework: TargetFramework.Empty,
                 options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress));
 
             result.VerifyDiagnostics(expectedDiagnostics);
@@ -362,7 +503,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments)).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -387,7 +528,7 @@ public class Program
         }
 
         [Fact]
-        public void CorlibWithCovariantReturnSupport()
+        public void TestCorlibWithCovariantReturnSupport()
         {
             var source = @"
 public class Base
@@ -413,7 +554,7 @@ public class Derived2 : Base
 ";
             var assignments = @"";
 
-            CreateCompilationWithoutCovariantReturns(source, references: new[] { CorelibraryWithCovariantReturnSupport1 }, targetFramework: TargetFramework.Empty, pretendRuntimeSupportsCovariantReturnsFeature: false)
+            CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns)
                 .VerifyDiagnostics(
                 // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M1() => null;
@@ -425,13 +566,13 @@ public class Derived2 : Base
                 //     public override string this[int index] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(16, 28)
                 );
-            var comp = CreateCompilationWithCovariantReturns(source, references: new[] { CorelibraryWithCovariantReturnSupport1 }, targetFramework: TargetFramework.Empty, pretendRuntimeSupportsCovariantReturnsFeature: false)
+            var comp = CreateCompilationWithCovariantReturns(source)
                 .VerifyDiagnostics(
                 );
             verify(SourceView(comp, assignments));
-            verify(CompilationReferenceView(comp, "", references: new[] { CorelibraryWithCovariantReturnSupport1 }, targetFramework: TargetFramework.Empty));
-            verify(MetadataView(comp, "", references: new[] { CorelibraryWithCovariantReturnSupport1 }, targetFramework: TargetFramework.Empty));
-            verify(RetargetingView(comp, "", references: new[] { CorelibraryWithCovariantReturnSupport2 }, targetFramework: TargetFramework.Empty));
+            verify(CompilationReferenceView(comp, ""));
+            verify(MetadataView(comp, ""));
+            verify(RetargetingView(comp, ""));
 
             static void verify(CSharpCompilation comp)
             {
@@ -475,7 +616,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
@@ -483,14 +624,14 @@ public class Program
             verify(SourceView(comp, assignments));
 
             // Test against a runtime that does not admit support for covariant returns.
-            comp = CreateCompilationWithoutCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
+            comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS8778: 'Derived.M()': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base.M()'
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M()", "Base.M()", "object").WithLocation(8, 28)
                 );
             verify(SourceView(comp, assignments));
 
-            comp = CreateCompilationWithCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
+            comp = CreateCompilationWithoutCovariantReturns(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8778: 'Derived.M()': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base.M()'
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M()", "Base.M()", "object").WithLocation(8, 28)
@@ -549,7 +690,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override U M<T, U>() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
@@ -608,7 +749,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override U M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
@@ -670,7 +811,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (9,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override T M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 23)
@@ -730,7 +871,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
@@ -738,14 +879,7 @@ public class Program
             verify(SourceView(comp, assignments));
 
             // Test against a runtime that does not admit support for covariant returns.
-            comp = CreateCompilationWithoutCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
-                // (8,28): error CS8779: 'Derived.M': Target runtime doesn't support covariant types in overrides. Type must be 'object' to match overridden member 'Base.M'
-                //     public override string M => null;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses, "M").WithArguments("Derived.M", "Base.M", "object").WithLocation(8, 28)
-                );
-            verify(SourceView(comp, assignments));
-
-            comp = CreateCompilationWithCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
+            comp = CreateCompilationWithoutCovariantReturns(source, parseOptions: TestOptions.WithCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8779: 'Derived.M': Target runtime doesn't support covariant types in overrides. Type must be 'object' to match overridden member 'Base.M'
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses, "M").WithArguments("Derived.M", "Base.M", "object").WithLocation(8, 28)
@@ -806,7 +940,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override U M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
@@ -870,7 +1004,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (9,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override T M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 23)
@@ -932,7 +1066,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(8, 28)
@@ -994,7 +1128,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override U this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(8, 23)
@@ -1061,7 +1195,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (9,23): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override T this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(9, 23)
@@ -1194,7 +1328,7 @@ public class Base
     public virtual object M() => null;
 }
 ";
-            var baseMetadata = CreateCompilation(s0).EmitToImageReference();
+            var baseMetadata = CreateCompilationWithCovariantReturns(s0).EmitToImageReference();
             var source = @"
 public class Derived : Base
 {
@@ -1211,7 +1345,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
@@ -1256,7 +1390,7 @@ public class Base
     public virtual object M => null;
 }
 ";
-            var baseMetadata = CreateCompilation(s0).EmitToImageReference();
+            var baseMetadata = CreateCompilationWithCovariantReturns(s0).EmitToImageReference();
             var source = @"
 public class Derived : Base
 {
@@ -1274,7 +1408,7 @@ public class Program
 }
 ";
             var references = new[] { baseMetadata };
-            var comp = CreateCompilationWithoutCovariantReturns(source, references: references).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, references: references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
@@ -1320,7 +1454,7 @@ public class Base
     public virtual object this[int i] => null;
 }
 ";
-            var baseMetadata = CreateCompilation(s0).EmitToImageReference();
+            var baseMetadata = CreateCompilationWithCovariantReturns(s0).EmitToImageReference();
             var source = @"
 public class Derived : Base
 {
@@ -1338,7 +1472,7 @@ public class Program
 }
 ";
             var references = new[] { baseMetadata };
-            var comp = CreateCompilationWithoutCovariantReturns(source, references: references).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, references: references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(4, 28)
@@ -1400,7 +1534,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
@@ -1597,7 +1731,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (10,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M1 => null; // A
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(10, 28),
@@ -1674,7 +1808,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (9,33): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override IIn<object> M1 => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(9, 33),
@@ -1866,7 +2000,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
@@ -1936,7 +2070,7 @@ public class Program
 }
 ";
             // these are poor diagnostics; see https://github.com/dotnet/roslyn/issues/43719
-            var comp = CreateCompilationWithoutCovariantReturns(source, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (9,17): error CS0539: 'Derived.M1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     string Base.M1 => null;   // 1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Derived.M1").WithLocation(9, 17),
@@ -1951,7 +2085,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("C.M2()").WithLocation(15, 17)
                 );
             verify(SourceView(comp, assignments));
-            comp = CreateCompilationWithCovariantReturns(source, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (9,17): error CS0539: 'Derived.M1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     string Base.M1 => null;   // 1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Derived.M1").WithLocation(9, 17),
@@ -2000,7 +2134,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P { get; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28)
@@ -2065,7 +2199,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P { get => string.Empty; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28),
@@ -2120,7 +2254,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P { get => string.Empty; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28),
@@ -2174,7 +2308,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,40): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override System.IComparable P { get => string.Empty; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 40),
@@ -2292,7 +2426,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (8,49): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public abstract override System.IComparable M();
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 49),
@@ -2642,7 +2776,7 @@ public class Program
 ";
 
             var references = new[] { ref0, ref1a };
-            var comp = CreateCompilationWithoutCovariantReturns(s2, references).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(s2, references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
@@ -2716,7 +2850,7 @@ public class Derived : Mid
 ";
             var assignments = "";
             var references = new[] { ref0, ref1a };
-            var comp = CreateCompilationWithoutCovariantReturns(s2, references).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(s2, references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(4, 28)
@@ -2783,7 +2917,7 @@ public class Derived : Mid
 ";
             var assignments = "";
             var references = new[] { ref0, ref1a };
-            var comp = CreateCompilationWithoutCovariantReturns(s2, references).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(s2, references, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
@@ -2843,7 +2977,7 @@ public class D : C
 }
 ";
             var assignments = "";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (14,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string get_P() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "get_P").WithArguments("covariant returns").WithLocation(14, 28),
@@ -2885,7 +3019,7 @@ public class C : B
 }
 ";
             var assignments = "";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(12, 28)
@@ -2927,7 +3061,7 @@ public class C : B
 }
 ";
             var assignments = "";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(12, 28)
@@ -2986,6 +3120,9 @@ public class Program : Derived
 ";
             var comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
+            {
+                System.Delegate x;
+            }
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
 {
@@ -3315,7 +3452,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
+            var comp = CreateCompilationWithCovariantReturns(source, parseOptions: TestOptions.WithoutCovariantReturns).VerifyDiagnostics(
                 // (20,29): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string? M1() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(20, 29),
@@ -3404,6 +3541,12 @@ public class Program
             // See also related scenario in ExplicitOverrideWithoutCSharpOverride
 
             var ilSource = @"
+.assembly ilSource {}
+.assembly extern mscorlib
+{
+  .ver 4:1:0:0
+}
+
 .class public auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
@@ -3486,9 +3629,9 @@ public class Program
     }
 }
 ";
-            MetadataReference ilReference = CreateMetadataReferenceFromIlSource(ilSource);
+            MetadataReference ilReference = CreateMetadataReferenceFromIlSource(ilSource, prependDefaultHeader: false);
             var references = new[] { ilReference };
-            var comp = CreateCompilationWithoutCovariantReturns(cSharpSource, references);
+            var comp = CreateCompilationWithCovariantReturns(cSharpSource, references, parseOptions: TestOptions.WithoutCovariantReturns);
             comp.VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M1() => null;
@@ -3635,10 +3778,10 @@ public class Derived : Base2<string>
             Assert.Equal(requiresMethodImpl, useMethodImpl);
 
             verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: references, targetFramework: TargetFramework.Empty));
-            verify(RetargetingView(comp, "", references: retargetReferences, targetFramework: TargetFramework.Empty));
+            verify(CompilationReferenceView(comp, "", references: references, withoutCorlib: true));
+            verify(RetargetingView(comp, "", references: retargetReferences, withoutCorlib: true));
             if (!anyErrors)
-                verify(MetadataView(comp, "", references: references, targetFramework: TargetFramework.Empty));
+                verify(MetadataView(comp, "", references: references, withoutCorlib: true));
 
             void verify(CSharpCompilation compilation)
             {
@@ -3752,11 +3895,11 @@ public class Derived : Base2<string>
             Assert.Equal(requiresMethodImpl, useMethodImpl);
 
             verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: references, targetFramework: TargetFramework.Empty));
+            verify(CompilationReferenceView(comp, "", references: references, withoutCorlib: true));
             if (!useCovariantReturns)
-                verify(RetargetingView(comp, "", references: retargetReferences, targetFramework: TargetFramework.Empty));
+                verify(RetargetingView(comp, "", references: retargetReferences, withoutCorlib: true));
             if (!anyErrors)
-                verify(MetadataView(comp, "", references: references, targetFramework: TargetFramework.Empty));
+                verify(MetadataView(comp, "", references: references, withoutCorlib: true));
 
             void verify(CSharpCompilation compilation)
             {
@@ -3873,10 +4016,10 @@ public class Derived : Base<string>
             Assert.Equal(requiresMethodImpl, useMethodImpl);
 
             verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: references, targetFramework: TargetFramework.Empty));
-            verify(RetargetingView(comp, "", references: retargetReferences, targetFramework: TargetFramework.Empty));
+            verify(CompilationReferenceView(comp, "", references: references, withoutCorlib: true));
+            verify(RetargetingView(comp, "", references: retargetReferences, withoutCorlib: true));
             if (!anyErrors)
-                verify(MetadataView(comp, "", references: references, targetFramework: TargetFramework.Empty));
+                verify(MetadataView(comp, "", references: references, withoutCorlib: true));
 
             void verify(CSharpCompilation compilation)
             {
@@ -3986,11 +4129,11 @@ public class Derived : Base<string>
             Assert.Equal(requiresMethodImpl, useMethodImpl);
 
             verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: references, targetFramework: TargetFramework.Empty));
+            verify(CompilationReferenceView(comp, "", references: references, withoutCorlib: true));
             if (!useCovariantReturns)
-                verify(RetargetingView(comp, "", references: retargetReferences, targetFramework: TargetFramework.Empty));
+                verify(RetargetingView(comp, "", references: retargetReferences, withoutCorlib: true));
             if (!anyErrors)
-                verify(MetadataView(comp, "", references: references, targetFramework: TargetFramework.Empty));
+                verify(MetadataView(comp, "", references: references, withoutCorlib: true));
 
             void verify(CSharpCompilation compilation)
             {
@@ -4093,10 +4236,10 @@ public class Derived : Base2<string>
             Assert.Equal(requiresMethodImpl, useMethodImpl);
 
             verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: references, targetFramework: TargetFramework.Empty));
-            verify(RetargetingView(comp, "", references: retargetReferences, targetFramework: TargetFramework.Empty));
+            verify(CompilationReferenceView(comp, "", references: references, withoutCorlib: true));
+            verify(RetargetingView(comp, "", references: retargetReferences, withoutCorlib: true));
             if (!anyErrors)
-                verify(MetadataView(comp, "", references: references, targetFramework: TargetFramework.Empty));
+                verify(MetadataView(comp, "", references: references, withoutCorlib: true));
 
             void verify(CSharpCompilation compilation)
             {
@@ -4263,10 +4406,10 @@ public class Derived : Base<object>
             Assert.Equal(requiresMethodImpl, useMethodImpl);
 
             verify(SourceView(comp, ""));
-            verify(CompilationReferenceView(comp, "", references: references, targetFramework: TargetFramework.Empty));
+            verify(CompilationReferenceView(comp, "", references: references, withoutCorlib: true));
             if (overrideProperty == withPropertyDeclarationFirst)
             {
-                verify(RetargetingView(comp, "", references: retargetReferences, targetFramework: TargetFramework.Empty));
+                verify(RetargetingView(comp, "", references: retargetReferences, withoutCorlib: true));
             }
             else
             {
