@@ -104,15 +104,15 @@ StackTrace:
             private void DebugVerifyThread()
                 => Contract.ThrowIfFalse(Thread.CurrentThread == _thread);
 #else
-            private void DebugRecordInitialStackTrace()
+            private static void DebugRecordInitialStackTrace()
             {
             }
 
-            private void DebugRecordCurrentThread()
+            private static void DebugRecordCurrentThread()
             {
             }
 
-            private void DebugVerifyThread()
+            private static void DebugVerifyThread()
             {
             }
 #endif
