@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class CheckConstantInterpolatedStringValidity : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
-            readonly internal DiagnosticBag diagnostics;
+            internal readonly DiagnosticBag diagnostics;
 
             public CheckConstantInterpolatedStringValidity(DiagnosticBag diagnostics)
             {
