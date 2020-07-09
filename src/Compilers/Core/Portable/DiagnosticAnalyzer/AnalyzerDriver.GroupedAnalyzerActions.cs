@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private sealed class GroupedAnalyzerActions : IGroupedAnalyzerActions
         {
-            public static GroupedAnalyzerActions Empty = new GroupedAnalyzerActions(ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)>.Empty, AnalyzerActions.Empty);
+            public static readonly GroupedAnalyzerActions Empty = new GroupedAnalyzerActions(ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)>.Empty, AnalyzerActions.Empty);
 
             private GroupedAnalyzerActions(ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)> groupedActionsAndAnalyzers, in AnalyzerActions analyzerActions)
             {
@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public static GroupedAnalyzerActions Create(DiagnosticAnalyzer analyzer, in AnalyzerActions analyzerActions)
             {
+                if (analyzerActions.IsEmpty)
+                {
+                    return Empty;
+                }
+
                 var groupedActions = new GroupedAnalyzerActionsForAnalyzer(analyzer, analyzerActions, analyzerActionsNeedFiltering: false);
                 var groupedActionsAndAnalyzers = ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)>.Empty.Add((analyzer, groupedActions));
                 return new GroupedAnalyzerActions(groupedActionsAndAnalyzers, in analyzerActions);
@@ -52,14 +57,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Debug.Assert(!analyzers.IsDefaultOrEmpty);
 
-                var builder = ArrayBuilder<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)>.GetInstance();
-                foreach (var analyzer in analyzers)
-                {
-                    var groupedActionsForAnalyzer = new GroupedAnalyzerActionsForAnalyzer(analyzer, analyzerActions, analyzerActionsNeedFiltering: true);
-                    builder.Add((analyzer, groupedActionsForAnalyzer));
-                }
-
-                return new GroupedAnalyzerActions(builder.ToImmutableAndFree(), in analyzerActions);
+                var groups = analyzers.SelectAsArray(
+                    (analyzer, analyzerActions) => (analyzer, new GroupedAnalyzerActionsForAnalyzer(analyzer, analyzerActions, analyzerActionsNeedFiltering: true)),
+                    analyzerActions);
+                return new GroupedAnalyzerActions(groups, in analyzerActions);
             }
 
             IGroupedAnalyzerActions IGroupedAnalyzerActions.Append(IGroupedAnalyzerActions igroupedAnalyzerActions)

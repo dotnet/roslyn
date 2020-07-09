@@ -1421,10 +1421,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     processedState = EventProcessedState.NotProcessed;
                 }
 
-                ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers;
                 if (processedState.Kind == EventProcessedStateKind.Processed &&
                     hasPerSymbolActions &&
-                    !TryExecuteSymbolEndActions(perSymbolActions.AnalyzerActions, symbolEvent, analysisScope, analysisStateOpt, out subsetProcessedAnalyzers))
+                    !TryExecuteSymbolEndActions(perSymbolActions.AnalyzerActions, symbolEvent, analysisScope, analysisStateOpt, out var subsetProcessedAnalyzers))
                 {
                     Debug.Assert(!subsetProcessedAnalyzers.IsDefault);
                     processedState = subsetProcessedAnalyzers.IsEmpty ? EventProcessedState.NotProcessed : EventProcessedState.CreatePartiallyProcessed(subsetProcessedAnalyzers);
@@ -1530,7 +1529,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     completedAnalyzers.Add(analyzer);
                 }
 
-                Debug.Assert(processedAnalyzers.All(analysisScope.Contains));
                 if (processedAnalyzers.Count < analysisScope.Analyzers.Length)
                 {
                     foreach (var analyzer in analysisScope.Analyzers)
@@ -1573,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt,
             bool isGeneratedCodeSymbol,
-            in IGroupedAnalyzerActions additionalPerSymbolActions,
+            IGroupedAnalyzerActions additionalPerSymbolActions,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -2227,7 +2225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected override IGroupedAnalyzerActions EmptyGroupedActions => GroupedAnalyzerActions.Empty;
         protected override IGroupedAnalyzerActions CreateGroupedActions(DiagnosticAnalyzer analyzer, in AnalyzerActions analyzerActions)
-            => !analyzerActions.IsEmpty ? GroupedAnalyzerActions.Create(analyzer, analyzerActions) : null;
+            => GroupedAnalyzerActions.Create(analyzer, analyzerActions);
 
         /// <summary>
         /// Tries to execute syntax node, code block and operation actions for all declarations for the given symbol.
@@ -2241,7 +2239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt,
             bool isGeneratedCodeSymbol,
-            in IGroupedAnalyzerActions additionalPerSymbolActions,
+            IGroupedAnalyzerActions additionalPerSymbolActions,
             CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;

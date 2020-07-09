@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public AnalyzerActions AnalyzerActions { get; }
 
             [Conditional("DEBUG")]
-            private static void VerifyActions<TAnalyzerAction>(in IEnumerable<TAnalyzerAction> actions, DiagnosticAnalyzer analyzer)
+            private static void VerifyActions<TAnalyzerAction>(in ImmutableArray<TAnalyzerAction> actions, DiagnosticAnalyzer analyzer)
                 where TAnalyzerAction : AnalyzerAction
             {
                 foreach (var action in actions)
@@ -65,16 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return actions;
                 }
 
-                var builder = ArrayBuilder<TAnalyzerAction>.GetInstance();
-                foreach (var action in actions)
-                {
-                    if (action.Analyzer == analyzer)
-                    {
-                        builder.Add(action);
-                    }
-                }
-
-                return builder.ToImmutableAndFree();
+                return actions.WhereAsArray((action, analyzer) => action.Analyzer == analyzer, analyzer);
             }
 
             public ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> NodeActionsByAnalyzerAndKind
