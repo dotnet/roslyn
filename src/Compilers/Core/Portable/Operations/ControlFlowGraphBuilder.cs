@@ -6542,7 +6542,7 @@ oneMoreTime:
 
         public override IOperation VisitDiscardPattern(IDiscardPatternOperation pat, int? captureIdForResult)
         {
-            return new DiscardPatternOperation(pat.InputType, semanticModel: null, pat.Syntax, IsImplicit(pat));
+            return new DiscardPatternOperation(pat.InputType, pat.NarrowedType, semanticModel: null, pat.Syntax, IsImplicit(pat));
         }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
@@ -6713,7 +6713,7 @@ oneMoreTime:
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
         {
-            return new ConstantPatternOperation(operation.InputType, Visit(operation.Value), semanticModel: null,
+            return new ConstantPatternOperation(operation.InputType, operation.NarrowedType, Visit(operation.Value), semanticModel: null,
                 syntax: operation.Syntax, isImplicit: IsImplicit(operation));
         }
 
@@ -6723,6 +6723,7 @@ oneMoreTime:
                 operatorKind: operation.OperatorKind,
                 value: Visit(operation.Value),
                 inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
                 semanticModel: null,
                 syntax: operation.Syntax,
                 type: operation.Type,
@@ -6737,6 +6738,7 @@ oneMoreTime:
                 leftPattern: (IPatternOperation)Visit(operation.LeftPattern),
                 rightPattern: (IPatternOperation)Visit(operation.RightPattern),
                 inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
                 semanticModel: null,
                 syntax: operation.Syntax,
                 type: operation.Type,
@@ -6749,6 +6751,7 @@ oneMoreTime:
             return new NegatedPatternOperation(
                 pattern: (IPatternOperation)Visit(operation.Pattern),
                 inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
                 semanticModel: null,
                 syntax: operation.Syntax,
                 type: operation.Type,
@@ -6761,6 +6764,7 @@ oneMoreTime:
             return new TypePatternOperation(
                 matchedType: operation.MatchedType,
                 inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
                 semanticModel: null,
                 syntax: operation.Syntax,
                 type: operation.Type,
@@ -6772,6 +6776,7 @@ oneMoreTime:
         {
             return new DeclarationPatternOperation(
                 inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
                 matchedType: operation.MatchedType,
                 operation.DeclaredSymbol,
                 operation.MatchesNull,
@@ -6784,6 +6789,7 @@ oneMoreTime:
         {
             return new RecursivePatternOperation(
                 inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
                 matchedType: operation.MatchedType,
                 operation.DeconstructSymbol,
                 operation.DeconstructionSubpatterns.SelectAsArray(p => (IPatternOperation)Visit(p)),

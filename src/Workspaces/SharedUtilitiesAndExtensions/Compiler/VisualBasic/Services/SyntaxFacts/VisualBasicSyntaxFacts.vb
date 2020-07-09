@@ -108,6 +108,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return token.IsPreprocessorKeyword()
         End Function
 
+        Public Function IsPreProcessorDirectiveContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsPreProcessorDirectiveContext
+            Return syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
+        End Function
+
         Public Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean Implements ISyntaxFacts.TryGetCorrespondingOpenBrace
 
             If token.Kind = SyntaxKind.CloseBraceToken Then
@@ -1063,66 +1067,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     list.Add(member)
                 End If
             Next
-        End Sub
-
-        Public Function GetMethodLevelMemberId(root As SyntaxNode, node As SyntaxNode) As Integer Implements ISyntaxFacts.GetMethodLevelMemberId
-            Debug.Assert(root.SyntaxTree Is node.SyntaxTree)
-
-            Dim currentId As Integer = Nothing
-            Dim currentNode As SyntaxNode = Nothing
-            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, Function(n, i) n Is node, currentId, currentNode))
-
-            Contract.ThrowIfFalse(currentId >= 0)
-            CheckMemberId(root, node, currentId)
-
-            Return currentId
-        End Function
-
-        Public Function GetMethodLevelMember(root As SyntaxNode, memberId As Integer) As SyntaxNode Implements ISyntaxFacts.GetMethodLevelMember
-            Dim currentId As Integer = Nothing
-            Dim currentNode As SyntaxNode = Nothing
-
-            If Not TryGetMethodLevelMember(root, Function(n, i) i = memberId, currentId, currentNode) Then
-                Return Nothing
-            End If
-
-            Contract.ThrowIfNull(currentNode)
-            CheckMemberId(root, currentNode, memberId)
-
-            Return currentNode
-        End Function
-
-        Private Function TryGetMethodLevelMember(node As SyntaxNode, predicate As Func(Of SyntaxNode, Integer, Boolean), ByRef currentId As Integer, ByRef currentNode As SyntaxNode) As Boolean
-            For Each member In node.GetMembers()
-                If TypeOf member Is NamespaceBlockSyntax OrElse
-                   TypeOf member Is TypeBlockSyntax OrElse
-                   TypeOf member Is EnumBlockSyntax Then
-                    If TryGetMethodLevelMember(member, predicate, currentId, currentNode) Then
-                        Return True
-                    End If
-
-                    Continue For
-                End If
-
-                If IsMethodLevelMember(member) Then
-                    If predicate(member, currentId) Then
-                        currentNode = member
-                        Return True
-                    End If
-
-                    currentId += 1
-                End If
-            Next
-
-            currentNode = Nothing
-            Return False
-        End Function
-
-        <Conditional("DEBUG")>
-        Private Sub CheckMemberId(root As SyntaxNode, node As SyntaxNode, memberId As Integer)
-            Dim list = GetMethodLevelMembers(root)
-            Dim index = list.IndexOf(node)
-            Contract.ThrowIfFalse(index = memberId)
         End Sub
 
         Public Function TryGetBindableParent(token As SyntaxToken) As SyntaxNode Implements ISyntaxFacts.TryGetBindableParent

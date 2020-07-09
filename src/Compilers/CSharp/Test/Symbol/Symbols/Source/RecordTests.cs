@@ -225,6 +225,9 @@ record C(int X, int Y)
 }
 ");
             comp.VerifyDiagnostics(
+                // (4,17): error CS8872: 'C.Equals(C)' disallows overriding and containing 'record' is not sealed.
+                //     public bool Equals(C c) => throw null;
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("C.Equals(C)").WithLocation(4, 17),
                 // (5,26): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
                 //     public override bool Equals(object o) => false;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(5, 26)
@@ -258,7 +261,7 @@ record C(int X, int Y)
         object c = new C(0, 0);
         Console.WriteLine(c.Equals(c));
     }
-    public bool Equals(C c) => false;
+    public virtual bool Equals(C c) => false;
 }", expectedOutput: "False");
         }
 
@@ -285,7 +288,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-record C(int X, int Y)
+sealed record C(int X, int Y)
 {
     public static void Main()
     {

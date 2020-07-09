@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _failedTransfer.Value.Throw();
             }
 
-            public override void Post(SendOrPostCallback d, object state)
+            public override void Post(SendOrPostCallback d, object? state)
             {
                 try
                 {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
             }
 
-            public override void Send(SendOrPostCallback d, object state)
+            public override void Send(SendOrPostCallback d, object? state)
             {
                 try
                 {
