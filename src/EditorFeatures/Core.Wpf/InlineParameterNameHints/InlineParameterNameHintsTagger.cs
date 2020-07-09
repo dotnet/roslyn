@@ -55,10 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         private void OnTagAggregatorTagsChanged(object sender, TagsChangedEventArgs e)
         {
-            _cache.Clear();
+            //_cache.Clear();
             var spans = e.Span.GetSpans(_buffer);
             foreach (var span in spans)
             {
+                _cache.Clear();
                 TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
             }
         }

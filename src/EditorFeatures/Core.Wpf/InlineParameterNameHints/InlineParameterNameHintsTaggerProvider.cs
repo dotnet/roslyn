@@ -38,14 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             this.ClassificationTypeRegistryService = classificationTypeRegistryService;
         }
 
-        /*
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-        {
-            var tagAggregator = _bufferTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(buffer);
-            return new InlineParameterNameHintsTagger(buffer, tagAggregator) as ITagger<T>;
-        }
-        */
-
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
             var tagAggregator = _bufferTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(buffer);
