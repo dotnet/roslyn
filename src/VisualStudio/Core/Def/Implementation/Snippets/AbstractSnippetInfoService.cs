@@ -64,18 +64,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (serviceProvider != null)
             {
-                _asyncTasks.Add(threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                _asyncTasks.Add(threadingContext.JoinableTaskFactory.RunAsync(() =>
                 {
-                    await InitializeAndPopulateSnippetsCacheAsync(threadingContext, (Shell.IAsyncServiceProvider)serviceProvider).ConfigureAwait(false);
+                    return InitializeAndPopulateSnippetsCacheAsync(threadingContext, serviceProvider);
                 }));
             }
         }
 
-        private async Task InitializeAndPopulateSnippetsCacheAsync(IThreadingContext threadingContext, Shell.IAsyncServiceProvider serviceProvider)
+        private async Task InitializeAndPopulateSnippetsCacheAsync(IThreadingContext threadingContext, Shell.SVsServiceProvider serviceProvider)
         {
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var asyncProvider = (Shell.IAsyncServiceProvider)serviceProvider;
 
-            var textManager = (IVsTextManager2)await serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
+            var textManager = (IVsTextManager2)await asyncProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
             if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
             {
                 ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);
@@ -89,9 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (_expansionManager != null)
             {
-                _asyncTasks.Add(ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                _asyncTasks.Add(ThreadingContext.JoinableTaskFactory.RunAsync(() =>
                 {
-                    await PopulateSnippetCacheAsync().ConfigureAwait(false);
+                    return PopulateSnippetCacheAsync();
                 }));
             }
 
