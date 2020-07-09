@@ -1023,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _variableSlot.ToImmutableDictionary(),
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
                 _variableTypes.ToImmutableDictionary(),
-                _symbol);
+                CurrentSymbol);
 
         private void TakeIncrementalSnapshot(BoundNode node)
         {
@@ -2196,6 +2196,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldState = this.State;
             this.State = state;
 
+            var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
+
             var oldPending = SavePending();
 
             EnterParameters();
@@ -2236,6 +2238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Join(ref stateAtReturn, ref this.State);
             }
+
+            _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
 
             this.State = oldState;
             _returnTypesOpt = oldReturnTypes;
