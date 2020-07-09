@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -40,6 +41,23 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// Gets the <see cref="VisualStudio.Threading.JoinableTaskFactory"/> for use in Roslyn code.
         /// </summary>
         JoinableTaskFactory JoinableTaskFactory
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets a <see cref="CancellationToken"/> indicating that disposal has been requested for the threading
+        /// context.
+        /// </summary>
+        CancellationToken DisposalToken
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets a collection of tasks which are joined during shutdown.
+        /// </summary>
+        JoinableTaskCollection JoinableTaskCollection
         {
             get;
         }
