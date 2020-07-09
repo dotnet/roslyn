@@ -145,8 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         {
                             foreach (var documentHighlights in documentHighlightsList)
                             {
-                                await AddTagSpansAsync(
-                                    context, document.Project.Solution, documentHighlights).ConfigureAwait(false);
+                                await AddTagSpansAsync(context, documentHighlights).ConfigureAwait(false);
                             }
                         }
                     }
@@ -156,7 +155,6 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 
         private static async Task AddTagSpansAsync(
             TaggerContext<NavigableHighlightTag> context,
-            Solution solution,
             DocumentHighlights documentHighlights)
         {
             var cancellationToken = context.CancellationToken;

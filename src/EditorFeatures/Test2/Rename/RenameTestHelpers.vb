@@ -110,7 +110,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             VerifyFileName(workspace.CurrentSolution.GetDocument(documentId), newIdentifierName)
         End Sub
 
+#Disable Warning IDE0060 ' Remove unused parameter - . TODO: File a test bug - this seems like a test bug that TestHost parameter is ignored.
         Public Function CreateWorkspaceWithWaiter(element As XElement, host As TestHost) As TestWorkspace
+#Enable Warning IDE0060 ' Remove unused parameter
             Dim workspace = TestWorkspace.CreateWorkspace(
                 element,
                 exportProvider:=ExportProviderFactory.CreateExportProvider())

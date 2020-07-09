@@ -54,22 +54,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 => RuntimeHelpers.GetHashCode(this);
         }
 
-        public static TestWorkspace Create(string xmlDefinition, bool completed = true, bool openDocuments = false, ExportProvider exportProvider = null)
-            => Create(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
+        public static TestWorkspace Create(string xmlDefinition, bool openDocuments = false, ExportProvider exportProvider = null)
+            => Create(XElement.Parse(xmlDefinition), openDocuments, exportProvider);
 
         public static TestWorkspace CreateWorkspace(
             XElement workspaceElement,
-            bool completed = true,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
             string workspaceKind = null)
         {
-            return Create(workspaceElement, completed, openDocuments, exportProvider, workspaceKind);
+            return Create(workspaceElement, openDocuments, exportProvider, workspaceKind);
         }
 
         internal static TestWorkspace Create(
             XElement workspaceElement,
-            bool completed = true,
             bool openDocuments = true,
             ExportProvider exportProvider = null,
             string workspaceKind = null,
@@ -87,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
             var projectElementToProjectName = new Dictionary<XElement, string>();
-            var filePathToTextBufferMap = new Dictionary<string, ITextBuffer>();
             var projectIdentifier = 0;
             var documentIdentifier = 0;
 
@@ -98,7 +95,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     projectElement,
                     exportProvider,
                     workspace,
-                    filePathToTextBufferMap,
                     documentServiceProvider,
                     ref projectIdentifier,
                     ref documentIdentifier);
@@ -248,7 +244,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             XElement projectElement,
             ExportProvider exportProvider,
             TestWorkspace workspace,
-            Dictionary<string, ITextBuffer> filePathToTextBufferMap,
             IDocumentServiceProvider documentServiceProvider,
             ref int projectId,
             ref int documentId)
@@ -286,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var rootNamespace = GetRootNamespace(workspace, compilationOptions, projectElement);
 
             var references = CreateReferenceList(workspace, projectElement);
-            var analyzers = CreateAnalyzerList(workspace, projectElement);
+            var analyzers = CreateAnalyzerList(projectElement);
 
             var documents = new List<TestHostDocument>();
             var documentElements = projectElement.Elements(DocumentElementName).ToList();
@@ -296,10 +291,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     workspace,
                     workspaceElement,
                     documentElement,
-                    language,
                     exportProvider,
                     languageServices,
-                    filePathToTextBufferMap,
                     documentServiceProvider,
                     ref documentId);
 
@@ -314,10 +307,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     workspace,
                     workspaceElement,
                     additionalDocumentElement,
-                    language,
                     exportProvider,
                     languageServices,
-                    filePathToTextBufferMap,
                     documentServiceProvider,
                     ref documentId);
 
@@ -332,10 +323,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     workspace,
                     workspaceElement,
                     analyzerConfigElement,
-                    language,
                     exportProvider,
                     languageServices,
-                    filePathToTextBufferMap,
                     documentServiceProvider,
                     ref documentId);
 
@@ -656,10 +645,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestWorkspace workspace,
             XElement workspaceElement,
             XElement documentElement,
-            string language,
             ExportProvider exportProvider,
             HostLanguageServices languageServiceProvider,
-            Dictionary<string, ITextBuffer> filePathToTextBufferMap,
             IDocumentServiceProvider documentServiceProvider,
             ref int documentId)
         {
@@ -928,7 +915,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return references;
         }
 
-        private static IList<AnalyzerReference> CreateAnalyzerList(TestWorkspace workspace, XElement projectElement)
+        private static IList<AnalyzerReference> CreateAnalyzerList(XElement projectElement)
         {
             var analyzers = new List<AnalyzerReference>();
             foreach (var analyzer in projectElement.Elements(AnalyzerElementName))

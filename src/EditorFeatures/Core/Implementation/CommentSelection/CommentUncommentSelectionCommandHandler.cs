@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             {
                 var positionOfStart = span.Start + spanText.IndexOf(info.BlockCommentStartString, StringComparison.Ordinal);
                 var positionOfEnd = span.Start + spanText.LastIndexOf(info.BlockCommentEndString, StringComparison.Ordinal);
-                UncommentPosition(info, span, textChanges, spansToSelect, positionOfStart, positionOfEnd);
+                UncommentPosition(info, textChanges, spansToSelect, positionOfStart, positionOfEnd);
                 return true;
             }
 
@@ -254,10 +254,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 }
             }
 
-            UncommentPosition(info, span, textChanges, spansToSelect, positionOfStart, positionOfEnd);
+            UncommentPosition(info, textChanges, spansToSelect, positionOfStart, positionOfEnd);
         }
 
-        private static void UncommentPosition(CommentSelectionInfo info, SnapshotSpan span, ArrayBuilder<TextChange> textChanges,
+        private static void UncommentPosition(CommentSelectionInfo info, ArrayBuilder<TextChange> textChanges,
             ArrayBuilder<CommentTrackingSpan> spansToSelect, int positionOfStart, int positionOfEnd)
         {
             if (positionOfStart < 0 || positionOfEnd < 0)

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             return buffer.CurrentSnapshot.GetText();
         }
 
-        protected async Task AssertFormatAsync(string expected, string code, IEnumerable<TextSpan> spans, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, int? baseIndentation = null)
+        protected async Task AssertFormatAsync(string expected, string code, IEnumerable<TextSpan> spans, Dictionary<OptionKey, object> changedOptionSet = null, int? baseIndentation = null)
         {
             using var workspace = CreateWorkspace(code);
             var hostdoc = workspace.Documents.First();

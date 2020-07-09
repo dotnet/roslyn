@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private void Test(string stringText, string expected, RegexOptions options,
-            bool runSubTreeTests = true, [CallerMemberName] string name = "",
+            bool runSubTreeTests = true,
             bool allowIndexOutOfRange = false,
             bool allowNullReference = false,
             bool allowOutOfMemory = false,

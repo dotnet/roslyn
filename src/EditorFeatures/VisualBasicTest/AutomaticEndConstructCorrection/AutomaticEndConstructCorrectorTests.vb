@@ -408,7 +408,7 @@ End Class</code>.Value
                 Dim spanToReplace = selectedSpans.First()
                 Dim spanToVerify = selectedSpans.Skip(1).Single()
 
-                Verify(workspace, document, keyword, expected, spanToReplace, spanToVerify)
+                Verify(document, keyword, expected, spanToReplace, spanToVerify)
             End Using
         End Sub
 
@@ -421,11 +421,11 @@ End Class</code>.Value
                 Dim spanToReplace = selectedSpans.Skip(1).Single()
                 Dim spanToVerify = selectedSpans.First()
 
-                Verify(workspace, document, keyword, expected, spanToReplace, spanToVerify)
+                Verify(document, keyword, expected, spanToReplace, spanToVerify)
             End Using
         End Sub
 
-        Private Shared Sub Verify(workspace As TestWorkspace, document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan)
+        Private Shared Sub Verify(document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan)
             Dim buffer = document.GetTextBuffer()
             Dim corrector = New AutomaticEndConstructCorrector(buffer, New TestWaitIndicator())
 

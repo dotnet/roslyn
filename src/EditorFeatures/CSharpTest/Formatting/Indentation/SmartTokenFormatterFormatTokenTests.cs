@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
             await ExpectException_SmartTokenFormatterCloseBraceAsync(
                 code,
-                indentationLine: 0,
-                expectedSpace: 0);
+                indentationLine: 0);
         }
 
         [Fact]
@@ -698,17 +697,15 @@ class Program
 
         private static async Task ExpectException_SmartTokenFormatterCloseBraceAsync(
             string code,
-            int indentationLine,
-            int expectedSpace)
+            int indentationLine)
         {
-            await ExpectException_SmartTokenFormatterCloseBraceAsync(code, indentationLine, expectedSpace, useTabs: false).ConfigureAwait(false);
-            await ExpectException_SmartTokenFormatterCloseBraceAsync(code.Replace("    ", "\t"), indentationLine, expectedSpace, useTabs: true).ConfigureAwait(false);
+            await ExpectException_SmartTokenFormatterCloseBraceAsync(code, indentationLine, useTabs: false).ConfigureAwait(false);
+            await ExpectException_SmartTokenFormatterCloseBraceAsync(code.Replace("    ", "\t"), indentationLine, useTabs: true).ConfigureAwait(false);
         }
 
         private static async Task ExpectException_SmartTokenFormatterCloseBraceAsync(
             string code,
             int indentationLine,
-            int expectedSpace,
             bool useTabs)
         {
             Assert.NotNull(await Record.ExceptionAsync(() => GetSmartTokenFormatterIndentationAsync(code, indentationLine, '}', useTabs)));

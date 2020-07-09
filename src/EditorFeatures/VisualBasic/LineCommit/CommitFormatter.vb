@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 Dim textSpanToFormat = spanToFormat.Span.ToTextSpan()
-                If AbortForDiagnostics(document, textSpanToFormat, cancellationToken) Then
+                If AbortForDiagnostics(document, cancellationToken) Then
                     Return
                 End If
 
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Using
         End Sub
 
-        Private Shared Function AbortForDiagnostics(document As Document, textSpanToFormat As TextSpan, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function AbortForDiagnostics(document As Document, cancellationToken As CancellationToken) As Boolean
             Const UnterminatedStringId = "BC30648"
 
             Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)

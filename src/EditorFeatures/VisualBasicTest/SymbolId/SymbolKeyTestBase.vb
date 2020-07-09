@@ -29,7 +29,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
 #Region "Verification"
 
+#Disable Warning IDE0060 ' Remove unused parameter - TODO: File a test bug for unused 'newCompilation' parameter. Should 'ResolveAndVerifySymbol' calls below use 'newCompilation'?
         Friend Shared Sub ResolveAndVerifySymbolList(newSymbols As IEnumerable(Of ISymbol), newCompilation As Compilation, originalSymbols As IEnumerable(Of ISymbol), originalCompilation As Compilation)
+#Enable Warning IDE0060 ' Remove unused parameter
 
             Dim newlist = newSymbols.OrderBy(Function(s) s.Name).ToList()
             Dim origlist = originalSymbols.OrderBy(Function(s) s.Name).ToList()
@@ -60,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
         Friend Shared Sub ResolveAndVerifySymbol(symbol1 As ISymbol, symbol2 As ISymbol, compilation2 As Compilation, Optional comparison As SymbolIdComparison = SymbolIdComparison.IgnoreCase)
 
-            AssertSymbolsIdsEqual(symbol1, symbol2, compilation2, comparison)
+            AssertSymbolsIdsEqual(symbol1, symbol2, comparison)
 
             Dim resolvedSymbol = ResolveSymbol(symbol1, compilation2, comparison)
             Assert.NotNull(resolvedSymbol)
@@ -82,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Return symInfo.Symbol
         End Function
 
-        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, symbol2 As ISymbol, compilation2 As Compilation, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
+        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, symbol2 As ISymbol, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
 
             Dim sid1 = SymbolKey.Create(symbol1, CancellationToken.None)
             Dim sid2 = SymbolKey.Create(symbol2, CancellationToken.None)

@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ActiveStatement[] oldActiveStatements,
             TextSpan?[]? trackingSpans,
             TextSpan[] expectedNewActiveStatements,
-            ImmutableArray<TextSpan>[] expectedOldExceptionRegions,
             ImmutableArray<TextSpan>[] expectedNewExceptionRegions)
         {
             var text = SourceText.From(source);

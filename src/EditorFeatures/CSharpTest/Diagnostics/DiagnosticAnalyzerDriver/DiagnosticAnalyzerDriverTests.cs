@@ -309,7 +309,7 @@ class C
                     }
                 }
 
-                public static void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
+                public static void AnalyzeCodeBlock(CodeBlockAnalysisContext _)
                 {
                 }
 

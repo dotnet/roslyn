@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         protected static async Task ExpectExtractMethodToFailAsync(
             string codeWithMarker,
             string expected,
-            bool allowMovingDeclaration = true,
             bool dontPutOutOrRefOnStruct = true,
             CSharpParseOptions parseOptions = null)
         {

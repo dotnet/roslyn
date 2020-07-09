@@ -261,7 +261,7 @@ if (true)
 {");
         }
 
-        private static QuickInfoProvider CreateProvider(TestWorkspace workspace)
+        private static QuickInfoProvider CreateProvider()
             => new CSharpSyntacticQuickInfoProvider();
 
         protected override async Task AssertNoContentAsync(
@@ -269,7 +269,7 @@ if (true)
             Document document,
             int position)
         {
-            var provider = CreateProvider(workspace);
+            var provider = CreateProvider();
             Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None)));
         }
 
@@ -281,7 +281,7 @@ if (true)
             string expectedContent,
             string expectedDocumentationComment = null)
         {
-            var provider = CreateProvider(workspace);
+            var provider = CreateProvider();
             var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
             Assert.NotNull(info);
             Assert.NotEqual(0, info.RelatedSpans.Length);

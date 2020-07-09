@@ -18,25 +18,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     {
         protected static async Task CheckAsync(string initial, string final)
         {
-            await CheckResultAsync(initial, final);
-            await CheckResultAsync(initial, final, Options.Script);
+            await CheckAsync(initial, final, options: null);
+            await CheckAsync(initial, final, Options.Script);
         }
 
-        protected static async Task CheckAsync(string initial, string final, bool specialCaseSystem)
+        protected static async Task CheckAsync(string initial, string final, CSharpParseOptions options)
         {
-            await CheckResultAsync(initial, final, specialCaseSystem);
-            await CheckResultAsync(initial, final, specialCaseSystem, Options.Script);
-        }
-
-        protected static async Task CheckResultAsync(string initial, string final, bool specialCaseSystem, CSharpParseOptions options = null)
-        {
-            using var workspace = TestWorkspace.CreateCSharp(initial);
+            using var workspace = TestWorkspace.CreateCSharp(initial, options);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
             var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();
             Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
         }
-
-        protected static Task CheckResultAsync(string initial, string final, CSharpParseOptions options = null)
-            => CheckResultAsync(initial, final, false, options);
     }
 }

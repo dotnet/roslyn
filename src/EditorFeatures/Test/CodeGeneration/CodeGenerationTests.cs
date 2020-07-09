@@ -462,8 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         internal static async Task TestRemoveAttributeAsync<T>(
             string initial,
             string expected,
-            Type attributeClass,
-            SyntaxToken? target = null) where T : SyntaxNode
+            Type attributeClass) where T : SyntaxNode
         {
             using var context = await TestContext.CreateAsync(initial, expected);
             var attributeType = (INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel);
@@ -759,7 +758,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             private readonly bool _ignoreResult;
 
             public TestContext(
-                string initial,
                 string expected,
                 bool ignoreResult,
                 string language,
@@ -784,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var workspace = CreateWorkspaceFromFile(initial.NormalizeLineEndings(), isVisualBasic, null, null);
                 var semanticModel = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSemanticModelAsync();
 
-                return new TestContext(initial, expected, ignoreResult, language, workspace, semanticModel);
+                return new TestContext(expected, ignoreResult, language, workspace, semanticModel);
             }
 
             public Solution Solution { get { return Workspace.CurrentSolution; } }

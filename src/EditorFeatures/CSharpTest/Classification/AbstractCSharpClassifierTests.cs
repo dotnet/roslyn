@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public abstract class AbstractCSharpClassifierTests : AbstractClassifierTests
     {
-        protected static TestWorkspace CreateWorkspace(string code, TextSpan span, ParseOptions options, bool outOfProcess)
+        protected static TestWorkspace CreateWorkspace(string code, ParseOptions options, bool outOfProcess)
         {
             var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(

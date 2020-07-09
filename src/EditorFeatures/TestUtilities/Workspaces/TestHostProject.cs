@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        internal void SetSolution(TestHostSolution solution)
+        internal void SetSolution(TestHostSolution _)
         {
             // set up back pointer to this project.
             if (this.Documents != null)

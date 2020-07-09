@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     {
         protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, bool outOfProcess)
         {
-            using var workspace = CreateWorkspace(code, span, options, outOfProcess);
+            using var workspace = CreateWorkspace(code, options, outOfProcess);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
             return GetSyntacticClassificationsAsync(document, span);

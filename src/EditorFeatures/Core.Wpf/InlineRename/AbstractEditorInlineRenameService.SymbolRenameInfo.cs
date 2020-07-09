@@ -77,13 +77,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
                 this.ForceRenameOverloads = forceRenameOverloads;
 
-                _isRenamingAttributePrefix = CanRenameAttributePrefix(document, triggerSpan, triggerText, cancellationToken);
+                _isRenamingAttributePrefix = CanRenameAttributePrefix(triggerText);
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), triggerText, cancellationToken);
 
                 this.DefinitionLocations = definitionLocations;
             }
 
-            private bool CanRenameAttributePrefix(Document document, TextSpan triggerSpan, string triggerText, CancellationToken cancellationToken)
+            private bool CanRenameAttributePrefix(string triggerText)
             {
                 // if this isn't an attribute, or it doesn't have the 'Attribute' suffix, then clearly
                 // we can't rename just the attribute prefix.

@@ -131,8 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                         eventContainer:=Nothing,
                         semanticModel:=semanticModel,
                         workspaceSupportsDocumentChanges:=workspaceSupportsDocumentChanges,
-                        symbolDeclarationService:=symbolDeclarationService,
-                    cancellationToken:=cancellationToken)
+                        symbolDeclarationService:=symbolDeclarationService)
 
                     ' Add the (<ClassName> Events) item only if it actually has things within it
                     If typeEvents.ChildItems.Count > 0 Then
@@ -151,8 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                                     propertySymbol,
                                     semanticModel,
                                     workspaceSupportsDocumentChanges,
-                                    symbolDeclarationService,
-                                    cancellationToken))
+                                    symbolDeclarationService))
                         End If
                     Next
                 End If
@@ -299,8 +297,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                                              eventContainer As IPropertySymbol,
                                              semanticModel As SemanticModel,
                                              workspaceSupportsDocumentChanges As Boolean,
-                                             symbolDeclarationService As ISymbolDeclarationService,
-                                             cancellationToken As CancellationToken) As NavigationBarItem
+                                             symbolDeclarationService As ISymbolDeclarationService) As NavigationBarItem
 
             Dim rightHandMemberItems As New List(Of NavigationBarItem)
 
@@ -330,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             ' Generate an item for each event
             For Each e In accessibleEvents
                 If eventToImplementingMethods.ContainsKey(e) Then
-                    Dim methodSpans = GetSpansInDocument(eventToImplementingMethods(e), semanticModel.SyntaxTree, symbolDeclarationService, cancellationToken)
+                    Dim methodSpans = GetSpansInDocument(eventToImplementingMethods(e), semanticModel.SyntaxTree, symbolDeclarationService)
 
                     ' Dev11 arbitrarily will navigate to the last method that implements the event
                     ' if more than one exists
@@ -389,10 +386,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Return SpecializedCollections.EmptyList(Of TextSpan)()
             End If
 
-            Return GetSpansInDocument(SpecializedCollections.SingletonEnumerable(symbol), tree, symbolDeclarationService, cancellationToken)
+            Return GetSpansInDocument(SpecializedCollections.SingletonEnumerable(symbol), tree, symbolDeclarationService)
         End Function
 
-        Private Shared Function GetSpansInDocument(list As IEnumerable(Of ISymbol), tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As IList(Of TextSpan)
+        Private Shared Function GetSpansInDocument(list As IEnumerable(Of ISymbol), tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService) As IList(Of TextSpan)
             Return list.SelectMany(AddressOf symbolDeclarationService.GetDeclarations) _
                         .Where(Function(r) r.SyntaxTree.Equals(tree)) _
                         .Select(Function(r) r.GetSyntax().FullSpan) _

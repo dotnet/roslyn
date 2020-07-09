@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace);
 
+#pragma warning disable IDE0060 // Remove unused parameter - TODO: File a test bug for 'completionActive' parameter being ignored here. We have tests passing this bool as true.
         protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             using (var workspace = CreateWorkspace(code))
             {

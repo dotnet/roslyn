@@ -221,7 +221,7 @@ End Module</text>.Value, "local", True)
             Await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", False)
         End Function
 
-        Private Shared Async Function TestLanguageDebugInfoTryGetProximityExpressionsAsync(input As String, expectedResults As IEnumerable(Of String), expectedResult As Boolean) As Task
+        Private Shared Async Function TestLanguageDebugInfoTryGetProximityExpressionsAsync(input As String) As Task
             Dim parsedInput As String = input
             Dim caretPosition As Integer
             MarkupTestFile.GetPosition(input, parsedInput, caretPosition)
@@ -240,7 +240,7 @@ End Module</text>.Value, "local", True)
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(538819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538819")>
         Public Async Function TestDebugInfo1() As Task
-            Await TestLanguageDebugInfoTryGetProximityExpressionsAsync("$$Module M : End Module", Array.Empty(Of String)(), False)
+            Await TestLanguageDebugInfoTryGetProximityExpressionsAsync("$$Module M : End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>

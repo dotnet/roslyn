@@ -59,7 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         protected static void AssertTaggedText(
             string expectedText,
             ImmutableArray<TaggedText> taggedText,
+#pragma warning disable IDE0060 // Remove unused parameter - TODO: File a test bug. There are unit tests passing non-empty expectedClassifications.
             FormattedClassification[] expectedClassifications = null)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var actualText = string.Concat(taggedText.Select(tt => tt.Text));
             Assert.Equal(expectedText, actualText);
@@ -90,14 +92,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ReturnsDocumentationComments);
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ReturnsDocumentationComments, expectedClassifications);
         }
 
         protected static Action<QuickInfoItem> Value(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ValueDocumentationComments);
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ValueDocumentationComments, expectedClassifications);
         }
 
         protected static Action<QuickInfoItem> TypeParameterMap(

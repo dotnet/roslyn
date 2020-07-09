@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 document1 = document1.Project.WithParseOptions(parseOptions).GetDocument(document1.Id);
             }
 
-            await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, sourceCodeKind, document1, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+            await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, document1, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
 
             // speculative semantic model
             if (await CanUseSpeculativeSemanticModelAsync(document1, cursorPosition))
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                     document2 = document2.Project.WithParseOptions(parseOptions).GetDocument(document2.Id);
                 }
 
-                await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, sourceCodeKind, document2, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+                await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, document2, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
             }
         }
 
@@ -122,20 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        protected virtual void VerifyTriggerCharacters(char[] expectedTriggerCharacters, char[] unexpectedTriggerCharacters, SourceCodeKind? sourceCodeKind = null)
-        {
-            if (sourceCodeKind.HasValue)
-            {
-                VerifyTriggerCharactersWorker(expectedTriggerCharacters, unexpectedTriggerCharacters, sourceCodeKind.Value);
-            }
-            else
-            {
-                VerifyTriggerCharactersWorker(expectedTriggerCharacters, unexpectedTriggerCharacters, SourceCodeKind.Regular);
-                VerifyTriggerCharactersWorker(expectedTriggerCharacters, unexpectedTriggerCharacters, SourceCodeKind.Script);
-            }
-        }
-
-        private void VerifyTriggerCharactersWorker(char[] expectedTriggerCharacters, char[] unexpectedTriggerCharacters, SourceCodeKind sourceCodeKind)
+        protected void VerifyTriggerCharacters(char[] expectedTriggerCharacters, char[] unexpectedTriggerCharacters)
         {
             var signatureHelpProvider = CreateSignatureHelpProvider();
 
@@ -363,13 +350,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 textSpan = textSpans.First();
             }
 
-            await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, SourceCodeKind.Regular, document, textSpan, expectedOrderedItems);
+            await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, document, textSpan, expectedOrderedItems);
         }
 
         private async Task TestSignatureHelpWorkerSharedAsync(
             string code,
             int cursorPosition,
-            SourceCodeKind sourceCodeKind,
             Document document,
             TextSpan? textSpan,
             IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull = null,
@@ -477,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 textSpan = textSpans.First();
             }
 
-            await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, SourceCodeKind.Regular, document, textSpan, expectedOrderedItems);
+            await TestSignatureHelpWorkerSharedAsync(code, cursorPosition, document, textSpan, expectedOrderedItems);
         }
     }
 }
