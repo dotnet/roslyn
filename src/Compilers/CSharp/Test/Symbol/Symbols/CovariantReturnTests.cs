@@ -416,8 +416,9 @@ namespace System.Runtime.CompilerServices
         {
             CompilationReference compAsMetadata = comp.ToMetadataReference();
             references = references?.Append(compAsMetadata) ?? new[] { compAsMetadata };
+            var coreLibrary = comp.GetMetadataReference(comp.Assembly.CorLibrary);
             if (!withoutCorlib)
-                references = references.Prepend(comp.References.First()).ToArray();
+                references = references.Prepend(coreLibrary).ToArray();
             var result = CreateCompilation(assignments, references: references, targetFramework: TargetFramework.Empty);
             result.VerifyDiagnostics();
             var originalCorLib = comp.Assembly.CorLibrary;
@@ -436,8 +437,9 @@ namespace System.Runtime.CompilerServices
         {
             var compAsImage = comp.EmitToImageReference();
             references = references?.Append(compAsImage) ?? new[] { compAsImage };
+            var coreLibrary = comp.GetMetadataReference(comp.Assembly.CorLibrary);
             if (!withoutCorlib)
-                references = references.Prepend(comp.References.First()).ToArray();
+                references = references.Prepend(coreLibrary).ToArray();
             return CreateCompilation(assignments, references: references, targetFramework: TargetFramework.Empty);
         }
 
@@ -2809,7 +2811,7 @@ public class Program
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
             }
 
-            static void verify2(CSharpCompilation comp, params DiagnosticDescription[] expectedDiagnostics)
+            static void verify2(CSharpCompilation comp)
             {
                 verify1(comp);
                 VerifyOverride(comp, "Mid.M", "System.String Mid.M()", "System.Object Base.M()");
