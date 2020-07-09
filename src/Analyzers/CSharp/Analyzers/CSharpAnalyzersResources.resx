@@ -290,6 +290,6 @@
     <value>Suppression operator has no effect and can be misinterpreted</value>
   </data>
   <data name="Convert_type_name_to_nameof" xml:space="preserve">
-    <value>Convert typeof to nameof</value>
+    <value>Convert 'typeof' to 'nameof'</value>
   </data>
 </root>
