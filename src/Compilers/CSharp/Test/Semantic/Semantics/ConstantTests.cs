@@ -3622,7 +3622,7 @@ class C
 class C
 {
     #pragma warning disable CS0219 // unused locals
-    void M()
+    void M1()
     {
         const string S1 = $""Testing"";
         const string S2 = $""{""Level 5""} {""Number 3""}"";
@@ -3634,6 +3634,14 @@ class C
 
         string VS = ""Change"";
         const string S6 = $""Failed to {VS}"";
+    }
+
+    void M2(string S1 = $""Testing"")
+    {
+        switch(S1){
+            case $""Level 5"":
+                break;
+        }
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
