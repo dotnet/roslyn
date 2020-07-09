@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     internal abstract class AbstractSnippetInfoService : ForegroundThreadAffinitizedObject, ISnippetInfoService, IVsExpansionEvents, IDisposable
     {
         private readonly Guid _languageGuidForSnippets;
-        private IVsExpansionManager _expansionManager;
+        private IVsExpansionManager? _expansionManager;
 
         /// <summary>
         /// Initialize these to empty values. When returning from <see cref="GetSnippetsIfAvailable "/> 
@@ -62,13 +64,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
             _languageGuidForSnippets = languageGuidForSnippets;
 
-            if (serviceProvider != null)
+            _asyncTasks.Add(threadingContext.JoinableTaskFactory.RunAsync(() =>
             {
-                _asyncTasks.Add(threadingContext.JoinableTaskFactory.RunAsync(() =>
-                {
-                    return InitializeAndPopulateSnippetsCacheAsync(threadingContext, serviceProvider);
-                }));
-            }
+                return InitializeAndPopulateSnippetsCacheAsync(threadingContext, serviceProvider);
+            }));
         }
 
         private async Task InitializeAndPopulateSnippetsCacheAsync(IThreadingContext threadingContext, Shell.SVsServiceProvider serviceProvider)
@@ -136,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             Debug.Assert(_expansionManager != null);
 
             // In Dev14 Update2+ the platform always provides an IExpansion Manager
-            var expansionManager = (IExpansionManager)_expansionManager;
+            var expansionManager = (IExpansionManager)_expansionManager!;
             // Call the asynchronous IExpansionManager API from a background thread
             await TaskScheduler.Default;
             var expansionEnumerator = await expansionManager.EnumerateExpansionsAsync(
@@ -250,7 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return expansion;
         }
 
-        private static void ConvertToStringAndFree(ref IntPtr ptr, ref string str)
+        private static void ConvertToStringAndFree(ref IntPtr ptr, ref string? str)
         {
             if (ptr != IntPtr.Zero)
             {

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.ObjectModel;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
@@ -15,20 +14,18 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     /// <summary>
-    /// Ensures services that must be constructed on the UI thread are appropriately created during
-    /// the first connection of an applicable subject buffer to an IWpfTextView. This ensures the
-    /// services are available by the time an open document or the interactive window needs them.
-    /// The <see cref="CreateServicesOnUIThread(IComponentModel, string)"/> method should also be
+    /// Creates services on the first connection of an applicable subject buffer to an IWpfTextView. 
+    /// This ensures the services are available by the time an open document or the interactive window needs them.
+    /// The <see cref="CreateServices(IComponentModel, string)"/> method should also be
     /// called during package load to front load some of the work.
     /// </summary>
-    internal abstract class HACK_AbstractCreateServicesOnUiThread : ForegroundThreadAffinitizedObject, IWpfTextViewConnectionListener
+    internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
     {
         private readonly IComponentModel _componentModel;
         private readonly string _languageName;
         private bool _initialized = false;
 
-        public HACK_AbstractCreateServicesOnUiThread(IThreadingContext threadingContext, IServiceProvider serviceProvider, string languageName)
-            : base(threadingContext)
+        public AbstractCreateServicesOnTextViewConnection(IServiceProvider serviceProvider, string languageName)
         {
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             _languageName = languageName;
@@ -38,8 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (!_initialized)
             {
-                AssertIsForeground();
-                CreateServicesOnUIThread(_componentModel, _languageName);
+                CreateServices(_componentModel, _languageName);
                 _initialized = true;
             }
         }
@@ -51,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// <summary>
         /// Must be invoked from the UI thread.
         /// </summary>
-        public static void CreateServicesOnUIThread(IComponentModel componentModel, string languageName)
+        public static void CreateServices(IComponentModel componentModel, string languageName)
         {
             var serviceTypeAssemblyQualifiedName = typeof(ISnippetInfoService).AssemblyQualifiedName;
             var languageServices = componentModel.DefaultExportProvider.GetExports<ILanguageService, LanguageServiceMetadata>();
