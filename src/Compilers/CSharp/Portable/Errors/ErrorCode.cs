@@ -1848,6 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidWithReceiverType = 8857,
         ERR_NoSingleCloneMethod = 8858,
         ERR_CloneDisallowedInRecord = 8859,
+        // Unused 8860
         ERR_UnexpectedArgumentList = 8861,
         ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
         ERR_MultipleRecordParameterLists = 8863,
