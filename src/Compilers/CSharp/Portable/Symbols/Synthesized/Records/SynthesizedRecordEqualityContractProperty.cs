@@ -72,10 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Nothing to do here
         }
 
-        protected override bool ReportProtectedMemberInSealedTypeError(Location location, DiagnosticBag diagnostics)
-        {
-            return false;
-        }
+        protected override bool ShouldReportProtectedMemberInSealedTypeError => false;
 
         protected override SourcePropertyAccessorSymbol? CreateAccessorSymbol(
             bool isGet,

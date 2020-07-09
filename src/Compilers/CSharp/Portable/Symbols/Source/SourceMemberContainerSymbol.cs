@@ -3200,7 +3200,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         SynthesizedRecordEqualityContractProperty.VerifyOverridesEqualityContractFromBase(equalityContract, diagnostics);
                     }
 
-
                     reportNotOverridableAPIInRecord(equalityContract, diagnostics);
                 }
 

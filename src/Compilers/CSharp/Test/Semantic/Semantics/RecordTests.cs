@@ -10907,6 +10907,7 @@ record A
 " + modifiers + @"
 record B : A
 {
+    public void PrintEqualityContract() => System.Console.WriteLine(EqualityContract);
 }
 ";
 
@@ -10924,17 +10925,19 @@ class Program
         System.Console.WriteLine(a1.Equals(b2));
         System.Console.WriteLine(b2.Equals(a1));
         System.Console.WriteLine(b2.Equals((B)a1));
+        b2.PrintEqualityContract();
     }
 }";
             }
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
+            var verifier = CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
 @"
 True
 True
 True
+B
 ");
             var equalityContract = comp.GetMembers("B.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
             Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
@@ -10955,6 +10958,16 @@ True
             Assert.False(equalityContractGet.IsSealed);
             Assert.True(equalityContractGet.IsImplicitlyDeclared);
             Assert.Empty(equalityContractGet.DeclaringSyntaxReferences);
+
+            verifier.VerifyIL("B.EqualityContract.get", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""B""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
         }
 
         [Theory]
@@ -10967,6 +10980,7 @@ True
 modifiers + @"
 record B
 {
+    public void PrintEqualityContract() => System.Console.WriteLine(EqualityContract);
 }
 ";
 
@@ -10984,17 +10998,19 @@ class Program
         System.Console.WriteLine(a1.Equals(b2));
         System.Console.WriteLine(b2.Equals(a1));
         System.Console.WriteLine(b2.Equals((B)a1));
+        b2.PrintEqualityContract();
     }
 }";
             }
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
+            var verifier = CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
 @"
 True
 True
 True
+B
 ");
             var equalityContract = comp.GetMembers("B.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
             Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
@@ -11015,6 +11031,16 @@ True
             Assert.False(equalityContractGet.IsSealed);
             Assert.True(equalityContractGet.IsImplicitlyDeclared);
             Assert.Empty(equalityContractGet.DeclaringSyntaxReferences);
+
+            verifier.VerifyIL("B.EqualityContract.get", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""B""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
         }
 
         [Fact]

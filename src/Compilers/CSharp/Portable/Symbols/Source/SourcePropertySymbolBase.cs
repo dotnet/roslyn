@@ -822,9 +822,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride &&
-                     ReportProtectedMemberInSealedTypeError(location, diagnostics))
+                     ShouldReportProtectedMemberInSealedTypeError)
             {
-                ;
+                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }
             else if (ContainingType.IsStatic && !IsStatic)
             {
@@ -833,11 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected virtual bool ReportProtectedMemberInSealedTypeError(Location location, DiagnosticBag diagnostics)
-        {
-            diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
-            return true;
-        }
+        protected virtual bool ShouldReportProtectedMemberInSealedTypeError => true;
 
 #nullable enable
         protected abstract SourcePropertyAccessorSymbol? CreateAccessorSymbol(
