@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // If we're in a cloud environment context, we want to avoid returning a completion item manager.
                 // Otherwise, we'll interfere with the LSP client manager and disrupt filtering.
-                if (workspaceContextService.IsInRemoteClientContext())
+                if (workspaceContextService.IsCloudEnvironmentClient())
                 {
                     return null;
                 }

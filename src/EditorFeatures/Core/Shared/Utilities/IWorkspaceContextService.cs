@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// <summary>
         /// Used to determine if running as a client in a cloud connected environment.
         /// </summary>
-        bool IsInRemoteClientContext();
+        bool IsCloudEnvironmentClient();
     }
 
     internal sealed class DefaultWorkspaceContextService : IWorkspaceContextService
     {
-        public bool IsInRemoteClientContext() => false;
+        public bool IsCloudEnvironmentClient() => false;
     }
 
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceContextService), ServiceLayer.Editor), Shared]

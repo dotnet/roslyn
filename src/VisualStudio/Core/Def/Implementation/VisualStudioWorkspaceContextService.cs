@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _sessionJoinedUIContext = UIContext.FromUIContextGuid(s_sessionJoinedUIContextGuid);
         }
 
-        public bool IsInRemoteClientContext() => _sessionJoinedUIContext.IsActive;
+        public bool IsCloudEnvironmentClient() => _sessionJoinedUIContext.IsActive;
     }
 
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceContextService), ServiceLayer.Host), Shared]
