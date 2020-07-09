@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Extensions
     {
         public static bool IsCSharp9OrAbove(this LanguageVersion languageVersion)
 #if CODE_STYLE
-            => false;
+            => languageVersion >= (LanguageVersion)900;
 #else
             => languageVersion >= LanguageVersion.CSharp9;
 #endif
