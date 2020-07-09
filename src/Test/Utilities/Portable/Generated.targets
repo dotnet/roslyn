@@ -123,11 +123,17 @@
         <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Core.dll">
           <LogicalName>netcoreapp31.System.Core.dll</LogicalName>
         </EmbeddedResource>
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Collections.dll">
+          <LogicalName>netcoreapp31.System.Collections.dll</LogicalName>
+        </EmbeddedResource>
         <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Console.dll">
           <LogicalName>netcoreapp31.System.Console.dll</LogicalName>
         </EmbeddedResource>
         <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Linq.dll">
           <LogicalName>netcoreapp31.System.Linq.dll</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Linq.Expressions.dll">
+          <LogicalName>netcoreapp31.System.Linq.Expressions.dll</LogicalName>
         </EmbeddedResource>
         <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Runtime.dll">
           <LogicalName>netcoreapp31.System.Runtime.dll</LogicalName>

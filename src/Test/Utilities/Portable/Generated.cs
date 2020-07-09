@@ -162,10 +162,14 @@ namespace Roslyn.Test.Utilities
             public static byte[] System => ResourceLoader.GetOrCreateResource(ref _System, "netcoreapp31.System.dll");
             private static byte[] _SystemCore;
             public static byte[] SystemCore => ResourceLoader.GetOrCreateResource(ref _SystemCore, "netcoreapp31.System.Core.dll");
+            private static byte[] _SystemCollections;
+            public static byte[] SystemCollections => ResourceLoader.GetOrCreateResource(ref _SystemCollections, "netcoreapp31.System.Collections.dll");
             private static byte[] _SystemConsole;
             public static byte[] SystemConsole => ResourceLoader.GetOrCreateResource(ref _SystemConsole, "netcoreapp31.System.Console.dll");
             private static byte[] _SystemLinq;
             public static byte[] SystemLinq => ResourceLoader.GetOrCreateResource(ref _SystemLinq, "netcoreapp31.System.Linq.dll");
+            private static byte[] _SystemLinqExpressions;
+            public static byte[] SystemLinqExpressions => ResourceLoader.GetOrCreateResource(ref _SystemLinqExpressions, "netcoreapp31.System.Linq.Expressions.dll");
             private static byte[] _SystemRuntime;
             public static byte[] SystemRuntime => ResourceLoader.GetOrCreateResource(ref _SystemRuntime, "netcoreapp31.System.Runtime.dll");
             private static byte[] _SystemRuntimeInteropServices;
@@ -186,8 +190,10 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference mscorlib { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.mscorlib).GetReference(display: "mscorlib.dll (netcoreapp31)");
             public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.System).GetReference(display: "System.dll (netcoreapp31)");
             public static PortableExecutableReference SystemCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.SystemCore).GetReference(display: "System.Core.dll (netcoreapp31)");
+            public static PortableExecutableReference SystemCollections { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.SystemCollections).GetReference(display: "System.Collections.dll (netcoreapp31)");
             public static PortableExecutableReference SystemConsole { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.SystemConsole).GetReference(display: "System.Console.dll (netcoreapp31)");
             public static PortableExecutableReference SystemLinq { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.SystemLinq).GetReference(display: "System.Linq.dll (netcoreapp31)");
+            public static PortableExecutableReference SystemLinqExpressions { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.SystemLinqExpressions).GetReference(display: "System.Linq.Expressions.dll (netcoreapp31)");
             public static PortableExecutableReference SystemRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.SystemRuntime).GetReference(display: "System.Runtime.dll (netcoreapp31)");
             public static PortableExecutableReference SystemRuntimeInteropServices { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.SystemRuntimeInteropServices).GetReference(display: "System.Runtime.InteropServices.dll (netcoreapp31)");
             public static PortableExecutableReference SystemRuntimeInteropServicesWindowsRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp31.SystemRuntimeInteropServicesWindowsRuntime).GetReference(display: "System.Runtime.InteropServices.WindowsRuntime.dll (netcoreapp31)");
