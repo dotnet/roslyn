@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineParameterNameHintsTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
-                                                      [Import] IClassificationFormatMapService classificationFormatMapService,
-                                                      [Import] IClassificationTypeRegistryService classificationTypeRegistryService)
+                                                      IClassificationFormatMapService classificationFormatMapService,
+                                                      IClassificationTypeRegistryService classificationTypeRegistryService)
         {
             _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.ClassificationFormatMapService = classificationFormatMapService;

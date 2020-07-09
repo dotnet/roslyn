@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     internal class InlineParameterNameHintsTag : IntraTextAdornmentTag
     {
         public const string TagId = "inline parameter name hints";
+
         /// <summary>
         /// Creates the UIElement on call
         /// Uses PositionAffinity.Successor because we want the tag to be associated with the following character
@@ -31,26 +32,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         private static UIElement CreateElement(string text, double lineHeight, TextFormattingRunProperties format)
         {
-            // Constructs the hint block which gets assigned parameter name, a normal fontstyle, and sets the padding 
-            // space around the block to 0
+            // Constructs the hint block which gets assigned parameter name and nested inside a border where the 
+            // attributes of the block are received from the options menu
             var block = new TextBlock
             {
                 Text = text + ":",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 FontStyle = FontStyles.Normal,
-                FontFamily = format.Typeface.FontFamily, //new System.Windows.Media.FontFamily("Consolas"),
+                FontFamily = format.Typeface.FontFamily,
                 FontSize = format.FontRenderingEmSize - 1,
                 Padding = new Thickness(0),
-                Background = format.BackgroundBrush,//System.Windows.Media.Brushes.Lavender,
-                Foreground = format.ForegroundBrush //System.Windows.Media.Brushes.Gray
+                Background = format.BackgroundBrush,
+                Foreground = format.ForegroundBrush
             };
 
             var border = new Border
             {
                 CornerRadius = new CornerRadius(2),
-                Background = format.BackgroundBrush,//System.Windows.Media.Brushes.Lavender,
-                BorderBrush = format.BackgroundBrush, //System.Windows.Media.Brushes.Lavender,
+                Background = format.BackgroundBrush,
+                BorderBrush = format.BackgroundBrush,
                 BorderThickness = new Thickness(1),
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -61,8 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             block.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
             border.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
             return border;
-            //return block;
-
         }
     }
 }

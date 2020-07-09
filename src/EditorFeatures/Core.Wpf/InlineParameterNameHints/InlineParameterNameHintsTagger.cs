@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         {
             get
             {
-                if (_format == null)
-                    _format = _formatMap.GetTextProperties(_keyword);
+                _format ??= _formatMap.GetTextProperties(_keyword);
 
                 return _format;
             }
