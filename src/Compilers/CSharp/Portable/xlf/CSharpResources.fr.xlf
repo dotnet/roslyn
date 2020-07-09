@@ -232,6 +232,16 @@
         <target state="translated">Le modèle d'abandon n'est pas autorisé en tant qu'étiquette case dans une instruction switch. Utilisez 'case var _:' pour un modèle d'abandon, ou 'case @_:' pour une constante nommée '_'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseEquals">
+        <source>'{0}' does not override expected method from '{1}'.</source>
+        <target state="new">'{0}' does not override expected method from '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideMethodFromObject">
+        <source>'{0}' does not override expected method from 'object'.</source>
+        <target state="new">'{0}' does not override expected method from 'object'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DupReturnTypeMod">
         <source>A return type can only have one '{0}' modifier.</source>
         <target state="new">A return type can only have one '{0}' modifier.</target>
@@ -522,6 +532,16 @@
         <target state="new">The receiver type '{0}' is not a valid record type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicAPIInRecord">
+        <source>Record member '{0}' must be public.</source>
+        <target state="new">Record member '{0}' must be public.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotOverridableAPIInRecord">
+        <source>'{0}' disallows overriding and containing 'record' is not sealed.</source>
+        <target state="new">'{0}' disallows overriding and containing 'record' is not sealed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
         <target state="translated">'enable', 'disable' ou 'restore' attendu</target>
@@ -657,6 +677,16 @@
         <target state="translated">Le runtime cible ne prend pas en charge l'accessibilité 'protected', 'protected internal' ou 'private protected' d'un membre d'interface.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SealedGetHashCodeInRecord">
+        <source>'{0}' cannot be sealed because containing 'record' is not sealed.</source>
+        <target state="new">'{0}' cannot be sealed because containing 'record' is not sealed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SignatureMismatchInRecord">
+        <source>Record member '{0}' must return '{1}'.</source>
+        <target state="new">Record member '{0}' must return '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramDisallowsMainType">
         <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
         <target state="new">Cannot specify /main if there is a compilation unit with top-level statements.</target>
@@ -680,6 +710,16 @@
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Un modèle de déconstruction d'un seul élément nécessite une autre syntaxe pour la désambiguïsation. Il est recommandé d'ajouter un désignateur d'abandon '_' après la parenthèse de fermeture ')'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
+        <source>A static anonymous function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="new">A static anonymous function cannot contain a reference to 'this' or 'base'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
+        <source>A static anonymous function cannot contain a reference to '{0}'.</source>
+        <target state="new">A static anonymous function cannot contain a reference to '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
@@ -1334,6 +1374,11 @@
         <target state="translated">initialiseur stackalloc</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAnonymousFunction">
+        <source>static anonymous function</source>
+        <target state="new">static anonymous function</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStaticLocalFunctions">
         <source>static local functions</source>
         <target state="translated">fonctions locales statiques</target>
@@ -1787,6 +1832,16 @@
       <trans-unit id="WRN_CaseConstantNamedUnderscore_Title">
         <source>Do not use '_' for a case constant.</source>
         <target state="translated">N'utilisez pas '_' pour une constante case.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked">
+        <source>Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value '{0}' may overflow '{1}' at runtime (use 'unchecked' syntax to override)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConstOutOfRangeChecked_Title">
+        <source>Constant value may overflow at runtime (use 'unchecked' syntax to override)</source>
+        <target state="new">Constant value may overflow at runtime (use 'unchecked' syntax to override)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">

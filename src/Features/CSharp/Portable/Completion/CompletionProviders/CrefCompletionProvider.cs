@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(
                 parentNode, cancellationToken).ConfigureAwait(false);
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken)

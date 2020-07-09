@@ -60,7 +60,9 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="Utilities\PathKind.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="InteractiveHostResources.Designer.cs">
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+  </ItemGroup>
+  <ItemGroup>    <Compile Update="InteractiveHostResources.Designer.cs">
       <DependentUpon>InteractiveHostResources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

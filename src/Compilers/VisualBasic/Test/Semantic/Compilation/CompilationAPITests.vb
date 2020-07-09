@@ -22,6 +22,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
 Imports Roslyn.Test.Utilities.TestHelpers
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
@@ -292,7 +293,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
             listSyntaxTree.Add(t1)
 
             ' System.dll
-            listRef.Add(TestReferences.NetFx.v4_0_30319.System)
+            listRef.Add(Net451.System)
             Dim ops = TestOptions.ReleaseExe
 
             ' Create Compilation with Option is not Nothing
@@ -538,8 +539,8 @@ End Namespace
         Public Sub ReferenceAPITest()
             ' Create Compilation takes two args
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Dim ref3 = New TestMetadataReference(fullPath:="c:\xml.bms")
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
@@ -847,7 +848,7 @@ End Namespace
             ' Create compilation with args is disordered
             Dim comp1 = VisualBasicCompilation.Create("Compilation")
             Dim Err = "c:\file_that_does_not_exist"
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim ref1 = Net451.mscorlib
             Dim listRef = New List(Of MetadataReference)
             ' this is NOT testing Roslyn
             listRef.Add(ref1)
@@ -1062,8 +1063,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
             Dim csCompRef = csComp.ToMetadataReference(embedInteropTypes:=True)
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
 
             ' Add VisualBasicCompilationReference
             comp = VisualBasicCompilation.Create("Test1",
@@ -1178,7 +1179,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub AssemblySuppliedAsModule()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference()})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(ResourcesNet451.System).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
 
@@ -1188,7 +1189,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference1()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Assert.Null(comp.GetReferencedAssemblySymbol(TestReferences.NetFx.v4_0_30319.System))
+            Assert.Null(comp.GetReferencedAssemblySymbol(Net451.System))
 
             Dim modRef1 = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference()
             Assert.Null(comp.GetReferencedModuleSymbol(modRef1))
@@ -1199,7 +1200,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <Fact>
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.System
             Dim ref2 = New TestMetadataReference(fullPath:="c:\a\xml.bms")
             Dim ref3 = ref2
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
@@ -1227,7 +1228,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref2 = Net451.System
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
 
@@ -1265,8 +1266,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Assert.Throws(Of ArgumentException)(
                 Sub()
                     comp = comp.ReplaceReference(ref1, ref2)
@@ -2294,7 +2295,7 @@ End Class
         <WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim metadata = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim metadata = Net451.mscorlib
             comp = comp.AddReferences(metadata)
             Dim assemblySmb = comp.GetReferencedAssemblySymbol(metadata)
             Dim reference = comp.GetMetadataReference(assemblySmb)

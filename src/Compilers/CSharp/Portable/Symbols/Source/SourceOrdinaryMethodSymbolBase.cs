@@ -16,6 +16,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// Unlike <see cref="SourceOrdinaryMethodSymbol"/>, this type doesn't depend
+    /// on any specific kind of syntax node associated with it. Any syntax node is good enough
+    /// for it.
+    /// </summary>
     internal abstract class SourceOrdinaryMethodSymbolBase : SourceMemberMethodSymbol
     {
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
@@ -238,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return;
         }
 
-        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> declaredConstraintsForOverrideOrImplement) MakeParametersAndBindReturnType(DiagnosticBag diagnostics);
+        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics);
 
         protected abstract void ExtensionMethodChecks(DiagnosticBag diagnostics);
 
@@ -287,9 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected virtual void CompleteAsyncMethodChecksBetweenStartAndFinish()
-        {
-        }
+        protected abstract void CompleteAsyncMethodChecksBetweenStartAndFinish();
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {

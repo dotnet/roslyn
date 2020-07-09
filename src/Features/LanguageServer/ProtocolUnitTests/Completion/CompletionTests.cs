@@ -60,6 +60,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             Assert.False(results.Any(item => "Console" == item.Label));
         }
 
+        [Fact]
+        public async Task TestGetCompletionsDoesNotIncludeSnippetsAsync()
+        {
+            var markup =
+@"class A
+{
+    {|caret:|}
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var solution = workspace.CurrentSolution;
+            solution = solution.WithOptions(solution.Options
+                .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.CSharp, SnippetsRule.AlwaysInclude));
+
+            var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
+
+            var results = await RunGetCompletionsAsync(solution, locations["caret"].Single(), clientCapabilities);
+
+            Assert.False(results.Any(item => "ctor" == item.Label));
+        }
+
         private static async Task<LSP.CompletionItem[]> RunGetCompletionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)
             => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionItem[]>(LSP.Methods.TextDocumentCompletionName,
                 CreateCompletionParams(caret), clientCapabilities, null, CancellationToken.None);

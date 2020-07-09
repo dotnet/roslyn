@@ -2182,11 +2182,12 @@ public record C(int i)
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.i.init",
                 "System.Int32 C.i { get; init; }",
                 "void C.M()",
-                "void C.Deconstruct(out System.Int32 i)",
                 "System.Int32 C.GetHashCode()",
-                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? )",
-                "C..ctor(C )" }, cMembers.ToTestDisplayStrings());
+                "C..ctor(C )",
+                "void C.Deconstruct(out System.Int32 i)",
+                }, cMembers.ToTestDisplayStrings());
 
             foreach (var member in cMembers)
             {

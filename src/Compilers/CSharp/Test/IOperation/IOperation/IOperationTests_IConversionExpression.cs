@@ -5173,6 +5173,45 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [Fact]
+        public void TestNullableConversion()
+        {
+            var source = @"
+#nullable enable
+
+using System;
+
+class Class
+{
+    private static T? GetValueOrDefault<T>() where T : unmanaged
+    {
+        return null;
+    }
+
+    public static void Method()
+    {
+        IConvertible? nullableInterface;
+
+        if (Environment.Is64BitProcess)
+        {
+            nullableInterface = GetValueOrDefault<long>();
+        }
+        else
+        {
+            nullableInterface = GetValueOrDefault<int>();
+        }
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
+            var iopTree = (IAssignmentOperation)model.GetOperation(assignment);
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, iopTree.Value.Type.NullableAnnotation);
+        }
         #endregion
 
         private class ExpectedSymbolVerifier

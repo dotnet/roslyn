@@ -4891,7 +4891,7 @@ End Class
 
         <Fact()>
         Public Sub BinaryFile()
-            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path
+            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestMetadata.ResourcesNet451.mscorlib).Path
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", binaryPath}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)

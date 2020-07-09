@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 460, // 270
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1310, // 1290
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 260, // 170
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 750, // 730
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 

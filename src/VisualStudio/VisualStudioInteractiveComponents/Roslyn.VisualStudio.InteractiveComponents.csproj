@@ -69,6 +69,21 @@
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
     <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" />
+    <!-- JSON-RPC dependencies -->
+    <NuGetPackageToIncludeInVsix Include="MessagePack" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.Bcl.AsyncInterfaces" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.Threading" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.Validation" />
+    <NuGetPackageToIncludeInVsix Include="Nerdbank.Streams" />
+    <NuGetPackageToIncludeInVsix Include="Newtonsoft.Json" />
+    <NuGetPackageToIncludeInVsix Include="StreamJsonRpc" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Pipelines" />
+    <NuGetPackageToIncludeInVsix Include="System.Net.Http" />
+    <NuGetPackageToIncludeInVsix Include="System.Net.WebSockets" />
+    <NuGetPackageToIncludeInVsix Include="System.Reflection.Emit" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Dataflow" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
+    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
   </ItemGroup>
 
   <Import Project="$(VSToolsPath)\vssdk\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\vssdk\Microsoft.VsSDK.targets')" />
