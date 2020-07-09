@@ -27,8 +27,7 @@ class Goo { }
                              "Goo",
                              "System",
                              "Microsoft",
-                             "FxResources",
-                             "Windows")
+                             "FxResources")
         End Sub
 
 #End Region

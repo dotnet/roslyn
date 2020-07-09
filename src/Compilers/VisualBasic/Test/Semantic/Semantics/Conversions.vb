@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConversionsTests.Parameters
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -40,7 +41,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -222,7 +223,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -1081,7 +1082,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib},
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib},
                                         options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
@@ -1450,7 +1451,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim asmVBConversions = c1.GetReferencedAssemblySymbol(vbConversionsRef)
             Dim asmModifiers = c1.GetReferencedAssemblySymbol(modifiersRef)
@@ -2039,7 +2040,7 @@ End Class
         <Fact()>
         Public Sub BuiltIn()
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.mscorlib})
 
             Dim nullable = c1.GetSpecialType(System_Nullable_T)
 

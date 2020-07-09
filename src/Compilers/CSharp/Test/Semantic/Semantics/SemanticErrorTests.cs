@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -9728,7 +9729,7 @@ struct S
             // Note that none of these errors except the first one are reported by the native compiler, because
             // it does not report additional errors after an error is found in a formal parameter of a method.
 
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     internal static void E<U>(D<U> d) { } // Error: missing constraint on E<U> to satisfy constraint on D<U>
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "d").WithArguments("D<T>", "T", "U").WithLocation(9, 36),
@@ -9838,7 +9839,7 @@ static class S
 {
     internal static void E<T>(this T t) where T : new() { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (15,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'V' in the generic type or method 'C<T, U>.M<V>(V)'
                 //         M(b);
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M").WithArguments("C<T, U>.M<V>(V)", "V", "B").WithLocation(15, 9),
@@ -12625,7 +12626,7 @@ namespace TestNamespace
         [Fact]
         public void CS0841ERR_VariableUsedBeforeDeclaration04()
         {
-            var systemRef = TestReferences.NetFx.v4_0_30319.System;
+            var systemRef = Net451.System;
             CreateCompilationWithMscorlib40AndSystemCore(
 @"using System.Collections.Generic;
 class Base
@@ -13410,7 +13411,7 @@ static class SC
     static void M4(this S s) { }
     static void M5(this double d) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (24,29): error CS1113: Extension methods 'SC.M3(E)' defined on value type 'E' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "e.M3").WithArguments("SC.M3(E)", "E").WithLocation(24, 29),
                 // (26,29): error CS1113: Extension methods 'SC.M4(S)' defined on value type 'S' cannot be used to create delegates
@@ -13456,7 +13457,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (13,13): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(13, 13),
                 // (14,13): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -13517,7 +13518,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilation(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (12,11): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(12, 11),
                 // (13,11): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -16617,7 +16618,7 @@ static class S
 {
     internal static void F(this double d) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore });
             // Previously ERR_BadExtensionArgTypes.
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1929: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' requires a receiver of type 'double'
@@ -16640,7 +16641,7 @@ static class S
 {
     internal static void E(this B b) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore });
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1929: 'A' does not contain a definition for 'E' and the best extension method overload 'S.E(B)' requires a receiver of type 'B'
                 //         a.E();
@@ -22084,7 +22085,7 @@ static class C
     }
     static void E(this object o) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (20,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
                 //         default(object).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).GetHashCode").WithArguments("object").WithLocation(20, 9),
@@ -22097,7 +22098,7 @@ static class C
                 // (28,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
                 //         default(T6).P = null;
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
                 );
         }
 
@@ -22191,13 +22192,13 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());
                 // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -23773,7 +23774,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (9,44): error CS8072: An expression tree lambda may not contain a null propagating operator.
     //         Expression<Func<string>> s = () => x?.ToString();
     Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()").WithLocation(9, 44),
@@ -23814,7 +23815,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
     // (10,87): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<Dictionary<int, int>>> s = () => new Dictionary<int, int> () {[1] = 2};
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[1]").WithLocation(10, 87)
@@ -23854,7 +23855,7 @@ namespace ConsoleApplication31
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
     // (25,72): error CS8075: An expression tree lambda may not contain an extension collection element initializer.
     //         public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
     Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(25, 72)
@@ -23882,7 +23883,7 @@ class C
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
     // (9,53): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<C>> e = () => new C { H = { ["Key"] = "Value" } };
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""Key""]").WithLocation(9, 53)
