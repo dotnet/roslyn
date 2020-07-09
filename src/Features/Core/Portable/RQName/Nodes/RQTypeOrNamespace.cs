@@ -16,12 +16,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         protected RQTypeOrNamespace(IList<string> namespaceNames)
             => NamespaceNames = new ReadOnlyCollection<string>(namespaceNames);
 
-        public static INamespaceSymbol NamespaceIdentifier
-        {
-            // TODO: C# Specific?
-            get { return null; /*new CSharpNamespaceIdentifier(NamespaceNames);*/ }
-        }
-
         protected override void AppendChildren(List<SimpleTreeNode> childList)
             => childList.AddRange(NamespaceNames.Select(name => (SimpleTreeNode)new SimpleGroupNode(RQNameStrings.NsName, name)));
     }
