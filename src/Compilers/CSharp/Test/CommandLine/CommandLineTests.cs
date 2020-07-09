@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
@@ -4130,7 +4131,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
   </runtime>
 </configuration>");
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
             var net4_0dll = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
 
             // Test linking two appconfig dlls with simple src
