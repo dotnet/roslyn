@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
     internal class CSharpConvertNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpConvertNameOfDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.ConvertNameOfDiagnosticId,
+            : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
                    option: null,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
-                       nameof(CSharpAnalyzersResources.Convert_type_name_to_nameof), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+                       nameof(CSharpAnalyzersResources.Convert_typeof_to_nameof), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
 
             // Check Parent is a .Name access
             var operationParent = (IPropertyReferenceOperation)operation.Parent;
-            if (!(operationParent.Property.Name == nameof(Type.Name)))
+            if (!(operationParent.Property.Name == nameof(System.Type.Name)))
             {
                 return false;
             }
