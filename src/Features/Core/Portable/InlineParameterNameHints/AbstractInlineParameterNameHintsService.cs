@@ -14,16 +14,15 @@ namespace Microsoft.CodeAnalysis.InlineParameterNameHints
         public async Task<IEnumerable<InlineParameterHint>> GetInlineParameterNameHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var spans = new List<InlineParameterHint>();
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var nodes = root.DescendantNodes(textSpan);
-            spans = AddAllParameterNameHintLocations(semanticModel, nodes, spans, cancellationToken);
+            var spans = AddAllParameterNameHintLocations(semanticModel, nodes, cancellationToken);
             return spans;
         }
 
-        protected abstract List<InlineParameterHint> AddAllParameterNameHintLocations(
-            SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, List<InlineParameterHint> spans, CancellationToken cancellationToken);
+        protected abstract IEnumerable<InlineParameterHint> AddAllParameterNameHintLocations(
+            SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, CancellationToken cancellationToken);
     }
 }

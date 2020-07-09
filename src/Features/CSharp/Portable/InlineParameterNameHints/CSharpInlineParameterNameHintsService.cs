@@ -23,17 +23,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
     /// as well as associate the adornments back to the parameter name
     /// </summary>
     [ExportLanguageService(typeof(IInlineParameterNameHintsService), LanguageNames.CSharp), Shared]
-    internal class InlineParameterNameHintsService : AbstractInlineParameterNameHintsService
+    internal class CSharpInlineParameterNameHintsService : AbstractInlineParameterNameHintsService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineParameterNameHintsService()
+        public CSharpInlineParameterNameHintsService()
         {
         }
 
-        protected override List<InlineParameterHint> AddAllParameterNameHintLocations(
-             SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, List<InlineParameterHint> spans, CancellationToken cancellationToken)
+        protected override IEnumerable<InlineParameterHint> AddAllParameterNameHintLocations(
+             SemanticModel semanticModel, IEnumerable<SyntaxNode> nodes, CancellationToken cancellationToken)
         {
+            var spans = new List<InlineParameterHint>();
             foreach (var node in nodes)
             {
                 if (node is ArgumentSyntax argument)

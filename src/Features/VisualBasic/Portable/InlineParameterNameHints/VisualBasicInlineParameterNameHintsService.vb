@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
     <ExportLanguageService(GetType(IInlineParameterNameHintsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class InlineParameterNameHintsService
+    Friend Class VisualBasicInlineParameterNameHintsService
         Inherits AbstractInlineParameterNameHintsService
 
         <ImportingConstructor>
@@ -19,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
         Public Sub New()
         End Sub
 
-        Protected Overrides Function AddAllParameterNameHintLocations(semanticModel As SemanticModel, nodes As IEnumerable(Of SyntaxNode), spans As List(Of InlineParameterHint), cancellationToken As CancellationToken) As List(Of InlineParameterHint)
+        Protected Overrides Function AddAllParameterNameHintLocations(semanticModel As SemanticModel, nodes As IEnumerable(Of SyntaxNode), cancellationToken As CancellationToken) As IEnumerable(Of InlineParameterHint)
+            Dim spans = New List(Of InlineParameterHint)
             For Each node In nodes
                 cancellationToken.ThrowIfCancellationRequested()
                 Dim simpleArgument = TryCast(node, SimpleArgumentSyntax)
