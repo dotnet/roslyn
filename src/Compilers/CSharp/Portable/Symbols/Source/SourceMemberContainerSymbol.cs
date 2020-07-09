@@ -3171,16 +3171,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                      isStatic: false,
                                                                      ImmutableArray<PropertySymbol>.Empty);
 
-                // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
+                PropertySymbol equalityContract;
+
                 if (!memberSignatures.TryGetValue(targetProperty, out Symbol? existingEqualityContractProperty))
                 {
-                    var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: SynthesizedRecordClone.FindValidCloneMethod(BaseTypeNoUseSiteDiagnostics) is object);
-                    members.Add(property);
-                    members.Add(property.GetMethod);
-                    return property;
+                    equalityContract = new SynthesizedRecordEqualityContractProperty(this, diagnostics);
+                    members.Add(equalityContract);
+                    members.Add(equalityContract.GetMethod);
+                }
+                else
+                {
+                    equalityContract = (PropertySymbol)existingEqualityContractProperty;
+
+                    if (equalityContract.DeclaredAccessibility != Accessibility.Protected)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NonProtectedAPIInRecord, equalityContract.Locations[0], equalityContract);
+                    }
+
+                    if (!equalityContract.Type.Equals(targetProperty.Type, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        if (!equalityContract.Type.IsErrorType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, equalityContract.Locations[0], equalityContract, targetProperty.Type);
+                        }
+                    }
+                    else
+                    {
+                        SynthesizedRecordEqualityContractProperty.VerifyOverridesEqualityContractFromBase(equalityContract, diagnostics);
+                    }
+
+
+                    reportNotOverridableAPIInRecord(equalityContract, diagnostics);
                 }
 
-                return (PropertySymbol)existingEqualityContractProperty;
+                return equalityContract;
             }
 
             MethodSymbol addThisEquals(PropertySymbol equalityContract)
@@ -3224,14 +3248,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, thisEquals.Locations[0], thisEquals, targetMethod.ReturnType);
                     }
 
-                    if (!IsSealed &&
-                        ((!thisEquals.IsAbstract && !thisEquals.IsVirtual && !thisEquals.IsOverride) || thisEquals.IsSealed))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, thisEquals.Locations[0], thisEquals);
-                    }
+                    reportNotOverridableAPIInRecord(thisEquals, diagnostics);
                 }
 
                 return thisEquals;
+            }
+
+            void reportNotOverridableAPIInRecord(Symbol symbol, DiagnosticBag diagnostics)
+            {
+                if (!IsSealed &&
+                    ((!symbol.IsAbstract && !symbol.IsVirtual && !symbol.IsOverride) || symbol.IsSealed))
+                {
+                    diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, symbol.Locations[0], symbol);
+                }
             }
 
             void addOtherEquals()

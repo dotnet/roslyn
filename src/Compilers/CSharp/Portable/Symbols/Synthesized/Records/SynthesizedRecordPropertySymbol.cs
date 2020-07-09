@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ContainingType,
                 this,
                 _modifiers,
-                _sourceName,
                 ((ParameterSyntax)syntax).Identifier.GetLocation(),
                 syntax,
                 diagnostics);
