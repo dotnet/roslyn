@@ -53,15 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var isUsingSystem = root.
-                                DescendantNodes().
-                                OfType<UsingDirectiveSyntax>().
-                                Any(node => node.Name.ToString().Equals("System"));
 
             foreach (var diagnostic in diagnostics)
             {
                 var node = (MemberAccessExpressionSyntax)root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                ConvertNameOf(editor, node, semanticModel, isUsingSystem);
+                ConvertNameOf(editor, node, semanticModel);
             }
         }
 
@@ -70,29 +66,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
          * The isUsingSystem parameter determines whether includes the System directive.
          */
         internal static void ConvertNameOf(
-            SyntaxEditor editor, MemberAccessExpressionSyntax node, SemanticModel semanticModel, bool isUsingSystem)
+            SyntaxEditor editor, MemberAccessExpressionSyntax node, SemanticModel? semanticModel)
         {
+
             var exp = (TypeOfExpressionSyntax)node.Expression;
-            var idName = exp.Type.ToString();
+            var symbolType = semanticModel.GetSymbolInfo(exp.Type).Symbol.GetSymbolType();
 
-            //check if exp type is predefined type and convert
+            //check if node type is predefined type and convert
             //example: int -> Int32, string -> String, etc
-            if (exp.Type.IsKind(SyntaxKind.PredefinedType))
-            {
-                idName = semanticModel.GetSymbolInfo(exp.Type).Symbol.
-                                       GetSymbolType().SpecialType.
-                                       ToPredefinedType().ToString();
-            }
+            var typeExpression = exp.Type.IsKind(SyntaxKind.PredefinedType) && symbolType.IsSpecialType() && symbolType != null
+                ? editor.Generator.TypeExpression(symbolType.SpecialType)
+                : editor.Generator.TypeExpression(symbolType);
 
-            //check if user is using System;
-            idName = isUsingSystem ? idName : "System." + idName;
-
-            var nameOfSyntax = InvocationExpression(IdentifierName("nameof")).
-                               WithArgumentList(
-                               ArgumentList(
-                               SingletonSeparatedList<ArgumentSyntax>(
-                               Argument(
-                               IdentifierName(idName)))));
+            var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
 
             editor.ReplaceNode(node, nameOfSyntax.WithAdditionalAnnotations(Simplifier.Annotation));
         }
