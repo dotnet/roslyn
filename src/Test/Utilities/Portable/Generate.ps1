@@ -1,7 +1,6 @@
 function Add-TargetFramework($name, $packagePath, $list)
 {
-  $refName = [char]::toupper($name[0]) + $name.Substring(1)
-  $resourceTypeName = "Resources" + $refName
+  $resourceTypeName = "Resources" + $name
   $script:codeContent += @"
         public static class $resourceTypeName
         {
@@ -9,11 +8,12 @@ function Add-TargetFramework($name, $packagePath, $list)
 "@;
 
   $refContent = @"
-        public static class $refName
+        public static class $name
         {
 
 "@
 
+  $name = $name.ToLower()
   foreach ($dllPath in $list)
   {
     if ($dllPath.Contains('#'))
@@ -22,14 +22,15 @@ function Add-TargetFramework($name, $packagePath, $list)
       $dllName = $all[0]
       $dllPath = $all[1]
       $dll = Split-Path -leaf $dllPath
+      $logicalName = "$($dllName).$($name).$($dll)";
     }
     else
     {
       $dll = Split-Path -leaf $dllPath
       $dllName = $dll.Substring(0, $dll.Length - 4)
+      $logicalName = "$($name).$($dll)";
     }
 
-    $logicalName = "$($name).$($dll)";
     $script:targetsContent += @"
         <EmbeddedResource Include="$packagePath\$dllPath">
           <LogicalName>$logicalName</LogicalName>
@@ -86,21 +87,17 @@ namespace Roslyn.Test.Utilities
 
 "@
 
-$net20 = @(
+
+Add-TargetFramework "Net20" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net20)\build\.NETFramework\v2.0' @(
   'mscorlib.dll',
   'System.dll',
-  'Microsoft.VisualBasic.dll'
-)
+  'Microsoft.VisualBasic.dll')
 
-Add-TargetFramework "net20" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net20)\build\.NETFramework\v2.0' $net20
-
-$net35 = @(
+Add-TargetFramework "Net35" '$(Pkgjnm2_ReferenceAssemblies_net35)\build\.NETFramework\v3.5' @(
   'System.Core.dll'
 )
 
-Add-TargetFramework "net35" '$(Pkgjnm2_ReferenceAssemblies_net35)\build\.NETFramework\v3.5' $net35
-
-$net40 = @(
+Add-TargetFramework "Net40" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0' @(
   'mscorlib.dll',
   'System.dll',
   'System.Core.dll',
@@ -111,9 +108,7 @@ $net40 = @(
   'Microsoft.CSharp.dll'
 )
 
-Add-TargetFramework "net40" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0' $net40
-
-$net451 = @(
+Add-TargetFramework "Net451" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net451)\build\.NETFramework\v4.5.1' @(
   'mscorlib.dll',
   'System.dll',
   'System.Configuration.dll',
@@ -135,9 +130,7 @@ $net451 = @(
   'Facades\System.Threading.Tasks.dll'
 )
 
-Add-TargetFramework "net451" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net451)\build\.NETFramework\v4.5.1' $net451
-
-$net461 = @(
+Add-TargetFramework "Net461" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1' @(
   'mscorlib.dll',
   'System.dll',
   'System.Core.dll',
@@ -147,19 +140,46 @@ $net461 = @(
   'Microsoft.VisualBasic.dll'
 )
 
-Add-TargetFramework "net461" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1' $net461
-
-$tasksExtensions = @(
-  'System.Threading.Tasks.Extensions.dll'
+Add-TargetFramework "NetCoreApp31" '$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1' @(
+  'mscorlib.dll',
+  'System.dll',
+  'System.Core.dll',
+  'System.Console.dll',
+  'System.Linq.dll',
+  'System.Runtime.dll',
+  'System.Runtime.InteropServices.dll',
+  'System.Runtime.InteropServices.WindowsRuntime.dll',
+  'System.Threading.Tasks.dll',
+  'netstandard.dll',
+  'Microsoft.CSharp.dll',
+  'Microsoft.VisualBasic.dll'
 )
 
-Add-TargetFramework "ValueTask" '$(PkgSystem_Threading_Tasks_Extensions)\lib\portable-net45+win8+wp8+wpa81' $tasksExtensions
-
-$buildExtensions = @(
-  'NetStandard461#net461\lib\netstandard.dll'
+Add-TargetFramework "NetStandard20" '$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref' @(
+  'mscorlib.dll',
+  'System.dll',
+  'System.Core.dll',
+  'System.Dynamic.Runtime.dll',
+  'System.Runtime.dll',
+  'netstandard.dll'
 )
 
-Add-TargetFramework "BuildExtensions" '$(PkgMicrosoft_NET_Build_Extensions)\msbuildExtensions\Microsoft\Microsoft.NET.Build.Extensions' $buildExtensions
+Add-TargetFramework "MicrosoftCSharp" '$(PkgMicrosoft_CSharp)\ref' @(
+  'Netstandard10#netstandard1.0\Microsoft.CSharp.dll'
+)
+
+Add-TargetFramework "MicrosoftVisualBasic" '$(PkgMicrosoft_VisualBasic)\ref' @(
+  'Netstandard11#netstandard1.1\Microsoft.VisualBasic.dll'
+)
+
+Add-TargetFramework "SystemThreadingTasksExtensions" '$(PkgSystem_Threading_Tasks_Extensions)' @(
+  'PortableLib#\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll',
+  'NetStandard20Lib#\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll'
+)
+
+Add-TargetFramework "BuildExtensions" '$(PkgMicrosoft_NET_Build_Extensions)\msbuildExtensions\Microsoft\Microsoft.NET.Build.Extensions' @(
+  'NetStandardToNet461#net461\lib\netstandard.dll'
+)
 
 $targetsContent += @"
   </ItemGroup>

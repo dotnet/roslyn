@@ -43464,7 +43464,7 @@ I2.-
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestReferences.NetCoreApp30.SystemRuntimeRef },
+                                                 references: new[] { TestMetadata.NetCoreApp31.SystemRuntime },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -54964,8 +54964,8 @@ class Test : C0, I1
         public void WindowsRuntimeEvent_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeInteropServicesWindowsRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntimeInteropServicesWindowsRuntime) +
 @"
 .class public auto ansi sealed Event
        extends [System.Runtime]System.MulticastDelegate
@@ -55214,7 +55214,7 @@ class C1 : I1, Interface
         public void ExplicitlyImplementedViaAccessors_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -55544,7 +55544,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -55705,7 +55705,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -55866,7 +55866,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56165,7 +56165,7 @@ class C3 : C2, I1
         public void ExplicitlyImplementedViaAccessors_06()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56409,7 +56409,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_07()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56520,7 +56520,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_08()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56631,7 +56631,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_09()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56746,7 +56746,7 @@ interface I3 : I2
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56821,7 +56821,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56900,7 +56900,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56974,7 +56974,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestReferences.NetCoreApp30.SystemRuntimeRef) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {

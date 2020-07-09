@@ -105,7 +105,7 @@ End Module")
         {
 #if !NET472
             var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
-            File.WriteAllBytes(filePath, TestResources.NetFX.netstandard20.netstandard);
+            File.WriteAllBytes(filePath, TestMetadata.ResourcesNetStandard20.netstandard);
             arguments.Add("/nostdlib");
             arguments.Add("/r:netstandard.dll");
 #endif
