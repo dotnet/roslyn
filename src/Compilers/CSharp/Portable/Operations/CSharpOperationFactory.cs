@@ -1951,7 +1951,8 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundConstantPattern.Syntax;
             bool isImplicit = boundConstantPattern.WasCompilerGenerated;
             TypeSymbol inputType = boundConstantPattern.InputType;
-            return new CSharpLazyConstantPatternOperation(inputType.GetPublicSymbol(), this, value, _semanticModel, syntax, isImplicit);
+            TypeSymbol narrowedType = boundConstantPattern.ConvertedType;
+            return new CSharpLazyConstantPatternOperation(inputType.GetPublicSymbol(), narrowedType.GetPublicSymbol(), this, value, _semanticModel, syntax, isImplicit);
         }
 
         private IOperation CreateBoundRelationalPatternOperation(BoundRelationalPattern boundRelationalPattern)
@@ -1961,7 +1962,8 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundRelationalPattern.Syntax;
             bool isImplicit = boundRelationalPattern.WasCompilerGenerated;
             TypeSymbol inputType = boundRelationalPattern.InputType;
-            return new CSharpLazyRelationalPatternOperation(inputType.GetPublicSymbol(), this, operatorKind, value, _semanticModel, syntax, isImplicit);
+            TypeSymbol narrowedType = boundRelationalPattern.ConvertedType;
+            return new CSharpLazyRelationalPatternOperation(inputType.GetPublicSymbol(), narrowedType.GetPublicSymbol(), this, operatorKind, value, _semanticModel, syntax, isImplicit);
         }
 
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
@@ -1973,11 +1975,12 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             ITypeSymbol inputType = boundDeclarationPattern.InputType.GetPublicSymbol();
+            ITypeSymbol narrowedType = boundDeclarationPattern.ConvertedType.GetPublicSymbol();
             bool acceptsNull = boundDeclarationPattern.IsVar;
             ITypeSymbol matchedType = acceptsNull ? null : boundDeclarationPattern.DeclaredType.GetPublicTypeSymbol();
             SyntaxNode syntax = boundDeclarationPattern.Syntax;
             bool isImplicit = boundDeclarationPattern.WasCompilerGenerated;
-            return new DeclarationPatternOperation(inputType, matchedType, variable, acceptsNull, _semanticModel, syntax, isImplicit);
+            return new DeclarationPatternOperation(inputType, narrowedType, matchedType, variable, acceptsNull, _semanticModel, syntax, isImplicit);
         }
 
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundRecursivePattern boundRecursivePattern)
@@ -1995,6 +1998,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new TypePatternOperation(
                 matchedType: boundTypePattern.ConvertedType.GetPublicSymbol(),
                 inputType: boundTypePattern.InputType.GetPublicSymbol(),
+                narrowedType: boundTypePattern.ConvertedType.GetPublicSymbol(),
                 semanticModel: _semanticModel,
                 syntax: boundTypePattern.Syntax,
                 type: null, // this is not an expression
@@ -2140,7 +2144,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)
         {
             return new DiscardPatternOperation(
-                boundNode.InputType.GetPublicSymbol(),
+                inputType: boundNode.InputType.GetPublicSymbol(),
+                narrowedType: boundNode.ConvertedType.GetPublicSymbol(),
                 _semanticModel,
                 boundNode.Syntax,
                 isImplicit: boundNode.WasCompilerGenerated);
