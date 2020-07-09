@@ -270,17 +270,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void FindAdornmentCanvas_LayoutUpdated(object sender, EventArgs e)
             => PositionDashboard();
 
-        public static string RenameOverloads => EditorFeaturesResources.Include_overload_s;
+#pragma warning disable CA1822 // Mark members as static - used in xaml
+        public string RenameOverloads => EditorFeaturesResources.Include_overload_s;
         public Visibility RenameOverloadsVisibility => _model.RenameOverloadsVisibility;
         public bool IsRenameOverloadsEditable => _model.IsRenameOverloadsEditable;
-        public static string SearchInComments => EditorFeaturesResources.Include_comments;
-        public static string SearchInStrings => EditorFeaturesResources.Include_strings;
-        public static string ApplyRename => EditorFeaturesResources.Apply1;
-        public static string CancelRename => EditorFeaturesResources.Cancel;
-        public static string PreviewChanges => EditorFeaturesResources.Preview_changes1;
-        public static string RenameInstructions => EditorFeaturesResources.Modify_any_highlighted_location_to_begin_renaming;
-        public static string ApplyToolTip { get { return EditorFeaturesResources.Apply3 + " (Enter)"; } }
-        public static string CancelToolTip { get { return EditorFeaturesResources.Cancel + " (Esc)"; } }
+        public string SearchInComments => EditorFeaturesResources.Include_comments;
+        public string SearchInStrings => EditorFeaturesResources.Include_strings;
+        public string ApplyRename => EditorFeaturesResources.Apply1;
+        public string CancelRename => EditorFeaturesResources.Cancel;
+        public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
+        public string RenameInstructions => EditorFeaturesResources.Modify_any_highlighted_location_to_begin_renaming;
+        public string ApplyToolTip { get { return EditorFeaturesResources.Apply3 + " (Enter)"; } }
+        public string CancelToolTip { get { return EditorFeaturesResources.Cancel + " (Esc)"; } }
+#pragma warning restore CA1822 // Mark members as static
 
         private void OnElementSizeChanged(object sender, SizeChangedEventArgs e)
         {
