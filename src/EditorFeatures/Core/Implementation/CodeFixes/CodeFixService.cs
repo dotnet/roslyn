@@ -205,11 +205,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (result.Count > 0 && _fixerPriorityMap.TryGetValue(document.Project.Language, out var fixersForLanguage))
             {
                 // sort the result to the order defined by the fixers
-                ImmutableDictionary<CodeFixProvider, int> priorityMap = fixersForLanguage.Value;
+                var priorityMap = fixersForLanguage.Value;
                 result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
 
                 int GetValue(CodeFixCollection c)
-                    => priorityMap.TryGetValue((CodeFixProvider)c.Provider, out var value) ? value : int.MaxValue;
+                    => priorityMap!.TryGetValue((CodeFixProvider)c.Provider, out var value) ? value : int.MaxValue;
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive

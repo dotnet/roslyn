@@ -4087,7 +4087,7 @@ class C
         [Fact]
         public void ForEach_Update_Nullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -4100,7 +4100,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -4122,7 +4122,7 @@ class C
         [Fact]
         public void ForEach_DeleteBody()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -4131,7 +4131,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -4149,7 +4149,7 @@ class C
         [Fact]
         public void ForEachVariable_DeleteBody()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -4158,7 +4158,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -5442,7 +5442,7 @@ class C
         [Fact]
         public void DoWhileBody_Delete()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -5451,7 +5451,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -10437,7 +10437,7 @@ class C
         [Fact]
         public void ChangeLocalNullableToNonNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -10446,7 +10446,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -10464,7 +10464,7 @@ class C
         [Fact]
         public void ChangeLocalNonNullableToNullable()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void F()
@@ -10473,7 +10473,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void F()
@@ -10615,7 +10615,7 @@ class C
         [Fact]
         public void Block_Delete()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     public static void F()
@@ -10626,7 +10626,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     public static void F()

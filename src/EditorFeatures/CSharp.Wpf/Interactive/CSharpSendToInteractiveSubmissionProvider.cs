@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         protected override bool CanParseSubmission(string code)
         {
             ParseOptions options = CSharpParseOptions.Default.WithKind(SourceCodeKind.Script);
-            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(code, options);
+            var tree = SyntaxFactory.ParseSyntaxTree(code, options);
             return tree.HasCompilationUnitRoot &&
                 !tree.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }
 
         protected override IEnumerable<TextSpan> GetExecutableSyntaxTreeNodeSelection(TextSpan selectionSpan, SyntaxNode root)
         {
-            SyntaxNode expandedNode = GetSyntaxNodeForSubmission(selectionSpan, root);
+            var expandedNode = GetSyntaxNodeForSubmission(selectionSpan, root);
             return expandedNode != null
                 ? new TextSpan[] { expandedNode.Span }
                 : Array.Empty<TextSpan>();

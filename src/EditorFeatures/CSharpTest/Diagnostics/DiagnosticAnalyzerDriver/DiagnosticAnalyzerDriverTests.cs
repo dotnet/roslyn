@@ -624,7 +624,7 @@ class C
 
             diagnostics.Verify(expectedDiagnostics.Select(d => d.diagnostic).ToArray());
 
-            int index = 0;
+            var index = 0;
             foreach (var (_, expectedMessage) in expectedDiagnostics)
             {
                 Assert.Equal(expectedMessage, diagnostics[index].GetMessage());

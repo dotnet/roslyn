@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             HostLanguageServices languageServiceProvider,
             ImmutableArray<string> roles)
         {
-            string markupCode = documentElement.NormalizedValue();
+            var markupCode = documentElement.NormalizedValue();
 
             var folders = GetFolders(documentElement);
             var optionsElement = documentElement.Element(ParseOptionsElementName);

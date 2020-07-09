@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
         {
             TextSpan lastSpan = default;
             var endPosition = root.Span.End;
-            for (int p = position; p < endPosition; p++)
+            for (var p = position; p < endPosition; p++)
             {
                 if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, out var span) && span.Start > lastSpan.Start)
                 {
