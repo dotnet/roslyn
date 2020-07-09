@@ -162,6 +162,12 @@
         <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.Dynamic.Runtime.dll">
           <LogicalName>netstandard20.System.Dynamic.Runtime.dll</LogicalName>
         </EmbeddedResource>
+        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.Linq.dll">
+          <LogicalName>netstandard20.System.Linq.dll</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.Linq.Expressions.dll">
+          <LogicalName>netstandard20.System.Linq.Expressions.dll</LogicalName>
+        </EmbeddedResource>
         <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.Runtime.dll">
           <LogicalName>netstandard20.System.Runtime.dll</LogicalName>
         </EmbeddedResource>
@@ -170,6 +176,9 @@
         </EmbeddedResource>
         <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\ref\netstandard1.0\Microsoft.CSharp.dll">
           <LogicalName>netstandard10.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\lib\netstandard1.3\Microsoft.CSharp.dll">
+          <LogicalName>netstandard13lib.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
         </EmbeddedResource>
         <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.visualbasic\$(MicrosoftVisualBasicVersion)\ref\netstandard1.1\Microsoft.VisualBasic.dll">
           <LogicalName>netstandard11.microsoftvisualbasic.Microsoft.VisualBasic.dll</LogicalName>

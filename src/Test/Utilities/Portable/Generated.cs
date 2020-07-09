@@ -206,6 +206,10 @@ namespace Roslyn.Test.Utilities
             public static byte[] SystemCore => ResourceLoader.GetOrCreateResource(ref _SystemCore, "netstandard20.System.Core.dll");
             private static byte[] _SystemDynamicRuntime;
             public static byte[] SystemDynamicRuntime => ResourceLoader.GetOrCreateResource(ref _SystemDynamicRuntime, "netstandard20.System.Dynamic.Runtime.dll");
+            private static byte[] _SystemLinq;
+            public static byte[] SystemLinq => ResourceLoader.GetOrCreateResource(ref _SystemLinq, "netstandard20.System.Linq.dll");
+            private static byte[] _SystemLinqExpressions;
+            public static byte[] SystemLinqExpressions => ResourceLoader.GetOrCreateResource(ref _SystemLinqExpressions, "netstandard20.System.Linq.Expressions.dll");
             private static byte[] _SystemRuntime;
             public static byte[] SystemRuntime => ResourceLoader.GetOrCreateResource(ref _SystemRuntime, "netstandard20.System.Runtime.dll");
             private static byte[] _netstandard;
@@ -217,6 +221,8 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.System).GetReference(display: "System.dll (netstandard20)");
             public static PortableExecutableReference SystemCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemCore).GetReference(display: "System.Core.dll (netstandard20)");
             public static PortableExecutableReference SystemDynamicRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemDynamicRuntime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard20)");
+            public static PortableExecutableReference SystemLinq { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemLinq).GetReference(display: "System.Linq.dll (netstandard20)");
+            public static PortableExecutableReference SystemLinqExpressions { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemLinqExpressions).GetReference(display: "System.Linq.Expressions.dll (netstandard20)");
             public static PortableExecutableReference SystemRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemRuntime).GetReference(display: "System.Runtime.dll (netstandard20)");
             public static PortableExecutableReference netstandard { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.netstandard).GetReference(display: "netstandard.dll (netstandard20)");
         }
@@ -224,10 +230,13 @@ namespace Roslyn.Test.Utilities
         {
             private static byte[] _Netstandard10;
             public static byte[] Netstandard10 => ResourceLoader.GetOrCreateResource(ref _Netstandard10, "netstandard10.microsoftcsharp.Microsoft.CSharp.dll");
+            private static byte[] _Netstandard13Lib;
+            public static byte[] Netstandard13Lib => ResourceLoader.GetOrCreateResource(ref _Netstandard13Lib, "netstandard13lib.microsoftcsharp.Microsoft.CSharp.dll");
         }
         public static class MicrosoftCSharp
         {
             public static PortableExecutableReference Netstandard10 { get; } = AssemblyMetadata.CreateFromImage(ResourcesMicrosoftCSharp.Netstandard10).GetReference(display: "Microsoft.CSharp.dll (microsoftcsharp)");
+            public static PortableExecutableReference Netstandard13Lib { get; } = AssemblyMetadata.CreateFromImage(ResourcesMicrosoftCSharp.Netstandard13Lib).GetReference(display: "Microsoft.CSharp.dll (microsoftcsharp)");
         }
         public static class ResourcesMicrosoftVisualBasic
         {

@@ -160,12 +160,15 @@ Add-TargetFramework "NetStandard20" '$(NuGetPackageRoot)\netstandard.library\2.0
   'System.dll',
   'System.Core.dll',
   'System.Dynamic.Runtime.dll',
+  'System.Linq.dll',
+  'System.Linq.Expressions.dll',
   'System.Runtime.dll',
   'netstandard.dll'
 )
 
-Add-TargetFramework "MicrosoftCSharp" '$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\ref' @(
-  'Netstandard10#netstandard1.0\Microsoft.CSharp.dll'
+Add-TargetFramework "MicrosoftCSharp" '$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)' @(
+  'Netstandard10#ref\netstandard1.0\Microsoft.CSharp.dll'
+  'Netstandard13Lib#lib\netstandard1.3\Microsoft.CSharp.dll'
 )
 
 Add-TargetFramework "MicrosoftVisualBasic" '$(NuGetPackageRoot)\microsoft.visualbasic\$(MicrosoftVisualBasicVersion)\ref' @(
