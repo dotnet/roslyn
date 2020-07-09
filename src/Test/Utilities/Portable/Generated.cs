@@ -223,7 +223,7 @@ namespace Roslyn.Test.Utilities
         public static class ResourcesMicrosoftCSharp
         {
             private static byte[] _Netstandard10;
-            public static byte[] Netstandard10 => ResourceLoader.GetOrCreateResource(ref _Netstandard10, "Netstandard10.microsoftcsharp.Microsoft.CSharp.dll");
+            public static byte[] Netstandard10 => ResourceLoader.GetOrCreateResource(ref _Netstandard10, "netstandard10.microsoftcsharp.Microsoft.CSharp.dll");
         }
         public static class MicrosoftCSharp
         {
@@ -232,7 +232,7 @@ namespace Roslyn.Test.Utilities
         public static class ResourcesMicrosoftVisualBasic
         {
             private static byte[] _Netstandard11;
-            public static byte[] Netstandard11 => ResourceLoader.GetOrCreateResource(ref _Netstandard11, "Netstandard11.microsoftvisualbasic.Microsoft.VisualBasic.dll");
+            public static byte[] Netstandard11 => ResourceLoader.GetOrCreateResource(ref _Netstandard11, "netstandard11.microsoftvisualbasic.Microsoft.VisualBasic.dll");
         }
         public static class MicrosoftVisualBasic
         {
@@ -241,9 +241,9 @@ namespace Roslyn.Test.Utilities
         public static class ResourcesSystemThreadingTasksExtensions
         {
             private static byte[] _PortableLib;
-            public static byte[] PortableLib => ResourceLoader.GetOrCreateResource(ref _PortableLib, "PortableLib.systemthreadingtasksextensions.System.Threading.Tasks.Extensions.dll");
+            public static byte[] PortableLib => ResourceLoader.GetOrCreateResource(ref _PortableLib, "portablelib.systemthreadingtasksextensions.System.Threading.Tasks.Extensions.dll");
             private static byte[] _NetStandard20Lib;
-            public static byte[] NetStandard20Lib => ResourceLoader.GetOrCreateResource(ref _NetStandard20Lib, "NetStandard20Lib.systemthreadingtasksextensions.System.Threading.Tasks.Extensions.dll");
+            public static byte[] NetStandard20Lib => ResourceLoader.GetOrCreateResource(ref _NetStandard20Lib, "netstandard20lib.systemthreadingtasksextensions.System.Threading.Tasks.Extensions.dll");
         }
         public static class SystemThreadingTasksExtensions
         {
@@ -253,7 +253,7 @@ namespace Roslyn.Test.Utilities
         public static class ResourcesBuildExtensions
         {
             private static byte[] _NetStandardToNet461;
-            public static byte[] NetStandardToNet461 => ResourceLoader.GetOrCreateResource(ref _NetStandardToNet461, "NetStandardToNet461.buildextensions.netstandard.dll");
+            public static byte[] NetStandardToNet461 => ResourceLoader.GetOrCreateResource(ref _NetStandardToNet461, "netstandardtonet461.buildextensions.netstandard.dll");
         }
         public static class BuildExtensions
         {

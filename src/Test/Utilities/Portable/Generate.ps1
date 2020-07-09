@@ -22,7 +22,7 @@ function Add-TargetFramework($name, $packagePath, $list)
       $dllName = $all[0]
       $dllPath = $all[1]
       $dll = Split-Path -leaf $dllPath
-      $logicalName = "$($dllName).$($name).$($dll)";
+      $logicalName = "$($dllName.ToLower()).$($name).$($dll)";
     }
     else
     {
@@ -164,11 +164,11 @@ Add-TargetFramework "NetStandard20" '$(NuGetPackageRoot)\netstandard.library\2.0
   'netstandard.dll'
 )
 
-Add-TargetFramework "MicrosoftCSharp" '$(PkgMicrosoft_CSharp)\ref' @(
+Add-TargetFramework "MicrosoftCSharp" '$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\ref' @(
   'Netstandard10#netstandard1.0\Microsoft.CSharp.dll'
 )
 
-Add-TargetFramework "MicrosoftVisualBasic" '$(PkgMicrosoft_VisualBasic)\ref' @(
+Add-TargetFramework "MicrosoftVisualBasic" '$(NuGetPackageRoot)\microsoft.visualbasic\$(MicrosoftVisualBasicVersion)\ref' @(
   'Netstandard11#netstandard1.1\Microsoft.VisualBasic.dll'
 )
 

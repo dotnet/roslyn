@@ -168,20 +168,20 @@
         <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\netstandard.dll">
           <LogicalName>netstandard20.netstandard.dll</LogicalName>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_CSharp)\ref\netstandard1.0\Microsoft.CSharp.dll">
-          <LogicalName>Netstandard10.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
+        <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\ref\netstandard1.0\Microsoft.CSharp.dll">
+          <LogicalName>netstandard10.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_VisualBasic)\ref\netstandard1.1\Microsoft.VisualBasic.dll">
-          <LogicalName>Netstandard11.microsoftvisualbasic.Microsoft.VisualBasic.dll</LogicalName>
+        <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.visualbasic\$(MicrosoftVisualBasicVersion)\ref\netstandard1.1\Microsoft.VisualBasic.dll">
+          <LogicalName>netstandard11.microsoftvisualbasic.Microsoft.VisualBasic.dll</LogicalName>
         </EmbeddedResource>
         <EmbeddedResource Include="$(PkgSystem_Threading_Tasks_Extensions)\\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll">
-          <LogicalName>PortableLib.systemthreadingtasksextensions.System.Threading.Tasks.Extensions.dll</LogicalName>
+          <LogicalName>portablelib.systemthreadingtasksextensions.System.Threading.Tasks.Extensions.dll</LogicalName>
         </EmbeddedResource>
         <EmbeddedResource Include="$(PkgSystem_Threading_Tasks_Extensions)\\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll">
-          <LogicalName>NetStandard20Lib.systemthreadingtasksextensions.System.Threading.Tasks.Extensions.dll</LogicalName>
+          <LogicalName>netstandard20lib.systemthreadingtasksextensions.System.Threading.Tasks.Extensions.dll</LogicalName>
         </EmbeddedResource>
         <EmbeddedResource Include="$(PkgMicrosoft_NET_Build_Extensions)\msbuildExtensions\Microsoft\Microsoft.NET.Build.Extensions\net461\lib\netstandard.dll">
-          <LogicalName>NetStandardToNet461.buildextensions.netstandard.dll</LogicalName>
+          <LogicalName>netstandardtonet461.buildextensions.netstandard.dll</LogicalName>
         </EmbeddedResource>
   </ItemGroup>
 </Project>
