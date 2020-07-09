@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Testing
     {
         // Copied from ConcurrentDictionary since IDictionary doesn't have this useful method
         public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> function)
+            where TKey : notnull
         {
             if (!dictionary.TryGetValue(key, out var value))
             {
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> function)
+            where TKey : notnull
             => dictionary.GetOrAdd(key, _ => function());
 
         public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> pair, out TKey key, out TValue value)

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.5;netstandard2.0;net452</TargetFrameworks>
+    <TargetFrameworks>$(TestingLibraryTargetFrameworks)</TargetFrameworks>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest</AssemblyName>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Testing.MSTest</RootNamespace>
   </PropertyGroup>

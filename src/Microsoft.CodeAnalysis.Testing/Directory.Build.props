@@ -6,7 +6,17 @@
   </PropertyGroup>
 
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
-  
+
+  <PropertyGroup>
+    <!--
+      netcoreapp3.1: Ensures full support for nullable reference types
+      netstandard1.5/net452: Roslyn 1.x
+      netstandard1.5/net46: Roslyn 2.x
+      netstandard2.0/net472: Roslyn 3.x
+    -->
+    <TestingLibraryTargetFrameworks>netcoreapp3.1;netstandard1.5;netstandard2.0;net452;net46;net472</TestingLibraryTargetFrameworks>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(CopyrightMicrosoft)' != ''">
     <Copyright>$(CopyrightMicrosoft)</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

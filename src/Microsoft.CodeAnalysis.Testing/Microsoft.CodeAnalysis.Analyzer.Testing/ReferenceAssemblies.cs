@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -18,7 +19,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
 
-#if NET46 || NET472 || NETSTANDARD
+#if NET46 || NET472 || NETSTANDARD || NETCOREAPP3_1
 using NuGet.Packaging.Signing;
 #endif
 
@@ -96,6 +97,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 return NetFramework.Net46.Default;
 #elif NET472
                 return NetFramework.Net472.Default;
+#elif NETCOREAPP3_1
+                return NetCore.NetCoreApp31;
 #endif
             }
         }
@@ -270,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     PackageSaveMode = PackageSaveMode.Defaultv3,
                     XmlDocFileSaveMode = XmlDocFileSaveMode.None,
                 };
-#elif NET46 || NET472 || NETSTANDARD2_0
+#elif NET46 || NET472 || NETSTANDARD2_0 || NETCOREAPP3_1
                 var packageExtractionContext = new PackageExtractionContext(
                     PackageSaveMode.Defaultv3,
                     XmlDocFileSaveMode.None,
@@ -345,6 +348,11 @@ namespace Microsoft.CodeAnalysis.Testing
                         packageReader = new PackageFolderReader(installedPath);
                     }
 
+                    if (installedPath is null)
+                    {
+                        continue;
+                    }
+
                     var libItems = await packageReader.GetLibItemsAsync(cancellationToken);
                     var nearestLib = frameworkReducer.GetNearest(targetFramework, libItems.Select(x => x.TargetFramework));
                     var frameworkItems = await packageReader.GetFrameworkItemsAsync(cancellationToken);
@@ -386,6 +394,12 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
                 }
 
+                var referenceAssemblyInstalledPath = ReferenceAssemblyPackage is object
+                    ? GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity())
+                    : null;
+                Debug.Assert(ReferenceAssemblyPackage is null || referenceAssemblyInstalledPath is object, $"Assertion failed: {nameof(ReferenceAssemblyPackage)} is null || {nameof(referenceAssemblyInstalledPath)} is object");
+                Debug.Assert(ReferenceAssemblyPackage is null || ReferenceAssemblyPath is object, $"Assertion failed: {nameof(ReferenceAssemblyPackage)} is null || {nameof(ReferenceAssemblyPath)} is object");
+
                 foreach (var assembly in frameworkAssemblies)
                 {
                     if (ReferenceAssemblyPackage is null)
@@ -393,27 +407,26 @@ namespace Microsoft.CodeAnalysis.Testing
                         throw new InvalidOperationException($"Cannot resolve assembly '{assembly}' without a reference assembly package");
                     }
 
-                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
-                    if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
+                    if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".dll")))
                     {
-                        resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
+                        resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".dll")));
                     }
                 }
 
                 // Prefer assemblies from the reference assembly package to ones otherwise provided
                 if (ReferenceAssemblyPackage is object)
                 {
-                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
-                    var referenceAssemblies = new HashSet<string>(resolvedAssemblies.Where(resolved => resolved.StartsWith(installedPath)));
-                    var referenceAssemblyNames = new HashSet<string>(referenceAssemblies.Select(Path.GetFileNameWithoutExtension));
+                    var referenceAssemblies = new HashSet<string>(resolvedAssemblies.Where(resolved => resolved.StartsWith(referenceAssemblyInstalledPath!)));
+
+                    // Suppression due to https://github.com/dotnet/roslyn/issues/44735
+                    var referenceAssemblyNames = new HashSet<string>(referenceAssemblies.Select((Func<string, string>)Path.GetFileNameWithoutExtension!));
                     resolvedAssemblies.RemoveWhere(resolved => referenceAssemblyNames.Contains(Path.GetFileNameWithoutExtension(resolved)) && !referenceAssemblies.Contains(resolved));
                 }
 
                 // Add the facade assemblies
                 if (ReferenceAssemblyPackage is object)
                 {
-                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
-                    var facadesPath = Path.Combine(installedPath, ReferenceAssemblyPath, "Facades");
+                    var facadesPath = Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, "Facades");
                     if (Directory.Exists(facadesPath))
                     {
                         foreach (var path in Directory.GetFiles(facadesPath, "*.dll"))
@@ -425,10 +438,10 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     foreach (var assembly in FacadeAssemblies)
                     {
-                        if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
+                        if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".dll")))
                         {
                             resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
-                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
+                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".dll")));
                         }
                     }
                 }
