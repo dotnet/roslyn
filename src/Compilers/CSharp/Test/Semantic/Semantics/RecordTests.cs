@@ -15638,5 +15638,150 @@ record R(int P1, int* P2, delegate*<int> P3);";
             p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P3");
             Assert.True(p.HasPointerType);
         }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_RefOrOut()
+        {
+            var src = @"
+record R(ref int P1, out int P2);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,10): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2, in int P3);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(2, 10),
+                // (2,22): error CS0631: ref and out are not valid in this context
+                // record R(ref int P1, out int P2, in int P3);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out").WithLocation(2, 22)
+                );
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_In()
+        {
+            var src = @"
+record R(in int P1);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "R R.<>Clone()",
+                "System.Type R.EqualityContract.get",
+                "System.Type R.EqualityContract { get; }",
+                "R..ctor(in System.Int32 P1)",
+                "System.Int32 R.<P1>k__BackingField",
+                "System.Int32 R.P1.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) R.P1.init",
+                "System.Int32 R.P1 { get; init; }",
+                "System.Int32 R.GetHashCode()",
+                "System.Boolean R.Equals(System.Object? obj)",
+                "System.Boolean R.Equals(R? )",
+                "R..ctor(R )",
+                "void R.Deconstruct(out System.Int32 P1)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_This()
+        {
+            var src = @"
+record R(this int i);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,10): error CS0027: Keyword 'this' is not available in the current context
+                // record R(this int i);
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(2, 10)
+                );
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberModifiers_Params()
+        {
+            var src = @"
+record R(params int[] Array);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "R R.<>Clone()",
+                "System.Type R.EqualityContract.get",
+                "System.Type R.EqualityContract { get; }",
+                "R..ctor(params System.Int32[] Array)",
+                "System.Int32[] R.<Array>k__BackingField",
+                "System.Int32[] R.Array.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) R.Array.init",
+                "System.Int32[] R.Array { get; init; }",
+                "System.Int32 R.GetHashCode()",
+                "System.Boolean R.Equals(System.Object? obj)",
+                "System.Boolean R.Equals(R? )",
+                "R..ctor(R )",
+                "void R.Deconstruct(out System.Int32[] Array)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue()
+        {
+            var src = @"
+record R(int P = 42)
+{
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue_AndPropertyInitializer()
+        {
+            var src = @"
+record R(int P = 1)
+{
+    public int P { get; init; } = 42;
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+
+            verifier.VerifyIL("R..ctor(int)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  stfld      ""int R.<P>k__BackingField""
+  IL_0008:  ldarg.0
+  IL_0009:  call       ""object..ctor()""
+  IL_000e:  nop
+  IL_000f:  ret
+}");
+        }
     }
 }

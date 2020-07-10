@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         body = (BoundBlock)body.WithHasErrors();
                     }
 
-                    if (body != null && methodSymbol.IsConstructor())
+                    if (body != null && methodSymbol.IsConstructor() && !(methodSymbol is SynthesizedRecordConstructor))
                     {
                         UnassignedFieldsWalker.Analyze(_compilation, methodSymbol, body, diagsForCurrentMethod);
                     }
