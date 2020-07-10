@@ -41,9 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 VerticalAlignment = VerticalAlignment.Center,
                 FontStyle = FontStyles.Normal,
                 FontFamily = format.Typeface.FontFamily,
-                FontSize = format.FontRenderingEmSize - 1,
+                FontSize = format.FontRenderingEmSize - (0.25 * format.FontHintingEmSize),
                 Padding = new Thickness(0),
-                Background = format.BackgroundBrush,
                 Foreground = format.ForegroundBrush
             };
 
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 0, 5, 0),
-                Height = lineHeight - 3,
+                Height = lineHeight - (0.25 * lineHeight),
                 Child = block,
             };
             block.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));

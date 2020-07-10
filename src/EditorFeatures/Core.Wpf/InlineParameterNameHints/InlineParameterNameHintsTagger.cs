@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -24,13 +24,22 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly ITagAggregator<InlineParameterNameHintDataTag> _tagAggregator;
         private readonly ITextBuffer _buffer;
         private readonly ITextView _textView;
-        private readonly List<ITagSpan<IntraTextAdornmentTag>> _cache;
-        private ITextSnapshot _cacheSnapshot;
-        private readonly IClassificationFormatMap _formatMap;
-        private TextFormattingRunProperties _format;
-        private readonly IClassificationType _keyword;
 
-        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+        /// <summary>
+        /// _cache stores the parameter hint tags in a global location 
+        /// </summary>
+        private readonly List<ITagSpan<IntraTextAdornmentTag>> _cache;
+
+        /// <summary>
+        /// Stores the snapshot of the state at which things change on the screen 
+        /// </summary>
+        private ITextSnapshot? _cacheSnapshot;
+
+        private readonly IClassificationFormatMap _formatMap;
+        private TextFormattingRunProperties? _format;
+        private readonly IClassificationType _hint;
+
+        public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, ITextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
         {
@@ -39,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _buffer = buffer;
             _tagAggregator = tagAggregator;
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
-            _keyword = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineParameterNameHintsTag.TagId);
+            _hint = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineParameterNameHintsTag.TagId);
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
             _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
         }
@@ -67,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         {
             get
             {
-                _format ??= _formatMap.GetTextProperties(_keyword);
+                _format ??= _formatMap.GetTextProperties(_hint);
 
                 return _format;
             }
