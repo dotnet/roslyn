@@ -113,10 +113,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 Return Nothing
             End If
 
-            Return Await GenerateCodeAction(document, semanticModel, delegateSymbol, actualEventName, targetType, cancellationToken).ConfigureAwait(False)
+            Return Await GenerateCodeActionAsync(document, semanticModel, delegateSymbol, actualEventName, targetType, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Shared Async Function GenerateCodeAction(document As Document, semanticModel As SemanticModel, delegateSymbol As IMethodSymbol, actualEventName As String, targetType As INamedTypeSymbol, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateCodeActionAsync(document As Document, semanticModel As SemanticModel, delegateSymbol As IMethodSymbol, actualEventName As String, targetType As INamedTypeSymbol, cancellationToken As CancellationToken) As Task(Of CodeAction)
             Dim codeGenService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ICodeGenerationService)
             Dim syntaxFactService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ISyntaxFactsService)
 

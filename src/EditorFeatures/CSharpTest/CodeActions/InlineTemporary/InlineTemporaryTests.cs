@@ -4923,7 +4923,7 @@ class C
 
         [WorkItem(22540, "https://github.com/dotnet/roslyn/issues/22540")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DoNotQualifyWhenInliningIntoPattern()
+        public async Task DoNotQualifyWhenInliningIntoPattern_01()
         {
             await TestInRegularAndScriptAsync(@"
 using Syntax;
@@ -4961,6 +4961,51 @@ static class Goo
     {
 
         if (!(awaitExpression.Expression is ParenthesizedExpressionSyntax parenthesizedExpression))
+            return;
+    }
+}");
+        }
+
+        [WorkItem(45661, "https://github.com/dotnet/roslyn/issues/45661")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyWhenInliningIntoPattern_02()
+        {
+            await TestInRegularAndScriptAsync(@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+        ExpressionSyntax [||]expression = awaitExpression.Expression;
+
+        if (!(expression is ParenthesizedExpressionSyntax { } parenthesizedExpression))
+            return;
+    }
+}",
+@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+
+        if (!(awaitExpression.Expression is ParenthesizedExpressionSyntax { } parenthesizedExpression))
             return;
     }
 }");

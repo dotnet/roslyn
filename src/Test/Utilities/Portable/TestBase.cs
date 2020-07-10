@@ -234,19 +234,14 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference CSharpDesktopRef => s_desktopCSharpRef.Value;
 
-        private static readonly Lazy<MetadataReference> s_stdCSharpRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard10.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.dll (netstandard 1.0 ref)"),
-            LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference CSharpNetStandard10Ref => s_stdCSharpRef.Value;
-
         private static readonly Lazy<MetadataReference> s_std20Ref = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
+            () => AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
             LazyThreadSafetyMode.PublicationOnly);
 
         public static MetadataReference NetStandard20Ref => s_std20Ref.Value;
 
         private static readonly Lazy<MetadataReference> s_46NetStandardFacade = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesBuildExtensions.NetStandard461).GetReference(display: "netstandard20.netstandard.dll"),
+            () => AssemblyMetadata.CreateFromImage(ResourcesBuildExtensions.NetStandardToNet461).GetReference(display: "netstandard20.netstandard.dll"),
             LazyThreadSafetyMode.PublicationOnly);
 
         public static MetadataReference Net46StandardFacade => s_46NetStandardFacade.Value;

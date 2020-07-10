@@ -6063,6 +6063,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
   </data>
+  <data name="IDS_FeatureStaticAnonymousFunction" xml:space="preserve">
+    <value>static anonymous function</value>
+  </data>
+  <data name="ERR_StaticAnonymousFunctionCannotCaptureThis" xml:space="preserve">
+    <value>A static anonymous function cannot contain a reference to 'this' or 'base'.</value>
+  </data>
+  <data name="ERR_StaticAnonymousFunctionCannotCaptureVariable" xml:space="preserve">
+    <value>A static anonymous function cannot contain a reference to '{0}'.</value>
+  </data>
   <data name="IDS_FeatureAsyncUsing" xml:space="preserve">
     <value>asynchronous using</value>
   </data>
@@ -6286,7 +6295,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{0}' does not override expected method from 'object'.</value>
   </data>
   <data name="ERR_SealedGetHashCodeInRecord" xml:space="preserve">
-    <value>'{0}' cannot be sealed because containing 'record' is not sealed.</value>
+    <value>'{0}' cannot be sealed because containing record is not sealed.</value>
   </data>
   <data name="ERR_DoesNotOverrideBaseEquals" xml:space="preserve">
     <value>'{0}' does not override expected method from '{1}'.</value>
@@ -6298,12 +6307,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Constant value may overflow at runtime (use 'unchecked' syntax to override)</value>
   </data>
   <data name="ERR_NotOverridableAPIInRecord" xml:space="preserve">
-    <value>'{0}' disallows overriding and containing 'record' is not sealed.</value>
+    <value>'{0}' must allow overriding because the containing record is not sealed.</value>
   </data>
   <data name="ERR_NonPublicAPIInRecord" xml:space="preserve">
     <value>Record member '{0}' must be public.</value>
   </data>
   <data name="ERR_SignatureMismatchInRecord" xml:space="preserve">
     <value>Record member '{0}' must return '{1}'.</value>
+  </data>
+  <data name="ERR_NonProtectedAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' must be protected.</value>
+  </data>
+  <data name="ERR_DoesNotOverrideBaseEqualityContract" xml:space="preserve">
+    <value>'{0}' does not override expected property from '{1}'.</value>
   </data>
 </root>
