@@ -3,27 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.CSharp.Execution;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Test.Utilities.Remote;
-using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
@@ -35,11 +30,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task UpdaterService()
         {
-            var exportProvider = TestHostServices.CreateMinimalExportProvider();
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(ServiceTestExportProvider.CreateAssemblyCatalog()
+                    .WithParts(typeof(InProcRemoteHostClientProvider.Factory), typeof(CSharpOptionsSerializationService)))
+                .CreateExportProvider();
+
             using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
 
             var options = workspace.CurrentSolution.Options
-                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)
+                .WithChangedOption(Microsoft.VisualStudio.LanguageServices.Remote.RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)
                 .WithChangedOption(Microsoft.CodeAnalysis.Test.Utilities.RemoteHost.RemoteHostOptions.RemoteHostTest, true);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
@@ -52,8 +51,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // make sure client is ready
             using var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            // add solution
+            // add solution, change document
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
+            var project = workspace.AddProject("proj", LanguageNames.CSharp);
+            var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From("code"));
+            workspace.ApplyTextChanges(document.Id, new[] { new TextChange(new TextSpan(0, 1), "abc") }, CancellationToken.None);
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
