@@ -211,8 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For each warning that is linked to a warning "wave" (/warnversion), the number of
         /// the warning wave in which it was introduced.
         /// </summary>
-        /// <param name="code"></param>
-        /// <returns></returns>
         internal static decimal GetWarningVersion(this ErrorCode code)
         {
             // *** ATTENTION!  If you are modifying this method, there are things you need to do.
