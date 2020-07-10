@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
     /// Finds code like typeof(someType).Name and determines whether it can be changed to nameof(someType), if yes then it offers a diagnostic
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpConvertNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal class CSharpConvertTypeofToNameofDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpConvertNameOfDiagnosticAnalyzer()
+        public CSharpConvertTypeofToNameofDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
                    option: null,
                    LanguageNames.CSharp,

@@ -18,7 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertNameOf\CSharpConvertNameOfDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\CSharpConvertTypeofToNameofDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\CSharpRemoveUnnecessarySuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\CSharpRemoveConfusingSuppressionDiagnosticAnalyzer.cs" />
