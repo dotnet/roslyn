@@ -18,6 +18,15 @@ using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Test.Utilities.Remote;
 using Roslyn.Utilities;
 
+namespace Microsoft.CodeAnalysis.Remote.Testing
+{
+    public enum TestHost
+    {
+        InProcess,
+        OutOfProcess,
+    }
+}
+
 namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 {
     internal static class RemoteHostOptions

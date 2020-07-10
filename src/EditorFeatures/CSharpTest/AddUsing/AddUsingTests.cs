@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -48,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             CodeActionPriority? priority = null,
             OptionsCollection options = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: false);
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: true);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, TestHost.OutOfProcess);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, TestHost.InProcess);
         }
 
         internal async Task TestAsync(
@@ -58,11 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             int index,
             CodeActionPriority? priority,
             OptionsCollection options,
-            bool outOfProcess)
+            TestHost testHost)
         {
             await TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index,
-                parameters: new TestParameters(options: options, runProviderOutOfProc: outOfProcess, priority: priority));
+                parameters: new TestParameters(options: options, testHost: testHost, priority: priority));
         }
     }
 
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             Workspace workspace, TestParameters parameters)
         {
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.runProviderOutOfProc)));
+                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.testHost)));
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }

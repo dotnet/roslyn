@@ -6,14 +6,10 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.EncapsulateField
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
-    Public Enum TestHost
-        InProcess
-        OutOfProcess
-    End Enum
-
     Public Class EncapsulateFieldTests
         Inherits AbstractVisualBasicCodeActionTest
 

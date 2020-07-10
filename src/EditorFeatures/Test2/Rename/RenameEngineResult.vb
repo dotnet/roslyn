@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
@@ -115,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             Dim renameOptions = RenameOptionSet.From(solution, optionSet)
 
-            If host = TestHost.OutOfProcess_SplitCall Then
+            If host = TestHost.OutOfProcess Then
                 ' This tests that each portion of rename can properly marshal to/from the OOP process. It validates
                 ' features that need to call each part independently and operate on the intermediary values.
 

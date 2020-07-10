@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
@@ -17,12 +18,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 {
-    public enum TestHost
-    {
-        InProcess,
-        OutOfProcess,
-    }
-
     public class ConvertTupleToStructTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)

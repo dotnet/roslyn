@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -16,12 +17,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public enum TestHost
-    {
-        InProcess,
-        OutOfProcess,
-    }
-
     [UseExportProvider]
     public class SymbolFinderTests : TestBase
     {

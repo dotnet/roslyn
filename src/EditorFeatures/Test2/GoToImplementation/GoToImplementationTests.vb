@@ -2,14 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
-    Public Enum TestHost
-        InProcess
-        OutOfProcess
-    End Enum
-
     <[UseExportProvider]>
     Public Class GoToImplementationTests
 

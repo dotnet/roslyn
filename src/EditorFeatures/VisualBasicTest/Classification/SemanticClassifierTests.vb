@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 
@@ -13,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, outOfProcess As Boolean) As Task(Of ImmutableArray(Of ClassifiedSpan))
-            Using workspace = CreateWorkspace(code, outOfProcess)
+        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
+            Using workspace = CreateWorkspace(code, testHost)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
                 Return GetSemanticClassificationsAsync(document, span)
