@@ -278,6 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
 
+            ConstantValueUtils.CheckLangVersionForConstantInterpolatedStrings(expression, diagnostics);
+
             if (!convertedExpression.HasErrors && !hasErrors)
             {
                 if (constantValueOpt == null)
@@ -288,11 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (inputType.IsPointerType())
                 {
                     CheckFeatureAvailability(patternExpression, MessageID.IDS_FeatureNullPointerConstantPattern, diagnostics, patternExpression.Location);
-                }
-                else if (!(expression.Type is null) && expression.Type.IsStringType())
-                {
-                    var visitor = new ConstantValueUtils.CheckConstantInterpolatedStringValidity(diagnostics);
-                    visitor.Visit(expression);
                 }
             }
 
