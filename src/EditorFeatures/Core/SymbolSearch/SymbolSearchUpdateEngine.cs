@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
+        /// <summary>
+        /// Don't call directly. Use <see cref="SymbolSearchUpdateEngineFactory"/> instead.
+        /// </summary>
         public SymbolSearchUpdateEngine(
             ISymbolSearchLogService logService,
             ISymbolSearchProgressService progressService)

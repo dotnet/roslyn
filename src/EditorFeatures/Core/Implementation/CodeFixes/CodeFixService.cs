@@ -217,11 +217,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
             if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Interactive && includeConfigurationFixes)
             {
+                // Ensure that we do not register duplicate configuration fixes.
+                using var _ = PooledHashSet<string>.GetInstance(out var registeredConfigurationFixTitles);
                 foreach (var spanAndDiagnostic in aggregatedDiagnostics)
                 {
                     await AppendConfigurationsAsync(
                         document, spanAndDiagnostic.Key, spanAndDiagnostic.Value,
-                        result, cancellationToken).ConfigureAwait(false);
+                        result, registeredConfigurationFixTitles, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -448,8 +450,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private async Task AppendConfigurationsAsync(
-            Document document, TextSpan diagnosticsSpan, IEnumerable<DiagnosticData> diagnostics,
-            ArrayBuilder<CodeFixCollection> result, CancellationToken cancellationToken)
+            Document document,
+            TextSpan diagnosticsSpan,
+            IEnumerable<DiagnosticData> diagnostics,
+            ArrayBuilder<CodeFixCollection> result,
+            PooledHashSet<string> registeredConfigurationFixTitles,
+            CancellationToken cancellationToken)
         {
             if (!_configurationProvidersMap.TryGetValue(document.Project.Language, out var lazyConfigurationProviders) || lazyConfigurationProviders.Value == null)
             {
@@ -464,9 +470,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     await AppendFixesOrConfigurationsAsync(
                         document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
                         hasFix: d => provider.IsFixableDiagnostic(d),
-                        getFixes: dxs => provider.GetFixesAsync(
-                            document, diagnosticsSpan, dxs, cancellationToken),
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                        getFixes: async dxs =>
+                        {
+                            var fixes = await provider.GetFixesAsync(document, diagnosticsSpan, dxs, cancellationToken).ConfigureAwait(false);
+                            return fixes.WhereAsArray(f => registeredConfigurationFixTitles.Add(f.Action.Title));
+                        },
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
         }

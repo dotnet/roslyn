@@ -92,6 +92,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.Equal(2, codeFix.ContextDiagnosticsCount);
         }
 
+        [Fact, WorkItem(45779, "https://github.com/dotnet/roslyn/issues/45779")]
+        public async Task TestGetFixesAsyncHasNoDuplicateConfigurationActions()
+        {
+            var codeFix = new MockFixer();
+
+            // Add analyzers with duplicate ID and/or category to get duplicate diagnostics.
+            var analyzerReference = new MockAnalyzerReference(
+                    codeFix,
+                    ImmutableArray.Create<DiagnosticAnalyzer>(
+                        new MockAnalyzerReference.MockDiagnosticAnalyzer("ID1", "Category1"),
+                        new MockAnalyzerReference.MockDiagnosticAnalyzer("ID1", "Category1"),
+                        new MockAnalyzerReference.MockDiagnosticAnalyzer("ID1", "Category2"),
+                        new MockAnalyzerReference.MockDiagnosticAnalyzer("ID2", "Category2")));
+
+            var tuple = ServiceSetup(codeFix, includeConfigurationFixProviders: true);
+            using var workspace = tuple.workspace;
+            GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+
+            // Verify registered configuration code actions do not have duplicates.
+            var fixCollections = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeConfigurationFixes: true, cancellationToken: CancellationToken.None);
+            var codeActions = fixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).ToImmutableArray();
+            Assert.Equal(7, codeActions.Length);
+            var uniqueTitles = new HashSet<string>();
+            foreach (var codeAction in codeActions)
+            {
+                Assert.True(codeAction is AbstractConfigurationActionWithNestedActions);
+                Assert.True(uniqueTitles.Add(codeAction.Title));
+            }
+        }
+
         [Fact]
         public async Task TestGetCodeFixWithExceptionInRegisterMethod()
         {
@@ -171,7 +201,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.False(extensionManager.IsIgnored(codefix));
         }
 
-        private static (TestWorkspace workspace, TestDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(CodeFixProvider codefix)
+        private static (TestWorkspace workspace, TestDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+            CodeFixProvider codefix,
+            bool includeConfigurationFixProviders = false)
         {
             var fixers = SpecializedCollections.SingletonEnumerable(
                 new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(
@@ -187,9 +219,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var diagnosticService = new TestDiagnosticAnalyzerService();
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
             var errorLogger = logger.First().Value;
+            var configurationFixProviders = includeConfigurationFixProviders
+                ? TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExports<IConfigurationFixProvider, CodeChangeProviderMetadata>()
+                : SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>();
             var fixService = new CodeFixService(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
+                diagnosticService, logger, fixers, configurationFixProviders);
             return (workspace, diagnosticService, fixService, errorLogger);
         }
 
@@ -295,20 +330,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             public class MockDiagnosticAnalyzer : DiagnosticAnalyzer
             {
+                public MockDiagnosticAnalyzer(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
+                    => SupportedDiagnostics = CreateSupportedDiagnostics(reportedDiagnosticIdsWithCategories);
+
+                public MockDiagnosticAnalyzer(string diagnosticId, string category)
+                    : this(ImmutableArray.Create((diagnosticId, category)))
+                {
+                }
+
                 public MockDiagnosticAnalyzer(ImmutableArray<string> reportedDiagnosticIds)
-                    => SupportedDiagnostics = CreateSupportedDiagnostics(reportedDiagnosticIds);
+                    : this(reportedDiagnosticIds.SelectAsArray(id => (id, "InternalCategory")))
+                {
+                }
 
                 public MockDiagnosticAnalyzer()
                     : this(ImmutableArray.Create(MockFixer.Id))
                 {
                 }
 
-                private static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics(ImmutableArray<string> reportedDiagnosticIds)
+                private static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
                 {
                     var builder = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
-                    foreach (var diagnosticId in reportedDiagnosticIds)
+                    foreach (var (diagnosticId, category) in reportedDiagnosticIdsWithCategories)
                     {
-                        var descriptor = new DiagnosticDescriptor(diagnosticId, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                        var descriptor = new DiagnosticDescriptor(diagnosticId, "MockDiagnostic", "MockDiagnostic", category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
                         builder.Add(descriptor);
                     }
 
