@@ -22,7 +22,17 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 {
     public enum TestHost
     {
+        /// <summary>
+        /// Features that optionally dispatch to a remote implementation service will
+        /// not do so and instead directly call the local implementation.
+        /// </summary>
         InProcess,
+
+        /// <summary>
+        /// Features that optionally dispatch to a remote implementation service will do so/
+        /// This remote implementation will execute in the same process to simplify debugging
+        /// and avoid cost of process management.
+        /// </summary>
         OutOfProcess,
     }
 }
