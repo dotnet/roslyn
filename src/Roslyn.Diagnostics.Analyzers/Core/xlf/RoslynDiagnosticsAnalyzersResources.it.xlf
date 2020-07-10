@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
-        <target state="new">Remove the 'Opt' suffix</target>
+        <target state="translated">Rimuovere il suffisso 'Opt'</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
+        <target state="translated">Evitare il suffisso 'Opt' in codice abilitato per i valori Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
+        <target state="translated">Evitare il suffisso 'Opt' in codice abilitato per i valori Null</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
-        <target state="new">Avoid the 'Opt' suffix</target>
+        <target state="translated">Evitare il suffisso 'Opt'</target>
         <note />
       </trans-unit>
       <trans-unit id="BlankLinesMessage">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="translated">I tipi defaultable devono avere campi defaultable.</target>
+        <target state="translated">I tipi per cui è disponibile un valore predefinito devono avere campi per cui è disponibile un valore predefinito.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
-        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
+        <target state="translated">La proprietà 'Type.FullName' non è mai Null quando si usa la sintassi 'typeof(T).FullName'</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">

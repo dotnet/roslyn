@@ -39,22 +39,22 @@
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisDescription">
         <source>Configure generated code analysis</source>
-        <target state="translated">Configura l'analisi del codice generato</target>
+        <target state="translated">Configura Code Analysis per file generati</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
         <source>Configure generated code analysis</source>
-        <target state="translated">Configura l'analisi del codice generato</target>
+        <target state="translated">Configura Code Analysis per file generati</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisMessage">
         <source>Configure generated code analysis</source>
-        <target state="translated">Configurare l'analisi del codice generato</target>
+        <target state="translated">Configura Code Analysis per file generati</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
         <source>Configure generated code analysis</source>
-        <target state="translated">Configura l'analisi del codice generato</target>
+        <target state="translated">Configura Code Analysis per file generati</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseDescription">
@@ -74,32 +74,32 @@
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
         <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</source>
-        <target state="new">The diagnostic description should be one or multiple sentences ending with a punctuation sign.</target>
+        <target state="translated">La descrizione della diagnostica deve essere costituita da una o più frasi che terminano con un segno di punteggiatura.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
         <source>Define diagnostic description correctly</source>
-        <target state="new">Define diagnostic description correctly</target>
+        <target state="translated">Definisci correttamente la descrizione della diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
         <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</source>
-        <target state="new">The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</target>
+        <target state="translated">Il messaggio della diagnostica non deve contenere caratteri di ritorno a capo e deve essere costituito da una singola frase senza punto finale oppure da più frasi con un punto finale.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
         <source>Define diagnostic message correctly</source>
-        <target state="new">Define diagnostic message correctly</target>
+        <target state="translated">Definisci correttamente il messaggio della diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
         <source>The diagnostic title should not contain a period or any line return character</source>
-        <target state="new">The diagnostic title should not contain a period or any line return character</target>
+        <target state="translated">Il titolo della diagnostica non deve contenere un punto o un carattere di ritorno a capo</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
         <source>Define diagnostic title correctly</source>
-        <target state="new">Define diagnostic title correctly</target>
+        <target state="translated">Definisci correttamente il titolo della diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
