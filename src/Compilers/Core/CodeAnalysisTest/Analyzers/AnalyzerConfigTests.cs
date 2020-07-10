@@ -1497,7 +1497,9 @@ is_global = true ", "/.editorconfig"));
             var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out _);
 
             Assert.Single(configs);
-            Assert.Null(globalConfig);
+            Assert.NotNull(globalConfig);
+            Assert.Empty(globalConfig.GlobalSection.Properties);
+            Assert.Empty(globalConfig.NamedSections);
             configs.Free();
         }
 
