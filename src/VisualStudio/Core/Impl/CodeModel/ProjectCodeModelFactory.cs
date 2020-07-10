@@ -182,6 +182,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             => GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
 
         public void ScheduleDeferredCleanupTask(Action a)
-            => _threadingContext.JoinableTaskCollection.Add(_threadingContext.JoinableTaskFactory.StartOnIdle(a, VsTaskRunContext.UIThreadNormalPriority));
+            => _threadingContext.ShutdownBlockingTasks.Add(_threadingContext.JoinableTaskFactory.StartOnIdle(a, VsTaskRunContext.UIThreadNormalPriority));
     }
 }

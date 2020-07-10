@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// <summary>
         /// Gets a collection of tasks which are joined during shutdown.
         /// </summary>
-        JoinableTaskCollection JoinableTaskCollection
+        JoinableTaskCollection ShutdownBlockingTasks
         {
             get;
         }

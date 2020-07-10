@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             : base(threadingContext, assertIsForeground: false)
         {
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
-            ThreadingContext.JoinableTaskCollection.Add(ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+            ThreadingContext.ShutdownBlockingTasks.Add(ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
 

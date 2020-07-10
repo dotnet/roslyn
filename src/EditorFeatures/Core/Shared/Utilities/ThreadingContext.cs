@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             HasMainThread = joinableTaskContext.MainThread.IsAlive;
             JoinableTaskContext = joinableTaskContext;
             JoinableTaskFactory = joinableTaskContext.Factory;
-            JoinableTaskCollection = new JoinableTaskCollection(JoinableTaskContext);
+            ShutdownBlockingTasks = new JoinableTaskCollection(JoinableTaskContext);
         }
 
         /// <inheritdoc/>
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             get;
         }
 
-        public JoinableTaskCollection JoinableTaskCollection { get; }
+        public JoinableTaskCollection ShutdownBlockingTasks { get; }
 
         public CancellationToken DisposalToken => _disposalTokenSource.Token;
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             try
             {
                 // Block Dispose until all async work has completed.
-                JoinableTaskContext.Factory.Run(JoinableTaskCollection.JoinTillEmptyAsync);
+                JoinableTaskContext.Factory.Run(ShutdownBlockingTasks.JoinTillEmptyAsync);
             }
             catch (OperationCanceledException)
             {
