@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // Otherwise, dispose the underlying end-point and transition to "disposed" state.
 
             var poolReclamation = Interlocked.Exchange(ref _poolReclamation, null);
-            if (poolReclamation != null)
+            if (poolReclamation != null && !_serviceEndPoint.IsDisposed)
             {
                 poolReclamation.Return(this);
                 return;
