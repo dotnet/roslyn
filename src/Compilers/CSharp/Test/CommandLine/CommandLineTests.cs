@@ -12795,6 +12795,27 @@ dotnet_diagnostic.CS0164.severity = warning;
 
         [Fact]
         [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigSpecificDiagnosticOptionsOverrideGeneralCommandLineOptions()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = none;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/warnaserror+", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
         public void GlobalAnalyzerConfigSectionsOverrideCommandLine()
         {
             var dir = Temp.CreateDirectory();

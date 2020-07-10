@@ -10060,7 +10060,7 @@ End Class")
 
         <Fact>
         <WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")>
-        Public Sub GlobalAnalyzerConfigDiagnosticOptionsCanBeOverridenByCommandLine_VB()
+        Public Sub GlobalAnalyzerConfigDiagnosticOptionsCanBeOverridenByCommandLine()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("temp.vb").WriteAllText("
 Class C
@@ -10089,6 +10089,25 @@ dotnet_diagnostic.BC42024.severity = warning;
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=1, additionalFlags:={globalOption, specificOption})
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=1, additionalFlags:={"/nowarn:BC42024", globalOption, specificOption})
+        End Sub
+
+        <Fact>
+        <WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")>
+        Public Sub GlobalAnalyzerConfigSpecificDiagnosticOptionsOverrideGeneralCommandLineOptions()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+Class C
+    Private Sub M()
+        Dim a As String
+    End Sub
+End Class
+")
+            Dim globalConfig = dir.CreateFile(".globalconfig").WriteAllText("
+is_global = true
+dotnet_diagnostic.BC42024.severity = none;
+")
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror+", "/analyzerconfig:" + globalConfig.Path})
         End Sub
 
         <Theory, CombinatorialData>

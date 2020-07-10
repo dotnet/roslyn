@@ -142,6 +142,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
                 ' 3. Compilation level
                 isSpecified = True
+            ElseIf syntaxTreeOptions IsNot Nothing AndAlso syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, report) Then
+                ' 4. Global analyzer config level
+                isSpecified = True
             Else
                 report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)
             End If
@@ -178,11 +181,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If (Not isSpecified) AndAlso (report = ReportDiagnostic.Default) Then
                     Return ReportDiagnostic.Error
                 End If
-            End If
-
-            Dim globalReport As ReportDiagnostic
-            If (Not isSpecified) AndAlso syntaxTreeOptions IsNot Nothing AndAlso syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, globalReport) Then
-                report = globalReport
             End If
 
             Return report
