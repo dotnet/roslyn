@@ -2939,6 +2939,38 @@ public class C : A {
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterEditorConfigChange));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void TestAddingAndRemovingGlobalEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
+        {
+            var solution = useRecoverableTrees ? CreateNotKeptAliveSolution() : CreateSolution();
+            var extension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", languageName);
+            solution = solution.AddDocument(sourceDocumentId, "Test" + extension, "", filePath: @"Z:\Test" + extension);
+
+            var originalProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.False(originalProvider.TryGetGlobalDiagnosticValue("CA1234", out _));
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".globalconfig",
+                    filePath: @"Z:\.globalconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("is_global = true\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
+
+            var newProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.True(newProvider.TryGetGlobalDiagnosticValue("CA1234", out var severity));
+            Assert.Equal(ReportDiagnostic.Error, severity);
+
+            solution = solution.RemoveAnalyzerConfigDocument(editorConfigDocumentId);
+            var finalProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.False(finalProvider.TryGetGlobalDiagnosticValue("CA1234", out _));
+        }
+
         [Fact]
         [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
         public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()

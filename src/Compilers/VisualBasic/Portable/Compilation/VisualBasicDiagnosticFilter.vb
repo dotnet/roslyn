@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             hasDisableDirectiveSuppression = False
 
             Dim report As ReportDiagnostic
-            Dim tree = If(location IsNot Nothing, location.SourceTree, Nothing)
+            Dim tree = location?.SourceTree
             Dim isSpecified As Boolean = False
 
             ' Global options depend on other options, so calculate those first
@@ -178,6 +178,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If (Not isSpecified) AndAlso (report = ReportDiagnostic.Default) Then
                     Return ReportDiagnostic.Error
                 End If
+            End If
+
+            Dim globalReport As ReportDiagnostic
+            If (Not isSpecified) AndAlso syntaxTreeOptions IsNot Nothing AndAlso syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, globalReport) Then
+                report = globalReport
             End If
 
             Return report

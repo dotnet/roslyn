@@ -340,6 +340,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     isSuppressed = true;
                 }
 
+                // Global editorconfig settings only apply if it wasn't supressed via commandline already
+                if (!isSuppressed && options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, out severity))
+                {
+                    isSuppressed = true;
+                }
+
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
                     isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analyzerExecutor.CancellationToken))

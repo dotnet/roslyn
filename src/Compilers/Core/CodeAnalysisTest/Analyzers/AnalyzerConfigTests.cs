@@ -1883,14 +1883,12 @@ dotnet_diagnostic.cs000.severity = none
 dotnet_diagnostic.cs001.severity = error
 ", "/.editorconfig"));
 
-            var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs" },
-                configs);
+            var set = AnalyzerConfigSet.Create(configs);
             configs.Free();
 
             Assert.Equal(CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress),
                                                    ("cs001", ReportDiagnostic.Error)),
-                         options[0].TreeOptions);
+                         set.GlobalConfigOptions.TreeOptions);
         }
 
         [Fact]
@@ -1928,23 +1926,21 @@ dotnet_diagnostic.cs000.severity = foo
 dotnet_diagnostic.cs001.severity = bar
 ", "/.editorconfig"));
 
-            var options = GetAnalyzerConfigOptions(
-                new[] { "/test.cs", "c:/path/to/file.cs" },
-                configs);
+            var set = AnalyzerConfigSet.Create(configs);
+            var options = new[] { "/test.cs", "c:/path/to/file.cs" }.Select(f => set.GetOptionsForSourcePath(f)).ToArray();
             configs.Free();
 
-            options[0].Diagnostics.Verify(
+            set.GlobalConfigOptions.Diagnostics.Verify(
                 Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs000", "foo", "<Global Config>").WithLocation(1, 1)
                 );
 
             options[1].Diagnostics.Verify(
-                Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs000", "foo", "<Global Config>").WithLocation(1, 1),
                 Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs001", "bar", "<Global Config>").WithLocation(1, 1)
                 );
         }
 
         [Fact]
-        public void GlobalConfigCanSeverityInSectionOverridesGlobal()
+        public void GlobalConfigSeverityInSectionOverridesGlobal()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"

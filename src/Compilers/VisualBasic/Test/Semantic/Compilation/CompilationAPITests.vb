@@ -141,7 +141,8 @@ Class D
 End Class")
 
             Dim options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
+                    Nothing,
                     (tree, {("BC42024", ReportDiagnostic.Suppress)}),
                     (newTree, {("BC4024", ReportDiagnostic.Error)})))
             Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=options)
@@ -168,8 +169,9 @@ End Class")
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
                     StringComparer.Ordinal,
+                    Nothing,
                     (tree, {("bc42024", ReportDiagnostic.Suppress)}))
             )
 

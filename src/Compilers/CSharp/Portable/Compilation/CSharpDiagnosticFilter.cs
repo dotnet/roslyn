@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     2. Syntax tree level
         ///     3. Compilation level
         ///     4. Global warning level
+        ///     5. Global analyzer config
         ///
         /// Pragmas are considered separately. If a diagnostic would not otherwise
         /// be suppressed, but is suppressed by a pragma, <paramref name="hasPragmaSuppression"/>
@@ -261,9 +262,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (severity == DiagnosticSeverity.Warning || severity == DiagnosticSeverity.Info)
                         {
                             report = ReportDiagnostic.Suppress;
+                            isSpecified = true;
                         }
                         break;
                 }
+            }
+
+            // 5. Global analyzer options
+            if (!isSpecified && syntaxTreeOptions is object && syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, out var globalReport))
+            {
+                report = globalReport;
             }
 
             return report;

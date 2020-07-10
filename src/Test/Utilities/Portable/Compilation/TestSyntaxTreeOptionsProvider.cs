@@ -15,9 +15,10 @@ namespace Roslyn.Utilities
     {
         private readonly Dictionary<SyntaxTree, Dictionary<string, ReportDiagnostic>>? _options;
         private readonly Dictionary<SyntaxTree, bool?>? _isGenerated;
-
+        private readonly Dictionary<string, ReportDiagnostic>? _globalOptions;
         public TestSyntaxTreeOptionsProvider(
             IEqualityComparer<string> comparer,
+            (string, ReportDiagnostic) globalOption,
             params (SyntaxTree, (string, ReportDiagnostic)[])[] options)
         {
             _options = options.ToDictionary(
@@ -27,17 +28,22 @@ namespace Roslyn.Utilities
                     x => x.Item2,
                     comparer)
             );
+            if (globalOption.Item1 is object)
+            {
+                _globalOptions = new Dictionary<string, ReportDiagnostic>() { { globalOption.Item1, globalOption.Item2 } };
+            }
             _isGenerated = null;
         }
 
         public TestSyntaxTreeOptionsProvider(
+            (string, ReportDiagnostic) globalOption,
             params (SyntaxTree, (string, ReportDiagnostic)[])[] options)
-            : this(CaseInsensitiveComparison.Comparer, options)
+            : this(CaseInsensitiveComparison.Comparer, globalOption: globalOption, options)
         { }
 
         public TestSyntaxTreeOptionsProvider(
             SyntaxTree tree, params (string, ReportDiagnostic)[] options)
-            : this(new[] { (tree, options) })
+            : this(globalOption: default, new[] { (tree, options) })
         { }
 
         public TestSyntaxTreeOptionsProvider(
@@ -63,6 +69,17 @@ namespace Roslyn.Utilities
             if (_options != null &&
                 _options.TryGetValue(tree, out var diags)
                 && diags.TryGetValue(diagnosticId, out severity))
+            {
+                return true;
+            }
+            severity = ReportDiagnostic.Default;
+            return false;
+        }
+
+        public override bool TryGetGlobalDiagnosticValue(string diagnosticId, out ReportDiagnostic severity)
+        {
+            if (_globalOptions is object &&
+                _globalOptions.TryGetValue(diagnosticId, out severity))
             {
                 return true;
             }
