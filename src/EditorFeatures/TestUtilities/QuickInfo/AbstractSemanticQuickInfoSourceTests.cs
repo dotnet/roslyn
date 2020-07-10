@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         protected static void AssertTaggedText(
             string expectedText,
             ImmutableArray<TaggedText> taggedText,
-#pragma warning disable IDE0060 // Remove unused parameter - TODO: File a test bug. There are unit tests passing non-empty expectedClassifications.
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/45893
             FormattedClassification[] expectedClassifications = null)
 #pragma warning restore IDE0060 // Remove unused parameter
         {

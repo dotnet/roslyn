@@ -205,11 +205,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (result.Count > 0 && _fixerPriorityMap.TryGetValue(document.Project.Language, out var fixersForLanguage))
             {
                 // sort the result to the order defined by the fixers
-                var priorityMap = fixersForLanguage.Value;
+#pragma warning disable IDE0007 // Use implicit type - Explicit type is need to suppress an incorrect nullable warning on dereferencing the map.
+                ImmutableDictionary<CodeFixProvider, int> priorityMap = fixersForLanguage.Value;
+#pragma warning restore IDE0007 // Use implicit type
                 result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
 
                 int GetValue(CodeFixCollection c)
-                    => priorityMap!.TryGetValue((CodeFixProvider)c.Provider, out var value) ? value : int.MaxValue;
+                    => priorityMap.TryGetValue((CodeFixProvider)c.Provider, out var value) ? value : int.MaxValue;
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive

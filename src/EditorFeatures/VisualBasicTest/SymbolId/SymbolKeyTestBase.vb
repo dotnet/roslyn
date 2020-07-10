@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
 #Region "Verification"
 
-#Disable Warning IDE0060 ' Remove unused parameter - TODO: File a test bug for unused 'newCompilation' parameter. Should 'ResolveAndVerifySymbol' calls below use 'newCompilation'?
+#Disable Warning IDE0060 ' Remove unused parameter - https://github.com/dotnet/roslyn/issues/45894
         Friend Shared Sub ResolveAndVerifySymbolList(newSymbols As IEnumerable(Of ISymbol), newCompilation As Compilation, originalSymbols As IEnumerable(Of ISymbol), originalCompilation As Compilation)
 #Enable Warning IDE0060 ' Remove unused parameter
 

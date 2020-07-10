@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         }
 
         protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
-            => AbstractDiagnosticsAdornmentTaggerProvider<TTag>.AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
+            => AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
 
         protected static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
         {

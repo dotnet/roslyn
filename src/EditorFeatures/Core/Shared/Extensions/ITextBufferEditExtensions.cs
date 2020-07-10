@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class ITextBufferEditExtensions
     {
+#pragma warning disable IDE0052 // Remove unread private members - Used for debugging.
+        private static Exception s_lastException = null;
+#pragma warning restore IDE0052 // Remove unread private members
+
         /// <summary>
         /// Logs exceptions thrown during <see cref="ITextBufferEdit.Apply"/> as we look for issues.
         /// </summary>
@@ -22,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
             catch (Exception e) when (ErrorReporting.FatalError.ReportWithoutCrash(e))
             {
+                s_lastException = e;
+
                 // Since we don't know what is causing this yet, I don't feel safe that catching
                 // will not cause some further downstream failure. So we'll continue to propagate.
                 throw;
