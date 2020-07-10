@@ -15748,11 +15748,11 @@ record R(int P = 42)
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42");
+            CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
         }
 
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
-        public void PositionalMemberDefaultValue_AndPropertyInitializer()
+        public void PositionalMemberDefaultValue_AndPropertyWithInitializer()
         {
             var src = @"
 record R(int P = 1)
@@ -15768,7 +15768,7 @@ record R(int P = 1)
 ";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
 
             verifier.VerifyIL("R..ctor(int)", @"
 {
@@ -15781,6 +15781,69 @@ record R(int P = 1)
   IL_0009:  call       ""object..ctor()""
   IL_000e:  nop
   IL_000f:  ret
+}");
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue_AndPropertyWithoutInitializer()
+        {
+            var src = @"
+record R(int P = 42)
+{
+    public int P { get; init; }
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  ret
+}");
+        }
+
+        [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
+        public void PositionalMemberDefaultValue_AndPropertyWithInitializer_CopyingParameter()
+        {
+            var src = @"
+record R(int P = 42)
+{
+    public int P { get; init; } = P;
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int R.<P>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""object..ctor()""
+  IL_000d:  nop
+  IL_000e:  ret
 }");
         }
     }
