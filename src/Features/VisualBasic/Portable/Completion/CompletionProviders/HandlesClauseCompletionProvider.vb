@@ -41,12 +41,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' Handles or a comma
             If context.TargetToken.IsChildToken(Of HandlesClauseSyntax)(Function(hc) hc.HandlesKeyword) OrElse
                 context.TargetToken.IsChildSeparatorToken(Function(hc As HandlesClauseSyntax) hc.Events) Then
-                Return Task.FromResult(GetTopLevelIdentifiersAsync(vbContext, cancellationToken))
+                Return Task.FromResult(GetTopLevelIdentifiers(vbContext, cancellationToken))
             End If
 
             ' Handles x. or , x.
             If context.TargetToken.IsChildToken(Of HandlesClauseItemSyntax)(Function(hc) hc.DotToken) Then
-                Return Task.FromResult(LookUpEventsAsync(vbContext, context.TargetToken, cancellationToken))
+                Return Task.FromResult(LookUpEvents(vbContext, context.TargetToken, cancellationToken))
             End If
 
             Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
-        Private Shared Function GetTopLevelIdentifiersAsync(
+        Private Shared Function GetTopLevelIdentifiers(
             context As VisualBasicSyntaxContext,
             cancellationToken As CancellationToken
         ) As ImmutableArray(Of ISymbol)
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return symbols.WhereAsArray(Function(s) IsWithEvents(s))
         End Function
 
-        Private Shared Function LookUpEventsAsync(
+        Private Shared Function LookUpEvents(
             context As VisualBasicSyntaxContext,
             token As SyntaxToken,
             cancellationToken As CancellationToken

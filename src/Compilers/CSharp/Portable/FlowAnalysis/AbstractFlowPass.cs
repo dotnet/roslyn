@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly Symbol _symbol;
 
         /// <summary>
-        /// Reflects the enclosing member or lambda at the current location (in the bound tree).
+        /// Reflects the enclosing member, lambda or local function at the current location (in the bound tree).
         /// </summary>
         protected Symbol CurrentSymbol;
 
