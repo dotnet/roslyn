@@ -188,5 +188,25 @@ class Test
 ";
             await TestMissingInRegularAndScriptAsync(text);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        public async Task NotOnGenericClass()
+        {
+            var text = @"class Test
+{
+    class Goo<T> 
+    { 
+        class Bar 
+        { 
+            void M() 
+            {
+                _ = [||]typeof(Bar).Name;
+            }
+        }
+    }
+}
+";
+            await TestMissingInRegularAndScriptAsync(text);
+        }
     }
 }
