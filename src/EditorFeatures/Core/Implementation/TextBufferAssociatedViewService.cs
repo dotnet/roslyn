@@ -123,9 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         [Conditional("DEBUG")]
-#pragma warning disable CA1822 // Mark members as static - accesses instance members within #if DEBUG
-        private void DebugRegisterView_NoLock(ITextView textView)
-#pragma warning restore CA1822 // Mark members as static
+        private static void DebugRegisterView_NoLock(ITextView textView)
         {
 #if DEBUG
             if (s_registeredViews.Add(textView))
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
 #if DEBUG
-        private void OnTextViewClose(object sender, EventArgs e)
+        private static void OnTextViewClose(object sender, EventArgs e)
         {
             var view = sender as ITextView;
 
