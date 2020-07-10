@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
         Private Shared Async Function TestAsync(workspaceDefinition As XElement, host As TestHost, Optional shouldSucceed As Boolean = True) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
-                host <> TestHost.InProcess,
+                host,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
                     Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
                     Await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(False)
