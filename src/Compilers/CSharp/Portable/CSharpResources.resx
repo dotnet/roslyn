@@ -6310,6 +6310,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ConstOutOfRangeChecked_Title" xml:space="preserve">
     <value>Constant value may overflow at runtime (use 'unchecked' syntax to override)</value>
   </data>
+  <data name="ERR_CloneDisallowedInRecord" xml:space="preserve">
+    <value>Members named 'Clone' are disallowed in records.</value>
+  </data>
   <data name="ERR_NotOverridableAPIInRecord" xml:space="preserve">
     <value>'{0}' must allow overriding because the containing record is not sealed.</value>
   </data>
