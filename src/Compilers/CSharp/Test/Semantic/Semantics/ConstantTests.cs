@@ -3636,10 +3636,15 @@ class C
         const string S6 = $""Failed to {VS}"";
     }
 
-    void M2(string S1 = $""Testing"")
+    void M2(string S1 = $""Testing"", object O1 = null)
     {
         switch(S1){
             case $""Level 5"":
+                break;
+        }
+
+        switch(O1){
+            case $""Number 3"":
                 break;
         }
     }
@@ -3684,7 +3689,10 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(19, 25),
                 // (22,18): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             case $"Level 5":
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Level 5""").WithArguments("constant interpolated strings").WithLocation(22, 18));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Level 5""").WithArguments("constant interpolated strings").WithLocation(22, 18),
+                // (27,18): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             case $"Number 3":
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(27, 18));
         }
     }
 
