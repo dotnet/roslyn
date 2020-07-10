@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </summary>
         /// <remarks>
         /// The unique identifier is currently set as:
-        /// name of top level code action + '.' + name of nested code action + '.' + name of nested nested code action + etc.
-        /// e.g. 'Suppress or Configure issues.Suppress IDEXXXX.in Source'
+        /// name of top level code action + '|' + name of nested code action + '|' + name of nested nested code action + etc.
+        /// e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
         /// </remarks>
         public string UniqueIdentifier { get; }
 

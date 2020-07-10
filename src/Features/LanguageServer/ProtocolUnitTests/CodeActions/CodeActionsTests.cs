@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -37,12 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
-                data: new CodeActionResolveData
-                {
-                    UniqueIdentifier = CSharpAnalyzersResources.Use_implicit_type,
-                    Range = caretLocation.Range,
-                    TextDocument = new TextDocumentIdentifier { Uri = caretLocation.Uri }
-                },
+                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, caretLocation),
                 diagnostics: null);
 
             var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
@@ -69,18 +63,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
-                data: new CodeActionResolveData
-                {
-                    UniqueIdentifier = FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
-                    Range = caretLocation.Range,
-                    TextDocument = new TextDocumentIdentifier { Uri = caretLocation.Uri }
-                },
+                data: CreateCodeActionResolveData(
+                    FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+                    caretLocation),
                 diagnostics: null);
 
             var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
             var introduceConstant = results[0].Children.FirstOrDefault(
                 r => ((CodeActionResolveData)r.Data).UniqueIdentifier == FeaturesResources.Introduce_constant
-                + string.Format(FeaturesResources.Introduce_constant_for_0, "1"));
+                + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"));
 
             AssertJsonEquals(expected, introduceConstant);
         }

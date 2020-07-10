@@ -208,8 +208,8 @@ namespace Roslyn.Test.Utilities
                 Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null
             };
 
-        private protected static CodeActionResolveData CreateCodeActionResolveData(string codeActionTitle, LSP.Location location)
-            => new CodeActionResolveData(codeActionTitle, location.Range, CreateTextDocumentIdentifier(location.Uri));
+        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
+            => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         /// <summary>
         /// Creates a solution with a document.

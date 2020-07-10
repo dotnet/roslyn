@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,26 +51,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
                 diagnostics: null,
-                edit: new LSP.WorkspaceEdit
-                {
-                    DocumentChanges = new TextDocumentEdit[]
-                    {
-                        new TextDocumentEdit
-                        {
-                            TextDocument = new VersionedTextDocumentIdentifier
-                            {
-                                Uri = locations["caret"].Single().Uri
-                            },
-                            Edits = new TextEdit[] {
-                                new TextEdit
-                                {
-                                    NewText = expectedMarkup,
-                                    Range = new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }
-                                }
-                            }
-                        }
-                    }
-                });
+                edit: GenerateWorkspaceEdit(
+                    locations, expectedMarkup, new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }));
 
             var result = await RunGetCodeActionResolveAsync(workspace.CurrentSolution, unresolvedCodeAction);
             AssertJsonEquals(expected, result);
@@ -93,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(
-                    FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+                    FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     locations["caret"].Single()),
                 diagnostics: null);
 
@@ -113,29 +96,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(
-                    FeaturesResources.Introduce_constant + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+                    FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     locations["caret"].Single()),
                 diagnostics: null,
-                edit: new LSP.WorkspaceEdit
-                {
-                    DocumentChanges = new TextDocumentEdit[]
-                    {
-                        new TextDocumentEdit
-                        {
-                            TextDocument = new VersionedTextDocumentIdentifier
-                            {
-                                Uri = locations["caret"].Single().Uri
-                            },
-                            Edits = new TextEdit[] {
-                                new TextEdit
-                                {
-                                    NewText = expectedMarkup,
-                                    Range = new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }
-                                }
-                            }
-                        }
-                    }
-                });
+                edit: GenerateWorkspaceEdit(
+                    locations, expectedMarkup, new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }));
 
             var result = await RunGetCodeActionResolveAsync(workspace.CurrentSolution, unresolvedCodeAction);
             AssertJsonEquals(expected, result);
@@ -151,5 +116,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 clientCapabilities, null, CancellationToken.None);
             return result;
         }
+
+        private static WorkspaceEdit GenerateWorkspaceEdit(
+            Dictionary<string, IList<LSP.Location>> locations,
+            string expectedMarkup,
+            LSP.Range range)
+            => new LSP.WorkspaceEdit
+            {
+                DocumentChanges = new TextDocumentEdit[]
+                {
+                    new TextDocumentEdit
+                    {
+                        TextDocument = new VersionedTextDocumentIdentifier
+                        {
+                            Uri = locations["caret"].Single().Uri
+                        },
+                        Edits = new TextEdit[]
+                        {
+                            new TextEdit
+                            {
+                                NewText = expectedMarkup,
+                                Range = range
+                            }
+                        }
+                    }
+                }
+            };
     }
 }

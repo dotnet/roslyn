@@ -7,11 +7,13 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -59,14 +61,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         public static CodeAction? GetCodeActionToResolve(string distinctTitle, ImmutableArray<CodeAction> codeActions)
         {
             // Searching for the matching code action. We compare against the unique identifier
-            // (e.g. "Suppress or Configure issues.Configure IDExxxx.Warning") instead of the
+            // (e.g. "Suppress or Configure issues|Configure IDExxxx|Warning") instead of the
             // code action's title (e.g. "Warning") since there's a chance that multiple code
             // actions may have the same title (e.g. there could be multiple code actions with
             // the title "Warning" that appear in the code action menu if there are multiple
             // diagnostics on the same line).
             foreach (var c in codeActions)
             {
-                var action = CheckForMatchingAction(c, distinctTitle, currentTitle: "");
+                var action = CheckForMatchingAction(c, distinctTitle);
                 if (action != null)
                 {
                     return action;
@@ -76,26 +78,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             return null;
         }
 
-        private static CodeAction? CheckForMatchingAction(CodeAction codeAction, string goalTitle, string currentTitle)
+        private static CodeAction? CheckForMatchingAction(CodeAction codeAction, string goalTitle, string currentTitle = "")
         {
-            // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues.Suppress IDEXXXX.in Source'
-            if (currentTitle != "")
-            {
-                currentTitle += '.';
-            }
-
             // If the unique identifier of the current code action matches the unique identifier of the code action
             // we're looking for, return the code action. If not, check to see if one of the current code action's
             // nested actions may be a match.
-            var updatedTitle = currentTitle + codeAction.Title;
-            if (updatedTitle == goalTitle)
+
+            if (!string.IsNullOrEmpty(currentTitle))
+            {
+                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues.Suppress IDEXXXX|in Source'
+                currentTitle += '|';
+            }
+
+            currentTitle += codeAction.Title;
+            if (currentTitle == goalTitle)
             {
                 return codeAction;
             }
 
             foreach (var nestedAction in codeAction.NestedCodeActions)
             {
-                var match = CheckForMatchingAction(nestedAction, goalTitle, updatedTitle);
+                var match = CheckForMatchingAction(nestedAction, goalTitle, currentTitle);
                 if (match != null)
                 {
                     return match;

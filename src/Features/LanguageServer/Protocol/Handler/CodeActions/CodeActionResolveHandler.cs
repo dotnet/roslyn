@@ -84,13 +84,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
-            // TO-DO:
-            // 1) We currently must execute code actions which add new documents on the server as commands,
+            // TO-DO: We currently must execute code actions which add new documents on the server as commands,
             // since there is no LSP support for adding documents yet. In the future, we should move these actions
             // to execute on the client.
-            // 2) There is also a bug (same tracking item) where code actions that edit documents other than the
-            // one where the code action was invoked from do not work. We must temporarily execute these as commands
-            // as well.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
 
             // Add workspace edits
@@ -119,18 +115,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var changedAnalyzerConfigDocuments = projectChanges.SelectMany(pc => pc.GetChangedAnalyzerConfigDocuments());
                     var changedAdditionalDocuments = projectChanges.SelectMany(pc => pc.GetChangedAdditionalDocuments());
 
-                    // TO-DO: If the change involves modifying any document besides the document where the code action
-                    // was invoked, temporarily execute via command instead of WorkspaceEdit until LSP bug is fixed:
-                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
-                    // After bug is fixed, remove the below if-statement and the existing code should work.
-                    if (changedDocuments.Any(d => d != document.Id) ||
-                        changedAnalyzerConfigDocuments.Any() ||
-                        changedAdditionalDocuments.Any())
-                    {
-                        codeAction.Command = SetCommand(codeAction.Title, data);
-                        return codeAction;
-                    }
-
                     // Changed documents
                     await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedDocuments,
@@ -138,16 +122,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         cancellationToken).ConfigureAwait(false);
 
                     // Changed analyzer config documents
-                    // We won't get any results until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
-                    // is fixed.
                     await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedAnalyzerConfigDocuments,
                         applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument, solution.GetAnalyzerConfigDocument,
                         cancellationToken).ConfigureAwait(false);
 
                     // Changed additional documents
-                    // We won't get any results until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
-                    // is fixed.
                     await AddTextDocumentEdits(
                         textDocumentEdits, applyChangesOperation, solution, changedAdditionalDocuments,
                         applyChangesOperation.ChangedSolution.GetAdditionalDocument, solution.GetAdditionalDocument,

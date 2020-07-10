@@ -5,10 +5,10 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -115,20 +115,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CodeActionParams request,
                 CodeAction codeAction,
                 CodeActionKind codeActionKind,
-                string parentTitle = "")
+                string currentTitle = "")
             {
                 using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var nestedActions);
 
-                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues.Suppress IDEXXXX.in Source'
-                if (parentTitle != "")
+                if (!string.IsNullOrEmpty(currentTitle))
                 {
-                    parentTitle += '.';
+                    // Adding a delimiter for nested code actions, e.g. 'Suppress IDEXXXX|in Source'
+                    currentTitle += '|';
                 }
 
-                // Nested code actions' unique identifiers consist of: parent code action unique identifier + '.' + title of code action
+                // Don't include Suppress or Configure issues in the unique identifier, as when we
+                // resolve these code actions, we won't be able to see the Suppress or Configure title
+                // (since it utilizes special logic).
+                // Once we make the logic between local and LSP uniform, this should no longer be necessary.
+                // https://github.com/dotnet/roslyn/issues/45726
+                if (codeAction.Title != CodeFixesResources.Suppress_or_Configure_issues)
+                {
+                    currentTitle += codeAction.Title;
+                }
+
+                // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
                 foreach (var action in codeAction.NestedCodeActions)
                 {
-                    nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind, codeAction.Title));
+                    nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind, currentTitle));
                 }
 
                 return new VSCodeAction
@@ -137,7 +147,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Kind = codeActionKind,
                     Diagnostics = request.Context.Diagnostics,
                     Children = nestedActions.ToArray(),
-                    Data = new CodeActionResolveData(parentTitle + codeAction.Title, request.Range, request.TextDocument)
+                    Data = new CodeActionResolveData(currentTitle, request.Range, request.TextDocument)
                 };
             }
         }
