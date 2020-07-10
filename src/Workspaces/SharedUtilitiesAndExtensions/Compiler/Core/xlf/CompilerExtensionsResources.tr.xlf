@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
         <source>Object is not a array with the same number of elements as the array to compare it to.</source>
-        <target state="new">Object is not a array with the same number of elements as the array to compare it to.</target>
+        <target state="translated">Nesne, karşılaştırılacağı dizi ile aynı sayıda öğeye sahip bir dizi değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="Begins_with_I">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="NotSupported_FixedSizeCollection">
         <source>Collection was of a fixed size.</source>
-        <target state="new">Collection was of a fixed size.</target>
+        <target state="translated">Koleksiyon sabit bir boyuta sahipti.</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
@@ -169,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
         <source>Segment size must be power of 2 greater than 1</source>
-        <target state="new">Segment size must be power of 2 greater than 1</target>
+        <target state="translated">Segment boyutu 1'den büyük ve 2'nin üssü olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">

@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="translated">Передача захваченных переменных в качестве аргументов</target>
+        <target state="translated">Передача зафиксированных переменных в качестве аргументов</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
