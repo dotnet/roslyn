@@ -49,10 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
-            var codeFixCollectionsTask = Task.Run(
-                () => codeFixService.GetFixesAsync(document, textSpan, includeSuppressionFixes: true, cancellationToken));
-            var codeRefactoringsTask = Task.Run(
-                () => codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken));
+            var codeFixCollectionsTask = codeFixService.GetFixesAsync(document, textSpan, includeSuppressionFixes: true, cancellationToken);
+            var codeRefactoringsTask = codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken);
 
             await Task.WhenAll(codeFixCollectionsTask, codeRefactoringsTask).ConfigureAwait(false);
             return (await codeFixCollectionsTask.ConfigureAwait(false), await codeRefactoringsTask.ConfigureAwait(false));
