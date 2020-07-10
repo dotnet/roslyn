@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
                 return;
             }
 
+            // Make sure the parent syntax is a member access expression otherwise the syntax is not the
+            // kind of expression that we want to analyze
+            if (!(node.Parent is MemberAccessExpressionSyntax))
+            {
+                return;
+            }
+
             // Check if the operation is one that we want to offer the fix for
             if (!IsValidOperation(context.Operation))
             {
@@ -63,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
                 return;
             }
 
-            // Current case can be effectively changed to a nameof instance so report a diagnosti
+            // Current case can be effectively changed to a nameof instance so report a diagnostic
             var location = parent.GetLocation();
             context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, location, ReportDiagnostic.Hidden, additionalLocations: null,
                 properties: null, messageArgs: null));
@@ -74,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
 
         private static bool IsValidOperation(IOperation operation)
         {
-            // Cast to a typeof operation & check parent is a property reference
+            // Cast to a typeof operation & check parent is a property reference and member access
             var typeofOperation = (ITypeOfOperation)operation;
             if (!(operation.Parent is IPropertyReferenceOperation))
             {
@@ -88,7 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
                 return false;
             }
 
-            // If it's a generic type, do not offer the fix
+            // If it's a generic type, do not offer the fix because nameof(T) and typeof(T).name are not 
+            // semantically equivalent, typeof().Name includes information about the actual type used 
+            // by the generic while nameof loses this information during the standard identifier transformation
             if (!(typeofOperation.TypeOperand is INamedTypeSymbol namedType) || namedType.IsGenericType)
             {
                 return false;
