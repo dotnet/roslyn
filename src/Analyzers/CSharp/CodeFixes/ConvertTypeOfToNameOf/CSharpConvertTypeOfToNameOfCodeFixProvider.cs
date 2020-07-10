@@ -25,12 +25,12 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertTypeOfToNameOfCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertTypeOfToNameOfCodeFixProvider)), Shared]
-    internal partial class CSharpConvertNameOfCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharp.CSharpConvertTypeOfToNameOfCodeFixProvider)), Shared]
+    internal partial class CSharpConvertTypeOfToNameOfCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpConvertNameOfCodeFixProvider()
+        public CSharpConvertTypeOfToNameOfCodeFixProvider()
         {
         }
 

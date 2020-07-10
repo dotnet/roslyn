@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
     public partial class ConvertNameOfTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpConvertNameOfDiagnosticAnalyzer(), new CSharpConvertNameOfCodeFixProvider());
+            => (new CSharpConvertNameOfDiagnosticAnalyzer(), new CSharpConvertTypeOfToNameOfCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         public async Task BasicType()
@@ -114,12 +114,11 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         public async Task PrimitiveType()
         {
-            var text = @"
-class Test
+            var text = @"class Test
 {
     void Method()
     {
-        [||]var typeName = typeof(int).Name;
+            var typeName = [||]typeof(int).Name;
     }
 }
 ";
@@ -127,7 +126,7 @@ class Test
 {
     void Method()
     {
-        [||]var typeName = nameof(System.Int32);
+            var typeName = [||]nameof(System.Int32);
     }
 }
 ";
@@ -141,9 +140,9 @@ class Test
 
 class Test
 {
-    void Method()[||]
+    void Method()
     {
-        var typeName = typeof(int).Name;
+            var typeName = [||]typeof(int).Name;
     }
 }
 ";
@@ -151,9 +150,9 @@ class Test
 
 class Test
 {
-    void Method()[||]
+    void Method()
     {
-        var typeName = nameof(Int32);
+            var typeName = [||]nameof(Int32);
     }
 }
 ";
