@@ -5,14 +5,15 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly object s_gate = new object();
         private static Task s_indexingTask = Task.CompletedTask;
 
-        public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
+        public static async Task<(ImmutableArray<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsAsync(
             Document document,
             int position,
             ITypeSymbol receiverTypeSymbol,
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             counter.TotalExtensionMethodsProvided = items.Length;
             counter.Report();
 
-            return items;
+            return (items, counter);
         }
 
         /// <summary>
@@ -194,63 +195,54 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var currentCompilation = semanticModel.Compilation;
             var currentAssembly = currentCompilation.Assembly;
 
-            using var _1 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var completionItemsbuilder);
+            using var _1 = ArrayBuilder<IMethodSymbol>.GetInstance(out var methodsBuilder);
             using var _2 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
 
             // This dictionary is used as cache among all projects and PE references. 
             // The key is the receiver type as in the extension method declaration (symbol retrived from current compilation).
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
-            using var _3 = PooledDictionary<ITypeSymbol, bool>.GetInstance(out var checkedReceiverTypes);
+            var checkedReceiverTypes = new ConcurrentDictionary<ITypeSymbol, bool>();
 
             receiverTypeNames = AttachComplexTypes(receiverTypeNames);
 
             // Get extension method items from source
             foreach (var (project, syntaxIndex) in indices.SyntaxIndices!)
             {
-                var filter = CreateAggregatedFilter(receiverTypeNames, syntaxIndex);
-                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var assembly = compilation.Assembly;
+                var methods = await GetExtensionMethodSymbolsFromProjectAsync(
+                    project,
+                    isCurrentProject: project == currentProject,
+                    semanticModel,
+                    receiverTypeSymbol,
+                    receiverTypeNames,
+                    syntaxIndex,
+                    position,
+                    namespaceFilter,
+                    checkedReceiverTypes,
+                    counter,
+                    cancellationToken).ConfigureAwait(false);
 
-                var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
-
-                var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
-                    compilation.Assembly, filter, namespaceFilter, internalsVisible,
-                    counter, cancellationToken);
-
-                if (project == currentProject)
-                {
-                    GetExtensionMethodItemsForSymbolsFromSameCompilation(
-                        position, semanticModel, receiverTypeSymbol, matchingMethodSymbols,
-                        completionItemsbuilder, namespaceNameCache, checkedReceiverTypes, cancellationToken);
-                }
-                else
-                {
-                    GetExtensionMethodItemsForSymbolsFromDifferentCompilation(
-                        position, semanticModel, receiverTypeSymbol, matchingMethodSymbols,
-                        completionItemsbuilder, namespaceNameCache, checkedReceiverTypes, cancellationToken);
-                }
+                methodsBuilder.AddRange(methods);
             }
 
             // Get extension method items from PE
             foreach (var (peReference, symbolInfo) in indices.SymbolInfos!)
             {
-                var filter = CreateAggregatedFilter(receiverTypeNames, symbolInfo);
-                if (currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly)
-                {
-                    var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
+                var methods = GetExtensionMethodSymbolsFromPeReference(
+                    peReference,
+                    semanticModel,
+                    receiverTypeSymbol,
+                    receiverTypeNames,
+                    symbolInfo,
+                    position,
+                    namespaceFilter,
+                    checkedReceiverTypes,
+                    counter,
+                    cancellationToken);
 
-                    var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
-                        assembly, filter, namespaceFilter, internalsVisible,
-                        counter, cancellationToken);
-
-                    GetExtensionMethodItemsForSymbolsFromSameCompilation(
-                        position, semanticModel, receiverTypeSymbol, matchingMethodSymbols,
-                        completionItemsbuilder, namespaceNameCache,
-                        checkedReceiverTypes, cancellationToken);
-                }
+                methodsBuilder.AddRange(methods);
             }
 
-            return completionItemsbuilder.ToImmutable();
+            return methodsBuilder.SelectAsArray(s => CreateItem(s, namespaceNameCache));
 
             // Add strings represent complex types (i.e. "" for non-array types and "[]" for array types) to the receiver type, 
             // so we would include in the filter info about extension methods with complex receiver type.
@@ -265,16 +257,84 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private static void GetExtensionMethodItemsForSymbolsFromDifferentCompilation(
+        private static SerializableImportCompletionItem CreateItem(IMethodSymbol methodSymbol, Dictionary<INamespaceSymbol, string> stringCache)
+            => new SerializableImportCompletionItem(
+                SymbolKey.CreateString(methodSymbol),
+                methodSymbol.Name,
+                methodSymbol.Arity,
+                methodSymbol.GetGlyph(),
+                GetFullyQualifiedNamespaceName(methodSymbol.ContainingNamespace, stringCache));
+
+        private static ImmutableArray<IMethodSymbol> GetExtensionMethodSymbolsFromPeReference(
+            PortableExecutableReference peReference,
+            SemanticModel semanticModel,
+            ITypeSymbol receiverTypeSymbol,
+            ImmutableArray<string> receiverTypeNames,
+            SymbolTreeInfo index,
+            int position,
+            ISet<string> namespaceFilter,
+            ConcurrentDictionary<ITypeSymbol, bool> checkedReceiverTypes,
+            StatisticCounter counter,
+            CancellationToken cancellationToken)
+        {
+            if (semanticModel.Compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly)
+            {
+                var filter = CreateAggregatedFilter(receiverTypeNames, index);
+                var internalsVisible = semanticModel.Compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
+
+                var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
+                    assembly, filter, namespaceFilter, internalsVisible,
+                    counter, cancellationToken);
+
+                return GetExtensionMethodsForSymbolsFromSameCompilation(
+                    position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, checkedReceiverTypes, cancellationToken);
+            }
+
+            return ImmutableArray<IMethodSymbol>.Empty;
+        }
+
+        private static async Task<ImmutableArray<IMethodSymbol>> GetExtensionMethodSymbolsFromProjectAsync(
+            Project project,
+            bool isCurrentProject,
+            SemanticModel semanticModel,
+            ITypeSymbol receiverTypeSymbol,
+            ImmutableArray<string> receiverTypeNames,
+            CacheEntry cacheEntry,
+            int position,
+            ISet<string> namespaceFilter,
+            ConcurrentDictionary<ITypeSymbol, bool> checkedReceiverTypes,
+            StatisticCounter counter,
+            CancellationToken cancellationToken)
+        {
+            var currentAssembly = semanticModel.Compilation.Assembly;
+
+            var filter = CreateAggregatedFilter(receiverTypeNames, cacheEntry);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var assembly = compilation.Assembly;
+
+            var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
+
+            var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
+                assembly, filter, namespaceFilter, internalsVisible,
+                counter, cancellationToken);
+
+            return isCurrentProject
+                ? GetExtensionMethodsForSymbolsFromSameCompilation(
+                    position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, checkedReceiverTypes, cancellationToken)
+                : GetExtensionMethodsForSymbolsFromDifferentCompilation(
+                    position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, checkedReceiverTypes, cancellationToken);
+        }
+
+        private static ImmutableArray<IMethodSymbol> GetExtensionMethodsForSymbolsFromDifferentCompilation(
             int position,
             SemanticModel semanticModel,
             ITypeSymbol receiverTypeSymbol,
             MultiDictionary<ITypeSymbol, IMethodSymbol> matchingMethodSymbols,
-            ArrayBuilder<SerializableImportCompletionItem> builder,
-            Dictionary<INamespaceSymbol, string> stringCache,
-            Dictionary<ITypeSymbol, bool> checkedReceiverTypes,
+            ConcurrentDictionary<ITypeSymbol, bool> checkedReceiverTypes,
             CancellationToken cancellationToken)
         {
+            var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+
             // Matching extension method symbols are grouped based on their receiver type.
             foreach (var (declaredReceiverType, methodSymbols) in matchingMethodSymbols)
             {
@@ -333,22 +393,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     if (semanticModel.IsAccessible(position, methodInCurrentCompilation))
                     {
-                        CreateAndAddItem(methodInCurrentCompilation, builder, stringCache);
+                        builder.Add(methodInCurrentCompilation);
                     }
                 }
             }
+
+            return builder.ToImmutable();
         }
 
-        private static void GetExtensionMethodItemsForSymbolsFromSameCompilation(
+        private static ImmutableArray<IMethodSymbol> GetExtensionMethodsForSymbolsFromSameCompilation(
             int position,
             SemanticModel semanticModel,
             ITypeSymbol receiverTypeSymbol,
             MultiDictionary<ITypeSymbol, IMethodSymbol> matchingMethodSymbols,
-            ArrayBuilder<SerializableImportCompletionItem> builder,
-            Dictionary<INamespaceSymbol, string> stringCache,
-            Dictionary<ITypeSymbol, bool> checkedReceiverTypes,
+            ConcurrentDictionary<ITypeSymbol, bool> checkedReceiverTypes,
             CancellationToken cancellationToken)
         {
+            var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+
             // Matching extension method symbols are grouped based on their receiver type.
             foreach (var (receiverType, methodSymbols) in matchingMethodSymbols)
             {
@@ -378,20 +440,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         if (semanticModel.IsAccessible(position, methodSymbol))
                         {
-                            CreateAndAddItem(methodSymbol, builder, stringCache);
+                            builder.Add(methodSymbol);
                         }
                     }
                 }
             }
-        }
 
-        private static void CreateAndAddItem(IMethodSymbol methodSymbol, ArrayBuilder<SerializableImportCompletionItem> builder, Dictionary<INamespaceSymbol, string> stringCache)
-            => builder.Add(new SerializableImportCompletionItem(
-                    SymbolKey.CreateString(methodSymbol),
-                    methodSymbol.Name,
-                    methodSymbol.Arity,
-                    methodSymbol.GetGlyph(),
-                    GetFullyQualifiedNamespaceName(methodSymbol.ContainingNamespace, stringCache)));
+            return builder.ToImmutable();
+        }
 
         private static string GetFullyQualifiedNamespaceName(INamespaceSymbol symbol, Dictionary<INamespaceSymbol, string> stringCache)
         {
@@ -526,7 +582,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return GetIndicesResult.NoneResult;
                 }
 
-                syntaxIndices.Add(project, cacheEntry.Value);
+                if (cacheEntry.Value.ContainsExtensionMethod)
+                {
+                    syntaxIndices.Add(project, cacheEntry.Value);
+                }
             }
 
             // Search through all direct PE references.
@@ -550,6 +609,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return new GetIndicesResult(syntaxIndices, symbolInfos);
+        }
+
+        private static Task<CacheEntry?> GetIndexForProject(Project project, bool forceIndexCreation, IImportCompletionCacheService<CacheEntry, object> cacheService, CancellationToken cancellationToken)
+        {
+            if (project == null || !project.SupportsCompilation)
+            {
+                return Task.FromResult((CacheEntry?)null);
+            }
+
+            return GetCacheEntryAsync(project, !forceIndexCreation, cacheService, cancellationToken);
+        }
+
+        private static Task<SymbolTreeInfo?> GetIndexForPeReference(PortableExecutableReference peReference, Solution solution, bool forceIndexCreation, CancellationToken cancellationToken)
+        {
+            return SymbolTreeInfo.GetInfoForMetadataReferenceAsync(solution, peReference, loadOnly: !forceIndexCreation, cancellationToken);
         }
 
         // Create filter for extension methods from source.

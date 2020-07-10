@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
+            DebugDescription = null;
             var cancellationToken = completionContext.CancellationToken;
             var document = completionContext.Document;
 
@@ -238,7 +239,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return syntaxGenerator.NamespaceImportDeclaration(namespaceName).WithAdditionalAnnotations(Formatter.Annotation);
         }
 
+        protected string? DebugDescription { get; set; }
+
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => ImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken);
+            => DebugDescription == null ? ImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken) : Task.FromResult(CompletionDescription.FromText(DebugDescription));
     }
 }

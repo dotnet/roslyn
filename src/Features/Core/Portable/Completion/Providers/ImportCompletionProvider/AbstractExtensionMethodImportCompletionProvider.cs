@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
-                    var items = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                    var (items, counter) = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
                         completionContext.Position,
                         receiverTypeSymbol,
@@ -49,6 +49,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol);
                     completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));
+
+                    DebugDescription = $@"GetFilter: {counter.GetFilterTicks}
+GetSymbol: {counter.GetSymbolTicks}
+Total: {counter.TotalTicks}
+Length: {counter.TotalExtensionMethodsProvided}";
                 }
                 else
                 {
