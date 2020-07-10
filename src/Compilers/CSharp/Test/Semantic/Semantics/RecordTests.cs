@@ -3971,6 +3971,9 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
                 // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
@@ -4033,6 +4036,9 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
                 // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
@@ -4111,6 +4117,9 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS0115: 'C.EqualityContract': no suitable method found to override
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.EqualityContract").WithLocation(1, 8),
                 // (1,8): error CS0115: 'C.Equals(B?)': no suitable method found to override
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(B?)").WithLocation(1, 8),
@@ -5341,7 +5350,7 @@ B");
             static void verifyReturnType(MethodSymbol method, params CustomModifier[] expectedModifiers)
             {
                 var returnType = method.ReturnTypeWithAnnotations;
-                Assert.True(method.OverriddenMethod.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.ConsiderEverything));
+                Assert.True(method.OverriddenMethod.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                 AssertEx.Equal(expectedModifiers, returnType.CustomModifiers);
             }
 
@@ -5372,12 +5381,9 @@ record B : A
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (11,13): warning CS8602: Dereference of a possibly null reference.
-                //         _ = b.EqualityContract.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.EqualityContract").WithLocation(11, 13));
+            comp.VerifyDiagnostics();
 
-            Assert.Equal("System.Type? B.EqualityContract { get; }", GetProperties(comp, "B").Single().ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("System.Type! B.EqualityContract { get; }", GetProperties(comp, "B").Single().ToTestDisplayString(includeNonNullable: true));
         }
 
         // No EqualityContract property on base.
@@ -7985,7 +7991,7 @@ record B(int X, int Y) : A
                 // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public sealed override bool Equals(object other) => false;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
-                // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing 'record' is not sealed.
+                // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
                 //     public sealed override int GetHashCode() => 0;
                 Diagnostic(ErrorCode.ERR_SealedGetHashCodeInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
                 // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
@@ -8482,6 +8488,9 @@ public record A {
                 // public record A {
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "A").WithArguments("A.Equals(object?)", "object.Equals(object)", "int").WithLocation(2, 15),
 
+                // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -9034,7 +9043,7 @@ record A
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing 'record' is not sealed.
+                // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
                 //     public sealed override int GetHashCode() => throw null;
                 Diagnostic(ErrorCode.ERR_SealedGetHashCodeInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32)
                 );
@@ -9397,6 +9406,9 @@ public record A {
                 //     public override Something GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 31),
 
+                // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -9470,6 +9482,9 @@ public record A {
                 //     public override bool GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 26),
 
+                // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -9542,6 +9557,9 @@ public record A {
                 // public record A {
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "A").WithArguments("A.GetHashCode()", "object.GetHashCode()", "bool").WithLocation(2, 15),
 
+                // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -10159,7 +10177,7 @@ record B : A
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (9,33): error CS8872: 'B.Equals(B)' disallows overriding and containing 'record' is not sealed.
+                // (9,33): error CS8872: 'B.Equals(B)' must allow overriding because the containing record is not sealed.
                 //     public sealed override bool Equals(B other) => Report("B.Equals(B)");
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("B.Equals(B)").WithLocation(9, 33)
                 );
@@ -10646,6 +10664,1201 @@ True
             Assert.False(recordEquals.IsOverride);
             Assert.False(recordEquals.IsSealed);
             Assert.True(recordEquals.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void EqualityContract_01()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+
+    protected abstract System.Type EqualityContract { get; }
+}
+record B : A
+{
+    protected override System.Type EqualityContract
+    {
+        get
+        {
+            Report(""B.EqualityContract"");
+            return typeof(B);
+        }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        A a2 = new B();
+
+        System.Console.WriteLine(a1.Equals(a2));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+B.EqualityContract
+B.EqualityContract
+True
+");
+        }
+
+        [Fact]
+        public void EqualityContract_02()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    protected abstract System.Type EqualityContract { get; }
+}
+record B : A
+{
+    protected sealed override System.Type EqualityContract
+    {
+        get
+        {
+            Report(""B.EqualityContract"");
+            return typeof(B);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (9,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected sealed override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(9, 43)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_03()
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+
+    protected abstract System.Type EqualityContract { get; }
+}
+sealed record B : A
+{
+    protected sealed override System.Type EqualityContract
+    {
+        get
+        {
+            Report(""B.EqualityContract"");
+            return typeof(B);
+        }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        A a2 = new B();
+
+        System.Console.WriteLine(a1.Equals(a2));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+B.EqualityContract
+B.EqualityContract
+True
+");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("sealed ")]
+        public void EqualityContract_04(string modifiers)
+        {
+            var source =
+@"
+abstract record A
+{
+    internal static bool Report(string s) { System.Console.WriteLine(s); return false; }
+    protected virtual System.Type EqualityContract
+    {
+        get
+        {
+            Report(""A.EqualityContract"");
+            return typeof(B);
+        }
+    }
+}
+" + modifiers + @"
+record B : A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+        System.Console.WriteLine(b2.Equals((B)a1));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+True
+True
+True
+");
+            var equalityContract = comp.GetMembers("B.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContract.DeclaredAccessibility);
+            Assert.False(equalityContract.IsAbstract);
+            Assert.False(equalityContract.IsVirtual);
+            Assert.True(equalityContract.IsOverride);
+            Assert.False(equalityContract.IsSealed);
+            Assert.True(equalityContract.IsImplicitlyDeclared);
+            Assert.Empty(equalityContract.DeclaringSyntaxReferences);
+
+            var equalityContractGet = equalityContract.GetMethod;
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContractGet.DeclaredAccessibility);
+            Assert.False(equalityContractGet.IsAbstract);
+            Assert.False(equalityContractGet.IsVirtual);
+            Assert.True(equalityContractGet.IsOverride);
+            Assert.False(equalityContractGet.IsSealed);
+            Assert.True(equalityContractGet.IsImplicitlyDeclared);
+            Assert.Empty(equalityContractGet.DeclaringSyntaxReferences);
+        }
+
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("private protected")]
+        [InlineData("internal protected")]
+        public void EqualityContract_05(string accessibility)
+        {
+            var source =
+$@"
+record A
+{{
+    { accessibility } virtual System.Type EqualityContract
+        => throw null;
+}}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,...): error CS8875: Record member 'A.EqualityContract' must be protected.
+                //     { accessibility } virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NonProtectedAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(4, 26 + accessibility.Length)
+                );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("private")]
+        public void EqualityContract_06(string accessibility)
+        {
+            var source =
+$@"
+record A
+{{
+    { accessibility } virtual System.Type EqualityContract
+        => throw null;
+
+    bool System.IEquatable<A>.Equals(A x) => throw null;
+}}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,...): error CS0621: 'A.EqualityContract': virtual or abstract members cannot be private
+                //      { accessibility } virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(4, 26 + accessibility.Length),
+                // (4,...): error CS8875: Record member 'A.EqualityContract' must be protected.
+                //      { accessibility } virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NonProtectedAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(4, 26 + accessibility.Length)
+                );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("abstract ")]
+        [InlineData("sealed ")]
+        public void EqualityContract_07(string modifiers)
+        {
+            var source =
+@"
+record A
+{
+}
+" + modifiers + @"
+record B : A
+{
+    public void PrintEqualityContract() => System.Console.WriteLine(EqualityContract);
+}
+";
+
+            if (modifiers != "abstract ")
+            {
+                source +=
+@"
+class Program
+{
+    static void Main()
+    {
+        A a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+        System.Console.WriteLine(b2.Equals((B)a1));
+        b2.PrintEqualityContract();
+    }
+}";
+            }
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
+@"
+True
+True
+True
+B
+");
+            var equalityContract = comp.GetMembers("B.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContract.DeclaredAccessibility);
+            Assert.False(equalityContract.IsAbstract);
+            Assert.False(equalityContract.IsVirtual);
+            Assert.True(equalityContract.IsOverride);
+            Assert.False(equalityContract.IsSealed);
+            Assert.True(equalityContract.IsImplicitlyDeclared);
+            Assert.Empty(equalityContract.DeclaringSyntaxReferences);
+
+            var equalityContractGet = equalityContract.GetMethod;
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContractGet.DeclaredAccessibility);
+            Assert.False(equalityContractGet.IsAbstract);
+            Assert.False(equalityContractGet.IsVirtual);
+            Assert.True(equalityContractGet.IsOverride);
+            Assert.False(equalityContractGet.IsSealed);
+            Assert.True(equalityContractGet.IsImplicitlyDeclared);
+            Assert.Empty(equalityContractGet.DeclaringSyntaxReferences);
+
+            verifier.VerifyIL("B.EqualityContract.get", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""B""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("abstract ")]
+        [InlineData("sealed ")]
+        public void EqualityContract_08(string modifiers)
+        {
+            var source =
+modifiers + @"
+record B
+{
+    public void PrintEqualityContract() => System.Console.WriteLine(EqualityContract);
+}
+";
+
+            if (modifiers != "abstract ")
+            {
+                source +=
+@"
+class Program
+{
+    static void Main()
+    {
+        B a1 = new B();
+        B b2 = new B();
+
+        System.Console.WriteLine(a1.Equals(b2));
+        System.Console.WriteLine(b2.Equals(a1));
+        System.Console.WriteLine(b2.Equals((B)a1));
+        b2.PrintEqualityContract();
+    }
+}";
+            }
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
+@"
+True
+True
+True
+B
+");
+            var equalityContract = comp.GetMembers("B.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContract.DeclaredAccessibility);
+            Assert.False(equalityContract.IsAbstract);
+            Assert.Equal(modifiers != "sealed ", equalityContract.IsVirtual);
+            Assert.False(equalityContract.IsOverride);
+            Assert.False(equalityContract.IsSealed);
+            Assert.True(equalityContract.IsImplicitlyDeclared);
+            Assert.Empty(equalityContract.DeclaringSyntaxReferences);
+
+            var equalityContractGet = equalityContract.GetMethod;
+            Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, equalityContractGet.DeclaredAccessibility);
+            Assert.False(equalityContractGet.IsAbstract);
+            Assert.Equal(modifiers != "sealed ", equalityContractGet.IsVirtual);
+            Assert.False(equalityContractGet.IsOverride);
+            Assert.False(equalityContractGet.IsSealed);
+            Assert.True(equalityContractGet.IsImplicitlyDeclared);
+            Assert.Empty(equalityContractGet.DeclaringSyntaxReferences);
+
+            verifier.VerifyIL("B.EqualityContract.get", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""B""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void EqualityContract_09()
+        {
+            var source =
+@"
+record A
+{
+    protected virtual int EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,27): error CS8874: Record member 'A.EqualityContract' must return 'Type'.
+                //     protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("A.EqualityContract", "System.Type").WithLocation(4, 27)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_10()
+        {
+            var source =
+@"
+record A
+{
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.MakeTypeMissing(WellKnownType.System_Type);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.GetTypeFromHandle'
+                // record A
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record A
+{
+}").WithArguments("System.Type", "GetTypeFromHandle").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Type.op_Equality'
+                // record A
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record A
+{
+}").WithArguments("System.Type", "op_Equality").WithLocation(2, 1),
+                // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 8)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_11()
+        {
+            var source =
+@"
+record A
+{
+    protected virtual Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,23): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_12()
+        {
+            var source =
+@"
+record A
+{
+    protected System.Type EqualityContract
+        => throw null;
+}
+
+sealed record B
+{
+    protected System.Type EqualityContract
+        => throw null;
+}
+
+sealed record C
+{
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+record D
+{
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,27): error CS8872: 'A.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(4, 27),
+                // (10,27): warning CS0628: 'B.EqualityContract': new protected member declared in sealed class
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(10, 27),
+                // (11,12): warning CS0628: 'B.EqualityContract.get': new protected member declared in sealed class
+                //         => throw null;
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("B.EqualityContract.get").WithLocation(11, 12),
+                // (16,35): warning CS0628: 'C.EqualityContract': new protected member declared in sealed class
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("C.EqualityContract").WithLocation(16, 35),
+                // (17,12): error CS0549: 'C.EqualityContract.get' is a new virtual member in sealed class 'C'
+                //         => throw null;
+                Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "throw null").WithArguments("C.EqualityContract.get", "C").WithLocation(17, 12)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_13()
+        {
+            var source =
+@"
+record A
+{}
+
+record B : A
+{
+    protected System.Type EqualityContract
+        => throw null;
+}
+
+sealed record C : A
+{
+    protected System.Type EqualityContract
+        => throw null;
+}
+
+sealed record D : A
+{
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+record E : A
+{
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+record F : A
+{
+    protected override System.Type EqualityContract
+        => throw null;
+}
+
+record G : A
+{
+    protected sealed override System.Type EqualityContract
+        => throw null;
+}
+
+sealed record H : A
+{
+    protected sealed override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (7,27): error CS8876: 'B.EqualityContract' does not override expected property from 'A'.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("B.EqualityContract", "A").WithLocation(7, 27),
+                // (7,27): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(7, 27),
+                // (7,27): warning CS0114: 'B.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(7, 27),
+                // (13,27): warning CS0628: 'C.EqualityContract': new protected member declared in sealed class
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("C.EqualityContract").WithLocation(13, 27),
+                // (13,27): error CS8876: 'C.EqualityContract' does not override expected property from 'A'.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("C.EqualityContract", "A").WithLocation(13, 27),
+                // (13,27): warning CS0114: 'C.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("C.EqualityContract", "A.EqualityContract").WithLocation(13, 27),
+                // (14,12): warning CS0628: 'C.EqualityContract.get': new protected member declared in sealed class
+                //         => throw null;
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "throw null").WithArguments("C.EqualityContract.get").WithLocation(14, 12),
+                // (19,35): warning CS0628: 'D.EqualityContract': new protected member declared in sealed class
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EqualityContract").WithArguments("D.EqualityContract").WithLocation(19, 35),
+                // (19,35): error CS8876: 'D.EqualityContract' does not override expected property from 'A'.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("D.EqualityContract", "A").WithLocation(19, 35),
+                // (19,35): warning CS0114: 'D.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("D.EqualityContract", "A.EqualityContract").WithLocation(19, 35),
+                // (20,12): error CS0549: 'D.EqualityContract.get' is a new virtual member in sealed class 'D'
+                //         => throw null;
+                Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "throw null").WithArguments("D.EqualityContract.get", "D").WithLocation(20, 12),
+                // (25,35): error CS8876: 'E.EqualityContract' does not override expected property from 'A'.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("E.EqualityContract", "A").WithLocation(25, 35),
+                // (25,35): warning CS0114: 'E.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "EqualityContract").WithArguments("E.EqualityContract", "A.EqualityContract").WithLocation(25, 35),
+                // (37,43): error CS8872: 'G.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected sealed override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("G.EqualityContract").WithLocation(37, 43)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_14()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '<>Clone' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'<>Clone'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual  
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}
+
+public record C : A {
+    new protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+public record D : A {
+    new protected virtual int EqualityContract
+        => throw null;
+}
+
+public record E : A {
+    new protected virtual Type EqualityContract
+        => throw null;
+}
+
+public record F : A {
+    protected override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(2, 15),
+                // (6,39): error CS8876: 'C.EqualityContract' does not override expected property from 'A'.
+                //     new protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("C.EqualityContract", "A").WithLocation(6, 39),
+                // (11,31): error CS8874: Record member 'D.EqualityContract' must return 'Type'.
+                //     new protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("D.EqualityContract", "System.Type").WithLocation(11, 31),
+                // (16,27): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     new protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(16, 27),
+                // (21,36): error CS0506: 'F.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "EqualityContract").WithArguments("F.EqualityContract", "A.EqualityContract").WithLocation(21, 36)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_15()
+        {
+            var source =
+@"
+record A
+{
+    protected virtual int EqualityContract
+        => throw null;
+}
+
+record B : A
+{
+}
+
+record C : A
+{
+    protected override System.Type EqualityContract
+           => throw null;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,27): error CS8874: Record member 'A.EqualityContract' must return 'Type'.
+                //     protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("A.EqualityContract", "System.Type").WithLocation(4, 27),
+                // (8,8): error CS1715: 'B.EqualityContract': type must be 'int' to match overridden member 'A.EqualityContract'
+                // record B : A
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "B").WithArguments("B.EqualityContract", "A.EqualityContract", "int").WithLocation(8, 8),
+                // (14,36): error CS1715: 'C.EqualityContract': type must be 'int' to match overridden member 'A.EqualityContract'
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "EqualityContract").WithArguments("C.EqualityContract", "A.EqualityContract", "int").WithLocation(14, 36)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_16()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '<>Clone' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'<>Clone'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual  
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot final virtual
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}
+
+public record C : A {
+    new protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+public record D : A {
+    new protected virtual int EqualityContract
+        => throw null;
+}
+
+public record E : A {
+    new protected virtual Type EqualityContract
+        => throw null;
+}
+
+public record F : A {
+    protected override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(2, 15),
+                // (6,39): error CS8876: 'C.EqualityContract' does not override expected property from 'A'.
+                //     new protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("C.EqualityContract", "A").WithLocation(6, 39),
+                // (11,31): error CS8874: Record member 'D.EqualityContract' must return 'Type'.
+                //     new protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("D.EqualityContract", "System.Type").WithLocation(11, 31),
+                // (16,27): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     new protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(16, 27),
+                // (21,36): error CS0506: 'F.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "EqualityContract").WithArguments("F.EqualityContract", "A.EqualityContract").WithLocation(21, 36)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_17()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '<>Clone' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'<>Clone'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual  
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+} // end of class A
+";
+            var source = @"
+public record B : A {
+}
+
+public record C : A {
+    protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+public record D : A {
+    protected virtual int EqualityContract
+        => throw null;
+}
+
+public record E : A {
+    protected virtual Type EqualityContract
+        => throw null;
+}
+
+public record F : A {
+    protected override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0115: 'B.EqualityContract': no suitable method found to override
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(2, 15),
+                // (6,35): error CS8876: 'C.EqualityContract' does not override expected property from 'A'.
+                //     protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("C.EqualityContract", "A").WithLocation(6, 35),
+                // (11,27): error CS8874: Record member 'D.EqualityContract' must return 'Type'.
+                //     protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("D.EqualityContract", "System.Type").WithLocation(11, 27),
+                // (16,23): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(16, 23),
+                // (21,36): error CS0115: 'F.EqualityContract': no suitable method found to override
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "EqualityContract").WithArguments("F.EqualityContract").WithLocation(21, 36)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_18()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '<>Clone' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'<>Clone'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::get_EqualityContract
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+} // end of class A
+
+.class public auto ansi beforefieldinit B
+    extends A
+{
+    // Methods
+    .method public hidebysig specialname newslot virtual 
+        instance class A '<>Clone' () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::'<>Clone'
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::GetHashCode
+
+    .method public final virtual 
+        instance bool Equals (
+            class A ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::Equals
+
+    .method public newslot virtual 
+        instance bool Equals (
+            class B ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method B::Equals
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class B ''
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method B::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method A::.ctor
+} // end of class B
+
+";
+            var source = @"
+public record C : B {
+}
+
+public record D : B {
+    new protected virtual System.Type EqualityContract
+        => throw null;
+}
+
+public record E : B {
+    new protected virtual int EqualityContract
+        => throw null;
+}
+
+public record F : B {
+    new protected virtual Type EqualityContract
+        => throw null;
+}
+
+public record G : B {
+    protected override System.Type EqualityContract
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8876: 'C.EqualityContract' does not override expected property from 'B'.
+                // public record C : B {
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "C").WithArguments("C.EqualityContract", "B").WithLocation(2, 15),
+                // (6,39): error CS8876: 'D.EqualityContract' does not override expected property from 'B'.
+                //     new protected virtual System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("D.EqualityContract", "B").WithLocation(6, 39),
+                // (11,31): error CS8874: Record member 'E.EqualityContract' must return 'Type'.
+                //     new protected virtual int EqualityContract
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "EqualityContract").WithArguments("E.EqualityContract", "System.Type").WithLocation(11, 31),
+                // (16,27): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     new protected virtual Type EqualityContract
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(16, 27),
+                // (21,36): error CS8876: 'G.EqualityContract' does not override expected property from 'B'.
+                //     protected override System.Type EqualityContract
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, "EqualityContract").WithArguments("G.EqualityContract", "B").WithLocation(21, 36)
+                );
         }
 
         [WorkItem(44692, "https://github.com/dotnet/roslyn/issues/44692")]
@@ -13096,6 +14309,9 @@ record B : A;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (3,27): error CS8872: 'A.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected System.Type EqualityContract => typeof(A);
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("A.EqualityContract").WithLocation(3, 27),
                 // (5,8): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
                 // record B : A;
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(5, 8));
@@ -13114,6 +14330,9 @@ record C : B;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (4,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
+                //     protected sealed override System.Type EqualityContract => typeof(B);
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(4, 43),
                 // (6,8): error CS0239: 'C.EqualityContract': cannot override inherited member 'B.EqualityContract' because it is sealed
                 // record C : B;
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
@@ -13718,12 +14937,19 @@ record B : A<int>;
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A<T>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record B : A<int>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Type").WithLocation(2, 8)
+                );
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
             AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
@@ -13767,9 +14993,15 @@ record B : A<int>, System.IEquatable<B>;
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
                 // (1,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(1, 8),
+                // (1,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(1, 8),
                 // (1,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(1, 8),
@@ -13785,6 +15017,9 @@ record B : A<int>, System.IEquatable<B>;
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>, System.IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Type").WithLocation(2, 8),
                 // (2,27): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // record B : A<int>, System.IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<B>").WithArguments("IEquatable<>", "System").WithLocation(2, 27));
@@ -13835,9 +15070,15 @@ record B : A<int>, IEquatable<B>;
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
@@ -13853,6 +15094,9 @@ record B : A<int>, IEquatable<B>;
                 // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>, IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
+                // (3,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Type").WithLocation(3, 8),
                 // (3,20): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
                 // record B : A<int>, IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<B>").WithArguments("IEquatable<>").WithLocation(3, 20));
@@ -13904,6 +15148,9 @@ class Program
 }";
             comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
+                // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
+                // record A;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
                 // (1,8): error CS0535: 'A' does not implement interface member 'IEquatable<A>.Other()'
                 // record A;
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("A", "System.IEquatable<A>.Other()").WithLocation(1, 8));
@@ -13941,7 +15188,7 @@ record B : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,17): error CS8872: 'A.Equals(A)' disallows overriding and containing 'record' is not sealed.
+                // (3,17): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
                 //     public bool Equals(A other) => false;
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(3, 17),
                 // (5,8): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
