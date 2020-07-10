@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var document = solution.
                 AddProject("proj", "proj", LanguageNames.CSharp).
                 WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework)).
-                AddDocument("test.cs", SourceText.From(source, Encoding.UTF8));
+                AddDocument("test.cs", SourceText.From(source, Encoding.UTF8), filePath: "test.cs");
 
             workspace.ChangeSolution(document.Project.Solution);
-            return document.Project;
+            return workspace.CurrentSolution.GetProject(document.Project.Id);
         }
 
         private EditAndContinueWorkspaceService CreateEditAndContinueService(Workspace workspace)
@@ -2348,7 +2348,7 @@ class C1
 
             var document1 = project.Documents.Single();
             var documentId = document1.Id;
-            var documentName = document1.Name;
+            var documentPath = document1.FilePath;
 
             var sourceTextV1 = document1.GetTextSynchronously(CancellationToken.None);
             var sourceTextV2 = SourceText.From(sourceV2, Encoding.UTF8);
@@ -2382,13 +2382,13 @@ class C1
             var activeStatements = ImmutableArray.Create(
                 new ActiveStatementDebugInfo(
                     activeInstruction1,
-                    documentName,
+                    documentPath,
                     activeLineSpan11,
                     threadIds: ImmutableArray.Create(threadId),
                     ActiveStatementFlags.IsNonLeafFrame),
                 new ActiveStatementDebugInfo(
                     activeInstruction2,
-                    documentName,
+                    documentPath,
                     activeLineSpan12,
                     threadIds: ImmutableArray.Create(threadId),
                     ActiveStatementFlags.IsLeafFrame));
