@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
     public partial class ConvertNameOfTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpConvertNameOfDiagnosticAnalyzer(), new CSharpConvertNameOfCodeFixProvider());
+            => (new CSharpConvertTypeofToNameofDiagnosticAnalyzer(), new CSharpConvertNameOfCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         public async Task BasicType()
