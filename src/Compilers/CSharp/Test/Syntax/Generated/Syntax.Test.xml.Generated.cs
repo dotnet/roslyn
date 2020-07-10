@@ -38,7 +38,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.PointerType(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
         private static Syntax.InternalSyntax.FunctionPointerTypeSyntax GenerateFunctionPointerType()
-            => InternalSyntaxFactory.FunctionPointerType(InternalSyntaxFactory.Token(SyntaxKind.DelegateKeyword), InternalSyntaxFactory.Token(SyntaxKind.AsteriskToken), null, InternalSyntaxFactory.Token(SyntaxKind.LessThanToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ParameterSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+            => InternalSyntaxFactory.FunctionPointerType(InternalSyntaxFactory.Token(SyntaxKind.DelegateKeyword), InternalSyntaxFactory.Token(SyntaxKind.AsteriskToken), null, GenerateFunctionPointerParameterList());
+
+        private static Syntax.InternalSyntax.FunctionPointerParameterListSyntax GenerateFunctionPointerParameterList()
+            => InternalSyntaxFactory.FunctionPointerParameterList(InternalSyntaxFactory.Token(SyntaxKind.LessThanToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.FunctionPointerParameterSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
+        private static Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax GenerateFunctionPointerCallingConvention()
+            => InternalSyntaxFactory.FunctionPointerCallingConvention(InternalSyntaxFactory.Token(SyntaxKind.ManagedKeyword), null);
+
+        private static Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax GenerateFunctionPointerUnmanagedCallingConventionList()
+            => InternalSyntaxFactory.FunctionPointerUnmanagedCallingConventionList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+
+        private static Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax GenerateFunctionPointerUnmanagedCallingConvention()
+            => InternalSyntaxFactory.FunctionPointerUnmanagedCallingConvention(InternalSyntaxFactory.Identifier("Name"));
 
         private static Syntax.InternalSyntax.NullableTypeSyntax GenerateNullableType()
             => InternalSyntaxFactory.NullableType(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.QuestionToken));
@@ -556,6 +568,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.ParameterSyntax GenerateParameter()
             => InternalSyntaxFactory.Parameter(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), null, InternalSyntaxFactory.Identifier("Identifier"), null);
 
+        private static Syntax.InternalSyntax.FunctionPointerParameterSyntax GenerateFunctionPointerParameter()
+            => InternalSyntaxFactory.FunctionPointerParameter(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName());
+
         private static Syntax.InternalSyntax.IncompleteMemberSyntax GenerateIncompleteMember()
             => InternalSyntaxFactory.IncompleteMember(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), null);
 
@@ -796,9 +811,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind);
             Assert.Equal(SyntaxKind.AsteriskToken, node.AsteriskToken.Kind);
             Assert.Null(node.CallingConvention);
+            Assert.NotNull(node.ParameterList);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterListFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerParameterList();
+
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind);
             Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestFunctionPointerCallingConventionFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerCallingConvention();
+
+            Assert.Equal(SyntaxKind.ManagedKeyword, node.ManagedOrUnmanagedKeyword.Kind);
+            Assert.Null(node.UnmanagedCallingConventionList);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionListFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerUnmanagedCallingConventionList();
+
+            Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
+            Assert.Equal(default, node.CallingConventions);
+            Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerUnmanagedCallingConvention();
+
+            Assert.Equal(SyntaxKind.IdentifierToken, node.Name.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -3024,6 +3082,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFunctionPointerParameterFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerParameter();
+
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
+            Assert.NotNull(node.Type);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
         public void TestIncompleteMemberFactoryAndProperties()
         {
             var node = GenerateIncompleteMember();
@@ -3833,6 +3903,110 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFunctionPointerTypeIdentityRewriter()
         {
             var oldNode = GenerateFunctionPointerType();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterListTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerParameterList();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterListIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerParameterList();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerCallingConventionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerCallingConvention();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerCallingConventionIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerCallingConvention();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionListTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionListIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConvention();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConvention();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -8312,6 +8486,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFunctionPointerParameterTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerParameter();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerParameter();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestIncompleteMemberTokenDeleteRewriter()
         {
             var oldNode = GenerateIncompleteMember();
@@ -9462,7 +9662,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.PointerType(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
         private static FunctionPointerTypeSyntax GenerateFunctionPointerType()
-            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.LessThanToken), new SeparatedSyntaxList<ParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default(FunctionPointerCallingConventionSyntax), GenerateFunctionPointerParameterList());
+
+        private static FunctionPointerParameterListSyntax GenerateFunctionPointerParameterList()
+            => SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.Token(SyntaxKind.LessThanToken), new SeparatedSyntaxList<FunctionPointerParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
+        private static FunctionPointerCallingConventionSyntax GenerateFunctionPointerCallingConvention()
+            => SyntaxFactory.FunctionPointerCallingConvention(SyntaxFactory.Token(SyntaxKind.ManagedKeyword), default(FunctionPointerUnmanagedCallingConventionListSyntax));
+
+        private static FunctionPointerUnmanagedCallingConventionListSyntax GenerateFunctionPointerUnmanagedCallingConventionList()
+            => SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+
+        private static FunctionPointerUnmanagedCallingConventionSyntax GenerateFunctionPointerUnmanagedCallingConvention()
+            => SyntaxFactory.FunctionPointerUnmanagedCallingConvention(SyntaxFactory.Identifier("Name"));
 
         private static NullableTypeSyntax GenerateNullableType()
             => SyntaxFactory.NullableType(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.QuestionToken));
@@ -9980,6 +10192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ParameterSyntax GenerateParameter()
             => SyntaxFactory.Parameter(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), default(TypeSyntax), SyntaxFactory.Identifier("Identifier"), default(EqualsValueClauseSyntax));
 
+        private static FunctionPointerParameterSyntax GenerateFunctionPointerParameter()
+            => SyntaxFactory.FunctionPointerParameter(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName());
+
         private static IncompleteMemberSyntax GenerateIncompleteMember()
             => SyntaxFactory.IncompleteMember(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), default(TypeSyntax));
 
@@ -10219,11 +10434,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind());
             Assert.Equal(SyntaxKind.AsteriskToken, node.AsteriskToken.Kind());
-            Assert.Equal(SyntaxKind.None, node.CallingConvention.Kind());
+            Assert.Null(node.CallingConvention);
+            Assert.NotNull(node.ParameterList);
+            var newNode = node.WithDelegateKeyword(node.DelegateKeyword).WithAsteriskToken(node.AsteriskToken).WithCallingConvention(node.CallingConvention).WithParameterList(node.ParameterList);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterListFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerParameterList();
+
             Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind());
             Assert.Equal(default, node.Parameters);
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
-            var newNode = node.WithDelegateKeyword(node.DelegateKeyword).WithAsteriskToken(node.AsteriskToken).WithCallingConvention(node.CallingConvention).WithLessThanToken(node.LessThanToken).WithParameters(node.Parameters).WithGreaterThanToken(node.GreaterThanToken);
+            var newNode = node.WithLessThanToken(node.LessThanToken).WithParameters(node.Parameters).WithGreaterThanToken(node.GreaterThanToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerCallingConventionFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerCallingConvention();
+
+            Assert.Equal(SyntaxKind.ManagedKeyword, node.ManagedOrUnmanagedKeyword.Kind());
+            Assert.Null(node.UnmanagedCallingConventionList);
+            var newNode = node.WithManagedOrUnmanagedKeyword(node.ManagedOrUnmanagedKeyword).WithUnmanagedCallingConventionList(node.UnmanagedCallingConventionList);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionListFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerUnmanagedCallingConventionList();
+
+            Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
+            Assert.Equal(default, node.CallingConventions);
+            Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
+            var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithCallingConventions(node.CallingConventions).WithCloseBracketToken(node.CloseBracketToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerUnmanagedCallingConvention();
+
+            Assert.Equal(SyntaxKind.IdentifierToken, node.Name.Kind());
+            var newNode = node.WithName(node.Name);
             Assert.Equal(node, newNode);
         }
 
@@ -12448,6 +12706,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFunctionPointerParameterFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerParameter();
+
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
+            Assert.NotNull(node.Type);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
         public void TestIncompleteMemberFactoryAndProperties()
         {
             var node = GenerateIncompleteMember();
@@ -13257,6 +13527,110 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFunctionPointerTypeIdentityRewriter()
         {
             var oldNode = GenerateFunctionPointerType();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterListTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerParameterList();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterListIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerParameterList();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerCallingConventionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerCallingConvention();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerCallingConventionIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerCallingConvention();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionListTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionListIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConvention();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConvention();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -17729,6 +18103,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestParameterIdentityRewriter()
         {
             var oldNode = GenerateParameter();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerParameter();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerParameter();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

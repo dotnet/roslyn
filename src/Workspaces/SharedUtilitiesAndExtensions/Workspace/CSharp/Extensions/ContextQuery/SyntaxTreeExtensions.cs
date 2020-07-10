@@ -956,15 +956,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            // https://github.com/dotnet/roslyn/issues/39865: When the syntax rewrite is done, the parents here will need to change.
             switch (token.Kind())
             {
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.CommaToken:
-                    return token.Parent is FunctionPointerTypeSyntax;
+                    return token.Parent is FunctionPointerParameterListSyntax;
             }
 
-            return token.Parent is ParameterSyntax { Parent: FunctionPointerTypeSyntax _ };
+            return token switch
+            {
+                // ref modifiers
+                { Parent: { RawKind: (int)SyntaxKindEx.FunctionPointerParameter } } => true,
+                // Regular type specifiers
+                { Parent: TypeSyntax { Parent: { RawKind: (int)SyntaxKindEx.FunctionPointerParameter } } } => true,
+                _ => false
+            };
 #else
             return false;
 #endif
@@ -1068,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent.IsKind(SyntaxKindEx.FunctionPointerType))
+            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList))
             {
                 parameterIndex = 0;
                 return true;
@@ -1086,9 +1092,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
 #if !CODE_STYLE
             if (token.IsKind(SyntaxKind.CommaToken) &&
-                token.Parent.IsKind(SyntaxKindEx.FunctionPointerType, out FunctionPointerTypeSyntax funcPtrType))
+                token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList, out FunctionPointerParameterListSyntax funcPtrParamList))
             {
-                var commaIndex = funcPtrType.Parameters.GetWithSeparators().IndexOf(token);
+                var commaIndex = funcPtrParamList.Parameters.GetWithSeparators().IndexOf(token);
 
                 parameterIndex = commaIndex / 2 + 1;
                 return true;

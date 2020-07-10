@@ -57,6 +57,13 @@ namespace Microsoft.Cci
         ThisCall = SignatureCallingConvention.ThisCall,
 
         /// <summary>
+        /// Extensible calling convention protocol. This represents either the union of calling convention modopts after the paramcount specifier
+        /// in IL, or platform default if none are present
+        /// </summary>
+        // PROTOTYPE(func-ptr): Use the SRM version
+        Unmanaged = 0x9,
+
+        /// <summary>
         /// The convention for calling a generic method.
         /// </summary>
         Generic = SignatureAttributes.Generic,
