@@ -191,14 +191,11 @@ namespace Microsoft.CodeAnalysis
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
 
             // If we have a global config, add any sections that match the full path 
-            if (_globalConfig is object)
+            foreach (var section in _globalConfig.NamedSections)
             {
-                foreach (var section in _globalConfig.NamedSections)
+                if (normalizedPath.Equals(section.Name, Section.NameComparer))
                 {
-                    if (normalizedPath.Equals(section.Name, Section.NameComparer))
-                    {
-                        sectionKey.Add(section);
-                    }
+                    sectionKey.Add(section);
                 }
             }
             int globalConfigOptionsCount = sectionKey.Count;
