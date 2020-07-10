@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
@@ -29,9 +30,37 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8797: must be static, must have no parameters, and must return 'void'
+                // (6,6): error CS8815: Module initializer method 'M' must be static, must have no parameters, and must return 'void'
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
+                );
+        }
+
+        [Fact]
+        public void MustNotBeInstanceMethodInInterface()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+
+interface i
+{
+    [ModuleInitializer]
+    internal void M1();
+
+    [ModuleInitializer]
+    internal void M2() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions, targetFramework: TargetFramework.NetStandardLatest);
+            compilation.VerifyEmitDiagnostics(
+                // (6,6): error CS8815: Module initializer method 'M1' must be static, must have no parameters, and must return 'void'
+                //     [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M1").WithLocation(6, 6),
+                // (9,6): error CS8815: Module initializer method 'M2' must be static, must have no parameters, and must return 'void'
+                //     [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M2").WithLocation(9, 6)
                 );
         }
 
@@ -51,7 +80,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8797: must be static, must have no parameters, and must return 'void'
+                // (6,6): error CS8815: Module initializer method 'M' must be static, must have no parameters, and must return 'void'
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
                 );
@@ -73,7 +102,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8797: must be static, must have no parameters, and must return 'void'
+                // (6,6): error CS8815: Module initializer method 'M' must be static, must have no parameters, and must return 'void'
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
                 );
@@ -95,7 +124,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (6,6): error CS8797: must be static, must have no parameters, and must return 'void'
+                // (6,6): error CS8815: Module initializer method 'M' must be static, must have no parameters, and must return 'void'
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
                 );
@@ -117,7 +146,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                    // (6,6): error CS8797: must be static, must have no parameters, and must return 'void'
+                    // (6,6): error CS8815: Module initializer method 'M' must be static, must have no parameters, and must return 'void'
                     //     [ModuleInitializer]
                     Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
                 );
@@ -165,7 +194,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyEmitDiagnostics(
-                // (7,6): error CS8797: must be static, must have no parameters, and must return 'void'
+                // (6,6): error CS8815: Module initializer method 'M' must be static, must have no parameters, and must return 'void'
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M").WithLocation(7, 6),
                 // (8,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.

@@ -122,6 +122,114 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
                 );
         }
 
+        [Fact]
+        public void ModuleInitializerOnPrivatePartialMethod()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+partial class C
+{
+    [ModuleInitializer] // 1
+    static partial void M1();
+
+    [ModuleInitializer] // 2
+    static partial void M2();
+    static partial void M2() { }
+
+    static partial void M3();
+    [ModuleInitializer] // 3
+    static partial void M3() { }
+
+    [ModuleInitializer] // 4
+    static partial void M4();
+    [ModuleInitializer] // 5
+    static partial void M4() { }
+}
+
+class Program
+{
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                // (7,6): error CS8814: Module initializer method 'M1' must be accessible at the module level
+                //     [ModuleInitializer] // 1
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M1").WithLocation(7, 6),
+                // (10,6): error CS8814: Module initializer method 'M2' must be accessible at the module level
+                //     [ModuleInitializer] // 2
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M2").WithLocation(10, 6),
+                // (15,6): error CS8814: Module initializer method 'M3' must be accessible at the module level
+                //     [ModuleInitializer] // 3
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M3").WithLocation(15, 6),
+                // (18,6): error CS8814: Module initializer method 'M4' must be accessible at the module level
+                //     [ModuleInitializer] // 4
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M4").WithLocation(18, 6),
+                // (20,6): error CS0579: Duplicate 'ModuleInitializer' attribute
+                //     [ModuleInitializer] // 5
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "ModuleInitializer").WithArguments("ModuleInitializer").WithLocation(20, 6)
+                );
+        }
+
+        [Fact]
+        public void ModuleInitializerOnPublicPartialMethod()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+partial class C
+{
+    [ModuleInitializer]
+    public static partial void M1();
+    public static partial void M1() { Console.Write(1); }
+
+    public static partial void M2();
+    [ModuleInitializer]
+    public static partial void M2() { Console.Write(2); }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(3);
+    }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            CompileAndVerify(source, parseOptions: s_parseOptions, expectedOutput: @"123");
+        }
+
+        [Fact]
+        public void DuplicateModuleInitializerOnPublicPartialMethod()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+partial class C
+{
+    [ModuleInitializer]
+    public static partial void M1();
+    [ModuleInitializer] // 1
+    public static partial void M1() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                    // (9,6): error CS0579: Duplicate 'ModuleInitializer' attribute
+                    //     [ModuleInitializer] // 1
+                    Diagnostic(ErrorCode.ERR_DuplicateAttribute, "ModuleInitializer").WithArguments("ModuleInitializer").WithLocation(9, 6)
+                );
+        }
+
         [Theory]
         [InlineData("public")]
         [InlineData("internal")]
