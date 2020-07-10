@@ -36,6 +36,11 @@ namespace Roslyn.Utilities
         }
 
         public TestSyntaxTreeOptionsProvider(
+            params (SyntaxTree, (string, ReportDiagnostic)[])[] options)
+            : this(CaseInsensitiveComparison.Comparer, globalOption: default, options)
+        { }
+
+        public TestSyntaxTreeOptionsProvider(
             (string, ReportDiagnostic) globalOption,
             params (SyntaxTree, (string, ReportDiagnostic)[])[] options)
             : this(CaseInsensitiveComparison.Comparer, globalOption: globalOption, options)
