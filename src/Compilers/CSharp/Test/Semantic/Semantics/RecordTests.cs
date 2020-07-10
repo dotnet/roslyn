@@ -683,8 +683,6 @@ record C(int X)
         var c = new C(0);
         c = c with { };
     }
-
-    public C Clone() => null;
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
@@ -784,8 +782,8 @@ record C : B
 record B
 {
     public int X { get; }
-    public virtual B Clone() => null;
 }
+
 record C : B
 {
     public new int X { get; init; }
@@ -843,6 +841,9 @@ record C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (4,19): error CS8859: Members named 'Clone' are disallowed in records.
+                //     public string Clone() => null;
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(4, 19)
             );
         }
 
@@ -850,9 +851,9 @@ record C(int X)
         public void WithExpr11()
         {
             var src = @"
+
 record C(int X)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0);
@@ -874,7 +875,6 @@ record C(int X)
 using System;
 record C(int X)
 {
-    public C Clone() => new C(this.X);
     public static void Main()
     {
         var c = new C(0);
@@ -909,9 +909,9 @@ record C(int X)
         {
             var src = @"
 using System;
+
 record C(int X, int Y)
 {
-    public C Clone() => new C(X, Y);
     public override string ToString() => X + "" "" + Y;
     public static void Main()
     {
@@ -946,9 +946,9 @@ record C(int X, int Y)
         {
             var src = @"
 using System;
+
 record C(int X, int Y)
 {
-    public C Clone() => new C(this.X, this.Y);
     public override string ToString() => X + "" "" + Y;
     public static void Main()
     {
@@ -991,9 +991,9 @@ record C(int X, int Y)
         public void WithExpr15()
         {
             var src = @"
+
 record C(int X, int Y)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0, 0);
@@ -1012,9 +1012,9 @@ record C(int X, int Y)
         public void WithExpr16()
         {
             var src = @"
+
 record C(int X, int Y)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0, 0);
@@ -1201,6 +1201,247 @@ record C(int X)
             );
         }
 
+        [Fact, WorkItem(45591, "https://github.com/dotnet/roslyn/issues/45591")]
+        public void Clone_DisallowedInSource()
+        {
+            var src = @"
+record C1(string Clone); // 1
+record C2
+{
+    string Clone; // 2
+}
+record C3
+{
+    string Clone { get; set; } // 3
+}
+record C4
+{
+    data string Clone; // 4 not yet supported
+}
+record C5
+{
+    void Clone() { } // 5
+    void Clone(int i) { } // 6
+}
+record C6
+{
+    class Clone { } // 7
+}
+record C7
+{
+    delegate void Clone(); // 8
+}
+record C8
+{
+    event System.Action Clone;  // 9
+}
+record Clone
+{
+    Clone(int i) => throw null;
+}
+record C9 : System.ICloneable
+{
+    object System.ICloneable.Clone() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,18): error CS8859: Members named 'Clone' are disallowed in records.
+                // record C1(string Clone); // 1
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(2, 18),
+                // (5,12): error CS8859: Members named 'Clone' are disallowed in records.
+                //     string Clone; // 2
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(5, 12),
+                // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
+                //     string Clone { get; set; } // 3
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
+                // (13,10): error CS1519: Invalid token 'string' in class, struct, or interface member declaration
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "string").WithArguments("string").WithLocation(13, 10),
+                // (13,17): error CS8859: Members named 'Clone' are disallowed in records.
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(13, 17),
+                // (17,10): error CS8859: Members named 'Clone' are disallowed in records.
+                //     void Clone() { } // 5
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(17, 10),
+                // (18,10): error CS8859: Members named 'Clone' are disallowed in records.
+                //     void Clone(int i) { } // 6
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(18, 10),
+                // (22,11): error CS8859: Members named 'Clone' are disallowed in records.
+                //     class Clone { } // 7
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(22, 11),
+                // (26,19): error CS8859: Members named 'Clone' are disallowed in records.
+                //     delegate void Clone(); // 8
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(26, 19),
+                // (30,25): error CS8859: Members named 'Clone' are disallowed in records.
+                //     event System.Action Clone;  // 9
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(30, 25)
+                );
+        }
+
+        [Fact]
+        public void Clone_LoadedFromMetadata()
+        {
+            // IL for ' public record Base(int i);' with a 'void Clone()' method added
+            var il = @"
+.class public auto ansi beforefieldinit Base
+    extends [mscorlib]System.Object
+    implements class [mscorlib]System.IEquatable`1<class Base>
+{
+    .field private initonly int32 '<i>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+
+    .method public hidebysig specialname newslot virtual instance class Base '<>Clone' () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: newobj instance void Base::.ctor(class Base)
+        IL_0006: ret
+    }
+
+    .method family hidebysig specialname newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldtoken Base
+        IL_0005: call class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
+        IL_000a: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor ( int32 i ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Base::'<i>k__BackingField'
+        IL_0007: ldarg.0
+        IL_0008: call instance void [mscorlib]System.Object::.ctor()
+        IL_000d: ret
+    }
+
+    .method public hidebysig specialname instance int32 get_i () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldfld int32 Base::'<i>k__BackingField'
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_i ( int32 'value' ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: stfld int32 Base::'<i>k__BackingField'
+        IL_0007: ret
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<class [mscorlib]System.Type>::get_Default()
+        IL_0005: ldarg.0
+        IL_0006: callvirt instance class [mscorlib]System.Type Base::get_EqualityContract()
+        IL_000b: callvirt instance int32 class [mscorlib]System.Collections.Generic.EqualityComparer`1<class [mscorlib]System.Type>::GetHashCode(!0)
+        IL_0010: ldc.i4 -1521134295
+        IL_0015: mul
+        IL_0016: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::get_Default()
+        IL_001b: ldarg.0
+        IL_001c: ldfld int32 Base::'<i>k__BackingField'
+        IL_0021: callvirt instance int32 class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::GetHashCode(!0)
+        IL_0026: add
+        IL_0027: ret
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object obj ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: ldarg.1
+        IL_0002: isinst Base
+        IL_0007: callvirt instance bool Base::Equals(class Base)
+        IL_000c: ret
+    }
+
+    .method public newslot virtual instance bool Equals ( class Base '' ) cil managed
+    {
+        IL_0000: ldarg.1
+        IL_0001: brfalse.s IL_002d
+
+        IL_0003: ldarg.0
+        IL_0004: callvirt instance class [mscorlib]System.Type Base::get_EqualityContract()
+        IL_0009: ldarg.1
+        IL_000a: callvirt instance class [mscorlib]System.Type Base::get_EqualityContract()
+        IL_000f: call bool [mscorlib]System.Type::op_Equality(class [mscorlib]System.Type, class [mscorlib]System.Type)
+        IL_0014: brfalse.s IL_002d
+
+        IL_0016: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::get_Default()
+        IL_001b: ldarg.0
+        IL_001c: ldfld int32 Base::'<i>k__BackingField'
+        IL_0021: ldarg.1
+        IL_0022: ldfld int32 Base::'<i>k__BackingField'
+        IL_0027: callvirt instance bool class [mscorlib]System.Collections.Generic.EqualityComparer`1<int32>::Equals(!0, !0)
+        IL_002c: ret
+
+        IL_002d: ldc.i4.0
+        IL_002e: ret
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class Base '' ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ldarg.0
+        IL_0007: ldarg.1
+        IL_0008: ldfld int32 Base::'<i>k__BackingField'
+        IL_000d: stfld int32 Base::'<i>k__BackingField'
+        IL_0012: ret
+    }
+
+    .method public hidebysig instance void Deconstruct ( [out] int32& i ) cil managed
+    {
+        IL_0000: ldarg.1
+        IL_0001: ldarg.0
+        IL_0002: call instance int32 Base::get_i()
+        IL_0007: stind.i4
+        IL_0008: ret
+    }
+
+    .method public hidebysig instance void Clone () cil managed
+    {
+        IL_0000: ldstr ""RAN""
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type Base::get_EqualityContract()
+    }
+
+    .property instance int32 i()
+    {
+        .get instance int32 Base::get_i()
+        .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) Base::set_i(int32)
+    }
+}
+
+.class public auto ansi abstract sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends [mscorlib]System.Object
+{
+}
+";
+            var src = @"
+record R(int i) : Base(i);
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R(1);
+        r.Clone();
+    }
+}
+";
+
+            var comp = CreateCompilationWithIL(src, il, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
+            // Note: we do load the Clone method from metadata
+        }
+
         [Fact]
         public void AccessibilityOfBaseCtor_01()
         {
@@ -1358,9 +1599,9 @@ class C
         public void WithExprNoExpressionToPropertyTypeConversion()
         {
             var src = @"
+
 record C(int X)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0);
@@ -1405,9 +1646,9 @@ class D
         {
             var src = @"
 using System;
+
 record C(int X, int Y, int Z)
 {
-    public C Clone() => new C(X, Y, Z);
     public static void Main()
     {
         var c = new C(0, 1, 2);
@@ -1489,7 +1730,7 @@ IWithOperation (OperationKind.With, Type: C) (Syntax: 'c with { Y  ...  = W(""X"
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
 
-            var main = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Skip(1).First();
+            var main = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
             Assert.Equal("Main", main.Identifier.ToString());
             VerifyFlowGraph(comp, main, expectedFlowGraph: @"
 Block[B0] - Entry
@@ -1591,7 +1832,6 @@ Block[B3] - Exit
 using System;
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1637,7 +1877,6 @@ struct S
 }
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1690,7 +1929,6 @@ struct S
 }
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1717,9 +1955,9 @@ struct S
     }
     public static explicit operator long(S s) => s._i;
 }
+
 record C(long X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
@@ -1742,14 +1980,13 @@ record C(long X)
 using System;
 record C(object X)
 {
-    public C Clone() => new C(X);
     public static void Main()
     {
         var c = new C(0);
         Console.WriteLine((c with { X = ""abc"" }).X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: "abc");
+            CompileAndVerify(src, expectedOutput: "abc");
         }
 
         [Fact]
@@ -2162,9 +2399,9 @@ Block[B3] - Exit
         public void WithBadExprArg()
         {
             var src = @"
+
 record C(int X, int Y)
 {
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C(0, 0);
@@ -2399,8 +2636,6 @@ record B(string X)
 #nullable enable
 record B(string? X)
 {
-    public B Clone() => new B(X);
-
     static void M1(B b, string s, bool flag)
     {
         if (flag) { b.X.ToString(); } // 1
@@ -2417,15 +2652,15 @@ record B(string? X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (9,21): warning CS8602: Dereference of a possibly null reference.
+                // (7,21): warning CS8602: Dereference of a possibly null reference.
                 //         if (flag) { b.X.ToString(); } // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(9, 21),
-                // (11,21): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(7, 21),
+                // (9,21): warning CS8602: Dereference of a possibly null reference.
                 //         if (flag) { b.X.ToString(); } // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 21),
-                // (16,21): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(9, 21),
+                // (14,21): warning CS8602: Dereference of a possibly null reference.
                 //         if (flag) { b.X.ToString(); } // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(16, 21));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(14, 21));
         }
 
         [Fact]
@@ -2464,8 +2699,6 @@ record B(int X)
 #nullable enable
 record B(string? X, string? Y)
 {
-    public B Clone() => new B(X, Y);
-
     static void M1(bool flag)
     {
         B b = new B(""hello"", null);
@@ -2485,15 +2718,15 @@ record B(string? X, string? Y)
             // https://github.com/dotnet/roslyn/issues/44763
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): warning CS8602: Dereference of a possibly null reference.
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //             b.X.ToString(); // shouldn't warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(12, 13),
-                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(10, 13),
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
                 //             b.Y.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(13, 13),
-                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(11, 13),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.X.ToString(); // shouldn't warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(17, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(15, 9));
         }
 
         [Fact]
@@ -2538,8 +2771,6 @@ using System.Diagnostics.CodeAnalysis;
 
 record B([AllowNull] string X)
 {
-    public B Clone() => new B(X);
-
     static void M1(B b)
     {
         b.X.ToString();
@@ -2554,12 +2785,12 @@ record B([AllowNull] string X)
             // https://github.com/dotnet/roslyn/issues/44691
             var comp = CreateCompilation(new[] { src, AllowNullAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (12,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // (10,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         b = b with { X = null }; // ok
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 26),
-                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 26),
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.X.ToString(); // ok
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(13, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 9));
         }
 
         [Fact]
@@ -2569,8 +2800,6 @@ record B([AllowNull] string X)
 #nullable enable
 record B(string? X, string? Y)
 {
-    public B Clone() => new B(X, Y);
-
     static void M1(B b1)
     {
         B b2 = b1 with { X = ""hello"" };
@@ -2589,18 +2818,18 @@ record B(string? X, string? Y)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         b1.X.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.X").WithLocation(13, 9),
-                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.X").WithLocation(11, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         b1.Y.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.Y").WithLocation(14, 9),
-                // (16,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.Y").WithLocation(12, 9),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         b2.Y.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2.Y").WithLocation(16, 9),
-                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2.Y").WithLocation(14, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         b3.X.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.X").WithLocation(17, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.X").WithLocation(15, 9));
         }
 
         [Fact]
@@ -2903,8 +3132,6 @@ record C(int Y)
     private readonly int[] _a = new[] { 0 };
     public ref int X => ref _a[0];
 
-    public C Clone() => new C(0);
-
     public static void Main()
     {
         var c = new C(0) { X = 5 };
@@ -2956,8 +3183,6 @@ record C(int Y)
         set { }
     }
 
-    public C Clone() => new C(0);
-
     public static void Main()
     {
         var a = new[] { 0 };
@@ -2972,15 +3197,15 @@ record C(int Y)
                 // (9,9): error CS8147: Properties which return by reference cannot have set accessors
                 //         set { }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.X.set").WithLocation(9, 9),
-                // (17,32): error CS1525: Invalid expression term 'ref'
+                // (15,32): error CS1525: Invalid expression term 'ref'
                 //         var c = new C(0) { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(17, 32),
-                // (17,32): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(15, 32),
+                // (15,32): error CS1073: Unexpected token 'ref'
                 //         var c = new C(0) { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 32),
-                // (19,26): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(15, 32),
+                // (17,26): error CS1073: Unexpected token 'ref'
                 //         c = c with { X = ref a[0] };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(19, 26)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 26)
             );
         }
 
