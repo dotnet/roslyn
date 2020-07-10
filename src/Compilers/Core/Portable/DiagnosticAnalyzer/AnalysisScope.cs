@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Non-source files on which we need to perform analysis.
         /// </summary>
-        public IEnumerable<AdditionalText> NonSourceFiles { get; }
+        public IEnumerable<AdditionalText> AdditionalFiles { get; }
 
         public bool ConcurrentAnalysis { get; }
 
@@ -75,14 +75,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        private AnalysisScope(IEnumerable<SyntaxTree> trees, IEnumerable<AdditionalText> nonSourceFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool isPartialAnalysis, SourceOrNonSourceFile? filterFile, TextSpan? filterSpanOpt, bool isSyntaxOnlyTreeAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
+        private AnalysisScope(IEnumerable<SyntaxTree> trees, IEnumerable<AdditionalText> additionalFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool isPartialAnalysis, SourceOrNonSourceFile? filterFile, TextSpan? filterSpanOpt, bool isSyntaxOnlyTreeAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
         {
             Debug.Assert(isPartialAnalysis || FilterFileOpt == null);
             Debug.Assert(isPartialAnalysis || FilterSpanOpt == null);
             Debug.Assert(isPartialAnalysis || !isSyntaxOnlyTreeAnalysis);
 
             SyntaxTrees = trees;
-            NonSourceFiles = nonSourceFiles;
+            AdditionalFiles = additionalFiles;
             Analyzers = analyzers;
             IsPartialAnalysis = isPartialAnalysis;
             FilterFileOpt = filterFile;
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers)
         {
             var isPartialAnalysis = IsTreeAnalysis || !hasAllAnalyzers;
-            return new AnalysisScope(SyntaxTrees, NonSourceFiles, analyzers, isPartialAnalysis, FilterFileOpt, FilterSpanOpt, IsSyntaxOnlyTreeAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
+            return new AnalysisScope(SyntaxTrees, AdditionalFiles, analyzers, isPartialAnalysis, FilterFileOpt, FilterSpanOpt, IsSyntaxOnlyTreeAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
         }
 
         public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var location in symbol.Locations)
             {
-                if (location.SourceTree != null && FilterFileOpt.SourceTree == location.SourceTree && ShouldInclude(location.SourceSpan))
+                if (FilterFileOpt.SourceTree == location.SourceTree && ShouldInclude(location.SourceSpan))
                 {
                     return true;
                 }
@@ -193,15 +193,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (diagnostic.Location.IsInSource)
             {
-                if (FilterFileOpt?.SourceTree == null ||
-                    diagnostic.Location.SourceTree != FilterFileOpt.SourceTree)
+                if (diagnostic.Location.SourceTree != FilterFileOpt.SourceTree)
                 {
                     return false;
                 }
             }
             else if (diagnostic.Location is ExternalFileLocation externalFileLocation)
             {
-                if (FilterFileOpt?.NonSourceFile == null ||
+                if (FilterFileOpt.NonSourceFile == null ||
                     !PathUtilities.Comparer.Equals(externalFileLocation.FilePath, FilterFileOpt.NonSourceFile.Path))
                 {
                     return false;

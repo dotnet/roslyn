@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public AnalysisContextInfo(SemanticModel model) :
-            this(model.Compilation, SourceOrNonSourceFile.Create(model.SyntaxTree))
+            this(model.Compilation, new SourceOrNonSourceFile(model.SyntaxTree))
         {
         }
 
@@ -41,17 +41,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public AnalysisContextInfo(Compilation compilation, SyntaxNode node) :
-            this(compilation: compilation, operation: null, symbol: null, file: SourceOrNonSourceFile.Create(node.SyntaxTree), node)
+            this(compilation: compilation, operation: null, symbol: null, file: new SourceOrNonSourceFile(node.SyntaxTree), node)
         {
         }
 
         public AnalysisContextInfo(Compilation compilation, IOperation operation) :
-            this(compilation: compilation, operation: operation, symbol: null, file: SourceOrNonSourceFile.Create(operation.Syntax.SyntaxTree), node: operation.Syntax)
+            this(compilation: compilation, operation: operation, symbol: null, file: new SourceOrNonSourceFile(operation.Syntax.SyntaxTree), node: operation.Syntax)
         {
         }
 
         public AnalysisContextInfo(Compilation compilation, ISymbol symbol, SyntaxNode node) :
-            this(compilation: compilation, operation: null, symbol: symbol, file: SourceOrNonSourceFile.Create(node.SyntaxTree), node)
+            this(compilation: compilation, operation: null, symbol: symbol, file: new SourceOrNonSourceFile(node.SyntaxTree), node)
         {
         }
 

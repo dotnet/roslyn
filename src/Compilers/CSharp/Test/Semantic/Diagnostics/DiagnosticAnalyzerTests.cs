@@ -3593,7 +3593,7 @@ class C
         public async Task TestAdditionalFileAnalyzer(bool registerFromInitialize)
         {
             var tree = CSharpSyntaxTree.ParseText(string.Empty);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            var compilation = CreateCompilation(new[] { tree });
             compilation.VerifyDiagnostics();
 
             AdditionalText additionalFile = new TestAdditionalText("Additional File Text");

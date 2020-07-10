@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 c.RegisterSemanticModelAction(b => ThrowIfMatch(nameof(c.RegisterSemanticModelAction), new AnalysisContextInfo(b.SemanticModel)));
                 c.RegisterSymbolAction(b => ThrowIfMatch(nameof(c.RegisterSymbolAction), new AnalysisContextInfo(b.Compilation, b.Symbol)), SymbolKind.NamedType);
                 c.RegisterSyntaxNodeAction(b => ThrowIfMatch(nameof(c.RegisterSyntaxNodeAction), new AnalysisContextInfo(b.SemanticModel.Compilation, b.Node)), SyntaxKind.ReturnStatement);
-                c.RegisterSyntaxTreeAction(b => ThrowIfMatch(nameof(c.RegisterSyntaxTreeAction), new AnalysisContextInfo(b.Compilation, b.Tree)));
-                c.RegisterAdditionalFileAction(b => ThrowIfMatch(nameof(c.RegisterAdditionalFileAction), new AnalysisContextInfo(b.Compilation, b.AdditionalFile)));
+                c.RegisterSyntaxTreeAction(b => ThrowIfMatch(nameof(c.RegisterSyntaxTreeAction), new AnalysisContextInfo(b.Compilation, new SourceOrNonSourceFile(b.Tree))));
+                c.RegisterAdditionalFileAction(b => ThrowIfMatch(nameof(c.RegisterAdditionalFileAction), new AnalysisContextInfo(b.Compilation, new SourceOrNonSourceFile(b.AdditionalFile))));
             }
 
             private void ThrowIfMatch(string context, AnalysisContextInfo info)

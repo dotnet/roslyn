@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyTree(tree);
 
-            return GetAnalysisResultCoreAsync(SourceOrNonSourceFile.Create(tree), Analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(new SourceOrNonSourceFile(tree), Analyzers, cancellationToken);
         }
 
         /// <summary>
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyTree(tree);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return GetAnalysisResultCoreAsync(SourceOrNonSourceFile.Create(tree), analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(new SourceOrNonSourceFile(tree), analyzers, cancellationToken);
         }
 
         /// <summary>
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyAdditionalFile(file);
 
-            return await GetAnalysisResultCoreAsync(SourceOrNonSourceFile.Create(file), Analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalysisResultCoreAsync(new SourceOrNonSourceFile(file), Analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyAdditionalFile(file);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return await GetAnalysisResultCoreAsync(SourceOrNonSourceFile.Create(file), analyzers, cancellationToken).ConfigureAwait(false);
+            return await GetAnalysisResultCoreAsync(new SourceOrNonSourceFile(file), analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SourceOrNonSourceFile file, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsCoreAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, SourceOrNonSourceFile.Create(tree), filterSpan: null, syntaxAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = new AnalysisScope(analyzers, new SourceOrNonSourceFile(tree), filterSpan: null, syntaxAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSyntaxDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
         }
@@ -651,14 +651,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, SourceOrNonSourceFile.Create(model.SyntaxTree), filterSpan, syntaxAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = new AnalysisScope(analyzers, new SourceOrNonSourceFile(model.SyntaxTree), filterSpan, syntaxAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSemanticDiagnosticsAsync(model, analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, SourceOrNonSourceFile.Create(model.SyntaxTree), filterSpan, syntaxAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = new AnalysisScope(analyzers, new SourceOrNonSourceFile(model.SyntaxTree), filterSpan, syntaxAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSemanticDiagnosticsAsync(model, analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
         }
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             Task.Run(() =>
                             {
                                 var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
-                                analysisScope = new AnalysisScope(analysisScope.Analyzers, SourceOrNonSourceFile.Create(tree), filterSpan: null, syntaxAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
+                                analysisScope = new AnalysisScope(analysisScope.Analyzers, new SourceOrNonSourceFile(tree), filterSpan: null, syntaxAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
                                 return ComputeAnalyzerSemanticDiagnosticsAsync(treeModel, analysisScope, cancellationToken, forceCompletePartialTrees: false);
                             }, cancellationToken))).ConfigureAwait(false);
                     }
@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
-                            analysisScope = new AnalysisScope(analysisScope.Analyzers, SourceOrNonSourceFile.Create(tree), filterSpan: null, syntaxAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
+                            analysisScope = new AnalysisScope(analysisScope.Analyzers, new SourceOrNonSourceFile(tree), filterSpan: null, syntaxAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
                             await ComputeAnalyzerSemanticDiagnosticsAsync(treeModel, analysisScope, cancellationToken, forceCompletePartialTrees: false).ConfigureAwait(false);
                         }
                     }

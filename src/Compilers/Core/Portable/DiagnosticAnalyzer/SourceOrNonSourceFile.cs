@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,59 +15,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// For source files, <see cref="SourceTree"/> is non-null and <see cref="NonSourceFile"/> is null.
     /// For non-source files, <see cref="NonSourceFile"/> is non-null and <see cref="SourceTree"/> is null.
     /// </summary>
-    internal abstract class SourceOrNonSourceFile
+    internal sealed class SourceOrNonSourceFile
         : IEquatable<SourceOrNonSourceFile>
     {
-        public abstract SyntaxTree? SourceTree { get; }
-        public abstract AdditionalText? NonSourceFile { get; }
-        public abstract bool Equals([AllowNull] SourceOrNonSourceFile? other);
-        public abstract override bool Equals(object? obj);
-        public abstract override int GetHashCode();
+        public SyntaxTree? SourceTree { get; }
+        public AdditionalText? NonSourceFile { get; }
 
-        public static SourceOrNonSourceFile Create(SyntaxTree tree)
-        {
-            return new SourceFileImpl(tree);
-        }
+        public SourceOrNonSourceFile(SyntaxTree tree)
+            => SourceTree = tree;
 
-        public static SourceOrNonSourceFile Create(AdditionalText nonSourceFile)
-        {
-            return new NonSourceFileImpl(nonSourceFile);
-        }
+        public SourceOrNonSourceFile(AdditionalText file)
+            => NonSourceFile = file;
 
-        private sealed class SourceFileImpl : SourceOrNonSourceFile
+        public bool Equals([AllowNull] SourceOrNonSourceFile? other)
+            => other != null && SourceTree == other.SourceTree && NonSourceFile == other.NonSourceFile;
+
+        public override bool Equals(object? obj)
+            => Equals(obj as SourceOrNonSourceFile);
+
+        public static bool operator ==([AllowNull] SourceOrNonSourceFile? left, [AllowNull] SourceOrNonSourceFile? right)
+            => Equals(left, right);
+
+        public static bool operator !=([AllowNull] SourceOrNonSourceFile? left, [AllowNull] SourceOrNonSourceFile? right)
+            => !Equals(left, right);
+
+        public override int GetHashCode()
         {
-            public SourceFileImpl(SyntaxTree tree)
+            if (SourceTree != null)
             {
-                SourceTree = tree;
+                return Hash.Combine(true, SourceTree.GetHashCode());
             }
-
-            public override SyntaxTree? SourceTree { get; }
-            public override AdditionalText? NonSourceFile => null;
-            public override bool Equals(object? obj)
-                => Equals(obj as SourceFileImpl);
-            public override bool Equals([AllowNull] SourceOrNonSourceFile? other)
-                => other is SourceFileImpl otherSource &&
-                   SourceTree == otherSource.SourceTree;
-            public override int GetHashCode()
-                => SourceTree!.GetHashCode();
-        }
-
-        private sealed class NonSourceFileImpl : SourceOrNonSourceFile
-        {
-            public NonSourceFileImpl(AdditionalText nonSourceFile)
+            else
             {
-                NonSourceFile = nonSourceFile;
+                RoslynDebug.Assert(NonSourceFile != null);
+                return Hash.Combine(false, NonSourceFile.GetHashCode());
             }
-
-            public override AdditionalText? NonSourceFile { get; }
-            public override SyntaxTree? SourceTree => null;
-            public override bool Equals(object? obj)
-                => Equals(obj as NonSourceFileImpl);
-            public override bool Equals([AllowNull] SourceOrNonSourceFile? other)
-                => other is NonSourceFileImpl otherNonSource &&
-                   NonSourceFile == otherNonSource.NonSourceFile;
-            public override int GetHashCode()
-                => NonSourceFile!.GetHashCode();
         }
     }
 }

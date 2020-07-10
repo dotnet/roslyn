@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSyntaxDiagnostics,
             ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSemanticDiagnostics,
-            ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localNonSourceFileDiagnostics,
+            ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localAdditionalFileDiagnostics,
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> nonLocalDiagnostics,
             ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analyzerTelemetryInfo)
         {
             Analyzers = analyzers;
             SyntaxDiagnostics = localSyntaxDiagnostics;
             SemanticDiagnostics = localSemanticDiagnostics;
-            AdditionalFileDiagnostics = localNonSourceFileDiagnostics;
+            AdditionalFileDiagnostics = localAdditionalFileDiagnostics;
             CompilationDiagnostics = nonLocalDiagnostics;
             AnalyzerTelemetryInfo = analyzerTelemetryInfo;
         }

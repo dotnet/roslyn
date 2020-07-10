@@ -774,8 +774,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ExecuteAndCatchIfThrows(
                         syntaxTreeAction.Analyzer,
                         data => data.action(data.context),
-                        (action: syntaxTreeAction.Action, context: context),
-                        new AnalysisContextInfo(_compilation, tree));
+                        (action: syntaxTreeAction.Action, context),
+                        new AnalysisContextInfo(_compilation, file));
 
                     analyzerStateOpt?.ProcessedActions.Add(syntaxTreeAction);
                 }
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         additionalFileAction.Analyzer,
                         data => data.action(data.context),
                         (action: additionalFileAction.Action, context),
-                        new AnalysisContextInfo(_compilation, additionalFile));
+                        new AnalysisContextInfo(_compilation, file));
 
                     analyzerStateOpt?.ProcessedActions.Add(additionalFileAction);
                 }
@@ -1796,14 +1796,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalyzerDiagnosticReporter GetAddSemanticDiagnostic(SyntaxTree tree, DiagnosticAnalyzer analyzer)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(SourceOrNonSourceFile.Create(tree), null, _compilation, analyzer, isSyntaxDiagnostic: false,
+            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrNonSourceFile(tree), null, _compilation, analyzer, isSyntaxDiagnostic: false,
                 _addNonCategorizedDiagnosticOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }
 
         private AnalyzerDiagnosticReporter GetAddSemanticDiagnostic(SyntaxTree tree, TextSpan? span, DiagnosticAnalyzer analyzer)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(SourceOrNonSourceFile.Create(tree), span, _compilation, analyzer, isSyntaxDiagnostic: false,
+            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrNonSourceFile(tree), span, _compilation, analyzer, isSyntaxDiagnostic: false,
                 _addNonCategorizedDiagnosticOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }

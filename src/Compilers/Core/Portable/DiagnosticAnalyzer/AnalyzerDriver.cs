@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var tree in analysisScope.SyntaxTrees)
             {
                 var isGeneratedCode = IsGeneratedCode(tree);
-                var file = SourceOrNonSourceFile.Create(tree);
+                var file = new SourceOrNonSourceFile(tree);
                 if (isGeneratedCode && DoNotAnalyzeGeneratedCode)
                 {
                     analysisStateOpt?.MarkSyntaxAnalysisComplete(file, analysisScope.Analyzers);
@@ -605,9 +605,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteAdditionalFileActions(AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
-            foreach (var additionalFile in analysisScope.NonSourceFiles)
+            foreach (var additionalFile in analysisScope.AdditionalFiles)
             {
-                var file = SourceOrNonSourceFile.Create(additionalFile);
+                var file = new SourceOrNonSourceFile(additionalFile);
 
                 var processedAnalyzers = analysisStateOpt != null ? PooledHashSet<DiagnosticAnalyzer>.GetInstance() : null;
                 try
