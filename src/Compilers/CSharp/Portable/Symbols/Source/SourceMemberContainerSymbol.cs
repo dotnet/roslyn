@@ -1371,6 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckMemberNamesDistinctFromType(diagnostics);
             CheckMemberNameConflicts(diagnostics);
+            CheckRecordMemberNames(diagnostics);
             CheckSpecialMemberErrors(diagnostics);
             CheckTypeParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
@@ -1448,6 +1449,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in GetMembersAndInitializers().NonTypeNonIndexerMembers)
             {
                 CheckMemberNameDistinctFromType(member, diagnostics);
+            }
+        }
+
+        private void CheckRecordMemberNames(DiagnosticBag diagnostics)
+        {
+            if (declaration.Kind != DeclarationKind.Record)
+            {
+                return;
+            }
+
+            foreach (var member in GetMembers("Clone"))
+            {
+                diagnostics.Add(ErrorCode.ERR_CloneDisallowedInRecord, member.Locations[0]);
             }
         }
 
@@ -2974,6 +2988,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            CSharpCompilation compilation = this.DeclaringCompilation;
+
             // Positional record
             if (!(paramList is null))
             {
@@ -2996,20 +3012,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addCloneMethod();
 
             PropertySymbol equalityContract = addEqualityContract();
-            var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            getOtherEquals(otherEqualsMethods, equalityContract);
 
-            var thisEquals = addThisEquals(equalityContract, otherEqualsMethod: otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
-            addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
+            var thisEquals = addThisEquals(equalityContract);
+            addOtherEquals();
             addObjectEquals(thisEquals);
             addHashCode(equalityContract);
 
-            otherEqualsMethods.Free();
             memberSignatures.Free();
 
-
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
-            // go to the record declaration
+            // going to the record declaration
             members.AddRange(builder.NonTypeNonIndexerMembers);
             builder.NonTypeNonIndexerMembers.Free();
             builder.NonTypeNonIndexerMembers = members;
@@ -3065,10 +3077,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
-                    var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
-                    _ = memberSignatures.TryGetValue(property, out var existingMember);
-                    existingMember ??= getInheritedMember(property, this);
+                    bool isInherited = false;
+                    var syntax = param.GetNonNullSyntaxNode();
+                    var property = new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics);
+                    if (!memberSignatures.TryGetValue(property, out var existingMember))
+                    {
+                        Debug.Assert(property.OverriddenOrHiddenMembers.OverriddenMembers.Length == 0); // property is not virtual and should not have overrides
+                        existingMember = property.OverriddenOrHiddenMembers.HiddenMembers.FirstOrDefault();
+                        isInherited = true;
+                    }
                     if (existingMember is null)
+                    {
+                        addProperty(property);
+                    }
+                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
+                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        // There already exists a member corresponding to the candidate synthesized property.
+                        if (isInherited && prop.IsAbstract)
+                        {
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
+                        }
+                        else
+                        {
+                            // Deconstruct() is specified to simply assign from this property to the corresponding out parameter.
+                            existingOrAddedMembers.Add(prop);
+                        }
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
+                            param.Locations[0],
+                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
+                            param.TypeWithAnnotations,
+                            param.Name);
+                    }
+
+                    void addProperty(SynthesizedRecordPropertySymbol property)
                     {
                         existingOrAddedMembers.Add(property);
                         members.Add(property);
@@ -3078,21 +3123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
-                    }
-                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
-                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        // There already exists a member corresponding to the candidate synthesized property.
-                        // The deconstructor is specified to simply assign from this property to the corresponding out parameter.
-                        existingOrAddedMembers.Add(prop);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
-                            param.Locations[0],
-                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
-                            param.TypeWithAnnotations,
-                            param.Name);
                     }
                 }
 
@@ -3107,32 +3137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return existingOrAddedMembers.ToImmutableAndFree();
             }
 
-            static Symbol? getInheritedMember(Symbol symbol, NamedTypeSymbol type)
-            {
-                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
-                {
-                    OverriddenOrHiddenMembersHelpers.FindOverriddenOrHiddenMembersInType(
-                        symbol,
-                        memberIsFromSomeCompilation: true,
-                        memberContainingType: symbol.ContainingType,
-                        currType: type,
-                        out var bestMatch,
-                        out bool hasSameKindNonMatch,
-                        out var hiddenBuilder);
-                    if (hiddenBuilder is object)
-                    {
-                        var result = hiddenBuilder[0];
-                        hiddenBuilder.Free();
-                        return result;
-                    }
-                    if (bestMatch is object)
-                    {
-                        return bestMatch;
-                    }
-                }
-                return null;
-            }
-
             void addObjectEquals(MethodSymbol thisEquals)
             {
                 var objEquals = new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count, diagnostics);
@@ -3141,90 +3145,142 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addHashCode(PropertySymbol equalityContract)
             {
-                var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count);
-                if (!memberSignatures.ContainsKey(hashCode))
+                var targetMethod = new SignatureOnlyMethodSymbol(
+                    WellKnownMemberNames.ObjectGetHashCode,
+                    this,
+                    MethodKind.Ordinary,
+                    Cci.CallingConvention.HasThis,
+                    ImmutableArray<TypeParameterSymbol>.Empty,
+                    ImmutableArray<ParameterSymbol>.Empty,
+                    RefKind.None,
+                    isInitOnly: false,
+                    TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Int32)),
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray<MethodSymbol>.Empty);
+
+                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
-                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
+                    var hashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count, diagnostics);
                     members.Add(hashCode);
                 }
-            }
-
-            static PropertySymbol? getInheritedEqualityContract(NamedTypeSymbol type)
-            {
-                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
+                else
                 {
-                    var members = type.GetMembers(SynthesizedRecordEqualityContractProperty.PropertyName);
-                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
-                    if (members.FirstOrDefault(m => m is PropertySymbol property && property.ParameterCount == 0) is PropertySymbol property)
+                    var method = (MethodSymbol)existingHashCodeMethod;
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(method, SpecialType.System_Int32, diagnostics) && method.IsSealed && !IsSealed)
                     {
-                        return property;
+                        diagnostics.Add(ErrorCode.ERR_SealedGetHashCodeInRecord, method.Locations[0], method);
                     }
                 }
-                return null;
             }
 
             PropertySymbol addEqualityContract()
             {
-                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: getInheritedEqualityContract(this) is object);
-                // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
-                if (!memberSignatures.ContainsKey(property))
-                {
-                    members.Add(property);
-                    members.Add(property.GetMethod);
-                }
-                return property;
-            }
+                var targetProperty = new SignatureOnlyPropertySymbol(SynthesizedRecordEqualityContractProperty.PropertyName,
+                                                                     this,
+                                                                     ImmutableArray<ParameterSymbol>.Empty,
+                                                                     RefKind.None,
+                                                                     TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Type)),
+                                                                     ImmutableArray<CustomModifier>.Empty,
+                                                                     isStatic: false,
+                                                                     ImmutableArray<PropertySymbol>.Empty);
 
-            MethodSymbol addThisEquals(PropertySymbol equalityContract, MethodSymbol? otherEqualsMethod)
-            {
-                var thisEquals = new SynthesizedRecordEquals(this, parameterType: this, isOverride: false, equalityContract, otherEqualsMethod, memberOffset: members.Count);
-                if (!memberSignatures.TryGetValue(thisEquals, out var existing))
-                {
-                    members.Add(thisEquals);
-                    return thisEquals;
-                }
-                return (MethodSymbol)existing;
-            }
+                PropertySymbol equalityContract;
 
-            static void getOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract)
-            {
-                while ((equalityContract = equalityContract.OverriddenProperty) is object)
+                if (!memberSignatures.TryGetValue(targetProperty, out Symbol? existingEqualityContractProperty))
                 {
-                    var member = equalityContract.ContainingType.GetMembers("Equals").FirstOrDefault(m =>
+                    equalityContract = new SynthesizedRecordEqualityContractProperty(this, diagnostics);
+                    members.Add(equalityContract);
+                    members.Add(equalityContract.GetMethod);
+                }
+                else
+                {
+                    equalityContract = (PropertySymbol)existingEqualityContractProperty;
+
+                    if (equalityContract.DeclaredAccessibility != Accessibility.Protected)
                     {
-                        if (m is MethodSymbol method)
+                        diagnostics.Add(ErrorCode.ERR_NonProtectedAPIInRecord, equalityContract.Locations[0], equalityContract);
+                    }
+
+                    if (!equalityContract.Type.Equals(targetProperty.Type, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        if (!equalityContract.Type.IsErrorType())
                         {
-                            var parameters = method.Parameters;
-                            if (parameters.Length == 1 && parameters[0].Type.Equals(m.ContainingType, TypeCompareKind.AllIgnoreOptions))
-                            {
-                                return true;
-                            }
+                            diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, equalityContract.Locations[0], equalityContract, targetProperty.Type);
                         }
-                        return false;
-                    });
-                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
-                    if (member is MethodSymbol method)
-                    {
-                        otherEqualsMethods.Add(method);
                     }
+                    else
+                    {
+                        SynthesizedRecordEqualityContractProperty.VerifyOverridesEqualityContractFromBase(equalityContract, diagnostics);
+                    }
+
+                    reportNotOverridableAPIInRecord(equalityContract, diagnostics);
+                }
+
+                return equalityContract;
+            }
+
+            MethodSymbol addThisEquals(PropertySymbol equalityContract)
+            {
+                var targetMethod = new SignatureOnlyMethodSymbol(
+                    WellKnownMemberNames.ObjectEquals,
+                    this,
+                    MethodKind.Ordinary,
+                    Cci.CallingConvention.HasThis,
+                    ImmutableArray<TypeParameterSymbol>.Empty,
+                    ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
+                                                                TypeWithAnnotations.Create(this),
+                                                                ImmutableArray<CustomModifier>.Empty,
+                                                                isParams: false,
+                                                                RefKind.None
+                                                                )),
+                    RefKind.None,
+                    isInitOnly: false,
+                    TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Boolean)),
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray<MethodSymbol>.Empty);
+
+                MethodSymbol thisEquals;
+
+                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingEqualsMethod))
+                {
+                    thisEquals = new SynthesizedRecordEquals(this, equalityContract, memberOffset: members.Count, diagnostics);
+                    members.Add(thisEquals);
+                }
+                else
+                {
+                    thisEquals = (MethodSymbol)existingEqualsMethod;
+
+                    if (thisEquals.DeclaredAccessibility != Accessibility.Public)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NonPublicAPIInRecord, thisEquals.Locations[0], thisEquals);
+                    }
+
+                    if (thisEquals.ReturnType.SpecialType != SpecialType.System_Boolean && !thisEquals.ReturnType.IsErrorType())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, thisEquals.Locations[0], thisEquals, targetMethod.ReturnType);
+                    }
+
+                    reportNotOverridableAPIInRecord(thisEquals, diagnostics);
+                }
+
+                return thisEquals;
+            }
+
+            void reportNotOverridableAPIInRecord(Symbol symbol, DiagnosticBag diagnostics)
+            {
+                if (!IsSealed &&
+                    ((!symbol.IsAbstract && !symbol.IsVirtual && !symbol.IsOverride) || symbol.IsSealed))
+                {
+                    diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, symbol.Locations[0], symbol);
                 }
             }
 
-            void addOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract, MethodSymbol thisEquals)
+            void addOtherEquals()
             {
-                foreach (var otherEqualsMethod in otherEqualsMethods)
+                if (!BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
-                    var method = new SynthesizedRecordEquals(
-                        this,
-                        parameterType: otherEqualsMethod.Parameters[0].Type,
-                        isOverride: true,
-                        equalityContract,
-                        otherEqualsMethod: thisEquals,
-                        memberOffset: members.Count);
-                    if (!memberSignatures.ContainsKey(method))
-                    {
-                        members.Add(method);
-                    }
+                    var method = new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics);
+                    members.Add(method);
                 }
             }
         }

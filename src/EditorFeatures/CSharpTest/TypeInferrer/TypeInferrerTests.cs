@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             if (mode == TestMode.Position)
             {
                 int position = node?.SpanStart ?? textSpan.Start;
-                inferredType = typeInference.InferType(await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), CancellationToken.None), position, objectAsDefault: true, cancellationToken: CancellationToken.None);
+                inferredType = typeInference.InferType(await document.ReuseExistingSpeculativeModelAsync(position, CancellationToken.None), position, objectAsDefault: true, cancellationToken: CancellationToken.None);
             }
             else
             {
-                inferredType = typeInference.InferType(await document.GetSemanticModelForSpanAsync(node?.Span ?? textSpan, CancellationToken.None), node, objectAsDefault: true, cancellationToken: CancellationToken.None);
+                inferredType = typeInference.InferType(await document.ReuseExistingSpeculativeModelAsync(node?.Span ?? textSpan, CancellationToken.None), node, objectAsDefault: true, cancellationToken: CancellationToken.None);
             }
 
             var typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace();

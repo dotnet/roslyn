@@ -4,12 +4,8 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -21,14 +17,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedRecordPropertySymbol(
             SourceMemberContainerTypeSymbol containingType,
+            CSharpSyntaxNode syntax,
             ParameterSymbol backingParameter,
+            bool isOverride,
             DiagnosticBag diagnostics)
-            : base(containingType,
+            : base(
+                containingType,
                 binder: null,
-                backingParameter.GetNonNullSyntaxNode(),
+                syntax: syntax,
+                getSyntax: syntax,
+                setSyntax: syntax,
+                arrowExpression: null,
+                interfaceSpecifier: null,
+                modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
+                isIndexer: false,
+                hasInitializer: true, // Synthesized record properties always have a synthesized initializer
+                isAutoProperty: true,
+                hasAccessorList: false,
+                isInitOnly: true,
                 RefKind.None,
                 backingParameter.Name,
                 backingParameter.Locations[0],
+                typeOpt: backingParameter.TypeWithAnnotations,
+                hasParameters: false,
                 diagnostics)
         {
             BackingParameter = backingParameter;
@@ -46,71 +57,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SyntaxTokenList GetModifierTokens(SyntaxNode syntax)
             => new SyntaxTokenList();
 
-        protected override ArrowExpressionClauseSyntax? GetArrowExpression(SyntaxNode syntax)
-            => null;
-
-        protected override bool HasInitializer(SyntaxNode syntax)
-            => true; // Synthesized record properties always have a synthesized initializer
-
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => new SyntaxList<AttributeListSyntax>();
-
-        protected override void GetAccessorDeclarations(
-            CSharpSyntaxNode syntax,
-            DiagnosticBag diagnostics,
-            out bool isAutoProperty,
-            out bool hasAccessorList,
-            out bool accessorsHaveImplementation,
-            out bool isInitOnly,
-            out CSharpSyntaxNode? getSyntax,
-            out CSharpSyntaxNode? setSyntax)
-        {
-            isAutoProperty = true;
-            hasAccessorList = false;
-            getSyntax = setSyntax = syntax;
-            isInitOnly = true;
-            accessorsHaveImplementation = false;
-        }
 
         protected override void CheckForBlockAndExpressionBody(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             // Nothing to do here
         }
 
-        protected override DeclarationModifiers MakeModifiers(
-            SyntaxTokenList modifiers,
-            bool isExplicitInterfaceImplementation,
-            bool isIndexer,
-            bool accessorsHaveImplementation,
-            Location location,
-            DiagnosticBag diagnostics,
-            out bool modifierErrors)
-        {
-            Debug.Assert(!isExplicitInterfaceImplementation);
-            Debug.Assert(!isIndexer);
-            modifierErrors = false;
-
-            return DeclarationModifiers.Public;
-        }
-
         protected override SourcePropertyAccessorSymbol CreateAccessorSymbol(
             bool isGet,
             CSharpSyntaxNode? syntax,
             PropertySymbol? explicitlyImplementedPropertyOpt,
-            string aliasQualifierOpt,
+            string? aliasQualifierOpt,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax is object);
             Debug.Assert(isAutoPropertyAccessor);
+
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 isGet,
                 usesInit: !isGet, // the setter is always init-only
                 ContainingType,
                 this,
                 _modifiers,
-                _sourceName,
                 ((ParameterSyntax)syntax).Identifier.GetLocation(),
                 syntax,
                 diagnostics);
@@ -119,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
             PropertySymbol? explicitlyImplementedPropertyOpt,
-            string aliasQualifierOpt,
+            string? aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
@@ -140,11 +112,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override bool HasPointerTypeSyntactically
             // Since we already bound the type, don't bother looking at syntax
             => TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
-
-        protected override ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
-            => null;
-
-        protected override BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
-            => null;
     }
 }

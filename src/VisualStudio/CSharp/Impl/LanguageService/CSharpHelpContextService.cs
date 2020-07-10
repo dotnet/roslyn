@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (IsValid(token, span))
             {
-                var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(span, cancellationToken).ConfigureAwait(false);
 
                 var result = TryGetText(token, semanticModel, document, syntaxFacts, cancellationToken);
                 if (string.IsNullOrEmpty(result))
