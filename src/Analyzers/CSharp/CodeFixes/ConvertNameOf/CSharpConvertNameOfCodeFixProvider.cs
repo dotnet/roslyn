@@ -61,26 +61,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             }
         }
 
-        /**
-         * Method converts typeof(...).Name to nameof(...)
-         * The isUsingSystem parameter determines whether includes the System directive.
-         */
+        /// <Summary>
+        ///  Method converts typeof(...).Name to nameof(...)
+        ///  The isUsingSystem parameter determines whether includes the System directive.
+        /// </Summary>
         internal static void ConvertNameOf(
             SyntaxEditor editor, MemberAccessExpressionSyntax node, SemanticModel? semanticModel)
         {
 
-            var exp = (TypeOfExpressionSyntax)node.Expression;
-            var symbolType = semanticModel.GetSymbolInfo(exp.Type).Symbol.GetSymbolType();
-
-            //check if node type is predefined type and convert
-            //example: int -> Int32, string -> String, etc
-            var typeExpression = exp.Type.IsKind(SyntaxKind.PredefinedType) && symbolType.IsSpecialType() && symbolType != null
-                ? editor.Generator.TypeExpression(symbolType.SpecialType)
-                : editor.Generator.TypeExpression(symbolType);
-
+            var memberAccessExpression = (TypeOfExpressionSyntax)node.Expression;
+            var symbolType = semanticModel.GetSymbolInfo(memberAccessExpression.Type).Symbol.GetSymbolType();
+            var typeExpression = editor.Generator.TypeExpression(symbolType);
             var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
 
-            editor.ReplaceNode(node, nameOfSyntax.WithAdditionalAnnotations(Simplifier.Annotation));
+            editor.ReplaceNode(node, nameOfSyntax);
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

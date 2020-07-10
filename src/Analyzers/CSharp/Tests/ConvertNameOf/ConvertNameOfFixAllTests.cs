@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
 }
 ";
 
-            var expected = @"class Program1
+            var expected = @"class Test
 {
     static void Main()
     {
