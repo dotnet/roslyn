@@ -250,8 +250,14 @@ namespace System.Runtime.CompilerServices
                 var checkMetadata = hasReturnConversion(method.ReturnType, overriddenMethod.ReturnType);
                 if (checkMetadata)
                 {
-                    Assert.Equal(isCovariant | requiresMethodimpl, method.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
-                    Assert.Equal(isCovariant | requiresMethodimpl, method.RequiresExplicitOverride(out _)); // implies the presence of a methodimpl
+                    requiresMethodimpl = isCovariant | requiresMethodimpl;
+                    Assert.Equal(requiresMethodimpl, method.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
+                    Assert.Equal(requiresMethodimpl, method.RequiresExplicitOverride(out _));
+                    if (method.OriginalDefinition is PEMethodSymbol originalMethod &&
+                        comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
+                    {
+                        Assert.Equal(requiresMethodimpl, originalMethod.HasAttribute(attrConstructor));
+                    }
                 }
                 switch (member)
                 {

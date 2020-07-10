@@ -874,10 +874,9 @@ done:
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
             }
 
-            bool isCovariantOverride = this.IsOverride && !this.OverriddenMethod.ReturnType.Equals(this.ReturnType, TypeCompareKind.AllIgnoreOptions);
-            if (isCovariantOverride)
+            if (this.RequiresExplicitOverride(out _))
             {
-                // If present, we add PreserveBaseOverridesAttribute to covariant overrides.
+                // If present, we add PreserveBaseOverridesAttribute when a methodimpl is used to override a class method.
                 var attr = moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor, isOptionalUse: true);
                 AddSynthesizedAttribute(ref attributes, attr);
             }
