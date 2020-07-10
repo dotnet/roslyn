@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                               IDiagnosticService diagnosticService,
                                               ITableManagerProvider tableManagerProvider,
                                               IThreadingContext threadingContext)
-            : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.AnyCodeRoslynWorkspace)
+            : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
 
         {
             _serviceProvider = serviceProvider;

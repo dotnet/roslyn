@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
         {
             // This provider is exported for all workspaces - so limit it to just our workspace.
             var (document, span, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind != WorkspaceKind.AnyCodeRoslynWorkspace)
+            if (document.Project.Solution.Workspace.Kind != WorkspaceKind.CloudEnvironmentClientWorkspace)
             {
                 return;
             }
