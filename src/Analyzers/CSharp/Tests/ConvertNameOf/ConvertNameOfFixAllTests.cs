@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSingleDocumentSimple()
+        public async Task SingleDocumentBasic()
         {
             var input = @"class Test
 {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSingleDocumentVaried()
+        public async Task SingleDocumentVaried()
         {
             var input = @"class Test
 {
@@ -68,6 +68,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNameOf
         var typeName1 = nameof(Test);
         var typeName2 = nameof(System.Int32);
         var typeName3 = nameof(System.String);
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.ConvertNameOf)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task SingleDocumentVariedWithUsing()
+        {
+            var input = @"using System;
+
+class Test
+{
+    static void Main()
+    {
+        var typeName1 = typeof(Test).Name;
+        var typeName2 = typeof(int).Name;
+        var typeName3 = typeof(String).Name;
+        var typeName4 = {|FixAllInDocument:typeof(System.Double).Name|};
+    }
+}
+";
+
+            var expected = @"using System;
+
+class Test
+{
+    static void Main()
+    {
+        var typeName1 = nameof(Test);
+        var typeName2 = nameof(Int32);
+        var typeName3 = nameof(String);
+        var typeName4 = nameof(Double);
     }
 }
 ";
