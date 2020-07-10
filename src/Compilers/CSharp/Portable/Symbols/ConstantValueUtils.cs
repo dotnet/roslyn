@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             var value = ConstantValue.Bad;
-            CheckLangVersionForConstantInterpolatedStrings(boundValue, diagnostics);
+            CheckLangVersionForConstantValue(boundValue, diagnostics);
             if (!boundValue.HasAnyErrors)
             {
                 if (typeSymbol.TypeKind == TypeKind.TypeParameter)
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void CheckLangVersionForConstantInterpolatedStrings(BoundExpression expression, DiagnosticBag diagnostics)
+        internal static void CheckLangVersionForConstantValue(BoundExpression expression, DiagnosticBag diagnostics)
         {
             if (!(expression.Type is null) && expression.Type.IsStringType())
             {

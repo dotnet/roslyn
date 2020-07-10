@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typedConstantKind = TypedConstantKind.Error;
                     }
 
-                    ConstantValueUtils.CheckLangVersionForConstantInterpolatedStrings(node, diagnostics);
+                    ConstantValueUtils.CheckLangVersionForConstantValue(node, diagnostics);
 
                     return CreateTypedConstant(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, simpleValue: constantValue.Value);
                 }

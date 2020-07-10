@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
-                    ConstantValueUtils.CheckLangVersionForConstantInterpolatedStrings(gotoCaseExpressionOpt, diagnostics);
+                    ConstantValueUtils.CheckLangVersionForConstantValue(gotoCaseExpressionOpt, diagnostics);
 
                     // LabelSymbols for all the switch case labels are created by BuildLabels().
                     // Fetch the matching switch case label symbols

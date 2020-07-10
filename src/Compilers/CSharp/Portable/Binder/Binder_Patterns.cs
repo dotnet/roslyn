@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
 
-            ConstantValueUtils.CheckLangVersionForConstantInterpolatedStrings(expression, diagnostics);
+            ConstantValueUtils.CheckLangVersionForConstantValue(expression, diagnostics);
 
             if (!convertedExpression.HasErrors && !hasErrors)
             {
