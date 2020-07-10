@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (additionalFiles.IsEmpty)
             {
-                return ImmutableDictionary<string, OneOrMany<AdditionalText>>.Empty;
+                return ImmutableDictionary<string, OneOrMany<AdditionalText>>.Empty.WithComparers(PathUtilities.Comparer);
             }
 
             var builder = ImmutableDictionary.CreateBuilder<string, OneOrMany<AdditionalText>>(PathUtilities.Comparer);
