@@ -182,6 +182,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             => GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
 
         public void ScheduleDeferredCleanupTask(Action a)
-            => _threadingContext.ShutdownBlockingTasks.Add(_threadingContext.JoinableTaskFactory.StartOnIdle(a, VsTaskRunContext.UIThreadNormalPriority));
+        {
+            var joinableTask = _threadingContext.JoinableTaskFactory.StartOnIdle(a, VsTaskRunContext.UIThreadNormalPriority);
+            _threadingContext.ShutdownBlockingTasks.Add(joinableTask);
+            if (_threadingContext.DisposalToken.IsCancellationRequested)
+            {
+                // We are already in the process of shutting down. Wait for the deferred task to complete.
+                joinableTask.Join();
+            }
+        }
     }
 }
