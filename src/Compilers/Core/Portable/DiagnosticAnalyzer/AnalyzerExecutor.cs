@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             DiagnosticAnalyzer analyzer,
             SymbolDeclaredCompilationEvent symbolDeclaredEvent,
-            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt,
             bool isGeneratedCodeSymbol)
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             DiagnosticAnalyzer analyzer,
             SymbolDeclaredCompilationEvent symbolDeclaredEvent,
-            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             AnalyzerStateData analyzerStateOpt,
             bool isGeneratedCodeSymbol)
         {
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             INamespaceOrTypeSymbol containingSymbol,
             ISymbol processedMemberSymbol,
             DiagnosticAnalyzer analyzer,
-            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             AnalysisState analysisStateOpt,
             out SymbolDeclaredCompilationEvent containingSymbolDeclaredEvent)
         {
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions,
             DiagnosticAnalyzer analyzer,
             SymbolDeclaredCompilationEvent symbolDeclaredEvent,
-            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             AnalysisState analysisStateOpt)
         {
             return _analyzerManager.TryStartExecuteSymbolEndActions(symbolEndActions, analyzer, symbolDeclaredEvent) &&
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions,
             DiagnosticAnalyzer analyzer,
             SymbolDeclaredCompilationEvent symbolDeclaredEvent,
-            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             AnalysisState analysisStateOpt)
         {
             var symbol = symbolDeclaredEvent.Symbol;
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions,
             DiagnosticAnalyzer analyzer,
             SymbolDeclaredCompilationEvent symbolDeclaredEvent,
-            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             AnalyzerStateData analyzerStateOpt)
         {
             Debug.Assert(getTopMostNodeForAnalysis != null);
@@ -1719,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzerManager.IsSupportedDiagnostic(analyzer, diagnostic, _isCompilerAnalyzer, this);
         }
 
-        private Action<Diagnostic> GetAddDiagnostic(ISymbol contextSymbol, ImmutableArray<SyntaxReference> cachedDeclaringReferences, DiagnosticAnalyzer analyzer, Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis)
+        private Action<Diagnostic> GetAddDiagnostic(ISymbol contextSymbol, ImmutableArray<SyntaxReference> cachedDeclaringReferences, DiagnosticAnalyzer analyzer, Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis)
         {
             return GetAddDiagnostic(contextSymbol, cachedDeclaringReferences, _compilation, analyzer, _addNonCategorizedDiagnosticOpt,
                  _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt, getTopMostNodeForAnalysis, _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
@@ -1733,7 +1733,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> addNonCategorizedDiagnosticOpt,
             Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt,
             Action<Diagnostic, DiagnosticAnalyzer> addCategorizedNonLocalDiagnosticOpt,
-            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
             CancellationToken cancellationToken)
         {
@@ -1760,7 +1760,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         if (syntaxRef.SyntaxTree == diagnostic.Location.SourceTree)
                         {
-                            var syntax = getTopMostNodeForAnalysis(contextSymbol, syntaxRef, compilation);
+                            var syntax = getTopMostNodeForAnalysis(contextSymbol, syntaxRef, compilation, cancellationToken);
                             if (diagnostic.Location.SourceSpan.IntersectsWith(syntax.FullSpan))
                             {
                                 addCategorizedLocalDiagnosticOpt(diagnostic, analyzer, false);
@@ -1877,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool TryStartProcessingEvent(CompilationEvent nonSymbolCompilationEvent, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
         {
             Debug.Assert(!(nonSymbolCompilationEvent is SymbolDeclaredCompilationEvent));
-            Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
+            Debug.Assert(analysisScope.Contains(analyzer));
 
             analyzerStateOpt = null;
             return analysisStateOpt == null || analysisStateOpt.TryStartProcessingEvent(nonSymbolCompilationEvent, analyzer, out analyzerStateOpt);
@@ -1885,7 +1885,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool TryStartSyntaxAnalysis(SourceOrNonSourceFile file, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
         {
-            Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
+            Debug.Assert(analysisScope.Contains(analyzer));
 
             analyzerStateOpt = null;
             return analysisStateOpt == null || analysisStateOpt.TryStartSyntaxAnalysis(file, analyzer, out analyzerStateOpt);
@@ -1893,7 +1893,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool TryStartAnalyzingSymbol(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
         {
-            Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
+            Debug.Assert(analysisScope.Contains(analyzer));
 
             analyzerStateOpt = null;
             return analysisStateOpt == null || analysisStateOpt.TryStartAnalyzingSymbol(symbol, analyzer, out analyzerStateOpt);
@@ -1907,7 +1907,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool TryStartAnalyzingDeclaration(ISymbol symbol, int declarationIndex, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out DeclarationAnalyzerStateData analyzerStateOpt)
         {
-            Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
+            Debug.Assert(analysisScope.Contains(analyzer));
 
             analyzerStateOpt = null;
             return analysisStateOpt == null || analysisStateOpt.TryStartAnalyzingDeclaration(symbol, declarationIndex, analyzer, out analyzerStateOpt);

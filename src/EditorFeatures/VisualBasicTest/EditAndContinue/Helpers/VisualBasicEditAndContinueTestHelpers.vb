@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
         Friend Shared Function CreateInstance() As VisualBasicEditAndContinueTestHelpers
             Return New VisualBasicEditAndContinueTestHelpers(
-                ImmutableArray.Create(TestReferences.NetFx.v4_0_30319_17626.mscorlib, TestReferences.NetFx.v4_0_30319.System, TestReferences.NetFx.v4_0_30319.System_Core))
+                ImmutableArray.Create(TestMetadata.Net451.mscorlib, TestMetadata.Net451.System, TestMetadata.Net451.SystemCore))
         End Function
 
         Friend Shared Function CreateInstance40() As VisualBasicEditAndContinueTestHelpers
             Return New VisualBasicEditAndContinueTestHelpers(
-                ImmutableArray.Create(TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core))
+                ImmutableArray.Create(TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore))
         End Function
 
         Friend Shared Function CreateInstanceMinAsync() As VisualBasicEditAndContinueTestHelpers

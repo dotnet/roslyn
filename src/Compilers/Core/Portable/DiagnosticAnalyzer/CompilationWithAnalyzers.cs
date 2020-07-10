@@ -353,7 +353,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             await WaitForActiveAnalysisTasksAsync(waitForTreeTasks: true, waitForCompilationOrNonConcurrentTask: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var diagnostics = ImmutableArray<Diagnostic>.Empty;
-            var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
+            var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             Func<ImmutableArray<CompilationEvent>> getPendingEvents = () =>
                 _analysisState.GetPendingEvents(analyzers, includeSourceEvents: true, includeNonSourceEvents: true, cancellationToken);
 
@@ -378,7 +379,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             await ComputeAnalyzerDiagnosticsWithoutStateTrackingAsync(cancellationToken).ConfigureAwait(false);
 
             // Get analyzer diagnostics for the given analysis scope.
-            var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
+            var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: true);
         }
 
@@ -404,7 +406,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var categorizeDiagnostics = true;
                 driver = compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
-                var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
+                var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
+                var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);
 
                 // Force compilation diagnostics and wait for analyzer execution to complete.
@@ -444,7 +447,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var categorizeDiagnostics = false;
                 driver = compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
-                var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
+                var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
+                var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);
 
                 // Force compilation diagnostics and wait for analyzer execution to complete.
@@ -573,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analysisScope.Analyzers);
                 if (pendingAnalyzers.Length > 0)
                 {
-                    var pendingAnalysisScope = pendingAnalyzers.Length < analysisScope.Analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers) : analysisScope;
+                    var pendingAnalysisScope = pendingAnalyzers.Length < analysisScope.Analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers, hasAllAnalyzers: false) : analysisScope;
 
                     // Compute the analyzer diagnostics for the pending analysis scope.
                     await ComputeAnalyzerDiagnosticsAsync(pendingAnalysisScope, getPendingEventsOpt: null, taskToken, cancellationToken).ConfigureAwait(false);
@@ -668,7 +672,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analysisScope.Analyzers);
                 if (pendingAnalyzers.Length > 0)
                 {
-                    var pendingAnalysisScope = pendingAnalyzers.Length < analysisScope.Analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers) : analysisScope;
+                    var pendingAnalysisScope = pendingAnalyzers.Length < analysisScope.Analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers, hasAllAnalyzers: false) : analysisScope;
 
                     Func<ImmutableArray<CompilationEvent>> getPendingEvents = () => _analysisState.GetPendingEvents(analysisScope.Analyzers, model.SyntaxTree, cancellationToken);
 

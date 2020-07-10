@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -827,6 +828,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal readonly ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
         {
             return _syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
+        }
+
+        internal readonly ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>(DiagnosticAnalyzer analyzer) where TLanguageKindEnum : struct
+        {
+            var builder = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+            foreach (var action in _syntaxNodeActions)
+            {
+                if (action.Analyzer == analyzer &&
+                    action is SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction)
+                {
+                    builder.Add(syntaxNodeAction);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         internal readonly ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions

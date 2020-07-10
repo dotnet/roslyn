@@ -579,6 +579,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Marks the given event as fully analyzed for the unprocessed analyzers in the given analysisScope.
+        /// </summary>
+        public void MarkEventCompleteForUnprocessedAnalyzers(
+            CompilationEvent completedEvent,
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkEventComplete, completedEvent);
+
+        /// <summary>
         /// Checks if the given event has been fully analyzed for the given analyzer.
         /// </summary>
         public bool IsEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer)
@@ -617,6 +626,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             GetAnalyzerState(analyzer).MarkSymbolComplete(symbol);
         }
+
+        /// <summary>
+        /// Marks the given symbol as fully analyzed for the unprocessed analyzers in the given analysisScope.
+        /// </summary>
+        public void MarkSymbolCompleteForUnprocessedAnalyzers(
+            ISymbol symbol,
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSymbolComplete, symbol);
 
         /// <summary>
         /// True if the given symbol is fully analyzed for the given analyzer.
@@ -753,6 +771,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var analyzer in analyzers)
             {
                 GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(file);
+            }
+        }
+
+        /// <summary>
+        /// Marks the given file as fully syntactically analyzed for the unprocessed analyzers in the given analysisScope.
+        /// </summary>
+        public void MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(
+            SourceOrNonSourceFile file,
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers)
+            => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSyntaxAnalysisComplete, file);
+
+        private static void MarkAnalysisCompleteForUnprocessedAnalyzers<T>(
+            AnalysisScope analysisScope,
+            HashSet<DiagnosticAnalyzer> processedAnalyzers,
+            Action<T, DiagnosticAnalyzer> markComplete,
+            T arg)
+        {
+            Debug.Assert(processedAnalyzers.All(analysisScope.Contains));
+            if (analysisScope.Analyzers.Length == processedAnalyzers.Count)
+            {
+                return;
+            }
+
+            foreach (var analyzer in analysisScope.Analyzers)
+            {
+                if (!processedAnalyzers.Contains(analyzer))
+                {
+                    markComplete(arg, analyzer);
+                }
             }
         }
     }

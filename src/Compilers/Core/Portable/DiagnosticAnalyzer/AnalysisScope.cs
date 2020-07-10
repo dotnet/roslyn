@@ -4,10 +4,12 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class AnalysisScope
     {
+        private readonly Lazy<ImmutableHashSet<DiagnosticAnalyzer>> _lazyAnalyzersSet;
+
         public SourceOrNonSourceFile? FilterFileOpt { get; }
         public TextSpan? FilterSpanOpt { get; }
 
@@ -52,35 +56,61 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool IsTreeAnalysis => FilterFileOpt != null;
 
-        public AnalysisScope(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool concurrentAnalysis, bool categorizeDiagnostics)
+        /// <summary>
+        /// Flag indicating if this is a partial analysis for the corresponding <see cref="CompilationWithAnalyzers"/>,
+        /// i.e. <see cref="IsTreeAnalysis"/> is true and/or <see cref="Analyzers"/> is a subset of <see cref="CompilationWithAnalyzers.Analyzers"/>.
+        /// </summary>
+        public bool IsPartialAnalysis { get; }
+
+        public AnalysisScope(Compilation compilation, AnalyzerOptions? analyzerOptions, ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers, bool concurrentAnalysis, bool categorizeDiagnostics)
             : this(compilation.SyntaxTrees, analyzerOptions?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty,
-                  analyzers, filterTreeOpt: null, filterSpanOpt: null, isSyntaxOnlyTreeAnalysis: false, concurrentAnalysis, categorizeDiagnostics)
+                   analyzers, isPartialAnalysis: !hasAllAnalyzers, filterFile: null, filterSpanOpt: null, isSyntaxOnlyTreeAnalysis: false, concurrentAnalysis: concurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics)
         {
         }
 
-        public AnalysisScope(ImmutableArray<DiagnosticAnalyzer> analyzers, SourceOrNonSourceFile filterTree, TextSpan? filterSpan, bool syntaxAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
-            : this(filterTree?.SourceTree != null ? SpecializedCollections.SingletonEnumerable(filterTree.SourceTree) : SpecializedCollections.EmptyEnumerable<SyntaxTree>(),
-                   filterTree?.NonSourceFile != null ? SpecializedCollections.SingletonEnumerable(filterTree.NonSourceFile) : SpecializedCollections.EmptyEnumerable<AdditionalText>(),
-                   analyzers, filterTree, filterSpan, syntaxAnalysis, concurrentAnalysis, categorizeDiagnostics)
+        public AnalysisScope(ImmutableArray<DiagnosticAnalyzer> analyzers, SourceOrNonSourceFile filterFile, TextSpan? filterSpan, bool syntaxAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
+            : this(filterFile.SourceTree != null ? SpecializedCollections.SingletonEnumerable(filterFile.SourceTree) : SpecializedCollections.EmptyEnumerable<SyntaxTree>(),
+                   filterFile.NonSourceFile != null ? SpecializedCollections.SingletonEnumerable(filterFile.NonSourceFile) : SpecializedCollections.EmptyEnumerable<AdditionalText>(),
+                   analyzers, isPartialAnalysis: true, filterFile, filterSpan, syntaxAnalysis, concurrentAnalysis, categorizeDiagnostics)
         {
-            Debug.Assert(filterTree != null);
         }
 
-        private AnalysisScope(IEnumerable<SyntaxTree> trees, IEnumerable<AdditionalText> nonSourceFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, SourceOrNonSourceFile? filterTreeOpt, TextSpan? filterSpanOpt, bool isSyntaxOnlyTreeAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
+        private AnalysisScope(IEnumerable<SyntaxTree> trees, IEnumerable<AdditionalText> nonSourceFiles, ImmutableArray<DiagnosticAnalyzer> analyzers, bool isPartialAnalysis, SourceOrNonSourceFile? filterFile, TextSpan? filterSpanOpt, bool isSyntaxOnlyTreeAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
         {
+            Debug.Assert(isPartialAnalysis || FilterFileOpt == null);
+            Debug.Assert(isPartialAnalysis || FilterSpanOpt == null);
+            Debug.Assert(isPartialAnalysis || !isSyntaxOnlyTreeAnalysis);
+
             SyntaxTrees = trees;
             NonSourceFiles = nonSourceFiles;
             Analyzers = analyzers;
-            FilterFileOpt = filterTreeOpt;
+            IsPartialAnalysis = isPartialAnalysis;
+            FilterFileOpt = filterFile;
             FilterSpanOpt = filterSpanOpt;
             IsSyntaxOnlyTreeAnalysis = isSyntaxOnlyTreeAnalysis;
             ConcurrentAnalysis = concurrentAnalysis;
             CategorizeDiagnostics = categorizeDiagnostics;
+
+            _lazyAnalyzersSet = new Lazy<ImmutableHashSet<DiagnosticAnalyzer>>(CreateAnalyzersSet);
         }
 
-        public AnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private ImmutableHashSet<DiagnosticAnalyzer> CreateAnalyzersSet() => Analyzers.ToImmutableHashSet();
+
+        public bool Contains(DiagnosticAnalyzer analyzer)
         {
-            return new AnalysisScope(SyntaxTrees, NonSourceFiles, analyzers, FilterFileOpt, FilterSpanOpt, IsSyntaxOnlyTreeAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
+            if (!IsPartialAnalysis)
+            {
+                Debug.Assert(_lazyAnalyzersSet.Value.Contains(analyzer));
+                return true;
+            }
+
+            return _lazyAnalyzersSet.Value.Contains(analyzer);
+        }
+
+        public AnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, bool hasAllAnalyzers)
+        {
+            var isPartialAnalysis = IsTreeAnalysis || !hasAllAnalyzers;
+            return new AnalysisScope(SyntaxTrees, NonSourceFiles, analyzers, isPartialAnalysis, FilterFileOpt, FilterSpanOpt, IsSyntaxOnlyTreeAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
         }
 
         public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)
