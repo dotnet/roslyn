@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var document1 = workspace.CurrentSolution.
                 AddProject("test", "test", LanguageNames.CSharp).
-                AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+                AddMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework)).
                 AddDocument("a.cs", SourceText.From(source1, Encoding.UTF8), filePath: sourceFile.Path);
 
             var project = document1.Project;
@@ -1577,7 +1577,7 @@ class C1
             // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
             var document1 = workspace.CurrentSolution.
                 AddProject("test", "test", LanguageNames.CSharp).
-                AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+                AddMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework)).
                 AddDocument("test.cs", SourceText.From("class C1 { void M() { System.Console.WriteLine(0); } }", Encoding.UTF8), filePath: sourceFile.Path);
 
             var documentId = document1.Id;
