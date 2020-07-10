@@ -51,26 +51,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
-                var node = (MemberAccessExpressionSyntax)root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+                var node = (MemberAccessExpressionSyntax)editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 ConvertNameOf(editor, node, semanticModel);
             }
         }
 
         /// <Summary>
         ///  Method converts typeof(...).Name to nameof(...)
-        ///  The isUsingSystem parameter determines whether includes the System directive.
         /// </Summary>
         internal static void ConvertNameOf(
             SyntaxEditor editor, MemberAccessExpressionSyntax node, SemanticModel? semanticModel)
         {
 
-            var memberAccessExpression = (TypeOfExpressionSyntax)node.Expression;
-            var symbolType = semanticModel.GetSymbolInfo(memberAccessExpression.Type).Symbol.GetSymbolType();
+            var typeOfExpression = (TypeOfExpressionSyntax)node.Expression;
+            var symbolType = semanticModel.GetSymbolInfo(typeOfExpression.Type).Symbol.GetSymbolType();
             var typeExpression = editor.Generator.TypeExpression(symbolType);
             var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
 
