@@ -762,9 +762,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     var mutableMap = new Dictionary<DiagnosticId, List<CodeFixProvider>>();
 
-                    foreach (var fixer in languageKindAndFixers.Value)
+                    foreach (var lazyFixer in languageKindAndFixers.Value)
                     {
-                        foreach (var id in this.GetFixableDiagnosticIds(fixer.Value, extensionManager))
+                        CodeFixProvider fixer;
+                        try
+                        {
+                            fixer = lazyFixer.Value;
+                        }
+                        catch
+                        {
+                            // Gracefully handle exceptions in creating fixer instance.
+                            continue;
+                        }
+
+                        foreach (var id in this.GetFixableDiagnosticIds(fixer, extensionManager))
                         {
                             if (string.IsNullOrWhiteSpace(id))
                             {
@@ -772,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             }
 
                             var list = mutableMap.GetOrAdd(id, s_createList);
-                            list.Add(fixer.Value);
+                            list.Add(fixer);
                         }
                     }
 

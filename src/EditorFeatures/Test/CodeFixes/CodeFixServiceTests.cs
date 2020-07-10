@@ -154,6 +154,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         public async Task TestGetCodeFixWithExceptionInGetFixAllProvider()
             => await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInGetFixAllProvider());
 
+        [Fact, WorkItem(45851, "https://github.com/dotnet/roslyn/issues/45851")]
+        public async Task TestGetCodeFixWithExceptionOnCodeFixProviderCreation()
+            => await GetAddedFixesAsync(
+                new MockFixer(),
+                new MockAnalyzerReference.MockDiagnosticAnalyzer(),
+                throwExceptionInFixerCreation: true);
+
         private async Task GetDefaultFixesAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
@@ -168,9 +175,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         private Task<ImmutableArray<CodeFixCollection>> GetAddedFixesWithExceptionValidationAsync(CodeFixProvider codefix)
             => GetAddedFixesAsync(codefix, diagnosticAnalyzer: new MockAnalyzerReference.MockDiagnosticAnalyzer(), exception: true);
 
-        private async Task<ImmutableArray<CodeFixCollection>> GetAddedFixesAsync(CodeFixProvider codefix, DiagnosticAnalyzer diagnosticAnalyzer, bool exception = false)
+        private async Task<ImmutableArray<CodeFixCollection>> GetAddedFixesAsync(CodeFixProvider codefix, DiagnosticAnalyzer diagnosticAnalyzer, bool exception = false, bool throwExceptionInFixerCreation = false)
         {
-            var tuple = ServiceSetup(codefix);
+            var tuple = ServiceSetup(codefix, throwExceptionInFixerCreation: throwExceptionInFixerCreation);
 
             using var workspace = tuple.workspace;
 
@@ -203,11 +210,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static (TestWorkspace workspace, TestDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             CodeFixProvider codefix,
-            bool includeConfigurationFixProviders = false)
+            bool includeConfigurationFixProviders = false,
+            bool throwExceptionInFixerCreation = false)
         {
             var fixers = SpecializedCollections.SingletonEnumerable(
                 new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(
-                () => codefix,
+                () => throwExceptionInFixerCreation ? throw new Exception() : codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
 
             var code = @"class Program { }";
