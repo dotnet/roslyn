@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -55,11 +57,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         /// <summary>
-        /// Gets a collection of tasks which are joined during shutdown.
+        /// Runs an asynchronous operation. If the operation is not complete prior to the time the threading context is
+        /// disposed, the operation will block the shutdown.
         /// </summary>
-        JoinableTaskCollection ShutdownBlockingTasks
-        {
-            get;
-        }
+        /// <remarks>
+        /// The callback function <paramref name="func"/> is invoked synchronously prior to this method returning. If
+        /// the cancellation token supplied to the callback is not cancelled at the start of the callback, then the
+        /// entire asynchronous operation performed by <paramref name="func"/> will block shutdown of the threading
+        /// context. Otherwise, if the cancellation token is cancelled at the start of the callback, there are no
+        /// guarantees that the operation will block shutdown.
+        /// </remarks>
+        /// <param name="func">The callback function that performs an asynchronous operation.</param>
+        JoinableTask RunWithShutdownBlockAsync(Func<CancellationToken, Task> func);
     }
 }

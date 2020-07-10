@@ -1519,11 +1519,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 base.OnProjectRemoved(projectId);
 
-                _threadingContext.ShutdownBlockingTasks.Add(_threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
                 {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     RefreshProjectExistsUIContextForLanguage(languageName);
-                }));
+                });
             }
         }
 

@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
 
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             JoinableTaskContext = joinableTaskContext;
             JoinableTaskFactory = joinableTaskContext.Factory;
             ShutdownBlockingTasks = new JoinableTaskCollection(JoinableTaskContext);
+            ShutdownBlockingTaskFactory = JoinableTaskContext.CreateFactory(ShutdownBlockingTasks);
         }
 
         /// <inheritdoc/>
@@ -56,7 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public JoinableTaskCollection ShutdownBlockingTasks { get; }
 
+        private JoinableTaskFactory ShutdownBlockingTaskFactory { get; }
+
         public CancellationToken DisposalToken => _disposalTokenSource.Token;
+
+        public JoinableTask RunWithShutdownBlockAsync(Func<CancellationToken, Task> func)
+        {
+            return ShutdownBlockingTaskFactory.RunAsync(() => func(DisposalToken));
+        }
 
         public void Dispose()
         {

@@ -52,12 +52,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             : base(threadingContext, assertIsForeground: false)
         {
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
-            ThreadingContext.ShutdownBlockingTasks.Add(ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+            ThreadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var monitorSelectionService = (IVsMonitorSelection)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(false);
+                var monitorSelectionService = (IVsMonitorSelection)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
                 Assumes.Present(monitorSelectionService);
+
+                // No need to track windows if we are shutting down
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var value)))
                 {
@@ -68,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 monitorSelectionService.AdviseSelectionEvents(this, out var _);
-            }));
+            });
         }
 
         /// <summary>

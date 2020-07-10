@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -181,15 +182,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath)
             => GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
 
-        public void ScheduleDeferredCleanupTask(Action a)
+        public void ScheduleDeferredCleanupTask(Action<CancellationToken> a)
         {
-            var joinableTask = _threadingContext.JoinableTaskFactory.StartOnIdle(a, VsTaskRunContext.UIThreadNormalPriority);
-            _threadingContext.ShutdownBlockingTasks.Add(joinableTask);
-            if (_threadingContext.DisposalToken.IsCancellationRequested)
+            _ = _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                // We are already in the process of shutting down. Wait for the deferred task to complete.
-                joinableTask.Join();
-            }
+                await _threadingContext.JoinableTaskFactory.StartOnIdle(
+                    () =>
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        a(cancellationToken);
+                    },
+                    VsTaskRunContext.UIThreadIdlePriority);
+            });
         }
     }
 }
