@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         private static UIElement CreateElement(string text, double lineHeight, TextFormattingRunProperties format)
         {
-            // Constructs the hint block which gets assigned parameter name and nested inside a border where the 
-            // attributes of the block are received from the options menu
+            // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
+            // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
             var block = new TextBlock
             {
                 Text = text + ":",
@@ -46,19 +46,22 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 Foreground = format.ForegroundBrush
             };
 
+            // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
+            // height. Gets foreground/background colors from the options menu. The margin is the distance from the 
+            // adornment to the text
             var border = new Border
             {
-                CornerRadius = new CornerRadius(2),
+                Child = block,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
                 Background = format.BackgroundBrush,
                 BorderBrush = format.BackgroundBrush,
                 BorderThickness = new Thickness(1),
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 0, 5, 0),
                 Height = lineHeight - (0.25 * lineHeight),
-                Child = block,
+                CornerRadius = new CornerRadius(2),
             };
-            block.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+
             border.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
             return border;
         }
