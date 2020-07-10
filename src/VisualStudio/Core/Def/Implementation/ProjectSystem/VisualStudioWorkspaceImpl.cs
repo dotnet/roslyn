@@ -17,7 +17,6 @@ using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -39,7 +38,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
@@ -88,9 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new Dictionary<string, UIContext?>();
 
-        private readonly CancellationTokenSource _disposalTokenSource = new CancellationTokenSource();
-        private readonly JoinableTaskCollection _deferredJoinableTasks;
-
         /// <summary>
         /// A set of documents that were added by <see cref="VisualStudioProject.AddSourceTextContainer"/>, and aren't otherwise
         /// tracked for opening/closing.
@@ -115,7 +110,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
-            _deferredJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
@@ -1312,24 +1306,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
-
-                // https://github.com/Microsoft/vs-threading/blob/master/doc/cookbook_vs.md#how-to-write-a-fire-and-forget-method-responsibly
-                _disposalTokenSource.Cancel();
-
-                try
-                {
-                    // Block Dispose until all async work has completed.
-                    _threadingContext.JoinableTaskContext.Factory.Run(_deferredJoinableTasks.JoinTillEmptyAsync);
-                }
-                catch (OperationCanceledException)
-                {
-                    // this exception is expected because we signaled the cancellation token
-                }
-                catch (AggregateException ex)
-                {
-                    // ignore AggregateException containing only OperationCanceledException
-                    ex.Handle(inner => inner is OperationCanceledException);
-                }
             }
 
             base.Dispose(finalize);
@@ -1543,9 +1519,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 base.OnProjectRemoved(projectId);
 
-                _deferredJoinableTasks.Add(_threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                _threadingContext.ShutdownBlockingTasks.Add(_threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
                     RefreshProjectExistsUIContextForLanguage(languageName);
                 }));
             }
