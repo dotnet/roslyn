@@ -83,7 +83,7 @@ unsafe class C
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact(Skip = "PROTOTYPE(func-ptr): Even though the rule is returning put a space, it's getting ignored, resulting in delegate*invalid <")]
+        [Fact]
         public async Task FormatFunctionPointerWithUnrecognizedCallingConvention()
         {
             var content = @"
@@ -95,13 +95,13 @@ unsafe class C
             var expected = @"
 unsafe class C
 {
-    delegate* invalid<int, int> functionPointer;
+    delegate*invalid <int, int> functionPointer;
 }";
 
             await AssertFormatAsync(expected, content);
         }
 
-        [Fact(Skip = "PROTOTYPE(func-ptr): Even though the rule is returning put a space, it's getting ignored, resulting in delegate*invalid [")]
+        [Fact]
         public async Task FormatFunctionPointerWithInvalidCallingConventionAndSpecifiers()
         {
             var content = @"
@@ -113,7 +113,7 @@ unsafe class C
             var expected = @"
 unsafe class C
 {
-    delegate* invalid[Cdecl, Thiscall]<int, int> functionPointer;
+    delegate*invalid [Cdecl, Thiscall]<int, int> functionPointer;
 }";
 
             await AssertFormatAsync(expected, content);

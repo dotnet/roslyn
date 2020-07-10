@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing the asterisk.</summary>
         public SyntaxToken AsteriskToken => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
 
-        /// <summary>SyntaxToken representing the optional calling convention.</summary>
+        /// <summary>Node representing the optional calling convention.</summary>
         public FunctionPointerCallingConventionSyntax? CallingConvention => GetRed(ref this.callingConvention, 2);
 
         /// <summary>List of the parameter types and return type of the function pointer.</summary>
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        /// <summary>SyntaxToken the calling convention identifier.</summary>
+        /// <summary>SyntaxToken representing the calling convention identifier.</summary>
         public SyntaxToken Name => new SyntaxToken(this, ((Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax)this.Green).name, Position, 0);
 
         internal override SyntaxNode? GetNodeSlot(int index) => null;

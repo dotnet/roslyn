@@ -279,8 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
 
-        private static void CheckParameterModifiers<TParameterSyntax>(
-            TParameterSyntax parameter, DiagnosticBag diagnostics, bool parsingFunctionPointerParams) where TParameterSyntax : BaseParameterSyntax
+        private static void CheckParameterModifiers(BaseParameterSyntax parameter, DiagnosticBag diagnostics, bool parsingFunctionPointerParams)
         {
             var seenThis = false;
             var seenRef = false;
@@ -422,15 +421,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportParameterErrors<TParameterSyntax>(
+        private static void ReportParameterErrors(
             Symbol owner,
-            TParameterSyntax parameterSyntax,
+            BaseParameterSyntax parameterSyntax,
             ParameterSymbol parameter,
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
             int firstDefault,
             DiagnosticBag diagnostics)
-            where TParameterSyntax : BaseParameterSyntax
         {
             int parameterIndex = parameter.Ordinal;
             bool isDefault = parameterSyntax is ParameterSyntax { Default: { } };

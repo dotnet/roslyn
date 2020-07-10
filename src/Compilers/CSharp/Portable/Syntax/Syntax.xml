@@ -239,7 +239,7 @@
     </Field>
     <Field Name="CallingConvention" Type="FunctionPointerCallingConventionSyntax" Optional="true">
       <PropertyComment>
-        <summary>SyntaxToken representing the optional calling convention.</summary>
+        <summary>Node representing the optional calling convention.</summary>
       </PropertyComment>
     </Field>
     <Field Name="ParameterList" Type="FunctionPointerParameterListSyntax">
@@ -320,7 +320,7 @@
     <Field Name="Name" Type="SyntaxToken">
       <Kind Name="IdentifierToken"/>
       <PropertyComment>
-        <summary>SyntaxToken the calling convention identifier.</summary>
+        <summary>SyntaxToken representing the calling convention identifier.</summary>
       </PropertyComment>
     </Field>
   </Node>

@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public SyntaxToken DelegateKeyword => this.delegateKeyword;
         /// <summary>SyntaxToken representing the asterisk.</summary>
         public SyntaxToken AsteriskToken => this.asteriskToken;
-        /// <summary>SyntaxToken representing the optional calling convention.</summary>
+        /// <summary>Node representing the optional calling convention.</summary>
         public FunctionPointerCallingConventionSyntax? CallingConvention => this.callingConvention;
         /// <summary>List of the parameter types and return type of the function pointer.</summary>
         public FunctionPointerParameterListSyntax ParameterList => this.parameterList;
@@ -1594,7 +1594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.name = name;
         }
 
-        /// <summary>SyntaxToken the calling convention identifier.</summary>
+        /// <summary>SyntaxToken representing the calling convention identifier.</summary>
         public SyntaxToken Name => this.name;
 
         internal override GreenNode? GetSlot(int index)
