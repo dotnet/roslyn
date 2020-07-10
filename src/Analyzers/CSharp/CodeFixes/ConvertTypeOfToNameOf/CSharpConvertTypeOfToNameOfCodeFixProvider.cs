@@ -23,9 +23,9 @@ using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
+namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertTypeOfToNameOfCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertNameOfCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertTypeOfToNameOfCodeFixProvider)), Shared]
     internal partial class CSharpConvertNameOfCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -56,23 +56,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CSharpConvertNameOfCodeFixProvider
             foreach (var diagnostic in diagnostics)
             {
                 var node = (MemberAccessExpressionSyntax)editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                ConvertNameOf(editor, node, semanticModel);
+                if (node != null && node is MemberAccessExpressionSyntax)
+                {
+                    ConvertTypeOfToNameOf(editor, node, semanticModel);
+                }
             }
         }
 
         /// <Summary>
         ///  Method converts typeof(...).Name to nameof(...)
         /// </Summary>
-        internal static void ConvertNameOf(
+        internal static void ConvertTypeOfToNameOf(
             SyntaxEditor editor, MemberAccessExpressionSyntax node, SemanticModel? semanticModel)
         {
-
             var typeOfExpression = (TypeOfExpressionSyntax)node.Expression;
             var symbolType = semanticModel.GetSymbolInfo(typeOfExpression.Type).Symbol.GetSymbolType();
-            var typeExpression = editor.Generator.TypeExpression(symbolType);
-            var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
 
-            editor.ReplaceNode(node, nameOfSyntax);
+            if (symbolType != null)
+            {
+                var typeExpression = editor.Generator.TypeExpression(symbolType);
+                var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
+                editor.ReplaceNode(node, nameOfSyntax);
+            }
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
