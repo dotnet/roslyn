@@ -19,10 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordEqualityContractProperty(NamedTypeSymbol containingType, bool isOverride)
         {
             ContainingType = containingType;
-            IsVirtual = !isOverride;
             IsOverride = isOverride;
             TypeWithAnnotations = TypeWithAnnotations.Create(containingType.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), NullableAnnotation.NotAnnotated);
-            GetMethod = new GetAccessorSymbol(this);
+            var overriddenProperty = OverriddenProperty;
+            if (overriddenProperty is object)
+            {
+                TypeWithAnnotations = overriddenProperty.TypeWithAnnotations;
+            }
+            var getAccessorName = overriddenProperty?.GetMethod?.Name ??
+                SourcePropertyAccessorSymbol.GetAccessorName(PropertyName, getNotSet: true, isWinMdOutput: false /* unused for getters */);
+            GetMethod = new GetAccessorSymbol(this, getAccessorName);
         }
 
         public override NamedTypeSymbol ContainingType { get; }
@@ -55,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        public override bool IsVirtual { get; }
+        public override bool IsVirtual => !IsOverride;
 
         public override bool IsOverride { get; }
 
@@ -81,13 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly SynthesizedRecordEqualityContractProperty _property;
 
-            public GetAccessorSymbol(SynthesizedRecordEqualityContractProperty property)
+            public GetAccessorSymbol(SynthesizedRecordEqualityContractProperty property, string name)
             {
                 _property = property;
-                Name = SourcePropertyAccessorSymbol.GetAccessorName(
-                    PropertyName,
-                    getNotSet: true,
-                    isWinMdOutput: false /* unused for getters */);
+                Name = name;
             }
 
             public override string Name { get; }
@@ -116,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
-            public override ImmutableArray<ParameterSymbol> Parameters => _property.Parameters;
+            public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
 
             public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override Accessibility DeclaredAccessibility => _property.DeclaredAccessibility;
 
-            public override bool IsStatic => _property.IsStatic;
+            public override bool IsStatic => false;
 
             public override bool IsVirtual => _property.IsVirtual;
 
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-            internal override bool HasSpecialName => _property.HasSpecialName;
+            internal override bool HasSpecialName => true;
 
             internal override MethodImplAttributes ImplementationAttributes => MethodImplAttributes.Managed;
 
@@ -175,8 +178,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                F.CurrentFunction = this;
-                F.CloseMethod(F.Block(F.Return(F.Typeof(ContainingType))));
+
+                try
+                {
+                    F.CurrentFunction = this;
+                    F.CloseMethod(F.Block(F.Return(F.Typeof(ContainingType))));
+                }
+                catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+                {
+                    diagnostics.Add(ex.Diagnostic);
+                    F.CloseMethod(F.ThrowNull());
+                }
             }
         }
     }

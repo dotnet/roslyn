@@ -1531,6 +1531,135 @@ class C
             }
         }
 
+        [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
+        public void VarInLambda_GetTypeInfo()
+        {
+            var source = @"
+#nullable enable
+using System;
+class C
+{
+    private static string s_data;
+    static void Main()
+    {
+        Action a = () => {
+            var v = s_data;
+            v = GetNullableString();
+        };
+    }
+    static string? GetNullableString() => null;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
+                // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var varDecl = lambda.DescendantNodes().OfType<VariableDeclarationSyntax>().Single();
+
+            var type = model.GetTypeInfo(varDecl.Type);
+            Assert.Equal(PublicNullableFlowState.MaybeNull, type.Nullability.FlowState);
+            Assert.Equal(PublicNullableAnnotation.Annotated, type.Nullability.Annotation);
+        }
+
+        [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
+        public void VarInLambda_ParameterMismatch_GetTypeInfo()
+        {
+            var source = @"
+#nullable enable
+using System;
+class C
+{
+    private static string s_data;
+    static void Main()
+    {
+        Action<string> a = () => {
+            var v = s_data;
+            v = GetNullableString();
+        };
+    }
+    static string? GetNullableString() => null;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
+                // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27),
+                // (9,28): error CS1593: Delegate 'Action<string>' does not take 0 arguments
+                //         Action<string> a = () => {
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, @"() => {
+            var v = s_data;
+            v = GetNullableString();
+        }").WithArguments("System.Action<string>", "0").WithLocation(9, 28));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var varDecl = lambda.DescendantNodes().OfType<VariableDeclarationSyntax>().Single();
+
+            var type = model.GetTypeInfo(varDecl.Type);
+            Assert.Equal(PublicNullableFlowState.None, type.Nullability.FlowState);
+            Assert.Equal(PublicNullableAnnotation.None, type.Nullability.Annotation);
+        }
+
+        [Fact, WorkItem(45398, "https://github.com/dotnet/roslyn/issues/45398")]
+        public void VarInLambda_ErrorDelegateType_GetTypeInfo()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    private static string s_data;
+    static void Main()
+    {
+        NonexistentDelegateType a = () => {
+            var v = s_data;
+            v = GetNullableString();
+        };
+    }
+    static string? GetNullableString() => null;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
+                // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
+                //     private static string s_data;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27),
+                // (9,9): error CS0246: The type or namespace name 'NonexistentDelegateType' could not be found (are you missing a using directive or an assembly reference?)
+                //         NonexistentDelegateType a = () => {
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NonexistentDelegateType").WithArguments("NonexistentDelegateType").WithLocation(9, 9));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var varDecl = lambda.DescendantNodes().OfType<VariableDeclarationSyntax>().Single();
+
+            var type = model.GetTypeInfo(varDecl.Type);
+            Assert.Equal(PublicNullableFlowState.None, type.Nullability.FlowState);
+            Assert.Equal(PublicNullableAnnotation.None, type.Nullability.Annotation);
+        }
+
         [Fact]
         public void FeatureFlagTurnsOffNullableAnalysis()
         {

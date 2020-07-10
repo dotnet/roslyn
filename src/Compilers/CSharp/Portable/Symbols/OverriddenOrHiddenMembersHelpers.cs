@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// 
         /// In incorrect or imported code, it is possible that both currTypeBestMatch and hiddenBuilder will be populated.
         /// </remarks>
-        internal static void FindOverriddenOrHiddenMembersInType(
+        private static void FindOverriddenOrHiddenMembersInType(
             Symbol member,
             bool memberIsFromSomeCompilation,
             NamedTypeSymbol memberContainingType,

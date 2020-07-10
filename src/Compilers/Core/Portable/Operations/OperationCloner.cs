@@ -560,11 +560,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object argument)
         {
             return new PropertySubpatternOperation(
-                semanticModel: ((Operation)operation).OwningSemanticModel,
-                operation.Syntax,
-                operation.IsImplicit,
                 Visit(operation.Member),
-                Visit(operation.Pattern));
+                Visit(operation.Pattern),
+                semanticModel: ((Operation)operation).OwningSemanticModel,
+                syntax: operation.Syntax,
+                isImplicit: operation.IsImplicit);
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)

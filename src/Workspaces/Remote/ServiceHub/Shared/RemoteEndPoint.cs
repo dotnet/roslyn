@@ -119,6 +119,25 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public async Task TryInvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(_startedListening);
+
+            if (_rpc.IsDisposed)
+            {
+                return;
+            }
+
+            try
+            {
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_startedListening);

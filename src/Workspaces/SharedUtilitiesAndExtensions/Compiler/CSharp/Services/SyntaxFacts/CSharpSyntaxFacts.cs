@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -101,6 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsPreprocessorKeyword(SyntaxToken token)
             => SyntaxFacts.IsPreprocessorKeyword(token.Kind());
+
+        public bool IsPreProcessorDirectiveContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => syntaxTree.IsPreProcessorDirectiveContext(
+                position, syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true), cancellationToken);
 
         public bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -978,71 +983,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         private static TextSpan GetBlockBodySpan(BlockSyntax body)
             => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
 
-        public int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node)
-        {
-            Debug.Assert(root.SyntaxTree == node.SyntaxTree);
-
-            var currentId = 0;
-            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out var currentNode));
-
-            Contract.ThrowIfFalse(currentId >= 0);
-            CheckMemberId(root, node, currentId);
-            return currentId;
-        }
-
-        public SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId)
-        {
-            var currentId = 0;
-            if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out var currentNode))
-            {
-                return null;
-            }
-
-            Contract.ThrowIfNull(currentNode);
-            CheckMemberId(root, currentNode, memberId);
-            return currentNode;
-        }
-
-        private bool TryGetMethodLevelMember(
-            SyntaxNode node, Func<SyntaxNode, int, bool> predicate, ref int currentId, out SyntaxNode currentNode)
-        {
-            foreach (var member in node.GetMembers())
-            {
-                if (IsTopLevelNodeWithMembers(member))
-                {
-                    if (TryGetMethodLevelMember(member, predicate, ref currentId, out currentNode))
-                    {
-                        return true;
-                    }
-
-                    continue;
-                }
-
-                if (IsMethodLevelMember(member))
-                {
-                    if (predicate(member, currentId))
-                    {
-                        currentNode = member;
-                        return true;
-                    }
-
-                    currentId++;
-                }
-            }
-
-            currentNode = null;
-            return false;
-        }
-
-        [Conditional("DEBUG")]
-        private void CheckMemberId(SyntaxNode root, SyntaxNode node, int memberId)
-        {
-            var list = GetMethodLevelMembers(root);
-            var index = list.IndexOf(node);
-
-            Contract.ThrowIfFalse(index == memberId);
-        }
-
 #nullable enable
 
         public SyntaxNode? TryGetBindableParent(SyntaxToken token)
@@ -1287,6 +1227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsElastic(SyntaxTrivia trivia)
             => trivia.IsElastic();
+
+        public bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
+            => trivia.IsPragmaDirective(out isDisable, out isActive, out errorCodes);
 
         public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;
