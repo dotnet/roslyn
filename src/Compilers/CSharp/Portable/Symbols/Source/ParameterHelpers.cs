@@ -587,6 +587,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
 
+            if (convertedExpression.Type.IsStringType())
+            {
+                var visitor = new ConstantValueUtils.CheckConstantInterpolatedStringValidity(diagnostics);
+                visitor.Visit(convertedExpression);
+            }
+
             // Certain contexts allow default parameter values syntactically but they are ignored during
             // semantic analysis. They are:
 

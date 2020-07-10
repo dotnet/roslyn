@@ -289,6 +289,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     CheckFeatureAvailability(patternExpression, MessageID.IDS_FeatureNullPointerConstantPattern, diagnostics, patternExpression.Location);
                 }
+                else if (inputType.IsStringType())
+                {
+                    var visitor = new ConstantValueUtils.CheckConstantInterpolatedStringValidity(diagnostics);
+                    visitor.Visit(expression);
+                }
             }
 
             if (convertedExpression.Type is null && constantValueOpt != ConstantValue.Null)
