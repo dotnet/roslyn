@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Dim comp = VisualBasicCompilation.Create("Text", syntaxTrees:={tree}, references:={TestMetadata.Net451.mscorlib})
             Dim semanticModel = comp.GetSemanticModel(tree)
 
-            Dim context = Await VisualBasicSyntaxContext.CreateContextAsync_Test(semanticModel, position, CancellationToken.None)
+            Dim context = Await VisualBasicSyntaxContext.TestAccessor.CreateContextAsync(semanticModel, position, CancellationToken.None)
             Return s_parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
         End Function
 

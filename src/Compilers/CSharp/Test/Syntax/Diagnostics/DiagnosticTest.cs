@@ -37,9 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ErrorCode.ERR_8814,
                 ErrorCode.ERR_8815,
                 ErrorCode.ERR_8816,
-
-                ErrorCode.ERR_8820,
-                ErrorCode.ERR_8821,
             };
             foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
             {

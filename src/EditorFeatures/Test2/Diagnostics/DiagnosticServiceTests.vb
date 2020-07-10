@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         <WpfFact, WorkItem(937915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937915"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
-        Public Async Sub TestDiagnosticAnalyzerExceptionHandledGracefully2()
+        Public Async Function TestDiagnosticAnalyzerExceptionHandledGracefully2() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.True(diagnostic.Id = "AD0001")
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message, StringComparison.Ordinal)
             End Using
-        End Sub
+        End Function
 
         <Fact, WorkItem(1167439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1167439"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledNoCrash()
