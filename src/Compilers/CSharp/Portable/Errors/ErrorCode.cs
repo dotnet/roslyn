@@ -1832,10 +1832,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodRefReturnDifference = 8818,
         WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
 
-
-        ERR_8820 = 8820, // used by features/static-lambdas
-
-        ERR_8821 = 8821, // used by features/static-lambdas
+        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
+        ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1864,6 +1862,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NotOverridableAPIInRecord = 8872,
         ERR_NonPublicAPIInRecord = 8873,
         ERR_SignatureMismatchInRecord = 8874,
+        ERR_NonProtectedAPIInRecord = 8875,
+        ERR_DoesNotOverrideBaseEqualityContract = 8876,
 
         #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
