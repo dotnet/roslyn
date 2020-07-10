@@ -232,6 +232,11 @@
         <target state="translated">무시 패턴은 switch 문의 case 레이블로 사용할 수 없습니다. 무시 패턴에 대해 'case var _:'을 사용하거나 이름이 '_'인 상수에 대해 'case @_:'을 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoesNotOverrideBaseEqualityContract">
+        <source>'{0}' does not override expected property from '{1}'.</source>
+        <target state="new">'{0}' does not override expected property from '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideBaseEquals">
         <source>'{0}' does not override expected method from '{1}'.</source>
         <target state="new">'{0}' does not override expected method from '{1}'.</target>
@@ -532,14 +537,19 @@
         <target state="new">The receiver type '{0}' is not a valid record type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonProtectedAPIInRecord">
+        <source>Record member '{0}' must be protected.</source>
+        <target state="new">Record member '{0}' must be protected.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPublicAPIInRecord">
         <source>Record member '{0}' must be public.</source>
         <target state="new">Record member '{0}' must be public.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
-        <source>'{0}' disallows overriding and containing 'record' is not sealed.</source>
-        <target state="new">'{0}' disallows overriding and containing 'record' is not sealed.</target>
+        <source>'{0}' must allow overriding because the containing record is not sealed.</source>
+        <target state="new">'{0}' must allow overriding because the containing record is not sealed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -678,8 +688,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedGetHashCodeInRecord">
-        <source>'{0}' cannot be sealed because containing 'record' is not sealed.</source>
-        <target state="new">'{0}' cannot be sealed because containing 'record' is not sealed.</target>
+        <source>'{0}' cannot be sealed because containing record is not sealed.</source>
+        <target state="new">'{0}' cannot be sealed because containing record is not sealed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SignatureMismatchInRecord">
