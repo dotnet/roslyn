@@ -100,12 +100,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var changes = applyChangesOperation.ChangedSolution.GetChanges(solution);
                     var projectChanges = changes.GetProjectChanges();
 
-                    // TO-DO: If the change involves adding a document, execute via command instead of WorkspaceEdit
-                    // until adding documents is supported in LSP: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
-                    // After support is added, remove the below if-statement and add code to support adding documents.
+                    // TO-DO: If the change involves adding or removing a document, execute via command instead of WorkspaceEdit
+                    // until adding/removing documents is supported in LSP: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
+                    // After support is added, remove the below if-statement and add code to support adding/removing documents.
                     var addedDocuments = projectChanges.SelectMany(
                         pc => pc.GetAddedDocuments().Concat(pc.GetAddedAdditionalDocuments().Concat(pc.GetAddedAnalyzerConfigDocuments())));
-                    if (addedDocuments.Any())
+                    var removedDocuments = projectChanges.SelectMany(
+                        pc => pc.GetRemovedDocuments().Concat(pc.GetRemovedAdditionalDocuments().Concat(pc.GetRemovedAnalyzerConfigDocuments())));
+                    if (addedDocuments.Any() || removedDocuments.Any())
                     {
                         codeAction.Command = SetCommand(codeAction.Title, data);
                         return codeAction;
