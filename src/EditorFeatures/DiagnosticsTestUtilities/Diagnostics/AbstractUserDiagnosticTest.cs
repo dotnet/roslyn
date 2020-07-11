@@ -21,6 +21,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Remote.Testing;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AnalyzerReference[] analyzeReferences;
             if (analyzer != null)
             {
-                Contract.ThrowIfTrue(parameters.runProviderOutOfProc, $"Out-of-proc testing is not supported since {analyzer} can't be serialized.");
+                Contract.ThrowIfTrue(parameters.testHost == TestHost.OutOfProcess, $"Out-of-proc testing is not supported since {analyzer} can't be serialized.");
 
                 analyzeReferences = new[] { new AnalyzerImageReference(ImmutableArray.Create(analyzer)) };
             }

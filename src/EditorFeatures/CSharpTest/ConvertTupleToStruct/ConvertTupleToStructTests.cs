@@ -10,19 +10,13 @@ using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 {
-    public enum TestHost
-    {
-        InProcess,
-        OutOfProcess,
-    }
-
     public class ConvertTupleToStructTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -34,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
         private OptionsCollection GetPreferImplicitTypeOptions(TestHost host)
         {
             var options = this.PreferImplicitTypeWithInfo();
-            options.Add(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess);
+            options.Add(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess);
             return options;
         }
 
@@ -238,7 +232,7 @@ internal struct NewStruct
     }
 }";
             await TestInRegularAndScriptAsync(text, expected,
-                options: Option(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess));
+                options: Option(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess));
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -1302,7 +1296,7 @@ class Test
 ";
 
             await TestMissingInRegularAndScriptAsync(text,
-                parameters: new TestParameters(options: Option(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess)));
+                parameters: new TestParameters(options: Option(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess)));
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]

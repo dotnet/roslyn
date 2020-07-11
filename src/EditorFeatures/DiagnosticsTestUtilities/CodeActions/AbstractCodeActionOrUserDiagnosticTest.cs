@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Remote.Testing;
 
 #if CODE_STYLE
 using System.Diagnostics;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public struct TestParameters
         {
             internal readonly OptionsCollection options;
-            internal readonly bool runProviderOutOfProc;
+            internal readonly TestHost testHost;
             internal readonly object fixProviderData;
             internal readonly ParseOptions parseOptions;
             internal readonly CompilationOptions compilationOptions;
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 bool retainNonFixableDiagnostics = false,
                 bool includeDiagnosticsOutsideSelection = false,
                 string title = null,
-                bool runProviderOutOfProc = false)
+                TestHost testHost = TestHost.InProcess)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
                 this.includeDiagnosticsOutsideSelection = includeDiagnosticsOutsideSelection;
                 this.title = title;
-                this.runProviderOutOfProc = runProviderOutOfProc;
+                this.testHost = testHost;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)

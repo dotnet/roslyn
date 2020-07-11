@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.GoToBase
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     Public MustInherit Class GoToBaseTestsBase
@@ -11,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
                                            Optional metadataDefinitions As String() = Nothing) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
-                outOfProcess:=False,
+                testHost:=TestHost.InProcess,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext)
                     Dim gotoBaseService = document.GetLanguageService(Of IGoToBaseService)
                     Await gotoBaseService.FindBasesAsync(document, position, context)

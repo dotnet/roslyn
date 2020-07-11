@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Experiments
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -111,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
 #Disable Warning IDE0060 ' Remove unused parameter - https://github.com/dotnet/roslyn/issues/45890
-        Public Function CreateWorkspaceWithWaiter(element As XElement, host As TestHost) As TestWorkspace
+        Public Function CreateWorkspaceWithWaiter(element As XElement, host As RenameTestHost) As TestWorkspace
 #Enable Warning IDE0060 ' Remove unused parameter
             Dim workspace = TestWorkspace.CreateWorkspace(
                 element,

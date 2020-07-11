@@ -2,21 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
-    Public Enum TestHost
-        InProcess
-        OutOfProcess
-    End Enum
-
     <[UseExportProvider]>
     Public Class GoToImplementationTests
 
         Private Shared Async Function TestAsync(workspaceDefinition As XElement, host As TestHost, Optional shouldSucceed As Boolean = True) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
-                host <> TestHost.InProcess,
+                host,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
                     Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
                     Await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(False)

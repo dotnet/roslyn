@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
@@ -34,11 +34,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             StreamingFeature
         End Enum
 
-        Public Enum TestHost
-            InProcess
-            OutOfProcess
-        End Enum
-
         Private Async Function TestAPIAndFeature(definition As XElement, kind As TestKind, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             If kind = TestKind.API Then
                 Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, options:=Nothing)
@@ -49,13 +44,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         Private Shared Async Function TestStreamingFeature(element As XElement, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=host = TestHost.OutOfProcess)
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, host)
         End Function
 
         Private Shared Async Function TestStreamingFeature(element As XElement,
                                                     searchSingleFileOnly As Boolean,
                                                     uiVisibleOnly As Boolean,
-                                                    outOfProcess As Boolean) As Task
+                                                    host As TestHost) As Task
             ' We don't support testing features that only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
@@ -63,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             Using workspace = TestWorkspace.Create(element)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
+                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
 
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
@@ -256,18 +251,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Optional searchSingleFileOnly As Boolean = False,
                 Optional uiVisibleOnly As Boolean = False,
                 Optional options As FindReferencesSearchOptions = Nothing) As Task
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, options, outOfProcess:=host = TestHost.OutOfProcess)
-        End Function
 
-        Private Async Function TestAPI(definition As XElement,
-                                       searchSingleFileOnly As Boolean,
-                                       uiVisibleOnly As Boolean,
-                                       options As FindReferencesSearchOptions,
-                                       outOfProcess As Boolean) As Task
             options = If(options, FindReferencesSearchOptions.Default)
             Using workspace = TestWorkspace.Create(definition)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
+                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
