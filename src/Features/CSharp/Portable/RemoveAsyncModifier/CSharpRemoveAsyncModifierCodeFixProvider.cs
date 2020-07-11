@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
@@ -58,7 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
             return false;
         }
 
-        protected override SyntaxNode GetBlockBody(SyntaxNode node)
+        protected override SyntaxNode GetLastChildOfBlock(SyntaxNode node)
+            => GetBlockBody(node).ChildNodes().Last();
+
+        protected override ControlFlowAnalysis AnalyzeControlFlow(SemanticModel semanticModel, SyntaxNode node)
+            => semanticModel.AnalyzeControlFlow(GetBlockBody(node));
+
+        private static SyntaxNode GetBlockBody(SyntaxNode node)
             => node switch
             {
                 MethodDeclarationSyntax method => method.Body,

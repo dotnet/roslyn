@@ -25,11 +25,12 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
-        protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
-        protected abstract SyntaxNode GetBlockBody(SyntaxNode node);
-        protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody, SyntaxEditor editor);
         protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, out SyntaxNode expression);
         protected abstract bool ShouldOfferFix(ISymbol declaredSymbol, KnownTypes knownTypes);
+        protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
+        protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody, SyntaxEditor editor);
+        protected abstract SyntaxNode GetLastChildOfBlock(SyntaxNode node);
+        protected abstract ControlFlowAnalysis AnalyzeControlFlow(SemanticModel semanticModel, SyntaxNode originalNode);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -99,8 +100,8 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                     {
                         editor.ReplaceNode(replacementNode, blockBodiedNode);
                         // We need to get the block inside the block bodied method to know where to add the return
-                        var block = GetBlockBody(blockBodiedNode);
-                        InsertTaskCompletedTaskReturn(block, editor, knownTypes);
+                        var node = GetLastChildOfBlock(blockBodiedNode);
+                        AppendTaskCompletedTaskReturn(node, editor, knownTypes);
                     }
                 }
                 else
@@ -119,16 +120,15 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 if (methodSymbol.ReturnType == knownTypes._taskType)
                 {
                     // We have to use the original node to do control flow analysis, but the reachability of it is the same
-                    var block = GetBlockBody(originalNode);
-                    var controlFlow = semanticModel.AnalyzeControlFlow(block);
+                    var controlFlow = AnalyzeControlFlow(semanticModel, originalNode);
 
                     // For local functions and block bodied lambdas the EndPointIsReachable is false but we still might need to
                     // insert a return. We can tell by checking for the presence of exit points that aren't return statements
                     var hasNonReturnExitPoints = controlFlow.ExitPoints.Any<SyntaxNode>(e => !(e is TReturnStatementSyntax));
                     if (controlFlow.EndPointIsReachable || hasNonReturnExitPoints)
                     {
-                        block = GetBlockBody(replacementNode);
-                        InsertTaskCompletedTaskReturn(block, editor, knownTypes);
+                        var node = GetLastChildOfBlock(replacementNode);
+                        AppendTaskCompletedTaskReturn(node, editor, knownTypes);
                     }
                 }
             }
@@ -163,12 +163,11 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             }
         }
 
-        private static void InsertTaskCompletedTaskReturn(SyntaxNode node, SyntaxEditor editor, KnownTypes knownTypes)
+        private static void AppendTaskCompletedTaskReturn(SyntaxNode lastNode, SyntaxEditor editor, KnownTypes knownTypes)
         {
             var generator = editor.Generator;
             var returnTaskCompletedTask = GetReturnTaskCompletedTaskStatement(knownTypes, generator);
 
-            var lastNode = node.ChildNodes().Last();
             editor.InsertAfter(lastNode, returnTaskCompletedTask);
         }
 
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
             var taskTypeExpression = TypeExpressionForStaticMemberAccess(generator, knownTypes._taskType);
             var taskFromResult = generator.MemberAccessExpression(taskTypeExpression, nameof(Task.FromResult));
-            var invocation = generator.InvocationExpression(taskFromResult, expression);
+            var invocation = generator.InvocationExpression(taskFromResult, expression.NormalizeWhitespace());
             editor.ReplaceNode(expression, invocation);
         }
 
