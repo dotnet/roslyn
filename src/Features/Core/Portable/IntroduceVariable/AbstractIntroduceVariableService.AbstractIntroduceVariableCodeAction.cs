@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly bool _isConstant;
             private readonly bool _isLocal;
             private readonly bool _isQueryLocal;
+            private readonly bool _includeRValues;
             private readonly TExpressionSyntax _expression;
             private readonly SemanticDocument _semanticDocument;
             private readonly TService _service;
@@ -30,7 +32,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 bool allOccurrences,
                 bool isConstant,
                 bool isLocal,
-                bool isQueryLocal)
+                bool isQueryLocal,
+                bool includeRValues)
             {
                 _service = service;
                 _semanticDocument = document;
@@ -39,6 +42,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 _isConstant = isConstant;
                 _isLocal = isLocal;
                 _isQueryLocal = isQueryLocal;
+                _includeRValues = includeRValues;
                 Title = CreateDisplayText(expression);
             }
 
@@ -58,7 +62,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
                 else if (_isLocal)
                 {
-                    return await _service.IntroduceLocalAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
+                    return await _service.IntroduceLocalAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, _includeRValues, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -93,7 +97,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     ? _allOccurrences
                         ? FeaturesResources.Introduce_query_variable_for_all_occurrences_of_0
                         : FeaturesResources.Introduce_query_variable_for_0
-                    : formatStrings[_allOccurrences ? 1 : 0, _isConstant ? 1 : 0, _isLocal ? 1 : 0];
+                    : _allOccurrences && _includeRValues && !_isConstant
+                        ? FeaturesResources.Introduce_local_for_all_occurrences_of_0_including_writes
+                        : formatStrings[_allOccurrences ? 1 : 0, _isConstant ? 1 : 0, _isLocal ? 1 : 0];
                 return string.Format(formatString, nodeString);
             }
 

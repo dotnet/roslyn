@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                 expression).WithAdditionalAnnotations(Formatter.Annotation);
 
-            var matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, cancellationToken);
+            var matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, true, cancellationToken);
             var innermostClauses = new HashSet<SyntaxNode>(
                 matches.Select(expr => expr.GetAncestorsOrThis<SyntaxNode>().First(IsAnyQueryClause)));
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var oldInnerMostCommonQuery = matches.FindInnermostCommonNode<QueryExpressionSyntax>();
             var newInnerMostQuery = Rewrite(
-                document, expression, newLocalName, document, oldInnerMostCommonQuery, allOccurrences, cancellationToken);
+                document, expression, newLocalName, document, oldInnerMostCommonQuery, allOccurrences, includeRValues: true, cancellationToken);
 
             var allAffectedClauses = new HashSet<SyntaxNode>(matches.SelectMany(expr => expr.GetAncestorsOrThis<SyntaxNode>().Where(IsAnyQueryClause)));
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             var oldClause = expression.GetAncestors<SyntaxNode>().First(IsAnyQueryClause);
             var newClause = Rewrite(
-                document, expression, newLocalName, document, oldClause, allOccurrences, cancellationToken);
+                document, expression, newLocalName, document, oldClause, allOccurrences, includeRValues: true, cancellationToken);
 
             var oldQuery = (QueryBodySyntax)oldClause.Parent;
             var newQuery = GetNewQuery(oldQuery, oldClause, newClause, letClause);

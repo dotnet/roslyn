@@ -170,7 +170,8 @@ End Module"
                 source,
                 expectedActionSet:={
                     String.Format(FeaturesResources.Introduce_local_for_0, "CType(2.ToString(), T)"),
-                    String.Format(FeaturesResources.Introduce_local_for_all_occurrences_of_0, "CType(2.ToString(), T)")})
+                    String.Format(FeaturesResources.Introduce_local_for_all_occurrences_of_0, "CType(2.ToString(), T)"),
+                    String.Format(FeaturesResources.Introduce_local_for_all_occurrences_of_0_including_writes, "CType(2.ToString(), T)")})
 
             ' Verifies "Introduce field ..." is missing
         End Function
@@ -186,7 +187,8 @@ End Module"
                 source,
                 expectedActionSet:={
                     String.Format(FeaturesResources.Introduce_local_for_0, "x.ToString()"),
-                    String.Format(FeaturesResources.Introduce_local_for_all_occurrences_of_0, "x.ToString()")})
+                    String.Format(FeaturesResources.Introduce_local_for_all_occurrences_of_0, "x.ToString()"),
+                    String.Format(FeaturesResources.Introduce_local_for_all_occurrences_of_0_including_writes, "x.ToString()")})
 
             ' Verifies "Introduce field ..." is missing
         End Function
@@ -655,7 +657,7 @@ Module Program
         Goo([|CType(2.ToString(), T)|])
     End Sub
 End Module",
-count:=2)
+count:=3)
         End Function
 
         <WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")>

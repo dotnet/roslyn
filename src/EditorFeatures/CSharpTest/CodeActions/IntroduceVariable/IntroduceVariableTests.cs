@@ -968,7 +968,7 @@ class Program
         Goo([|(T)2.ToString()|]);
     }
 }",
-count: 2);
+count: 3);
         }
 
         [WorkItem(552389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552389")]
@@ -1927,7 +1927,11 @@ class Program
 }";
 
             await TestExactActionSetOfferedAsync(code,
-                new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5"), string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5") });
+                new[]
+                {
+                    string.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
+                    string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")
+                });
         }
 
         [WorkItem(529795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529795")]
@@ -5020,7 +5024,7 @@ class C
         Bar([|(1, ""hello"")|]);
         Bar((1, ""hello"");
     }
-}", count: 2);
+}", count: 3);
         }
 
         [WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")]

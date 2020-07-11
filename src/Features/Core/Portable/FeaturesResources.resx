@@ -282,6 +282,9 @@
   <data name="Introduce_local_constant_for_all_occurrences_of_0" xml:space="preserve">
     <value>Introduce local constant for all occurrences of '{0}'</value>
   </data>
+  <data name="Introduce_local_for_all_occurrences_of_0_including_writes" xml:space="preserve">
+    <value>Introduce local for all occurrences of '{0}' including writes</value>
+  </data>
   <data name="Introduce_query_variable_for_all_occurrences_of_0" xml:space="preserve">
     <value>Introduce query variable for all occurrences of '{0}'</value>
   </data>

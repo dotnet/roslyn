@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 expression As ExpressionSyntax,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
+                includeRValues As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim container = GetContainerToGenerateInfo(document, expression, cancellationToken)
@@ -47,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Else
                 Return Await IntroduceLocalDeclarationIntoBlockAsync(
                     document, container, expression, newLocalName,
-                    declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(False)
+                    declarationStatement, allOccurrences, includeRValues, cancellationToken).ConfigureAwait(False)
             End If
         End Function
 
@@ -83,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Dim oldBody = DirectCast(oldLambda.Body, ExpressionSyntax)
 
             Dim rewrittenBody = Rewrite(
-                document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken)
+                document, expression, newLocalName, document, oldBody, allOccurrences, True, cancellationToken)
 
             Dim statements = {declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody)}
 
@@ -120,6 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 newLocalName As NameSyntax,
                 declarationStatement As LocalDeclarationStatementSyntax,
                 allOccurrences As Boolean,
+                includeRValues As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim localAnnotation = New SyntaxAnnotation()
@@ -130,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 oldOutermostBlock = oldOutermostBlock.Parent
             End If
 
-            Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken)
+            Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, includeRValues, cancellationToken)
 
             Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
             document = complexified.newSemanticDocument
@@ -150,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Dim allAffectedStatements = New HashSet(Of StatementSyntax)(matches.SelectMany(Function(expr) expr.GetAncestorsOrThis(Of StatementSyntax)()))
             Dim firstStatementAffectedInBlock = oldInnerMostCommonBlock.GetExecutableBlockStatements().First(AddressOf allAffectedStatements.Contains)
             Dim firstStatementAffectedIndex = oldInnerMostCommonBlock.GetExecutableBlockStatements().IndexOf(firstStatementAffectedInBlock)
-            Dim newInnerMostBlock = Rewrite(document, expression, newLocalName, document, oldInnerMostCommonBlock, allOccurrences, cancellationToken)
+            Dim newInnerMostBlock = Rewrite(document, expression, newLocalName, document, oldInnerMostCommonBlock, allOccurrences, True, cancellationToken)
 
             Dim statements = newInnerMostBlock.GetExecutableBlockStatements().Insert(firstStatementAffectedIndex, declarationStatement)
             Dim finalInnerMostBlock = oldInnerMostCommonBlock.ReplaceStatements(statements, Formatter.Annotation)
@@ -169,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Dim oldStatement = expression.GetAncestorsOrThis(Of StatementSyntax)().Where(
                 Function(s) s.Parent.IsExecutableBlock() AndAlso s.Parent.GetExecutableBlockStatements().Contains(s)).First()
-            Dim newStatement = Rewrite(semanticDocument, expression, localName, semanticDocument, oldStatement, allOccurrences, cancellationToken)
+            Dim newStatement = Rewrite(semanticDocument, expression, localName, semanticDocument, oldStatement, allOccurrences, True, cancellationToken)
 
             localDeclaration = localDeclaration.WithLeadingTrivia(newStatement.GetLeadingTrivia())
             newStatement = newStatement.WithLeadingTrivia(newStatement.GetLeadingTrivia().Where(Function(trivia) trivia.IsKind(SyntaxKind.WhitespaceTrivia)))

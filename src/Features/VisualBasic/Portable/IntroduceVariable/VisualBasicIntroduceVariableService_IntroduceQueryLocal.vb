@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                             SyntaxFactory.ModifiedIdentifier(newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()))),
                         expression)).WithAdditionalAnnotations(Formatter.Annotation)
 
-            Dim matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, cancellationToken)
+            Dim matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, True, cancellationToken)
             Dim innermostClauses = New HashSet(Of QueryClauseSyntax)(
                 matches.Select(Function(expr) expr.GetAncestor(Of QueryClauseSyntax)()))
 
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             End If
 
             Dim oldInnerMostCommonQuery = matches.FindInnermostCommonNode(Of QueryExpressionSyntax)()
-            Dim newInnerMostQuery = Rewrite(document, expression, newLocalName, document, oldInnerMostCommonQuery, allOccurrences, cancellationToken)
+            Dim newInnerMostQuery = Rewrite(document, expression, newLocalName, document, oldInnerMostCommonQuery, allOccurrences, True, cancellationToken)
 
             Dim allAffectedClauses = New HashSet(Of QueryClauseSyntax)(
                 matches.SelectMany(Function(expr) expr.GetAncestorsOrThis(Of QueryClauseSyntax)()))
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             cancellationToken As CancellationToken) As Document
 
             Dim oldClause = expression.GetAncestor(Of QueryClauseSyntax)()
-            Dim newClause = Rewrite(document, expression, newLocalName, document, oldClause, allOccurrences, cancellationToken)
+            Dim newClause = Rewrite(document, expression, newLocalName, document, oldClause, allOccurrences, True, cancellationToken)
 
             Dim oldQuery = DirectCast(oldClause.Parent, QueryExpressionSyntax)
             Dim newQuery = GetNewQuery(oldQuery, oldClause, newClause, letClause)

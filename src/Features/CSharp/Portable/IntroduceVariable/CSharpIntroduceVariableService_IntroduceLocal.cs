@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             ExpressionSyntax expression,
             bool allOccurrences,
             bool isConstant,
+            bool includeRValues,
             CancellationToken cancellationToken)
         {
             var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             {
                 case BlockSyntax block:
                     return await IntroduceLocalDeclarationIntoBlockAsync(
-                        document, block, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(false);
+                        document, block, expression, newLocalName, declarationStatement, allOccurrences, includeRValues, cancellationToken).ConfigureAwait(false);
 
                 case ArrowExpressionClauseSyntax arrowExpression:
                     // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var isEntireLambdaBodySelected = oldBody.Equals(expression.WalkUpParentheses());
 
             var rewrittenBody = Rewrite(
-                document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
+                document, expression, newLocalName, document, oldBody, allOccurrences, includeRValues: true, cancellationToken);
 
             var shouldIncludeReturnStatement = ShouldIncludeReturnStatement(document, oldLambda, cancellationToken);
             var newBody = GetNewBlockBodyForLambda(
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var leadingTrivia = oldBody.GetLeadingTrivia()
                                        .AddRange(oldBody.ArrowToken.TrailingTrivia);
 
-            var newExpression = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, cancellationToken);
+            var newExpression = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, includeRValues: true, cancellationToken);
 
             var convertedStatement = createReturnStatement
                 ? SyntaxFactory.ReturnStatement(newExpression)
@@ -282,6 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             NameSyntax newLocalName,
             LocalDeclarationStatementSyntax declarationStatement,
             bool allOccurrences,
+            bool includeRValues,
             CancellationToken cancellationToken)
         {
             declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
@@ -295,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 scope = block.GetAncestor<MemberDeclarationSyntax>();
             }
 
-            var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
+            var matches = FindMatches(document, expression, document, scope, allOccurrences, includeRValues, cancellationToken);
             Debug.Assert(matches.Contains(expression));
 
             (document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
@@ -338,8 +340,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var firstStatementAffectedIndex = GetFirstStatementAffectedIndex(innermostCommonBlock, matches, GetStatements(innermostCommonBlock).IndexOf(allAffectedStatements.Contains));
 
+            // we already filtered the matches based on rvalue/lvalue and includeRValues, 
+            // and while theoretically we could pass the includeRValues as is to the rewrite function,
+            // this will cause it to refilter the list of nodes, and that will fail because they've been rewritten above
+            // and now are out of sync with the semantic model. I could rebuild the semantic model, but really, our work here is done
             var newInnerMostBlock = Rewrite(
-                document, expression, newLocalName, document, innermostCommonBlock, allOccurrences, cancellationToken);
+                document, expression, newLocalName, document, innermostCommonBlock, allOccurrences, true, cancellationToken);
 
             var statements = InsertWithinTriviaOfNext(GetStatements(newInnerMostBlock), declarationStatement, firstStatementAffectedIndex);
             var finalInnerMostBlock = WithStatements(newInnerMostBlock, statements);

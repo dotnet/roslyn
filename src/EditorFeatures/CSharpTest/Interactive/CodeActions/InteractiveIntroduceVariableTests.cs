@@ -213,5 +213,70 @@ index: 1);
 }
 ");
         }
+
+        [WorkItem(45790, "https://github.com/dotnet/roslyn/issues/45790")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public Task IntroduceLocal_RValueOnly() =>
+            TestAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var arr = new[] { 1, 2, 3 };
+        var idx = 0;
+
+        arr[idx + 1] = (arr[idx + 1] + 10) * ([|arr[idx + 1]|] - 5);
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var arr = new[] { 1, 2, 3 };
+        var idx = 0;
+
+        int {|Rename:v|} = arr[idx + 1];
+        arr[idx + 1] = (v + 10) * (v - 5);
+    }
+}", index: 1);
+
+        [WorkItem(45790, "https://github.com/dotnet/roslyn/issues/45790")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public Task IntroduceLocal_LValueRValue() =>
+            TestAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var arr = new[] { 1, 2, 3 };
+        var idx = 0;
+
+        arr[idx + 1] = (arr[idx + 1] + 10) * ([|arr[idx + 1]|] - 5);
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var arr = new[] { 1, 2, 3 };
+        var idx = 0;
+
+        int {|Rename:v|} = arr[idx + 1];
+        v = (v + 10) * (v - 5);
+    }
+}", index: 2);
+
     }
 }
