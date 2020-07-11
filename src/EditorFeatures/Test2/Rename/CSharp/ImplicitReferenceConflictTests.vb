@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
 
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextCausesConflictInForEach(host As TestHost)
+        Public Sub RenameMoveNextCausesConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -53,7 +53,7 @@ class C
         End Sub
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameDeconstructCausesConflictInDeconstructionAssignment(host As TestHost)
+        Public Sub RenameDeconstructCausesConflictInDeconstructionAssignment(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -76,7 +76,7 @@ class C
         End Sub
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameDeconstructCausesConflictInDeconstructionForEach(host As TestHost)
+        Public Sub RenameDeconstructCausesConflictInDeconstructionForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -101,7 +101,7 @@ class C
         End Sub
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameGetAwaiterCausesConflict(host As TestHost)
+        Public Sub RenameGetAwaiterCausesConflict(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -127,7 +127,7 @@ public class C
 
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextInVBCausesConflictInForEach(host As TestHost)
+        Public Sub RenameMoveNextInVBCausesConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -171,7 +171,7 @@ class D
 
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextInVBToUpperCaseOnlyCausesConflictInCSForEach(host As TestHost)
+        Public Sub RenameMoveNextInVBToUpperCaseOnlyCausesConflictInCSForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">

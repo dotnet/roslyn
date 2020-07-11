@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function ValidTagsDuringSimpleRename(host As TestHost) As Task
+        Public Async Function ValidTagsDuringSimpleRename(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         <WpfTheory>
         <WorkItem(922197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function UnresolvableConflictInModifiedDocument(host As TestHost) As System.Threading.Tasks.Task
+        Public Async Function UnresolvableConflictInModifiedDocument(host As RenameTestHost) As System.Threading.Tasks.Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -193,7 +193,7 @@ class Program
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyLinkedFiles_InterleavedResolvedConflicts(host As TestHost) As System.Threading.Tasks.Task
+        Public Async Function VerifyLinkedFiles_InterleavedResolvedConflicts(host As RenameTestHost) As System.Threading.Tasks.Task
             Using workspace = CreateWorkspaceWithWaiter(
                          <Workspace>
                              <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -302,7 +302,7 @@ public class Class1
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyLinkedFiles_UnresolvableConflictComments(host As TestHost) As Task
+        Public Async Function VerifyLinkedFiles_UnresolvableConflictComments(host As RenameTestHost) As Task
             Dim originalDocument = "
 public class Class1
 {
@@ -376,7 +376,7 @@ public class Class1
         <WpfTheory>
         <WorkItem(922197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922197")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function UnresolvableConflictInUnmodifiedDocument(host As TestHost) As Task
+        Public Async Function UnresolvableConflictInUnmodifiedDocument(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -412,7 +412,7 @@ public class Class1
         <WpfTheory>
         <WorkItem(847467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847467")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function ValidStateWithEmptyReplacementTextAfterConflictResolution(host As TestHost) As Task
+        Public Async Function ValidStateWithEmptyReplacementTextAfterConflictResolution(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -484,7 +484,7 @@ public class Class1
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(812789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812789")>
-        Public Async Function RenamingEscapedIdentifiers(host As TestHost) As Task
+        Public Async Function RenamingEscapedIdentifiers(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -541,7 +541,7 @@ class C
         <WpfTheory>
         <WorkItem(812795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812795")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function BackspacingAfterConflictResolutionPreservesTrackingSpans(host As TestHost) As Task
+        Public Async Function BackspacingAfterConflictResolutionPreservesTrackingSpans(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -623,7 +623,7 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_NonReferenceConflict(host As TestHost) As Task
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_NonReferenceConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -700,7 +700,7 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict(host As TestHost) As Task
+        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -771,7 +771,7 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict(host As TestHost) As Task
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -843,7 +843,7 @@ class Goo
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_ReferenceConflict(host As TestHost) As Task
+        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_ReferenceConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -910,7 +910,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping(host As TestHost) As Task
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -987,7 +987,7 @@ class Goo
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NeedsEscaping(host As TestHost) As Task
+        Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NeedsEscaping(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -1058,7 +1058,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function FixupSpanDuringResolvableConflict_VerifyCaret(host As TestHost) As Task
+        Public Async Function FixupSpanDuringResolvableConflict_VerifyCaret(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -1142,7 +1142,7 @@ End Class
         <WpfTheory>
         <WorkItem(771743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771743")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VerifyNoSelectionAfterCommit(host As TestHost) As Task
+        Public Async Function VerifyNoSelectionAfterCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -1187,7 +1187,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationOutsideConflict(host As TestHost) As Task
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationOutsideConflict(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1287,7 +1287,7 @@ class Program
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ContainedComplexifiedSpan(host As TestHost) As Task
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ContainedComplexifiedSpan(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1357,7 +1357,7 @@ namespace N
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans(host As TestHost) As Task
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1416,7 +1416,7 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_WithinCrefs(host As TestHost) As Task
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_WithinCrefs(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1503,7 +1503,7 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharp_FixupSpanDuringResolvableConflict_OverLoadResolutionChangesInEnclosingInvocations(host As TestHost) As Task
+        Public Async Function CSharp_FixupSpanDuringResolvableConflict_OverLoadResolutionChangesInEnclosingInvocations(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1589,7 +1589,7 @@ static class E
         <WpfTheory>
         <WorkItem(530817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function CSharpShowDeclarationConflictsImmediately(host As TestHost) As Task
+        Public Async Function CSharpShowDeclarationConflictsImmediately(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -1625,7 +1625,7 @@ static class E
         <WpfTheory>
         <WorkItem(530817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530817")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function VBShowDeclarationConflictsImmediately(host As TestHost) As Task
+        Public Async Function VBShowDeclarationConflictsImmediately(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="Visual Basic" CommonReferences="true">
@@ -1658,7 +1658,7 @@ static class E
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function ActiveSpanInSecondaryView(host As TestHost) As Task
+        Public Async Function ActiveSpanInSecondaryView(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="Visual Basic" CommonReferences="true">

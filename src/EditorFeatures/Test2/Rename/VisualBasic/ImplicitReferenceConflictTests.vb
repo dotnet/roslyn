@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
         <Theory>
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextCausesConflictInForEach(host As TestHost)
+        Public Sub RenameMoveNextCausesConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -54,7 +54,7 @@ End Class
         <Theory>
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextToChangeCasingDoesntCauseConflictInForEach(host As TestHost)
+        Public Sub RenameMoveNextToChangeCasingDoesntCauseConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -90,7 +90,7 @@ End Class
         <Theory>
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextToChangeCasingInCSDoesntCauseConflictInForEach(host As TestHost)
+        Public Sub RenameMoveNextToChangeCasingInCSDoesntCauseConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -137,7 +137,7 @@ End Class
         <Theory>
         <WorkItem(528966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528966")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoveNextInCSCauseConflictInForEach(host As TestHost)
+        Public Sub RenameMoveNextInCSCauseConflictInForEach(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
 
         <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingTopLevelMethodsSupported(host As TestHost)
+        Public Sub RenamingTopLevelMethodsSupported(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">

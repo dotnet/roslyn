@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
 
         <WorkItem(403671, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/403671")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CustomerReported_ErrorTolerance(host As TestHost)
+        Public Sub CustomerReported_ErrorTolerance(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
