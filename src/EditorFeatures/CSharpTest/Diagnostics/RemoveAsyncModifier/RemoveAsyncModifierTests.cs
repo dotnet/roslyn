@@ -775,7 +775,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
-        public async Task AsyncVoid_Missing()
+        public async Task Method_AsyncVoid_Missing()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -796,6 +796,62 @@ class C
                 {
                     // /0/Test0.cs(6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                     DiagnosticResult.CompilerWarning("CS1998").WithSpan(6, 16, 6, 17),
+                },
+                FixedCode = source,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task ParenthesisedLambda_AsyncVoid_Missing()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Action a = async () => Console.WriteLine(1);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                ExpectedDiagnostics =
+                {
+                     // /0/Test0.cs(9,29): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(9, 29, 9, 31),
+                },
+                FixedCode = source,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+        public async Task SimpleLambda_AsyncVoid_Missing()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Action<int> a = async x => Console.WriteLine(x);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(9,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                    DiagnosticResult.CompilerWarning("CS1998").WithSpan(9, 33, 9, 35),
                 },
                 FixedCode = source,
             }.RunAsync();
