@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract bool TryGetExpressionBody(SyntaxNode methodSymbolOpt, out SyntaxNode expression);
-        protected abstract bool ShouldOfferFix(ISymbol declaredSymbol, KnownTypes knownTypes);
+        protected abstract bool ShouldOfferFix(IMethodSymbol methodSymbol, KnownTypes knownTypes);
         protected abstract SyntaxNode RemoveAsyncModifier(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
         protected abstract SyntaxNode ConvertToBlockBody(SyntaxNode node, SyntaxNode expressionBody, SyntaxEditor editor);
         protected abstract SyntaxNode GetLastChildOfBlock(SyntaxNode node);
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var declaredSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            var methodSymbol = GetMethodSymbol(node, semanticModel, cancellationToken);
 
-            if (ShouldOfferFix(declaredSymbol, knownTypes))
+            if (ShouldOfferFix(methodSymbol, knownTypes))
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(c => FixAsync(document, diagnostic, c)),
@@ -67,16 +67,20 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             {
                 var token = diagnostic.Location.FindToken(cancellationToken);
                 var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
-                var methodSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
-
-                // If we couldn't get the declaration then its a lambda or similar, so we just get the symbol itself
-                if (methodSymbol == null)
-                {
-                    methodSymbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as IMethodSymbol;
-                }
+                var methodSymbol = GetMethodSymbol(node, semanticModel, cancellationToken);
 
                 RemoveAsyncModifier(editor, semanticModel, node, methodSymbol, knownTypes);
             }
+        }
+
+        private static IMethodSymbol GetMethodSymbol(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol methodSymbol)
+            {
+                return methodSymbol;
+            }
+
+            return semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
         }
 
         private void RemoveAsyncModifier(SyntaxEditor editor, SemanticModel semanticModel, SyntaxNode originalNode, IMethodSymbol methodSymbol, KnownTypes knownTypes)

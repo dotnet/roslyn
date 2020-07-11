@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remote
 
 Class C
     Async Function {|BC42356:Goo|}() As Task
+        If System.DateTime.Now.Ticks > 0 Then
+            Return
+        End If
+
         System.Console.WriteLine(1)
     End Function
 End Class",
@@ -24,7 +28,44 @@ End Class",
 
 Class C
     Function {|BC42356:Goo|}() As Task
+        If System.DateTime.Now.Ticks > 0 Then
+            Return Task.CompletedTask
+        End If
+
         System.Console.WriteLine(1)
+        Return Task.CompletedTask
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        Public Async Function Function_Task_WithLambda() As Task
+            Await VerifyVB.VerifyCodeFixAsync(
+"Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Async Function {|BC42356:Goo|}() As Task
+        System.Console.WriteLine(1)
+
+        dim f as Func(of Integer) =
+            Function()
+                Return 1
+            End Function
+    End Function
+End Class",
+"Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Function {|BC42356:Goo|}() As Task
+        System.Console.WriteLine(1)
+
+        dim f as Func(of Integer) =
+            Function()
+                Return 1
+            End Function
+
         Return Task.CompletedTask
     End Function
 End Class")
@@ -50,7 +91,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
-        Public Async Function SingleLineLambda_Task() As Task
+        Public Async Function SingleLineFunctionLambda_Task() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
 Imports System.Threading.Tasks
@@ -73,7 +114,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
-        Public Async Function SingleLineLambda_TaskOfT() As Task
+        Public Async Function SingleLineFunctionLambda_TaskOfT() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
 Imports System.Threading.Tasks
@@ -96,7 +137,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
-        Public Async Function MultiLineLambda_Task() As Task
+        Public Async Function MultiLineFunctionLambda_Task() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
 Imports System.Threading.Tasks
@@ -124,7 +165,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
-        Public Async Function MultiLineLambda_TaskOfT() As Task
+        Public Async Function MultiLineFunctionLambda_TaskOfT() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
 Imports System.Threading.Tasks
@@ -151,20 +192,91 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
-        Public Async Function Sub_Task_Missing() As Task
+        Public Async Function Sub_Missing() As Task
             Dim source = "
 Imports System
 
 Class C
-    Async Sub Goo()
-        System.Console.WriteLine(1)
+    Async Sub {|BC42356:Goo|}()
+        Console.WriteLine(1)
+    End Sub
+End Class"
+            Dim expected = "
+Imports System
+
+Class C
+    Async Sub {|#0:Goo|}()
+        Console.WriteLine(1)
     End Sub
 End Class"
 
             Dim test = New VerifyVB.Test()
             test.TestState.Sources.Add(source)
-            test.FixedState.Sources.Add(source)
-            test.FixedState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("BC42356").WithLocation(0).WithArguments("Integer", "System.Threading.Tasks.Task"))
+            test.FixedState.Sources.Add(expected)
+            ' /0/Test0.vb(5) : warning BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+            test.FixedState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("BC42356").WithSpan(5, 15, 5, 18))
+            Await test.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        Public Async Function MultiLineSubLambda_Task_Missing() As Task
+            Dim source = "
+Imports System
+
+Class C
+    Sub Goo()
+        dim f as Action =
+            Async {|BC42356:Sub|}()
+                Console.WriteLine(1)
+            End Sub
+    End Sub
+End Class"
+            Dim expected = "
+Imports System
+
+Class C
+    Sub Goo()
+        dim f as Action =
+            Async {|#0:Sub|}()
+                Console.WriteLine(1)
+            End Sub
+    End Sub
+End Class"
+
+            Dim test = New VerifyVB.Test()
+            test.TestState.Sources.Add(source)
+            test.FixedState.Sources.Add(expected)
+            ' /0/Test0.vb(7) : warning BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+            test.FixedState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("BC42356").WithSpan(7, 19, 7, 22))
+            Await test.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        Public Async Function SingleLineSubLambda_Task_Missing() As Task
+            Dim source = "
+Imports System
+
+Class C
+    Sub Goo()
+        dim f as Action =
+            Async {|BC42356:Sub|}() Console.WriteLine(1)
+    End Sub
+End Class"
+            Dim expected = "
+Imports System
+
+Class C
+    Sub Goo()
+        dim f as Action =
+            Async {|#0:Sub|}() Console.WriteLine(1)
+    End Sub
+End Class"
+
+            Dim test = New VerifyVB.Test()
+            test.TestState.Sources.Add(source)
+            test.FixedState.Sources.Add(expected)
+            ' /0/Test0.vb(7) : warning BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+            test.FixedState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("BC42356").WithSpan(7, 19, 7, 22))
             Await test.RunAsync()
         End Function
     End Class

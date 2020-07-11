@@ -35,28 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override bool ShouldOfferFix(ISymbol declaredSymbol, KnownTypes knownTypes)
+        protected override bool ShouldOfferFix(IMethodSymbol methodSymbol, KnownTypes knownTypes)
         {
-            // Lambdas and anonymous functions don't have a declared symbol so there is nothing more to check
-            if (declaredSymbol == null)
+            // For async void methods this fixer does the same as Make Method Synchronous so we don't need to offer both
+            if (methodSymbol.ReturnsVoid)
             {
-                return true;
+                return false;
             }
 
-            if (declaredSymbol is IMethodSymbol methodSymbolOpt)
-            {
-                // For async void methods this fixer does the same as Make Method Synchronous so we don't need to offer both
-                if (methodSymbolOpt.ReturnsVoid)
-                {
-                    return false;
-                }
-
-                // IAsyncEnumerable iterators cannot be made non-async even if they don't have awaits
-                return !methodSymbolOpt.ReturnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt) &&
-                       !methodSymbolOpt.ReturnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTTypeOpt);
-            }
-
-            return false;
+            // IAsyncEnumerable iterators cannot be made non-async even if they don't have awaits
+            return !methodSymbol.ReturnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt);
         }
 
         protected override SyntaxNode GetLastChildOfBlock(SyntaxNode node)
