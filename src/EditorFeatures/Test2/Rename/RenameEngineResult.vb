@@ -11,7 +11,6 @@ Imports Microsoft.VisualStudio.Text
 Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -57,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             workspace.SetTestLogger(AddressOf helper.WriteLine)
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host <> RenameTestHost.InProcess)))
+                workspace.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host <> RenameTestHost.InProcess)))
 
             Dim engineResult As RenameEngineResult = Nothing
             Try

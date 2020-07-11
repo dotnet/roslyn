@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
         {
             options = options ?? new OptionsCollection(GetLanguage());
             options.AddRange(AllOptionsOff);
-            options.Add(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess);
+            options.Add(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess);
 
             return TestAsync(initialMarkup, expectedMarkup,
                 parseOptions, compilationOptions, index, options);
@@ -214,7 +213,7 @@ class goo
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
                     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-                    { RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess }
+                    { RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess }
                 });
         }
 
@@ -250,7 +249,7 @@ class goo
                 options: new OptionsCollection(GetLanguage())
                 {
                     {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
-                    { RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess }
+                    { RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess }
                 });
         }
 
@@ -789,7 +788,7 @@ class Program
 
         private TestParameters GetRemoteHostOptions(TestHost host)
         {
-            return new TestParameters(options: Option(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess));
+            return new TestParameters(options: Option(RemoteTestHostOptions.RemoteHostTest, host != TestHost.InProcess));
         }
 
         [WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")]

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var workspace = TestWorkspace.CreateWorkspace(XElement.Parse("<Workspace></Workspace>"));
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host == TestHost.OutOfProcess)));
+                workspace.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host == TestHost.OutOfProcess)));
 
             return workspace;
         }

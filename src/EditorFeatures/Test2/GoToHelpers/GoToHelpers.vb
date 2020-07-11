@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Remote.Testing
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 
 Friend Class GoToHelpers
     Friend Shared Async Function TestAsync(
@@ -20,7 +19,7 @@ Friend Class GoToHelpers
 
         Using workspace = TestWorkspace.Create(workspaceDefinition)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, testHost = TestHost.OutOfProcess)))
+                workspace.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, testHost = TestHost.OutOfProcess)))
 
             Dim documentWithCursor = workspace.DocumentWithCursor
             Dim position = documentWithCursor.CursorPosition.Value

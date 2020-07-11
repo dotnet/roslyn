@@ -9,13 +9,10 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Test.Utilities.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
@@ -35,14 +32,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         /// </summary>
         OutOfProcess,
     }
-}
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
-{
-    internal static class RemoteHostOptions
+    internal static class RemoteTestHostOptions
     {
         public static readonly Option2<bool> RemoteHostTest = new Option2<bool>(
-            nameof(RemoteHostOptions), nameof(RemoteHostTest), defaultValue: false);
+            nameof(RemoteTestHostOptions), nameof(RemoteHostTest), defaultValue: false);
     }
 
     [ExportOptionProvider, Shared]
@@ -55,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            RemoteHostOptions.RemoteHostTest);
+            RemoteTestHostOptions.RemoteHostTest);
     }
 
     internal sealed class InProcRemoteHostClientProvider : IRemoteHostClientProvider
@@ -83,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
             _lazyClient = new AsyncLazy<RemoteHostClient?>(cancellationToken =>
             {
                 var optionService = _services.GetRequiredService<IOptionService>();
-                if (optionService.GetOption(RemoteHostOptions.RemoteHostTest))
+                if (optionService.GetOption(RemoteTestHostOptions.RemoteHostTest))
                 {
                     return InProcRemoteHostClient.CreateAsync(_services, runCacheCleanup: false).AsNullable();
                 }

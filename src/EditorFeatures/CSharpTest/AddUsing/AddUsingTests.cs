@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestMetadata;
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             Workspace workspace, TestParameters parameters)
         {
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.testHost)));
+                workspace.CurrentSolution.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, parameters.testHost)));
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }

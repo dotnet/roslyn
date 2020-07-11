@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Remote.Testing
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStruct
@@ -24,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
         End Function
 
         Private Function GetTestOptions(host As TestHost) As OptionsCollection
-            Return [Option](RemoteHostOptions.RemoteHostTest, host <> TestHost.InProcess)
+            Return [Option](RemoteTestHostOptions.RemoteHostTest, host <> TestHost.InProcess)
         End Function
 
 #Region "update containing member tests"

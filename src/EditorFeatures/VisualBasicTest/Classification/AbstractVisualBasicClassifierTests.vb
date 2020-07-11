@@ -5,7 +5,6 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Remote.Testing
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public MustInherit Class AbstractVisualBasicClassifierTests
@@ -15,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Dim workspace = TestWorkspace.CreateVisualBasic(code)
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, testHost = TestHost.OutOfProcess)))
+                workspace.Options.WithChangedOption(RemoteTestHostOptions.RemoteHostTest, testHost = TestHost.OutOfProcess)))
 
             Return workspace
         End Function

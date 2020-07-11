@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote.Testing
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
@@ -59,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
             Using workspace = TestWorkspace.Create(element)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
+                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
 
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
@@ -256,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             options = If(options, FindReferencesSearchOptions.Default)
             Using workspace = TestWorkspace.Create(definition)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
+                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)

@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             Task BodyWrapper(TestWorkspace workspace)
             {
                 // Track the current test setup
-                var testHost = workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest) ? TestHost.OutOfProcess : TestHost.InProcess;
+                var testHost = workspace.Options.GetOption(RemoteTestHostOptions.RemoteHostTest) ? TestHost.OutOfProcess : TestHost.InProcess;
                 var documentTrackingServiceType = workspace.Services.GetService<IDocumentTrackingService>()?.GetType();
                 testedCombinations.Add((testHost, documentTrackingServiceType));
 
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             using (var workspace = SetupWorkspace(content, createTrackingService))
             {
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, testHost == TestHost.OutOfProcess)));
+                    .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, testHost == TestHost.OutOfProcess)));
                 await body(workspace);
             }
         }
