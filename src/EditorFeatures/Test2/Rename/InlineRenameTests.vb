@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Public Class InlineRenameTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
-        Sub New(outputHelper As Abstractions.ITestOutputHelper)
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 
@@ -204,7 +204,7 @@ class Deconstructable
             End Using
         End Function
 
-        Private Async Function VerifyRenameOptionChangedSessionCommit(workspace As TestWorkspace,
+        Private Shared Async Function VerifyRenameOptionChangedSessionCommit(workspace As TestWorkspace,
                                                            originalTextToRename As String,
                                                            renameTextPrefix As String,
                                                            Optional renameOverloads As Boolean = False,

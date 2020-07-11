@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public MustInherit Class AbstractVisualBasicClassifierTests
         Inherits AbstractClassifierTests
 
-        Protected Function CreateWorkspace(code As String, outOfProcess As Boolean) As TestWorkspace
+        Protected Shared Function CreateWorkspace(code As String, outOfProcess As Boolean) As TestWorkspace
             Dim workspace = TestWorkspace.CreateVisualBasic(code)
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(

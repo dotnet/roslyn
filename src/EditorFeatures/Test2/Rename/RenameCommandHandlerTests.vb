@@ -17,7 +17,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
     Public Class RenameCommandHandlerTests
-        Private Function CreateCommandHandler(workspace As TestWorkspace) As RenameCommandHandler
+        Private Shared Function CreateCommandHandler(workspace As TestWorkspace) As RenameCommandHandler
             Return New RenameCommandHandler(
                 workspace.GetService(Of IThreadingContext)(),
                 workspace.GetService(Of InlineRenameService))
@@ -1233,7 +1233,7 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        Private Sub VerifyCommandCommitsRenameSessionAndExecutesCommand(host As TestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
+        Private Shared Sub VerifyCommandCommitsRenameSessionAndExecutesCommand(host As TestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1278,7 +1278,7 @@ class [|C$$|]
             End Using
         End Sub
 
-        Private Async Function VerifySessionActiveAfterCutPasteInsideIdentifier(host As TestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action)) As Task
+        Private Shared Async Function VerifySessionActiveAfterCutPasteInsideIdentifier(host As TestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action)) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1313,7 +1313,7 @@ class [|C$$|]
             End Using
         End Function
 
-        Private Sub VerifySessionCommittedAfterCutPasteOutsideIdentifier(host As TestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
+        Private Shared Sub VerifySessionCommittedAfterCutPasteOutsideIdentifier(host As TestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">

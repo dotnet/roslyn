@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.GoToBase
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     Public MustInherit Class GoToBaseTestsBase
-        Protected Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True,
+        Protected Shared Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True,
                                            Optional metadataDefinitions As String() = Nothing) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
                 shouldSucceed, metadataDefinitions)
         End Function
 
-        Protected Async Function TestAsync(source As String, language As String, Optional shouldSucceed As Boolean = True,
+        Protected Shared Async Function TestAsync(source As String, language As String, Optional shouldSucceed As Boolean = True,
                                            Optional metadataDefinitions As String() = Nothing) As Task
             Await TestAsync(
                    <Workspace>

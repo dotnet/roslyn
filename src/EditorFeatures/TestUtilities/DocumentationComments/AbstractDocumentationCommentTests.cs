@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 });
         }
 
-        private Action CreateInsertTextHandler(ITextView textView, string text)
+        private static Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>
             {
