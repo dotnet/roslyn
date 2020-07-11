@@ -3532,7 +3532,7 @@ class C
             case $""Level 5"":
                 break;
             case $""Radio Noise"":
-                goto case $""Number 3"";
+                goto case $""Level 5"";
         }
     }
 }";
