@@ -39,6 +39,29 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        Public Async Function Function_Task_Throws() As Task
+            Await VerifyVB.VerifyCodeFixAsync(
+"Imports System.Threading.Tasks
+
+Class C
+    Async Function {|BC42356:Goo|}() As Task
+        System.Console.WriteLine(1)
+
+        Throw New System.ApplicationException()
+    End Function
+End Class",
+"Imports System.Threading.Tasks
+
+Class C
+    Function {|BC42356:Goo|}() As Task
+        System.Console.WriteLine(1)
+
+        Throw New System.ApplicationException()
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
         Public Async Function Function_Task_WithLambda() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System

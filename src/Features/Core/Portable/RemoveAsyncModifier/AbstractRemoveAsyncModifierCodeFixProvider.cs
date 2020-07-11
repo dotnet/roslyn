@@ -126,13 +126,16 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                     // We have to use the original node to do control flow analysis, but the reachability of it is the same
                     var controlFlow = AnalyzeControlFlow(semanticModel, originalNode);
 
-                    // For local functions and block bodied lambdas the EndPointIsReachable is false but we still might need to
-                    // insert a return. We can tell by checking for the presence of exit points that aren't return statements
-                    var hasNonReturnExitPoints = controlFlow.ExitPoints.Any<SyntaxNode>(e => !(e is TReturnStatementSyntax));
-                    if (controlFlow.EndPointIsReachable || hasNonReturnExitPoints)
+                    if (controlFlow != null)
                     {
-                        var node = GetLastChildOfBlock(replacementNode);
-                        AppendTaskCompletedTaskReturn(node, editor, knownTypes);
+                        // For local functions and block bodied lambdas the EndPointIsReachable is false but we still might need to
+                        // insert a return. We can tell by checking for the presence of exit points that aren't return statements
+                        var hasNonReturnExitPoints = controlFlow.ExitPoints.Any<SyntaxNode>(e => !(e is TReturnStatementSyntax));
+                        if (controlFlow.EndPointIsReachable || hasNonReturnExitPoints)
+                        {
+                            var node = GetLastChildOfBlock(replacementNode);
+                            AppendTaskCompletedTaskReturn(node, editor, knownTypes);
+                        }
                     }
                 }
             }

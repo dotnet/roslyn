@@ -64,12 +64,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
         End Function
 
         Protected Overrides Function AnalyzeControlFlow(semanticModel As SemanticModel, node As SyntaxNode) As ControlFlowAnalysis
-            Dim multiLineLambda = TryCast(node, MultiLineLambdaExpressionSyntax)
-            If multiLineLambda IsNot Nothing Then
-                Return semanticModel.AnalyzeControlFlow(multiLineLambda.Statements.First(), multiLineLambda.Statements.Last())
+
+            Dim methodBlock = TryCast(node, MethodBlockSyntax)
+            If methodBlock IsNot Nothing Then
+                Dim statements = methodBlock.Statements
+                Return semanticModel.AnalyzeControlFlow(statements.First(), statements.Last())
             End If
 
-            Return semanticModel.AnalyzeControlFlow(node)
+            Dim multiLineLambda = TryCast(node, MultiLineLambdaExpressionSyntax)
+            If multiLineLambda IsNot Nothing Then
+                Dim statements = multiLineLambda.Statements
+                Return semanticModel.AnalyzeControlFlow(statements.First(), statements.Last())
+            End If
+
+            Return Nothing
         End Function
 
         Protected Overrides Function GetLastChildOfBlock(node As SyntaxNode) As SyntaxNode
