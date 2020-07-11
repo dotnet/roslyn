@@ -11,6 +11,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -25,6 +26,15 @@ namespace Microsoft.CodeAnalysis.Interactive
     internal sealed partial class InteractiveHost : IDisposable
     {
         internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
+
+        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
+        {
+            // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
+            NotifyClientOfEvents = false,
+
+            // Only allow public methods (may be on internal types) to be invoked remotely.
+            AllowNonPublicInvocation = false
+        };
 
         private readonly Type _replServiceProviderType;
         private readonly string _initialWorkingDirectory;
@@ -279,7 +289,26 @@ namespace Microsoft.CodeAnalysis.Interactive
         }
 
         private static JsonRpc CreateRpc(Stream stream, object? incomingCallTarget)
-            => JsonRpc.Attach(stream, incomingCallTarget);
+        {
+            var jsonFormatter = new JsonMessageFormatter();
+
+            // disable interpreting of strings as DateTime during deserialization:
+            jsonFormatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
+
+            var rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter))
+            {
+                CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
+            };
+
+            if (incomingCallTarget != null)
+            {
+                rpc.AddLocalRpcTarget(incomingCallTarget, s_jsonRpcTargetOptions);
+            }
+
+            rpc.StartListening();
+
+            return rpc;
+        }
 
         #region Operations
 
