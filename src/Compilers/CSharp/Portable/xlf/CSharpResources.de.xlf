@@ -7238,8 +7238,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">Es konnte keine Implementierung des Abfragemusters für den Quelltyp "{0}" gefunden werden. "{1}" wurde nicht gefunden. Fehlt möglicherweise ein Verweis auf "System.Core.dll" oder eine Using-Direktive für "System.Linq"?</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a using directive for 'System.Linq'?</source>
+        <target state="needs-review-translation">Es konnte keine Implementierung des Abfragemusters für den Quelltyp "{0}" gefunden werden. "{1}" wurde nicht gefunden. Fehlt möglicherweise ein Verweis auf "System.Core.dll" oder eine Using-Direktive für "System.Linq"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">

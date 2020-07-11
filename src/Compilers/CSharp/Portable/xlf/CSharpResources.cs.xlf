@@ -7238,8 +7238,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProviderStandard">
-        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?</source>
-        <target state="translated">Nenašla se implementace vzorku dotazu pro typ zdroje {0}. Nenašel se prvek {1}. Nechybí odkaz na System.Core.dll nebo na direktivu using pro System.Linq?</target>
+        <source>Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Are you missing a using directive for 'System.Linq'?</source>
+        <target state="needs-review-translation">Nenašla se implementace vzorku dotazu pro typ zdroje {0}. Nenašel se prvek {1}. Nechybí odkaz na System.Core.dll nebo na direktivu using pro System.Linq?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryNoProvider">
