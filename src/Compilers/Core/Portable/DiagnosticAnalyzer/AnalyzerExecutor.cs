@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool TryExecuteSyntaxTreeActions(
             ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
             DiagnosticAnalyzer analyzer,
-            SourceOrNonSourceFile file,
+            SourceOrAdditionalFile file,
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt,
             bool isGeneratedCode)
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteSyntaxTreeActionsCore(
             ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
             DiagnosticAnalyzer analyzer,
-            SourceOrNonSourceFile file,
+            SourceOrAdditionalFile file,
             AnalyzerStateData analyzerStateOpt,
             bool isGeneratedCode)
         {
@@ -799,11 +799,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool TryExecuteAdditionalFileActions(
             ImmutableArray<AdditionalFileAnalyzerAction> additionalFileActions,
             DiagnosticAnalyzer analyzer,
-            SourceOrNonSourceFile file,
+            SourceOrAdditionalFile file,
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt)
         {
-            RoslynDebug.Assert(file.NonSourceFile != null);
+            RoslynDebug.Assert(file.AdditionalFile != null);
             AnalyzerStateData analyzerStateOpt = null;
 
             try
@@ -826,11 +826,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteAdditionalFileActionsCore(
             ImmutableArray<AdditionalFileAnalyzerAction> additionalFileActions,
             DiagnosticAnalyzer analyzer,
-            SourceOrNonSourceFile file,
+            SourceOrAdditionalFile file,
             AnalyzerStateData analyzerStateOpt)
         {
-            RoslynDebug.Assert(file.NonSourceFile != null);
-            var additionalFile = file.NonSourceFile;
+            RoslynDebug.Assert(file.AdditionalFile != null);
+            var additionalFile = file.AdditionalFile;
 
             var diagReporter = GetAddSyntaxDiagnostic(file, analyzer);
 
@@ -1796,19 +1796,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalyzerDiagnosticReporter GetAddSemanticDiagnostic(SyntaxTree tree, DiagnosticAnalyzer analyzer)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrNonSourceFile(tree), null, _compilation, analyzer, isSyntaxDiagnostic: false,
+            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrAdditionalFile(tree), null, _compilation, analyzer, isSyntaxDiagnostic: false,
                 _addNonCategorizedDiagnosticOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }
 
         private AnalyzerDiagnosticReporter GetAddSemanticDiagnostic(SyntaxTree tree, TextSpan? span, DiagnosticAnalyzer analyzer)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrNonSourceFile(tree), span, _compilation, analyzer, isSyntaxDiagnostic: false,
+            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrAdditionalFile(tree), span, _compilation, analyzer, isSyntaxDiagnostic: false,
                 _addNonCategorizedDiagnosticOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }
 
-        private AnalyzerDiagnosticReporter GetAddSyntaxDiagnostic(SourceOrNonSourceFile file, DiagnosticAnalyzer analyzer)
+        private AnalyzerDiagnosticReporter GetAddSyntaxDiagnostic(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer)
         {
             return AnalyzerDiagnosticReporter.GetInstance(file, null, _compilation, analyzer, isSyntaxDiagnostic: true,
                 _addNonCategorizedDiagnosticOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt,
@@ -1883,7 +1883,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analysisStateOpt == null || analysisStateOpt.TryStartProcessingEvent(nonSymbolCompilationEvent, analyzer, out analyzerStateOpt);
         }
 
-        private static bool TryStartSyntaxAnalysis(SourceOrNonSourceFile file, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
+        private static bool TryStartSyntaxAnalysis(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
         {
             Debug.Assert(analysisScope.Contains(analyzer));
 

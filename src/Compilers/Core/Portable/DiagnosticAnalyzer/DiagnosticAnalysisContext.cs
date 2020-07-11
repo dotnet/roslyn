@@ -1309,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Context for an additional file action.
     /// An additional file action can use an <see cref="AdditionalFileAnalysisContext"/> to report <see cref="Diagnostic"/>s about a non-source <see cref="AdditionalText"/> document.
     /// </summary>
-    public struct AdditionalFileAnalysisContext
+    public readonly struct AdditionalFileAnalysisContext
     {
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;

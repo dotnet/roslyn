@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool HasPendingSyntaxAnalysis(AnalysisScope analysisScope)
         {
-            if (analysisScope.IsTreeAnalysis && !analysisScope.IsSyntaxOnlyTreeAnalysis)
+            if (analysisScope.IsSingleFileAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
             {
                 return false;
             }
@@ -509,10 +509,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool HasPendingSymbolAnalysis(AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
-            RoslynDebug.Assert(analysisScope.FilterFileOpt != null);
-            RoslynDebug.Assert(analysisScope.FilterFileOpt.SourceTree != null);
+            RoslynDebug.Assert(analysisScope.FilterFileOpt.HasValue);
+            RoslynDebug.Assert(analysisScope.FilterFileOpt.Value.SourceTree != null);
 
-            var symbolDeclaredEvents = GetPendingSymbolDeclaredEvents(analysisScope.FilterFileOpt.SourceTree, cancellationToken);
+            var symbolDeclaredEvents = GetPendingSymbolDeclaredEvents(analysisScope.FilterFileOpt.Value.SourceTree, cancellationToken);
             foreach (var symbolDeclaredEvent in symbolDeclaredEvents)
             {
                 if (analysisScope.ShouldAnalyze(symbolDeclaredEvent.Symbol))
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Returns false if the file has already been processed for the analyzer OR is currently being processed by another task.
         /// If true, then it returns a non-null <paramref name="state"/> representing partial syntax analysis state for the given tree for the given analyzer.
         /// </returns>
-        public bool TryStartSyntaxAnalysis(SourceOrNonSourceFile file, DiagnosticAnalyzer analyzer, out AnalyzerStateData state)
+        public bool TryStartSyntaxAnalysis(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer, out AnalyzerStateData state)
         {
             return GetAnalyzerState(analyzer).TryStartSyntaxAnalysis(file, out state);
         }
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Marks the given file as fully syntactically analyzed for the given analyzer.
         /// </summary>
-        public void MarkSyntaxAnalysisComplete(SourceOrNonSourceFile file, DiagnosticAnalyzer analyzer)
+        public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer)
         {
             GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(file);
         }
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Marks the given file as fully syntactically analyzed for the given analyzers.
         /// </summary>
-        public void MarkSyntaxAnalysisComplete(SourceOrNonSourceFile file, IEnumerable<DiagnosticAnalyzer> analyzers)
+        public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
             foreach (var analyzer in analyzers)
             {
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Marks the given file as fully syntactically analyzed for the unprocessed analyzers in the given analysisScope.
         /// </summary>
         public void MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(
-            SourceOrNonSourceFile file,
+            SourceOrAdditionalFile file,
             AnalysisScope analysisScope,
             HashSet<DiagnosticAnalyzer> processedAnalyzers)
             => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSyntaxAnalysisComplete, file);

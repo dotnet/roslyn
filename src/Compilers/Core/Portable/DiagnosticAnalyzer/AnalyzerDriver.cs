@@ -246,11 +246,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _generatedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
                     _symbolActionsByKind = MakeSymbolActionsByKind(in AnalyzerActions);
-                    _semanticModelActions = MakeSemanticModelActionsByAnalyzer(in AnalyzerActions);
-                    _syntaxTreeActions = MakeSyntaxTreeActionsByAnalyzer(in AnalyzerActions);
-                    _additionalFileActions = MakeAdditionalFileActionsByAnalyzer(in AnalyzerActions);
-                    _compilationActions = MakeCompilationActionsByAnalyzer(this.AnalyzerActions.CompilationActions);
-                    _compilationEndActions = MakeCompilationActionsByAnalyzer(this.AnalyzerActions.CompilationEndActions);
+                    _semanticModelActions = MakeActionsByAnalyzer(AnalyzerActions.SemanticModelActions);
+                    _syntaxTreeActions = MakeActionsByAnalyzer(AnalyzerActions.SyntaxTreeActions);
+                    _additionalFileActions = MakeActionsByAnalyzer(AnalyzerActions.AdditionalFileActions);
+                    _compilationActions = MakeActionsByAnalyzer(this.AnalyzerActions.CompilationActions);
+                    _compilationEndActions = MakeActionsByAnalyzer(this.AnalyzerActions.CompilationEndActions);
                     _compilationEndAnalyzers = MakeCompilationEndAnalyzers(_compilationEndActions);
 
                     if (this.AnalyzerActions.SymbolStartActionsCount > 0)
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteSyntaxTreeActions(AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
-            if (analysisScope.IsTreeAnalysis && !analysisScope.IsSyntaxOnlyTreeAnalysis)
+            if (analysisScope.IsSingleFileAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
             {
                 // For partial analysis, only execute syntax tree actions if performing syntax analysis.
                 return;
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var tree in analysisScope.SyntaxTrees)
             {
                 var isGeneratedCode = IsGeneratedCode(tree);
-                var file = new SourceOrNonSourceFile(tree);
+                var file = new SourceOrAdditionalFile(tree);
                 if (isGeneratedCode && DoNotAnalyzeGeneratedCode)
                 {
                     analysisStateOpt?.MarkSyntaxAnalysisComplete(file, analysisScope.Analyzers);
@@ -605,9 +605,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteAdditionalFileActions(AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
+            if (analysisScope.IsSingleFileAnalysis && !analysisScope.IsSyntacticSingleFileAnalysis)
+            {
+                // For partial analysis, only execute additional file actions if performing syntactic single file analysis.
+                return;
+            }
+
             foreach (var additionalFile in analysisScope.AdditionalFiles)
             {
-                var file = new SourceOrNonSourceFile(additionalFile);
+                var file = new SourceOrAdditionalFile(additionalFile);
 
                 var processedAnalyzers = analysisStateOpt != null ? PooledHashSet<DiagnosticAnalyzer>.GetInstance() : null;
                 try
@@ -1151,46 +1157,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutableAndFree();
         }
 
-        private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<SyntaxTreeAnalyzerAction>)> MakeSyntaxTreeActionsByAnalyzer(in AnalyzerActions analyzerActions)
+        private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<TAnalyzerAction>)> MakeActionsByAnalyzer<TAnalyzerAction>(in ImmutableArray<TAnalyzerAction> analyzerActions)
+            where TAnalyzerAction : AnalyzerAction
         {
-            var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<SyntaxTreeAnalyzerAction>)>.GetInstance();
-            var actionsByAnalyzers = analyzerActions.SyntaxTreeActions.GroupBy(action => action.Analyzer);
-            foreach (var analyzerAndActions in actionsByAnalyzers)
-            {
-                builder.Add((analyzerAndActions.Key, analyzerAndActions.ToImmutableArray()));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<AdditionalFileAnalyzerAction>)> MakeAdditionalFileActionsByAnalyzer(in AnalyzerActions analyzerActions)
-        {
-            var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<AdditionalFileAnalyzerAction>)>.GetInstance();
-            var actionsByAnalyzers = analyzerActions.AdditionalFileActions.GroupBy(action => action.Analyzer);
-            foreach (var analyzerAndActions in actionsByAnalyzers)
-            {
-                builder.Add((analyzerAndActions.Key, analyzerAndActions.ToImmutableArray()));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>)> MakeSemanticModelActionsByAnalyzer(in AnalyzerActions analyzerActions)
-        {
-            var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>)>.GetInstance();
-            var actionsByAnalyzers = analyzerActions.SemanticModelActions.GroupBy(action => action.Analyzer);
-            foreach (var analyzerAndActions in actionsByAnalyzers)
-            {
-                builder.Add((analyzerAndActions.Key, analyzerAndActions.ToImmutableArray()));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        private static ImmutableArray<(DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>)> MakeCompilationActionsByAnalyzer(ImmutableArray<CompilationAnalyzerAction> compilationActions)
-        {
-            var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>)>.GetInstance();
-            var actionsByAnalyzers = compilationActions.GroupBy(action => action.Analyzer);
+            var builder = ArrayBuilder<(DiagnosticAnalyzer, ImmutableArray<TAnalyzerAction>)>.GetInstance();
+            var actionsByAnalyzers = analyzerActions.GroupBy(action => action.Analyzer);
             foreach (var analyzerAndActions in actionsByAnalyzers)
             {
                 builder.Add((analyzerAndActions.Key, analyzerAndActions.ToImmutableArray()));

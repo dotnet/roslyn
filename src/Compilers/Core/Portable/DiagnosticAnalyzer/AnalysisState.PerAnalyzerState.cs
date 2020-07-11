@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly Dictionary<ISymbol, AnalyzerStateData> _pendingSymbols = new Dictionary<ISymbol, AnalyzerStateData>();
             private readonly Dictionary<ISymbol, Dictionary<int, DeclarationAnalyzerStateData>> _pendingDeclarations = new Dictionary<ISymbol, Dictionary<int, DeclarationAnalyzerStateData>>();
 
-            private Dictionary<SourceOrNonSourceFile, AnalyzerStateData> _lazyFilesWithAnalysisData = null;
+            private Dictionary<SourceOrAdditionalFile, AnalyzerStateData> _lazyFilesWithAnalysisData = null;
             private int _pendingSyntaxAnalysisFilesCount = 0;
             private Dictionary<ISymbol, AnalyzerStateData> _lazyPendingSymbolEndAnalyses = null;
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public bool HasPendingSyntaxAnalysis(SourceOrNonSourceFile fileOpt)
+            public bool HasPendingSyntaxAnalysis(SourceOrAdditionalFile? fileOpt)
             {
                 lock (_gate)
                 {
@@ -63,14 +63,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     Debug.Assert(_lazyFilesWithAnalysisData != null);
 
-                    if (fileOpt == null)
+                    if (!fileOpt.HasValue)
                     {
                         // We have syntax analysis pending for at least one file.
                         return true;
                     }
 
                     AnalyzerStateData state;
-                    if (!_lazyFilesWithAnalysisData.TryGetValue(fileOpt, out state))
+                    if (!_lazyFilesWithAnalysisData.TryGetValue(fileOpt.Value, out state))
                     {
                         // We haven't even started analysis for this file.
                         return true;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            private bool TryStartSyntaxAnalysis_NoLock(SourceOrNonSourceFile file, out AnalyzerStateData state)
+            private bool TryStartSyntaxAnalysis_NoLock(SourceOrAdditionalFile file, out AnalyzerStateData state)
             {
                 if (_pendingSyntaxAnalysisFilesCount == 0)
                 {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            private void MarkSyntaxAnalysisComplete_NoLock(SourceOrNonSourceFile file)
+            private void MarkSyntaxAnalysisComplete_NoLock(SourceOrAdditionalFile file)
             {
                 if (_pendingSyntaxAnalysisFilesCount == 0)
                 {
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public bool TryStartSyntaxAnalysis(SourceOrNonSourceFile tree, out AnalyzerStateData state)
+            public bool TryStartSyntaxAnalysis(SourceOrAdditionalFile tree, out AnalyzerStateData state)
             {
                 lock (_gate)
                 {
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public void MarkSyntaxAnalysisComplete(SourceOrNonSourceFile file)
+            public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file)
             {
                 lock (_gate)
                 {
@@ -463,15 +463,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     else if (compilationEvent is CompilationStartedEvent compilationStartedEvent)
                     {
-                        if (actionCounts.SyntaxTreeActionsCount > 0 || actionCounts.AdditionalFileActionsCount > 0)
+                        var fileCount = actionCounts.SyntaxTreeActionsCount > 0 ? compilationEvent.Compilation.SyntaxTrees.Count() : 0;
+                        fileCount += actionCounts.AdditionalFileActionsCount > 0 ? compilationStartedEvent.AdditionalFiles.Length : 0;
+                        if (fileCount > 0)
                         {
-                            var fileCount = actionCounts.SyntaxTreeActionsCount > 0 ? compilationEvent.Compilation.SyntaxTrees.Count() : 0;
-                            fileCount += actionCounts.AdditionalFileActionsCount > 0 ? compilationStartedEvent.AdditionalFiles.Length : 0;
-                            if (fileCount > 0)
-                            {
-                                _lazyFilesWithAnalysisData = new Dictionary<SourceOrNonSourceFile, AnalyzerStateData>();
-                                _pendingSyntaxAnalysisFilesCount = fileCount;
-                            }
+                            _lazyFilesWithAnalysisData = new Dictionary<SourceOrAdditionalFile, AnalyzerStateData>();
+                            _pendingSyntaxAnalysisFilesCount = fileCount;
                         }
 
                         if (actionCounts.CompilationActionsCount == 0)

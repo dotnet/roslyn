@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 new ObjectPool<AnalyzerDiagnosticReporter>(() => new AnalyzerDiagnosticReporter(), 10);
 
             public static AnalyzerDiagnosticReporter GetInstance(
-                SourceOrNonSourceFile contextFile,
+                SourceOrAdditionalFile contextFile,
                 TextSpan? span,
                 Compilation compilation,
                 DiagnosticAnalyzer analyzer,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 s_objectPool.Free(this);
             }
 
-            private SourceOrNonSourceFile _contextFile;
+            private SourceOrAdditionalFile? _contextFile;
             private TextSpan? _span;
             private Compilation _compilation;
             private DiagnosticAnalyzer _analyzer;
@@ -120,13 +120,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (diagnostic.Location.IsInSource)
                     {
                         return _contextFile?.SourceTree != null &&
-                            _contextFile.SourceTree == diagnostic.Location.SourceTree;
+                            _contextFile.Value.SourceTree == diagnostic.Location.SourceTree;
                     }
 
-                    if (diagnostic.Location is ExternalFileLocation externalFileLocation)
+                    if (_contextFile?.AdditionalFile != null &&
+                        diagnostic.Location is ExternalFileLocation externalFileLocation)
                     {
-                        return _contextFile?.NonSourceFile != null &&
-                            PathUtilities.Comparer.Equals(_contextFile.NonSourceFile.Path, externalFileLocation.FilePath);
+                        return PathUtilities.Comparer.Equals(_contextFile.Value.AdditionalFile.Path, externalFileLocation.FilePath);
                     }
 
                     return false;
