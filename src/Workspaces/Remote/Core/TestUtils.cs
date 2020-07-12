@@ -14,7 +14,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Internal.Log;
 #endif
 
-namespace Microsoft.CodeAnalysis.Remote.DebugUtil
+namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class TestUtils
     {

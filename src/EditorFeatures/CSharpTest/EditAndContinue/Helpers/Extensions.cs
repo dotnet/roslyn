@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 description.OldStatements,
                 description.OldTrackingSpans,
                 description.NewSpans,
-                description.OldRegions,
                 description.NewRegions);
         }
 

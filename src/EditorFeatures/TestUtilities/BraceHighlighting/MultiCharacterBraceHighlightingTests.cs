@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 return braces;
             }
 
-            public BraceMatchingResult? GetMatchingBraces(
+            public static BraceMatchingResult? GetMatchingBraces(
                 string text, int position)
             {
                 if (position < text.Length)

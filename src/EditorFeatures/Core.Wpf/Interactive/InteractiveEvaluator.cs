@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #region Initialization
 
-        public string GetConfiguration()
+        public static string GetConfiguration()
             => null;
 
         private IInteractiveWindow GetCurrentWindowOrThrow()

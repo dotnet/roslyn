@@ -18,10 +18,6 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
-#if DEBUG
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
-#endif
-
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>

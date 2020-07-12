@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 inlineDescription, matchingFilters);
         }
 
-        protected string AddInsideMethod(string text)
+        protected static string AddInsideMethod(string text)
         {
             return
 @"class C
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 }";
         }
 
-        protected string AddUsingDirectives(string usingDirectives, string text)
+        protected static string AddUsingDirectives(string usingDirectives, string text)
         {
             return
 usingDirectives +

@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var annotatedDocument = document.WithSyntaxRoot(
                     document.GetSyntaxRootAsync().Result.WithAdditionalAnnotations(Simplification.Simplifier.Annotation));
 
-            var annotatedRootNode = annotatedDocument.GetSyntaxRootAsync().Result;
-
             var simplifiedDocument = Simplification.Simplifier.ReduceAsync(annotatedDocument).Result;
 
             var rootNode = simplifiedDocument.GetSyntaxRootAsync().Result;
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 );
         }
 
-        internal void Test(
+        internal static void Test(
             Func<SyntaxGenerator, SyntaxNode> nodeCreator,
             string cs, string csSimple,
             string vb, string vbSimple)
