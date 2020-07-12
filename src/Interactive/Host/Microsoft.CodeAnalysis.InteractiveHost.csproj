@@ -15,12 +15,11 @@
       .NET Compiler Platform ("Roslyn") interactive host implementation.
     </PackageDescription>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
+  <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
       <Aliases>global,Scripting</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\vbi\vbi.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost32" />
