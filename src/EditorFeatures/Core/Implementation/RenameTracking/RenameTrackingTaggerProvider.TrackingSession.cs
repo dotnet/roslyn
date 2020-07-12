@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
                             _forceRenameOverloads = true;
 
-                            return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document, token).ConfigureAwait(false);
+                            return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document).ConfigureAwait(false);
                         }
                         else
                         {
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return TriggerIdentifierKind.NotRenamable;
             }
 
-            private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolsAsync(IEnumerable<ISymbol> symbols, Document document, SyntaxToken token)
+            private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolsAsync(IEnumerable<ISymbol> symbols, Document document)
             {
                 foreach (var symbol in symbols)
                 {

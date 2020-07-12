@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected override IEnumerable<string> EnumerateFiles(string fullDirectoryPath) =>
             Enumerate(_files, fullDirectoryPath);
 
-        private IEnumerable<string> Enumerate(ImmutableArray<string> entries, string fullDirectoryPath)
+        private static IEnumerable<string> Enumerate(ImmutableArray<string> entries, string fullDirectoryPath)
         {
             var withTrailingSeparator = fullDirectoryPath.TrimEnd(PathUtilities.DirectorySeparatorChar) + PathUtilities.DirectorySeparatorChar;
             return from d in entries

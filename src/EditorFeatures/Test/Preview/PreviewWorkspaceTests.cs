@@ -255,14 +255,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             solutionObjectReference.AssertReleased();
         }
 
-        private void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private static void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
             var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, previewWorkspace.CurrentSolution);
             var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var project = previewWorkspace.CurrentSolution.Projects.Single();
             var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;
-            var compilationReference = ObjectReference.Create(compilation);
             var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);
             var result = compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
             Assert.Equal(1, result.CompilationDiagnostics.Count);
