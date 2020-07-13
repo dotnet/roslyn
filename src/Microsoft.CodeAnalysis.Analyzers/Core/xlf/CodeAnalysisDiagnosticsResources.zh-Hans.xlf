@@ -74,32 +74,32 @@
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
         <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</source>
-        <target state="new">The diagnostic description should be one or multiple sentences ending with a punctuation sign.</target>
+        <target state="translated">诊断说明应为以一个标点符号结尾的一个或多个句子。</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
         <source>Define diagnostic description correctly</source>
-        <target state="new">Define diagnostic description correctly</target>
+        <target state="translated">正确定义诊断说明</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
         <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</source>
-        <target state="new">The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</target>
+        <target state="translated">诊断消息不应包含任何行回车符，应为不带尾随句点的单个句子或带有一个尾随句点的多个句子。</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
         <source>Define diagnostic message correctly</source>
-        <target state="new">Define diagnostic message correctly</target>
+        <target state="translated">正确定义诊断消息</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
         <source>The diagnostic title should not contain a period or any line return character</source>
-        <target state="new">The diagnostic title should not contain a period or any line return character</target>
+        <target state="translated">诊断标题不应包含句点或任何行回车字符</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
         <source>Define diagnostic title correctly</source>
-        <target state="new">Define diagnostic title correctly</target>
+        <target state="translated">正确定义诊断标题</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">

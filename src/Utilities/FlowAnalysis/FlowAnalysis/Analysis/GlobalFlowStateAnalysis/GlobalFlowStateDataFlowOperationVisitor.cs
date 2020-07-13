@@ -55,6 +55,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 
         public sealed override GlobalFlowStateAnalysisData Flow(IOperation statement, BasicBlock block, GlobalFlowStateAnalysisData input)
         {
+            EnsureInitialized(input);
+            return base.Flow(statement, block, input);
+        }
+
+        private void EnsureInitialized(GlobalFlowStateAnalysisData input)
+        {
             if (input.Count == 0)
             {
                 input[_globalEntity] = ValueDomain.Bottom;
@@ -63,8 +69,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             {
                 Debug.Assert(input.ContainsKey(_globalEntity));
             }
-
-            return base.Flow(statement, block, input);
         }
 
         protected GlobalFlowStateAnalysisValueSet GlobalState
@@ -75,6 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 
         public sealed override (GlobalFlowStateAnalysisData output, bool isFeasibleBranch) FlowBranch(BasicBlock fromBlock, BranchWithInfo branch, GlobalFlowStateAnalysisData input)
         {
+            EnsureInitialized(input);
             var result = base.FlowBranch(fromBlock, branch, input);
 
             if (_hasPredicatedGlobalState &&

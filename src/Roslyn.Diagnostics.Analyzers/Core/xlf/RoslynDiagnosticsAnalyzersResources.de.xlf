@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
-        <target state="new">Remove the 'Opt' suffix</target>
+        <target state="translated">Suffix "Opt" entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
+        <target state="translated">Hiermit wird das Suffix "Opt" in einem Code vermieden, der NULL-Werte zulässt.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
+        <target state="translated">Vermeiden Sie das Suffix "Opt" in einem Code, der NULL-Werte zulässt.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
-        <target state="new">Avoid the 'Opt' suffix</target>
+        <target state="translated">Suffix "Opt" vermeiden</target>
         <note />
       </trans-unit>
       <trans-unit id="BlankLinesMessage">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="translated">Auf den Standard festlegbare Typen müssen auf den Standard festlegbare Felder aufweisen.</target>
+        <target state="translated">Typen, für die ein Standardwert verfügbar ist, müssen auf den Standardwert festlegbare Felder aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
-        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
+        <target state="translated">Die Type.FullName-Eigenschaft ist bei Verwendung der Syntax "typeof(T).FullName" nie NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">

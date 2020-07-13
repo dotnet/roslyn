@@ -74,32 +74,32 @@
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
         <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</source>
-        <target state="new">The diagnostic description should be one or multiple sentences ending with a punctuation sign.</target>
+        <target state="translated">Opis diagnostyki powinien składać się z jednego lub wielu zdań zakończonych znakiem interpunkcyjnym.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
         <source>Define diagnostic description correctly</source>
-        <target state="new">Define diagnostic description correctly</target>
+        <target state="translated">Poprawnie zdefiniuj opis diagnostyki</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
         <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</source>
-        <target state="new">The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</target>
+        <target state="translated">Komunikat dotyczący diagnostyki nie powinien zawierać znaku nowego wiersza i powinien być pojedynczym zdaniem bez kropki na końcu lub wieloma zdaniami z kropkami na końcu.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
         <source>Define diagnostic message correctly</source>
-        <target state="new">Define diagnostic message correctly</target>
+        <target state="translated">Poprawnie zdefiniuj komunikat dotyczący diagnostyki</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
         <source>The diagnostic title should not contain a period or any line return character</source>
-        <target state="new">The diagnostic title should not contain a period or any line return character</target>
+        <target state="translated">Tytuł diagnostyki nie powinien zawierać kropki ani żadnych znaków nowego wiersza</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
         <source>Define diagnostic title correctly</source>
-        <target state="new">Define diagnostic title correctly</target>
+        <target state="translated">Poprawnie zdefiniuj tytuł diagnostyki</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
