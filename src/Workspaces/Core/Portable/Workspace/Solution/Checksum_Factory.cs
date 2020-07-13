@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var value in values)
             {
                 AppendData(hash, pooledBuffer.Object, value);
-                AppendData(hash, pooledBuffer.Object, ";");
+                AppendData(hash, pooledBuffer.Object, "\0");
             }
 
             return From(hash.GetHashAndReset());
