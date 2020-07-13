@@ -104,6 +104,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
+        /// Set an integer switch only if its value exists.
+        /// </summary>
+        internal void AppendSwitchWithDecimal
+            (
+            string switchName,
+            PropertyDictionary bag,
+            string parameterName
+            )
+        {
+            object? obj = bag[parameterName];
+            // If the switch isn't set, don't add it to the command line.
+            if (obj != null)
+            {
+                decimal value = (decimal)obj;
+                AppendSwitchIfNotNull(switchName, value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        /// <summary>
         /// Adds an aliased switch, used for ResGen:
         ///      /reference:Goo=System.Xml.dll
         /// </summary>

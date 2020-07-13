@@ -140,6 +140,7 @@
          WarningLevel="$(WarningLevel)"
          WarningsAsErrors="$(WarningsAsErrors)"
          WarningsNotAsErrors="$(WarningsNotAsErrors)"
+         WarnVersion="$(WarnVersion)"
          Win32Icon="$(ApplicationIcon)"
          Win32Manifest="$(Win32Manifest)"
          Win32Resource="$(Win32Resource)"

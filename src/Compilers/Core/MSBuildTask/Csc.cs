@@ -153,6 +153,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(WarningsNotAsErrors)]; }
         }
 
+        public decimal WarnVersion
+        {
+            set { _store[nameof(WarnVersion)] = value; }
+            get { return _store.GetOrDefault(nameof(WarnVersion), 4); }
+        }
+
         public string? Nullable
         {
             set
@@ -239,6 +245,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     commandLine.AppendSwitchIfNotNull("/sqmsessionguid:", VsSessionGuid);
                 }
+            }
+
+            if (HostObject is ICscHostObject6 csHost6)
+            {
+                commandLine.AppendSwitchWithDecimal("/warnversion:", _store, nameof(WarnVersion));
             }
 
             AddReferencesToCommandLine(commandLine, References);
@@ -557,6 +568,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     CheckHostObjectSupport(param = nameof(ErrorLog), cscHostObject5.SetErrorLog(ErrorLog));
                     CheckHostObjectSupport(param = nameof(ReportAnalyzer), cscHostObject5.SetReportAnalyzer(ReportAnalyzer));
+                }
+
+                ICscHostObject6? cscHostObject6 = cscHostObject as ICscHostObject6;
+                if (cscHostObject6 != null)
+                {
+                    CheckHostObjectSupport(param = nameof(WarnVersion), cscHostObject6.SetWarnVersion(WarnVersion));
                 }
 
                 CheckHostObjectSupport(param = nameof(ResponseFiles), cscHostObject.SetResponseFiles(ResponseFiles));
