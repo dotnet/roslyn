@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract bool IsExpressionInStaticLocalFunction(TExpressionSyntax expression);
 
         protected abstract Task<Document> IntroduceQueryLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
-        protected abstract Task<Document> IntroduceLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant,
-            bool includeRValue, CancellationToken cancellationToken);
+        protected abstract Task<Document> IntroduceLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, bool includeRValue, CancellationToken cancellationToken);
         protected abstract Task<Document> IntroduceFieldAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
 
         protected abstract int DetermineFieldInsertPosition(TTypeDeclarationSyntax oldDeclaration, TTypeDeclarationSyntax newDeclaration);
@@ -99,43 +98,43 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             if (state.InQueryContext)
             {
-                actions.Add(CreateAction(state, allOccurrences: false, isConstant: false, isLocal: false, isQueryLocal: true, includeRValues: true));
-                actions.Add(CreateAction(state, allOccurrences: true, isConstant: false, isLocal: false, isQueryLocal: true, includeRValues: true));
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: false, isLocal: false, isQueryLocal: true, includeLValues: true));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: false, isLocal: false, isQueryLocal: true, includeLValues: true));
 
                 return FeaturesResources.Introduce_query_variable;
             }
             else if (state.InParameterContext)
             {
-                actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false, includeRValues: true));
-                actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false, includeRValues: true));
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false, includeLValues: true));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false, includeLValues: true));
 
                 return FeaturesResources.Introduce_constant;
             }
             else if (state.InFieldContext)
             {
-                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeRValues: true));
-                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeRValues: true));
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeLValues: true));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeLValues: true));
 
                 return GetConstantOrFieldResource(state.IsConstant);
             }
             else if (state.InConstructorInitializerContext)
             {
-                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeRValues: true));
-                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeRValues: true));
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeLValues: true));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeLValues: true));
 
                 return GetConstantOrFieldResource(state.IsConstant);
             }
             else if (state.InAutoPropertyInitializerContext)
             {
-                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeRValues: true));
-                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeRValues: true));
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeLValues: true));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: false, isQueryLocal: false, includeLValues: true));
 
                 return GetConstantOrFieldResource(state.IsConstant);
             }
             else if (state.InAttributeContext)
             {
-                actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false, includeRValues: true));
-                actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false, includeRValues: true));
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false, includeLValues: true));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false, includeLValues: true));
 
                 return FeaturesResources.Introduce_constant;
             }
@@ -148,17 +147,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 if (!BlockOverlapsHiddenPosition(block, cancellationToken))
                 {
-                    actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeRValues: true));
+                    actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeLValues: true));
 
                     if (blocks.All(b => !BlockOverlapsHiddenPosition(b, cancellationToken)))
                     {
-                        var localForAllCodeAction = CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeRValues: false);
+                        var localForAllCodeAction = CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeLValues: false);
                         actions.Add(localForAllCodeAction);
 
                         // if we encountered any rvalues, the previous code action won't replace them. 
                         // add another action that does replace them here
                         if (!state.IsConstant)
-                            actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeRValues: true));
+                            actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeLValues: true));
                     }
                 }
 
@@ -167,8 +166,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             else if (state.InExpressionBodiedMemberContext)
             {
                 CreateConstantFieldActions(state, actions, cancellationToken);
-                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeRValues: true));
-                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeRValues: true));
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeLValues: true));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false, includeLValues: true));
 
                 return GetConstantOrLocalResource(state.IsConstant);
             }
@@ -195,8 +194,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 // local.
                 if (CanGenerateIntoContainer(state, cancellationToken))
                 {
-                    actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false, includeRValues: true));
-                    actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false, includeRValues: true));
+                    actions.Add(CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false, includeLValues: true));
+                    actions.Add(CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false, includeLValues: true));
                 }
             }
         }
@@ -248,11 +247,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return false;
         }
 
-        private CodeAction CreateAction(State state, bool allOccurrences, bool isConstant, bool isLocal, bool isQueryLocal, bool includeRValues)
+        private CodeAction CreateAction(State state, bool allOccurrences, bool isConstant, bool isLocal, bool isQueryLocal, bool includeLValues)
         {
             if (allOccurrences)
             {
-                return new IntroduceVariableAllOccurrenceCodeAction((TService)this, state.Document, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal, includeRValues);
+                return new IntroduceVariableAllOccurrenceCodeAction((TService)this, state.Document, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal, includeLValues);
             }
 
             return new IntroduceVariableCodeAction((TService)this, state.Document, state.Expression, allOccurrences, isConstant, isLocal, isQueryLocal);
@@ -300,7 +299,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             SemanticDocument currentDocument,
             SyntaxNode withinNodeInCurrent,
             bool allOccurrences,
-            bool includeRValues,
+            bool includeLValues,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = currentDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
@@ -311,8 +310,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var result = new HashSet<TExpressionSyntax>();
             var matches = from nodeInCurrent in withinNodeInCurrent.DescendantNodesAndSelf().OfType<TExpressionSyntax>()
                           where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
-                            && (includeRValues || (!includeRValues && !allOccurrences) || (!includeRValues && allOccurrences && semanticFacts.CanReplaceWithRValue(currentSemanticModel, nodeInCurrent, cancellationToken)))
-                          select nodeInCurrent;
+                            && (includeLValues                                   // if including lvalues too, everything passes, since rvalues always pass
+                                || (!includeLValues && !allOccurrences)          // if not including all occurences, including lvalues is handled earlier (ie rejected)
+                                || (!includeLValues && allOccurrences && semanticFacts.CanReplaceWithRValue(currentSemanticModel, nodeInCurrent, cancellationToken)))
+                          select nodeInCurrent;                                  // if not including lvalues but replacing all occurences, use CanReplaceWithRValue to determine if we can make the replacement (returns false for lvalues)
             result.AddRange(matches.OfType<TExpressionSyntax>());
 
             return result;
@@ -386,12 +387,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             SemanticDocument currentDocument,
             TNode withinNodeInCurrent,
             bool allOccurrences,
-            bool includeRValues,
+            bool includeLValues,
             CancellationToken cancellationToken)
             where TNode : SyntaxNode
         {
             var generator = SyntaxGenerator.GetGenerator(originalDocument.Document);
-            var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, withinNodeInCurrent, allOccurrences, includeRValues, cancellationToken);
+            var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, withinNodeInCurrent, allOccurrences, includeLValues, cancellationToken);
 
             // Parenthesize the variable, and go and replace anything we find with it.
             // NOTE: we do not want elastic trivia as we want to just replace the existing code 

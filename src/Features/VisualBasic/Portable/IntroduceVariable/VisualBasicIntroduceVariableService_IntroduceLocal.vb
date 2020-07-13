@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 expression As ExpressionSyntax,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
-                includeRValues As Boolean,
+                includeLValues As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim container = GetContainerToGenerateInfo(document, expression, cancellationToken)
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Else
                 Return Await IntroduceLocalDeclarationIntoBlockAsync(
                     document, container, expression, newLocalName,
-                    declarationStatement, allOccurrences, includeRValues, cancellationToken).ConfigureAwait(False)
+                    declarationStatement, allOccurrences, includeLValues, cancellationToken).ConfigureAwait(False)
             End If
         End Function
 
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 newLocalName As NameSyntax,
                 declarationStatement As LocalDeclarationStatementSyntax,
                 allOccurrences As Boolean,
-                includeRValues As Boolean,
+                includeLValues As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim localAnnotation = New SyntaxAnnotation()
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 oldOutermostBlock = oldOutermostBlock.Parent
             End If
 
-            Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, includeRValues, cancellationToken)
+            Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, includeLValues, cancellationToken)
 
             Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
             document = complexified.newSemanticDocument

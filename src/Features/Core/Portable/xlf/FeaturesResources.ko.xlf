@@ -516,8 +516,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_all_occurrences_of_0_including_writes">
-        <source>Introduce local for all occurrences of '{0}' including writes</source>
-        <target state="new">Introduce local for all occurrences of '{0}' including writes</target>
+        <source>Introduce local for all writes and reads of '{0}'</source>
+        <target state="new">Introduce local for all writes and reads of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable">
@@ -2756,8 +2756,8 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_all_occurrences_of_0">
-        <source>Introduce local for all occurrences of '{0}'</source>
-        <target state="translated">{0}'의 모든 항목에 대한 로컬 지정</target>
+        <source>Introduce local for all reads of '{0}'</source>
+        <target state="needs-review-translation">{0}'의 모든 항목에 대한 로컬 지정</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_all_occurrences_of_0">

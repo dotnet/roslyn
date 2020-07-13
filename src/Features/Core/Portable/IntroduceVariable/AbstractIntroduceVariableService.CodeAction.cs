@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 bool isConstant,
                 bool isLocal,
                 bool isQueryLocal)
-                : base(service, document, expression, allOccurrences, isConstant, isLocal, isQueryLocal, true)
+                : base(service, document, expression, allOccurrences, isConstant, isLocal, isQueryLocal, includeLValues: true)
             {
             }
         }

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             if (oldTypeDeclaration != null)
             {
                 var newTypeDeclaration = Rewrite(
-                    document, expression, newQualifiedName, document, oldTypeDeclaration, allOccurrences, includeRValues: true, cancellationToken);
+                    document, expression, newQualifiedName, document, oldTypeDeclaration, allOccurrences, includeLValues: true, cancellationToken);
 
                 var insertionIndex = GetFieldInsertionIndex(isConstant, oldTypeDeclaration, newTypeDeclaration, cancellationToken);
                 var finalTypeDeclaration = InsertMember(newTypeDeclaration, newFieldDeclaration, insertionIndex);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             {
                 var oldCompilationUnit = (CompilationUnitSyntax)document.Root;
                 var newCompilationUnit = Rewrite(
-                    document, expression, newQualifiedName, document, oldCompilationUnit, allOccurrences, includeRValues: true, cancellationToken);
+                    document, expression, newQualifiedName, document, oldCompilationUnit, allOccurrences, includeLValues: true, cancellationToken);
 
                 var insertionIndex = isConstant ?
                     DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members) :

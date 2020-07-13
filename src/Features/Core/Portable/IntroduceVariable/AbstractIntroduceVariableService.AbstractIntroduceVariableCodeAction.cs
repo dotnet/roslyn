@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 bool isConstant,
                 bool isLocal,
                 bool isQueryLocal,
-                bool includeRValues)
+                bool includeLValues)
             {
                 _service = service;
                 _semanticDocument = document;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 _isConstant = isConstant;
                 _isLocal = isLocal;
                 _isQueryLocal = isQueryLocal;
-                _includeRValues = includeRValues;
+                _includeRValues = includeLValues;
                 Title = CreateDisplayText(expression);
             }
 
