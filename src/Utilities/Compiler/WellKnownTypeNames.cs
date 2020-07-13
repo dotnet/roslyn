@@ -134,6 +134,7 @@ namespace Analyzer.Utilities
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
         public const string SystemDateTime = "System.DateTime";
+        public const string SystemDateTimeOffset = "System.DateTimeOffset";
         public const string SystemDecimal = "System.Decimal";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
