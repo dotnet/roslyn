@@ -169,11 +169,11 @@ End Class
             Await ExpectException_TestAsync(code, indentation:=0, indentStyle:=FormattingOptions.IndentStyle.None)
         End Function
 
-        Private Async Function ExpectException_TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Task
+        Private Shared Async Function ExpectException_TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Task
             Assert.NotNull(Await Record.ExceptionAsync(Function() TestAsync(codeWithMarkup, indentation, indentStyle:=indentStyle)))
         End Function
 
-        Private Async Function TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Threading.Tasks.Task
+        Private Shared Async Function TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Threading.Tasks.Task
             Dim code As String = Nothing
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)

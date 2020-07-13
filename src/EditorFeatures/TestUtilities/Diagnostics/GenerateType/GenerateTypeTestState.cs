@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
     internal sealed class GenerateTypeTestState : IDisposable
     {
         public static List<string> FixIds = new List<string>(new[] { "CS0246", "CS0234", "CS0103", "BC30002", "BC30451", "BC30456" });
-        private TestHostDocument _testDocument;
+        private readonly TestHostDocument _testDocument;
         public TestWorkspace Workspace { get; }
         public Document InvocationDocument { get; }
         public Document ExistingDocument { get; }

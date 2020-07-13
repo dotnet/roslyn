@@ -484,7 +484,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterComma()
         {
             var markup =
