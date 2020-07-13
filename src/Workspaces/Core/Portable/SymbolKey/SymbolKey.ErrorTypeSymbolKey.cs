@@ -57,15 +57,29 @@ namespace Microsoft.CodeAnalysis
                 return builder.ToImmutable();
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var name = reader.ReadString();
-                var containingSymbolResolution = ResolveContainer(reader);
+
+                var containingSymbolResolution = ResolveContainer(reader, out var containingSymbolFailureReason);
+                if (containingSymbolFailureReason != null)
+                {
+                    failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(containingSymbolResolution)} failed -> ${containingSymbolFailureReason})";
+                    return default;
+                }
+
                 var arity = reader.ReadInteger();
 
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+                if (containingSymbolFailureReason != null)
+                {
+                    failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(typeArguments)} failed -> ${typeArgumentsFailureReason})";
+                    return default;
+                }
+
                 if (typeArguments.IsDefault)
                 {
+                    failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(typeArguments)} failed)";
                     return default;
                 }
 
@@ -85,15 +99,15 @@ namespace Microsoft.CodeAnalysis
                         reader, container: null, name, arity, typeArgumentsArray));
                 }
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(ErrorTypeSymbolKey)} failed)", out failureReason);
             }
 
-            private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader)
+            private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader, out string failureReason)
             {
                 var type = reader.ReadInteger();
 
                 if (type == 0)
-                    return reader.ReadSymbolKey();
+                    return reader.ReadSymbolKey(out failureReason);
 
                 if (type == 1)
                 {
@@ -104,11 +118,15 @@ namespace Microsoft.CodeAnalysis
                     for (var i = namespaceNames.Count - 1; i >= 0; i--)
                         currentNamespace = reader.Compilation.CreateErrorNamespaceSymbol(currentNamespace, namespaceNames[i]);
 
+                    failureReason = null;
                     return new SymbolKeyResolution(currentNamespace);
                 }
 
                 if (type == 2)
+                {
+                    failureReason = null;
                     return default;
+                }
 
                 throw ExceptionUtilities.UnexpectedValue(type);
             }

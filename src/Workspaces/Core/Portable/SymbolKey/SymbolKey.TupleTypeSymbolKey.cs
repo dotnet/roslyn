@@ -20,6 +20,15 @@ namespace Microsoft.CodeAnalysis
                 var friendlyNames = ArrayBuilder<string>.GetInstance();
                 var locations = ArrayBuilder<Location>.GetInstance();
 
+                foreach (var element in symbol.TupleElements)
+                {
+                    friendlyNames.Add(element.IsImplicitlyDeclared ? null : element.Name);
+                    locations.Add(FirstOrDefault(element.Locations) ?? Location.None);
+                }
+
+                visitor.WriteStringArray(friendlyNames.ToImmutableAndFree());
+                visitor.WriteLocationArray(locations.ToImmutableAndFree());
+
                 var isError = symbol.TupleUnderlyingType.TypeKind == TypeKind.Error;
                 visitor.WriteBoolean(isError);
 
@@ -38,25 +47,27 @@ namespace Microsoft.CodeAnalysis
                 {
                     visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
                 }
-
-                foreach (var element in symbol.TupleElements)
-                {
-                    friendlyNames.Add(element.IsImplicitlyDeclared ? null : element.Name);
-                    locations.Add(FirstOrDefault(element.Locations) ?? Location.None);
-                }
-
-                visitor.WriteStringArray(friendlyNames.ToImmutableAndFree());
-                visitor.WriteLocationArray(locations.ToImmutableAndFree());
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
+                using var elementNames = reader.ReadStringArray();
+                var elementLocations = ReadElementLocations(reader, out var elementLocationsFailureReason);
+                if (elementLocationsFailureReason != null)
+                {
+                    failureReason = $"({nameof(TupleTypeSymbolKey)} {nameof(elementLocations)} failed -> ${elementLocationsFailureReason})";
+                    return default;
+                }
+
                 var isError = reader.ReadBoolean();
                 if (isError)
                 {
-                    using var elementTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
-                    using var elementNames = reader.ReadStringArray();
-                    var elementLocations = ReadElementLocations(reader);
+                    using var elementTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var elementTypesFailureReason);
+                    if (elementTypesFailureReason != null)
+                    {
+                        failureReason = $"({nameof(TupleTypeSymbolKey)} {nameof(elementTypes)} failed -> ${elementTypesFailureReason})";
+                        return default;
+                    }
 
                     if (!elementTypes.IsDefault)
                     {
@@ -64,6 +75,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             var result = reader.Compilation.CreateTupleTypeSymbol(
                                 elementTypes.ToImmutable(), elementNames.ToImmutable(), elementLocations);
+                            failureReason = null;
                             return new SymbolKeyResolution(result);
                         }
                         catch (ArgumentException)
@@ -73,41 +85,45 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    var underlyingTypeResolution = reader.ReadSymbolKey();
-                    using var elementNamesBuilder = reader.ReadStringArray();
-                    var elementLocations = ReadElementLocations(reader);
+                    var underlyingTypeResolution = reader.ReadSymbolKey(out var underlyingTypeFailureReason);
+                    if (underlyingTypeFailureReason != null)
+                    {
+                        failureReason = $"({nameof(TupleTypeSymbolKey)} {nameof(underlyingTypeResolution)} failed -> ${underlyingTypeFailureReason})";
+                        return default;
+                    }
 
                     try
                     {
                         using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
 
-                        var elementNames = elementNamesBuilder.ToImmutable();
+                        var elementNamesArray = elementNames.ToImmutable();
                         foreach (var namedType in underlyingTypeResolution.OfType<INamedTypeSymbol>())
                         {
                             result.AddIfNotNull(reader.Compilation.CreateTupleTypeSymbol(
-                                namedType, elementNames, elementLocations));
+                                namedType, elementNamesArray, elementLocations));
                         }
 
-                        return CreateResolution(result);
+                        return CreateResolution(result, $"({nameof(TupleTypeSymbolKey)} failed)", out failureReason);
                     }
                     catch (ArgumentException)
                     {
                     }
                 }
 
+                failureReason = null;
                 return new SymbolKeyResolution(reader.Compilation.ObjectType);
             }
 
-            private static ImmutableArray<Location> ReadElementLocations(SymbolKeyReader reader)
+            private static ImmutableArray<Location> ReadElementLocations(SymbolKeyReader reader, out string failureReason)
             {
-                using var elementLocations = reader.ReadLocationArray();
+                using var elementLocations = reader.ReadLocationArray(out failureReason);
+                if (failureReason != null)
+                    return default;
 
                 // Compiler API requires that all the locations are non-null, or that there is a default
                 // immutable array passed in.
                 if (elementLocations.Builder.All(loc => loc == null))
-                {
                     return default;
-                }
 
                 return elementLocations.ToImmutable();
             }

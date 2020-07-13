@@ -16,20 +16,39 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteParameterTypesArray(symbol.Signature.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var returnRefKind = reader.ReadRefKind();
-                var returnType = reader.ReadSymbolKey();
-                using var paramRefKinds = reader.ReadRefKindArray();
-                using var paramTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
-
-                if (paramTypes.IsDefault || !(returnType.GetAnySymbol() is ITypeSymbol returnTypeSymbol))
+                var returnType = reader.ReadSymbolKey(out var returnTypeFailureReason);
+                if (returnTypeFailureReason != null)
                 {
+                    failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} {nameof(returnType)} failed -> {returnTypeFailureReason})";
                     return default;
                 }
 
+                using var paramRefKinds = reader.ReadRefKindArray();
+                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
+                if (parameterTypesFailureReason != null)
+                {
+                    failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} {nameof(parameterTypes)} failed -> {parameterTypesFailureReason})";
+                    return default;
+                }
+
+                if (parameterTypes.IsDefault)
+                {
+                    failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} no parameter types)";
+                    return default;
+                }
+
+                if (!(returnType.GetAnySymbol() is ITypeSymbol returnTypeSymbol))
+                {
+                    failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} no return type)";
+                    return default;
+                }
+
+                failureReason = null;
                 return new SymbolKeyResolution(reader.Compilation.CreateFunctionPointerTypeSymbol(
-                    returnTypeSymbol, returnRefKind, paramTypes.ToImmutable(), paramRefKinds.ToImmutable()));
+                    returnTypeSymbol, returnRefKind, parameterTypes.ToImmutable(), paramRefKinds.ToImmutable()));
             }
         }
     }
