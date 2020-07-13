@@ -84,21 +84,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
                 => AnalyzeSyntaxOrNonSourceDocumentAsync(document, cancellationToken);
 
-            public Task AnalyzeNonSourceDocumentAsync(TextDocument document, InvocationReasons reasons, CancellationToken cancellationToken)
-                => AnalyzeSyntaxOrNonSourceDocumentAsync(document, cancellationToken);
+            public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+                => AnalyzeSyntaxOrNonSourceDocumentAsync(textDocument, cancellationToken);
 
-            private async Task AnalyzeSyntaxOrNonSourceDocumentAsync(TextDocument document, CancellationToken cancellationToken)
+            private async Task AnalyzeSyntaxOrNonSourceDocumentAsync(TextDocument textDocument, CancellationToken cancellationToken)
             {
-                Debug.Assert(document.Project.Solution.Workspace == _workspace);
+                Debug.Assert(textDocument.Project.Solution.Workspace == _workspace);
 
                 // right now, there is no way to observe diagnostics for closed file.
-                if (!_workspace.IsDocumentOpen(document.Id) ||
+                if (!_workspace.IsDocumentOpen(textDocument.Id) ||
                     !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Syntax))
                 {
                     return;
                 }
 
-                await AnalyzeForKindAsync(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
+                await AnalyzeForKindAsync(textDocument, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -213,17 +213,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return RemoveDocumentAsync(document.Id, cancellationToken);
             }
 
-            public Task NonSourceDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
+            public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
             {
                 // no closed file diagnostic and file is not opened, remove any existing diagnostics
-                return RemoveDocumentAsync(document.Id, cancellationToken);
+                return RemoveDocumentAsync(textDocument.Id, cancellationToken);
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
                 => DocumentResetAsync(document, cancellationToken);
 
-            public Task NonSourceDocumentCloseAsync(TextDocument document, CancellationToken cancellationToken)
-                => NonSourceDocumentResetAsync(document, cancellationToken);
+            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => NonSourceDocumentResetAsync(textDocument, cancellationToken);
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public Task NonSourceDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
+            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)

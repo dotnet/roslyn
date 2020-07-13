@@ -459,11 +459,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 #endif
 
-        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, TextDocument targetDocument, TextSpan? span = null)
+        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
         {
             foreach (var diagnostic in diagnostics)
             {
-                if (!IsReportedInDocument(diagnostic, targetDocument))
+                if (!IsReportedInDocument(diagnostic, targetTextDocument))
                 {
                     continue;
                 }
@@ -473,21 +473,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                yield return DiagnosticData.Create(diagnostic, targetDocument);
+                yield return DiagnosticData.Create(diagnostic, targetTextDocument);
             }
 
-            static bool IsReportedInDocument(Diagnostic diagnostic, TextDocument targetDocument)
+            static bool IsReportedInDocument(Diagnostic diagnostic, TextDocument targetTextDocument)
             {
                 if (diagnostic.Location.SourceTree != null)
                 {
-                    return targetDocument.Project.GetDocument(diagnostic.Location.SourceTree) == targetDocument;
+                    return targetTextDocument.Project.GetDocument(diagnostic.Location.SourceTree) == targetTextDocument;
                 }
                 else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
                 {
                     var lineSpan = diagnostic.Location.GetLineSpan();
 
-                    var documentIds = targetDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
-                    return documentIds.Any(id => id == targetDocument.Id);
+                    var documentIds = targetTextDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
+                    return documentIds.Any(id => id == targetTextDocument.Id);
                 }
 
                 return false;
