@@ -49,12 +49,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol);
                     completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));
-
-                    DebugDescription = $@"PartialResult: {counter.PartialResult}
-GetSymbols: {counter.GetSymbolsTicks}
-CreateItems: {counter.CreateItemsTicks}
-Total: {counter.TotalTicks}
-Length: {counter.TotalExtensionMethodsProvided}";
                 }
                 else
                 {
@@ -119,6 +113,6 @@ Length: {counter.TotalExtensionMethodsProvided}";
                 serializableItem.Glyph,
                 GenericSuffix,
                 CompletionItemFlags.Expanded,
-                (serializableItem.SymbolKeyData, receiverTypeSymbolKey));
+                (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.OverloadCount));
     }
 }

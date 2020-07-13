@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var counter = new StatisticCounter();
             var ticks = Environment.TickCount;
 
+            // First find symbols of all applicable extension methods.
+            // Workspace's syntax/symbol index is used to avoid iterating every method symbols in the solution.
             var results = await GetExtensionMethodSymbolsAsync(
                 document,
                 position,
@@ -95,8 +97,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var indicesComplete = true;
             using var _1 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
-            using var _2 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var itemsBuilder);
+            using var _2 = PooledDictionary<(string containingNamespace, string methodName, bool isGeneric), (IMethodSymbol bestSymbol, int overloadCount)>.GetInstance(out var overloadMap);
 
+            // Aggregate overloads
             foreach (var result in results)
             {
                 // `null` indicates we don't have the index ready for the corresponding project/PE,
@@ -110,10 +113,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var symbol in result)
                 {
-                    itemsBuilder.Add(CreateItem(symbol, namespaceNameCache, cancellationToken));
+                    var containingNamespacename = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, namespaceNameCache);
+
+                    // Select the overload with minimum number of parameters to display
+                    (var bestSymbol, var overloadCount) = overloadMap.TryGetValue((containingNamespacename, symbol.Name, symbol.Arity > 0), out var currentValue)
+                        ? (currentValue.bestSymbol.Parameters.Length > symbol.Parameters.Length ? symbol : currentValue.bestSymbol, currentValue.overloadCount + 1)
+                        : (symbol, 1);
+
+                    overloadMap[(containingNamespacename, symbol.Name, symbol.Arity > 0)] = (bestSymbol, overloadCount);
                 }
             }
 
+            // Then convert symbols into completion items
+            using var _3 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var itemsBuilder);
+
+            foreach (var (methodData, overloadSymbols) in overloadMap)
+            {
+                itemsBuilder.Add(CreateItem(overloadSymbols.bestSymbol, methodData.containingNamespace, overloadCount: overloadSymbols.overloadCount - 1, cancellationToken));
+            }
+
+            // If we don't have all the indices available already, queue a backgrounds task to create them.
             if (!indicesComplete)
             {
                 lock (s_gate)
@@ -134,13 +153,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return (itemsBuilder.ToImmutable(), counter);
 
-            static SerializableImportCompletionItem CreateItem(IMethodSymbol methodSymbol, Dictionary<INamespaceSymbol, string> stringCache, CancellationToken cancellationToken)
+            static SerializableImportCompletionItem CreateItem(IMethodSymbol methodSymbol, string containingNamespace, int overloadCount, CancellationToken cancellationToken)
                 => new SerializableImportCompletionItem(
                     SymbolKey.CreateString(methodSymbol, cancellationToken),
                     methodSymbol.Name,
                     methodSymbol.Arity,
                     methodSymbol.GetGlyph(),
-                    GetFullyQualifiedNamespaceName(methodSymbol.ContainingNamespace, stringCache));
+                    containingNamespace,
+                    overloadCount);
 
             // Force create all relevant indices
             static async Task PopulateIndicesAsync(Project currentProject, CancellationToken cancellationToken)
