@@ -4482,17 +4482,18 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "Base").WithLocation(5, 25)
                 );
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.False(shouldWarn);
-            Assert.Equal(withCovariantReturns, useMethodImpl);
-
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, ""));
             verify(RetargetingView(comp, ""));
 
             void verify(CSharpCompilation compilation)
             {
+                var member = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.Equal(withCovariantReturns, useMethodImpl);
+                Assert.Equal(withCovariantReturns, member.IsMetadataNewSlot());
+
                 VerifyOverride(compilation,
                     methodName: "Derived.M",
                     overridingMemberDisplay: "void Derived.M(System.Int32 z)",
@@ -4529,17 +4530,18 @@ class Derived : Base<int>
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Base<T>.M(int)", "Base<T>.M(int)", "Derived").WithLocation(10, 26)
                 );
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.False(shouldWarn);
-            Assert.Equal(withCovariantReturns, useMethodImpl);
-
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, ""));
             verify(RetargetingView(comp, ""));
 
             void verify(CSharpCompilation compilation)
             {
+                var member = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.Equal(withCovariantReturns, useMethodImpl);
+                Assert.Equal(withCovariantReturns, member.IsMetadataNewSlot());
+
                 VerifyOverride(compilation,
                     methodName: "Derived.M",
                     overridingMemberDisplay: "void Derived.M(System.Int32 z)",
@@ -4576,17 +4578,18 @@ class Container<T>
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "Container<T>.Base").WithLocation(7, 29)
                 );
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Container.Derived.M");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.False(shouldWarn);
-            Assert.Equal(withCovariantReturns, useMethodImpl);
-
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, ""));
             verify(RetargetingView(comp, ""));
 
             void verify(CSharpCompilation compilation)
             {
+                var member = (MethodSymbol)comp.GlobalNamespace.GetMember("Container.Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.Equal(withCovariantReturns, useMethodImpl);
+                Assert.Equal(useMethodImpl, member.IsMetadataNewSlot());
+
                 VerifyOverride(compilation,
                     methodName: "Container.Derived.M",
                     overridingMemberDisplay: "void Container<T>.Derived.M(System.Int32 z)",
@@ -4632,15 +4635,17 @@ class Derived : Container<int>.Base
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Container<T>.Base.M(int)", "Container<T>.Base.M(int)", "Derived").WithLocation(4, 26)
                 );
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.False(shouldWarn);
-            Assert.Equal(withCovariantReturns, useMethodImpl);
-
             verify(SourceView(comp, ""));
+            verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
+            verify(RetargetingView(comp, "", new[] { baseMetadata }));
 
             void verify(CSharpCompilation compilation)
             {
+                var member = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.Equal(withCovariantReturns, useMethodImpl);
+
                 VerifyOverride(compilation,
                     methodName: "Derived.M",
                     overridingMemberDisplay: "void Derived.M(System.Int32 z)",
@@ -4687,15 +4692,17 @@ class Derived : Container<int>.Base
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Container<T>.Base.M(int)", "Container<T>.Base.M(T)", "Derived").WithLocation(4, 26)
                 );
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.False(shouldWarn);
-            Assert.Equal(withCovariantReturns, useMethodImpl);
-
             verify(SourceView(comp, ""));
+            verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
+            verify(RetargetingView(comp, "", references: new[] { baseMetadata }));
 
             void verify(CSharpCompilation compilation)
             {
+                var member = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.Equal(withCovariantReturns, useMethodImpl);
+
                 VerifyOverride(compilation,
                     methodName: "Derived.M",
                     overridingMemberDisplay: "void Derived.M(System.Int32 w)",
@@ -4740,19 +4747,137 @@ class Derived : Base
             comp.VerifyDiagnostics(
                 );
 
-            var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.get_P");
-            bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
-            Assert.False(shouldWarn);
-            Assert.True(useMethodImpl);
-
             verify(SourceView(comp, ""));
+            verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
+            verify(RetargetingView(comp, "", references: new[] { baseMetadata }));
 
             void verify(CSharpCompilation compilation)
             {
+                var member = (SourceMethodSymbol)comp.GlobalNamespace.GetMember("Derived.get_P");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.True(useMethodImpl);
+
                 VerifyOverride(compilation,
                     methodName: "Derived.get_P",
                     overridingMemberDisplay: "System.Int32 Derived.get_P()",
                     overriddenMemberDisplay: "System.Int32 Root.get_P()",
+                    requiresMethodimpl: useMethodImpl);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DuplicateDeclarations_07(
+            bool withCovariantReturns
+            )
+        {
+            var s0 = @"
+public class Root<T>
+{
+    public virtual int get_P() => throw null; // 1
+    public virtual int get_P() => throw null; // 2
+}
+
+public class Base : Root<int>
+{
+    public virtual int P => 1;
+}
+";
+            var baseCompilation = CreateCompilation(withCovariantReturns: withCovariantReturns, s0);
+            baseCompilation.VerifyDiagnostics(
+                // (5,24): error CS0111: Type 'Root<T>' already defines a member called 'get_P' with the same parameter types
+                //     public virtual int get_P() => throw null; // 2
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "get_P").WithArguments("get_P", "Root<T>").WithLocation(5, 24)
+                );
+            var baseMetadata = baseCompilation.ToMetadataReference();
+
+            var source = @"
+class Derived : Base
+{
+    public override int get_P() => throw null; // 3
+}
+";
+            var comp = CreateCompilation(withCovariantReturns: withCovariantReturns, source, references: new[] { baseMetadata });
+            comp.VerifyDiagnostics(
+                // (4,25): error CS0462: The inherited members 'Root<T>.get_P()' and 'Root<T>.get_P()' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override int get_P() => throw null; // 3
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "get_P").WithArguments("Root<T>.get_P()", "Root<T>.get_P()", "Derived").WithLocation(4, 25)
+                );
+
+            verify(SourceView(comp, ""));
+            verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
+            verify(RetargetingView(comp, "", references: new[] { baseMetadata }));
+
+            void verify(CSharpCompilation compilation)
+            {
+                var member = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.get_P");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.True(useMethodImpl);
+
+                VerifyOverride(compilation,
+                    methodName: "Derived.get_P",
+                    overridingMemberDisplay: "System.Int32 Derived.get_P()",
+                    overriddenMemberDisplay: "System.Int32 Root<System.Int32>.get_P()",
+                    requiresMethodimpl: useMethodImpl);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DuplicateDeclarations_08(
+            bool withCovariantReturns
+            )
+        {
+            var s0 = @"
+public class Root<T>
+{
+    public virtual void M(ref int x) => throw null; // 1
+    public virtual void M(ref T y) => throw null;   // 2
+    public virtual void M(ref int z) => throw null; // 3
+}
+public class Base : Root<int>
+{
+    public virtual void M(out int w) { w = 0; }     // 4
+}
+";
+            var baseCompilation = CreateCompilation(withCovariantReturns: withCovariantReturns, s0);
+            baseCompilation.VerifyDiagnostics(
+                // (6,25): error CS0111: Type 'Root<T>' already defines a member called 'M' with the same parameter types
+                //     public virtual void M(ref int z) => throw null; // 3
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "Root<T>").WithLocation(6, 25)
+                );
+            var baseMetadata = baseCompilation.ToMetadataReference();
+
+            var source = @"
+class Derived : Base
+{
+    public override void M(ref int a) => throw null; // 5
+}
+";
+            var comp = CreateCompilation(withCovariantReturns: withCovariantReturns, source, references: new[] { baseMetadata });
+            comp.VerifyDiagnostics(
+                // (4,26): error CS0462: The inherited members 'Root<T>.M(ref int)' and 'Root<T>.M(ref T)' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override void M(ref int a) => throw null; // 5
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Root<T>.M(ref int)", "Root<T>.M(ref T)", "Derived").WithLocation(4, 26)
+                );
+
+            verify(SourceView(comp, ""));
+            verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
+            verify(RetargetingView(comp, "", references: new[] { baseMetadata }));
+
+            void verify(CSharpCompilation compilation)
+            {
+                var member = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+                bool useMethodImpl = member.RequiresExplicitOverride(out bool shouldWarn);
+                Assert.False(shouldWarn);
+                Assert.True(useMethodImpl);
+
+                VerifyOverride(compilation,
+                    methodName: "Derived.M",
+                    overridingMemberDisplay: "void Derived.M(ref System.Int32 a)",
+                    overriddenMemberDisplay: "void Root<System.Int32>.M(ref System.Int32 x)",
                     requiresMethodimpl: useMethodImpl);
             }
         }

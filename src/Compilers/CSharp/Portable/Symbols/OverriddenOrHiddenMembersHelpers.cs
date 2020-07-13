@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Due to https://github.com/dotnet/runtime/issues/38119 the methodimpl would
             // appear to the runtime to be ambiguous in some cases.
-            bool methodimplWouldBeAmbiguous = csharpOverriddenMethod.MethodHasRuntimeCollisionInSubstututedForm();
+            bool methodimplWouldBeAmbiguous = csharpOverriddenMethod.MethodHasRuntimeCollision();
             if (!methodimplWouldBeAmbiguous)
                 return true;
 
@@ -943,10 +943,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // We produce the warning when a methodimpl would be required but would be ambiguous to the runtime.
             // However, if there was a duplicate definition for the runtime signature of the overridden
-            // method where it was originally delcared, that would have been an error.  In that case we suppress
+            // method where it was originally declared, that would have been an error.  In that case we suppress
             // the warning as a cascaded diagnostic.
             bool originalOverriddenMethodWasAmbiguious =
-                csharpOverriddenMethod.IsDefinition || csharpOverriddenMethod.OriginalDefinition.MethodHasRuntimeCollisionInSubstututedForm();
+                csharpOverriddenMethod.IsDefinition || csharpOverriddenMethod.OriginalDefinition.MethodHasRuntimeCollision();
             warnAmbiguous = !originalOverriddenMethodWasAmbiguious;
 
             bool overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod =
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return csharpOverriddenMethod != runtimeOverriddenMethod && method.IsAccessor() != runtimeOverriddenMethod.IsAccessor();
         }
 
-        internal static bool MethodHasRuntimeCollisionInSubstututedForm(this MethodSymbol method)
+        internal static bool MethodHasRuntimeCollision(this MethodSymbol method)
         {
             foreach (Symbol otherMethod in method.ContainingType.GetMembers(method.Name))
             {
