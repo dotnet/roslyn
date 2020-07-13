@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private ImmutableArray<SuggestedActionSet> GetInitiallyOrderedActionSets(
+            private static ImmutableArray<SuggestedActionSet> GetInitiallyOrderedActionSets(
                 TextSpan? selectionOpt, ImmutableArray<SuggestedActionSet> fixes, ImmutableArray<SuggestedActionSet> refactorings)
             {
                 // First, order refactorings based on the order the providers actually gave for
@@ -272,10 +272,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private SuggestedActionSet WithPriority(SuggestedActionSet set, SuggestedActionSetPriority priority)
+            private static SuggestedActionSet WithPriority(SuggestedActionSet set, SuggestedActionSetPriority priority)
                 => new SuggestedActionSet(set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
 
-            private ImmutableArray<SuggestedActionSet> OrderActionSets(
+            private static ImmutableArray<SuggestedActionSet> OrderActionSets(
                 ImmutableArray<SuggestedActionSet> actionSets, TextSpan? selectionOpt)
             {
                 return actionSets.OrderByDescending(s => s.Priority)
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                  .ToImmutableArray();
             }
 
-            private ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
+            private static ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
             {
                 using var resultDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var result);
                 var seenTitles = new HashSet<string>();
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return result.ToImmutable();
             }
 
-            private SuggestedActionSet? FilterActionSetByTitle(SuggestedActionSet set, HashSet<string> seenTitles)
+            private static SuggestedActionSet? FilterActionSetByTitle(SuggestedActionSet set, HashSet<string> seenTitles)
             {
                 using var actionsDisposer = ArrayBuilder<ISuggestedAction>.GetInstance(out var actions);
 

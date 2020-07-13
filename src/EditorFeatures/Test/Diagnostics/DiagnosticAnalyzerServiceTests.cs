@@ -538,7 +538,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             return workspace;
         }
 
-        private async Task TestFullSolutionAnalysisForProjectAsync(Project project, bool expectAnalyzerExecuted)
+        private static async Task TestFullSolutionAnalysisForProjectAsync(Project project, bool expectAnalyzerExecuted)
         {
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();

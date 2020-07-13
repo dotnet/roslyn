@@ -7,8 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Remote
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
@@ -21,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                                                   Optional index As Integer = 0,
                                                   Optional priority As CodeActionPriority? = Nothing,
                                                   Optional placeSystemFirst As Boolean = True) As Task
-            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, outOfProcess:=False)
-            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, outOfProcess:=True)
+            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, TestHost.InProcess)
+            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, TestHost.OutOfProcess)
         End Function
 
         Friend Overloads Async Function TestAsync(initialMarkup As String,
@@ -30,12 +29,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                                                   index As Integer,
                                                   priority As CodeActionPriority?,
                                                   placeSystemFirst As Boolean,
-                                                  outOfProcess As Boolean) As Task
+                                                  testHost As TestHost) As Task
             Await TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index,
                 parameters:=New TestParameters(
                     options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
-                    runProviderOutOfProc:=outOfProcess,
+                    testHost:=testHost,
                     priority:=priority))
         End Function
     End Class
@@ -49,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                .WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.runProviderOutOfProc)))
+                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, parameters.testHost = TestHost.OutOfProcess)))
 
             Return MyBase.CreateDiagnosticProviderAndFixer(workspace, parameters)
         End Function

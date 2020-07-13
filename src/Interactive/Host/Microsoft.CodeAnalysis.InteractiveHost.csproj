@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
       <Aliases>global,Scripting</Aliases>
     </ProjectReference>
+    <ProjectReference Include="..\vbi\vbi.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost32" />

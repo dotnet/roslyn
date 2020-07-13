@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ActiveStatement[] oldActiveStatements,
             TextSpan?[]? trackingSpans,
             TextSpan[] expectedNewActiveStatements,
-            ImmutableArray<TextSpan>[] expectedOldExceptionRegions,
             ImmutableArray<TextSpan>[] expectedNewExceptionRegions)
         {
             var text = SourceText.From(source);
@@ -376,14 +375,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Old = partners.Key.ToString().Replace("\r\n", " ").Replace("\n", " "),
                     New = partners.Value.ToString().Replace("\r\n", " ").Replace("\n", " ")
                 }));
-        }
-
-        private static IEnumerable<KeyValuePair<K, V>> ReverseMapping<K, V>(IEnumerable<KeyValuePair<V, K>> mapping)
-        {
-            foreach (var pair in mapping)
-            {
-                yield return KeyValuePairUtil.Create(pair.Value, pair.Key);
-            }
         }
     }
 

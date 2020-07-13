@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             project = project.RemoveMetadataReference(references[0]).AddMetadataReference(references[1]);
             var b = await context.GenerateSourceAsync("D", project);
 
-            context.VerifyDocumentNotReused(a, b);
+            TestContext.VerifyDocumentNotReused(a, b);
         }
 
         internal static async Task TestSymbolIdMatchesMetadataAsync(string projectLanguage)

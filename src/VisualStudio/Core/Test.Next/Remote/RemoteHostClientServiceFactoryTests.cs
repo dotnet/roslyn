@@ -3,27 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Remote;
-using Roslyn.Test.Utilities.Remote;
-using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
@@ -40,7 +30,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var options = workspace.CurrentSolution.Options
                 .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)
-                .WithChangedOption(Microsoft.CodeAnalysis.Test.Utilities.RemoteHost.RemoteHostOptions.RemoteHostTest, true);
+                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, true);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
@@ -74,7 +64,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
 
             var options = workspace.CurrentSolution.Options
-                .WithChangedOption(Microsoft.CodeAnalysis.Test.Utilities.RemoteHost.RemoteHostOptions.RemoteHostTest, true);
+                .WithChangedOption(RemoteTestHostOptions.RemoteHostTest, true);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 

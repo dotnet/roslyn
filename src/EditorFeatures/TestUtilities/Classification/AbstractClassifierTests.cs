@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     {
         protected AbstractClassifierTests() { }
 
-        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions parseOptions, bool outOfProcess);
+        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions parseOptions, TestHost testHost);
 
         protected abstract string WrapInClass(string className, string code);
         protected abstract string WrapInExpression(string code);
@@ -33,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         protected async Task DefaultTestAsync(string code, string allCode, FormattedClassification[] expected)
         {
-            await DefaultTestAsync(code, allCode, outOfProcess: true, expected);
-            await DefaultTestAsync(code, allCode, outOfProcess: false, expected);
+            await DefaultTestAsync(code, allCode, TestHost.InProcess, expected);
+            await DefaultTestAsync(code, allCode, TestHost.OutOfProcess, expected);
         }
 
-        protected abstract Task DefaultTestAsync(string code, string allCode, bool outOfProcess, FormattedClassification[] expected);
+        protected abstract Task DefaultTestAsync(string code, string allCode, TestHost testHost, FormattedClassification[] expected);
 
         protected async Task TestAsync(
            string code,
@@ -45,21 +46,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
            ParseOptions parseOptions,
            params FormattedClassification[] expected)
         {
-            await TestAsync(code, allCode, parseOptions, outOfProcess: true, expected);
-            await TestAsync(code, allCode, parseOptions, outOfProcess: false, expected);
+            await TestAsync(code, allCode, parseOptions, TestHost.InProcess, expected);
+            await TestAsync(code, allCode, parseOptions, TestHost.OutOfProcess, expected);
         }
 
         protected async Task TestAsync(
            string code,
            string allCode,
            ParseOptions parseOptions,
-           bool outOfProcess,
+           TestHost testHost,
            params FormattedClassification[] expected)
         {
             var start = allCode.IndexOf(code, StringComparison.Ordinal);
             var length = code.Length;
             var span = new TextSpan(start, length);
-            var actual = await GetClassificationSpansAsync(allCode, span, parseOptions, outOfProcess);
+            var actual = await GetClassificationSpansAsync(allCode, span, parseOptions, testHost);
 
             actual = actual.Sort((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
 
@@ -73,20 +74,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
            ParseOptions[] parseOptionsSet,
            params FormattedClassification[] expected)
         {
-            await TestAsync(code, allCode, parseOptionsSet, outOfProcess: true, expected);
-            await TestAsync(code, allCode, parseOptionsSet, outOfProcess: false, expected);
+            await TestAsync(code, allCode, parseOptionsSet, TestHost.InProcess, expected);
+            await TestAsync(code, allCode, parseOptionsSet, TestHost.OutOfProcess, expected);
         }
 
         private async Task TestAsync(
            string code,
            string allCode,
            ParseOptions[] parseOptionsSet,
-           bool outOfProcess,
+           TestHost testHost,
            params FormattedClassification[] expected)
         {
             foreach (var parseOptions in parseOptionsSet)
             {
-                await TestAsync(code, allCode, parseOptions, outOfProcess, expected);
+                await TestAsync(code, allCode, parseOptions, testHost, expected);
             }
         }
 
@@ -95,19 +96,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
            ParseOptions[] parseOptionsSet,
            params FormattedClassification[] expected)
         {
-            await TestAsync(code, parseOptionsSet, outOfProcess: true, expected);
-            await TestAsync(code, parseOptionsSet, outOfProcess: false, expected);
+            await TestAsync(code, parseOptionsSet, TestHost.InProcess, expected);
+            await TestAsync(code, parseOptionsSet, TestHost.OutOfProcess, expected);
         }
 
         private async Task TestAsync(
            string code,
            ParseOptions[] parseOptionsSet,
-           bool outOfProcess,
+           TestHost testHost,
            params FormattedClassification[] expected)
         {
             foreach (var parseOptions in parseOptionsSet)
             {
-                await TestAsync(code, code, parseOptions, outOfProcess, expected);
+                await TestAsync(code, code, parseOptions, testHost, expected);
             }
         }
 
