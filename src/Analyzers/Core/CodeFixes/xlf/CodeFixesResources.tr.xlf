@@ -27,6 +27,11 @@
         <target state="translated">Gereksiz atamayı kaldır</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="new">Suppress or Configure issues</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Update_suppression_format">
         <source>Update suppression format</source>
         <target state="new">Update suppression format</target>
