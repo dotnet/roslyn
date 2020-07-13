@@ -293,6 +293,11 @@ namespace System.Runtime.CompilerServices
                         requiresMethodimpl = isCovariant | requiresMethodimpl;
                         Assert.Equal(requiresMethodimpl, getMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
                         Assert.Equal(requiresMethodimpl, getMethod.RequiresExplicitOverride(out _)); // implies the presence of a methodimpl
+                        if (getMethod.OriginalDefinition is PEMethodSymbol originalMethod &&
+                            comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
+                        {
+                            Assert.Equal(requiresMethodimpl, originalMethod.HasAttribute(attrConstructor));
+                        }
                     }
                 }
                 if (property.SetMethod is MethodSymbol setMethod && overriddenProperty.SetMethod is MethodSymbol overriddenSetMethod)
