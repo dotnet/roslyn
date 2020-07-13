@@ -22,24 +22,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
-            var (callingConvention, conventionIsValid) = FunctionPointerTypeSymbol.GetCallingConvention(syntax.CallingConvention.Text);
-            if (!conventionIsValid)
-            {
-                // '{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.
-                diagnostics.Add(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, syntax.CallingConvention.GetLocation(), syntax.CallingConvention.Text);
-            }
+            var callingConvention = getCallingConvention(syntax.CallingConvention, diagnostics);
 
             RefKind refKind = RefKind.None;
             TypeWithAnnotations returnType;
             var refReadonlyModifiers = ImmutableArray<CustomModifier>.Empty;
 
-            if (syntax.Parameters.Count == 0)
+            if (syntax.ParameterList.Parameters.Count == 0)
             {
                 returnType = TypeWithAnnotations.Create(typeBinder.CreateErrorType());
             }
             else
             {
-                var returnTypeParameter = syntax.Parameters[^1];
+                var returnTypeParameter = syntax.ParameterList.Parameters[^1];
                 var modifiers = returnTypeParameter.Modifiers;
                 for (int i = 0; i < modifiers.Count; i++)
                 {
@@ -98,6 +93,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeBinder,
                 diagnostics,
                 suppressUseSiteDiagnostics);
+
+            // PROTOTYPE(func-ptr): Do this right. Just making compatible changes for now
+            static CallingConvention getCallingConvention(FunctionPointerCallingConventionSyntax? callingConventionSyntax, DiagnosticBag diagnostics)
+            {
+                switch (callingConventionSyntax?.ManagedOrUnmanagedKeyword.Kind())
+                {
+                    case null:
+                        return CallingConvention.Default;
+
+                    case SyntaxKind.ManagedKeyword:
+                        // Possible if we get a node not constructed by the parser
+                        if (callingConventionSyntax.UnmanagedCallingConventionList is object && !callingConventionSyntax.ContainsDiagnostics)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_CannotSpecifyManagedWithUnmanagedSpecifiers, callingConventionSyntax.UnmanagedCallingConventionList.GetLocation());
+                        }
+                        return CallingConvention.Default;
+
+                    case SyntaxKind.UnmanagedKeyword:
+                        switch (callingConventionSyntax.UnmanagedCallingConventionList)
+                        {
+                            case null:
+                                return CallingConvention.Unmanaged;
+
+                            case { CallingConventions: { Count: 1 } specifiers }:
+                                return specifiers[0].Name switch
+                                {
+                                    { ValueText: "Cdecl" } => CallingConvention.CDecl,
+                                    { ValueText: "Stdcall" } => CallingConvention.Standard,
+                                    { ValueText: "Thiscall" } => CallingConvention.ThisCall,
+                                    { ValueText: "Fastcall" } => CallingConvention.FastCall,
+                                    // PROTOTYPE(func-ptr): Handle unrecognized specifiers
+                                    var name => reportBadConventionAndReturn(name.ValueText, name, diagnostics)
+                                };
+
+                            case { CallingConventions: { Count: 0 } } unmanagedList:
+                                // Should never be possible from parser-constructed code (parser will always provide at least a missing identifier token),
+                                // so diagnostic quality isn't hugely important
+                                return reportBadConventionAndReturn(givenConvention: "", unmanagedList, diagnostics);
+
+                            case { CallingConventions: var specifiers }:
+                                // PROTOTYPE(func-ptr): Handle multiple specifiers
+                                foreach (var convention in specifiers)
+                                {
+                                    _ = reportBadConventionAndReturn(convention.Name.ValueText, convention.Name, diagnostics);
+                                }
+
+                                return CallingConvention.Default;
+                        }
+
+                    case var unexpected:
+                        throw ExceptionUtilities.UnexpectedValue(unexpected);
+                }
+
+                static CallingConvention reportBadConventionAndReturn(string givenConvention, SyntaxNodeOrToken node, DiagnosticBag diagnostics)
+                {
+                    if (!node.ContainsDiagnostics)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, node.GetLocation(), givenConvention);
+                    }
+                    return CallingConvention.Default;
+                }
+            }
         }
 
         /// <summary>
@@ -322,11 +379,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind = refKind;
             ReturnTypeWithAnnotations = returnType;
 
-            _parameters = syntax.Parameters.Count > 1
+            _parameters = syntax.ParameterList.Parameters.Count > 1
                 ? ParameterHelpers.MakeFunctionPointerParameters(
                     typeBinder,
                     this,
-                    syntax.Parameters,
+                    syntax.ParameterList.Parameters,
                     diagnostics,
                     suppressUseSiteDiagnostics)
                 : ImmutableArray<FunctionPointerParameterSymbol>.Empty;

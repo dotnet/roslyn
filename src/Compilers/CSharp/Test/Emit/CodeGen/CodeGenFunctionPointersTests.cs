@@ -63,10 +63,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         [Theory]
         [InlineData("", CallingConvention.Default)]
-        [InlineData("cdecl", CallingConvention.CDecl)]
         [InlineData("managed", CallingConvention.Default)]
-        [InlineData("thiscall", CallingConvention.ThisCall)]
-        [InlineData("stdcall", CallingConvention.Standard)]
+        [InlineData("unmanaged[Cdecl]", CallingConvention.CDecl)]
+        [InlineData("unmanaged[Thiscall]", CallingConvention.ThisCall)]
+        [InlineData("unmanaged[Stdcall]", CallingConvention.Standard)]
+        [InlineData("unmanaged[Fastcall]", CallingConvention.FastCall)]
+        [InlineData("unmanaged[@Cdecl]", CallingConvention.CDecl)]
+        [InlineData("unmanaged[@Thiscall]", CallingConvention.ThisCall)]
+        [InlineData("unmanaged[@Stdcall]", CallingConvention.Standard)]
+        [InlineData("unmanaged[@Fastcall]", CallingConvention.FastCall)]
+        // PROTOTYPE(func-ptr): Update SRM so it can decode the convention correctly
+        //[InlineData("unmanaged", CallingConvention.Unmanaged)]
         internal void CallingConventions(string conventionString, CallingConvention expectedConvention)
         {
             var verifier = CompileAndVerifyFunctionPointers($@"
@@ -87,6 +94,30 @@ class C
                     (RefKind.None, IsSpecialType(SpecialType.System_Int32)),
                     (RefKind.None, IsSpecialType(SpecialType.System_String)));
             }
+        }
+
+        [Fact]
+        public void MultipleCallingConventions()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#pragma warning disable CS0168
+unsafe class C
+{
+    public void M()
+    {
+        delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
+    }
+}");
+
+            // PROTOTYPE(func-ptr): Should pass, verify emit and readback
+            comp.VerifyDiagnostics(
+                // (7,29): error CS8807: 'Thiscall' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                //         delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
+                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "Thiscall").WithArguments("Thiscall").WithLocation(7, 29),
+                // (7,39): error CS8807: 'Stdcall' is not a valid calling convention specifier for a function pointer. Valid conventions are 'Cdecl', 'Stdcall', 'Thiscall', and 'Fastcall'.
+                //         delegate* unmanaged[Thiscall, Stdcall]<void> ptr;
+                Diagnostic(ErrorCode.ERR_InvalidFunctionPointerCallingConvention, "Stdcall").WithArguments("Stdcall").WithLocation(7, 39)
+            );
         }
 
         [Fact]
@@ -143,7 +174,7 @@ class C
             var verifier = CompileAndVerifyFunctionPointers(@"
 public class C
 {
-    public unsafe delegate* cdecl<delegate* stdcall<int, void>, void> M(delegate*<C, delegate*<S>> param1) => throw null;
+    public unsafe delegate* unmanaged[Cdecl]<delegate* unmanaged[Stdcall]<int, void>, void> M(delegate*<C, delegate*<S>> param1) => throw null;
 }
 public struct S
 {
@@ -597,7 +628,7 @@ unsafe class C
             var verifier = CompileAndVerifyFunctionPointers(@"
 public class C
 {
-    public unsafe delegate* cdecl<ref delegate*<ref readonly string>, void> M(delegate*<in delegate* stdcall<delegate*<void>>, delegate*<int>> param) => throw null;
+    public unsafe delegate* unmanaged[Cdecl]<ref delegate*<ref readonly string>, void> M(delegate*<in delegate* unmanaged[Stdcall]<delegate*<void>>, delegate*<int>> param) => throw null;
 }", symbolValidator: symbolValidator);
 
             symbolValidator(GetSourceModule(verifier));
@@ -720,7 +751,7 @@ public unsafe class C
 public unsafe class C
 {
     public delegate*<string, void> Prop1 { get; set; }
-    public delegate* stdcall<int> Prop2 { get => throw null; set => throw null; }
+    public delegate* unmanaged[Stdcall]<int> Prop2 { get => throw null; set => throw null; }
 }", symbolValidator: symbolValidator);
 
             symbolValidator(GetSourceModule(verifier));
@@ -1265,7 +1296,7 @@ class Caller
         Call(UnmanagedFunctionPointer.GetFuncPtr());
     }}
 
-    public unsafe static void Call(delegate* {convention}<string, string, string> ptr)
+    public unsafe static void Call(delegate* unmanaged[{char.ToUpper(convention[0]) + convention[1..]}]<string, string, string> ptr)
     {{
         Console.WriteLine(ptr(""Hello"", "" World""));
     }}
@@ -3413,9 +3444,9 @@ unsafe class C
         }
 
         [Theory]
-        [InlineData("cdecl", "CDecl")]
-        [InlineData("stdcall", "Standard")]
-        [InlineData("thiscall", "ThisCall")]
+        [InlineData("unmanaged[Cdecl]", "CDecl")]
+        [InlineData("unmanaged[Stdcall]", "Standard")]
+        [InlineData("unmanaged[Thiscall]", "ThisCall")]
         public void AddressOf_CallingConventionMustMatch(string callingConventionKeyword, string callingConvention)
         {
             var comp = CreateCompilationWithFunctionPointers($@"
@@ -6231,17 +6262,17 @@ unsafe class Base
 }
 unsafe class Derived : Base
 {
-    protected override void M1(delegate* cdecl<void> ptr) {}
-    protected override delegate* cdecl<void> M2() => throw null;
+    protected override void M1(delegate* unmanaged[Cdecl]<void> ptr) {}
+    protected override delegate* unmanaged[Cdecl]<void> M2() => throw null;
 }");
 
             comp.VerifyDiagnostics(
                 // (9,29): error CS0115: 'Derived.M1(delegate*<void>)': no suitable method found to override
-                //     protected override void M1(delegate* cdecl<void> ptr) {}
+                //     protected override void M1(delegate* unmanaged[Cdecl]<void> ptr) {}
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived.M1(delegate*<void>)").WithLocation(9, 29),
-                // (10,46): error CS0508: 'Derived.M2()': return type must be 'delegate*<void>' to match overridden member 'Base.M2()'
-                //     protected override delegate* cdecl<void> M2() => throw null;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", "delegate*<void>").WithLocation(10, 46)
+                // (10,57): error CS0508: 'Derived.M2()': return type must be 'delegate*<void>' to match overridden member 'Base.M2()'
+                //     protected override delegate* unmanaged[Cdecl]<void> M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", "delegate*<void>").WithLocation(10, 57)
             );
         }
 

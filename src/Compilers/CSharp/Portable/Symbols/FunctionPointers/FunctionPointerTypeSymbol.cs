@@ -47,17 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<ImmutableArray<CustomModifier>> paramRefCustomModifiers)
             => new FunctionPointerTypeSymbol(Signature.SubstituteParameterSymbols(substitutedReturnType, substitutedParameterTypes, refCustomModifiers, paramRefCustomModifiers));
 
-        public static (CallingConvention Convention, bool IsValid) GetCallingConvention(string convention) =>
-            convention switch
-            {
-                "" => (CallingConvention.Default, true),
-                "cdecl" => (CallingConvention.CDecl, true),
-                "managed" => (CallingConvention.Default, true),
-                "thiscall" => (CallingConvention.ThisCall, true),
-                "stdcall" => (CallingConvention.Standard, true),
-                _ => (CallingConvention.Default, false),
-            };
-
         private FunctionPointerTypeSymbol(FunctionPointerMethodSymbol signature)
         {
             Signature = signature;
