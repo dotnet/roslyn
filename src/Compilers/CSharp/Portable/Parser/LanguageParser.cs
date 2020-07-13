@@ -1833,6 +1833,7 @@ tryAgain:
                     while (true)
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                            || this.CurrentToken.Kind == SyntaxKind.SemicolonToken
                             || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                             || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                         {

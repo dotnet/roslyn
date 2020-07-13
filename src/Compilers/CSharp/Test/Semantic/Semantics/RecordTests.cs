@@ -16383,5 +16383,35 @@ record C<T>([property: NotNull] T? P1, T? P2) where T : class
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P2").WithLocation(10, 15)
                 );
         }
+
+        [Fact]
+        public void RecordWithConstraints()
+        {
+            var src = @"
+#nullable enable
+record R<T>(T P) where T : class;
+record R2<T>(T P) where T : class { }
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R<string?>(""R"");
+        var r2 = new R2<string?>(""R2"");
+        System.Console.Write((r.P, r2.P));
+    }
+}";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,23): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                //         var r = new R<string?>("R");
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("R<T>", "T", "string?").WithLocation(10, 23),
+                // (11,25): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R2<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                //         var r2 = new R2<string?>("R2");
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("R2<T>", "T", "string?").WithLocation(11, 25)
+                );
+            CompileAndVerify(comp, expectedOutput: "(R, R2)", verify: Verification.Skipped /* init-only */);
+        }
     }
 }
