@@ -709,7 +709,7 @@ anonymous_function_expression
   ;
 
 anonymous_method_expression
-  : 'async'? 'delegate' parameter_list? block expression?
+  : modifier* 'delegate' parameter_list? block expression?
   ;
 
 lambda_expression
@@ -718,11 +718,11 @@ lambda_expression
   ;
 
 parenthesized_lambda_expression
-  : 'async'? parameter_list '=>' (block | expression)
+  : modifier* parameter_list '=>' (block | expression)
   ;
 
 simple_lambda_expression
-  : 'async'? parameter '=>' (block | expression)
+  : modifier* parameter '=>' (block | expression)
   ;
 
 anonymous_object_creation_expression

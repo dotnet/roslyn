@@ -8,6 +8,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
@@ -536,7 +538,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             return workspace;
         }
 
-        private async Task TestFullSolutionAnalysisForProjectAsync(Project project, bool expectAnalyzerExecuted)
+        private static async Task TestFullSolutionAnalysisForProjectAsync(Project project, bool expectAnalyzerExecuted)
         {
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
@@ -637,6 +639,81 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             {
                 Assert.True(diagnostic == null);
             }
+        }
+
+        [Theory, CombinatorialData]
+        internal async Task TestPragmaSuppressionsAnalyzer(BackgroundAnalysisScope analysisScope)
+        {
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(
+                new CSharpCompilerDiagnosticAnalyzer(),
+                new NamedTypeAnalyzer(),
+                new CSharpRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer());
+
+            var analyzerReference = new AnalyzerImageReference(analyzers);
+
+            var code = $@"
+#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary
+#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary
+
+#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Necessary
+class A
+{{
+    void M()
+    {{
+#pragma warning disable CS0168 // Variable is declared but never used - Necessary
+        int x;
+    }}
+}}
+";
+
+            using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: EditorServicesUtil.ExportProvider);
+            var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
+            workspace.SetOptions(options);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var document = project.Documents.Single();
+
+            // create listener/service/analyzer
+            var listener = new AsynchronousOperationListener();
+            var service = new MyDiagnosticAnalyzerService(listener);
+
+            var diagnostics = ArrayBuilder<DiagnosticData>.GetInstance();
+            service.DiagnosticsUpdated += (s, e) =>
+            {
+                diagnostics.AddRange(e.Diagnostics.Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId).OrderBy(d => d.GetTextSpan()));
+            };
+
+            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+
+            switch (analysisScope)
+            {
+                case BackgroundAnalysisScope.ActiveFile:
+                    workspace.OpenDocument(document.Id);
+                    var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
+                    documentTrackingService.SetActiveDocument(document.Id);
+                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+                    break;
+
+                case BackgroundAnalysisScope.OpenFilesAndProjects:
+                    workspace.OpenDocument(document.Id);
+                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+                    break;
+
+                case BackgroundAnalysisScope.FullSolution:
+                    await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+                    break;
+            }
+
+            await listener.ExpeditedWaitAsync();
+
+            Assert.Equal(2, diagnostics.Count);
+            var root = await document.GetSyntaxRootAsync();
+            var pragma1 = root.FindTrivia(diagnostics[0].GetTextSpan().Start).ToString();
+            Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
+            var pragma2 = root.FindTrivia(diagnostics[1].GetTextSpan().Start).ToString();
+            Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
         }
 
         private static Document GetDocumentFromIncompleteProject(AdhocWorkspace workspace)

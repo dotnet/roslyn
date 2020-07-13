@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     Partial Public Class NamingStyleTests
-        Private Function CreateNamingStyle(
+        Private Shared Function CreateNamingStyle(
             Optional prefix As String = "",
             Optional suffix As String = "",
             Optional wordSeparator As String = "",
@@ -22,16 +22,16 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 }
         End Function
 
-        Private Sub TestNameCreation(namingStyle As MutableNamingStyle, expectedName As String, ParamArray words As String())
+        Private Shared Sub TestNameCreation(namingStyle As MutableNamingStyle, expectedName As String, ParamArray words As String())
             Assert.Equal(expectedName, namingStyle.NamingStyle.CreateName(words.ToImmutableArray()))
         End Sub
 
-        Private Sub TestNameCompliance(namingStyle As MutableNamingStyle, candidateName As String)
+        Private Shared Sub TestNameCompliance(namingStyle As MutableNamingStyle, candidateName As String)
             Dim reason As String = Nothing
             Assert.True(namingStyle.NamingStyle.IsNameCompliant(candidateName, reason))
         End Sub
 
-        Private Sub TestNameNoncomplianceAndFixedNames(namingStyle As MutableNamingStyle, candidateName As String, ParamArray expectedFixedNames As String())
+        Private Shared Sub TestNameNoncomplianceAndFixedNames(namingStyle As MutableNamingStyle, candidateName As String, ParamArray expectedFixedNames As String())
             Dim reason As String = Nothing
             Assert.False(namingStyle.NamingStyle.IsNameCompliant(candidateName, reason))
 

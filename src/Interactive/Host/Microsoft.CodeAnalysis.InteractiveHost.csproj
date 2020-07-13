@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
       <Aliases>global,Scripting</Aliases>
     </ProjectReference>
+    <ProjectReference Include="..\vbi\vbi.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost32" />
@@ -60,7 +61,9 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="Utilities\PathKind.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="InteractiveHostResources.Designer.cs">
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+  </ItemGroup>
+  <ItemGroup>    <Compile Update="InteractiveHostResources.Designer.cs">
       <DependentUpon>InteractiveHostResources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

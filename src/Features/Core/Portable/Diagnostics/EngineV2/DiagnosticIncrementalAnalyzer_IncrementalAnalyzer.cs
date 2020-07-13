@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var state = stateSet.GetOrCreateProjectState(project.Id);
 
                     await state.SaveAsync(PersistentStorageService, project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
-                    stateSet.ComputeCompilationEndAnalyzer(project, compilation);
                 }
 
                 RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);

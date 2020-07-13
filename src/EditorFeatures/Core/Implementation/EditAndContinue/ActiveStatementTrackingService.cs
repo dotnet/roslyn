@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
             }
 
-            private void DocumentClosed(object sender, DocumentEventArgs e)
+            private void DocumentClosed(object? sender, DocumentEventArgs e)
             {
                 lock (_trackingSpans)
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
             }
 
-            private void DocumentOpened(object sender, DocumentEventArgs e)
+            private void DocumentOpened(object? sender, DocumentEventArgs e)
                 => _ = TrackActiveSpansAsync(e.Document, _cancellationSource.Token);
 
             private async Task TrackActiveSpansAsync(Document document, CancellationToken cancellationToken)
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                     lock (_trackingSpans)
                     {
-                        for (int i = 0; i < baseActiveStatementSpans.Length; i++)
+                        for (var i = 0; i < baseActiveStatementSpans.Length; i++)
                         {
                             var document = currentSolution.GetDocument(openDocumentIds[i]);
                             if (document == null)
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                     lock (_trackingSpans)
                     {
-                        bool hasExistingSpans = _trackingSpans.TryGetValue(document.Id, out var oldSpans);
+                        var hasExistingSpans = _trackingSpans.TryGetValue(document.Id, out var oldSpans);
 
                         if (activeStatementSpans.IsDefault)
                         {

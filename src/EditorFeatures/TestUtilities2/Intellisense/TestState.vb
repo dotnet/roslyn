@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
-        Private Shared s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of ComposableCatalog) =
+        Private Shared ReadOnly s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of ComposableCatalog) =
             New Lazy(Of ComposableCatalog)(Function()
                                                Return TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.
                                                WithoutPartsOfTypes({
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Get
         End Property
 
-        Private Shared s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of IExportProviderFactory) =
+        Private Shared ReadOnly s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of IExportProviderFactory) =
             New Lazy(Of IExportProviderFactory)(Function()
                                                     Return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts)
                                                 End Function)
@@ -256,9 +256,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
 
             Dim itemsUpdatedHandler = Sub(sender As Object, e As Data.ComputedCompletionItemsEventArgs)
-                                          ' If there is more than one item left, then it means this was the filter operation that resulted and we're done. Otherwise we know a
-                                          ' Dismiss operation is coming so we should wait for it.
-                                          If e.Items.Items.Select(Function(i) i.FilterText).Skip(1).Any() Then
+                                          ' If there is 0 or more than one item left, then it means this was the filter operation that resulted and we're done. 
+                                          ' Otherwise we know a Dismiss operation is coming so we should wait for it.
+                                          If e.Items.Items.Count() <> 1 Then
                                               Task.Run(Sub()
                                                            Thread.Sleep(5000)
                                                            sessionComplete.TrySetResult(Nothing)
