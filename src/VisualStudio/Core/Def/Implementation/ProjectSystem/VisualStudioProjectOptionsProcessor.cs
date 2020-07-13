@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
                 // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
                 // includes in the IDE so we can be watching for changes again.
-                var commandLine = _commandLineStorage.ReadLines();
+                var commandLine = _commandLineStorage == null ? ImmutableArray<string>.Empty : _commandLineStorage.ReadLines();
 
                 DisposeOfRuleSetFile_NoLock();
                 ReparseCommandLine_NoLock(commandLine);
