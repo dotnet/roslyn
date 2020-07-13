@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             value = RemoveQuotesAndSlashes(value);
                             decimal newWarningVersion;
                             if (string.IsNullOrEmpty(value) ||
-                                !decimal.TryParse(value, out newWarningVersion))
+                                !decimal.TryParse(value, NumberStyles.Integer | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out newWarningVersion))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                             }
