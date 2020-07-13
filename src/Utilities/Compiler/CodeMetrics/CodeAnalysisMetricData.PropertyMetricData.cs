@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 }
 
                 int? depthOfInheritance = null;
-                int maintainabilityIndex = children.Length > 0 ? MetricsHelper.GetAverageRoundedMetricValue(maintainabilityIndexTotal, children.Length) : 100;
+                int maintainabilityIndex = !children.IsEmpty ? MetricsHelper.GetAverageRoundedMetricValue(maintainabilityIndexTotal, children.Length) : 100;
                 MetricsHelper.RemoveContainingTypes(property, coupledTypesBuilder);
 
                 return new PropertyMetricData(property, maintainabilityIndex, computationalComplexityMetrics,

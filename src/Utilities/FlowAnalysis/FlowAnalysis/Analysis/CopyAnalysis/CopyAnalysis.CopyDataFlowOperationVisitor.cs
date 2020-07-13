@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// <summary>
         /// Operation visitor to flow the copy values across a given statement in a basic block.
         /// </summary>
-        private sealed class CopyDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyAbstractValue>
+        private sealed class CopyDataFlowOperationVisitor : PredicateAnalysisEntityDataFlowOperationVisitor<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyAbstractValue>
         {
             public CopyDataFlowOperationVisitor(CopyAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -161,18 +161,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     return;
                 }
 
-                if (value.AnalysisEntities.Count > 0)
+                if (!value.AnalysisEntities.IsEmpty)
                 {
                     var validEntities = value.AnalysisEntities.Where(entity => !entity.HasUnknownInstanceLocation).ToImmutableHashSet();
                     if (validEntities.Count < value.AnalysisEntities.Count)
                     {
-                        value = validEntities.Count > 0 ? new CopyAbstractValue(validEntities, value.Kind) : CopyAbstractValue.Unknown;
+                        value = !validEntities.IsEmpty ? new CopyAbstractValue(validEntities, value.Kind) : CopyAbstractValue.Unknown;
                     }
                 }
 
                 // Handle updating the existing value if not setting the value from predicate analysis.
                 if (!fromPredicateKindOpt.HasValue &&
-                    sourceCopyAnalysisData.TryGetValue(analysisEntity, out CopyAbstractValue existingValue))
+                    sourceCopyAnalysisData.TryGetValue(analysisEntity, out var existingValue))
                 {
                     if (existingValue == value)
                     {
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             {
                 if (AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
                 {
-                    return CurrentAnalysisData.TryGetValue(analysisEntity, out CopyAbstractValue value) ? value : GetDefaultCopyValue(analysisEntity);
+                    return CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : GetDefaultCopyValue(analysisEntity);
                 }
                 else
                 {

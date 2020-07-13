@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
+            PointsToAnalysisKind defaultPointsToAnalysisKind,
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
             CancellationToken cancellationToken,
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
                 disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor,
                 disposeOwnershipTransferAtMethodCall, trackInstanceFields, exceptionPathsAnalysis,
+                pointsToAnalysisKind: analyzerOptions.GetPointsToAnalysisKindOption(rule, defaultPointsToAnalysisKind, cancellationToken),
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
                 out pointsToAnalysisResult);
         }
@@ -77,13 +79,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             bool disposeOwnershipTransferAtMethodCall,
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
+            PointsToAnalysisKind pointsToAnalysisKind,
             bool performCopyAnalysis,
             out PointsToAnalysisResult? pointsToAnalysisResult)
         {
             Debug.Assert(wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable, out _));
 
             pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(
-                cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
+                cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, pointsToAnalysisKind, interproceduralAnalysisConfig,
                 interproceduralAnalysisPredicateOpt, PessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
             if (pointsToAnalysisResult == null)
             {

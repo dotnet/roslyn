@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             foreach (ControlFlowBranch predecessorBranch in basicBlock.Predecessors)
             {
                 var branchWithInfo = new BranchWithInfo(predecessorBranch);
-                if (predecessorBranch.FinallyRegions.Length > 0)
+                if (!predecessorBranch.FinallyRegions.IsEmpty)
                 {
                     var lastFinally = predecessorBranch.FinallyRegions[predecessorBranch.FinallyRegions.Length - 1];
                     yield return (predecessorBlock: cfg.Blocks[lastFinally.LastBlockOrdinal], branchWithInfo);

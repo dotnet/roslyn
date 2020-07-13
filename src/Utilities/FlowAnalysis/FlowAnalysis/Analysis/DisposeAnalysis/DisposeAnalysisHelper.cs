@@ -103,6 +103,7 @@ namespace Analyzer.Utilities
             IMethodSymbol containingMethod,
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
+            PointsToAnalysisKind defaultPointsToAnalysisKind,
             bool trackInstanceFields,
             bool trackExceptionPaths,
             CancellationToken cancellationToken,
@@ -115,12 +116,13 @@ namespace Analyzer.Utilities
             if (cfg != null && IDisposable != null)
             {
                 disposeAnalysisResult = DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
-                    analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
+                    analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, defaultPointsToAnalysisKind, trackInstanceFields,
                     trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
                     interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
                     defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
                 if (disposeAnalysisResult != null)
                 {
+                    RoslynDebug.Assert(pointsToAnalysisResult is object);
                     return true;
                 }
             }

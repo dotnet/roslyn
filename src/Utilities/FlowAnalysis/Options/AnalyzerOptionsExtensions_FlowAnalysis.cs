@@ -4,6 +4,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Analyzer.Utilities
 {
@@ -43,5 +44,12 @@ namespace Analyzer.Utilities
             bool defaultValue,
             CancellationToken cancellationToken)
             => options.GetBoolOptionValue(EditorConfigOptionNames.CopyAnalysis, rule, defaultValue, cancellationToken);
+
+        public static PointsToAnalysisKind GetPointsToAnalysisKindOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            PointsToAnalysisKind defaultValue,
+            CancellationToken cancellationToken)
+            => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.PointsToAnalysisKind, rule, defaultValue, cancellationToken);
     }
 }

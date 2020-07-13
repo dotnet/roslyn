@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 return;
             }
 
-            var entryByAttributeSymbol = entryBySymbol
+            Dictionary<ISymbol, SymbolIsBannedAnalyzer<TSyntaxKind>.BanFileEntry> entryByAttributeSymbol = entryBySymbol
                 .Where(pair => pair.Key is ITypeSymbol n && n.IsAttribute())
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
 

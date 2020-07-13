@@ -32,7 +32,7 @@ namespace Analyzer.Utilities.Extensions
                     GetReceiverType(invocation.Instance.Syntax, compilation, cancellationToken) :
                     invocation.Instance.Type as INamedTypeSymbol;
             }
-            else if (invocation.TargetMethod.IsExtensionMethod && invocation.TargetMethod.Parameters.Length > 0)
+            else if (invocation.TargetMethod.IsExtensionMethod && !invocation.TargetMethod.Parameters.IsEmpty)
             {
                 var firstArg = invocation.Arguments.FirstOrDefault();
                 if (firstArg != null)

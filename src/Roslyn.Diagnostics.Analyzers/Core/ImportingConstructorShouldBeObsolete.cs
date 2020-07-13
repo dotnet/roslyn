@@ -116,7 +116,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     foundObsoleteAttribute = true;
                     if (attributeData.ConstructorArguments.Length != 2)
                     {
-                        if (attributeData.ConstructorArguments.Length == 0)
+                        if (attributeData.ConstructorArguments.IsEmpty)
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
                             context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingDescription, namedType.Name));
