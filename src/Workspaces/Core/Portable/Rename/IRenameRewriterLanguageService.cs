@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
+    #pragma warning
     internal interface IRenameRewriterLanguageService : ILanguageService
     {
         /// <summary>
