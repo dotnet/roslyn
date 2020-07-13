@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                 GetExportedValue<ISendToInteractiveSubmissionProvider>(),
                 GetExportedValue<IContentTypeRegistryService>(),
                 GetExportedValue<IEditorOptionsFactoryService>(),
-                GetExportedValue<IEditorOperationsFactoryService>(),
-                TestWaitIndicator.Default);
+                GetExportedValue<IEditorOperationsFactoryService>());
         }
 
         public static InteractiveWindowCommandHandlerTestState CreateTestState(ExportProvider exportProvider, string markup)

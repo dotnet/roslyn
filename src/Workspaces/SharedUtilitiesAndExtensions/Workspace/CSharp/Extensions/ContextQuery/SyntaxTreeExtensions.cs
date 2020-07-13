@@ -318,6 +318,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsLambdaDeclarationContext(
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxKind otherModifier,
+            CancellationToken cancellationToken)
+        {
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var token = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            if (syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken))
+            {
+                return true;
+            }
+
+            var modifierTokens = syntaxTree.GetPrecedingModifiers(position, token, out var beforeModifiersPosition);
+            if (modifierTokens.Count == 1 && modifierTokens.Contains(otherModifier))
+            {
+                if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
+                {
+                    // second appearance of "async" not followed by modifier: treat as parameter name
+                    if (syntaxTree.GetPrecedingModifiers(token.SpanStart, token).Contains(SyntaxKind.AsyncKeyword))
+                    {
+                        return false;
+                    }
+                }
+
+                leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
+                token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+
+                return syntaxTree.IsExpressionContext(beforeModifiersPosition, token, attributes: false, cancellationToken);
+            }
+
+            return false;
+        }
+
         public static bool IsLocalFunctionDeclarationContext(
             this SyntaxTree syntaxTree,
             int position,
@@ -1883,26 +1918,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return
                 syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken) &&
                 !syntaxTree.IsConstantExpressionContext(position, tokenOnLeftOfPosition);
-        }
-
-        public static bool IsPreProcessorDirectiveContext(this SyntaxTree syntaxTree, int position, SyntaxToken preProcessorTokenOnLeftOfPosition, CancellationToken cancellationToken)
-        {
-            var token = preProcessorTokenOnLeftOfPosition;
-            var directive = token.GetAncestor<DirectiveTriviaSyntax>();
-
-            // Directives contain the EOL, so if the position is within the full span of the
-            // directive, then it is on that line, the only exception is if the directive is on the
-            // last line, the position at the end if technically not contained by the directive but
-            // its also not on a new line, so it should be considered part of the preprocessor
-            // context.
-            if (directive == null)
-            {
-                return false;
-            }
-
-            return
-                directive.FullSpan.Contains(position) ||
-                directive.FullSpan.End == syntaxTree.GetRoot(cancellationToken).FullSpan.End;
         }
 
         public static bool IsPreProcessorDirectiveContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

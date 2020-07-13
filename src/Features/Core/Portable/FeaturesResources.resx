@@ -2780,4 +2780,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Property_reference_cannot_be_updated" xml:space="preserve">
     <value>Property reference cannot be updated</value>
   </data>
+  <data name="Make_class_abstract" xml:space="preserve">
+    <value>Make class 'abstract'</value>
+  </data>
 </root>

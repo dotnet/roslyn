@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new DifferenceViewerPreview(diffViewer);
         }
 
-        private List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)
+        private static List<LineSpan> CreateLineSpans(ITextSnapshot textSnapshot, NormalizedSpanCollection allSpans, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         // Find the lines that surround the span of the difference.  Try to expand the span to
         // include both the previous and next lines so that we can show more context to the
         // user.
-        private LineSpan GetLineSpan(
+        private static LineSpan GetLineSpan(
             ITextSnapshot snapshot,
             Span span)
         {
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             });
         }
 
-        private NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
+        private static NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var lineSpans = new List<Span>();
@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new NormalizedSpanCollection(lineSpans);
         }
 
-        private NormalizedSpanCollection GetChangedSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
+        private static NormalizedSpanCollection GetChangedSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var lineSpans = new List<Span>();

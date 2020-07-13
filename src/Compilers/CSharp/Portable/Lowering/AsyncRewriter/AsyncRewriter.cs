@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
+        protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
         {
             // If the async method's result type is a type parameter of the method, then the AsyncTaskMethodBuilder<T>
             // needs to use the method's type parameters inside the rewritten method body. All other methods generated
@@ -214,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.StaticCall(
                         null,
                         methodScopeAsyncMethodBuilderMemberCollection.CreateBuilder)));
+
+            bodyBuilder.Add(GenerateParameterStorage(stateMachineVariable, proxies));
 
             // local.$stateField = NotStartedStateMachine
             bodyBuilder.Add(
