@@ -88,13 +88,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 receiverTypeSymbol,
                 namespaceInScope,
                 forceIndexCreation,
-                counter,
                 cancellationToken).ConfigureAwait(false);
 
-            counter.GetFilterTicks = Environment.TickCount - ticks;
+            counter.GetSymbolsTicks = Environment.TickCount - ticks;
             ticks = Environment.TickCount;
-
-            counter.GetSymbolTicks = Environment.TickCount - ticks;
 
             var indicesComplete = true;
             using var _1 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
@@ -129,7 +126,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         s_indexingTask = PopulateIndicesAsync(document.Project, CancellationToken.None);
                     }
                 }
+
+                counter.PartialResult = true;
             }
+
+            counter.CreateItemsTicks = Environment.TickCount - ticks;
 
             return (itemsBuilder.ToImmutable(), counter);
 
@@ -176,7 +177,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
             bool forceIndexCreation,
-            StatisticCounter counter,
             CancellationToken cancellationToken)
         {
             var currentProject = document.Project;
@@ -206,7 +206,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     position,
                     namespaceInScope,
                     checkedReceiverTypes,
-                    counter,
                     cancellationToken), cancellationToken));
             }
 
@@ -226,7 +225,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     position,
                     namespaceInScope,
                     checkedReceiverTypes,
-                    counter,
                     cancellationToken), cancellationToken));
             }
 
@@ -256,7 +254,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             ISet<string> namespaceFilter,
             ConcurrentDictionary<ITypeSymbol, bool> checkedReceiverTypes,
-            StatisticCounter counter,
             CancellationToken cancellationToken)
         {
             var cacheEntry = await GetCacheEntryAsync(project, !forceIndexCreation, cacheService, cancellationToken).ConfigureAwait(false);
@@ -278,8 +275,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var internalsVisible = currentAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
 
             var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
-                compilation.Assembly, filter, namespaceFilter, internalsVisible,
-                counter, cancellationToken);
+                compilation.Assembly, filter, namespaceFilter, internalsVisible, cancellationToken);
 
             return isCurrentProject
                 ? GetExtensionMethodsForSymbolsFromSameCompilation(
@@ -298,7 +294,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             ISet<string> namespaceFilter,
             ConcurrentDictionary<ITypeSymbol, bool> checkedReceiverTypes,
-            StatisticCounter counter,
             CancellationToken cancellationToken)
         {
             var index = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(solution, peReference, loadOnly: !forceIndexCreation, cancellationToken).ConfigureAwait(false);
@@ -314,8 +309,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var internalsVisible = semanticModel.Compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
 
                 var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
-                    assembly, filter, namespaceFilter, internalsVisible,
-                    counter, cancellationToken);
+                    assembly, filter, namespaceFilter, internalsVisible, cancellationToken);
 
                 return GetExtensionMethodsForSymbolsFromSameCompilation(
                     position, semanticModel, receiverTypeSymbol, matchingMethodSymbols, checkedReceiverTypes, cancellationToken);
@@ -453,7 +447,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             MultiDictionary<string, (string methodName, string receiverTypeName)> extensionMethodFilter,
             ISet<string> namespaceFilter,
             bool internalsVisible,
-            StatisticCounter counter,
             CancellationToken cancellationToken)
         {
             var builder = new MultiDictionary<ITypeSymbol, IMethodSymbol>();
@@ -468,8 +461,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     continue;
                 }
-
-                counter.TotalTypesChecked++;
 
                 // Container of extension method (static class in C# and Module in VB) can't be generic or nested.
                 var containerSymbol = assembly.GetTypeByMetadataName(fullyQualifiedContainerName);
@@ -489,7 +480,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     foreach (var methodSymbol in methodSymbols)
                     {
-                        counter.TotalExtensionMethodsChecked++;
 
                         if (MatchExtensionMethod(methodSymbol, receiverTypeName, internalsVisible, out var receiverType))
                         {
@@ -653,28 +643,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
     internal sealed class StatisticCounter
     {
-        public bool NoFilter;
-        public int TotalTicks;
-        public int TotalExtensionMethodsProvided;
-        public int GetFilterTicks;
-        public int GetSymbolTicks;
-        public int TotalTypesChecked;
-        public int TotalExtensionMethodsChecked;
+        public bool PartialResult { get; set; }
+        public int TotalTicks { get; set; }
+        public int TotalExtensionMethodsProvided { get; set; }
+        public int GetSymbolsTicks { get; set; }
+        public int CreateItemsTicks { get; set; }
 
         public void Report()
         {
-            if (NoFilter)
+            CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(TotalTicks);
+            CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(TotalExtensionMethodsProvided);
+            CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolsTicksDataPoint(GetSymbolsTicks);
+            CompletionProvidersLogger.LogExtensionMethodCompletionCreateItemsTicksDataPoint(CreateItemsTicks);
+
+            if (PartialResult)
             {
-                CompletionProvidersLogger.LogExtensionMethodCompletionSuccess();
-            }
-            else
-            {
-                CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(TotalTicks);
-                CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(TotalExtensionMethodsProvided);
-                CompletionProvidersLogger.LogExtensionMethodCompletionGetFilterTicksDataPoint(GetFilterTicks);
-                CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolTicksDataPoint(GetSymbolTicks);
-                CompletionProvidersLogger.LogExtensionMethodCompletionTypesCheckedDataPoint(TotalTypesChecked);
-                CompletionProvidersLogger.LogExtensionMethodCompletionMethodsCheckedDataPoint(TotalExtensionMethodsChecked);
+                CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
             }
         }
     }
