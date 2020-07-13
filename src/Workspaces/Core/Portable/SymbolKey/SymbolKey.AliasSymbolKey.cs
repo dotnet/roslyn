@@ -18,10 +18,16 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteString(FirstOrDefault(symbol.DeclaringSyntaxReferences)?.SyntaxTree.FilePath ?? "");
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var name = reader.ReadString();
-                var targetResolution = reader.ReadSymbolKey();
+                var targetResolution = reader.ReadSymbolKey(out var targetFailureReason);
+                if (targetFailureReason == null)
+                {
+                    failureReason = $"({nameof(AliasSymbolKey)} {nameof(targetResolution)} failed -> {targetFailureReason})";
+                    return default;
+                }
+
                 var filePath = reader.ReadString();
 
                 var syntaxTree = reader.GetSyntaxTree(filePath);
@@ -34,11 +40,13 @@ namespace Microsoft.CodeAnalysis
                         var result = Resolve(semanticModel, syntaxTree.GetRoot(reader.CancellationToken), name, target, reader.CancellationToken);
                         if (result.HasValue)
                         {
+                            failureReason = null;
                             return result.Value;
                         }
                     }
                 }
 
+                failureReason = $"({nameof(AliasSymbolKey)} '{name}' not found)";
                 return default;
             }
 
