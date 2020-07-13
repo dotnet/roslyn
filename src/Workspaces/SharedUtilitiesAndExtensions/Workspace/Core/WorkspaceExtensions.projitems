@@ -48,7 +48,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\AbstractLogAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\AbstractSemanticFactsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\ForEachSymbols.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\ISemanticFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SymbolDeclarationService\ISymbolDeclarationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameActionAnnotation.cs" />
