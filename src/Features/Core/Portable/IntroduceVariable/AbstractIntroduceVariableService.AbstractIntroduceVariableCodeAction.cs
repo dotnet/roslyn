@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly bool _isConstant;
             private readonly bool _isLocal;
             private readonly bool _isQueryLocal;
-            private readonly bool _includeRValues;
+            private readonly bool _includeLValues;
             private readonly TExpressionSyntax _expression;
             private readonly SemanticDocument _semanticDocument;
             private readonly TService _service;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 _isConstant = isConstant;
                 _isLocal = isLocal;
                 _isQueryLocal = isQueryLocal;
-                _includeRValues = includeLValues;
+                _includeLValues = includeLValues;
                 Title = CreateDisplayText(expression);
             }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
                 else if (_isLocal)
                 {
-                    return await _service.IntroduceLocalAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, _includeRValues, cancellationToken).ConfigureAwait(false);
+                    return await _service.IntroduceLocalAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, _includeLValues, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     ? _allOccurrences
                         ? FeaturesResources.Introduce_query_variable_for_all_occurrences_of_0
                         : FeaturesResources.Introduce_query_variable_for_0
-                    : _allOccurrences && _includeRValues && !_isConstant
+                    : _allOccurrences && _includeLValues && !_isConstant
                         ? FeaturesResources.Introduce_local_for_all_occurrences_of_0_including_writes
                         : formatStrings[_allOccurrences ? 1 : 0, _isConstant ? 1 : 0, _isLocal ? 1 : 0];
                 return string.Format(formatString, nodeString);
