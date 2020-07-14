@@ -42,15 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly CSharpCompilation compilation;
 
         /// <summary>
-        /// The method whose body is being analyzed, or the field whose initializer is being analyzed.
-        /// May be a top-level member or a lambda or local function. It is used for
-        /// references to method parameters. Thus, '_symbol' should not be used directly, but
-        /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
-        /// instead. _symbol is null during speculative binding.
-        /// </summary>
-        private readonly Symbol _symbol;
-
-        /// <summary>
         /// Reflects the enclosing member, lambda or local function at the current location (in the bound tree).
         /// </summary>
         protected Symbol CurrentSymbol;
@@ -201,7 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labels = PooledDictionary<LabelSymbol, TLocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
             this.compilation = compilation;
-            _symbol = symbol;
             CurrentSymbol = symbol;
             this.methodMainNode = node;
             this.firstInRegion = firstInRegion;
@@ -455,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _symbol as MethodSymbol;
+                var method = CurrentSymbol as MethodSymbol;
                 return (object)method == null ? ImmutableArray<ParameterSymbol>.Empty : method.Parameters;
             }
         }
@@ -469,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 ParameterSymbol thisParameter = null;
-                (_symbol as MethodSymbol)?.TryGetThisParameter(out thisParameter);
+                (CurrentSymbol as MethodSymbol)?.TryGetThisParameter(out thisParameter);
                 return thisParameter;
             }
         }
@@ -483,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if the out parameters of the method should be analyzed</returns>
         protected bool ShouldAnalyzeOutParameters(out Location location)
         {
-            var method = _symbol as MethodSymbol;
+            var method = CurrentSymbol as MethodSymbol;
             if ((object)method == null || method.Locations.Length != 1)
             {
                 location = null;
@@ -561,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
 
-                    if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
+                    if (Binder.AccessingAutoPropertyFromConstructor(access, CurrentSymbol))
                     {
                         var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
                         if (backingField != null)
@@ -1821,7 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol);
+            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, CurrentSymbol);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -1956,7 +1946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, CurrentSymbol))
             {
                 var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)
