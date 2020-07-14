@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     continue;
 
                 using var memoryStream = new MemoryStream();
-                using var writer = new ObjectWriter(memoryStream);
+                using var writer = new ObjectWriter(memoryStream, canKeepObjectsAlive: false);
 
                 PersistInfoTo(writer, info.Value, projectVersion);
 
