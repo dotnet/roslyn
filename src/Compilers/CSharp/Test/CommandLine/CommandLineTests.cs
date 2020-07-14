@@ -12667,7 +12667,7 @@ struct S
             foreach (decimal level in new[] { -1m, 0m, 4m, 4.9m, 5m, 5.0m, 5.1m, 9999m })
             {
                 var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-                int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", $"/warnversion:{level}", source.ToString() }).Run(outWriter);
+                int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", FormattableString.Invariant($"/warnversion:{level}"), source.ToString() }).Run(outWriter);
 
                 if (level < 0)
                 {
