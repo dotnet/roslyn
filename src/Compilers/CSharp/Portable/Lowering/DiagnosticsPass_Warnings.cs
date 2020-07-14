@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (!Binder.CheckConstantBounds(conversion.Operand.Type.SpecialType, constantValue))
+                if (!Binder.CheckConstantBounds(conversion.Operand.Type.SpecialType, constantValue, out _))
                 {
                     Error(ErrorCode.WRN_VacuousIntegralComp, tree, conversion.Operand.Type);
                     return;

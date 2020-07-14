@@ -205,7 +205,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (result.Count > 0 && _fixerPriorityMap.TryGetValue(document.Project.Language, out var fixersForLanguage))
             {
                 // sort the result to the order defined by the fixers
+#pragma warning disable IDE0007 // Use implicit type - Explicit type is need to suppress an incorrect nullable warning on dereferencing the map.
                 ImmutableDictionary<CodeFixProvider, int> priorityMap = fixersForLanguage.Value;
+#pragma warning restore IDE0007 // Use implicit type
                 result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
 
                 int GetValue(CodeFixCollection c)
@@ -215,11 +217,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
             if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Interactive && includeConfigurationFixes)
             {
+                // Ensure that we do not register duplicate configuration fixes.
+                using var _ = PooledHashSet<string>.GetInstance(out var registeredConfigurationFixTitles);
                 foreach (var spanAndDiagnostic in aggregatedDiagnostics)
                 {
                     await AppendConfigurationsAsync(
                         document, spanAndDiagnostic.Key, spanAndDiagnostic.Value,
-                        result, cancellationToken).ConfigureAwait(false);
+                        result, registeredConfigurationFixTitles, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -370,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        private async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
+        private static async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
             Document document, TextSpan span, CodeFixProvider fixer, bool isBlocking,
             ImmutableArray<Diagnostic> diagnostics,
             Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap,
@@ -446,8 +450,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private async Task AppendConfigurationsAsync(
-            Document document, TextSpan diagnosticsSpan, IEnumerable<DiagnosticData> diagnostics,
-            ArrayBuilder<CodeFixCollection> result, CancellationToken cancellationToken)
+            Document document,
+            TextSpan diagnosticsSpan,
+            IEnumerable<DiagnosticData> diagnostics,
+            ArrayBuilder<CodeFixCollection> result,
+            PooledHashSet<string> registeredConfigurationFixTitles,
+            CancellationToken cancellationToken)
         {
             if (!_configurationProvidersMap.TryGetValue(document.Project.Language, out var lazyConfigurationProviders) || lazyConfigurationProviders.Value == null)
             {
@@ -462,9 +470,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     await AppendFixesOrConfigurationsAsync(
                         document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
                         hasFix: d => provider.IsFixableDiagnostic(d),
-                        getFixes: dxs => provider.GetFixesAsync(
-                            document, diagnosticsSpan, dxs, cancellationToken),
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                        getFixes: async dxs =>
+                        {
+                            var fixes = await provider.GetFixesAsync(document, diagnosticsSpan, dxs, cancellationToken).ConfigureAwait(false);
+                            return fixes.WhereAsArray(f => registeredConfigurationFixTitles.Add(f.Action.Title));
+                        },
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -514,9 +525,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                           .Select(d => d.Id)
                                           .ToImmutableHashSet();
 
+                // When computing FixAll for unnecessary pragma suppression diagnostic,
+                // we need to include suppressed diagnostics, as well as reported compiler and analyzer diagnostics.
+                // A null value for 'diagnosticIdsForDiagnosticProvider' passed to 'FixAllDiagnosticProvider'
+                // ensures the latter.
+                ImmutableHashSet<string>? diagnosticIdsForDiagnosticProvider;
+                bool includeSuppressedDiagnostics;
+                if (diagnosticIds.Contains(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId))
+                {
+                    diagnosticIdsForDiagnosticProvider = null;
+                    includeSuppressedDiagnostics = true;
+                }
+                else
+                {
+                    diagnosticIdsForDiagnosticProvider = diagnosticIds;
+                    includeSuppressedDiagnostics = false;
+                }
+
                 var diagnosticProvider = fixAllForInSpan
                     ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
-                    : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(this, diagnosticIds);
+                    : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(this, diagnosticIdsForDiagnosticProvider, includeSuppressedDiagnostics);
 
                 fixAllState = new FixAllState(
                     fixAllProvider: fixAllProviderInfo.FixAllProvider,
@@ -555,29 +583,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return new WrapperCodeFixProvider(fixer, diagnosticIds);
         }
 
-        private async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
+        private async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ImmutableHashSet<string>? diagnosticIds, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(document);
             var solution = document.Project.Solution;
-            var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, diagnosticIds, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
             return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, bool includeAllDocumentDiagnostics, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
+        private async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, bool includeAllDocumentDiagnostics, ImmutableHashSet<string>? diagnosticIds, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(project);
 
             if (includeAllDocumentDiagnostics)
             {
                 // Get all diagnostics for the entire project, including document diagnostics.
-                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null, diagnosticIds, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // Get all no-location diagnostics for the project, doesn't include document diagnostics.
-                var diagnostics = await _diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var diagnostics = await _diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
                 return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             }

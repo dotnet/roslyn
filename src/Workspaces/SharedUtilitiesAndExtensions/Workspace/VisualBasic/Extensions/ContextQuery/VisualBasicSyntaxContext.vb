@@ -170,10 +170,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 cancellationToken:=cancellationToken)
         End Function
 
-        Public Shared Function CreateContextAsync_Test(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
-            Return CreateContextAsync(Nothing, semanticModel, position, cancellationToken)
-        End Function
-
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
             Dim enclosingSymbol = Me.SemanticModel.GetEnclosingSymbol(Me.TargetToken.SpanStart, cancellationToken)
             Dim container = TryCast(enclosingSymbol, INamedTypeSymbol)
@@ -285,6 +281,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Friend Overrides Function GetTypeInferenceServiceWithoutWorkspace() As ITypeInferenceService
             Return New VisualBasicTypeInferenceService()
         End Function
+
+        Friend Structure TestAccessor
+            Public Shared Function CreateContextAsync(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+                Return VisualBasicSyntaxContext.CreateContextAsync(Nothing, semanticModel, position, cancellationToken)
+            End Function
+        End Structure
     End Class
 End Namespace
 

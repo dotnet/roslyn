@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 this.TrackingSession = new TrackingSession(this, new SnapshotSpan(eventArgs.Before, originalSpan), _asyncListener);
             }
 
-            private bool IsTrackableCharacter(ISyntaxFactsService syntaxFactsService, char c)
+            private static bool IsTrackableCharacter(ISyntaxFactsService syntaxFactsService, char c)
             {
                 // Allow identifier part characters at the beginning of strings (even if they are
                 // not identifier start characters). If an intermediate name is not valid, the smart
