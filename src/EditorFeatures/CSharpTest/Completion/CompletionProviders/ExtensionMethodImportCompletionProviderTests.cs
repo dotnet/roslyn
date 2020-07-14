@@ -1672,7 +1672,7 @@ namespace NS1
         [InlineData(ReferenceType.Project)]
         [InlineData(ReferenceType.Metadata)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestDescriptionOfNonGenericOverloads(ReferenceType refType)
+        public async Task TestDescriptionOfOverloads(ReferenceType refType)
         {
             var refDoc = @"
 using System;
@@ -1684,6 +1684,9 @@ namespace NS2
         public static bool ExtentionMethod(this int t) => false;
         public static bool ExtentionMethod(this int t, int a) => false;
         public static bool ExtentionMethod(this int t, int a, int b) => false;
+        public static bool ExtentionMethod<T>(this int t, T a) => false;
+        public static bool ExtentionMethod<T>(this int t, T a, T b) => false;
+        public static bool ExtentionMethod<T1, T2>(this int t, T1 a, T2 b) => false;
     }
 }";
             var srcDoc = @"
@@ -1711,43 +1714,6 @@ namespace NS1
                 glyph: (int)Glyph.ExtensionMethodPublic,
                 inlineDescription: "NS2",
                 expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod() (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})");
-        }
-
-        [InlineData(ReferenceType.Project)]
-        [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestDescriptionOfGenericOverloads(ReferenceType refType)
-        {
-            var refDoc = @"
-using System;
-
-namespace NS2
-{
-    public static class Extensions
-    {
-        public static bool ExtentionMethod<T>(this int t, T a) => false;
-        public static bool ExtentionMethod<T>(this int t, T a, T b) => false;
-        public static bool ExtentionMethod<T1, T2>(this int t, T1 a, T2 b) => false;
-    }
-}";
-            var srcDoc = @"
-namespace NS1
-{
-    public class C
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
-
-            var markup = refType switch
-            {
-                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
-                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
-                _ => null,
-            };
 
             await VerifyImportItemExistsAsync(
                 markup,

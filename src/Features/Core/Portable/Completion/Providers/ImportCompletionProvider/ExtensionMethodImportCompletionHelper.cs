@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // First find symbols of all applicable extension methods.
             // Workspace's syntax/symbol index is used to avoid iterating every method symbols in the solution.
-            var results = await GetExtensionMethodSymbolsAsync(document, position, receiverTypeSymbol, namespaceInScope,
-                                                               forceIndexCreation, cancellationToken).ConfigureAwait(false);
+            var results = await GetExtensionMethodSymbolsAsync(
+                document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false);
 
             counter.GetSymbolsTicks = Environment.TickCount - ticks;
             ticks = Environment.TickCount;
@@ -108,13 +108,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 foreach (var symbol in result)
                 {
-                    var containingNamespacename = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, namespaceNameCache);
-
                     IMethodSymbol bestSymbol;
                     int overloadCount;
 
+                    var containingNamespacename = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, namespaceNameCache);
+                    var overloadKey = (containingNamespacename, symbol.Name, isGeneric: symbol.Arity > 0);
+
                     // Select the overload with minimum number of parameters to display
-                    if (overloadMap.TryGetValue((containingNamespacename, symbol.Name, symbol.Arity > 0), out var currentValue))
+                    if (overloadMap.TryGetValue(overloadKey, out var currentValue))
                     {
                         bestSymbol = currentValue.bestSymbol.Parameters.Length > symbol.Parameters.Length ? symbol : currentValue.bestSymbol;
                         overloadCount = currentValue.overloadCount + 1;
@@ -125,17 +126,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         overloadCount = 1;
                     }
 
-                    overloadMap[(containingNamespacename, symbol.Name, symbol.Arity > 0)] = (bestSymbol, overloadCount);
+                    overloadMap[overloadKey] = (bestSymbol, overloadCount);
                 }
             }
 
             // Then convert symbols into completion items
             using var _3 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var itemsBuilder);
 
-            foreach (var (methodData, overloadSymbols) in overloadMap)
+            foreach (var ((containingNamespace, _, _), (bestSymbol, overloadCount)) in overloadMap)
             {
                 // To display the count of of additional overloads, we need to substract total by 1.
-                var item = CreateItem(overloadSymbols.bestSymbol, methodData.containingNamespace, additionalOverloadCount: overloadSymbols.overloadCount - 1, cancellationToken);
+                var item = CreateItem(bestSymbol, containingNamespace, additionalOverloadCount: overloadCount - 1, cancellationToken);
                 itemsBuilder.Add(item);
             }
 
@@ -176,15 +177,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var solution = currentProject.Solution;
                 var cacheService = GetCacheService(solution.Workspace);
 
+                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
                 foreach (var project in GetAllRelevantProjects(currentProject))
                 {
-                    _ = await GetCacheEntryAsync(project, loadOnly: false, cacheService, cancellationToken).ConfigureAwait(false);
+                    tasks.Add(Task.Run(()
+                        => GetCacheEntryAsync(project, loadOnly: false, cacheService, cancellationToken), cancellationToken));
                 }
 
                 foreach (var peReference in GetAllRelevantPeReferences(currentProject))
                 {
-                    _ = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                    tasks.Add(Task.Run(()
+                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(solution, peReference, loadOnly: false, cancellationToken), cancellationToken));
                 }
+
+                await Task.WhenAll(tasks.ToImmutable()).ConfigureAwait(false);
             }
         }
 
@@ -218,11 +225,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
             var checkedReceiverTypes = new ConcurrentDictionary<ITypeSymbol, bool>();
             var receiverTypeNames = GetReceiverTypeNames(receiverTypeSymbol);
-            receiverTypeNames = AttachComplexTypes(receiverTypeNames);
+            receiverTypeNames = AddComplexTypes(receiverTypeNames);
             var cacheService = GetCacheService(solution.Workspace);
 
-            var parameters = new SymbolComputationParameters(semanticModel, solution, receiverTypeSymbol, receiverTypeNames, position,
-                                namespaceInScope, checkedReceiverTypes, cacheService);
+            var parameters = new SymbolComputationParameters(
+                semanticModel, solution, receiverTypeSymbol, receiverTypeNames, position, namespaceInScope, checkedReceiverTypes, cacheService);
 
             using var _ = ArrayBuilder<Task<ImmutableArray<IMethodSymbol>?>>.GetInstance(out var tasks);
 
@@ -251,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Add strings represent complex types (i.e. "" for non-array types and "[]" for array types) to the receiver type, 
             // so we would include in the filter info about extension methods with complex receiver type.
-            static ImmutableArray<string> AttachComplexTypes(ImmutableArray<string> receiverTypeNames)
+            static ImmutableArray<string> AddComplexTypes(ImmutableArray<string> receiverTypeNames)
             {
                 using var _ = ArrayBuilder<string>.GetInstance(receiverTypeNames.Length + 2, out var receiverTypeNamesBuilder);
                 receiverTypeNamesBuilder.AddRange(receiverTypeNames);
@@ -269,7 +276,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SymbolComputationParameters parameters,
             CancellationToken cancellationToken)
         {
-            var cacheEntry = await GetCacheEntryAsync(project, loadOnly: !forceIndexCreation, parameters.CacheService, cancellationToken).ConfigureAwait(false);
+            var cacheEntry = await GetCacheEntryAsync(
+                project, loadOnly: !forceIndexCreation, parameters.CacheService, cancellationToken).ConfigureAwait(false);
+
             if (!cacheEntry.HasValue)
             {
                 // Returns null to indicate index not ready
@@ -303,7 +312,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SymbolComputationParameters parameters,
             CancellationToken cancellationToken)
         {
-            var index = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(parameters.Solution, peReference, loadOnly: !forceIndexCreation, cancellationToken).ConfigureAwait(false);
+            var index = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                parameters.Solution, peReference, loadOnly: !forceIndexCreation, cancellationToken).ConfigureAwait(false);
+
             if (index == null)
             {
                 // Returns null to indicate index not ready
@@ -330,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SymbolComputationParameters parameters,
             CancellationToken cancellationToken)
         {
-            var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
 
             // Matching extension method symbols are grouped based on their receiver type.
             foreach (var (declaredReceiverType, methodSymbols) in matchingMethodSymbols)
@@ -403,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SymbolComputationParameters data,
             CancellationToken cancellationToken)
         {
-            var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
 
             // Matching extension method symbols are grouped based on their receiver type.
             foreach (var (receiverType, methodSymbols) in matchingMethodSymbols)
@@ -452,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var builder = new MultiDictionary<ITypeSymbol, IMethodSymbol>();
 
-            foreach (var (fullyQualifiedContainerName, methodNames) in extensionMethodFilter)
+            foreach (var (fullyQualifiedContainerName, methodInfo) in extensionMethodFilter)
             {
                 // First try to filter out types from already imported namespaces
                 var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
@@ -473,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
-                foreach (var (methodName, receiverTypeName) in methodNames)
+                foreach (var (methodName, receiverTypeName) in methodInfo)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -521,7 +532,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 (symbol.DeclaredAccessibility == Accessibility.Internal && internalsVisible);
         }
 
-        // Create filter for extension methods from source.
+        /// <summary>
+        /// Create a filter for extension methods from source.
+        /// The filter is a map from fully qualified type name to info of extension methods it contains.
+        /// </summary>
         private static MultiDictionary<string, (string methodName, string receiverTypeName)> CreateAggregatedFilter(ImmutableArray<string> receiverTypeNames, CacheEntry syntaxIndex)
         {
             var results = new MultiDictionary<string, (string, string)>();
@@ -543,7 +557,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return results;
         }
 
-        // Create filter for extension methods from metadata
+        /// <summary>
+        /// Create filter for extension methods from metadata
+        /// The filter is a map from fully qualified type name to info of extension methods it contains.
+        /// </summary>
         private static MultiDictionary<string, (string methodName, string receiverTypeName)> CreateAggregatedFilter(ImmutableArray<string> receiverTypeNames, SymbolTreeInfo symbolInfo)
         {
             var results = new MultiDictionary<string, (string, string)>();
