@@ -233,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return XElement.Parse(xml)
         End Function
 
-        Private s_map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
+        Private ReadOnly s_map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
             {{GetType(EnvDTE.CodeAttribute), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE80.CodeAttribute2), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE.CodeClass), {EnvDTE.vsCMElement.vsCMElementClass, EnvDTE.vsCMElement.vsCMElementModule}},

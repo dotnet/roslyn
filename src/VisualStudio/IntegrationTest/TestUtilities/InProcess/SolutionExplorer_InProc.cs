@@ -758,7 +758,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
         {
             private uint cookie;
-            private IVsSolutionBuildManager2 solutionBuildManager;
+            private readonly IVsSolutionBuildManager2 solutionBuildManager;
 
             internal delegate void UpdateSolutionDoneEvent(bool succeeded, bool modified, bool canceled);
             internal delegate void UpdateSolutionBeginEvent(ref bool cancel);

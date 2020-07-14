@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
         private Task<RemoteHostClient?>? _remoteClientInitializationTask;
         private SolutionChecksumUpdater? _checksumUpdater;
-        private CancellationTokenSource _disposalCancellationSource;
+        private readonly CancellationTokenSource _disposalCancellationSource;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

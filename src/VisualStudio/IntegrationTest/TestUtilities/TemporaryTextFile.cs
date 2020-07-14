@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// </summary>
     public class TemporaryTextFile : IDisposable
     {
-        private string _fileName;
-        private string _content;
-        private string _path;
+        private readonly string _fileName;
+        private readonly string _content;
+        private readonly string _path;
 
         public TemporaryTextFile(string fileName, string content)
         {

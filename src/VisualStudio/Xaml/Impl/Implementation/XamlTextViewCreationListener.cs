@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly Lazy<RunningDocumentTable> _rdt;
         private readonly IVsSolution _vsSolution;
-        private uint? _solutionEventsCookie;
+        private readonly uint? _solutionEventsCookie;
         private uint? _rdtEventsCookie;
         private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new Dictionary<IVsHierarchy, VisualStudioProject>();
 
