@@ -1,7 +1,7 @@
 
 Sr. No. | Rule ID | Title | Category | Enabled | Severity | CodeFix | Description |
 --------|---------|-------|----------|---------|----------|---------|--------------------------------------------------------------------------------------------------------------|
-1 | HAA0101 | Array allocation for params parameter | Performance | True | Warning | False | This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter |
+1 | HAA0101 | Array allocation for params parameter | Performance | True | Warning | False | This call site is calling into a function with a 'params' parameter. This results in an array allocation |
 2 | HAA0102 | Non-overridden virtual method call on value type | Performance | True | Warning | False | Non-overridden virtual method call on a value type adds a boxing or constrained instruction |
 3 | [HAA0201](http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx) | Implicit string concatenation allocation | Performance | True | Warning | False | Considering using StringBuilder |
 4 | [HAA0202](http://msdn.microsoft.com/en-us/library/yz2be5wk.aspx) | Value type to reference type conversion allocation for string concatenation | Performance | True | Warning | False | Value type ({0}) is being boxed to a reference type for a string concatenation. |

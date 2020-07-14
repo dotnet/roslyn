@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,6 +16,18 @@ namespace Test.Utilities
     {
         public class Test : CSharpCodeFixVerifier<TAnalyzer, TCodeFix>.Test
         {
+            static Test()
+            {
+                // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
+                // reasonable TLS protocol version for outgoing connections.
+#pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
+                if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
+#pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                }
+            }
+
             public Test()
             {
                 // These analyzers run on generated code by default.
