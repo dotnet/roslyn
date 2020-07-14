@@ -29,7 +29,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Public SystemWindowsFormsPath As String
         Public SystemDrawingPath As String
 
+#Disable Warning IDE0040 ' Add accessibility modifiers - https://github.com/dotnet/roslyn/issues/45962
         Sub New()
+#Enable Warning IDE0040 ' Add accessibility modifiers
             SystemWindowsFormsPath = GetType(System.Windows.Forms.Form).Assembly.Location
             SystemDrawingPath = GetType(System.Drawing.Point).Assembly.Location
         End Sub

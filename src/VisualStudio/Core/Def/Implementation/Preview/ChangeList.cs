@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
     internal partial class ChangeList : IVsPreviewChangesList, IVsLiteTreeList
     {
-        public readonly static ChangeList Empty = new ChangeList(Array.Empty<AbstractChange>());
+        public static readonly ChangeList Empty = new ChangeList(Array.Empty<AbstractChange>());
 
         internal AbstractChange[] Changes { get; }
 

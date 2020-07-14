@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public AddParameterDialogViewModel CreateAddParameterDialogViewModel()
             => new AddParameterDialogViewModel(_document, _positionForTypeBinding);
 
-        List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
+        private List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
         {
             var list = new List<ParameterViewModel>();
             foreach (ExistingParameter existingParameter in parameters)

@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        void F1Help()
+        private void F1Help()
         {
             var text = @"
 using System;
