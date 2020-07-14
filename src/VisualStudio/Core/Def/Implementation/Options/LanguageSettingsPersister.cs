@@ -244,13 +244,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (!_supportedOptions.Contains(optionKey.Option))
             {
-                value = null;
                 return false;
             }
 
             if (!_languageMap.TryGetValue(optionKey.Language, out var languageServiceGuid))
             {
-                value = null;
                 return false;
             }
 

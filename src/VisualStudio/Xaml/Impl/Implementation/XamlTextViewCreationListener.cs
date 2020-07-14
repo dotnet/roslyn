@@ -87,8 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             }
 
             string filePath = monikerObj as string;
-
-            _rdt.Value.FindDocument(filePath, out var hierarchy, out var itemId, out var docCookie);
+            _rdt.Value.FindDocument(filePath, out var hierarchy, out _, out _);
             if (hierarchy == null)
             {
                 return;

@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (webApplicationCtxSvc.GetItemContext(hierarchy, itemid, out var webServiceProvider) >= 0)
                 {
                     var webFileCtxServiceGuid = typeof(IWebFileCtxService).GUID;
-                    var service = IntPtr.Zero;
+                    IntPtr service;
                     if (webServiceProvider.QueryService(ref webFileCtxServiceGuid, ref webFileCtxServiceGuid, out service) >= 0)
                     {
                         try

@@ -59,10 +59,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             => VSConstants.E_FAIL;
 
         public int GetText(uint index, VSTREETEXTOPTIONS tto, out string ppszText)
-            => Changes[index].GetText(out tto, out ppszText);
+            => Changes[index].GetText(out _, out ppszText);
 
         public int GetTipText(uint index, VSTREETOOLTIPTYPE eTipType, out string ppszText)
-            => Changes[index].GetTipText(out eTipType, out ppszText);
+            => Changes[index].GetTipText(out _, out ppszText);
 
         public int LocateExpandedList(IVsLiteTreeList child, out uint iIndex)
         {

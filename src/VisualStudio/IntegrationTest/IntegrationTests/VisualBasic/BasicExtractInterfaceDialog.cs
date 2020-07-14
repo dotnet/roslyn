@@ -100,7 +100,7 @@ End Class");
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"Interface IC
     Sub M()
 End Interface
@@ -170,7 +170,7 @@ End Namespace");
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"Namespace A
     Interface IC
         Sub M()

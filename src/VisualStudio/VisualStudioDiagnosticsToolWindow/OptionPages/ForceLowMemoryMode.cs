@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             if (enabled)
             {
                 _hogger = new MemoryHogger();
-                var ignore = _hogger.PopulateAndMonitorAsync(_optionService.GetOption(SizeInMegabytes));
+                _ = _hogger.PopulateAndMonitorAsync(_optionService.GetOption(SizeInMegabytes));
             }
         }
 

@@ -253,7 +253,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
             var type = semanticModel.GetDeclaredSymbol(containerNode) as ITypeSymbol;

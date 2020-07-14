@@ -267,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var newText = "";
             var newTextPtr = Marshal.StringToHGlobalAuto(newText);
             Marshal.ThrowExceptionForHR(adapter.GetBuffer(out var lines));
-            Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out var piLIne, out var piLineIndex));
+            Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out _, out var piLineIndex));
             Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
             Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = null;

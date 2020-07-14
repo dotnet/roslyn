@@ -814,7 +814,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim modifiersChange As CodeModelEventType = 0
 
                 If Not StringComparer.OrdinalIgnoreCase.Equals(oldModifiedIdentifier.Identifier.ToString(), newModifiedIdentifier.Identifier.ToString()) Then
-                    namesChange = CodeModelEventType.Rename
                     Return False
                 End If
 

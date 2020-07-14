@@ -270,12 +270,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         private bool IsImmediateWindow(IVsUIShell shellService, IVsTextView textView)
         {
             Marshal.ThrowExceptionForHR(shellService.GetToolWindowEnum(out var windowEnum));
-            Marshal.ThrowExceptionForHR(textView.GetBuffer(out var buffer));
+            Marshal.ThrowExceptionForHR(textView.GetBuffer(out _));
 
             var frame = new IVsWindowFrame[1];
             var immediateWindowGuid = Guid.Parse(ToolWindowGuids80.ImmediateWindow);
 
-            while (windowEnum.Next(1, frame, out var value) == VSConstants.S_OK)
+            while (windowEnum.Next(1, frame, out _) == VSConstants.S_OK)
             {
                 Marshal.ThrowExceptionForHR(frame[0].GetGuidProperty((int)__VSFPROPID.VSFPROPID_GuidPersistenceSlot, out var toolWindowGuid));
                 if (toolWindowGuid == immediateWindowGuid)

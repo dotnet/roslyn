@@ -1459,7 +1459,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             Dim flags = member.GetModifierFlags()
 
-            Dim access As EnvDTE.vsCMAccess = 0
+            Dim access As EnvDTE.vsCMAccess
 
             If (flags And ModifierFlags.Public) <> 0 Then
                 access = EnvDTE.vsCMAccess.vsCMAccessPublic
@@ -2138,8 +2138,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Public Overrides Function GetClassKind(typeNode As SyntaxNode, typeSymbol As INamedTypeSymbol) As EnvDTE80.vsCMClassKind
             Debug.Assert(TypeOf typeNode Is ClassBlockSyntax OrElse
                          TypeOf typeNode Is ModuleBlockSyntax)
-
-            Dim result As EnvDTE80.vsCMClassKind = 0
 
             Dim typeBlock = DirectCast(typeNode, TypeBlockSyntax)
             If TypeOf typeBlock Is ModuleBlockSyntax Then
@@ -4287,16 +4285,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim inheritsStatements = typeBlock.Inherits
-            Dim foundType = False
 
             For Each inheritsStatement In inheritsStatements
                 For Each inheritsType In inheritsStatement.Types
                     Dim typeInfo = semanticModel.GetTypeInfo(inheritsType, CancellationToken.None)
                     If typeInfo.Type IsNot Nothing AndAlso
                        typeInfo.Type.Equals(typeSymbol) Then
-
-                        foundType = True
-
                         If inheritsStatement.Types.Count = 1 Then
                             inheritsStatements = inheritsStatements.Remove(inheritsStatement)
                         Else
@@ -4363,16 +4357,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim implementsStatements = typeBlock.Implements
-            Dim foundType = False
 
             For Each implementsStatement In implementsStatements
                 For Each inheritsType In implementsStatement.Types
                     Dim typeInfo = semanticModel.GetTypeInfo(inheritsType, CancellationToken.None)
                     If typeInfo.Type IsNot Nothing AndAlso
                        typeInfo.Type.Equals(typeSymbol) Then
-
-                        foundType = True
-
                         If implementsStatement.Types.Count = 1 Then
                             implementsStatements = implementsStatements.Remove(implementsStatement)
                         Else

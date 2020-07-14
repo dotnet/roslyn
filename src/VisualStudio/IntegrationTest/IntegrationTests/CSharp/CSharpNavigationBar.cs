@@ -72,11 +72,6 @@ struct S
             VerifyRightSelected("this[int index]");
 
             VisualStudio.Editor.ExpandTypeNavBar();
-            var expectedItems = new[]
-            {
-                "C",
-                "S",
-            };
 
             VisualStudio.Editor.SelectTypeNavBarItem("S");
 

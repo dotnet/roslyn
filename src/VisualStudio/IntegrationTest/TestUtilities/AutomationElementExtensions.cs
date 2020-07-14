@@ -258,11 +258,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // traverse the path
             IUIAutomationElement item = element;
-            IUIAutomationElement next = null;
-
             foreach (string pathPart in pathParts)
             {
-                next = item.FindFirst(TreeScope.TreeScope_Descendants, Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.LocalizedControlTypeProperty.Id, pathPart));
+                var next = item.FindFirst(TreeScope.TreeScope_Descendants, Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.LocalizedControlTypeProperty.Id, pathPart));
 
                 if (next == null)
                 {

@@ -401,7 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             var foundProject = solution.GetProject(containingAssembly, cancellationToken);
             if (foundProject != null)
             {
-                if (solution.Workspace is VisualStudioWorkspace workspace)
+                if (solution.Workspace is VisualStudioWorkspace)
                 {
                     // TODO: audit the OutputFilePath and whether this is bin or obj
                     if (!string.IsNullOrWhiteSpace(foundProject.OutputFilePath))

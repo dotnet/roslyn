@@ -598,7 +598,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return false;
             }
 
-            if (ErrorHandler.Failed(pNavInfoNode.get_Type(out var type)))
+            if (ErrorHandler.Failed(pNavInfoNode.get_Type(out _)))
             {
                 return false;
             }

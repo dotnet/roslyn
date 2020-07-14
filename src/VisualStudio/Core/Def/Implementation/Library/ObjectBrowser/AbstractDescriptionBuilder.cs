@@ -436,8 +436,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 AddText(formattingService.Format(exceptionText, compilation));
                             }
                         }
-
-                        emittedDocs = true;
                     }
                 }
             }

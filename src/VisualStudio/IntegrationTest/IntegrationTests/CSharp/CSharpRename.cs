@@ -159,8 +159,8 @@ class stomAttribute : Attribute
             SetUpEditor(markup);
             InlineRenameDialog.Invoke();
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            _ = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
             VisualStudio.Editor.SendKeys("Custom");
             VisualStudio.Editor.Verify.TextContains(@"
@@ -196,8 +196,8 @@ class [|$$stom|]Attribute : Attribute
             SetUpEditor(markup);
             InlineRenameDialog.Invoke();
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            _ = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
             VisualStudio.Editor.SendKeys("Custom");
             VisualStudio.Editor.Verify.TextContains(@"

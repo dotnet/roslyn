@@ -307,7 +307,7 @@ class C
             // Switch back to the main document we'll be editing
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
 
-            MarkupTestFile.GetSpans(markup, out var expectedTextFourSpaceIndent, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(markup, out var expectedTextFourSpaceIndent, out ImmutableArray<TextSpan> _);
             SetUpEditor(markup);
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
 

@@ -652,7 +652,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 File.Create(filePath).Dispose();
             }
 
-            var projectItem = project.ProjectItems.AddFromFile(filePath);
+            _ = project.ProjectItems.AddFromFile(filePath);
 
             if (open)
             {

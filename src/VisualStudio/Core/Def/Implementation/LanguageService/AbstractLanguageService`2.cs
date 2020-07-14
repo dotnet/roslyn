@@ -319,7 +319,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private bool StartsWithRegionTag(ITextSnapshotLine line)
         {
-            var snapshot = line.Snapshot;
             var start = line.GetFirstNonWhitespacePosition();
             if (start != null)
             {

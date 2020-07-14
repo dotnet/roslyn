@@ -469,7 +469,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private bool TryGetProjectData(ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsHierarchy? hierarchy, [NotNullWhen(returnValue: true)] out EnvDTE.Project? project)
         {
-            hierarchy = null;
             project = null;
 
             return
@@ -557,7 +556,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(analyzerReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
+            GetProjectData(projectId, out _, out var project);
 
             var filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
@@ -579,7 +578,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(analyzerReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
+            GetProjectData(projectId, out _, out var project);
 
             var filePath = GetAnalyzerPath(analyzerReference);
             if (filePath != null)
@@ -612,7 +611,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(metadataReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
+            GetProjectData(projectId, out _, out var project);
 
             var filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
@@ -638,7 +637,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(metadataReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
+            GetProjectData(projectId, out _, out var project);
 
             var filePath = GetMetadataPath(metadataReference);
             if (filePath != null)
@@ -670,8 +669,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(projectReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
-            GetProjectData(projectReference.ProjectId, out var refHierarchy, out var refProject);
+            GetProjectData(projectId, out _, out var project);
+            GetProjectData(projectReference.ProjectId, out _, out var refProject);
 
             var vsProject = (VSProject)project.Object;
             vsProject.References.AddProject(refProject);
@@ -713,8 +712,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(projectReference));
             }
 
-            GetProjectData(projectId, out var hierarchy, out var project);
-            GetProjectData(projectReference.ProjectId, out var refHierarchy, out var refProject);
+            GetProjectData(projectId, out _, out var project);
+            GetProjectData(projectReference.ProjectId, out _, out var refProject);
 
             var vsProject = (VSProject)project.Object;
             foreach (Reference reference in vsProject.References)
@@ -739,7 +738,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void AddDocumentCore(DocumentInfo info, SourceText initialText, TextDocumentKind documentKind)
         {
-            GetProjectData(info.Id.ProjectId, out var hierarchy, out var project);
+            GetProjectData(info.Id.ProjectId, out _, out var project);
 
             // If the first namespace name matches the name of the project, then we don't want to
             // generate a folder for that.  The project is implicitly a folder with that name.
@@ -935,7 +934,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var project = (IVsProject3)hierarchy;
-                project.RemoveItem(0, itemId, out var result);
+                project.RemoveItem(0, itemId, out _);
 
                 var undoManager = TryGetUndoManager();
                 var docInfo = CreateDocumentInfoWithoutText(document);
@@ -1037,9 +1036,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return ErrorHandler.Succeeded(openDocumentService.OpenDocumentViaProject(
                     document.FilePath,
                     VSConstants.LOGVIEWID.TextView_guid,
-                    out var oleServiceProvider,
-                    out var uiHierarchy,
-                    out var itemid,
+                    out _,
+                    out _,
+                    out _,
                     out frame));
             }
             else
@@ -1073,7 +1072,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (filePath != null)
                 {
                     var openDocumentService = ServiceProvider.GlobalProvider.GetService<IVsUIShellOpenDocument, SVsUIShellOpenDocument>();
-                    if (ErrorHandler.Succeeded(openDocumentService.IsDocumentOpen(null, 0, filePath, Guid.Empty, 0, out var uiHierarchy, null, out var frame, out var isOpen)))
+                    if (ErrorHandler.Succeeded(openDocumentService.IsDocumentOpen(null, 0, filePath, Guid.Empty, 0, out _, null, out var frame, out _)))
                     {
                         // TODO: do we need save argument for CloseDocument?
                         frame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
@@ -1369,7 +1368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (referencingHierarchy is IVsProjectFlavorReferences3 referencingProjectFlavor3)
             {
-                if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out var unused)))
+                if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out _)))
                 {
                     // Something went wrong even trying to see if the reference would be allowed.
                     // Assume it won't be allowed.
@@ -1385,7 +1384,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (referencedHierarchy is IVsProjectFlavorReferences3 referencedProjectFlavor3)
             {
-                if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out var unused)))
+                if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out _)))
                 {
                     // Something went wrong even trying to see if the reference would be allowed.
                     // Assume it won't be allowed.

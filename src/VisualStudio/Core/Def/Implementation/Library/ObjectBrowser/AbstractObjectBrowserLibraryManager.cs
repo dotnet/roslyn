@@ -337,9 +337,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             ppNavInfo = null;
 
             var count = 0;
-            string libraryName = null;
             string referenceOwnerName = null;
 
+            string libraryName;
             if (rgSymbolNodes[0].dwType != (uint)_LIB_LISTTYPE.LLT_PACKAGE)
             {
                 Debug.Fail("Symbol description should always contain LLT_PACKAGE node as first node");
@@ -491,7 +491,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 // and the references will be asynchronously added to the FindReferences
                                 // window as they are computed.  The user also knows something is happening
                                 // as the window, with the progress-banner will pop up immediately.
-                                var task = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
+                                _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
                                 return true;
                             }
                         }

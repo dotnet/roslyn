@@ -166,7 +166,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"interface IC
 {
     void M();
@@ -238,7 +238,7 @@ class C : IC
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"namespace A
 {
     interface IC
@@ -274,7 +274,7 @@ class C : IC
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"interface IC
 {
     bool M();

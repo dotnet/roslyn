@@ -476,13 +476,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
-            var beginTime = DateTime.UtcNow;
-            var retval = default(T);
-
             do
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                T retval;
                 try
                 {
                     retval = action(cancellationToken);

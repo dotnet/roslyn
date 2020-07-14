@@ -223,12 +223,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void WaitForPredicate(Func<string> getValue, Func<string, bool> isExpectedValue)
         {
             var beginTime = DateTime.UtcNow;
-            string value;
-            while (!isExpectedValue(value = getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
+            while (!isExpectedValue(getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
             {
                 Thread.Sleep(50);
             }
 
+            string value;
             if (!isExpectedValue(value = getValue()))
             {
                 throw new Exception($"Unable to find expected content in REPL within {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. Actual content:{Environment.NewLine}[[{value}]]");
