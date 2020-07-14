@@ -15,8 +15,6 @@ RS0038 | Prefer null literal | RoslynDiagnosticsMaintainability | True | Warning
 RS0040 | Defaultable types should have defaultable fields | RoslynDiagnosticsReliability | True | Warning | False | Defaultable types should have defaultable fields. |
 RS0042 | Do not copy value | RoslynDiagnosticsReliability | True | Warning | False | Do not unbox non-copyable value types. |
 RS0043 | Do not call 'GetTestAccessor()' | RoslynDiagnosticsMaintainability | True | Warning | False | 'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member. |
-RS0044 | Create test accessor | RoslynDiagnosticsMaintainability | True | Hidden | True | This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern. |
-RS0045 | Expose member for testing | RoslynDiagnosticsMaintainability | True | Hidden | True | Expose member for testing. |
 RS0046 | Avoid the 'Opt' suffix | RoslynDiagnosticsDesign | True | Warning | True | Avoid the 'Opt' suffix in a nullable-enabled code. |
 RS0100 | Statements must be placed on their own line | RoslynDiagnosticsMaintainability | True | Warning | True | Statements must be placed on their own line |
 RS0101 | Avoid multiple blank lines | RoslynDiagnosticsMaintainability | True | Warning | True | Avoid multiple blank lines |
