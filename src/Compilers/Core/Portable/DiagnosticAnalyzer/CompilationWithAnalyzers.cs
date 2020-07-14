@@ -805,12 +805,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                                 await computeTask.ConfigureAwait(false);
                             }
-                            catch (OperationCanceledException ex)
+                            catch (OperationCanceledException)
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
                                 if (!cancellationSource.IsCancellationRequested)
                                 {
-                                    throw ex;
+                                    throw;
                                 }
 
                                 suspended = true;
