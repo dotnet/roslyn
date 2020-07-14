@@ -31,17 +31,17 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var metadataName = reader.ReadString();
-
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+                var arity = reader.ReadInteger();
+                var isUnboundGenericType = reader.ReadBoolean();
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+
                 if (containingSymbolFailureReason != null)
                 {
                     failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(containingSymbolFailureReason)} failed -> {containingSymbolFailureReason})";
                     return default;
                 }
 
-                var arity = reader.ReadInteger();
-                var isUnboundGenericType = reader.ReadBoolean();
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
                 if (typeArgumentsFailureReason != null)
                 {
                     failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";

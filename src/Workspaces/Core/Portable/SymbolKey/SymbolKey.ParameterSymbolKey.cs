@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var metadataName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+
                 if (containingSymbolFailureReason != null)
                 {
                     failureReason = $"({nameof(ParameterSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";

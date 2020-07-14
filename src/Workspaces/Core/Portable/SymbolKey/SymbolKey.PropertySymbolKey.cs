@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis
             {
                 var metadataName = reader.ReadString();
                 var containingTypeResolution = reader.ReadSymbolKey(out var containingTypeFailureReason);
+                var isIndexer = reader.ReadBoolean();
+                using var refKinds = reader.ReadRefKindArray();
+                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
 
                 if (containingTypeFailureReason != null)
                 {
@@ -28,10 +31,6 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
-                var isIndexer = reader.ReadBoolean();
-
-                using var refKinds = reader.ReadRefKindArray();
-                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
                 if (parameterTypesFailureReason != null)
                 {
                     failureReason = $"({nameof(PropertySymbolKey)} {nameof(parameterTypes)} failed -> {parameterTypesFailureReason})";

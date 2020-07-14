@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis
             {
                 var metadataName = reader.ReadString();
                 var isCompilationGlobalNamespace = reader.ReadBoolean();
-
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+
                 if (containingSymbolFailureReason != null)
                 {
                     failureReason = $"({nameof(EventSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";

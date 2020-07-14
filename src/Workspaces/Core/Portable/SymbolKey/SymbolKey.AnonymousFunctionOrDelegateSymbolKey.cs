@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var isAnonymousDelegateType = reader.ReadBoolean();
                 var location = reader.ReadLocation(out var locationFailureReason);
+
                 if (locationFailureReason != null)
                 {
                     failureReason = $"({nameof(AnonymousFunctionOrDelegateSymbolKey)} {nameof(location)} failed -> {locationFailureReason})";

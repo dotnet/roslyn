@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis
             {
                 var name = reader.ReadString();
                 var targetResolution = reader.ReadSymbolKey(out var targetFailureReason);
+                var filePath = reader.ReadString();
+
                 if (targetFailureReason != null)
                 {
                     failureReason = $"({nameof(AliasSymbolKey)} {nameof(targetResolution)} failed -> {targetFailureReason})";
                     return default;
                 }
-
-                var filePath = reader.ReadString();
 
                 var syntaxTree = reader.GetSyntaxTree(filePath);
                 if (syntaxTree != null)

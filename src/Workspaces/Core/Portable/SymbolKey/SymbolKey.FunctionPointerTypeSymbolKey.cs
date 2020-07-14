@@ -20,14 +20,15 @@ namespace Microsoft.CodeAnalysis
             {
                 var returnRefKind = reader.ReadRefKind();
                 var returnType = reader.ReadSymbolKey(out var returnTypeFailureReason);
+                using var paramRefKinds = reader.ReadRefKindArray();
+                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
+
                 if (returnTypeFailureReason != null)
                 {
                     failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} {nameof(returnType)} failed -> {returnTypeFailureReason})";
                     return default;
                 }
 
-                using var paramRefKinds = reader.ReadRefKindArray();
-                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
                 if (parameterTypesFailureReason != null)
                 {
                     failureReason = $"({nameof(FunctionPointerTypeSymbolKey)} {nameof(parameterTypes)} failed -> {parameterTypesFailureReason})";

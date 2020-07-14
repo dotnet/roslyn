@@ -31,15 +31,16 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 using var propertyTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var propertyTypesFailureReason);
+                using var propertyNames = reader.ReadStringArray();
+                using var propertyIsReadOnly = reader.ReadBooleanArray();
+                using var propertyLocations = reader.ReadLocationArray(out var propertyLocationsFailureReason);
+
                 if (propertyTypesFailureReason != null)
                 {
                     failureReason = $"({nameof(AnonymousTypeSymbolKey)} {nameof(propertyTypes)} failed -> {propertyTypesFailureReason})";
                     return default;
                 }
 
-                using var propertyNames = reader.ReadStringArray();
-                using var propertyIsReadOnly = reader.ReadBooleanArray();
-                using var propertyLocations = reader.ReadLocationArray(out var propertyLocationsFailureReason);
                 if (propertyLocationsFailureReason != null)
                 {
                     failureReason = $"({nameof(AnonymousTypeSymbolKey)} {nameof(propertyLocations)} failed -> {propertyLocationsFailureReason})";

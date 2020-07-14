@@ -123,13 +123,13 @@ namespace Microsoft.CodeAnalysis
                 var name = reader.ReadString();
                 var kind = (SymbolKind)reader.ReadInteger();
                 var locations = reader.ReadLocationArray(out var locationsFailureReason);
+                var ordinal = reader.ReadInteger();
+
                 if (locationsFailureReason != null)
                 {
                     failureReason = $"({nameof(BodyLevelSymbolKey)} {nameof(locations)} failed -> {locationsFailureReason})";
                     return default;
                 }
-
-                var ordinal = reader.ReadInteger();
 
                 // First check if we can recover the symbol just through the original location.
                 foreach (var loc in locations)
