@@ -70,6 +70,12 @@ class Test {
 
             public ImmutableArray<CompletionProvider> GetCompletionProviders()
                 => ImmutableArray.Create(_completionProvider);
+
+            public override bool TryGetAnalyzers(string language, out ImmutableArray<DiagnosticAnalyzer> analyzers)
+            {
+                analyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
+                return true;
+            }
         }
 
         private sealed class DebugAssertTestCompletionProvider : CompletionProvider

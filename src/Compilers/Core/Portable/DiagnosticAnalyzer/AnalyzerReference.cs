@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language);
 
         /// <summary>
+        /// Tries to get the cached list of analyzers for this assembly reference for the given <paramref name="language"/>, if
+        /// it has already been created and is still cached.
+        /// </summary>
+        public abstract bool TryGetAnalyzers(string language, out ImmutableArray<DiagnosticAnalyzer> analyzers);
+
+        /// <summary>
         /// Gets all the source generators defined in this assembly reference.
         /// </summary>
         public virtual ImmutableArray<ISourceGenerator> GetGenerators() { return ImmutableArray<ISourceGenerator>.Empty; }

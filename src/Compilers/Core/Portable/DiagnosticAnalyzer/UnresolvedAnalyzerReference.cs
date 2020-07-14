@@ -62,5 +62,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return ImmutableArray<DiagnosticAnalyzer>.Empty;
         }
+
+        public override bool TryGetAnalyzers(string language, out ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            analyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
+            return true;
+        }
     }
 }

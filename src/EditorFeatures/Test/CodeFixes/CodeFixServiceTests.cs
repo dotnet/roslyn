@@ -328,6 +328,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             public ImmutableArray<CodeFixProvider> GetFixers()
                 => Fixer != null ? ImmutableArray.Create(Fixer) : ImmutableArray<CodeFixProvider>.Empty;
 
+            public override bool TryGetAnalyzers(string language, out ImmutableArray<DiagnosticAnalyzer> analyzers)
+            {
+                analyzers = Analyzers;
+                return true;
+            }
+
             public class MockDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 public MockDiagnosticAnalyzer(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)

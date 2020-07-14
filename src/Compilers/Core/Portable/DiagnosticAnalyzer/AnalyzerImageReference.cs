@@ -46,6 +46,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzers;
         }
 
+        public override bool TryGetAnalyzers(string language, out ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            analyzers = _analyzers;
+            return true;
+        }
+
         public override string? FullPath
         {
             get

@@ -100,6 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             public ImmutableArray<CodeRefactoringProvider> GetRefactorings()
                 => ImmutableArray.Create(Refactoring);
+
+            public override bool TryGetAnalyzers(string language, out ImmutableArray<DiagnosticAnalyzer> analyzers)
+            {
+                analyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
+                return true;
+            }
         }
     }
 }

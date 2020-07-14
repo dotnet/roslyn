@@ -119,6 +119,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _diagnosticAnalyzers.GetExtensions(language);
         }
 
+        public override bool TryGetAnalyzers(string language, out ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            if (_diagnosticAnalyzers.IsLoaded(language))
+            {
+                analyzers = _diagnosticAnalyzers.GetExtensions(language);
+                return true;
+            }
+
+            analyzers = default;
+            return false;
+        }
+
         public override ImmutableArray<ISourceGenerator> GetGenerators()
         {
             return _generators.GetExtensionsForAllLanguages();
@@ -312,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly AttributePredicate _attributePredicate;
             private readonly AttributeLanguagesFunc _languagesFunc;
             private ImmutableArray<TExtension> _lazyAllExtensions;
-            private ImmutableDictionary<string, ImmutableArray<TExtension>>? _lazyExtensionsPerLanguage;
+            private ImmutableDictionary<string, ImmutableArray<TExtension>> _lazyExtensionsPerLanguage;
             private ImmutableDictionary<string, ImmutableHashSet<string>>? _lazyExtensionTypeNameMap;
 
             internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc)
@@ -348,6 +360,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 return builder.ToImmutable();
             }
+
+            internal bool IsLoaded(string language)
+                => _lazyExtensionsPerLanguage.ContainsKey(language);
 
             internal ImmutableArray<TExtension> GetExtensions(string language)
             {

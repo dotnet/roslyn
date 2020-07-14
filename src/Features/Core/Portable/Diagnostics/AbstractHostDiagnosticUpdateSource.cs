@@ -77,8 +77,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language, ProjectId projectId)
         {
-            var analyzers = analyzerReference.GetAnalyzers(language);
-            ClearAnalyzerDiagnostics(analyzers, projectId);
+            if (analyzerReference.TryGetAnalyzers(language, out var analyzers))
+            {
+                ClearAnalyzerDiagnostics(analyzers, projectId);
+            }
         }
 
         public void ClearAnalyzerDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
