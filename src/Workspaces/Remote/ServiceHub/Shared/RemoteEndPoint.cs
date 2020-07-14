@@ -217,11 +217,15 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, AssetStorages.Storage? storage, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix (the compiler cannot otherwise resolve this reference)
+        /// <param name="keepAliveCallback">An keep alive callback to use when constructing the
+        /// <see cref="T:Roslyn.Utilities.ObjectWriter"/>; otherwise, <see langword="null"/> if keep alive support is
+        /// not provided.</param>
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
+        public static Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Action<object>? keepAliveCallback, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
             => WriteDataToNamedPipeAsync(pipeName, data,
                 async (stream, data, cancellationToken) =>
                 {
-                    var keepAliveCallback = storage is object ? (Action<object>)storage.KeepAlive : null;
                     using var objectWriter = new ObjectWriter(stream, leaveOpen: true, keepAliveCallback, cancellationToken);
                     await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);

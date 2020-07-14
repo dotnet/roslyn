@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 _disposed = true;
                 _storages.UnregisterSnapshot(SolutionInfo.ScopeId);
-                _storage.Dispose();
             }
 
             GC.SuppressFinalize(this);

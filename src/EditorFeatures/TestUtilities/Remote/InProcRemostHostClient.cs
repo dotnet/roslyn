@@ -75,10 +75,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         {
             var remotableDataService = _services.GetRequiredService<IRemotableDataService>();
             var storage = RemoteHostAssetSerialization.TryGetStorage(remotableDataService, scopeId);
+            var keepAliveCallback = storage is object ? (Action<object>)storage.KeepAlive : null;
             return RemoteEndPoint.WriteDataToNamedPipeAsync(
                 pipeName,
                 (scopeId, checksums),
-                storage,
+                keepAliveCallback,
                 (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(
                     writer, remotableDataService, data.scopeId, data.checksums, cancellationToken),
                 cancellationToken);

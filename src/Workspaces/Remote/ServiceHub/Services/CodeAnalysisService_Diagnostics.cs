@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await new DiagnosticComputer(solution.GetProject(projectId), _analyzerInfoCache).GetDiagnosticsAsync(
                         arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
 
-                    await RemoteEndPoint.WriteDataToNamedPipeAsync(pipeName, result, storage: null, (writer, data, cancellationToken) =>
+                    await RemoteEndPoint.WriteDataToNamedPipeAsync(pipeName, result, keepAliveCallback: null, (writer, data, cancellationToken) =>
                     {
                         var (diagnostics, telemetry) = DiagnosticResultSerializer.WriteDiagnosticAnalysisResults(writer, data, cancellationToken);
 

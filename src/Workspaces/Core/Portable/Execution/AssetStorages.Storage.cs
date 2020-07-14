@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// root tree node of checksum tree
         /// </summary>
-        public sealed class Storage : IDisposable
+        public sealed class Storage
         {
             private readonly ISerializerService _serializer;
             private readonly List<object> _keepAliveObjects = new List<object>();
@@ -33,11 +32,6 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 SolutionState = solutionState;
                 _serializer = SolutionState.Workspace.Services.GetRequiredService<ISerializerService>();
-            }
-
-            public void Dispose()
-            {
-                _keepAliveObjects.Clear();
             }
 
             public async ValueTask<RemotableData?> TryGetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
