@@ -1219,6 +1219,11 @@
         <target state="translated">назначение объединения</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="new">constant interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
         <target state="translated">ограничения универсального типа для делегата</target>

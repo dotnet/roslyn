@@ -1217,6 +1217,11 @@
         <target state="translated">atribuição de união</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="new">constant interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
         <target state="translated">restrições de tipo genérico delegate</target>
