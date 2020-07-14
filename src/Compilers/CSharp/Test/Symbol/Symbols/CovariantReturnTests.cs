@@ -474,11 +474,13 @@ namespace System.Runtime.CompilerServices
                     throw ExceptionUtilities.Unreachable;
                 references = references.Prepend(alternateCorlib).ToArray();
             }
+            var parseOptions = (CSharpParseOptions)comp.SyntaxTrees[0].Options;
             var result = CreateCompilation(
                 assignments,
                 references: references,
                 targetFramework: TargetFramework.Empty,
-                options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress));
+                options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress),
+                parseOptions: parseOptions);
 
             result.VerifyDiagnostics(expectedDiagnostics);
             var originalCorLib = comp.Assembly.CorLibrary;
@@ -3773,13 +3775,15 @@ public class Derived : Base2<string>
 
             if (useSeparateCompilation)
             {
-                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty);
+                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, parseOptions: parseOptions);
                 baseCompilation.VerifyDiagnostics();
                 var baseMetadata = baseCompilation.ToMetadataReference();
 
                 references = new[] { corlibRef, baseMetadata };
                 retargetReferences = new[] { corlib2Ref, baseMetadata };
                 compilationSource = source;
+
+                verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
@@ -3847,7 +3851,7 @@ public class Derived : Base2<string>
             var corlibRef = withCovariantCapableRuntime ? CorelibraryWithCovariantReturnSupport1 : CorelibraryWithoutCovariantReturnSupport1;
             var corlib2Ref = withCovariantCapableRuntime ? CorelibraryWithCovariantReturnSupport2 : CorelibraryWithoutCovariantReturnSupport2;
 
-            var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty);
+            var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, parseOptions: parseOptions);
             baseCompilation.VerifyDiagnostics();
             var baseMetadata = baseCompilation.ToMetadataReference();
 
@@ -3897,6 +3901,8 @@ public class Derived : Base2<string>
                 references = new[] { corlibRef, baseMetadata };
                 retargetReferences = new[] { corlib2Ref, baseMetadata };
                 compilationSource = source;
+
+                verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
@@ -4011,13 +4017,15 @@ public class Derived : Base<string>
             string compilationSource;
             if (useSeparateCompilation)
             {
-                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty);
+                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, parseOptions: parseOptions);
                 baseCompilation.VerifyDiagnostics();
                 var baseMetadata = baseCompilation.ToMetadataReference();
 
                 references = new[] { corlibRef, baseMetadata };
                 retargetReferences = new[] { corlib2Ref, baseMetadata };
                 compilationSource = source;
+
+                verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
@@ -4124,13 +4132,15 @@ public class Derived : Base<string>
 
             if (useSeparateCompilation)
             {
-                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty);
+                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, parseOptions: parseOptions);
                 baseCompilation.VerifyDiagnostics();
                 var baseMetadata = baseCompilation.ToMetadataReference();
 
                 references = new[] { corlibRef, baseMetadata };
                 retargetReferences = new[] { corlib2Ref, baseMetadata };
                 compilationSource = source;
+
+                verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
@@ -4231,13 +4241,15 @@ public class Derived : Base2<string>
 
             if (useSeparateCompilation)
             {
-                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty);
+                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, parseOptions: parseOptions);
                 baseCompilation.VerifyDiagnostics();
                 var baseMetadata = baseCompilation.ToMetadataReference();
 
                 references = new[] { corlibRef, baseMetadata };
                 retargetReferences = new[] { corlib2Ref, baseMetadata };
                 compilationSource = source;
+
+                verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
@@ -4392,7 +4404,7 @@ public class Derived : Base<object>
 
             if (useSeparateCompilation)
             {
-                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty);
+                var baseCompilation = CreateCompilation(baseSource, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, parseOptions: parseOptions);
                 var baseDiagnostic =
                     // (6,35): error CS0082: Type 'Base<Pbject>' already reserves a member called 'get_Prop' with the same parameter types
                     //     public virtual Pbject Prop => default(Pbject);
@@ -4403,6 +4415,8 @@ public class Derived : Base<object>
                 references = new[] { corlibRef, baseMetadata };
                 retargetReferences = new[] { corlib2Ref, baseMetadata };
                 compilationSource = source;
+
+                verify(RetargetingView(baseCompilation, compilationSource, expectedDiagnostics: expectedDiagnostics));
             }
             else
             {
@@ -4635,6 +4649,12 @@ class Derived : Container<int>.Base
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Container<T>.Base.M(int)", "Container<T>.Base.M(int)", "Derived").WithLocation(4, 26)
                 );
 
+            verify(RetargetingView(baseCompilation, source, expectedDiagnostics:
+                // (4,26): error CS0462: The inherited members 'Container<T>.Base.M(int)' and 'Container<T>.Base.M(int)' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override void M(int z) => throw null; // 3
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Container<T>.Base.M(int)", "Container<T>.Base.M(int)", "Derived").WithLocation(4, 26)
+                ));
+
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
             verify(RetargetingView(comp, "", new[] { baseMetadata }));
@@ -4692,6 +4712,12 @@ class Derived : Container<int>.Base
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Container<T>.Base.M(int)", "Container<T>.Base.M(T)", "Derived").WithLocation(4, 26)
                 );
 
+            verify(RetargetingView(baseCompilation, source, expectedDiagnostics:
+                // (4,26): error CS0462: The inherited members 'Container<T>.Base.M(int)' and 'Container<T>.Base.M(T)' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override void M(int w) => throw null; // 4
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Container<T>.Base.M(int)", "Container<T>.Base.M(T)", "Derived").WithLocation(4, 26)
+                ));
+
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
             verify(RetargetingView(comp, "", references: new[] { baseMetadata }));
@@ -4746,6 +4772,8 @@ class Derived : Base
             var comp = CreateCompilation(withCovariantReturns: withCovariantReturns, source, references: new[] { baseMetadata });
             comp.VerifyDiagnostics(
                 );
+
+            verify(RetargetingView(baseCompilation, source));
 
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
@@ -4805,6 +4833,12 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "get_P").WithArguments("Root<T>.get_P()", "Root<T>.get_P()", "Derived").WithLocation(4, 25)
                 );
 
+            verify(RetargetingView(baseCompilation, source, expectedDiagnostics:
+                // (4,25): error CS0462: The inherited members 'Root<T>.get_P()' and 'Root<T>.get_P()' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override int get_P() => throw null; // 3
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "get_P").WithArguments("Root<T>.get_P()", "Root<T>.get_P()", "Derived").WithLocation(4, 25)
+                ));
+
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
             verify(RetargetingView(comp, "", references: new[] { baseMetadata }));
@@ -4862,6 +4896,12 @@ class Derived : Base
                 //     public override void M(ref int a) => throw null; // 5
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Root<T>.M(ref int)", "Root<T>.M(ref T)", "Derived").WithLocation(4, 26)
                 );
+
+            verify(RetargetingView(baseCompilation, source, expectedDiagnostics:
+                // (4,26): error CS0462: The inherited members 'Root<T>.M(ref int)' and 'Root<T>.M(ref T)' have the same signature in type 'Derived', so they cannot be overridden
+                //     public override void M(ref int a) => throw null; // 5
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Root<T>.M(ref int)", "Root<T>.M(ref T)", "Derived").WithLocation(4, 26)
+                ));
 
             verify(SourceView(comp, ""));
             verify(CompilationReferenceView(comp, "", new[] { baseMetadata }));
