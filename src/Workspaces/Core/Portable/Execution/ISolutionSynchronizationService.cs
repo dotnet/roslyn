@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         ValueTask<PinnedRemotableDataScope> CreatePinnedRemotableDataScopeAsync(Solution solution, CancellationToken cancellationToken);
 
+        AssetStorages.Storage? TryGetStorage(int scopeId);
+
         /// <summary>
         /// Get <see cref="RemotableData"/> corresponding to given <see cref="Checksum"/>. 
         /// </summary>

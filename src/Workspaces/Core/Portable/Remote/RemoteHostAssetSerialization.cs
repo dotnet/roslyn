@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
+        public static AssetStorages.Storage? TryGetStorage(IRemotableDataService remotableDataService, int scopeId)
+        {
+            return remotableDataService.TryGetStorage(scopeId);
+        }
+
         public static async Task WriteDataAsync(ObjectWriter writer, IRemotableDataService remotableDataService, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             writer.WriteInt32(scopeId);

@@ -35,6 +35,14 @@ namespace Microsoft.CodeAnalysis.Execution
         public static Storage CreateStorage(SolutionState solutionState)
             => new Storage(solutionState);
 
+        public Storage? TryGetStorage(int scopeId)
+        {
+            if (!_storages.TryGetValue(scopeId, out var storage))
+                return null;
+
+            return storage;
+        }
+
         public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)

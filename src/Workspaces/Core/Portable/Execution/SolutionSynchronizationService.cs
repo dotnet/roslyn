@@ -47,11 +47,15 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync, cancellationToken))
                 {
-                    var storage = AssetStorages.CreateStorage(solution.State);
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                    return PinnedRemotableDataScope.Create(_assetStorages, storage, checksum);
+                    return PinnedRemotableDataScope.Create(_assetStorages, solution.State, checksum);
                 }
+            }
+
+            public AssetStorages.Storage? TryGetStorage(int scopeId)
+            {
+                return _assetStorages.TryGetStorage(scopeId);
             }
 
             public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)

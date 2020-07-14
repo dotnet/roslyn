@@ -42,17 +42,18 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public static PinnedRemotableDataScope Create(
             AssetStorages storages,
-            AssetStorages.Storage storage,
+            SolutionState solutionState,
             Checksum solutionChecksum)
         {
             Contract.ThrowIfNull(solutionChecksum);
 
             var solutionInfo = new PinnedSolutionInfo(
                 Interlocked.Increment(ref s_scopeId),
-                storage.SolutionState.BranchId == storage.SolutionState.Workspace.PrimaryBranchId,
-                storage.SolutionState.WorkspaceVersion,
+                solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
+                solutionState.WorkspaceVersion,
                 solutionChecksum);
 
+            var storage = AssetStorages.CreateStorage(solutionState);
             storages.RegisterSnapshot(solutionInfo.ScopeId, storage);
 
             return new PinnedRemotableDataScope(storages, storage, solutionInfo);
@@ -80,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 _disposed = true;
                 _storages.UnregisterSnapshot(SolutionInfo.ScopeId);
+                _storage.Dispose();
             }
 
             GC.SuppressFinalize(this);

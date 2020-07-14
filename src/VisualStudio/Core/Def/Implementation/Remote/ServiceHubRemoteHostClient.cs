@@ -205,9 +205,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, pipeName, cancellationToken))
                 {
+                    var storage = RemoteHostAssetSerialization.TryGetStorage(_remotableDataService, scopeId);
                     await RemoteEndPoint.WriteDataToNamedPipeAsync(
                         pipeName,
                         (scopeId, checksums),
+                        storage,
                         (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, _remotableDataService, data.scopeId, data.checksums, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 }

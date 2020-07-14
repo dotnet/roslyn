@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Execution;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -216,12 +217,19 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
+        public static Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, AssetStorages.Storage? storage, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
             => WriteDataToNamedPipeAsync(pipeName, data,
                 async (stream, data, cancellationToken) =>
                 {
-                    using var objectWriter = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken);
+                    using var objectWriter = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: storage is object, cancellationToken);
                     await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
+                    if (storage is object)
+                    {
+                        foreach (var obj in objectWriter.TakeKeepAliveObjects())
+                        {
+                            storage.KeepAlive(obj);
+                        }
+                    }
                 }, cancellationToken);
 
         public static async Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<Stream, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
