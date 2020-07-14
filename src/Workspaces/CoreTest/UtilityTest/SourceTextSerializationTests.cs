@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -28,9 +30,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 using var stream = SerializableBytes.CreateWritableStream();
 
-                using (var writer = new ObjectWriter(stream, leaveOpen: true))
+                ImmutableArray<object> keepAliveObjects;
+                using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
                 {
                     originalText.WriteTo(writer, CancellationToken.None);
+
+                    keepAliveObjects = writer.TakeKeepAliveObjects();
                 }
 
                 stream.Position = 0;
@@ -39,6 +44,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var recovered = SourceTextExtensions.ReadFrom(textService, reader, originalText.Encoding, CancellationToken.None);
 
                 Assert.Equal(originalText.ToString(), recovered.ToString());
+
+                foreach (var obj in keepAliveObjects)
+                    GC.KeepAlive(obj);
             }
         }
 

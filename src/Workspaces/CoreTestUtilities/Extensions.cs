@@ -24,18 +24,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
             var syncService = (RemotableDataServiceFactory.Service)service;
             var syncObject = (await syncService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
+            ImmutableArray<object> keepAliveObjects;
             using var stream = SerializableBytes.CreateWritableStream();
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 await syncObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+
+                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
-            using var reader = ObjectReader.TryGetReader(stream);
 
-            // deserialize bits to object
-            var serializer = syncService.Serializer_TestOnly;
-            return serializer.Deserialize<T>(syncObject.Kind, reader, CancellationToken.None);
+            try
+            {
+                using var reader = ObjectReader.TryGetReader(stream);
+
+                // deserialize bits to object
+                var serializer = syncService.Serializer_TestOnly;
+                return serializer.Deserialize<T>(syncObject.Kind, reader, CancellationToken.None);
+            }
+            finally
+            {
+                foreach (var obj in keepAliveObjects)
+                    GC.KeepAlive(obj);
+            }
         }
 
         public static ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(this ProjectChecksumCollection collection, IRemotableDataService service)

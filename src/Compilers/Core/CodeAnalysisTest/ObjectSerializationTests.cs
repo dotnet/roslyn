@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -39,14 +40,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var stream = new MemoryStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            ImmutableArray<object> keepAliveObjects;
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 writeAction(writer);
+
+                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
             readAction(reader);
+
+            foreach (var obj in keepAliveObjects)
+                GC.KeepAlive(obj);
         }
 
         private void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
@@ -59,14 +66,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var stream = new MemoryStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            ImmutableArray<object> keepAliveObjects;
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 writeAction(writer, value);
+
+                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
-            using var reader = ObjectReader.TryGetReader(stream);
-            return readAction(reader);
+
+            try
+            {
+                using var reader = ObjectReader.TryGetReader(stream);
+                return readAction(reader);
+            }
+            finally
+            {
+                foreach (var obj in keepAliveObjects)
+                    GC.KeepAlive(obj);
+            }
         }
 
         private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
@@ -1165,9 +1184,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var stream = new MemoryStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            ImmutableArray<object> keepAliveObjects;
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 writer.WriteEncoding(encoding);
+
+                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -1187,6 +1209,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expectedEncoding.CodePage, actualEncoding.CodePage);
             Assert.Equal(expectedEncoding.WebName, actualEncoding.WebName);
             Assert.Equal(expectedEncoding, actualEncoding);
+
+            foreach (var obj in keepAliveObjects)
+                GC.KeepAlive(obj);
         }
 
         [Fact]
@@ -1201,7 +1226,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
             }
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            ImmutableArray<object> keepAliveObjects;
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
@@ -1211,6 +1237,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         writer.WriteValue(instance);
                     }
                 }
+
+                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -1226,6 +1254,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
                 }
             }
+
+            foreach (var obj in keepAliveObjects)
+                GC.KeepAlive(obj);
         }
 
         [Fact]

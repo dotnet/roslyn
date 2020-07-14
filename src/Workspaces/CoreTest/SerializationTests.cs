@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -48,9 +50,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using var writerStream = new MemoryStream();
 
-            using (var writer = new ObjectWriter(writerStream, leaveOpen: true))
+            ImmutableArray<object> keepAliveObjects;
+            using (var writer = new ObjectWriter(writerStream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 versionStamp.WriteTo(writer);
+
+                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             using var readerStream = new MemoryStream(writerStream.ToArray());
@@ -58,6 +63,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
 
             Assert.Equal(versionStamp, deserializedVersionStamp);
+
+            foreach (var obj in keepAliveObjects)
+                GC.KeepAlive(obj);
         }
 
         private static void TestSymbolSerialization(Document document, string symbolName)

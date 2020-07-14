@@ -566,9 +566,12 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+                ImmutableArray<object> keepAliveObjects;
+                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
                 {
                     serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+
+                    keepAliveObjects = objectWriter.TakeKeepAliveObjects();
                 }
 
                 stream.Position = 0;
@@ -577,15 +580,21 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
                 var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                 Assert.Equal(sourceText.ToString(), newText.ToString());
+
+                foreach (var obj in keepAliveObjects)
+                    GC.KeepAlive(obj);
             }
 
             // test with wrong encoding that doesn't support serialization
             sourceText = SourceText.From("Hello", new NotSerializableEncoding());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+                ImmutableArray<object> keepAliveObjects;
+                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
                 {
                     serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+
+                    keepAliveObjects = objectWriter.TakeKeepAliveObjects();
                 }
 
                 stream.Position = 0;
@@ -594,6 +603,9 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
                 var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                 Assert.Equal(sourceText.ToString(), newText.ToString());
+
+                foreach (var obj in keepAliveObjects)
+                    GC.KeepAlive(obj);
             }
         }
 
@@ -613,10 +625,13 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
             void VerifyOptions(CompilationOptions originalOptions)
             {
+                ImmutableArray<object> keepAliveObjects;
                 using var stream = SerializableBytes.CreateWritableStream();
-                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
                 {
                     serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
+
+                    keepAliveObjects = objectWriter.TakeKeepAliveObjects();
                 }
 
                 stream.Position = 0;
@@ -627,6 +642,9 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
                 var recovered = serializer.CreateChecksum(recoveredOptions, CancellationToken.None);
 
                 Assert.Equal(original, recovered);
+
+                foreach (var obj in keepAliveObjects)
+                    GC.KeepAlive(obj);
             }
         }
 
@@ -708,9 +726,12 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            ImmutableArray<object> keepAliveObjects;
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+
+                keepAliveObjects = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -719,7 +740,16 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var assetFromStorage = new SolutionAsset(serializer.CreateChecksum(recovered, CancellationToken.None), recovered, serializer);
 
             Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
-            return assetFromStorage;
+
+            try
+            {
+                return assetFromStorage;
+            }
+            finally
+            {
+                foreach (var obj in keepAliveObjects)
+                    GC.KeepAlive(obj);
+            }
         }
 
         private static AnalyzerFileReference CreateShadowCopiedAnalyzerReference(TempRoot tempRoot)
