@@ -259,19 +259,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private bool TryNavigateToMappedFile(Workspace workspace, ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan)
         {
-            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
+            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
+            Contract.ThrowIfNull(vsWorkspace);
+            var results = ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var results = ThreadingContext.JoinableTaskFactory.Run(async () =>
-                {
-                    return await spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None).ConfigureAwait(true);
-                });
+                return await spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None).ConfigureAwait(true);
+            });
 
-                if (!results.IsDefaultOrEmpty)
+            if (!results.IsDefaultOrEmpty)
+            {
+                var mappedSpanResult = results.Single();
+                // TODO - Move to IOpenDocumentService - https://github.com/dotnet/roslyn/issues/45954
+                vsWorkspace.OpenDocumentFromPath(mappedSpanResult.FilePath, generatedDocument.Project.Id);
+                if (_runningDocumentTableEventTracker.TryGetBufferFromMoniker(mappedSpanResult.FilePath, out var textBuffer))
                 {
-                    var mappedSpanResult = results.Single();
-                    // TODO - Move to IOpenDocumentService - https://github.com/dotnet/roslyn/issues/45954
-                    vsWorkspace.OpenDocumentFromPath(mappedSpanResult.FilePath, generatedDocument.Project.Id);
-                    _runningDocumentTableEventTracker.TryGetBufferFromMoniker(mappedSpanResult.FilePath, out var textBuffer);
                     var vsTextSpan = new VsTextSpan
                     {
                         iStartIndex = mappedSpanResult.LinePositionSpan.Start.Character,
