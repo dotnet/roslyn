@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
-        Private Shared s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of ComposableCatalog) =
+        Private Shared ReadOnly s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of ComposableCatalog) =
             New Lazy(Of ComposableCatalog)(Function()
                                                Return TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.
                                                WithoutPartsOfTypes({
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Get
         End Property
 
-        Private Shared s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of IExportProviderFactory) =
+        Private Shared ReadOnly s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of IExportProviderFactory) =
             New Lazy(Of IExportProviderFactory)(Function()
                                                     Return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts)
                                                 End Function)

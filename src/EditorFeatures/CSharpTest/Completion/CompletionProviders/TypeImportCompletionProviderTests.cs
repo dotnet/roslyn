@@ -1020,7 +1020,7 @@ namespace Test
     class Program { }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1082,7 +1082,7 @@ namespace Test
     }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1141,7 +1141,7 @@ namespace Test
     class Program { }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test
@@ -1203,7 +1203,7 @@ namespace Test
     }
 }";
 
-            string expectedCodeAfterCommit = @"
+            var expectedCodeAfterCommit = @"
 using Foo;
 
 namespace Test

@@ -15,17 +15,18 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryPragmaSuppressions), Shared]
-    internal sealed class RemoveUnnecessaryPragmaSuppressionsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class RemoveUnnecessaryInlineSuppressionsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public RemoveUnnecessaryPragmaSuppressionsCodeFixProvider()
+        public RemoveUnnecessaryInlineSuppressionsCodeFixProvider()
         {
         }
 
@@ -38,10 +39,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             foreach (var diagnostic in context.Diagnostics)
             {
                 // Defensive check that we are operating on the diagnostic on a pragma.
-                if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).HasStructure)
+                if (root.FindNode(diagnostic.Location.SourceSpan) is { } node && syntaxFacts.IsAttribute(node) ||
+                    root.FindTrivia(diagnostic.Location.SourceSpan.Start).HasStructure)
                 {
                     context.RegisterCodeFix(
                         new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
@@ -58,22 +61,36 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // Our code fix ensures that we remove both the disable and restore directives with a single code fix application.
             // So, we need to ensure that we do not attempt to remove the same node multiple times when performing a FixAll in document operation.
             using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var processedNodes);
-
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             foreach (var diagnostic in diagnostics)
             {
-                RemoveNode(diagnostic.Location, editor, processedNodes);
+                RemoveNode(diagnostic.Location, editor, processedNodes, syntaxFacts);
 
                 foreach (var location in diagnostic.AdditionalLocations)
                 {
-                    RemoveNode(location, editor, processedNodes);
+                    RemoveNode(location, editor, processedNodes, syntaxFacts);
                 }
             }
 
             return Task.CompletedTask;
 
-            static void RemoveNode(Location location, SyntaxEditor editor, HashSet<SyntaxNode> processedNodes)
+            static void RemoveNode(
+                Location location,
+                SyntaxEditor editor,
+                HashSet<SyntaxNode> processedNodes,
+                ISyntaxFacts syntaxFacts)
             {
-                var node = editor.OriginalRoot.FindTrivia(location.SourceSpan.Start).GetStructure()!;
+                SyntaxNode node;
+                if (editor.OriginalRoot.FindNode(location.SourceSpan) is { } attribute &&
+                    syntaxFacts.IsAttribute(attribute))
+                {
+                    node = attribute;
+                }
+                else
+                {
+                    node = editor.OriginalRoot.FindTrivia(location.SourceSpan.Start).GetStructure()!;
+                }
+
                 if (processedNodes.Add(node))
                 {
                     editor.RemoveNode(node);
@@ -84,7 +101,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unnecessary_suppression, createChangedDocument, nameof(RemoveUnnecessaryPragmaSuppressionsCodeFixProvider))
+                : base(AnalyzersResources.Remove_unnecessary_suppression, createChangedDocument, nameof(RemoveUnnecessaryInlineSuppressionsCodeFixProvider))
             {
             }
         }

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
     <[UseExportProvider]>
     Public Class CodeFixServiceTests
 
-        Private _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
+        Private ReadOnly _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
 
         Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)

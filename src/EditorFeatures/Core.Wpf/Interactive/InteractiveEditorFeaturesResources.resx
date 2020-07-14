@@ -147,4 +147,7 @@
   <data name="The_CurrentWindow_property_may_only_be_assigned_once" xml:space="preserve">
     <value>The CurrentWindow property may only be assigned once.</value>
   </data>
+  <data name="Interactive_host_process_platform" xml:space="preserve">
+    <value>Interactive host process platform</value>
+  </data>
 </root>

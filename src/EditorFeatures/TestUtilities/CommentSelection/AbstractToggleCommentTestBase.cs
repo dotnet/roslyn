@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 {
     public abstract class AbstractToggleCommentTestBase
     {
-        abstract internal AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
+        internal abstract AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
 
-        abstract internal TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider);
+        internal abstract TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider);
 
         protected void ToggleComment(string markup, string expected)
             => ToggleCommentMultiple(markup, new string[] { expected });

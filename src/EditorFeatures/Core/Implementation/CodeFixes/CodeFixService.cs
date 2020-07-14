@@ -205,7 +205,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (result.Count > 0 && _fixerPriorityMap.TryGetValue(document.Project.Language, out var fixersForLanguage))
             {
                 // sort the result to the order defined by the fixers
+#pragma warning disable IDE0007 // Use implicit type - Explicit type is need to suppress an incorrect nullable warning on dereferencing the map.
                 ImmutableDictionary<CodeFixProvider, int> priorityMap = fixersForLanguage.Value;
+#pragma warning restore IDE0007 // Use implicit type
                 result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
 
                 int GetValue(CodeFixCollection c)
@@ -372,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        private async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
+        private static async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
             Document document, TextSpan span, CodeFixProvider fixer, bool isBlocking,
             ImmutableArray<Diagnostic> diagnostics,
             Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap,

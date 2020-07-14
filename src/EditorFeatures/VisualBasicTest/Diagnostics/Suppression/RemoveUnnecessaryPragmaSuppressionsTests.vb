@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
 
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)>
     <WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")>
-    Public NotInheritable Class RemoveUnnecessaryPragmaSuppressionsTests
+    Public NotInheritable Class RemoveUnnecessaryInlineSuppressionsTests
         Inherits AbstractUnncessarySuppressionDiagnosticTest
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
@@ -37,13 +37,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
 
         Friend Overrides ReadOnly Property CodeFixProvider As CodeFixProvider
             Get
-                Return New RemoveUnnecessaryPragmaSuppressionsCodeFixProvider()
+                Return New RemoveUnnecessaryInlineSuppressionsCodeFixProvider()
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property SuppressionAnalyzer As AbstractRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer
+        Friend Overrides ReadOnly Property SuppressionAnalyzer As AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer
             Get
-                Return New VisualBasicRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer()
+                Return New VisualBasicRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer()
             End Get
         End Property
 
@@ -123,6 +123,68 @@ Class C
         Dim x As Integer
         x = 1
     End Sub
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestRemoveUnnecessaryAttributeSuppression_Method() As Task
+            Await TestInRegularAndScript1Async($"
+Imports System
+Class C
+    [|<System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")>|]
+    Sub Method()
+        Dim x As Integer
+        x = 1
+    End Sub
+End Class", $"
+Imports System
+Class C
+    Sub Method()
+        Dim x As Integer
+        x = 1
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestRemoveUnnecessaryAttributeSuppression_Field() As Task
+            Await TestInRegularAndScript1Async($"
+Imports System
+Class C
+    [|<System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")>|]
+    Dim f As Integer
+End Class", $"
+Imports System
+Class C
+    Dim f As Integer
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestRemoveUnnecessaryAttributeSuppression_Property() As Task
+            Await TestInRegularAndScript1Async($"
+Imports System
+Class C
+    [|<System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")>|]
+    Public ReadOnly Property P As Integer
+End Class", $"
+Imports System
+Class C
+    Public ReadOnly Property P As Integer
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestRemoveUnnecessaryAttributeSuppression_Event() As Task
+            Await TestInRegularAndScript1Async($"
+Imports System
+Class C
+    [|<System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")>|]
+    Public Event SampleEvent As EventHandler
+End Class", $"
+Imports System
+Class C
+    Public Event SampleEvent As EventHandler
 End Class")
         End Function
     End Class

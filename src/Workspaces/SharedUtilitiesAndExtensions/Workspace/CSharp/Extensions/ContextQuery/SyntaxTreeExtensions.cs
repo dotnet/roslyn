@@ -318,6 +318,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsLambdaDeclarationContext(
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxKind otherModifier,
+            CancellationToken cancellationToken)
+        {
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var token = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            if (syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken))
+            {
+                return true;
+            }
+
+            var modifierTokens = syntaxTree.GetPrecedingModifiers(position, token, out var beforeModifiersPosition);
+            if (modifierTokens.Count == 1 && modifierTokens.Contains(otherModifier))
+            {
+                if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
+                {
+                    // second appearance of "async" not followed by modifier: treat as parameter name
+                    if (syntaxTree.GetPrecedingModifiers(token.SpanStart, token).Contains(SyntaxKind.AsyncKeyword))
+                    {
+                        return false;
+                    }
+                }
+
+                leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
+                token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+
+                return syntaxTree.IsExpressionContext(beforeModifiersPosition, token, attributes: false, cancellationToken);
+            }
+
+            return false;
+        }
+
         public static bool IsLocalFunctionDeclarationContext(
             this SyntaxTree syntaxTree,
             int position,

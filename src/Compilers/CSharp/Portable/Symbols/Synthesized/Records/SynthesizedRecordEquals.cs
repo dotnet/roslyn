@@ -66,7 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
-                    // https://github.com/dotnet/roslyn/issues/45296 Deal with type mismatch for the EqualityContract
+                    if (!_equalityContract.Type.Equals(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions))
+                    {
+                        // There is a signature mismatch, an error was reported elsewhere
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
 
                     // There are no base record types.
                     // The definition of the method is as follows
@@ -85,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 F.Property(F.This(), _equalityContract),
                                                 F.Property(other, _equalityContract));
 
-                    retExpr = retExpr is null ? (BoundExpression)contractsEqual : F.LogicalAnd(retExpr, contractsEqual);
+                    retExpr = F.LogicalAnd(retExpr, contractsEqual);
                 }
                 else
                 {

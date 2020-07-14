@@ -206,6 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case DeclarationPattern:
                         return ((DeclarationPatternSyntax)parent).Type == node;
 
+                    case RecursivePattern:
+                        return ((RecursivePatternSyntax)parent).Type == node;
+
                     case TupleElement:
                         return ((TupleElementSyntax)parent).Type == node;
 
