@@ -1467,8 +1467,15 @@ tryAgain:
             {
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                 {
+                    var saveTerm2 = _termState;
+                    if (keyword.Kind == SyntaxKind.RecordKeyword)
+                    {
+                        _termState |= TerminatorState.IsEndOfMethodSignature;
+                    }
+
                     constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
                     this.ParseTypeParameterConstraintClauses(constraints);
+                    _termState = saveTerm2;
                 }
 
                 SyntaxToken semicolon;
@@ -1833,7 +1840,6 @@ tryAgain:
                     while (true)
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                            || this.CurrentToken.Kind == SyntaxKind.SemicolonToken
                             || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                             || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                         {

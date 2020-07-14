@@ -453,12 +453,15 @@ abstract record D
         public void RecordParsing_ConstraintsAndSemiColon_Class()
         {
             UsingTree("abstract class C<T> where T : class;",
-                // (1,36): error CS1514: { expected
+                // (1,36): error CS1003: Syntax error, ',' expected
                 // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 36),
-                // (1,36): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 36),
+                // (1,37): error CS1514: { expected
                 // abstract class C<T> where T : class;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 36)
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 37),
+                // (1,37): error CS1513: } expected
+                // abstract class C<T> where T : class;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 37)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -492,7 +495,63 @@ abstract record D
                     }
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
-                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
+        public void AbstractMethod_ConstrainsAndSemiColon()
+        {
+            UsingTree("abstract class C { abstract void M<T>() where T : class; }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.AbstractKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AbstractKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.TypeParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TypeParameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.TypeParameterConstraintClause);
+                        {
+                            N(SyntaxKind.WhereKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.ClassConstraint);
+                            {
+                                N(SyntaxKind.ClassKeyword);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -502,10 +561,8 @@ abstract record D
         [Fact, WorkItem(45538, "https://github.com/dotnet/roslyn/issues/45538")]
         public void RecordParsing_ConstraintsAndCurlyBraces()
         {
-            var tree = ParseTree("record R<T> where T : class { }", options: TestOptions.RegularPreview);
-            tree.GetDiagnostics().Verify();
+            UsingTree("record R<T> where T : class { }");
 
-            UsingNode((CSharpSyntaxNode)tree.GetRoot());
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.RecordDeclaration);
