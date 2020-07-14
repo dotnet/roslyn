@@ -805,12 +805,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                                 await computeTask.ConfigureAwait(false);
                             }
-                            catch (OperationCanceledException)
+                            catch (OperationCanceledException ex)
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
                                 if (!cancellationSource.IsCancellationRequested)
                                 {
-                                    throw;
+                                    throw ex;
                                 }
 
                                 suspended = true;
@@ -1031,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var task in executingTasks)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await task.Item1.ConfigureAwait(false);
+                    await WaitForExecutingTaskAsync(task.Item1).ConfigureAwait(false);
                 }
 
                 executingTasks.Clear();
@@ -1087,12 +1087,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    await executingTreeTask.Item1.ConfigureAwait(false);
+                    await WaitForExecutingTaskAsync(executingTreeTask.Item1).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private async Task WaitForExecutingTaskAsync(Task executingTask)
+        {
+            try
+            {
+                await executingTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Handle cancelled tasks gracefully.
             }
         }
 
