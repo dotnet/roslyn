@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis
             public GeneratorDriver? GeneratorDriver { get; }
             public bool NeedsFullGeneration { get; }
 
-            /* TODO: re-enable when PendingEdit is public again
+            // TODO: re-enable when PendingEdit is public again
+            #if false
             
             public TrackedGeneratorDriver WithPendingEdit(PendingEdit pendingEdit)
             {
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                     needsFullGeneration: false);
             }
 
-            */
+            #endif
         }
     }
 }
