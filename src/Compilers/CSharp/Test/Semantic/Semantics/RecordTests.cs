@@ -16385,7 +16385,7 @@ record C<T>([property: NotNull] T? P1, T? P2) where T : class
         }
 
         [Fact]
-        public void RecordWithConstraints()
+        public void RecordWithConstraints_NullableWarning()
         {
             var src = @"
 #nullable enable
@@ -16412,6 +16412,33 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("R2<T>", "T", "string?").WithLocation(11, 25)
                 );
             CompileAndVerify(comp, expectedOutput: "(R, R2)", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void RecordWithConstraints_ConstraintError()
+        {
+            var src = @"
+record R<T>(T P) where T : class;
+record R2<T>(T P) where T : class { }
+
+public class C
+{
+    public static void Main()
+    {
+        _ = new R<int>(1);
+        _ = new R2<int>(2);
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (10,19): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'R<T>'
+                //         _ = new R<int>(1);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("R<T>", "T", "int").WithLocation(10, 19),
+                // (11,20): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'R2<T>'
+                //         _ = new R2<int>(2);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("R2<T>", "T", "int").WithLocation(11, 20)
+                );
         }
     }
 }
