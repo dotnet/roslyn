@@ -1939,8 +1939,13 @@ done:
             // first BoundNode corresponds to the underlying EqualsValueSyntax of the initializer)
             if (_guardedNodeMap.Count > 0)
             {
-                Debug.Assert(_guardedNodeMap.ContainsKey(bindableRoot) ||
-                             _guardedNodeMap.ContainsKey(bind(bindableRoot, getDiagnosticBag(), out _).Syntax));
+                Debug.Assert(
+#if DEBUG
+                             !Compilation.NullableSemanticAnalysisEnabled ||
+#endif
+                             _guardedNodeMap.ContainsKey(bindableRoot) ||
+                             _guardedNodeMap.ContainsKey(bind(bindableRoot, getDiagnosticBag(), out _).Syntax)
+                             );
                 return;
             }
 
