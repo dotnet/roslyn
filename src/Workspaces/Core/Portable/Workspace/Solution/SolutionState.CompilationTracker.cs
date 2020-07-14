@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // We will finalize the compilation by adding full contents here.
-                    // PROTOTYPE: allow finalize compilation to incrementally update a prior version
+                    // TODO: allow finalize compilation to incrementally update a prior version
                     var compilationWithoutGeneratedFiles = compilation;
 
                     if (generatorDriver.GeneratorDriver != null)
