@@ -556,13 +556,13 @@ namespace Microsoft.CodeAnalysis
                 else if (kind == LocationKind.MetadataFile)
                 {
                     var assemblyResolution = ReadSymbolKey(out var assemblyFailureReason);
+                    var moduleName = ReadString();
+
                     if (assemblyFailureReason != null)
                     {
                         failureReason = $"{nameof(ReadLocation)} {nameof(assemblyResolution)} failed -> " + assemblyFailureReason;
                         return Location.None;
                     }
-
-                    var moduleName = ReadString();
 
                     // We may be resolving in a compilation where we don't have a module
                     // with this name.  In that case, just map this location to none.
