@@ -1179,6 +1179,11 @@
         <target state="translated">assignation de fusion</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="new">constant interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
         <target state="translated">contraintes de type générique de délégué</target>

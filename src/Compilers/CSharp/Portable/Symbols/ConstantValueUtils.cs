@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             var value = ConstantValue.Bad;
+            CheckLangVersionForConstantValue(boundValue, diagnostics);
             if (!boundValue.HasAnyErrors)
             {
                 if (typeSymbol.TypeKind == TypeKind.TypeParameter)
@@ -154,6 +155,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return value;
+        }
+
+        private sealed class CheckConstantInterpolatedStringValidity : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            internal readonly DiagnosticBag diagnostics;
+
+            public CheckConstantInterpolatedStringValidity(DiagnosticBag diagnostics)
+            {
+                this.diagnostics = diagnostics;
+            }
+
+            public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+            {
+                Binder.CheckFeatureAvailability(node.Syntax, MessageID.IDS_FeatureConstantInterpolatedStrings, diagnostics);
+                return null;
+            }
+        }
+
+        internal static void CheckLangVersionForConstantValue(BoundExpression expression, DiagnosticBag diagnostics)
+        {
+            if (!(expression.Type is null) && expression.Type.IsStringType())
+            {
+                var visitor = new CheckConstantInterpolatedStringValidity(diagnostics);
+                visitor.Visit(expression);
+            }
         }
     }
 }

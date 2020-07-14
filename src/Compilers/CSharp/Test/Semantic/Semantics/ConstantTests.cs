@@ -3510,22 +3510,54 @@ $""{F1} the {S2}"" --> Testing the Level 5 Number 3";
         }
 
         [Fact]
+        public void ConstantInterpolatedStringsContinued()
+        {
+            string source = @"
+public class A : System.Attribute  
+{  
+    private string name;
+    
+    public A(string name)  
+    {  
+        this.name = name;
+    }  
+}  
+
+[A($""ITEM"")]
+class C
+{
+    void M(string S1 = $""Testing"")
+    {
+        switch(S1){
+            case $""Level 5"":
+                break;
+            case $""Radio Noise"":
+                goto case $""Level 5"";
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ConstantInterpolatedStringsError()
         {
             string source = @"
 class C
 {
-    void M()
+    void M(string ParamDefault = ""Academy City"")
     {
         const string S1 = $""Testing"";
         const string S2 = $""{""Level 5""} {3}"";
         const string S3 = $""{$""{""Spinning Top"", 10}""}"";
+        const string S4 = $""{ParamDefault}"";
         const int I1 = 0;
         const string F1 = $""{I1}"";
         const string F2 = $""{I1} the {S1}"";
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (7,27): error CS0133: The expression being assigned to 'S2' must be constant
                 //         const string S2 = $"{"Level 5"} {3}";
@@ -3533,13 +3565,169 @@ class C
                 // (8,27): error CS0133: The expression being assigned to 'S3' must be constant
                 //         const string S3 = $"{$"{"Spinning Top", 10}"}";
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{$""{""Spinning Top"", 10}""}""").WithArguments("S3").WithLocation(8, 27),
-                // (10,27): error CS0133: The expression being assigned to 'F1' must be constant
+                // (9,27): error CS0133: The expression being assigned to 'S4' must be constant
+                //         const string S4 = $"{ParamDefault}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{ParamDefault}""").WithArguments("S4").WithLocation(9, 27),
+                // (11,27): error CS0133: The expression being assigned to 'F1' must be constant
                 //         const string F1 = $"{I1}";
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1}""").WithArguments("F1").WithLocation(10, 27),
-                // (11,27): error CS0133: The expression being assigned to 'F2' must be constant
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1}""").WithArguments("F1").WithLocation(11, 27),
+                // (12,27): error CS0133: The expression being assigned to 'F2' must be constant
                 //         const string F2 = $"{I1} the {S1}";
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1} the {S1}""").WithArguments("F2").WithLocation(11, 27)
-            );
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{I1} the {S1}""").WithArguments("F2").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsHybrid()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""Number "" + ""3"";
+        const string S2 = $""{""Level 5""} "" + S1;
+        const string F1 = $""{S1}"";
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+
+            var expected =
+@"$""Number "" + ""3"" --> Number 3
+$""Number "" --> Number 
+$""{""Level 5""} "" + S1 --> Level 5 Number 3
+$""{""Level 5""} "" --> Level 5 
+$""{S1}"" --> Number 3";
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsHybridError()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        
+        string NC1 = ""Teleporter"";
+        const string S1 = ""The"" + $""Number {3}"" + ""Level 5"";
+        const string S2 = $""Level 4 "" + NC1;
+        const string F1 = $""{S1}"";
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS0133: The expression being assigned to 'S1' must be constant
+                //         const string S1 = "The" + $"Number {3}" + "Level 5";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""The"" + $""Number {3}"" + ""Level 5""").WithArguments("S1").WithLocation(8, 27),
+                // (9,27): error CS0133: The expression being assigned to 'S2' must be constant
+                //         const string S2 = $"Level 4 " + NC1;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Level 4 "" + NC1").WithArguments("S2").WithLocation(9, 27),
+                // (10,27): error CS0133: The expression being assigned to 'F1' must be constant
+                //         const string F1 = $"{S1}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{S1}""").WithArguments("F1").WithLocation(10, 27));
+        }
+
+        [Fact]
+        public void ConstantInterpolatedStringsVersionError()
+        {
+            string source = @"
+public class A : System.Attribute  
+{  
+    private string name;
+    
+    public A(string name)  
+    {  
+        this.name = name;
+    }  
+}  
+
+[A($""ITEM"")]
+class C
+{
+    #pragma warning disable CS0219 // unused locals
+    void M1()
+    {
+        const string S1 = $""Testing"";
+        const string S2 = $""{""Level 5""} {""Number 3""}"";
+        const string S3 = $""{$""{""Spinning Top""}""}"";
+        const string S4 = $""Hybrid"" + ""Testing"" + ""123"";
+        const string S5 = ""Hybrid"" + ""Testing"" + $""321"";
+        const string F1 = $""{S1}"";
+        const string F2 = F1 + $"" the {S2}"";
+
+        string VS = ""Change"";
+        const string S6 = $""Failed to {VS}"";
+    }
+
+    void M2(string S1 = $""Testing"", object O1 = null)
+    {
+        switch(S1){
+            case $""Level 5"":
+                break;
+        }
+
+        switch(O1){
+            case $""Number 3"":
+                break;
+            case $""Radio Noise"":
+                goto case $""Number 3"";
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (15,27): error CS0133: The expression being assigned to 'S6' must be constant
+                //         const string S6 = $"Failed to {VS}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(27, 27));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,4): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // [A($"ITEM")]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""ITEM""").WithArguments("constant interpolated strings").WithLocation(12, 4),
+                // (18,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string S1 = $"Testing";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(18, 27),
+                // (19,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string S2 = $"{"Level 5"} {"Number 3"}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{""Level 5""} {""Number 3""}""").WithArguments("constant interpolated strings").WithLocation(19, 27),
+                // (20,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string S3 = $"{$"{"Spinning Top"}"}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{$""{""Spinning Top""}""}""").WithArguments("constant interpolated strings").WithLocation(20, 27),
+                // (21,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string S4 = $"Hybrid" + "Testing" + "123";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Hybrid""").WithArguments("constant interpolated strings").WithLocation(21, 27),
+                // (22,50): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string S5 = "Hybrid" + "Testing" + $"321";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""321""").WithArguments("constant interpolated strings").WithLocation(22, 50),
+                // (23,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string F1 = $"{S1}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{S1}""").WithArguments("constant interpolated strings").WithLocation(23, 27),
+                // (24,32): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string F2 = F1 + $" the {S2}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$"" the {S2}""").WithArguments("constant interpolated strings").WithLocation(24, 32),
+                // (27,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         const string S6 = $"Failed to {VS}";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Failed to {VS}""").WithArguments("constant interpolated strings").WithLocation(27, 27),
+                // (27,27): error CS0133: The expression being assigned to 'S6' must be constant
+                //         const string S6 = $"Failed to {VS}";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(27, 27),
+                // (30,25): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void M2(string S1 = $"Testing", object O1 = null)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(30, 25),
+                // (33,18): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             case $"Level 5":
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Level 5""").WithArguments("constant interpolated strings").WithLocation(33, 18),
+                // (38,18): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             case $"Number 3":
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(38, 18),
+                // (40,18): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             case $"Radio Noise":
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Radio Noise""").WithArguments("constant interpolated strings").WithLocation(40, 18),
+                // (41,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //                 goto case $"Number 3";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(41, 27));
         }
     }
 

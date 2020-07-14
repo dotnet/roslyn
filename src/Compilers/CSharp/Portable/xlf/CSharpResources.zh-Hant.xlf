@@ -1179,6 +1179,11 @@
         <target state="translated">聯合指派</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="new">constant interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
         <target state="translated">委派泛型類型條件約束</target>

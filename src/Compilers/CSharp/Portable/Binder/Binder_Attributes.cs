@@ -1057,6 +1057,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typedConstantKind = TypedConstantKind.Error;
                     }
 
+                    ConstantValueUtils.CheckLangVersionForConstantValue(node, diagnostics);
+
                     return CreateTypedConstant(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, simpleValue: constantValue.Value);
                 }
 
