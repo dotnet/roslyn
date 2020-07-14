@@ -63,13 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
                 return;
             }
 
-            var parent = node.Parent;
-            // If the parent node is null then it cannot be a member access, so do not report a diagnostic
-            if (parent is null)
-            {
-                return;
-            }
-
             // Current case can be effectively changed to a nameof instance so report a diagnostic
             var location = parent.GetLocation();
             context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, location, ReportDiagnostic.Hidden, additionalLocations: null,
