@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         protected abstract ParameterListSyntax GetParameterList();
 
-        protected virtual bool AllowRefOrOut => true;
+        protected abstract bool AllowRefOrOut { get; }
 #nullable restore
 
         internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsImplicitlyDeclared
+        public sealed override bool IsImplicitlyDeclared
         {
             get
             {

@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExpressionBodied => false;
 
-        public override bool IsImplicitlyDeclared => true;
-
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
         {
             offset = -1;

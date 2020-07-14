@@ -15647,7 +15647,7 @@ record R(ref int P1, out int P2);
 ";
 
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
+            comp.VerifyDiagnosticsAndEmitDiagnostics(
                 // (2,10): error CS0631: ref and out are not valid in this context
                 // record R(ref int P1, out int P2, in int P3);
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(2, 10),
@@ -15662,27 +15662,28 @@ record R(ref int P1, out int P2);
         {
             var src = @"
 record R(in int P1);
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R(42);
+        int i = 43;
+        var r2 = new R(in i);
+        System.Console.Write((r.P1, r2.P1));
+    }
+}
 ";
 
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43)");
 
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").GetMembers().ToTestDisplayStrings();
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "R R.<>Clone()",
-                "System.Type R.EqualityContract.get",
-                "System.Type R.EqualityContract { get; }",
                 "R..ctor(in System.Int32 P1)",
-                "System.Int32 R.<P1>k__BackingField",
-                "System.Int32 R.P1.get",
-                "void modreq(System.Runtime.CompilerServices.IsExternalInit) R.P1.init",
-                "System.Int32 R.P1 { get; init; }",
-                "System.Int32 R.GetHashCode()",
-                "System.Boolean R.Equals(System.Object? obj)",
-                "System.Boolean R.Equals(R? )",
-                "R..ctor(R )",
-                "void R.Deconstruct(out System.Int32 P1)"
+                "R..ctor(R )"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -15695,7 +15696,7 @@ record R(this int i);
 ";
 
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
+            comp.VerifyDiagnosticsAndEmitDiagnostics(
                 // (2,10): error CS0027: Keyword 'this' is not available in the current context
                 // record R(this int i);
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(2, 10)
@@ -15707,27 +15708,27 @@ record R(this int i);
         {
             var src = @"
 record R(params int[] Array);
+
+public class C
+{
+    public static void Main()
+    {
+        var r = new R(42, 43);
+        var r2 = new R(new[] { 44, 45 });
+        System.Console.Write((r.Array[0], r.Array[1], r2.Array[0], r2.Array[1]));
+    }
+}
 ";
 
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43, 44, 45)");
 
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").GetMembers().ToTestDisplayStrings();
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "R R.<>Clone()",
-                "System.Type R.EqualityContract.get",
-                "System.Type R.EqualityContract { get; }",
                 "R..ctor(params System.Int32[] Array)",
-                "System.Int32[] R.<Array>k__BackingField",
-                "System.Int32[] R.Array.get",
-                "void modreq(System.Runtime.CompilerServices.IsExternalInit) R.Array.init",
-                "System.Int32[] R.Array { get; init; }",
-                "System.Int32 R.GetHashCode()",
-                "System.Boolean R.Equals(System.Object? obj)",
-                "System.Boolean R.Equals(R? )",
-                "R..ctor(R )",
-                "void R.Deconstruct(out System.Int32[] Array)"
+                "R..ctor(R )"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
