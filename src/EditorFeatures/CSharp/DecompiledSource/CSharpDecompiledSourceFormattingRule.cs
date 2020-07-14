@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return operation ?? nextOperation.Invoke(in previousToken, in currentToken);
         }
 
-        private AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
+        private static AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             // To help code not look too tightly packed, we place a blank line after every statement that ends with a
             // `}` (unless it's also followed by another `}`).

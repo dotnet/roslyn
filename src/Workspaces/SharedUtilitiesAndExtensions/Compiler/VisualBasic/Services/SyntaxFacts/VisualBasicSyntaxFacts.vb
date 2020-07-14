@@ -893,9 +893,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
+        Public Function GetTopLevelAndMethodLevelMembers(root As SyntaxNode) As List(Of SyntaxNode) Implements ISyntaxFacts.GetTopLevelAndMethodLevelMembers
+            Dim list = New List(Of SyntaxNode)()
+            AppendMembers(root, list, topLevel:=True, methodLevel:=True)
+            Return list
+        End Function
+
         Public Function GetMethodLevelMembers(root As SyntaxNode) As List(Of SyntaxNode) Implements ISyntaxFacts.GetMethodLevelMembers
             Dim list = New List(Of SyntaxNode)()
-            AppendMethodLevelMembers(root, list)
+            AppendMembers(root, list, topLevel:=False, methodLevel:=True)
             Return list
         End Function
 
@@ -1056,14 +1062,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End If
         End Sub
 
-        Private Sub AppendMethodLevelMembers(node As SyntaxNode, list As List(Of SyntaxNode))
+        Private Sub AppendMembers(node As SyntaxNode, list As List(Of SyntaxNode), topLevel As Boolean, methodLevel As Boolean)
+            Debug.Assert(topLevel OrElse methodLevel)
+
             For Each member In node.GetMembers()
                 If IsTopLevelNodeWithMembers(member) Then
-                    AppendMethodLevelMembers(member, list)
+                    If topLevel Then
+                        list.Add(member)
+                    End If
+
+                    AppendMembers(member, list, topLevel, methodLevel)
                     Continue For
                 End If
 
-                If IsMethodLevelMember(member) Then
+                If methodLevel AndAlso IsMethodLevelMember(member) Then
                     list.Add(member)
                 End If
             Next

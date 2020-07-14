@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             }
         }
 
-        protected string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
+        protected static string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
         {
             if (topLevelStatement)
             {

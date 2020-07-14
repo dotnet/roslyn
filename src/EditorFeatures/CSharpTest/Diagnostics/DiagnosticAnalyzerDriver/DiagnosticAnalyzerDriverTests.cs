@@ -170,7 +170,7 @@ class C
             analyzer.VerifyAnalyzerOptions();
         }
 
-        private void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
+        private static void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
             var diagnosticService = new HostDiagnosticAnalyzers(new[] { new AnalyzerImageReference(ImmutableArray.Create(analyzer)) });
             diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache());
@@ -222,11 +222,11 @@ class C
                 => context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
 
             public void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
-                => context.RegisterSyntaxTreeAction(new SyntaxTreeAnalyzer().AnalyzeSyntaxTree);
+                => context.RegisterSyntaxTreeAction(SyntaxTreeAnalyzer.AnalyzeSyntaxTree);
 
             private class SyntaxTreeAnalyzer
             {
-                public void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+                public static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
                     => context.ReportDiagnostic(Diagnostic.Create(s_syntaxDiagnosticDescriptor, context.Tree.GetRoot().GetFirstToken().GetLocation()));
             }
         }
@@ -295,13 +295,13 @@ class C
             public void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<SyntaxKind> context)
             {
                 var blockAnalyzer = new CodeBlockAnalyzer();
-                context.RegisterCodeBlockEndAction(blockAnalyzer.AnalyzeCodeBlock);
-                context.RegisterSyntaxNodeAction(blockAnalyzer.AnalyzeNode, blockAnalyzer.SyntaxKindsOfInterest.ToArray());
+                context.RegisterCodeBlockEndAction(CodeBlockAnalyzer.AnalyzeCodeBlock);
+                context.RegisterSyntaxNodeAction(CodeBlockAnalyzer.AnalyzeNode, CodeBlockAnalyzer.SyntaxKindsOfInterest.ToArray());
             }
 
             private class CodeBlockAnalyzer
             {
-                public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
+                public static ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
                 {
                     get
                     {
@@ -309,11 +309,11 @@ class C
                     }
                 }
 
-                public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
+                public static void AnalyzeCodeBlock(CodeBlockAnalysisContext _)
                 {
                 }
 
-                public void AnalyzeNode(SyntaxNodeAnalysisContext context)
+                public static void AnalyzeNode(SyntaxNodeAnalysisContext context)
                 {
                     // Ensure only executable nodes are analyzed.
                     Assert.NotEqual(SyntaxKind.MethodDeclaration, context.Node.Kind());
@@ -624,7 +624,7 @@ class C
 
             diagnostics.Verify(expectedDiagnostics.Select(d => d.diagnostic).ToArray());
 
-            int index = 0;
+            var index = 0;
             foreach (var (_, expectedMessage) in expectedDiagnostics)
             {
                 Assert.Equal(expectedMessage, diagnostics[index].GetMessage());
