@@ -27,11 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
         Public Sub New()
         End Sub
 
-        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
-            Get
-                Return s_diagnosticIds
-            End Get
-        End Property
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = s_diagnosticIds
 
         Protected Overrides Function IsAsyncSupportingFunctionSyntax(node As SyntaxNode) As Boolean
             Return node.IsAsyncSupportedFunctionSyntax()
@@ -64,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
         End Function
 
         Protected Overrides Function AnalyzeControlFlow(semanticModel As SemanticModel, node As SyntaxNode) As ControlFlowAnalysis
-
             Dim methodBlock = TryCast(node, MethodBlockSyntax)
             If methodBlock IsNot Nothing Then
                 Dim statements = methodBlock.Statements
@@ -95,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier
         End Function
 
         Protected Overrides Function ConvertToBlockBody(node As SyntaxNode, expressionBody As SyntaxNode, editor As SyntaxEditor) As SyntaxNode
-            Throw New InvalidOperationException("Single line Async Sub is not supported by this code fixer")
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Protected Overrides Function TryGetExpressionBody(methodSymbolOpt As SyntaxNode, ByRef expression As SyntaxNode) As Boolean

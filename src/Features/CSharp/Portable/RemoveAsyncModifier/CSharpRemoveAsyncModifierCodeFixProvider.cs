@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier
                     _ => throw ExceptionUtilities.Unreachable
                 };
             }
+            
             return null;
         }
 

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
                 else
                 {
                     // move it to the return type.
-                    newModifiers = modifiers.RemoveAt(0);
+                    newModifiers = default;
                     newReturnType = newReturnType.WithPrependedLeadingTrivia(asyncLeadingTrivia);
                 }
             }

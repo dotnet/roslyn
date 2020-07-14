@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         {
             var generator = editor.Generator;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
             var knownTypes = new KnownTypes(compilation);
 
             foreach (var diagnostic in diagnostics)
@@ -74,14 +74,9 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         }
 
         private static IMethodSymbol GetMethodSymbol(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol methodSymbol)
-            {
-                return methodSymbol;
-            }
-
-            return semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
-        }
+            => semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol methodSymbol
+                ? methodSymbol
+                : semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
 
         private void RemoveAsyncModifier(SyntaxEditor editor, SemanticModel semanticModel, SyntaxNode originalNode, IMethodSymbol methodSymbol, KnownTypes knownTypes)
         {
@@ -95,7 +90,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             {
                 if (methodSymbol.ReturnType == knownTypes._taskType)
                 {
-                    // We need to add a return so we have to convert to a block body
+                    // We need to add a `return Task.CompletedTask;` so we have to convert to a block body
                     var blockBodiedNode = ConvertToBlockBody(replacementNode, expressionBody, editor);
 
                     // Expression bodied members can't have return statements so if we can't convert to a block
