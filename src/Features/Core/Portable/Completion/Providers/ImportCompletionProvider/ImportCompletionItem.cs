@@ -27,7 +27,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
             => Create(typeSymbol.Name, typeSymbol.Arity, containingNamespace, typeSymbol.GetGlyph(), genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, extensionMethodData: null);
 
-        public static CompletionItem Create(string name, int arity, string containingNamespace, Glyph glyph, string genericTypeSuffix, CompletionItemFlags flags, (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData)
+        public static CompletionItem Create(
+            string name,
+            int arity,
+            string containingNamespace,
+            Glyph glyph,
+            string genericTypeSuffix,
+            CompletionItemFlags flags,
+            (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData)
         {
             ImmutableDictionary<string, string>? properties = null;
 
@@ -108,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var compilation = (await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false));
-            var (symbol, overloadCount) = GetSymbol(item, compilation);
+            var (symbol, overloadCount) = GetSymbolAndOverloadCount(item, compilation);
 
             if (symbol != null)
             {
@@ -130,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static string GetFullyQualifiedName(string namespaceName, string typeName)
             => namespaceName.Length == 0 ? typeName : namespaceName + "." + typeName;
 
-        private static (ISymbol? symbol, int overloadCount) GetSymbol(CompletionItem item, Compilation compilation)
+        private static (ISymbol? symbol, int overloadCount) GetSymbolAndOverloadCount(CompletionItem item, Compilation compilation)
         {
             // If we have SymbolKey data (i.e. this is an extension method item), use it to recover symbol
             if (item.Properties.TryGetValue(MethodKey, out var methodSymbolKey))
@@ -153,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return (methodSymbol, overloadCount);
                 }
 
-                return (null, 0);
+                return default;
             }
 
             // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all
