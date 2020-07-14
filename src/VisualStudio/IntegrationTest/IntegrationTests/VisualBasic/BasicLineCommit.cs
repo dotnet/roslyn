@@ -18,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicLineCommit(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicLineCommit))
+        public BasicLineCommit(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicLineCommit))
         {
         }
 

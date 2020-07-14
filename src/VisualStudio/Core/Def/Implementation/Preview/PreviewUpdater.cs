@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             : base(threadingContext)
         {
             PreviewUpdater.TextView = textView;
-            Tagger = new PreviewTagger(textView, textView.TextBuffer);
+            Tagger = new PreviewTagger(textView.TextBuffer);
         }
 
         public void CloseWorkspace()

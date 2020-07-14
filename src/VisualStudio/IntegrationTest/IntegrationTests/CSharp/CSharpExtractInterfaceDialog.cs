@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
 
-        public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpExtractInterfaceDialog))
+        public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpExtractInterfaceDialog))
         {
         }
 

@@ -32,8 +32,8 @@ struct S
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpNavigationBar))
+        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpNavigationBar))
         {
         }
 

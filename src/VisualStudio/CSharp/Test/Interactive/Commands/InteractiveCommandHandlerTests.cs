@@ -21,10 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 Task.Run(() => { return 1; });";
         private const string ExampleCode2Line2 =
 @"Task.Run(() => { return 1; });";
-        private const string ExampleCode3 =
-@"Console.WriteLine(
-    ""InteractiveCommandHandlerExample"");";
-
         private const string ExampleMultiline =
 @"namespace N {
     void goo() {

@@ -60,9 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private bool IsClassView()
             => Helpers.IsClassView(_flags);
 
-        private bool IsFindSymbol()
-            => Helpers.IsFindSymbol(_flags);
-
         private ObjectListItem GetListItem(uint index)
         {
             var listItem = _items[(int)index];

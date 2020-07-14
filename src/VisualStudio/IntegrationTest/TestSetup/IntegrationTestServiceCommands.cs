@@ -44,7 +44,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         private IntegrationService _service;
         private IpcServerChannel _serviceChannel;
-        private ObjRef _marshalledService;
 
         private IntegrationTestServiceCommands(Package package)
         {
@@ -108,9 +107,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                     sinkProvider: DefaultSinkProvider
                 );
 
-                var serviceType = typeof(IntegrationService);
-                _marshalledService = RemotingServices.Marshal(_service, serviceType.FullName, serviceType);
-
                 _serviceChannel.StartListening(null);
 
                 var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
@@ -134,7 +130,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                     _serviceChannel = null;
                 }
 
-                _marshalledService = null;
                 _service = null;
 
                 var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();

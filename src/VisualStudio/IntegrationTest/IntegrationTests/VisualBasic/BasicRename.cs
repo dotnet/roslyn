@@ -22,8 +22,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.InlineRenameDialog;
 
-        public BasicRename(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicRename))
+        public BasicRename(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicRename))
         {
         }
 

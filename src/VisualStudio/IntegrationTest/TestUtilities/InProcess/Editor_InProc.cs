@@ -468,29 +468,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
 
-        private IUIAutomationElement FindDialog(string dialogAutomationName, bool isOpen, CancellationToken cancellationToken)
-        {
-            return Retry(
-                _ => FindDialogWorker(dialogAutomationName),
-                stoppingCondition: (automationElement, _) => isOpen ? automationElement != null : automationElement == null,
-                delay: TimeSpan.FromMilliseconds(250),
-                cancellationToken);
-        }
-
-        private static IUIAutomationElement FindDialogWorker(string dialogAutomationName)
-        {
-            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
-
-            var elementCondition = Helper.Automation.CreateAndConditionFromArray(
-                new[]
-                {
-                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, dialogAutomationName),
-                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ControlTypeProperty.Id, ControlType.Window.Id),
-                });
-
-            return vsAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, elementCondition);
-        }
-
         private static IUIAutomationElement FindNavigateTo()
         {
             var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);

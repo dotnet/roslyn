@@ -1169,16 +1169,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 使用下拉列表可查看和切换到此文件所属的其他项目。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">读取规则集文件 {0} 时出错 - {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
         <source>AnalyzerChangedOnDisk</source>
         <target state="translated">AnalyzerChangedOnDisk</target>

@@ -3767,46 +3767,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEFail()
         End Function
 
-        Private Shared Function GetMember(container As SyntaxNode, index As Integer) As StatementSyntax
-            If TypeOf container Is CompilationUnitSyntax Then
-                Return DirectCast(container, CompilationUnitSyntax).Members(index)
-            ElseIf TypeOf container Is NamespaceBlockSyntax Then
-                Return DirectCast(container, NamespaceBlockSyntax).Members(index)
-            ElseIf TypeOf container Is ClassBlockSyntax Then
-                Return DirectCast(container, ClassBlockSyntax).Members(index)
-            ElseIf TypeOf container Is InterfaceBlockSyntax Then
-                Return DirectCast(container, InterfaceBlockSyntax).Members(index)
-            ElseIf TypeOf container Is StructureBlockSyntax Then
-                Return DirectCast(container, StructureBlockSyntax).Members(index)
-            ElseIf TypeOf container Is ModuleBlockSyntax Then
-                Return DirectCast(container, ModuleBlockSyntax).Members(index)
-            ElseIf TypeOf container Is EnumBlockSyntax Then
-                Return DirectCast(container, EnumBlockSyntax).Members(index)
-            End If
-
-            Throw Exceptions.ThrowEFail()
-        End Function
-
-        Private Shared Function GetAttribute(container As SyntaxNode, index As Integer) As AttributeListSyntax
-            If TypeOf container Is CompilationUnitSyntax Then
-                Dim compilationUnit = DirectCast(container, CompilationUnitSyntax).Attributes(index).AttributeLists(0)
-            ElseIf TypeOf container Is TypeBlockSyntax Then
-                Return DirectCast(container, TypeBlockSyntax).BlockStatement.AttributeLists(index)
-            ElseIf TypeOf container Is EnumMemberDeclarationSyntax Then
-                Return DirectCast(container, EnumMemberDeclarationSyntax).AttributeLists(index)
-            ElseIf TypeOf container Is MethodBlockBaseSyntax Then
-                Return DirectCast(container, MethodBlockBaseSyntax).BlockStatement.AttributeLists(index)
-            ElseIf TypeOf container Is PropertyBlockSyntax Then
-                Return DirectCast(container, PropertyBlockSyntax).PropertyStatement.AttributeLists(index)
-            ElseIf TypeOf container Is FieldDeclarationSyntax Then
-                Return DirectCast(container, FieldDeclarationSyntax).AttributeLists(index)
-            ElseIf TypeOf container Is ParameterSyntax Then
-                Return DirectCast(container, ParameterSyntax).AttributeLists(index)
-            End If
-
-            Throw Exceptions.ThrowEFail()
-        End Function
-
         Protected Overrides Function InsertAttributeArgumentIntoContainer(index As Integer, attributeArgument As SyntaxNode, container As SyntaxNode) As SyntaxNode
             If TypeOf container Is AttributeSyntax Then
                 Dim attribute = DirectCast(container, AttributeSyntax)

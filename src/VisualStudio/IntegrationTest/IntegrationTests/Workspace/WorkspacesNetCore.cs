@@ -15,8 +15,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class WorkspacesNetCore : WorkspaceBase
     {
-        public WorkspacesNetCore(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+        public WorkspacesNetCore(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
         }
 

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -28,11 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         internal ILibraryService LibraryService => _libraryService.Value;
 
-        private readonly IServiceProvider _serviceProvider;
         private readonly Lazy<ILibraryService> _libraryService;
-
         private readonly string _languageName;
-        private readonly __SymbolToolLanguage _preferredLanguage;
 
         private uint _classVersion;
         private uint _membersVersion;
@@ -47,15 +43,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
             Guid libraryGuid,
-            __SymbolToolLanguage preferredLanguage,
             IServiceProvider serviceProvider,
             IComponentModel componentModel,
             VisualStudioWorkspace workspace)
             : base(libraryGuid, serviceProvider)
         {
             _languageName = languageName;
-            _preferredLanguage = preferredLanguage;
-            _serviceProvider = serviceProvider;
 
             Workspace = workspace;
             Workspace.WorkspaceChanged += OnWorkspaceChanged;

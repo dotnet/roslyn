@@ -14,8 +14,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpReplIdeFeatures : AbstractInteractiveWindowTest
     {
-        public CSharpReplIdeFeatures(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpReplIdeFeatures(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

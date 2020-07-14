@@ -19,8 +19,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         private const string FileName = "Program.cs";
 
-        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

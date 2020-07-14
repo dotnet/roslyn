@@ -4,11 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,7 +18,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
@@ -34,11 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     {
         private readonly System.IServiceProvider _serviceProvider;
         private readonly VisualStudioProjectFactory _visualStudioProjectFactory;
-        private readonly VisualStudioWorkspaceImpl _vsWorkspace;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly Lazy<RunningDocumentTable> _rdt;
         private readonly IVsSolution _vsSolution;
+#pragma warning disable IDE0052 // Remove unread private members - stores the AdviseSolutionEvents cookie.
         private readonly uint? _solutionEventsCookie;
+#pragma warning restore IDE0052 // Remove unread private members
         private uint? _rdtEventsCookie;
         private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new Dictionary<IVsHierarchy, VisualStudioProject>();
 
@@ -48,12 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             [Import(typeof(SVsServiceProvider))] System.IServiceProvider services,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IXamlDocumentAnalyzerService analyzerService,
-            VisualStudioWorkspaceImpl vsWorkspace,
             VisualStudioProjectFactory visualStudioProjectFactory)
         {
             _serviceProvider = services;
             _editorAdaptersFactory = editorAdaptersFactoryService;
-            _vsWorkspace = vsWorkspace;
             _visualStudioProjectFactory = visualStudioProjectFactory;
             _rdt = new Lazy<RunningDocumentTable>(() => new RunningDocumentTable(_serviceProvider));
             _vsSolution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));

@@ -26,8 +26,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpCodeActions(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpCodeActions))
+        public CSharpCodeActions(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpCodeActions))
         {
         }
 

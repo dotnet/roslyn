@@ -43,8 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
 
-        private readonly Dictionary<string, List<ParameterViewModel>> _parameterNameOverlapMap = new Dictionary<string, List<ParameterViewModel>>();
-
         /// <summary>
         /// The document where the symbol we are changing signature is defined.
         /// </summary>

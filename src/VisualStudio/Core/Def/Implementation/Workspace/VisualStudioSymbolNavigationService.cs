@@ -29,8 +29,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
@@ -40,10 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-        private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly VisualStudio14StructureTaggerProvider _outliningTaggerProvider;
 
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
@@ -51,12 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             : base(outliningTaggerProvider.ThreadingContext)
         {
             _serviceProvider = serviceProvider;
-            _outliningTaggerProvider = outliningTaggerProvider;
 
             var componentModel = _serviceProvider.GetService<SComponentModel, IComponentModel>();
             _editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            _textEditorFactoryService = componentModel.GetService<ITextEditorFactoryService>();
-            _textDocumentFactoryService = componentModel.GetService<ITextDocumentFactoryService>();
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
         }
 
@@ -337,13 +329,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             hierarchy = null;
             itemID = (uint)VSConstants.VSITEMID.Nil;
             return false;
-        }
-
-        private IVsRunningDocumentTable GetRunningDocumentTable()
-        {
-            var runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
-            RoslynDebug.Assert(runningDocumentTable != null);
-            return runningDocumentTable;
         }
     }
 }

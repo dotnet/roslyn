@@ -32,7 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IVsTextManager4 _textManager;
         private readonly IGlobalOptionService _optionService;
 
+#pragma warning disable IDE0052 // Remove unread private members - Seems like a bug that we Advise to the event sink, but do not Unadvise. TODO: File a bug.
         private readonly ComEventSink _textManagerEvents2Sink;
+#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         /// The mapping between language names and Visual Studio language service GUIDs.
