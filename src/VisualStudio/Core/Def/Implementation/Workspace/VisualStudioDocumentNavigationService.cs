@@ -135,8 +135,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             return TryNavigateToLocation(workspace,
                 documentId,
-                (_) => textSpan,
-                (text) => GetVsTextSpan(text, textSpan),
+                _ => textSpan,
+                text => GetVsTextSpan(text, textSpan),
                 options);
 
             static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan)
