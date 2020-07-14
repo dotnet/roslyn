@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
         {
-            var compilationWithAnalyzersData = await CompilationWithAnalyzersData.GetOrCreateAsync(_project, cancellationToken).ConfigureAwait(false);
+            var compilationWithAnalyzersData = await CompilationWithAnalyzersData.GetOrCreateAsync(
+                _project, isDocumentAnalysis: _document != null, cancellationToken).ConfigureAwait(false);
 
             var analyzers = GetAnalyzers(compilationWithAnalyzersData.AnalyzerToIdMap, analyzerIds);
             if (analyzers.IsEmpty)
@@ -169,11 +170,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             /// <summary>
             /// Cache of <see cref="CompilationWithAnalyzers"/> and a map from analyzer IDs to <see cref="DiagnosticAnalyzer"/>s
             /// for all analyzers for each project.
-            /// The <see cref="CompilationWithAnalyzers"/> instance is shared between all the following analyses modes for the project:
+            /// The <see cref="CompilationWithAnalyzers"/> instance is shared between all the following document analyses modes for the project:
             ///  1. Span-based analysis for active document (lightbulb)
             ///  2. Background analysis for active and open documents.
-            ///  3. Background project analysis.
-            ///  4. <see cref="DefaultDiagnosticAnalyzerService"/> computation for analyzer diagnostics.
+            ///  
+            /// NOTE: We do not re-use this cache for project analysis as it leads to significant memory increase in the OOP process,
+            /// and CWT does not seem to drop entries until ForceGC happens.
             /// </summary>
             private static readonly ConditionalWeakTable<Project, CompilationWithAnalyzersData> s_cache
                 = new ConditionalWeakTable<Project, CompilationWithAnalyzersData>();
@@ -187,8 +189,17 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             public BidirectionalMap<string, DiagnosticAnalyzer> AnalyzerToIdMap { get; }
             public CompilationWithAnalyzers CompilationWithAnalyzers { get; }
 
-            public static async Task<CompilationWithAnalyzersData> GetOrCreateAsync(Project project, CancellationToken cancellationToken)
+            public static async Task<CompilationWithAnalyzersData> GetOrCreateAsync(
+                Project project,
+                bool isDocumentAnalysis,
+                CancellationToken cancellationToken)
             {
+                if (!isDocumentAnalysis)
+                {
+                    // Only use cache for document analysis.
+                    return await CreateAsync(project, cancellationToken).ConfigureAwait(false);
+                }
+
                 if (s_cache.TryGetValue(project, out var data))
                 {
                     return data;
