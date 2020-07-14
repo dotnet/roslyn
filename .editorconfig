@@ -295,3 +295,6 @@ dotnet_diagnostic.IDE0051.severity = warning
 
 # IDE0052: Remove unread private member
 dotnet_diagnostic.IDE0052.severity = warning
+
+# IDE0059: Unnecessary assignment to a value
+dotnet_diagnostic.IDE0059.severity = warning
