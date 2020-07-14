@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -1440,6 +1441,227 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "RAN");
             // Note: we do load the Clone method from metadata
+        }
+
+        [Fact]
+        public void WithExpr24()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(ref C other) : this(-1)
+    {
+    }
+
+    protected C(C other)
+    {
+        X = other.X; 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C.<>Clone", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr25()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(in C other) : this(-1)
+    {
+    }
+
+    protected C(C other)
+    {
+        X = other.X; 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C.<>Clone", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr26()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(out C other) : this(-1)
+    {
+        other = null;
+    }
+
+    protected C(C other)
+    {
+        X = other.X; 
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C.<>Clone", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr27()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(ref C other) : this(-1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C.<>Clone", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr28()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(in C other) : this(-1)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C.<>Clone", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void WithExpr29()
+        {
+            string source = @"
+record C(int X)
+{
+    public static void Main()
+    {
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        System.Console.WriteLine(c1.X);
+        System.Console.WriteLine(c2.X);
+    }
+
+    protected C(out C other) : this(-1)
+    {
+        other = null;
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1
+11");
+
+            verifier.VerifyIL("C.<>Clone", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}
+");
         }
 
         [Fact]
@@ -15637,6 +15859,529 @@ record R(int P1, int* P2, delegate*<int> P3);";
 
             p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P3");
             Assert.True(p.HasPointerType);
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_01()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1)
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_02()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1)
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_03()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public abstract int P1 { get; init; }
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_04()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+
+public record Test(
+    [method: A]
+    int P1)
+{
+    [method: A]
+    void M1() {}
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new string[] { }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new string[] { }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new string[] { }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+                // (8,6): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field, property, param'. All attributes in this block will be ignored.
+                //     [method: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "field, property, param").WithLocation(8, 6)
+                );
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_05()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public virtual int P1 { get; init; }
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                Assert.Null(@class.GetMember<PropertySymbol>("P1"));
+                Assert.Null(@class.GetMember<FieldSymbol>("<P1>k__BackingField"));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+                // (27,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(27, 6),
+                // (28,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [property: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6)
+                );
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_06()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public int P1 { get; init; }
+}
+
+public record Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                Assert.Null(@class.GetMember<PropertySymbol>("P1"));
+                Assert.Null(@class.GetMember<FieldSymbol>("<P1>k__BackingField"));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics(
+                // (27,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(27, 6),
+                // (28,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+                //     [property: B]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "param").WithLocation(28, 6)
+                );
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "A":
+                        case "B":
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_07()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public abstract record Base
+{
+    public int P1 { get; init; }
+}
+
+public record Test(
+    [param: C]
+    [D]
+    int P1) : Base
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
+                {
+                    switch (a.AttributeClass!.Name)
+                    {
+                        case "C":
+                        case "D":
+                            return true;
+                    }
+
+                    return false;
+                }));
+            }
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_08()
+        {
+            string source = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+record C<T>([property: NotNull] T? P1, T? P2) where T : class
+{
+    protected C(C<T> other)
+    {
+        T x = P1;
+        T y = P2;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T y = P2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P2").WithLocation(10, 15)
+                );
         }
     }
 }
