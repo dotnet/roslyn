@@ -86,10 +86,14 @@ namespace Microsoft.CodeAnalysis
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 objectWriter.WriteInt32((int)kind);
                 @object.WriteTo(objectWriter);
+
+                // We aren't going to deserialize the data from this stream, so no need to keep referenced objects alive
+                // longer than the serialization code.
+                _ = objectWriter.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 writer.WriteInt32((int)kind);
 
@@ -108,6 +112,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     checksum.WriteTo(writer);
                 }
+
+                // We aren't going to deserialize the data from this stream, so no need to keep referenced objects alive
+                // longer than the serialization code.
+                _ = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -118,7 +126,7 @@ namespace Microsoft.CodeAnalysis
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 writer.WriteInt32((int)kind);
 
@@ -126,6 +134,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     writer.WriteByte(bytes[i]);
                 }
+
+                // We aren't going to deserialize the data from this stream, so no need to keep referenced objects alive
+                // longer than the serialization code.
+                _ = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -136,10 +148,14 @@ namespace Microsoft.CodeAnalysis
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true))
             {
                 objectWriter.WriteInt32((int)kind);
                 serializer.Serialize(value, objectWriter, CancellationToken.None);
+
+                // We aren't going to deserialize the data from this stream, so no need to keep referenced objects alive
+                // longer than the serialization code.
+                _ = objectWriter.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;

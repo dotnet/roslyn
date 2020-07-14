@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true, cancellationToken))
             {
                 switch (reference)
                 {
@@ -58,6 +58,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                     default:
                         throw ExceptionUtilities.UnexpectedValue(reference);
                 }
+
+                // We aren't going to deserialize the data from this stream, so no need to keep referenced objects alive
+                // longer than the serialization code.
+                _ = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
@@ -145,10 +149,14 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: false, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, canKeepObjectsAlive: true, cancellationToken))
             {
                 WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
+
+                // We aren't going to deserialize the data from this stream, so no need to keep referenced objects alive
+                // longer than the serialization code.
+                _ = writer.TakeKeepAliveObjects();
             }
 
             stream.Position = 0;
