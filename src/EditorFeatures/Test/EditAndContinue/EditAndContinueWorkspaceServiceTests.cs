@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 testReportTelemetry: data => EditAndContinueWorkspaceService.LogDebuggingSessionTelemetry(data, (id, message) => _telemetryLog.Add($"{id}: {message.GetMessage()}"), () => ++_telemetryId));
         }
 
-        private DebuggingSession StartDebuggingSession(EditAndContinueWorkspaceService service, CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
+        private static DebuggingSession StartDebuggingSession(EditAndContinueWorkspaceService service, CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
         {
             var solution = service.Test_GetWorkspace().CurrentSolution;
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return (debuggeeModuleInfo, moduleId);
         }
 
-        private SourceText CreateSourceTextFromFile(string path)
+        private static SourceText CreateSourceTextFromFile(string path)
         {
             using var stream = File.OpenRead(path);
             return SourceText.From(stream, Encoding.UTF8, SourceHashAlgorithm.Sha256);

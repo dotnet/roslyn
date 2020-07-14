@@ -31,10 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ErrorCode.Void,
                 ErrorCode.Unknown,
                 ErrorCode.WRN_ALinkWarn, // Not reported, but retained to allow configuring class of related warnings. See CSharpDiagnosticFilter.Filter.
-
-                // The following error codes are reserved by feature branches
-                ErrorCode.ERR_8820,
-                ErrorCode.ERR_8821,
             };
             foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
             {

@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Invariantly = MessageBase + 12663,
 
         IDS_FeatureAsync = MessageBase + 12668,
+        IDS_FeatureStaticAnonymousFunction = MessageBase + 12669,
 
         IDS_LIB_ENV = MessageBase + 12680,
         IDS_LIB_OPTION = MessageBase + 12681,
@@ -331,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_TopLevelStatements:
                 case MessageID.IDS_FeatureInitOnlySetters: // semantic check
                 case MessageID.IDS_FeatureRecords:
+                case MessageID.IDS_FeatureStaticAnonymousFunction: // syntax check
                 case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
                     return LanguageVersion.Preview;
 

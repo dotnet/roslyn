@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        private async Task TestAsync(string input, string expected)
+        private static async Task TestAsync(string input, string expected)
         {
             using var workspace = TestWorkspace.CreateCSharp(input);
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();

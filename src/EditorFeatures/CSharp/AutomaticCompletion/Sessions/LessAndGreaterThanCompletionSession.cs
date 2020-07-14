@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             return true;
         }
 
-        private bool PossibleTypeArgument(ITextSnapshot snapshot, SyntaxToken token, CancellationToken cancellationToken)
+        private static bool PossibleTypeArgument(ITextSnapshot snapshot, SyntaxToken token, CancellationToken cancellationToken)
         {
             // type argument can be easily ambiguous with normal < operations
             if (!(token.Parent is BinaryExpressionSyntax node) || node.Kind() != SyntaxKind.LessThanExpression || node.OperatorToken != token)
