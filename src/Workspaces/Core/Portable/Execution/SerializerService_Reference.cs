@@ -336,6 +336,11 @@ namespace Microsoft.CodeAnalysis.Serialization
                     return false;
                 }
 
+                if (!writer.KeepAlive(storage))
+                {
+                    return false;
+                }
+
                 pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
             }
 
