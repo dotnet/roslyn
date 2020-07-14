@@ -601,7 +601,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return false;
         }
 
-        public ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags, CancellationToken cancellationToken)
+        public ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags)
         {
             var projectIds = solution.ProjectIds;
             if (!projectIds.Any())

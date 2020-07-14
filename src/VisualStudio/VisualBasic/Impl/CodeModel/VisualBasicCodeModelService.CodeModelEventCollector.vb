@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     .ToArray()
             End Function
 
-            Private Shared Function IsMissingEndBlockError(statement As DeclarationStatementSyntax, [error] As String) As Boolean
+            Private Shared Function IsMissingEndBlockError([error] As String) As Boolean
                 Select Case [error]
                     Case "BC30481" ' Missing End Class
                         Return True
@@ -120,7 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     Return True
                 End If
 
-                Return errors.All(Function(e) IsMissingEndBlockError(statement, e.Id))
+                Return errors.All(Function(e) IsMissingEndBlockError(e.Id))
             End Function
 
             Private Shared Function IsValidTopLevelDeclaration(member As DeclarationStatementSyntax) As Boolean

@@ -37,10 +37,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IVsHierarchy hierarchy,
             string language,
             Guid projectGuid,
-            IServiceProvider serviceProviderNotUsed, // not used, but left for compat with TypeScript
+#pragma warning disable IDE0060 // Remove unused parameter - not used, but left for compat with TypeScript
+            IServiceProvider serviceProviderNotUsed,
+#pragma warning restore IDE0060 // Remove unused parameter
             VisualStudioWorkspaceImpl workspace,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+#pragma warning disable IDE0060 // Remove unused parameter - not used, but left for compat
             ICommandLineParserService commandLineParserServiceOpt = null)
+#pragma warning restore IDE0060 // Remove unused parameter
             : base(projectTracker.ThreadingContext)
         {
             Hierarchy = hierarchy;

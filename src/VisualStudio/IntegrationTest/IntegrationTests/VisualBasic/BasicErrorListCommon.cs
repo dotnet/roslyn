@@ -55,7 +55,7 @@ End Module
             Assert.Equal(expectedContents, actualContents);
             VisualStudio.ErrorList.NavigateToErrorListItem(0);
             VisualStudio.Editor.Verify.CaretPosition(43);
-            VisualStudio.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
+            VisualStudio.SolutionExplorer.BuildSolution();
             VisualStudio.ErrorList.ShowErrorList();
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);

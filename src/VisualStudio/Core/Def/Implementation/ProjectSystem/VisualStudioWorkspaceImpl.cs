@@ -752,15 +752,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (IsWebsite(project))
             {
-                AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, documentKind, initialText, info.FilePath);
+                AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, documentKind, initialText, info.FilePath);
             }
             else if (folders.Any())
             {
-                AddDocumentToFolder(project, info.Id, folders, info.Name, info.SourceCodeKind, documentKind, initialText, info.FilePath);
+                AddDocumentToFolder(project, info.Id, folders, info.Name, documentKind, initialText, info.FilePath);
             }
             else
             {
-                AddDocumentToProject(project, info.Id, info.Name, info.SourceCodeKind, documentKind, initialText, info.FilePath);
+                AddDocumentToProject(project, info.Id, info.Name, documentKind, initialText, info.FilePath);
             }
 
             var undoManager = TryGetUndoManager();
@@ -843,7 +843,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             EnvDTE.Project project,
             DocumentId documentId,
             string documentName,
-            SourceCodeKind sourceCodeKind,
             TextDocumentKind documentKind,
             SourceText? initialText = null,
             string? filePath = null)
@@ -855,7 +854,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, documentKind);
+            return AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, initialText, filePath, documentKind);
         }
 
         private ProjectItem AddDocumentToFolder(
@@ -863,7 +862,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DocumentId documentId,
             IEnumerable<string> folders,
             string documentName,
-            SourceCodeKind sourceCodeKind,
             TextDocumentKind documentKind,
             SourceText? initialText = null,
             string? filePath = null)
@@ -877,7 +875,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, documentKind);
+            return AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, initialText, filePath, documentKind);
         }
 
         private ProjectItem AddDocumentToProjectItems(
@@ -885,7 +883,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DocumentId documentId,
             string? folderPath,
             string documentName,
-            SourceCodeKind sourceCodeKind,
             SourceText? initialText,
             string? filePath,
             TextDocumentKind documentKind)
@@ -894,7 +891,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 Contract.ThrowIfNull(folderPath, "If we didn't have a file path, then we expected a folder path to generate the file path from.");
                 var baseName = Path.GetFileNameWithoutExtension(documentName);
-                var extension = documentKind == TextDocumentKind.Document ? GetPreferredExtension(documentId, sourceCodeKind) : Path.GetExtension(documentName);
+                var extension = documentKind == TextDocumentKind.Document ? GetPreferredExtension(documentId) : Path.GetExtension(documentName);
                 var uniqueName = projectItems.GetUniqueName(baseName, extension);
                 filePath = Path.Combine(folderPath, uniqueName);
             }
@@ -1204,7 +1201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
+        private string GetPreferredExtension(DocumentId documentId)
         {
             // No extension was provided.  Pick a good one based on the type of host project.
             return CurrentSolution.GetRequiredProject(documentId.ProjectId).Language switch

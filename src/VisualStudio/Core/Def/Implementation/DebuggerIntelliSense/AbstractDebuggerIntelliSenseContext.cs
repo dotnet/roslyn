@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             var viewSnapshot = _textView.TextSnapshot;
             _immediateWindowContext = null;
             var debuggerMappedSpan = isImmediateWindow
-                ? CreateImmediateWindowProjectionMapping(document, out _immediateWindowContext)
+                ? CreateImmediateWindowProjectionMapping(out _immediateWindowContext)
                 : viewSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
             // Wrap the original ContextBuffer in a projection buffer that we can make read-only
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _textView.TextBuffer.ChangeContentType(contentType, null);
         }
 
-        private ITrackingSpan CreateImmediateWindowProjectionMapping(Document document, out ImmediateWindowContext immediateWindowContext)
+        private ITrackingSpan CreateImmediateWindowProjectionMapping(out ImmediateWindowContext immediateWindowContext)
         {
             var caretLine = _textView.Caret.ContainingTextViewLine.Extent;
             var currentLineIndex = _textView.TextSnapshot.GetLineNumberFromPosition(caretLine.Start.Position);

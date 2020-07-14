@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
     {
-        internal sealed class VsLanguageDebugInfo
+        internal sealed class VsLanguageDebugInfo : IVsLanguageDebugInfo
         {
             private readonly Guid _languageId;
             private readonly TLanguageService _languageService;

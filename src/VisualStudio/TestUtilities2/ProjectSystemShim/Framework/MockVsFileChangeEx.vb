@@ -167,7 +167,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Throw New NotImplementedException()
         End Function
 
-        Public Function FilterDirectoryChangesAsync(cookie As UInteger, extensions As String(), Optional cancellationToken As CancellationToken = Nothing) As Task
+        Public Function FilterDirectoryChangesAsync(cookie As UInteger, extensions As String()) As Task
             _watchedDirectories.FirstOrDefault(Function(t) t.Cookie = cookie).ExtensionFilters = extensions
             Return Task.CompletedTask
         End Function

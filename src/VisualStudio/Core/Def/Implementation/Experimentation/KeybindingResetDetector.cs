@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             ReSharperStatus currentStatus;
             try
             {
-                currentStatus = await IsReSharperRunningAsync(lastStatus, cancellationToken)
+                currentStatus = await IsReSharperRunningAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// <summary>
         /// Returns true if ReSharper is installed, enabled, and not suspended.  
         /// </summary>
-        private async ValueTask<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, CancellationToken cancellationToken)
+        private async ValueTask<ReSharperStatus> IsReSharperRunningAsync(CancellationToken cancellationToken)
         {
             // Quick exit if resharper is either uninstalled or not enabled
             if (!_resharperExtensionInstalledAndEnabled)

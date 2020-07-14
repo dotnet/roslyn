@@ -39,7 +39,9 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("For a = 0 To 1 Step$$ 1", assertCaretPosition: true, trimWhitespace: true);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - TODO: File a bug to fix this helper to verify 'expectedCount'
         private void Verify(string marker, int expectedCount)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
             VisualStudio.Workspace.WaitForAllAsyncOperations(

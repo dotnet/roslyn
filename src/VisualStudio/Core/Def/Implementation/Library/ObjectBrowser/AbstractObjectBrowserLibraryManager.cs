@@ -324,7 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             Debug.Assert(listKind == ObjectListKind.Projects);
 
-            return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags, CancellationToken.None));
+            return new ObjectList(ObjectListKind.Projects, flags, this, this.GetProjectListItems(this.Workspace.CurrentSolution, _languageName, flags));
         }
 
         protected override uint GetUpdateCounter()

@@ -182,11 +182,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
                     public bool ReplacementTextValid => _inlineRenameLocationSet.IsReplacementTextValid(_replacementText);
 
-                    public IEnumerable<TextSpan> GetConflictSpans(DocumentId documentId)
-                    {
-                        yield break;
-                    }
-
                     public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
                     {
                         yield break;
