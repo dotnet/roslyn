@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
 
         private void AnalyzeTypeOfAction(OperationAnalysisContext context)
         {
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
             var node = context.Operation.Syntax;
+            var syntaxTree = node.SyntaxTree;
 
             // Make sure that the syntax that we're looking at is actually a typeof expression
             if (!(node is TypeOfExpressionSyntax))
