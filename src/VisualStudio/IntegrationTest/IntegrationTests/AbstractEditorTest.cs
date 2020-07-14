@@ -65,7 +65,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void SetUpEditor(string markupCode)
         {
-            MarkupTestFile.GetPosition(markupCode, out string code, out int caretPosition);
+            MarkupTestFile.GetPosition(markupCode, out var code, out int caretPosition);
 
             VisualStudio.Editor.DismissCompletionSessions();
             VisualStudio.Editor.DismissLightBulbSession();

@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 CloseSolution(saveExistingSolutionIfExists);
             }
 
-            string solutionPath = IntegrationHelper.CreateTemporaryPath();
+            var solutionPath = IntegrationHelper.CreateTemporaryPath();
             var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
             Directory.CreateDirectory(solutionPath);
@@ -1031,7 +1031,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var projects = _solution.Projects;
             EnvDTE.Project project = null;
-            for (int i = 1; i <= projects.Count; i++)
+            for (var i = 1; i <= projects.Count; i++)
             {
                 project = projects.Item(i);
                 if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)

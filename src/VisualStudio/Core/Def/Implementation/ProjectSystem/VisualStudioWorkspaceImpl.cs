@@ -1487,7 +1487,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                string languageName = CurrentSolution.GetRequiredProject(projectId).Language;
+                var languageName = CurrentSolution.GetRequiredProject(projectId).Language;
 
                 if (_projectReferenceInfoMap.TryGetValue(projectId, out var projectReferenceInfo))
                 {

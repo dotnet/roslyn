@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 if (inline != null)
                 {
-                    string inlineText = GetStringFromInline(inline);
+                    var inlineText = GetStringFromInline(inline);
                     if (!string.IsNullOrEmpty(inlineText))
                     {
                         sb.Append(inlineText);

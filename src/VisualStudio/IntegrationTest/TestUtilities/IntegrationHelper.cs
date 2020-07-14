@@ -334,7 +334,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static void AppendPrintableChar(char ch, StringBuilder builder)
         {
-            string text = GetPrintableCharText(ch);
+            var text = GetPrintableCharText(ch);
 
             if (text != null)
             {

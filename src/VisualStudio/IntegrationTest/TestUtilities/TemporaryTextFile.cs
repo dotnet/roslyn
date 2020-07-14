@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             IntegrationHelper.CreateDirectory(_path, deleteExisting: true);
 
-            using (FileStream stream = File.Create(FullName))
+            using (var stream = File.Create(FullName))
             {
             }
 

@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 firstNewLineIndex = replText.IndexOf(Environment.NewLine, lastSubmissionTextIndex);
             }
 
-            string lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
+            var lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
 
             return lastReplInputWithReplSubmissionText.Replace(ReplSubmissionText, string.Empty);
         }

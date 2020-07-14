@@ -31,13 +31,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public string[] GetAvailableCommands()
         {
-            List<string> result = new List<string>();
+            var result = new List<string>();
             var commands = GetDTE().Commands;
             foreach (Command command in commands)
             {
                 try
                 {
-                    string commandName = command.Name;
+                    var commandName = command.Name;
                     if (command.IsAvailable)
                     {
                         result.Add(commandName);

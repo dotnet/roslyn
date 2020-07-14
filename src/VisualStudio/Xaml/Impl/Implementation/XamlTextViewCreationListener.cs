@@ -74,19 +74,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 return;
             }
 
-            IVsUserData userData = textLines as IVsUserData;
+            var userData = textLines as IVsUserData;
             if (userData == null)
             {
                 return;
             }
 
-            Guid monikerGuid = typeof(IVsUserData).GUID;
+            var monikerGuid = typeof(IVsUserData).GUID;
             if (ErrorHandler.Failed(userData.GetData(ref monikerGuid, out var monikerObj)))
             {
                 return;
             }
 
-            string filePath = monikerObj as string;
+            var filePath = monikerObj as string;
             _rdt.Value.FindDocument(filePath, out var hierarchy, out _, out _);
             if (hierarchy == null)
             {
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         private void OnProjectClosing(IVsHierarchy hierarchy)
         {
-            if (_xamlProjects.TryGetValue(hierarchy, out VisualStudioProject project))
+            if (_xamlProjects.TryGetValue(hierarchy, out var project))
             {
                 project.RemoveFromWorkspace();
                 _xamlProjects.Remove(hierarchy);
@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             }
 
             // If the moniker change only involves a non-XAML project then ignore it.
-            if (!_xamlProjects.TryGetValue(hierarchy, out VisualStudioProject project))
+            if (!_xamlProjects.TryGetValue(hierarchy, out var project))
             {
                 return;
             }
@@ -169,8 +169,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         private void OnDocumentClosed(uint docCookie)
         {
-            RunningDocumentInfo info = _rdt.Value.GetDocumentInfo(docCookie);
-            if (info.Hierarchy != null && _xamlProjects.TryGetValue(info.Hierarchy, out VisualStudioProject project))
+            var info = _rdt.Value.GetDocumentInfo(docCookie);
+            if (info.Hierarchy != null && _xamlProjects.TryGetValue(info.Hierarchy, out var project))
             {
                 if (project.ContainsSourceFile(info.Moniker))
                 {
