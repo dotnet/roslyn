@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportUninitializedNonNullableReferenceTypeFields()
         {
-            Debug.Assert(_symbol.IsDefinition);
+            Debug.Assert(CurrentSymbol.IsDefinition);
 
             if (!State.Reachable)
             {
                 return;
             }
 
-            var method = (MethodSymbol)_symbol;
+            var method = (MethodSymbol)CurrentSymbol;
             bool isStatic = !method.RequiresInstanceReceiver();
 
             int thisSlot = -1;

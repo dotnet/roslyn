@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (_symbol is MethodSymbol method)
+                if (CurrentSymbol is MethodSymbol method)
                 {
                     do
                     {
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (_symbol is MethodSymbol method)
+                if (CurrentSymbol is MethodSymbol method)
                 {
                     var notNullMembers = sense ? method.NotNullWhenTrueMembers : method.NotNullWhenFalseMembers;
                     foreach (var memberName in notNullMembers)
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void makeNotNullMembersMaybeNull()
             {
-                if (_symbol is MethodSymbol method)
+                if (CurrentSymbol is MethodSymbol method)
                 {
                     do
                     {
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:
                         {
-                            var method = getTopLevelMethod(_symbol as MethodSymbol);
+                            var method = getTopLevelMethod(CurrentSymbol as MethodSymbol);
                             var thisParameter = method?.ThisParameter;
                             return (object)thisParameter != null ? GetOrCreateSlot(thisParameter) : -1;
                         }
@@ -3584,7 +3584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in getMembers(expressionType))
             {
                 HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
-                NamedTypeSymbol containingType = this._symbol?.ContainingType;
+                NamedTypeSymbol containingType = this.CurrentSymbol?.ContainingType;
                 if ((member is PropertySymbol { IsIndexedProperty: false } || member.Kind == SymbolKind.Field) &&
                     member.RequiresInstanceReceiver() &&
                     (containingType is null || AccessCheck.IsSymbolAccessible(member, containingType, ref discardedUseSiteDiagnostics)))
