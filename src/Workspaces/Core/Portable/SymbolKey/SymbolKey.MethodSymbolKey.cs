@@ -137,12 +137,6 @@ namespace Microsoft.CodeAnalysis
                 var metadataName = reader.ReadString();
 
                 var containingType = reader.ReadSymbolKey(out var containingTypeFailureReason);
-                if (containingTypeFailureReason != null)
-                {
-                    failureReason = $"({nameof(MethodSymbolKey)} {nameof(containingType)} failed -> {containingTypeFailureReason})";
-                    return default;
-                }
-
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
                 using var parameterRefKinds = reader.ReadRefKindArray();
@@ -193,6 +187,12 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     reader.PopMethod(methodOpt: null);
+                }
+
+                if (containingTypeFailureReason != null)
+                {
+                    failureReason = $"({nameof(MethodSymbolKey)} {nameof(containingType)} failed -> {containingTypeFailureReason})";
+                    return default;
                 }
 
                 return CreateResolution(result, $"({nameof(MethodSymbolKey)} '{metadataName}' not found)", out failureReason);

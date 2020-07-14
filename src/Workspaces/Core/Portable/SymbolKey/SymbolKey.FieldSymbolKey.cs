@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var metadataName = reader.ReadString();
                 var containingTypeResolution = reader.ReadSymbolKey(out var containingTypeFailureReason);
+
                 if (containingTypeFailureReason != null)
                 {
                     failureReason = $"({nameof(FieldSymbolKey)} {nameof(containingTypeResolution)} failed -> {containingTypeFailureReason})";

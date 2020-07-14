@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var elementTypeResolution = reader.ReadSymbolKey(out var elementTypeFailureReason);
+                var rank = reader.ReadInteger();
+
                 if (elementTypeFailureReason != null)
                 {
                     failureReason = $"({nameof(ArrayTypeSymbolKey)} {nameof(elementTypeResolution)} failed -> {elementTypeFailureReason})";
                     return default;
                 }
-
-                var rank = reader.ReadInteger();
 
                 using var result = PooledArrayBuilder<IArrayTypeSymbol>.GetInstance(elementTypeResolution.SymbolCount);
                 foreach (var typeSymbol in elementTypeResolution.OfType<ITypeSymbol>())

@@ -62,16 +62,17 @@ namespace Microsoft.CodeAnalysis
                 var name = reader.ReadString();
 
                 var containingSymbolResolution = ResolveContainer(reader, out var containingSymbolFailureReason);
+                var arity = reader.ReadInteger();
+
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+
                 if (containingSymbolFailureReason != null)
                 {
                     failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
                     return default;
                 }
 
-                var arity = reader.ReadInteger();
-
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
-                if (containingSymbolFailureReason != null)
+                if (typeArgumentsFailureReason != null)
                 {
                     failureReason = $"({nameof(ErrorTypeSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
                     return default;

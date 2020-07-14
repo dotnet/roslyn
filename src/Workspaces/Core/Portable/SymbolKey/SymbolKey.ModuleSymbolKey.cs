@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+
                 if (containingSymbolFailureReason != null)
                 {
                     failureReason = $"({nameof(ModuleSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
