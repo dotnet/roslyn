@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeofToNameof
 
             // Make sure the parent syntax is a member access expression otherwise the syntax is not the
             // kind of expression that we want to analyze
-            if (!(node.Parent is MemberAccessExpressionSyntax))
+            if (!(node.Parent is MemberAccessExpressionSyntax memberAccess))
             {
                 return;
             }
