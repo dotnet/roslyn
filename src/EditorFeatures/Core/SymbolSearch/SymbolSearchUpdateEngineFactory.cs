@@ -4,13 +4,12 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -19,6 +18,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// implementation produces an engine that will run in-process.  Implementations at
     /// other layers can behave differently (for example, running the engine out-of-process).
     /// </summary>
+    /// <remarks>
+    /// This returns an No-op engine on non-Windows OS, because the backing storage depends on Windows APIs.
+    /// </remarks>
     internal static partial class SymbolSearchUpdateEngineFactory
     {
         public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
@@ -36,10 +38,37 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.
-            return new SymbolSearchUpdateEngine(logService, progressService);
+            return CreateEngineInProcess(logService, progressService);
         }
 
-        private sealed partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine
+        /// <summary>
+        /// This returns a No-op engine if called on non-Windows OS, because the backing storage depends on Windows APIs.
+        /// </summary>
+        public static ISymbolSearchUpdateEngine CreateEngineInProcess(
+            ISymbolSearchLogService logService,
+            ISymbolSearchProgressService progressService)
+        {
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? new SymbolSearchUpdateEngine(logService, progressService)
+                : (ISymbolSearchUpdateEngine)new NoOpUpdateEngine();
+        }
+
+        private sealed class NoOpUpdateEngine : ISymbolSearchUpdateEngine
+        {
+            public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
+                => Task.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
+
+            public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
+                => Task.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
+
+            public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
+                => Task.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
+
+            public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
+                => Task.CompletedTask;
+        }
+
+        private sealed class RemoteUpdateEngine : ISymbolSearchUpdateEngine
         {
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 

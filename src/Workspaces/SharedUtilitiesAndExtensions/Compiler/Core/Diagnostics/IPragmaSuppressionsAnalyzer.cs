@@ -13,12 +13,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// Special IDE analyzer to flag unnecessary pragma suppressions.
+    /// Special IDE analyzer to flag unnecessary inline source suppressions,
+    /// i.e. pragma and local SuppressMessageAttribute suppressions.
     /// </summary>
     internal interface IPragmaSuppressionsAnalyzer
     {
         /// <summary>
-        /// Analyzes the tree, with an optional span scope, and report unnecessary pragma suppressions.
+        /// Analyzes the tree, with an optional span scope, and report unnecessary inline suppressions.
         /// </summary>
         Task AnalyzeAsync(
             SemanticModel semanticModel,

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             edit.Apply();
         }
 
-        protected async Task<int> GetSmartTokenFormatterIndentationAsync(
+        protected static async Task<int> GetSmartTokenFormatterIndentationAsync(
             string code,
             int indentationLine,
             char ch,

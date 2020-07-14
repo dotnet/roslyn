@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
-    Public Enum TestHost
+    Public Enum RenameTestHost
         InProcess
         ' Work out of process, marshaling to/from RenameSymbolAsync
         OutOfProcess_SingleCall

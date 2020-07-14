@@ -137,7 +137,7 @@
       "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dev16.7", "dev16.7p4" ],
-      "vsBranch": "master",
+      "vsBranch": "rel/d16.7",
       "vsMajorVersion": 16
     },
     "master-vs-deps": {

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class AnalyzerDriver<TLanguageKindEnum> : AnalyzerDriver where TLanguageKindEnum : struct
     {
         [StructLayout(LayoutKind.Auto)]
-        private struct CodeBlockAnalyzerActions
+        private struct ExecutableCodeBlockAnalyzerActions
         {
             public DiagnosticAnalyzer Analyzer;
             public ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> CodeBlockStartActions;
