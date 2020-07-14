@@ -18,13 +18,16 @@ namespace Analyzer.Utilities
     {
         private readonly bool _shouldCheckLambdas;
         private readonly string? _enablingMethodAttributeFullyQualifiedName;
+        private readonly bool _allowExcludedSymbolNames;
 
         private bool RequiresAttributeOnMethod => !string.IsNullOrEmpty(_enablingMethodAttributeFullyQualifiedName);
 
-        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas, string? enablingMethodAttributeFullyQualifiedName = null)
+        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas, string? enablingMethodAttributeFullyQualifiedName = null,
+            bool allowExcludedSymbolNames = false)
         {
             _shouldCheckLambdas = shouldCheckLambdas;
             _enablingMethodAttributeFullyQualifiedName = enablingMethodAttributeFullyQualifiedName;
+            _allowExcludedSymbolNames = allowExcludedSymbolNames;
         }
 
         protected abstract Diagnostic CreateDiagnostic(IMethodSymbol containingMethod, SyntaxToken catchKeyword);
@@ -69,7 +72,10 @@ namespace Analyzer.Utilities
 
                         foreach (var catchClause in walker.CatchClausesForDisallowedTypesWithoutRethrow)
                         {
-                            operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax.GetFirstToken()));
+                            if (!IsExcludedSymbol(catchClause.Syntax.SyntaxTree))
+                            {
+                                operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax.GetFirstToken()));
+                            }
                         }
                     }
 
@@ -78,6 +84,18 @@ namespace Analyzer.Utilities
                         IsConfiguredDisallowedExceptionType(type, method, compilationStartAnalysisContext.Compilation,
                             compilationStartAnalysisContext.Options, compilationStartAnalysisContext.CancellationToken);
 
+                    bool IsExcludedSymbol(SyntaxTree tree)
+                    {
+                        if (!_allowExcludedSymbolNames)
+                        {
+                            return false;
+                        }
+
+                        var excludedSymbols = operationBlockAnalysisContext.Options.GetExcludedSymbolNamesWithValueOption(SupportedDiagnostics[0], tree,
+                            operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken);
+
+                        return excludedSymbols.Contains(method);
+                    }
                 });
             });
         }
