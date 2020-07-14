@@ -5537,7 +5537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Conversion GenerateConversion(Conversions conversions, BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            bool useExpression = UseExpressionForConversion(sourceExpression);
+            bool useExpression = (sourceType is null) ? true : UseExpressionForConversion(sourceExpression);
             if (extensionMethodThisArgument)
             {
                 return conversions.ClassifyImplicitExtensionMethodThisArgConversion(
