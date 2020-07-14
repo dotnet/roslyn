@@ -6550,8 +6550,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
-        <target state="needs-review-translation">Anonyme Methoden, Lambdaausdrücke und Abfrageausdrücke innerhalb von Strukturen können nicht auf Instanzmember von "this" zugreifen. Kopieren Sie "this" in eine lokale Variable außerhalb der anonymen Methode, des Lambdaausdrucks oder des Abfrageausdrucks, und verwenden Sie die lokale Variable.</target>
+        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
+        <target state="translated">Anonyme Methoden, Lambdaausdrücke und Abfrageausdrücke innerhalb von Strukturen können nicht auf Instanzmember von "this" zugreifen. Kopieren Sie "this" in eine lokale Variable außerhalb der anonymen Methode, des Lambdaausdrucks oder des Abfrageausdrucks, und verwenden Sie die lokale Variable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">

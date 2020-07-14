@@ -6550,8 +6550,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
-        <target state="needs-review-translation">結構內部的匿名方法、Lambda 運算式和查詢運算式無法存取 'this' 的執行個體成員。請考慮將 'this' 複製到匿名方法、Lambda 運算式或查詢運算式外部的區域變數，並改用這個區域變數。</target>
+        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
+        <target state="translated">結構內部的匿名方法、Lambda 運算式和查詢運算式無法存取 'this' 的執行個體成員。請考慮將 'this' 複製到匿名方法、Lambda 運算式或查詢運算式外部的區域變數，並改用這個區域變數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">

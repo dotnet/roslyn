@@ -6550,8 +6550,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
-        <target state="needs-review-translation">Los métodos anónimos, las expresiones lambda y las expresiones de consulta incluidos en estructuras no pueden obtener acceso a miembros de instancia de 'this'. Puede copiar 'this' en una variable local fuera del método anónimo, la expresión lambda o la expresión de consulta y usar la variable local en su lugar.</target>
+        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
+        <target state="translated">Los métodos anónimos, las expresiones lambda y las expresiones de consulta incluidos en estructuras no pueden obtener acceso a miembros de instancia de 'this'. Puede copiar 'this' en una variable local fuera del método anónimo, la expresión lambda o la expresión de consulta y usar la variable local en su lugar.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">

@@ -6550,8 +6550,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
-        <target state="needs-review-translation">I metodi anonimi, le espressioni lambda e le espressioni di query all'interno delle strutture non possono accedere ai membri di istanza di 'this'. Provare a copiare 'this' in una variabile locale all'esterno del metodo anonimo, dell'espressione lambda o dell'espressione di query e usare tale variabile locale.</target>
+        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
+        <target state="translated">I metodi anonimi, le espressioni lambda e le espressioni di query all'interno delle strutture non possono accedere ai membri di istanza di 'this'. Provare a copiare 'this' in una variabile locale all'esterno del metodo anonimo, dell'espressione lambda o dell'espressione di query e usare tale variabile locale.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">

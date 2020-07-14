@@ -6550,8 +6550,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
-        <target state="needs-review-translation">구조체 안의 무명 메서드, 람다 식 및 쿼리 식은 'this'의 인스턴스 멤버에 액세스할 수 없습니다. 'this'를 무명 메서드, 람다 식 또는 쿼리 식 외부에 있는 지역 변수에 복사한 다음 이 지역 변수를 대신 사용하세요.</target>
+        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
+        <target state="translated">구조체 안의 무명 메서드, 람다 식 및 쿼리 식은 'this'의 인스턴스 멤버에 액세스할 수 없습니다. 'this'를 무명 메서드, 람다 식 또는 쿼리 식 외부에 있는 지역 변수에 복사한 다음 이 지역 변수를 대신 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">

@@ -6550,8 +6550,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
-        <target state="needs-review-translation">構造体内部の匿名メソッド、ラムダ式、またはクエリ式は、'this' のインスタンス メンバーにアクセスできません。'this' を匿名メソッド、ラムダ式、またはクエリ式の外部のローカル変数にコピーして、そのローカルを使用してください。</target>
+        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
+        <target state="translated">構造体内部の匿名メソッド、ラムダ式、またはクエリ式は、'this' のインスタンス メンバーにアクセスできません。'this' を匿名メソッド、ラムダ式、またはクエリ式の外部のローカル変数にコピーして、そのローカルを使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
