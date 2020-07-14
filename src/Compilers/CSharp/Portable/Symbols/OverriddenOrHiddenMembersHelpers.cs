@@ -129,8 +129,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return MakeInterfaceOverriddenOrHiddenMembers(member, memberIsFromSomeCompilation);
             }
 
+            ArrayBuilder<Symbol> hiddenBuilder;
+            ImmutableArray<Symbol> overriddenMembers;
+            FindOverriddenOrHiddenMembers(member, containingType, memberIsFromSomeCompilation, out hiddenBuilder, out overriddenMembers);
+
+            ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
+            return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers);
+        }
+
+        private static void FindOverriddenOrHiddenMembers(Symbol member, NamedTypeSymbol containingType, bool memberIsFromSomeCompilation,
+            out ArrayBuilder<Symbol> hiddenBuilder,
+            out ImmutableArray<Symbol> overriddenMembers)
+        {
             Symbol bestMatch = null;
-            ArrayBuilder<Symbol> hiddenBuilder = null;
+            hiddenBuilder = null;
 
             // A specific override exact match candidate, if one is known. This supports covariant returns, for which signature
             // matching is not sufficient. This member is treated as being as good as an exact match.
@@ -160,11 +172,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Based on bestMatch, find other methods that will be overridden, hidden, or runtime overridden
             // (in bestMatch.ContainingType).
-            ImmutableArray<Symbol> overriddenMembers;
             FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, bestMatch, out overriddenMembers, ref hiddenBuilder);
+        }
 
-            ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
-            return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers);
+        public static Symbol FindFirstHiddenMemberIfAny(Symbol member, bool memberIsFromSomeCompilation)
+        {
+            ArrayBuilder<Symbol> hiddenBuilder;
+            FindOverriddenOrHiddenMembers(member, member.ContainingType, memberIsFromSomeCompilation, out hiddenBuilder,
+                overriddenMembers: out _);
+
+            Symbol result = hiddenBuilder?.FirstOrDefault();
+            hiddenBuilder?.Free();
+
+            return result;
         }
 
         /// <summary>
