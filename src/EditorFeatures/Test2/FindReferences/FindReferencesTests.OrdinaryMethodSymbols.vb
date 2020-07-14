@@ -2433,6 +2433,42 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestForEachGetEnumeratorViaExtension(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class B
+{
+    public int Current { get; set; }
+    public bool MoveNext()
+    {
+        return false;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        [|foreach|] (var x in new C()) { }
+    }
+}
+
+public static class Extensions
+{
+    public static B {|Definition:$$GetEnumerator|}(this C c)
+    {
+        return null;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WorkItem(543002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543002")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestForEachMoveNext1(kind As TestKind, host As TestHost) As Task
