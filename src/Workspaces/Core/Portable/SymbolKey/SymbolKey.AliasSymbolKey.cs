@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var name = reader.ReadString();
                 var targetResolution = reader.ReadSymbolKey(out var targetFailureReason);
-                if (targetFailureReason == null)
+                if (targetFailureReason != null)
                 {
                     failureReason = $"({nameof(AliasSymbolKey)} {nameof(targetResolution)} failed -> {targetFailureReason})";
                     return default;
