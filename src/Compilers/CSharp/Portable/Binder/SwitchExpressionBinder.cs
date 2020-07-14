@@ -93,7 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // nulls is the job of the nullable walker.
             if (!hasErrors)
             {
-                var nodes = TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors);
+                bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors, out var nodes);
+                // Since decisionDag.RootNode is acyclic by construction, its subset of nodes sorted here cannot be cyclic
+                Debug.Assert(wasAcyclic);
                 foreach (var n in nodes)
                 {
                     if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)

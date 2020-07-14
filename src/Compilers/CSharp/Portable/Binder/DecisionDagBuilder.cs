@@ -809,7 +809,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ComputeBoundDecisionDagNodes(DecisionDag decisionDag, BoundLeafDecisionDagNode defaultDecision)
         {
-            RoslynDebug.Assert(_defaultLabel != null);
+            Debug.Assert(_defaultLabel != null);
+            Debug.Assert(defaultDecision != null);
+
+            // Process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
+            bool wasAcyclic = decisionDag.TryGetTopologicallySortedReachableStates(out ImmutableArray<DagState> sortedStates);
+            if (!wasAcyclic)
+            {
+                // If the dag contains a cycle, return a short-circuit dag instead.
+
+                // Since we intended the set of DagState nodes to be acyclic by construction, we do not know how
+                // this can happen, but since it does occasionally happen we need to recover gracefully to avoid
+                // crashing the compiler.  See also https://github.com/dotnet/roslyn/issues/45946
+                // If you figure out how it occurs, please modify the DagState construction process to avoid that.
+
+                decisionDag.RootNode.Dag = defaultDecision;
+                return;
+            }
 
             // We "intern" the dag nodes, so that we only have a single object representing one
             // semantic node. We do this because different states may end up mapping to the same
@@ -819,8 +835,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _ = uniqifyDagNode(defaultDecision);
 
-            // Process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
-            ImmutableArray<DagState> sortedStates = decisionDag.TopologicallySortedReachableStates();
             for (int i = sortedStates.Length - 1; i >= 0; i--)
             {
                 var state = sortedStates[i];
@@ -1332,10 +1346,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public ImmutableArray<DagState> TopologicallySortedReachableStates()
+            /// <summary>
+            /// Produce the states in topological order.
+            /// </summary>
+            /// <param name="result">Topologically sorted <see cref="DagState"/> nodes.</param>
+            /// <returns>True if the graph was acyclic.</returns>
+            public bool TryGetTopologicallySortedReachableStates(out ImmutableArray<DagState> result)
             {
-                // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
-                return TopologicalSort.IterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this.RootNode), Successor);
+                // 
+                return TopologicalSort.TryIterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this.RootNode), Successor, out result);
             }
 
 #if DEBUG
@@ -1345,7 +1364,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             internal string Dump()
             {
-                var allStates = this.TopologicallySortedReachableStates();
+                if (!this.TryGetTopologicallySortedReachableStates(out var allStates))
+                {
+                    return "(the dag contains a cycle!)";
+                }
+
                 var stateIdentifierMap = PooledDictionary<DagState, int>.GetInstance();
                 for (int i = 0; i < allStates.Length; i++)
                 {
