@@ -289,3 +289,9 @@ dotnet_diagnostic.IDE0043.severity = warning
 
 # IDE0044: Make field readonly
 dotnet_diagnostic.IDE0044.severity = warning
+
+# IDE0051: Remove unused private member
+dotnet_diagnostic.IDE0051.severity = warning
+
+# IDE0052: Remove unread private member
+dotnet_diagnostic.IDE0052.severity = warning
