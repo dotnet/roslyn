@@ -690,6 +690,38 @@ namespace Analyzer.Utilities.Extensions
 
             return thrownObject?.Type;
         }
+
+        /// <summary>
+        /// Determines if the one of the invocation's arguments' values is an argument of the specified type, and if so, find
+        /// the first one.
+        /// </summary>
+        /// <param name="invocationOperation">Invocation operation whose arguments to look through.</param>
+        /// <param name="firstFoundArgument">First found IArgumentOperation.Value of the specified type, order by the method's
+        /// signature's parameters (as opposed to how arguments are specified when invoked).</param>
+        /// <returns>True if one is found, false otherwise.</returns>
+        /// <remarks>
+        /// IInvocationOperation.Arguments are ordered by how they are specified, which may differ from the order in the method
+        /// signature if the caller specifies arguments by name. This will find the first typeof operation ordered by the
+        /// method signature's parameters.
+        /// </remarks>
+        public static bool HasArgument<TOperation>(
+            this IInvocationOperation invocationOperation,
+            [NotNullWhen(returnValue: true)] out TOperation? firstFoundArgument)
+            where TOperation : class, IOperation
+        {
+            firstFoundArgument = null;
+            int minOrdinal = int.MaxValue;
+            foreach (IArgumentOperation argumentOperation in invocationOperation.Arguments)
+            {
+                if (argumentOperation.Parameter.Ordinal < minOrdinal && argumentOperation.Value is TOperation to)
+                {
+                    minOrdinal = argumentOperation.Parameter.Ordinal;
+                    firstFoundArgument = to;
+                }
+            }
+
+            return firstFoundArgument != null;
+        }
     }
 }
 

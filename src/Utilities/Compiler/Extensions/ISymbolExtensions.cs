@@ -112,6 +112,30 @@ namespace Analyzer.Utilities.Extensions
                 propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && Equals(f.AssociatedSymbol, symbol));
         }
 
+        /// <summary>
+        /// Determines if the given symbol is a backing field for a property.
+        /// </summary>
+        /// <param name="symbol">This symbol to check.</param>
+        /// <param name="propertySymbol">The property that this field symbol is backing.</param>
+        /// <returns>True if the given symbol is a backing field for a property, false otherwise.</returns>
+        public static bool IsBackingFieldForProperty(
+            [NotNullWhen(returnValue: true)] this ISymbol? symbol,
+            [NotNullWhen(returnValue: true)] out IPropertySymbol? propertySymbol)
+        {
+            if (symbol is IFieldSymbol fieldSymbol
+                && fieldSymbol.IsImplicitlyDeclared
+                && fieldSymbol.AssociatedSymbol is IPropertySymbol p)
+            {
+                propertySymbol = p;
+                return true;
+            }
+            else
+            {
+                propertySymbol = null;
+                return false;
+            }
+        }
+
         public static bool IsUserDefinedOperator([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.UserDefinedOperator;
@@ -652,6 +676,48 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasAttribute(this ISymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
         {
             return attribute != null && symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
+        }
+
+        /// <summary>
+        /// Determines if the given symbol has the specified attributes.
+        /// </summary>
+        /// <param name="symbol">Symbol to examine.</param>
+        /// <param name="attributes">Type symbols of the attributes to check for.</param>
+        /// <returns>Boolean array, same size and order as <paramref name="attributes"/>, indicating that the corresponding
+        /// attirbute is present.</returns>
+        public static bool[] HasAttributes(this ISymbol symbol, params INamedTypeSymbol?[] attributes)
+        {
+            bool[] isAttributePresent = new bool[attributes.Length];
+            foreach (var attributeData in symbol.GetAttributes())
+            {
+                for (int i = 0; i < attributes.Length; i++)
+                {
+                    if (attributeData.AttributeClass.Equals(attributes[i]))
+                    {
+                        isAttributePresent[i] = true;
+                    }
+                }
+            }
+
+            return isAttributePresent;
+        }
+
+
+        /// <summary>
+        /// Gets enumeration of attributes that are of the specified type.
+        /// </summary>
+        /// <param name="symbol">This symbol whose attributes to get.</param>
+        /// <param name="attributeType">Type of attribute to look for.</param>
+        /// <returns>Enumeration of attributes.</returns>
+        [SuppressMessage("RoslyDiagnosticsPerformance", "RS0001:Use SpecializedCollections.EmptyEnumerable()", Justification = "Not available in all projects")]
+        public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, INamedTypeSymbol? attributeType)
+        {
+            if (attributeType == null)
+            {
+                return Enumerable.Empty<AttributeData>();
+            }
+
+            return symbol.GetAttributes().Where(attr => attr.AttributeClass.Equals(attributeType));
         }
 
         /// <summary>

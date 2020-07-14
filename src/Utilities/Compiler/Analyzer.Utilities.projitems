@@ -77,9 +77,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\CategorizedAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledSortedSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RuleLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayStringCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolByDisplayStringComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeNames.cs" />

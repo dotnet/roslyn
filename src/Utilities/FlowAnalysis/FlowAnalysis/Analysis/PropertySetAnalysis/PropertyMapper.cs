@@ -14,14 +14,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 #pragma warning restore CA1812
     {
         /// <summary>
-        /// Mapping from <see cref="ValueContentAbstractValue"/> of the property assignment value to a <see cref="PropertySetAbstractValueKind"/>
+        /// Mapping from <see cref="ValueContentAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>
         /// </summary>
         /// <param name="valueContentAbstractValue">Property's assigned value's <see cref="ValueContentAbstractValue"/>.</param>
         /// <returns>What the property's assigned value should map to.</returns>
         public delegate PropertySetAbstractValueKind ValueContentAbstractValueCallback(ValueContentAbstractValue valueContentAbstractValue);
 
         /// <summary>
-        /// Mapping from <see cref="PointsToAbstractValue"/> of the property assignment value to a <see cref="PropertySetAbstractValueKind"/>
+        /// Mapping from <see cref="PointsToAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>
         /// </summary>
         /// <param name="pointsToAbstractValue">Property's assigned value's <see cref="PointsToAbstractValue"/>.</param>
         /// <returns>What the property's assigned value should map to.</returns>

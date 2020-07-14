@@ -39,25 +39,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues);
 
         /// <summary>
-        /// Initializes a <see cref="ConstructorMapper"/> using constant <see cref="PropertySetAbstractValueKind"/>s whenever 
-        /// the type being tracked by PropertySetAnalysis is instantiated.
+        /// Initializes a <see cref="ConstructorMapper"/> using constant <see cref="PropertySetAbstractValueKind"/>s whenever the type being tracked by PropertySetAnalysis is instantiated.
         /// </summary>
-        /// <param name="propertyAbstractValueKinds">Constant <see cref="PropertySetAbstractValueKind"/>s, in the same order
-        /// that the corresponding <see cref="PropertyMapperCollection"/> was initialized with.</param>
-        public ConstructorMapper(ImmutableArray<PropertySetAbstractValueKind> propertyAbstractValueKinds)
+        /// <param name="propertyAbstractValues">Constant <see cref="PropertySetAbstractValueKind"/>s, in the same order that the corresponding <see cref="PropertyMapperCollection"/> was initialized with.</param>
+        public ConstructorMapper(ImmutableArray<PropertySetAbstractValueKind> propertyAbstractValues)
         {
-            this.PropertyAbstractValues = propertyAbstractValueKinds;
-        }
-
-        /// <summary>
-        /// Initializes a <see cref="ConstructorMapper"/> using constant <see cref="PropertySetAbstractValueKind"/>s whenever 
-        /// the type being tracked by PropertySetAnalysis is instantiated.
-        /// </summary>
-        /// <param name="propertyAbstractValueKinds">Constant <see cref="PropertySetAbstractValueKind"/>s, in the same order
-        /// that the corresponding <see cref="PropertyMapperCollection"/> was initialized with.</param>
-        public ConstructorMapper(params PropertySetAbstractValueKind[] propertyAbstractValueKinds)
-            : this(ImmutableArray.Create(propertyAbstractValueKinds))
-        {
+            this.PropertyAbstractValues = propertyAbstractValues;
         }
 
         /// <summary>

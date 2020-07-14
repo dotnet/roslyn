@@ -147,14 +147,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
         }
 
-        internal PropertySetAbstractValue ReplaceAt(int propertyIndex, PropertySetAbstractValueKind kind)
+        internal PropertySetAbstractValue ReplaceAt(int index, PropertySetAbstractValueKind kind)
         {
-            Debug.Assert(propertyIndex >= 0);
+            Debug.Assert(index >= 0);
 
             int newLength;
-            if (propertyIndex >= this.KnownPropertyAbstractValues.Length)
+            if (index >= this.KnownPropertyAbstractValues.Length)
             {
-                newLength = propertyIndex + 1;
+                newLength = index + 1;
             }
             else
             {
@@ -171,7 +171,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     kinds.Add(PropertySetAbstractValueKind.Unknown);
                 }
 
-                kinds[propertyIndex] = kind;
+                kinds[index] = kind;
                 return GetInstance(kinds);
             }
             finally

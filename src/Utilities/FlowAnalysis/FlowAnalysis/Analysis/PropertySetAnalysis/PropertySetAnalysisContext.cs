@@ -39,7 +39,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
-            InvocationMapperCollection invocationMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
             ImmutableDictionary<(INamedTypeSymbol, bool), string> hazardousUsageTypesToNames)
             : base(
@@ -63,7 +62,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             this.TypeToTrackMetadataNames = typeToTrackMetadataNames;
             this.ConstructorMapper = constructorMapper;
             this.PropertyMappers = propertyMappers;
-            this.InvocationMappers = invocationMappers;
             this.HazardousUsageEvaluators = hazardousUsageEvaluators;
             this.HazardousUsageTypesToNames = hazardousUsageTypesToNames;
         }
@@ -82,7 +80,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
-            InvocationMapperCollection invocationMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators)
         {
             return new PropertySetAnalysisContext(
@@ -101,7 +98,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 typeToTrackMetadataNames: typeToTrackMetadataNames,
                 constructorMapper: constructorMapper,
                 propertyMappers: propertyMappers,
-                invocationMappers: invocationMappers,
                 hazardousUsageEvaluators: hazardousUsageEvaluators,
                 hazardousUsageTypesToNames: hazardousUsageEvaluators.GetTypeToNameMapping(wellKnownTypeProvider));
         }
@@ -134,7 +130,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 this.TypeToTrackMetadataNames,
                 this.ConstructorMapper,
                 this.PropertyMappers,
-                this.InvocationMappers,
                 this.HazardousUsageEvaluators,
                 this.HazardousUsageTypesToNames);
         }
@@ -155,11 +150,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public PropertyMapperCollection PropertyMappers { get; }
 
         /// <summary>
-        /// How method invocations on tracked objects affect its <see cref="PropertySetAbstractValue"/>.
-        /// </summary>
-        public InvocationMapperCollection InvocationMappers { get; }
-
-        /// <summary>
         /// When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.
         /// </summary>
         public HazardousUsageEvaluatorCollection HazardousUsageEvaluators { get; }
@@ -172,7 +162,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             addPart(TypeToTrackMetadataNames.GetHashCode());
             addPart(ConstructorMapper.GetHashCode());
             addPart(PropertyMappers.GetHashCode());
-            addPart(InvocationMappers.GetHashCode());
             addPart(HazardousUsageEvaluators.GetHashCode());
         }
 #pragma warning restore CA1307 // Specify StringComparison

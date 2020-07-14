@@ -166,8 +166,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\HazardousUsageEvaluatorCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\HazardousUsageEvaluatorKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\HazardousUsageEvaluationResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\InvocationMapper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\InvocationMapperCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertyMapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertyMapperCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAbstractValueKind.cs" />
